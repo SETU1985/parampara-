@@ -247,7 +247,8 @@ const T={
   prefill_note:'✓ Body measurements auto-filled — just enter the Length for each',
   saved_meas:'saved', bill:'Bill', total:'Total', advance:'Advance', baaki_sub:'Balance (customer pays)',
   received:'Received', payments:'Payments', add_payment:'Payment', advance_taken:'Advance taken', pay_in_detail:'Add payments here', pay_amount:'Amount', pay_date:'Date', no_payments:'No payments yet', del_pay:'Delete this payment?',
-  stt_na:'Voice typing not supported in this browser', stt_err:'Could not hear — try again', stt_listening:'🎤 Listening… speak now', stt_done:'Added', dictate:'Speak',
+  stt_na:'Voice typing not supported in this browser', stt_err:'Could not hear — try again', stt_listening:'🎤 Listening… speak now', stt_done:'Added', dictate:'Speak', voice_lang:'Voice language',
+  add_option:'Add option', option_ph:'Type option (e.g. 2 button)', saved_options:'Saved options (tap 🗑️ to remove)', body_type:'Body type', add_type:'Add type', type_ph:'Type body type (e.g. Slim)',
   order_notes:'Order Notes', notes_ph:'Any general note…',
   photo_label:'Fabric / Reference Photo', add_photo:'Add photo',
   cancel:'Cancel', save_order:'Save Order', update:'Update', close:'Close',
@@ -300,7 +301,8 @@ const T={
   prefill_note:'✓ Body ka maap auto-bhar gaya — bas har item ki Length daalein',
   saved_meas:'maap', bill:'Bill', total:'Total', advance:'Advance', baaki_sub:'Baaki (customer dega)',
   received:'Mila', payments:'Payment', add_payment:'Payment aaya', advance_taken:'Advance liya', pay_in_detail:'Yahan payment add karein', pay_amount:'Amount', pay_date:'Date', no_payments:'Abhi koi payment nahi', del_pay:'Yeh payment hataayein?',
-  stt_na:'Is browser mein voice typing nahi chalti', stt_err:'Sunai nahi diya — dobara boliye', stt_listening:'🎤 Sun raha hoon… boliye', stt_done:'Jud gaya', dictate:'Bolo',
+  stt_na:'Is browser mein voice typing nahi chalti', stt_err:'Sunai nahi diya — dobara boliye', stt_listening:'🎤 Sun raha hoon… boliye', stt_done:'Jud gaya', dictate:'Bolo', voice_lang:'Voice bhasha',
+  add_option:'Option jodein', option_ph:'Option likhein (jaise 2 button)', saved_options:'Saved options (hatane ke liye 🗑️)', body_type:'Body type', add_type:'Type jodein', type_ph:'Body type likhein (jaise Slim)',
   order_notes:'Order Notes', notes_ph:'Koi general note…',
   photo_label:'Fabric / Reference Photo', add_photo:'Photo add karein',
   cancel:'Cancel', save_order:'Order Save', update:'Update', close:'Band karein',
@@ -376,7 +378,7 @@ const commonFor=c=>c==='lower'?LOWER_COMMON:(c==='upper'?UPPER_COMMON:[]);
 let DB={orders:[],customers:[]}, form=null, detailId=null;
 
 function load(){ try{const r=localStorage.getItem('pb_ob_v1'); if(r)DB=JSON.parse(r);}catch(e){}
-  if(!DB.orders)DB.orders=[]; if(!DB.customers)DB.customers=[]; if(!DB.designLib)DB.designLib={}; if(!DB.karigars)DB.karigars=[];
+  if(!DB.orders)DB.orders=[]; if(!DB.customers)DB.customers=[]; if(!DB.designLib)DB.designLib={}; if(!DB.karigars)DB.karigars=[]; if(!DB.bodyTypes)DB.bodyTypes=[];
   if(DB.customItems===undefined) DB.customItems=[
     {id:'ci_safa',n:'Safa',ico:'👳',cat:'custom',fields:[{k:'f_head',n:'Head',type:'number',options:[]}]},
     {id:'ci_juti',n:'Juti',ico:'👞',cat:'custom',fields:[{k:'f_type',n:'Type',type:'select',options:['Nagra','Loafer','Mojari']},{k:'f_size',n:'Size',type:'number',options:[]}]}
@@ -587,10 +589,10 @@ function openOrderForm(editId){
       orderDate:o.orderDate,deliveryDate:o.deliveryDate,items:[...(o.items||[])],
       m:JSON.parse(JSON.stringify(o.m||{})),design:JSON.parse(JSON.stringify(o.design||{})),
       notes:o.notes||'',total:o.total,advance:o.advance,photos:[...(o.photos||[])],voiceNotes:JSON.parse(JSON.stringify(o.voiceNotes||[])),
-      itemPhotos:JSON.parse(JSON.stringify(o.itemPhotos||{})),itemVoice:JSON.parse(JSON.stringify(o.itemVoice||{}))};
+      itemPhotos:JSON.parse(JSON.stringify(o.itemPhotos||{})),itemVoice:JSON.parse(JSON.stringify(o.itemVoice||{})),bodyType:o.bodyType||''};
   }else{
     form={editId:null,orderNo:nextOrderNo(),customerId:null,customerName:'',phone:'',
-      orderDate:new Date().toISOString().slice(0,10),deliveryDate:'',items:[],m:{},design:{},notes:'',total:'',advance:'',photos:[],voiceNotes:[],itemPhotos:{},itemVoice:{}};
+      orderDate:new Date().toISOString().slice(0,10),deliveryDate:'',items:[],m:{},design:{},notes:'',total:'',advance:'',photos:[],voiceNotes:[],itemPhotos:{},itemVoice:{},bodyType:''};
   }
   renderForm();
 }
@@ -607,7 +609,7 @@ function renderForm(){
     return `<div class="mcard"><div class="mh"><b>${g.ico} ${g.n}</b><button class="btn sm danger" onclick="toggleItem('${gid}')">${t('remove')}</button></div>
       <div class="mb"><div class="mgrid">${fields}</div>
       <div class="field" style="margin:10px 0 0"><label>${t('design_label')} ${micBtn('#design_'+gid)}</label><input id="design_${gid}" data-design="${gid}" value="${esc(f.design[gid]||'')}" placeholder="${t('design_ph')}"></div>
-      ${(DB.designLib[gid]&&DB.designLib[gid].length)?`<div class="gtags" style="margin-top:6px">${DB.designLib[gid].map(tok=>`<span class="gtag" data-dgid="${gid}" data-dtok="${esc(tok)}" style="cursor:pointer">+ ${esc(tok)}</span>`).join('')}</div>`:''}
+      <div class="gtags" style="margin-top:6px">${(DB.designLib[gid]||[]).map(tok=>`<span class="gtag" data-dgid="${gid}" data-dtok="${esc(tok)}" style="cursor:pointer">+ ${esc(tok)}</span>`).join('')}<span class="gtag" onclick="addDesignOption('${gid}')" style="cursor:pointer;border-style:dashed">➕ ${t('add_option')}</span></div>
       <div style="margin-top:10px"><div class="hint" style="margin-bottom:4px">📷 ${t('photo_label')}</div><div class="media-row" id="ip_${gid}"></div>
         <div class="row" style="margin-top:6px;gap:6px"><button class="btn sm ghost" onclick="pickItemPhoto('cam','${gid}')">📷 ${t('camera')}</button><button class="btn sm ghost" onclick="pickItemPhoto('lib','${gid}')">🖼️ ${t('gallery')}</button></div></div>
       <div style="margin-top:10px"><div class="hint" style="margin-bottom:4px">🎙️ ${t('voice_notes')}</div>${voiceSection('iv_'+gid)}</div>
@@ -625,6 +627,8 @@ function renderForm(){
     <div class="section-h">${t('items')}</div><div class="chip-grid">${gchips}</div>
     ${f.items.length?`<p class="prefilled-note">${t('prefill_note')}</p>`:''}
     <div id="measArea" style="margin-top:10px">${measCards}</div>
+    <div class="section-h">🧍 ${t('body_type')}</div>
+    <div class="gtags" id="btRow">${(DB.bodyTypes||[]).map(bt=>`<span class="gtag" data-bt="${esc(bt)}" style="cursor:pointer;${f.bodyType===bt?'background:var(--saffron);color:#1a1206;border-color:var(--saffron)':''}">${esc(bt)}</span>`).join('')}<span class="gtag" onclick="addBodyType()" style="cursor:pointer;border-style:dashed">➕ ${t('add_type')}</span></div>
     <div class="section-h">${t('bill')}</div>
     <div class="field" style="margin:0"><label>${t('total')} ₹</label><input id="f_total" type="number" inputmode="numeric" value="${esc(f.total)}" oninput="liveBaaki()" placeholder="0"></div>
     ${f.editId?`<p class="hint" style="margin-top:8px">💰 ${t('pay_in_detail')}</p>`:`
@@ -638,11 +642,29 @@ function renderForm(){
       <button class="btn primary" onclick="saveOrder()">${f.editId?t('update'):t('save_order')}</button></div><div class="fab-pad"></div>`;
   showSheet(); bindMeasInputs(); renderFormPhotos(); bindVoice('vn',()=>form.voiceNotes,null);
   document.querySelectorAll('[data-dtok]').forEach(ch=>ch.onclick=()=>appendDesign(ch.dataset.dgid,ch.dataset.dtok));
+  document.querySelectorAll('[data-bt]').forEach(ch=>ch.onclick=()=>setBodyType(ch.dataset.bt));
   sortItems(f.items).forEach(gid=>{ renderItemPhotos(gid); bindVoice('iv_'+gid,()=>itemVoiceList(gid),null); });
 }
 function appendDesign(gid,tok){const inp=document.querySelector('[data-design="'+gid+'"]');if(!inp)return;
   const parts=inp.value.trim()?inp.value.split('/').map(s=>s.trim()).filter(Boolean):[];
   if(parts.includes(tok))return; parts.push(tok); inp.value=parts.join(' / '); form.design[gid]=inp.value;}
+function addDesignOption(gid){captureForm();const g=G(gid);const list=(DB.designLib[gid]||[]);
+  const listHTML=list.length?`<div class="hint" style="margin:12px 0 4px">${t('saved_options')}</div>`+list.map((o,i)=>`<div class="kv"><span>${esc(o)}</span><span onclick="delDesignOption('${gid}',${i})" style="color:#d9534f;cursor:pointer">🗑️</span></div>`).join(''):'';
+  modal(t('add_option')+(g?' — '+g.n:''),`<div class="field"><input id="newopt" placeholder="${t('option_ph')}" autocomplete="off"></div>${listHTML}`,
+   [{label:t('close'),cls:'ghost',fn:()=>renderForm()},
+    {label:t('add'),cls:'primary',fn:()=>{const v=(($('#newopt')&&$('#newopt').value)||'').trim();if(!v){renderForm();return;}
+      DB.designLib[gid]=DB.designLib[gid]||[];if(!DB.designLib[gid].includes(v))DB.designLib[gid].push(v);
+      const parts=form.design[gid]?form.design[gid].split('/').map(s=>s.trim()).filter(Boolean):[];if(!parts.includes(v))parts.push(v);form.design[gid]=parts.join(' / ');
+      save();renderForm();}}]);}
+function delDesignOption(gid,i){if(DB.designLib[gid]){DB.designLib[gid].splice(i,1);save();}addDesignOption(gid);}
+function setBodyType(bt){captureForm();form.bodyType=(form.bodyType===bt?'':bt);renderForm();}
+function addBodyType(){captureForm();const list=(DB.bodyTypes||[]);
+  const listHTML=list.length?`<div class="hint" style="margin:12px 0 4px">${t('saved_options')}</div>`+list.map((o,i)=>`<div class="kv"><span>${esc(o)}</span><span onclick="delBodyType(${i})" style="color:#d9534f;cursor:pointer">🗑️</span></div>`).join(''):'';
+  modal('🧍 '+t('add_type'),`<div class="field"><input id="newbt" placeholder="${t('type_ph')}" autocomplete="off"></div>${listHTML}`,
+   [{label:t('close'),cls:'ghost',fn:()=>renderForm()},
+    {label:t('add'),cls:'primary',fn:()=>{const v=(($('#newbt')&&$('#newbt').value)||'').trim();if(!v){renderForm();return;}
+      DB.bodyTypes=DB.bodyTypes||[];if(!DB.bodyTypes.includes(v))DB.bodyTypes.push(v);form.bodyType=v;save();renderForm();}}]);}
+function delBodyType(i){if(DB.bodyTypes){DB.bodyTypes.splice(i,1);save();}addBodyType();}
 function itemVoiceList(gid){form.itemVoice=form.itemVoice||{};form.itemVoice[gid]=form.itemVoice[gid]||[];return form.itemVoice[gid];}
 async function renderItemPhotos(gid){const el=$('#ip_'+gid);if(!el)return;el.innerHTML='';
   const list=(form.itemPhotos&&form.itemPhotos[gid])||[];
@@ -744,10 +766,10 @@ function saveOrder(){
   f.items.forEach(gid=>{const toks=(f.design[gid]||'').split('/').map(s=>s.trim()).filter(Boolean);
     if(toks.length){DB.designLib[gid]=DB.designLib[gid]||[];toks.forEach(tk=>{if(!DB.designLib[gid].includes(tk))DB.designLib[gid].push(tk);});if(DB.designLib[gid].length>24)DB.designLib[gid]=DB.designLib[gid].slice(-24);}});
   if(f.editId){const o=DB.orders.find(x=>x.id===f.editId);
-    Object.assign(o,{orderNo:f.orderNo,customerId:c.id,customerName:c.name,phone:c.phone,orderDate:f.orderDate,deliveryDate:f.deliveryDate,items:f.items,m:f.m,design:f.design,notes:f.notes,total:f.total,advance:f.advance,photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice});
+    Object.assign(o,{orderNo:f.orderNo,customerId:c.id,customerName:c.name,phone:c.phone,orderDate:f.orderDate,deliveryDate:f.deliveryDate,items:f.items,m:f.m,design:f.design,notes:f.notes,total:f.total,advance:f.advance,photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,bodyType:f.bodyType});
     save();closeSheet();toast(t('t_updated'),'ok');openDetail(o.id);
   }else{const o={id:uid(),created:new Date().toISOString(),orderNo:f.orderNo,customerId:c.id,customerName:c.name,phone:c.phone,
-      orderDate:f.orderDate,deliveryDate:f.deliveryDate,items:f.items,m:f.m,design:f.design,notes:f.notes,total:f.total,advance:f.advance,payments:(+f.advance>0?[{amt:+f.advance,date:f.orderDate||new Date().toISOString().slice(0,10)}]:[]),photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,
+      orderDate:f.orderDate,deliveryDate:f.deliveryDate,items:f.items,m:f.m,design:f.design,notes:f.notes,total:f.total,advance:f.advance,payments:(+f.advance>0?[{amt:+f.advance,date:f.orderDate||new Date().toISOString().slice(0,10)}]:[]),photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,bodyType:f.bodyType,
       status:'new',itemStatus:(function(){const o={};f.items.forEach(g=>o[g]='new');return o;})(),log:[{id:uid(),ts:new Date().toISOString(),text:t('t_status',{s:sLabel('new')}),voiceId:null}]};
     DB.orders.push(o);save();closeSheet();toast(t('t_created',{n:o.orderNo}),'ok');go('orders');}
 }
@@ -755,13 +777,16 @@ function saveOrder(){
 /* ====================== VOICE → TEXT (dictation) ====================== */
 let _rec=null,_recBtn=null;
 function sttSupported(){return !!(window.SpeechRecognition||window.webkitSpeechRecognition);}
+function sttLang(){return localStorage.getItem('pb_ob_stt')||'en-IN';}
+function sttLangLabel(){return sttLang()==='hi-IN'?'हिंदी':'English';}
+function toggleSTTLang(btn){const nl=sttLang()==='hi-IN'?'en-IN':'hi-IN';localStorage.setItem('pb_ob_stt',nl);if(btn)btn.innerHTML='🎤 '+t('voice_lang')+': <b>'+sttLangLabel()+'</b>';toast(t('voice_lang')+' → '+sttLangLabel(),'ok');}
 function micBtn(sel){ return sttSupported()?`<button type="button" class="btn sm ghost micbtn" onclick="dictate('${sel}',this)" title="${t('dictate')}">🎤</button>`:''; }
 function dictate(sel,btn){
   if(!sttSupported()){toast(t('stt_na'),'bad');return;}
   const el=document.querySelector(sel); if(!el)return;
   if(_rec){ try{_rec.stop();}catch(e){} const wasSame=(_recBtn===btn); if(_recBtn)_recBtn.classList.remove('listening'); _rec=null;_recBtn=null; if(wasSame)return; }
   const R=window.SpeechRecognition||window.webkitSpeechRecognition; const r=new R(); _rec=r; _recBtn=btn||null;
-  r.lang=localStorage.getItem('pb_ob_stt')||'hi-IN'; r.interimResults=true; r.continuous=false; r.maxAlternatives=1;
+  r.lang=sttLang(); r.interimResults=true; r.continuous=false; r.maxAlternatives=1;
   const base=el.value?el.value.replace(/\s+$/,'')+' ':'';
   if(btn)btn.classList.add('listening');
   r.onresult=(e)=>{ let interim='',fin=''; for(let i=0;i<e.results.length;i++){const tr=e.results[i][0].transcript; if(e.results[i].isFinal)fin+=tr; else interim+=tr;}
@@ -827,7 +852,7 @@ async function openDetail(id,focusGid){
     const dn=(o.design&&o.design[gid])?`<div class="hint" style="margin-top:6px">✎ ${esc(o.design[gid])}</div>`:'';
     const ist=itemStatusOf(o,gid);
     const selStyle='flex:1;background:var(--bg2);border:1px solid var(--line);color:var(--txt);padding:9px 10px;border-radius:var(--r2);font-size:15px';
-    const sStat=`<div class="row" style="margin-top:8px;align-items:center;gap:8px"><span class="hint">📍 ${t('status')}</span><select onchange="setItemStatus('${o.id}','${gid}',this.value)" style="${selStyle}">${STATUS.map(s=>`<option value="${s}" ${s===ist?'selected':''}>${sLabel(s)}</option>`).join('')}</select></div>`;
+    const sStat=`<div class="row" style="margin-top:8px;align-items:center;gap:8px"><span class="hint">📍 ${t('status')}</span><select id="stsel_${gid}" onchange="setItemStatus('${o.id}','${gid}',this.value)" style="${selStyle}">${STATUS.map(s=>`<option value="${s}" ${s===ist?'selected':''}>${sLabel(s)}</option>`).join('')}</select></div>`;
     const kid=(o.assign&&o.assign[gid])||'';
     const kopts=`<option value="">${t('karigar_none')}</option>`+(DB.karigars||[]).map(k=>`<option value="${k.id}" ${k.id===kid?'selected':''}>${esc(k.name)}</option>`).join('');
     const ksel=`<div class="row" style="margin-top:8px;align-items:center;gap:8px"><span class="hint">👷 ${t('karigar')}</span><select onchange="setItemKarigar('${o.id}','${gid}',this.value)" style="${selStyle}">${kopts}</select></div>`;
@@ -896,6 +921,7 @@ function setItemStatus(oid,gid,s){const o=DB.orders.find(x=>x.id===oid);if(!o)re
   o.log.push({id:uid(),ts:new Date().toISOString(),text:(g?g.n+': ':'')+sLabel(s),voiceId:null});
   save();
   const pill=document.getElementById('pill_'+gid); if(pill){pill.className='pill st-'+s; pill.textContent=sLabel(s);}
+  const sel=document.getElementById('stsel_'+gid); if(sel)sel.value=s;
   if(document.getElementById('timeline'))renderTimeline(o);
   toast((g?g.n+' — ':'')+sLabel(s),'ok');}
 
@@ -1005,6 +1031,7 @@ function buildSlipText(o,itemId){
 function buildMasterText(o,gids){
   gids=(gids&&gids.length)?gids:sortItems(o.items);
   let s='PARAMPARA\nOrder #'+o.orderNo+'  ·  '+(o.customerName||'')+'\nDelivery: '+fmtDate(masterDate(o.deliveryDate))+'\n';
+  if(o.bodyType)s+='🧍 '+o.bodyType+'\n';
   sortItems(gids).forEach(gid=>{const g=G(gid);if(!g)return;const cols=itemCols(g),v=o.m[gid]||{};
     const vals=cols.filter(c=>v[c.k]).map(c=>c.n+' '+v[c.k]);
     s+='\n'+(g.ico||'▪')+' '+g.n.toUpperCase()+'\n'+(vals.join('  ·  ')||'-')+'\n';
@@ -1012,9 +1039,25 @@ function buildMasterText(o,gids){
   if(o.notes)s+='\nNote: '+o.notes+'\n';
   return s;
 }
+async function shareMaster(o,gids,phone){
+  gids=(gids&&gids.length)?gids:sortItems(o.items);
+  const text=buildMasterText(o,gids);
+  try{
+    const files=[];
+    for(const k of gids){ for(const pid of ((o.itemPhotos&&o.itemPhotos[k])||[])){ const b=await mGet(pid); if(b)files.push(new File([b],'photo-'+pid+'.jpg',{type:b.type||'image/jpeg'})); } }
+    for(const pid of (o.photos||[])){ const b=await mGet(pid); if(b)files.push(new File([b],'order-'+pid+'.jpg',{type:b.type||'image/jpeg'})); }
+    if(files.length && navigator.canShare && navigator.canShare({files})){ await navigator.share({files,title:'Order #'+o.orderNo,text}); return; }
+  }catch(e){ if(e&&e.name==='AbortError')return; }
+  window.open(waLink(phone||'',text),'_blank');
+}
 function setItemKarigar(oid,gid,kid){const o=DB.orders.find(x=>x.id===oid);if(!o)return;o.assign=o.assign||{};
   if(kid)o.assign[gid]=kid; else delete o.assign[gid];
   o.log=o.log||[];const g=G(gid);o.log.push({id:uid(),ts:new Date().toISOString(),text:(g?g.n+' → ':'')+(kid?('👷 '+karigarName(kid)):t('karigar_none')),voiceId:null});
+  if(kid){ o.itemStatus=o.itemStatus||{}; const cur=itemStatusOf(o,gid);
+    if(STATUS.indexOf(cur)<STATUS.indexOf('stitching')){ o.itemStatus[gid]='stitching';
+      o.log.push({id:uid(),ts:new Date().toISOString(),text:(g?g.n+': ':'')+sLabel('stitching'),voiceId:null});
+      const pill=document.getElementById('pill_'+gid); if(pill){pill.className='pill st-stitching';pill.textContent=sLabel('stitching');}
+      const sel=document.getElementById('stsel_'+gid); if(sel)sel.value='stitching'; } }
   save();if(document.getElementById('timeline'))renderTimeline(o);toast(t('t_saved'),'ok');}
 function karigarSlipMenu(oid){const o=DB.orders.find(x=>x.id===oid);if(!o)return;
   const map={}; (o.items||[]).forEach(gid=>{const kid=(o.assign&&o.assign[gid])||'';(map[kid]=map[kid]||[]).push(gid);});
@@ -1029,8 +1072,8 @@ function karigarSlipMenu(oid){const o=DB.orders.find(x=>x.id===oid);if(!o)return
 }
 function sendKarigarWA(oid,kid){const o=DB.orders.find(x=>x.id===oid);if(!o)return;
   const gids=(o.items||[]).filter(g=>(o.assign&&o.assign[g])===kid);
-  const txt=buildMasterText(o,gids); const k=(DB.karigars||[]).find(x=>x.id===kid);
-  closeSheet(); window.open(waLink(k&&k.phone?k.phone:'',txt),'_blank');
+  const k=(DB.karigars||[]).find(x=>x.id===kid);
+  closeSheet(); shareMaster(o,gids,k&&k.phone?k.phone:'');
 }
 function printKarigar(oid,kid){const o=DB.orders.find(x=>x.id===oid);if(!o)return;
   const gids=(o.items||[]).filter(g=>(o.assign&&o.assign[g])===kid); printMaster(o,gids);
@@ -1045,7 +1088,7 @@ function sendMenu(oid){const o=DB.orders.find(x=>x.id===oid);if(!o)return;
         <div style="display:flex;gap:6px"><button class="btn sm primary" onclick="sendKarigarWA('${oid}','${kid}')">💬</button><button class="btn sm ghost" onclick="printKarigar('${oid}','${kid}')">🖨️</button></div></div>`;});}
   body+=`<p class="hint" style="margin:14px 0 6px">📋 ${t('send_choose')}</p>`+sortItems(o.items).map(gid=>{const g=G(gid);return `<label style="display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line)"><input type="checkbox" class="msel" value="${gid}" checked style="width:20px;height:20px"> ${g.ico} ${esc(g.n)}</label>`;}).join('');
   modal(t('send_meas'),body,[
-    {label:'💬 '+t('whatsapp'),cls:'primary',fn:()=>{const sel=msel();if(!sel.length){toast(t('master_none'),'bad');return;}const txt=buildMasterText(o,sel);closeSheet();window.open(waLink('',txt),'_blank');}},
+    {label:'💬 '+t('whatsapp'),cls:'primary',fn:()=>{const sel=msel();if(!sel.length){toast(t('master_none'),'bad');return;}closeSheet();shareMaster(o,sel,'');}},
     {label:'🖨️ '+t('print'),cls:'ghost',fn:()=>{const sel=msel();if(!sel.length){toast(t('master_none'),'bad');return;}printMaster(o,sel);}},
     {label:t('close'),cls:'ghost',fn:closeSheet}
   ]);
@@ -1053,7 +1096,7 @@ function sendMenu(oid){const o=DB.orders.find(x=>x.id===oid);if(!o)return;
 function masterSlipMenu(oid){const o=DB.orders.find(x=>x.id===oid);if(!o)return;  const items=sortItems(o.items);
   const body=`<p class="hint" style="margin-bottom:8px">${t('master_pick')}</p>`+items.map(gid=>{const g=G(gid);return `<label style="display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line)"><input type="checkbox" class="msel" value="${gid}" checked style="width:20px;height:20px"> ${g.ico} ${esc(g.n)}</label>`;}).join('');
   modal(t('master_slip'),body,[
-    {label:'💬 '+t('whatsapp'),cls:'primary',fn:()=>{const sel=msel();if(!sel.length){toast(t('master_none'),'bad');return;}const txt=buildMasterText(o,sel);closeSheet();window.open(waLink('',txt),'_blank');}},
+    {label:'💬 '+t('whatsapp'),cls:'primary',fn:()=>{const sel=msel();if(!sel.length){toast(t('master_none'),'bad');return;}closeSheet();shareMaster(o,sel,'');}},
     {label:'🖨️ '+t('print'),cls:'ghost',fn:()=>{const sel=msel();if(!sel.length){toast(t('master_none'),'bad');return;}printMaster(o,sel);}},
     {label:t('close'),cls:'ghost',fn:closeSheet}
   ]);
@@ -1139,6 +1182,7 @@ function orderPrint(oid){const o=DB.orders.find(x=>x.id===oid);if(o)doPrint(o,nu
 
 /* ====================== SETTINGS + ITEM MASTER ====================== */
 function settingsMenu(){modal(t('settings'),`
+  <button class="btn ghost block" style="margin-bottom:8px" onclick="toggleSTTLang(this)">🎤 ${t('voice_lang')}: <b>${sttLangLabel()}</b></button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();karigarMaster()">👷 ${t('karigar_master')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();itemMaster()">🧩 ${t('item_master')}</button>
   <button class="btn ghost block" onclick="backupMenu()">💾 ${t('backup')}</button>`,[]);}
