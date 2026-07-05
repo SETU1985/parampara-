@@ -200,6 +200,7 @@
   <section class="tabpane" id="tab-detail"><div id="detailPane"></div></section>
   <section class="tabpane" id="tab-alterations"><div id="altList"></div></section>
   <section class="tabpane" id="tab-altdetail"><div id="altDetailPane"></div></section>
+  <section class="tabpane" id="tab-invoices"><div id="invList"></div></section>
 </main>
 
 <nav>
@@ -207,6 +208,7 @@
   <button class="add" onclick="openOrderForm()"><span class="nico">+</span></button>
   <button id="nav-customers" onclick="go('customers')"><span class="nico">👥</span><span data-t="nav_customers"></span></button>
   <button id="nav-alterations" onclick="go('alterations')"><span class="nico">🔧</span><span data-t="nav_alterations"></span></button>
+  <button id="nav-invoices" onclick="go('invoices')"><span class="nico">🧾</span><span data-t="nav_invoices"></span></button>
 </nav>
 
 <div id="fracbar">
@@ -302,7 +304,13 @@ const T={
   invoice:'Invoice', invoice_no:'Invoice No', invoice_date:'Invoice Date', interstate:'Interstate (IGST) — customer outside West Bengal',
   save_generate:'Save & Generate', invoice_gst_hint:'Enter the final price customer pays — GST is inclusive (extracted from this, not added). Rate: 5% up to ₹2,500 per item, 18% above.', invoice_ready:'Invoice ready.',
   t_no_invno:'Enter invoice number', t_no_invitem:'Add at least one item with price', t_invoice_saved:'Invoice saved',
-  shop_details:'Shop Details (for Invoice)', shop_name:'Shop Name', shop_address:'Address', proprietor:'Proprietor'
+  shop_details:'Shop Details (for Invoice)', shop_name:'Shop Name', shop_address:'Address', proprietor:'Proprietor',
+  shop_phone:'Phone', shop_email:'Email', shop_tagline:'Tagline', shop_terms:'Terms & Conditions',
+  hsn:'HSN/SAC', qty:'Qty', unit:'Unit', payment_mode:'Payment Mode', pm_cash:'Cash', pm_upi:'UPI', pm_card:'Card', pm_credit:'Credit',
+  discount:'Discount ₹', inv_price:'Price ₹ (before discount)',
+  prev_balance:'Previous Balance', curr_balance:'Current Balance', amount_words:'Amount in Words', bill_to:'Bill To',
+  nav_invoices:'Bills', invoices:'Invoices', no_invoices:'No invoices yet', no_invoices_sub:'Create one from any order\'s ⋯ menu',
+  inv_sales:'Sales', inv_tax:'GST'
  },
  hi:{
   sub:'ORDERBOOK', search_ph:'Naam, phone, order no…',
@@ -370,7 +378,13 @@ const T={
   invoice:'Invoice', invoice_no:'Invoice No', invoice_date:'Invoice Date', interstate:'Interstate (IGST) — customer West Bengal ke bahar',
   save_generate:'Save & Generate', invoice_gst_hint:'Jo final price customer dega wahi likhein — GST usi ke andar se nikalta hai (extra nahi lagta). Rate: ₹2,500 tak 5%, usse upar 18%.', invoice_ready:'Invoice ready hai.',
   t_no_invno:'Invoice number likhein', t_no_invitem:'Kam se kam ek item price ke saath add karein', t_invoice_saved:'Invoice save hua',
-  shop_details:'Shop Details (Invoice ke liye)', shop_name:'Shop ka naam', shop_address:'Address', proprietor:'Proprietor'
+  shop_details:'Shop Details (Invoice ke liye)', shop_name:'Shop ka naam', shop_address:'Address', proprietor:'Proprietor',
+  shop_phone:'Phone', shop_email:'Email', shop_tagline:'Tagline', shop_terms:'Terms & Conditions',
+  hsn:'HSN/SAC', qty:'Qty', unit:'Unit', payment_mode:'Payment Mode', pm_cash:'Cash', pm_upi:'UPI', pm_card:'Card', pm_credit:'Credit (Udhaar)',
+  discount:'Discount ₹', inv_price:'Price ₹ (discount se pehle)',
+  prev_balance:'Pichla Baaki', curr_balance:'Total Baaki (abhi tak)', amount_words:'Amount in Words', bill_to:'Bill To',
+  nav_invoices:'Bills', invoices:'Invoices', no_invoices:'Abhi koi invoice nahi', no_invoices_sub:'Kisi bhi order ke ⋯ menu se banayein',
+  inv_sales:'Sales', inv_tax:'GST'
  }
 };
 let lang = localStorage.getItem('pb_ob_lang') || 'en';
@@ -415,7 +429,7 @@ let DB={orders:[],customers:[]}, form=null, detailId=null, altForm=null, altDeta
 
 function load(){ try{const r=localStorage.getItem('pb_ob_v1'); if(r)DB=JSON.parse(r);}catch(e){}
   if(!DB.orders)DB.orders=[]; if(!DB.customers)DB.customers=[]; if(!DB.designLib)DB.designLib={}; if(!DB.karigars)DB.karigars=[]; if(!DB.bodyTypes)DB.bodyTypes=[]; if(!DB.measLib)DB.measLib={}; if(!DB.alterations)DB.alterations=[];
-  if(!DB.shopInfo)DB.shopInfo={name:'PARAMPARA',gstin:'19BUVPC3493H1Z2',address:'171, Chittaranjan Avenue, Ram Mandir, Burra Bazar, Kolkata 700007',proprietor:'Nisha Choudhary'};
+  if(!DB.shopInfo)DB.shopInfo={name:'PARAMPARA',tagline:"Men's Ethnic Wear",gstin:'19BUVPC3493H1Z2',address:'171, Chittaranjan Avenue, Ram Mandir, Burra Bazar, Kolkata 700007',proprietor:'Nisha Choudhary',phone:'',email:'',terms:'Thanks for doing business with us!'};
   if(DB.customItems===undefined) DB.customItems=[
     {id:'ci_safa',n:'Safa',ico:'👳',cat:'custom',fields:[{k:'f_head',n:'Head',type:'number',options:[]}]},
     {id:'ci_juti',n:'Juti',ico:'👞',cat:'custom',fields:[{k:'f_type',n:'Type',type:'select',options:['Nagra','Loafer','Mojari']},{k:'f_size',n:'Size',type:'number',options:[]}]}
@@ -462,11 +476,35 @@ function nextInvoiceNo(){const y=new Date().getFullYear();let mx=0;
   const scan=list=>(list||[]).forEach(o=>{if(o.invoice&&o.invoice.no){const m=String(o.invoice.no).match(new RegExp('PP/'+y+'/(\\d+)'));if(m){const n=parseInt(m[1]);if(n>mx)mx=n;}}});
   scan(DB.orders);scan(DB.alterations);return 'PP/'+y+'/'+String(mx+1).padStart(3,'0');}
 const invRate=p=>(+p||0)>2500?18:5;
-function invCompute(inv){let taxable=0,cgst=0,sgst=0,igst=0,total=0;
-  (inv.items||[]).forEach(it=>{const p=+it.price||0;const r=invRate(p);const base=p/(1+r/100);
-    taxable+=base;total+=p;
-    if(inv.interstate)igst+=(p-base); else {const half=(p-base)/2;cgst+=half;sgst+=half;}});
-  return {taxable,cgst,sgst,igst,total};}
+const r2=n=>Math.round((+n||0)*100)/100;
+const invNet=it=>Math.max(0,(+it.price||0)-(+it.disc||0));
+function invCompute(inv){let gross=0,discount=0,taxable=0,cgst=0,sgst=0,igst=0,total=0;
+  (inv.items||[]).forEach(it=>{const p=+it.price||0;const d=Math.min(+it.disc||0,p);const net=p-d;
+    const qty=+it.qty||1;const unitNet=net/qty;const r=invRate(unitNet);const base=net/(1+r/100);
+    gross+=p;discount+=d;taxable+=base;total+=net;
+    if(inv.interstate)igst+=(net-base); else {const half=(net-base)/2;cgst+=half;sgst+=half;}});
+  return {gross:r2(gross),discount:r2(discount),taxable:r2(taxable),cgst:r2(cgst),sgst:r2(sgst),igst:r2(igst),total:r2(total)};}
+const GST_STATES={'01':'Jammu and Kashmir','02':'Himachal Pradesh','03':'Punjab','04':'Chandigarh','05':'Uttarakhand','06':'Haryana','07':'Delhi','08':'Rajasthan','09':'Uttar Pradesh','10':'Bihar','11':'Sikkim','12':'Arunachal Pradesh','13':'Nagaland','14':'Manipur','15':'Mizoram','16':'Tripura','17':'Meghalaya','18':'Assam','19':'West Bengal','20':'Jharkhand','21':'Odisha','22':'Chhattisgarh','23':'Madhya Pradesh','24':'Gujarat','27':'Maharashtra','29':'Karnataka','30':'Goa','32':'Kerala','33':'Tamil Nadu','36':'Telangana','37':'Andhra Pradesh'};
+function gstState(gstin){const c=String(gstin||'').slice(0,2);return c&&GST_STATES[c]?c+'-'+GST_STATES[c]:'';}
+function numToWordsIndian(num){num=Math.round(+num||0);if(!num)return 'Zero Rupees only';
+  const ones=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+  const tens=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+  const two=n=>n<20?ones[n]:tens[Math.floor(n/10)]+(n%10?' '+ones[n%10]:'');
+  const three=n=>n<100?two(n):ones[Math.floor(n/100)]+' Hundred'+(n%100?' '+two(n%100):'');
+  let crore=Math.floor(num/10000000);num%=10000000;
+  let lakh=Math.floor(num/100000);num%=100000;
+  let thousand=Math.floor(num/1000);num%=1000;
+  let rest=num,parts=[];
+  if(crore)parts.push(three(crore)+' Crore');
+  if(lakh)parts.push(three(lakh)+' Lakh');
+  if(thousand)parts.push(three(thousand)+' Thousand');
+  if(rest)parts.push(three(rest));
+  return (parts.join(' ')||'Zero')+' Rupees only';}
+function customerOutstanding(customerId,exKind,exId){
+  if(!customerId)return 0;let sum=0;
+  (DB.orders||[]).forEach(o=>{if(o.customerId===customerId&&!(exKind==='order'&&o.id===exId))sum+=orderBaaki(o);});
+  (DB.alterations||[]).forEach(a=>{if(a.customerId===customerId&&!(exKind==='alt'&&a.id===exId))sum+=orderBaaki(a);});
+  return sum;}
 const custById=id=>DB.customers.find(c=>c.id===id);
 function todayISO(){return new Date().toISOString().slice(0,10);}
 function migratePayments(o){ if(!Array.isArray(o.payments)){ o.payments=(+o.advance>0)?[{amt:+o.advance,date:(o.orderDate||(o.created||'').slice(0,10)||todayISO())}]:[]; } }
@@ -490,6 +528,7 @@ function toggleLang(){ lang=lang==='en'?'hi':'en'; localStorage.setItem('pb_ob_l
   const act=document.querySelector('.tabpane.active'); if(act&&act.id==='tab-detail'&&detailId) openDetail(detailId);
   else if(act&&act.id==='tab-altdetail'&&altDetailId) openAltDetail(altDetailId);
   else if(act&&act.id==='tab-alterations') renderAlterations();
+  else if(act&&act.id==='tab-invoices') renderInvoices();
   else if(act&&act.id==='tab-customers') renderCustomers(); else renderOrders();
   if($('#scrim').classList.contains('show')) closeSheet();
 }
@@ -502,7 +541,7 @@ function go(tab){
   const n=$('#nav-'+tab); if(n)n.classList.add('on');
   $('#searchWrap').style.display=tab==='orders'?'':'none';
   window.scrollTo(0,0);
-  if(tab==='orders')renderOrders(); if(tab==='customers')renderCustomers(); if(tab==='alterations')renderAlterations();
+  if(tab==='orders')renderOrders(); if(tab==='customers')renderCustomers(); if(tab==='alterations')renderAlterations(); if(tab==='invoices')renderInvoices();
 }
 
 /* ====================== ORDERS LIST + DELIVERY PLANNER ====================== */
@@ -1187,49 +1226,62 @@ function openInvoiceForm(kind,id){
   if(rec.invoice){ invForm=JSON.parse(JSON.stringify(rec.invoice)); invForm.kind=kind; invForm.id=id; }
   else{
     let items;
-    if(kind==='alt'){ items=[{label:rec.itemDesc||t('alterations'),price:+rec.total||0}]; }
+    if(kind==='alt'){ items=[{label:rec.itemDesc||t('alterations'),hsn:'',qty:1,unit:'Pcs',price:+rec.total||0,disc:0}]; }
     else{ const gids=sortItems(rec.items||[]); const n=gids.length||1; const each=Math.round((+rec.total||0)/n);
-      items=gids.map((gid,i)=>{const g=G(gid);return {label:g?g.n:'Item',price:i===n-1?((+rec.total||0)-each*(n-1)):each};});
-      if(!items.length)items=[{label:'Item',price:+rec.total||0}];
+      items=gids.map((gid,i)=>{const g=G(gid);return {label:g?g.n:'Item',hsn:'',qty:1,unit:'Pcs',price:i===n-1?((+rec.total||0)-each*(n-1)):each,disc:0};});
+      if(!items.length)items=[{label:'Item',hsn:'',qty:1,unit:'Pcs',price:+rec.total||0,disc:0}];
     }
-    invForm={kind,id,no:nextInvoiceNo(),date:todayISO(),interstate:false,items};
+    invForm={kind,id,no:nextInvoiceNo(),date:todayISO(),interstate:false,paymentMode:'Cash',items};
   }
   renderInvoiceForm();
 }
 function invItemRow(i,it){
   return `<div class="card" style="padding:10px;margin-bottom:8px">
-    <div class="field" style="margin:0"><label>${t('alt_item')}</label><input data-iin="${i}" value="${esc(it.label)}"></div>
-    <div class="field" style="margin:8px 0 0"><label>${t('alt_charge')}</label><input data-ipr="${i}" type="number" inputmode="numeric" value="${esc(it.price)}"></div>
+    <div class="field" style="margin:0"><label>${t('alt_item')}</label><input data-iin="${i}" list="invItemList" value="${esc(it.label)}"></div>
+    <div class="row" style="margin-top:8px"><div class="field" style="margin:0"><label>${t('hsn')}</label><input data-ihsn="${i}" value="${esc(it.hsn||'')}"></div>
+      <div class="field" style="margin:0"><label>${t('qty')}</label><input data-iqty="${i}" type="number" inputmode="numeric" value="${esc(it.qty||1)}"></div></div>
+    <div class="row" style="margin-top:8px"><div class="field" style="margin:0"><label>${t('inv_price')}</label><input data-ipr="${i}" type="number" inputmode="numeric" value="${esc(it.price)}"></div>
+      <div class="field" style="margin:0"><label>${t('discount')}</label><input data-idisc="${i}" type="number" inputmode="numeric" value="${esc(it.disc||0)}"></div></div>
     <button class="btn sm danger" style="margin-top:8px" onclick="invDelItem(${i})">${t('remove')}</button></div>`;
 }
 function renderInvoiceForm(){
   const f=invForm;
   const rows=f.items.map((it,i)=>invItemRow(i,it)).join('');
-  $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:6px">🧾 ${t('invoice')}</h2>
+  const dlist=`<datalist id="invItemList">${allItems().map(g=>`<option value="${esc(g.n)}">`).join('')}</datalist>`;
+  $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:6px">🧾 ${t('invoice')}</h2>${dlist}
     <p class="hint" style="margin-bottom:12px">${t('invoice_gst_hint')}</p>
     <div class="row"><div class="field"><label>${t('invoice_no')}</label><input id="inv_no" value="${esc(f.no)}"></div>
       <div class="field"><label>${t('invoice_date')}</label><input id="inv_date" type="date" value="${esc(f.date)}"></div></div>
     <label style="display:flex;align-items:center;gap:8px;margin:4px 0 14px;font-size:13px;color:var(--txt2)"><input type="checkbox" id="inv_inter" ${f.interstate?'checked':''} style="width:18px;height:18px"> ${t('interstate')}</label>
+    <div class="field"><label>${t('payment_mode')}</label><select id="inv_pm">
+      <option value="Cash" ${f.paymentMode==='Cash'?'selected':''}>${t('pm_cash')}</option>
+      <option value="UPI" ${f.paymentMode==='UPI'?'selected':''}>${t('pm_upi')}</option>
+      <option value="Card" ${f.paymentMode==='Card'?'selected':''}>${t('pm_card')}</option>
+      <option value="Credit" ${f.paymentMode==='Credit'?'selected':''}>${t('pm_credit')}</option></select></div>
     <div class="section-h">${t('items')}</div>${rows}
     <button class="btn ghost block" style="margin-bottom:8px" onclick="invAddItem()">+ ${t('add_item')}</button>
     <div class="modal-actions"><button class="btn ghost" onclick="closeSheet()">${t('cancel')}</button><button class="btn primary" onclick="saveInvoice()">${t('save_generate')}</button></div><div class="fab-pad"></div>`;
   showSheet();
 }
-function invAddItem(){captureInvoiceForm();invForm.items.push({label:'',price:0});renderInvoiceForm();}
+function invAddItem(){captureInvoiceForm();invForm.items.push({label:'',hsn:'',qty:1,unit:'Pcs',price:0,disc:0});renderInvoiceForm();}
 function invDelItem(i){captureInvoiceForm();invForm.items.splice(i,1);renderInvoiceForm();}
 function captureInvoiceForm(){const f=invForm;
   if($('#inv_no'))f.no=$('#inv_no').value.trim();
   if($('#inv_date'))f.date=$('#inv_date').value;
   if($('#inv_inter'))f.interstate=$('#inv_inter').checked;
+  if($('#inv_pm'))f.paymentMode=$('#inv_pm').value;
   document.querySelectorAll('[data-iin]').forEach(inp=>{f.items[+inp.dataset.iin].label=inp.value.trim();});
+  document.querySelectorAll('[data-ihsn]').forEach(inp=>{f.items[+inp.dataset.ihsn].hsn=inp.value.trim();});
+  document.querySelectorAll('[data-iqty]').forEach(inp=>{f.items[+inp.dataset.iqty].qty=(+inp.value||1);});
   document.querySelectorAll('[data-ipr]').forEach(inp=>{f.items[+inp.dataset.ipr].price=+inp.value||0;});
+  document.querySelectorAll('[data-idisc]').forEach(inp=>{f.items[+inp.dataset.idisc].disc=+inp.value||0;});
 }
 function saveInvoice(){
   captureInvoiceForm();const f=invForm;
   if(!f.no){toast(t('t_no_invno'),'bad');return;}
   if(!f.items.length||f.items.every(it=>!(+it.price))){toast(t('t_no_invitem'),'bad');return;}
   const rec=invRecOf(f.kind,f.id); if(!rec)return;
-  rec.invoice={no:f.no,date:f.date,interstate:f.interstate,items:f.items};
+  rec.invoice={no:f.no,date:f.date,interstate:f.interstate,paymentMode:f.paymentMode,items:f.items};
   save();closeSheet();toast(t('t_invoice_saved'),'ok');
   openInvoicePreview(f.kind,f.id);
 }
@@ -1242,53 +1294,96 @@ function openInvoicePreview(kind,id){
 }
 function buildInvoiceText(rec,inv){
   const comp=invCompute(inv);
+  const prevBal=customerOutstanding(rec.customerId,rec.orderNo?'order':'alt',rec.id);
+  const currBal=r2(prevBal+orderBaaki(rec));
   let s=`${(DB.shopInfo&&DB.shopInfo.name)||'PARAMPARA'}\nGSTIN: ${(DB.shopInfo&&DB.shopInfo.gstin)||''}\n\nInvoice No: ${inv.no}\nDate: ${fmtDate(inv.date)}\n`;
   if(rec.orderNo)s+=`Order #${rec.orderNo}\n`; else if(rec.altNo)s+=`Alteration #${rec.altNo}\n`;
   s+='\n';
-  (inv.items||[]).forEach(it=>{s+=`${it.label} — ${money(+it.price||0)} (GST ${invRate(it.price)}%)\n`;});
+  (inv.items||[]).forEach(it=>{const qty=+it.qty||1;const p=+it.price||0;const d=Math.min(+it.disc||0,p);const net=p-d;
+    s+=`${it.label}${qty>1?' x'+qty:''} — ${money(net)}${d?' (disc '+money(d)+')':''} (GST ${invRate(net/qty)}%)\n`;});
+  if(comp.discount>0)s+=`\nGross: ${money(comp.gross)}\nDiscount: −${money(comp.discount)}\n`;
   s+=`\nTaxable: ${money(comp.taxable)}\n`;
   if(inv.interstate)s+=`IGST: ${money(comp.igst)}\n`; else s+=`CGST: ${money(comp.cgst)}  SGST: ${money(comp.sgst)}\n`;
   s+=`Grand Total: ${money(comp.total)}\nReceived: ${money(orderReceived(rec))}\nBalance: ${money(orderBaaki(rec))}\n`;
+  s+=`Payment Mode: ${inv.paymentMode||'Cash'}\n`;
+  if(prevBal>0)s+=`\nPrevious Balance: ${money(prevBal)}\nCurrent Balance: ${money(currBal)}\n`;
   return s;
 }
 function buildInvoiceHTML(rec,inv){
   const comp=invCompute(inv),shop=DB.shopInfo||{};
-  const rows=(inv.items||[]).map((it,i)=>{const p=+it.price||0,r=invRate(p),base=p/(1+r/100);
-    const cgst=inv.interstate?0:(p-base)/2, sgst=inv.interstate?0:(p-base)/2, igst=inv.interstate?(p-base):0;
-    return `<tr><td>${i+1}</td><td>${esc(it.label)}</td><td style="text-align:right">${money(base)}</td><td style="text-align:center">${r}%</td>
-      ${inv.interstate?`<td style="text-align:right">${money(igst)}</td>`:`<td style="text-align:right">${money(cgst)}</td><td style="text-align:right">${money(sgst)}</td>`}
-      <td style="text-align:right"><b>${money(p)}</b></td></tr>`;}).join('');
+  const rows=(inv.items||[]).map((it,i)=>{const p=+it.price||0,d=Math.min(+it.disc||0,p),net=p-d,qty=+it.qty||1,unitP=p/qty,r=invRate(net/qty),base=r2(net/(1+r/100)),gstAmt=r2(net-base);
+    return `<tr><td>${i+1}</td><td>${esc(it.label)}</td><td style="text-align:center">${esc(it.hsn||'')}</td><td style="text-align:center">${qty}</td><td style="text-align:center">${esc(it.unit||'Pcs')}</td>
+      <td style="text-align:right">${money(r2(unitP))}</td><td style="text-align:right">${d?money(d):'—'}</td><td style="text-align:right">${money(gstAmt)}<br><span style="font-size:11px;color:#777">(${r}%)</span></td>
+      <td style="text-align:right"><b>${money(net)}</b></td></tr>`;}).join('');
   const received=orderReceived(rec),baaki=orderBaaki(rec);
+  const prevBal=customerOutstanding(rec.customerId,rec.orderNo?'order':'alt',rec.id);
+  const currBal=r2(prevBal+baaki);
+  const stateLine=gstState(shop.gstin);
+  const taxRow=inv.interstate
+    ? `<tr><td></td><td style="text-align:right">${money(comp.taxable)}</td><td colspan="2" style="text-align:right">${money(comp.igst)}</td><td style="text-align:right">${money(comp.cgst+comp.sgst+comp.igst)}</td></tr>`
+    : `<tr><td></td><td style="text-align:right">${money(comp.taxable)}</td><td style="text-align:right">${money(comp.cgst)}</td><td style="text-align:right">${money(comp.sgst)}</td><td style="text-align:right">${money(comp.cgst+comp.sgst)}</td></tr>`;
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Invoice ${esc(inv.no)}</title><style>
-    *{font-family:Arial,sans-serif;color:#111}body{margin:20px}
-    .hd{border-bottom:3px solid #c97e10;padding-bottom:10px;margin-bottom:14px}
-    .hd .b{font-size:24px;font-weight:bold;color:#c97e10;letter-spacing:1px}
-    .hd .addr{font-size:13px;color:#444;margin-top:2px}
-    .meta{display:flex;justify-content:space-between;font-size:14px;margin-bottom:14px}
-    table{width:100%;border-collapse:collapse;font-size:13px}
-    th,td{border:1px solid #ccc;padding:6px 8px}
-    th{background:#f4f4f4;text-align:left}
-    .totals{margin-top:10px;font-size:14px;width:100%}
-    .totals td{border:none;padding:3px 8px}
-    .totals .lbl{text-align:right;color:#444}
-    .grand{font-size:17px;font-weight:bold}
-    @media print{@page{margin:12mm}body{margin:0}}
+    *{font-family:Arial,sans-serif;color:#222;box-sizing:border-box}body{margin:20px}
+    h1{text-align:center;font-size:22px;margin:0 0 14px}
+    table{width:100%;border-collapse:collapse;font-size:12.5px}
+    td,th{border:1px solid #999;padding:5px 7px}
+    th{background:#f2f2f2}
+    .outer{border:1px solid #999}
+    .noborder td{border:none;padding:2px 7px}
+    .logo{font-size:22px;font-weight:800;color:#c97e10;letter-spacing:.5px}
+    .tagline{font-size:11px;color:#2e7d32;font-weight:600;letter-spacing:1px;margin-top:-2px}
+    .small{font-size:12px;color:#333}
+    .lbl{color:#555}
+    @media print{@page{margin:10mm}body{margin:0}}
   </style></head><body>
-    <div class="hd"><div class="b">${esc(shop.name||'PARAMPARA')}</div>
-      <div class="addr">${esc(shop.address||'')}</div>
-      <div class="addr">GSTIN: ${esc(shop.gstin||'')} &nbsp;|&nbsp; Proprietor: ${esc(shop.proprietor||'')}</div></div>
-    <div class="meta">
-      <div><b>Bill To:</b><br>${esc(rec.customerName||'')}<br>${esc(rec.phone||'')}</div>
-      <div style="text-align:right"><b>Invoice No:</b> ${esc(inv.no)}<br><b>Date:</b> ${fmtDate(inv.date)}<br>${rec.orderNo?'<b>Order #:</b> '+esc(rec.orderNo):(rec.altNo?'<b>Alteration #:</b> '+esc(rec.altNo):'')}</div>
-    </div>
-    <table><thead><tr><th>#</th><th>Description</th><th>Taxable Value</th><th>Rate</th>${inv.interstate?'<th>IGST</th>':'<th>CGST</th><th>SGST</th>'}<th>Total</th></tr></thead>
-    <tbody>${rows}</tbody></table>
-    <table class="totals"><tr><td class="lbl">Taxable Value</td><td style="text-align:right">${money(comp.taxable)}</td></tr>
-      ${inv.interstate?`<tr><td class="lbl">IGST</td><td style="text-align:right">${money(comp.igst)}</td></tr>`:`<tr><td class="lbl">CGST</td><td style="text-align:right">${money(comp.cgst)}</td></tr><tr><td class="lbl">SGST</td><td style="text-align:right">${money(comp.sgst)}</td></tr>`}
-      <tr><td class="lbl grand">Grand Total</td><td style="text-align:right" class="grand">${money(comp.total)}</td></tr>
-      <tr><td class="lbl">Received</td><td style="text-align:right">${money(received)}</td></tr>
-      <tr><td class="lbl">Balance</td><td style="text-align:right"><b>${money(baaki)}</b></td></tr>
-    </table>
+  <h1>Tax Invoice</h1>
+  <table class="outer" style="margin-bottom:0"><tr>
+    <td style="width:120px;text-align:center;border:none">
+      <div class="logo">${esc((shop.name||'PARAMPARA').slice(0,1))}</div>
+    </td>
+    <td style="border:none">
+      <div class="logo">${esc(shop.name||'PARAMPARA')}</div>
+      ${shop.tagline?`<div class="tagline">${esc(shop.tagline)}</div>`:''}
+      <div class="small">${esc(shop.address||'')}</div>
+      <div class="small">${shop.phone?'Phone: <b>'+esc(shop.phone)+'</b>':''} ${shop.email?'&nbsp;&nbsp;Email: <b>'+esc(shop.email)+'</b>':''}</div>
+      <div class="small">GSTIN: <b>${esc(shop.gstin||'')}</b>${stateLine?' &nbsp; State: <b>'+esc(stateLine)+'</b>':''}</div>
+    </td>
+  </tr></table>
+  <table style="margin-top:-1px">
+    <tr><th style="width:50%">Bill To</th><th>Invoice Details</th></tr>
+    <tr><td><b>${esc((rec.customerName||'').toUpperCase())}</b><br>Contact No: ${esc(rec.phone||'')}</td>
+      <td>No: <b>${esc(inv.no)}</b><br>Date: <b>${fmtDate(inv.date)}</b><br>${rec.orderNo?'Order No: <b>'+esc(rec.orderNo)+'</b><br>':(rec.altNo?'Alteration No: <b>'+esc(rec.altNo)+'</b><br>':'')}${rec.deliveryDate?'Delivery Date: <b>'+fmtDate(rec.deliveryDate)+'</b>':''}</td></tr>
+  </table>
+  <table style="margin-top:-1px">
+    <thead><tr><th>#</th><th>Item name</th><th>HSN/SAC</th><th>Qty</th><th>Unit</th><th>Price/Unit (₹)</th><th>Discount (₹)</th><th>GST (₹)</th><th>Amount (₹)</th></tr></thead>
+    <tbody>${rows}</tbody>
+    <tr><td colspan="8" style="text-align:right"><b>Total</b></td><td style="text-align:right"><b>${money(comp.total)}</b></td></tr>
+  </table>
+  <table style="margin-top:-1px"><tr>
+    <td style="width:60%;vertical-align:top;padding:0;border:none">
+      <table>
+        <tr><th colspan="4">Tax Summary</th></tr>
+        <tr><th>Taxable (₹)</th><th>CGST (₹)</th><th>SGST (₹)</th><th>Total Tax (₹)</th></tr>
+        ${taxRow}
+      </table>
+    </td>
+    <td style="width:40%;vertical-align:top;padding:0;border:none">
+      <table class="noborder">
+        ${comp.discount>0?`<tr><td class="lbl">Gross</td><td style="text-align:right">${money(comp.gross)}</td></tr>
+        <tr><td class="lbl">Discount</td><td style="text-align:right">− ${money(comp.discount)}</td></tr>`:''}
+        <tr><td class="lbl">Sub Total</td><td style="text-align:right">${money(comp.total)}</td></tr>
+        <tr><td class="lbl"><b>Total</b></td><td style="text-align:right"><b>${money(comp.total)}</b></td></tr>
+        <tr><td class="lbl">Received</td><td style="text-align:right">${money(received)}</td></tr>
+        <tr><td class="lbl">Balance (this bill)</td><td style="text-align:right"><b>${money(baaki)}</b></td></tr>
+        <tr><td class="lbl">Previous Balance</td><td style="text-align:right">${money(prevBal)}</td></tr>
+        <tr><td class="lbl"><b>Current Balance</b></td><td style="text-align:right"><b>${money(currBal)}</b></td></tr>
+      </table>
+    </td>
+  </tr></table>
+  <table style="margin-top:-1px"><tr><td style="font-size:12px"><b>Amount in Words:</b> ${numToWordsIndian(comp.total)}</td></tr></table>
+  <table style="margin-top:-1px"><tr><td style="width:50%"><b>Payment Mode:</b> ${esc(inv.paymentMode||'Cash')}</td>
+    <td style="text-align:right"><b>For ${esc(shop.name||'PARAMPARA')}:</b><br><br><br>${esc(shop.proprietor||'')}</td></tr></table>
+  ${shop.terms?`<table style="margin-top:-1px"><tr><td style="font-size:12px"><b>Terms &amp; Conditions:</b><br>${esc(shop.terms)}</td></tr></table>`:''}
   </body></html>`;
 }
 function printInvoice(kind,id){const rec=invRecOf(kind,id);if(!rec||!rec.invoice)return;
@@ -1303,14 +1398,50 @@ function waInvoice(kind,id){const rec=invRecOf(kind,id);if(!rec||!rec.invoice)re
 function shopInfoEdit(){const s=DB.shopInfo||{};
   $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:12px">${t('shop_details')}</h2>
     <div class="field"><label>${t('shop_name')}</label><input id="si_name" value="${esc(s.name)}"></div>
+    <div class="field" style="margin-top:10px"><label>${t('shop_tagline')}</label><input id="si_tag" value="${esc(s.tagline||'')}"></div>
     <div class="field" style="margin-top:10px"><label>GSTIN</label><input id="si_gstin" value="${esc(s.gstin)}"></div>
     <div class="field" style="margin-top:10px"><label>${t('shop_address')}</label><textarea id="si_addr">${esc(s.address)}</textarea></div>
+    <div class="row" style="margin-top:10px"><div class="field"><label>${t('shop_phone')}</label><input id="si_phone" type="tel" value="${esc(s.phone||'')}"></div>
+      <div class="field"><label>${t('shop_email')}</label><input id="si_email" type="email" value="${esc(s.email||'')}"></div></div>
     <div class="field" style="margin-top:10px"><label>${t('proprietor')}</label><input id="si_prop" value="${esc(s.proprietor)}"></div>
+    <div class="field" style="margin-top:10px"><label>${t('shop_terms')}</label><textarea id="si_terms">${esc(s.terms||'')}</textarea></div>
     <div class="modal-actions"><button class="btn ghost" onclick="closeSheet()">${t('cancel')}</button><button class="btn primary" onclick="shopInfoSave()">${t('save')}</button></div>`;
   showSheet();
 }
-function shopInfoSave(){DB.shopInfo={name:($('#si_name').value||'').trim(),gstin:($('#si_gstin').value||'').trim(),
-  address:($('#si_addr').value||'').trim(),proprietor:($('#si_prop').value||'').trim()};save();closeSheet();toast(t('t_saved'),'ok');}
+function shopInfoSave(){DB.shopInfo={name:($('#si_name').value||'').trim(),tagline:($('#si_tag').value||'').trim(),gstin:($('#si_gstin').value||'').trim(),
+  address:($('#si_addr').value||'').trim(),phone:($('#si_phone').value||'').trim(),email:($('#si_email').value||'').trim(),
+  proprietor:($('#si_prop').value||'').trim(),terms:($('#si_terms').value||'').trim()};save();closeSheet();toast(t('t_saved'),'ok');}
+
+/* ====================== INVOICES LIST TAB ====================== */
+function allInvoices(){
+  const list=[];
+  (DB.orders||[]).forEach(o=>{if(o.invoice)list.push({kind:'order',rec:o,inv:o.invoice});});
+  (DB.alterations||[]).forEach(a=>{if(a.invoice)list.push({kind:'alt',rec:a,inv:a.invoice});});
+  list.sort((x,y)=>String(y.inv.date||'').localeCompare(String(x.inv.date||'')));
+  return list;
+}
+function renderInvoices(){
+  const el=$('#invList');
+  const list=allInvoices();
+  if(!list.length){el.innerHTML=`<div class="empty"><div class="big">🧾</div><p><b>${t('no_invoices')}</b></p><p style="font-size:13px">${t('no_invoices_sub')}</p></div>`;return;}
+  const groups={};
+  list.forEach(x=>{const mk=String(x.inv.date||'').slice(0,7)||'—';(groups[mk]=groups[mk]||[]).push(x);});
+  const monthName=mk=>{if(mk==='—')return '—';const[y,m]=mk.split('-');return new Date(+y,+m-1,1).toLocaleDateString('en-IN',{month:'long',year:'numeric'});};
+  el.innerHTML=Object.keys(groups).sort().reverse().map(mk=>{
+    const rows=groups[mk];let sales=0,tax=0;
+    rows.forEach(x=>{const c=invCompute(x.inv);sales+=c.total;tax+=c.cgst+c.sgst+c.igst;});
+    return `<div class="section-h" style="display:flex;justify-content:space-between;align-items:baseline">${monthName(mk)}
+      <span style="font-size:12px;font-weight:600;color:var(--txt2)">${t('inv_sales')}: <b style="color:var(--txt)">${money(r2(sales))}</b> · ${t('inv_tax')}: <b style="color:var(--txt)">${money(r2(tax))}</b></span></div>`+
+      rows.map(x=>{const c=invCompute(x.inv);
+        return `<div class="card ocard" onclick="openInvoicePreview('${x.kind}','${x.rec.id}')">
+          <div class="top"><div><div class="ono">🧾 ${esc(x.inv.no)}</div>
+            <div class="name">${esc(x.rec.customerName||'—')}</div>
+            <div class="meta">${x.kind==='alt'?'🔧 #'+esc(x.rec.altNo):'#'+esc(x.rec.orderNo)} · ${fmtDate(x.inv.date)}</div></div>
+            <div style="text-align:right"><div style="font-weight:800;font-size:16px">${money(c.total)}</div>
+            <div style="font-size:11px;color:var(--txt2)">${t('inv_tax')} ${money(r2(c.cgst+c.sgst+c.igst))}</div></div></div>
+        </div>`;}).join('');
+  }).join('');
+}
 
 function focusItem(oid,gid){openDetail(oid,gid);}
 function waReady(id){const o=DB.orders.find(x=>x.id===id);if(!o)return;
