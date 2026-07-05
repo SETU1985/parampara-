@@ -298,7 +298,11 @@ const T={
   confirm_alt_del:'Delete alteration?', confirm_alt_del_msg:'This will be permanently deleted.',
   alt_options:'Alteration options', delete_alteration:'Delete alteration',
   t_alt_created:'Alteration #{n} created', t_alt_updated:'Alteration updated', t_no_alt_item:'Enter item / issue',
-  no_orig_link:'— walk-in, no linked order —', unlink:'Unlink order', t_alt_dup:'This alteration number already exists'
+  no_orig_link:'— walk-in, no linked order —', unlink:'Unlink order', t_alt_dup:'This alteration number already exists',
+  invoice:'Invoice', invoice_no:'Invoice No', invoice_date:'Invoice Date', interstate:'Interstate (IGST) — customer outside West Bengal',
+  save_generate:'Save & Generate', invoice_gst_hint:'Enter the final price customer pays — GST is inclusive (extracted from this, not added). Rate: 5% up to ₹2,500 per item, 18% above.', invoice_ready:'Invoice ready.',
+  t_no_invno:'Enter invoice number', t_no_invitem:'Add at least one item with price', t_invoice_saved:'Invoice saved',
+  shop_details:'Shop Details (for Invoice)', shop_name:'Shop Name', shop_address:'Address', proprietor:'Proprietor'
  },
  hi:{
   sub:'ORDERBOOK', search_ph:'Naam, phone, order no…',
@@ -362,7 +366,11 @@ const T={
   confirm_alt_del:'Alteration delete?', confirm_alt_del_msg:'Yeh permanently delete ho jaayega.',
   alt_options:'Alteration options', delete_alteration:'Alteration delete',
   t_alt_created:'Alteration #{n} ban gayi', t_alt_updated:'Alteration update hui', t_no_alt_item:'Item / problem likhein',
-  no_orig_link:'— walk-in, koi order linked nahi —', unlink:'Order unlink karein', t_alt_dup:'Yeh alteration number pehle se hai'
+  no_orig_link:'— walk-in, koi order linked nahi —', unlink:'Order unlink karein', t_alt_dup:'Yeh alteration number pehle se hai',
+  invoice:'Invoice', invoice_no:'Invoice No', invoice_date:'Invoice Date', interstate:'Interstate (IGST) — customer West Bengal ke bahar',
+  save_generate:'Save & Generate', invoice_gst_hint:'Jo final price customer dega wahi likhein — GST usi ke andar se nikalta hai (extra nahi lagta). Rate: ₹2,500 tak 5%, usse upar 18%.', invoice_ready:'Invoice ready hai.',
+  t_no_invno:'Invoice number likhein', t_no_invitem:'Kam se kam ek item price ke saath add karein', t_invoice_saved:'Invoice save hua',
+  shop_details:'Shop Details (Invoice ke liye)', shop_name:'Shop ka naam', shop_address:'Address', proprietor:'Proprietor'
  }
 };
 let lang = localStorage.getItem('pb_ob_lang') || 'en';
@@ -403,10 +411,11 @@ function itemCols(item){ if(!item)return []; if(item.cat==='custom')return item.
 const commonFor=c=>c==='lower'?LOWER_COMMON:(c==='upper'?UPPER_COMMON:[]);
 
 /* ---- state ---- */
-let DB={orders:[],customers:[]}, form=null, detailId=null, altForm=null, altDetailId=null;
+let DB={orders:[],customers:[]}, form=null, detailId=null, altForm=null, altDetailId=null, invForm=null;
 
 function load(){ try{const r=localStorage.getItem('pb_ob_v1'); if(r)DB=JSON.parse(r);}catch(e){}
   if(!DB.orders)DB.orders=[]; if(!DB.customers)DB.customers=[]; if(!DB.designLib)DB.designLib={}; if(!DB.karigars)DB.karigars=[]; if(!DB.bodyTypes)DB.bodyTypes=[]; if(!DB.measLib)DB.measLib={}; if(!DB.alterations)DB.alterations=[];
+  if(!DB.shopInfo)DB.shopInfo={name:'PARAMPARA',gstin:'19BUVPC3493H1Z2',address:'171, Chittaranjan Avenue, Ram Mandir, Burra Bazar, Kolkata 700007',proprietor:'Nisha Choudhary'};
   if(DB.customItems===undefined) DB.customItems=[
     {id:'ci_safa',n:'Safa',ico:'👳',cat:'custom',fields:[{k:'f_head',n:'Head',type:'number',options:[]}]},
     {id:'ci_juti',n:'Juti',ico:'👞',cat:'custom',fields:[{k:'f_type',n:'Type',type:'select',options:['Nagra','Loafer','Mojari']},{k:'f_size',n:'Size',type:'number',options:[]}]}
@@ -449,6 +458,15 @@ function nextOrderNo(){let mx=0;DB.orders.forEach(o=>{const n=parseInt(String(o.
 function nextAltNo(){let mx=0;(DB.alterations||[]).forEach(a=>{const n=parseInt(String(a.altNo).replace(/\D/g,''));if(!isNaN(n)&&n>mx)mx=n;});return 'A'+(mx?mx+1:1);}
 function altById(id){return (DB.alterations||[]).find(a=>a.id===id);}
 function altsForOrder(oid){return (DB.alterations||[]).filter(a=>a.origOrderId===oid);}
+function nextInvoiceNo(){const y=new Date().getFullYear();let mx=0;
+  const scan=list=>(list||[]).forEach(o=>{if(o.invoice&&o.invoice.no){const m=String(o.invoice.no).match(new RegExp('PP/'+y+'/(\\d+)'));if(m){const n=parseInt(m[1]);if(n>mx)mx=n;}}});
+  scan(DB.orders);scan(DB.alterations);return 'PP/'+y+'/'+String(mx+1).padStart(3,'0');}
+const invRate=p=>(+p||0)>2500?18:5;
+function invCompute(inv){let taxable=0,cgst=0,sgst=0,igst=0,total=0;
+  (inv.items||[]).forEach(it=>{const p=+it.price||0;const r=invRate(p);const base=p/(1+r/100);
+    taxable+=base;total+=p;
+    if(inv.interstate)igst+=(p-base); else {const half=(p-base)/2;cgst+=half;sgst+=half;}});
+  return {taxable,cgst,sgst,igst,total};}
 const custById=id=>DB.customers.find(c=>c.id===id);
 function todayISO(){return new Date().toISOString().slice(0,10);}
 function migratePayments(o){ if(!Array.isArray(o.payments)){ o.payments=(+o.advance>0)?[{amt:+o.advance,date:(o.orderDate||(o.created||'').slice(0,10)||todayISO())}]:[]; } }
@@ -1150,12 +1168,149 @@ function waAlteration(id){const a=altById(id);if(!a)return;const baaki=orderBaak
 function altMenu(id){modal(t('alt_options'),`
     <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();openAltForm('${id}')">✏️ ${t('edit_alteration')}</button>
     <button class="btn ghost block" style="margin-bottom:8px" onclick="waAlteration('${id}')">💬 ${t('wa_customer')}</button>
+    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();openAltInvoice('${id}')">🧾 ${t('invoice')}</button>
     <button class="btn danger block" onclick="delAlteration('${id}')">🗑️ ${t('delete_alteration')}</button>`,[]);}
 function delAlteration(id){confirmModal(t('confirm_alt_del'),t('confirm_alt_del_msg'),async()=>{const a=altById(id);
   for(const p of(a.photos||[]))await mDel(p);
   for(const e of(a.log||[]))if(e.voiceId)await mDel(e.voiceId);
   for(const v of(a.voiceNotes||[]))if(v.voiceId)await mDel(v.voiceId);
   DB.alterations=DB.alterations.filter(x=>x.id!==id);save();closeSheet();go('alterations');toast(t('t_deleted'));});}
+
+/* ====================== INVOICE / BILLING (GST) ====================== */
+function openOrderInvoice(id){const o=DB.orders.find(x=>x.id===id);if(!o)return;
+  if(o.invoice)openInvoicePreview('order',id); else openInvoiceForm('order',id);}
+function openAltInvoice(id){const a=altById(id);if(!a)return;
+  if(a.invoice)openInvoicePreview('alt',id); else openInvoiceForm('alt',id);}
+function invRecOf(kind,id){return kind==='alt'?altById(id):DB.orders.find(x=>x.id===id);}
+function openInvoiceForm(kind,id){
+  const rec=invRecOf(kind,id); if(!rec)return;
+  if(rec.invoice){ invForm=JSON.parse(JSON.stringify(rec.invoice)); invForm.kind=kind; invForm.id=id; }
+  else{
+    let items;
+    if(kind==='alt'){ items=[{label:rec.itemDesc||t('alterations'),price:+rec.total||0}]; }
+    else{ const gids=sortItems(rec.items||[]); const n=gids.length||1; const each=Math.round((+rec.total||0)/n);
+      items=gids.map((gid,i)=>{const g=G(gid);return {label:g?g.n:'Item',price:i===n-1?((+rec.total||0)-each*(n-1)):each};});
+      if(!items.length)items=[{label:'Item',price:+rec.total||0}];
+    }
+    invForm={kind,id,no:nextInvoiceNo(),date:todayISO(),interstate:false,items};
+  }
+  renderInvoiceForm();
+}
+function invItemRow(i,it){
+  return `<div class="card" style="padding:10px;margin-bottom:8px">
+    <div class="field" style="margin:0"><label>${t('alt_item')}</label><input data-iin="${i}" value="${esc(it.label)}"></div>
+    <div class="field" style="margin:8px 0 0"><label>${t('alt_charge')}</label><input data-ipr="${i}" type="number" inputmode="numeric" value="${esc(it.price)}"></div>
+    <button class="btn sm danger" style="margin-top:8px" onclick="invDelItem(${i})">${t('remove')}</button></div>`;
+}
+function renderInvoiceForm(){
+  const f=invForm;
+  const rows=f.items.map((it,i)=>invItemRow(i,it)).join('');
+  $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:6px">🧾 ${t('invoice')}</h2>
+    <p class="hint" style="margin-bottom:12px">${t('invoice_gst_hint')}</p>
+    <div class="row"><div class="field"><label>${t('invoice_no')}</label><input id="inv_no" value="${esc(f.no)}"></div>
+      <div class="field"><label>${t('invoice_date')}</label><input id="inv_date" type="date" value="${esc(f.date)}"></div></div>
+    <label style="display:flex;align-items:center;gap:8px;margin:4px 0 14px;font-size:13px;color:var(--txt2)"><input type="checkbox" id="inv_inter" ${f.interstate?'checked':''} style="width:18px;height:18px"> ${t('interstate')}</label>
+    <div class="section-h">${t('items')}</div>${rows}
+    <button class="btn ghost block" style="margin-bottom:8px" onclick="invAddItem()">+ ${t('add_item')}</button>
+    <div class="modal-actions"><button class="btn ghost" onclick="closeSheet()">${t('cancel')}</button><button class="btn primary" onclick="saveInvoice()">${t('save_generate')}</button></div><div class="fab-pad"></div>`;
+  showSheet();
+}
+function invAddItem(){captureInvoiceForm();invForm.items.push({label:'',price:0});renderInvoiceForm();}
+function invDelItem(i){captureInvoiceForm();invForm.items.splice(i,1);renderInvoiceForm();}
+function captureInvoiceForm(){const f=invForm;
+  if($('#inv_no'))f.no=$('#inv_no').value.trim();
+  if($('#inv_date'))f.date=$('#inv_date').value;
+  if($('#inv_inter'))f.interstate=$('#inv_inter').checked;
+  document.querySelectorAll('[data-iin]').forEach(inp=>{f.items[+inp.dataset.iin].label=inp.value.trim();});
+  document.querySelectorAll('[data-ipr]').forEach(inp=>{f.items[+inp.dataset.ipr].price=+inp.value||0;});
+}
+function saveInvoice(){
+  captureInvoiceForm();const f=invForm;
+  if(!f.no){toast(t('t_no_invno'),'bad');return;}
+  if(!f.items.length||f.items.every(it=>!(+it.price))){toast(t('t_no_invitem'),'bad');return;}
+  const rec=invRecOf(f.kind,f.id); if(!rec)return;
+  rec.invoice={no:f.no,date:f.date,interstate:f.interstate,items:f.items};
+  save();closeSheet();toast(t('t_invoice_saved'),'ok');
+  openInvoicePreview(f.kind,f.id);
+}
+function openInvoicePreview(kind,id){
+  modal(t('invoice'),`<p class="hint" style="margin-bottom:10px">${t('invoice_ready')}</p>`,
+   [{label:'🖨️ '+t('print'),cls:'ghost',fn:()=>printInvoice(kind,id)},
+    {label:'💬 '+t('whatsapp'),cls:'primary',fn:()=>{closeSheet();waInvoice(kind,id);}},
+    {label:'✏️ '+t('edit'),cls:'ghost',fn:()=>openInvoiceForm(kind,id)},
+    {label:t('close'),cls:'ghost',fn:closeSheet}]);
+}
+function buildInvoiceText(rec,inv){
+  const comp=invCompute(inv);
+  let s=`${(DB.shopInfo&&DB.shopInfo.name)||'PARAMPARA'}\nGSTIN: ${(DB.shopInfo&&DB.shopInfo.gstin)||''}\n\nInvoice No: ${inv.no}\nDate: ${fmtDate(inv.date)}\n`;
+  if(rec.orderNo)s+=`Order #${rec.orderNo}\n`; else if(rec.altNo)s+=`Alteration #${rec.altNo}\n`;
+  s+='\n';
+  (inv.items||[]).forEach(it=>{s+=`${it.label} — ${money(+it.price||0)} (GST ${invRate(it.price)}%)\n`;});
+  s+=`\nTaxable: ${money(comp.taxable)}\n`;
+  if(inv.interstate)s+=`IGST: ${money(comp.igst)}\n`; else s+=`CGST: ${money(comp.cgst)}  SGST: ${money(comp.sgst)}\n`;
+  s+=`Grand Total: ${money(comp.total)}\nReceived: ${money(orderReceived(rec))}\nBalance: ${money(orderBaaki(rec))}\n`;
+  return s;
+}
+function buildInvoiceHTML(rec,inv){
+  const comp=invCompute(inv),shop=DB.shopInfo||{};
+  const rows=(inv.items||[]).map((it,i)=>{const p=+it.price||0,r=invRate(p),base=p/(1+r/100);
+    const cgst=inv.interstate?0:(p-base)/2, sgst=inv.interstate?0:(p-base)/2, igst=inv.interstate?(p-base):0;
+    return `<tr><td>${i+1}</td><td>${esc(it.label)}</td><td style="text-align:right">${money(base)}</td><td style="text-align:center">${r}%</td>
+      ${inv.interstate?`<td style="text-align:right">${money(igst)}</td>`:`<td style="text-align:right">${money(cgst)}</td><td style="text-align:right">${money(sgst)}</td>`}
+      <td style="text-align:right"><b>${money(p)}</b></td></tr>`;}).join('');
+  const received=orderReceived(rec),baaki=orderBaaki(rec);
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Invoice ${esc(inv.no)}</title><style>
+    *{font-family:Arial,sans-serif;color:#111}body{margin:20px}
+    .hd{border-bottom:3px solid #c97e10;padding-bottom:10px;margin-bottom:14px}
+    .hd .b{font-size:24px;font-weight:bold;color:#c97e10;letter-spacing:1px}
+    .hd .addr{font-size:13px;color:#444;margin-top:2px}
+    .meta{display:flex;justify-content:space-between;font-size:14px;margin-bottom:14px}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th,td{border:1px solid #ccc;padding:6px 8px}
+    th{background:#f4f4f4;text-align:left}
+    .totals{margin-top:10px;font-size:14px;width:100%}
+    .totals td{border:none;padding:3px 8px}
+    .totals .lbl{text-align:right;color:#444}
+    .grand{font-size:17px;font-weight:bold}
+    @media print{@page{margin:12mm}body{margin:0}}
+  </style></head><body>
+    <div class="hd"><div class="b">${esc(shop.name||'PARAMPARA')}</div>
+      <div class="addr">${esc(shop.address||'')}</div>
+      <div class="addr">GSTIN: ${esc(shop.gstin||'')} &nbsp;|&nbsp; Proprietor: ${esc(shop.proprietor||'')}</div></div>
+    <div class="meta">
+      <div><b>Bill To:</b><br>${esc(rec.customerName||'')}<br>${esc(rec.phone||'')}</div>
+      <div style="text-align:right"><b>Invoice No:</b> ${esc(inv.no)}<br><b>Date:</b> ${fmtDate(inv.date)}<br>${rec.orderNo?'<b>Order #:</b> '+esc(rec.orderNo):(rec.altNo?'<b>Alteration #:</b> '+esc(rec.altNo):'')}</div>
+    </div>
+    <table><thead><tr><th>#</th><th>Description</th><th>Taxable Value</th><th>Rate</th>${inv.interstate?'<th>IGST</th>':'<th>CGST</th><th>SGST</th>'}<th>Total</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+    <table class="totals"><tr><td class="lbl">Taxable Value</td><td style="text-align:right">${money(comp.taxable)}</td></tr>
+      ${inv.interstate?`<tr><td class="lbl">IGST</td><td style="text-align:right">${money(comp.igst)}</td></tr>`:`<tr><td class="lbl">CGST</td><td style="text-align:right">${money(comp.cgst)}</td></tr><tr><td class="lbl">SGST</td><td style="text-align:right">${money(comp.sgst)}</td></tr>`}
+      <tr><td class="lbl grand">Grand Total</td><td style="text-align:right" class="grand">${money(comp.total)}</td></tr>
+      <tr><td class="lbl">Received</td><td style="text-align:right">${money(received)}</td></tr>
+      <tr><td class="lbl">Balance</td><td style="text-align:right"><b>${money(baaki)}</b></td></tr>
+    </table>
+  </body></html>`;
+}
+function printInvoice(kind,id){const rec=invRecOf(kind,id);if(!rec||!rec.invoice)return;
+  const html=buildInvoiceHTML(rec,rec.invoice);
+  const ifr=document.createElement('iframe');ifr.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+  document.body.appendChild(ifr);const d=ifr.contentWindow.document;d.open();d.write(html);d.close();
+  setTimeout(()=>{try{ifr.contentWindow.focus();ifr.contentWindow.print();}catch(e){}setTimeout(()=>ifr.remove(),2000);},400);
+}
+function waInvoice(kind,id){const rec=invRecOf(kind,id);if(!rec||!rec.invoice)return;
+  window.open(waLink(rec.phone,buildInvoiceText(rec,rec.invoice)),'_blank');}
+
+function shopInfoEdit(){const s=DB.shopInfo||{};
+  $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:12px">${t('shop_details')}</h2>
+    <div class="field"><label>${t('shop_name')}</label><input id="si_name" value="${esc(s.name)}"></div>
+    <div class="field" style="margin-top:10px"><label>GSTIN</label><input id="si_gstin" value="${esc(s.gstin)}"></div>
+    <div class="field" style="margin-top:10px"><label>${t('shop_address')}</label><textarea id="si_addr">${esc(s.address)}</textarea></div>
+    <div class="field" style="margin-top:10px"><label>${t('proprietor')}</label><input id="si_prop" value="${esc(s.proprietor)}"></div>
+    <div class="modal-actions"><button class="btn ghost" onclick="closeSheet()">${t('cancel')}</button><button class="btn primary" onclick="shopInfoSave()">${t('save')}</button></div>`;
+  showSheet();
+}
+function shopInfoSave(){DB.shopInfo={name:($('#si_name').value||'').trim(),gstin:($('#si_gstin').value||'').trim(),
+  address:($('#si_addr').value||'').trim(),proprietor:($('#si_prop').value||'').trim()};save();closeSheet();toast(t('t_saved'),'ok');}
 
 function focusItem(oid,gid){openDetail(oid,gid);}
 function waReady(id){const o=DB.orders.find(x=>x.id===id);if(!o)return;
@@ -1249,6 +1404,7 @@ function orderMenu(id){const o=DB.orders.find(x=>x.id===id);const canAlt=o&&orde
     <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();masterSlipMenu('${id}')">📋 ${t('send_meas')}</button>
     <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();orderPrint('${id}')">🖨️ ${t('print')} (${t('all_items')})</button>
     <button class="btn ghost block" style="margin-bottom:8px" onclick="waOrder('${id}')">💬 ${t('wa_customer')}</button>
+    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();openOrderInvoice('${id}')">🧾 ${t('invoice')}</button>
     ${canAlt?`<button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();openAltForm(null,'${id}')">${t('start_alteration')}</button>`:''}
     <button class="btn ghost block" style="margin-bottom:8px" onclick="backupMenu()">💾 ${t('backup')}</button>
     <button class="btn danger block" onclick="delOrder('${id}')">🗑️ ${t('delete_order')}</button>`,[]);}
@@ -1431,6 +1587,7 @@ function orderPrint(oid){const o=DB.orders.find(x=>x.id===oid);if(o)doPrint(o,nu
 /* ====================== SETTINGS + ITEM MASTER ====================== */
 function settingsMenu(){modal(t('settings'),`
   <button class="btn ghost block" style="margin-bottom:8px" onclick="toggleSTTLang(this)">🎤 ${t('voice_lang')}: <b>${sttLangLabel()}</b></button>
+  <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();shopInfoEdit()">🧾 ${t('shop_details')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();karigarMaster()">👷 ${t('karigar_master')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();itemMaster()">🧩 ${t('item_master')}</button>
   <button class="btn ghost block" onclick="backupMenu()">💾 ${t('backup')}</button>`,[]);}
