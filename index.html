@@ -175,6 +175,14 @@
   .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
   .toast.ok{border-color:var(--ok)} .toast.bad{border-color:var(--bad)}
   .fab-pad{height:10px}
+  body.simple-mode{font-size:17px}
+  body.simple-mode .btn{padding:14px 16px; font-size:16px}
+  body.simple-mode .ono{font-size:18px}
+  body.simple-mode .name{font-size:20px}
+  body.simple-mode .pill{font-size:14px; padding:6px 12px}
+  body.simple-mode select{font-size:16px !important; padding:12px !important}
+  body.simple-mode .simple-hide{display:none !important}
+  body.simple-mode nav button span{font-size:12px}
 </style>
 </head>
 <body>
@@ -208,7 +216,7 @@
   <button class="add" onclick="openOrderForm()"><span class="nico">+</span></button>
   <button id="nav-customers" onclick="go('customers')"><span class="nico">👥</span><span data-t="nav_customers"></span></button>
   <button id="nav-alterations" onclick="go('alterations')"><span class="nico">🔧</span><span data-t="nav_alterations"></span></button>
-  <button id="nav-invoices" onclick="go('invoices')"><span class="nico">🧾</span><span data-t="nav_invoices"></span></button>
+  <button id="nav-invoices" onclick="go('invoices')" class="simple-hide"><span class="nico">🧾</span><span data-t="nav_invoices"></span></button>
 </nav>
 
 <div id="fracbar">
@@ -310,7 +318,9 @@ const T={
   discount:'Discount ₹', inv_price:'Price ₹ (before discount)',
   prev_balance:'Previous Balance', curr_balance:'Current Balance', amount_words:'Amount in Words', bill_to:'Bill To',
   nav_invoices:'Bills', invoices:'Invoices', no_invoices:'No invoices yet', no_invoices_sub:'Create one from any order\'s ⋯ menu',
-  inv_sales:'Sales', inv_tax:'GST'
+  inv_sales:'Sales', inv_tax:'GST', salesman_master:'Salesman Master', salesman_desc:'Add your sales staff.', no_salesmen:'No salesman yet',
+  add_salesman:'Add salesman', salesman_name:'Salesman name', salesman:'Salesman', salesman_none:'— not set —',
+  simple_mode:'Simple Mode (for staff)', simple_mode_desc:'Bigger buttons, hides billing & GST — good for handing the phone to karigars/staff.'
  },
  hi:{
   sub:'ORDERBOOK', search_ph:'Naam, phone, order no…',
@@ -384,7 +394,9 @@ const T={
   discount:'Discount ₹', inv_price:'Price ₹ (discount se pehle)',
   prev_balance:'Pichla Baaki', curr_balance:'Total Baaki (abhi tak)', amount_words:'Amount in Words', bill_to:'Bill To',
   nav_invoices:'Bills', invoices:'Invoices', no_invoices:'Abhi koi invoice nahi', no_invoices_sub:'Kisi bhi order ke ⋯ menu se banayein',
-  inv_sales:'Sales', inv_tax:'GST'
+  inv_sales:'Sales', inv_tax:'GST', salesman_master:'Salesman Master', salesman_desc:'Apne sales staff ko jodein.', no_salesmen:'Abhi koi salesman nahi',
+  add_salesman:'Salesman jodein', salesman_name:'Salesman ka naam', salesman:'Salesman', salesman_none:'— set nahi —',
+  simple_mode:'Simple Mode (staff ke liye)', simple_mode_desc:'Bade buttons, billing/GST hide — karigar/staff ko phone dete waqt achha rahega.'
  }
 };
 let lang = localStorage.getItem('pb_ob_lang') || 'en';
@@ -428,7 +440,7 @@ const commonFor=c=>c==='lower'?LOWER_COMMON:(c==='upper'?UPPER_COMMON:[]);
 let DB={orders:[],customers:[]}, form=null, detailId=null, altForm=null, altDetailId=null, invForm=null;
 
 function load(){ try{const r=localStorage.getItem('pb_ob_v1'); if(r)DB=JSON.parse(r);}catch(e){}
-  if(!DB.orders)DB.orders=[]; if(!DB.customers)DB.customers=[]; if(!DB.designLib)DB.designLib={}; if(!DB.karigars)DB.karigars=[]; if(!DB.bodyTypes)DB.bodyTypes=[]; if(!DB.measLib)DB.measLib={}; if(!DB.alterations)DB.alterations=[];
+  if(!DB.orders)DB.orders=[]; if(!DB.customers)DB.customers=[]; if(!DB.designLib)DB.designLib={}; if(!DB.karigars)DB.karigars=[]; if(!DB.bodyTypes)DB.bodyTypes=[]; if(!DB.measLib)DB.measLib={}; if(!DB.alterations)DB.alterations=[]; if(!DB.salesmen)DB.salesmen=[];
   if(!DB.shopInfo)DB.shopInfo={name:'PARAMPARA',tagline:"Men's Ethnic Wear",gstin:'19BUVPC3493H1Z2',address:'171, Chittaranjan Avenue, Ram Mandir, Burra Bazar, Kolkata 700007',proprietor:'Nisha Choudhary',phone:'',email:'',terms:'Thanks for doing business with us!'};
   if(DB.customItems===undefined) DB.customItems=[
     {id:'ci_safa',n:'Safa',ico:'👳',cat:'custom',fields:[{k:'f_head',n:'Head',type:'number',options:[]}]},
@@ -677,13 +689,13 @@ function saveCustEdit(id){const c=custById(id);c.name=$('#ec_name').value.trim()
 /* ====================== ORDER FORM ====================== */
 function openOrderForm(editId){
   if(editId){const o=DB.orders.find(x=>x.id===editId);
-    form={editId,orderNo:o.orderNo,customerId:o.customerId,customerName:o.customerName,phone:o.phone,
+    form={editId,orderNo:o.orderNo,customerId:o.customerId,customerName:o.customerName,phone:o.phone,salesmanId:o.salesmanId||'',
       orderDate:o.orderDate,deliveryDate:o.deliveryDate,items:[...(o.items||[])],
       m:JSON.parse(JSON.stringify(o.m||{})),design:JSON.parse(JSON.stringify(o.design||{})),
       notes:o.notes||'',total:o.total,advance:o.advance,photos:[...(o.photos||[])],voiceNotes:JSON.parse(JSON.stringify(o.voiceNotes||[])),
       itemPhotos:JSON.parse(JSON.stringify(o.itemPhotos||{})),itemVoice:JSON.parse(JSON.stringify(o.itemVoice||{})),bodyType:Array.isArray(o.bodyType)?[...o.bodyType]:(o.bodyType?[o.bodyType]:[])};
   }else{
-    form={editId:null,orderNo:nextOrderNo(),customerId:null,customerName:'',phone:'',
+    form={editId:null,orderNo:nextOrderNo(),customerId:null,customerName:'',phone:'',salesmanId:'',
       orderDate:new Date().toISOString().slice(0,10),deliveryDate:'',items:[],m:{},design:{},notes:'',total:'',advance:'',photos:[],voiceNotes:[],itemPhotos:{},itemVoice:{},bodyType:[]};
   }
   renderForm();
@@ -712,6 +724,9 @@ function renderForm(){
   $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:14px">${f.editId?t('edit_order'):t('new_order')}</h2>
     <div class="row"><div class="field"><label>${t('order_no')} *</label><input id="f_ono" value="${esc(f.orderNo)}" placeholder="2481"></div>
       <div class="field"><label>${t('delivery')} *</label><input id="f_ddate" type="date" value="${esc(f.deliveryDate)}"></div></div>
+    <div class="field"><label>🧑‍💼 ${t('salesman')}</label><select id="f_sm">
+      <option value="">${t('salesman_none')}</option>
+      ${(DB.salesmen||[]).map(k=>`<option value="${k.id}" ${k.id===f.salesmanId?'selected':''}>${esc(k.name)}</option>`).join('')}</select></div>
     <div class="field"><label>${t('customer')}</label><div id="custPicked">${(f.customerId||f.customerName)?customerPickedHTML():''}</div>
       <div id="custSearchWrap" style="${f.customerName?'display:none':''}">
         <input id="f_cname" placeholder="${t('name_ph')}" oninput="custSearch(this.value)" value="${esc(f.customerName)}">
@@ -781,6 +796,7 @@ function customerPickedHTML(){const f=form;return `<div class="cust-result"><div
 function clearCustomer(){form.customerId=null;form.customerName='';form.phone='';renderForm();}
 function captureForm(){const f=form;
   if($('#f_ono'))f.orderNo=$('#f_ono').value.trim(); if($('#f_ddate'))f.deliveryDate=$('#f_ddate').value;
+  if($('#f_sm'))f.salesmanId=$('#f_sm').value;
   if($('#f_total'))f.total=$('#f_total').value; if($('#f_adv'))f.advance=$('#f_adv').value; if($('#f_notes'))f.notes=$('#f_notes').value;
   if($('#f_cname')&&!f.customerId)f.customerName=$('#f_cname').value.trim();
   if($('#f_cphone')&&!f.customerId)f.phone=$('#f_cphone').value.trim();
@@ -869,9 +885,9 @@ function saveOrder(){
   f.items.forEach(gid=>{const toks=(f.design[gid]||'').split('/').map(s=>s.trim()).filter(Boolean);
     if(toks.length){DB.designLib[gid]=DB.designLib[gid]||[];toks.forEach(tk=>{if(!DB.designLib[gid].includes(tk))DB.designLib[gid].push(tk);});if(DB.designLib[gid].length>24)DB.designLib[gid]=DB.designLib[gid].slice(-24);}});
   if(f.editId){const o=DB.orders.find(x=>x.id===f.editId);
-    Object.assign(o,{orderNo:f.orderNo,customerId:c.id,customerName:c.name,phone:c.phone,orderDate:f.orderDate,deliveryDate:f.deliveryDate,items:f.items,m:f.m,design:f.design,notes:f.notes,total:f.total,advance:f.advance,photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,bodyType:f.bodyType});
+    Object.assign(o,{orderNo:f.orderNo,customerId:c.id,customerName:c.name,phone:c.phone,salesmanId:f.salesmanId||'',orderDate:f.orderDate,deliveryDate:f.deliveryDate,items:f.items,m:f.m,design:f.design,notes:f.notes,total:f.total,advance:f.advance,photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,bodyType:f.bodyType});
     save();closeSheet();toast(t('t_updated'),'ok');openDetail(o.id);
-  }else{const o={id:uid(),created:new Date().toISOString(),orderNo:f.orderNo,customerId:c.id,customerName:c.name,phone:c.phone,
+  }else{const o={id:uid(),created:new Date().toISOString(),orderNo:f.orderNo,customerId:c.id,customerName:c.name,phone:c.phone,salesmanId:f.salesmanId||'',
       orderDate:f.orderDate,deliveryDate:f.deliveryDate,items:f.items,m:f.m,design:f.design,notes:f.notes,total:f.total,advance:f.advance,payments:(+f.advance>0?[{amt:+f.advance,date:f.orderDate||new Date().toISOString().slice(0,10)}]:[]),photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,bodyType:f.bodyType,
       status:'new',itemStatus:(function(){const o={};f.items.forEach(g=>o[g]='new');return o;})(),log:[{id:uid(),ts:new Date().toISOString(),text:t('t_status',{s:sLabel('new')}),voiceId:null}]};
     DB.orders.push(o);save();closeSheet();toast(t('t_created',{n:o.orderNo}),'ok');go('orders');}
@@ -975,13 +991,14 @@ async function openDetail(id,focusGid){
 
     <div class="card">
       <div class="kv"><span>${t('phone')}</span><b><a href="tel:${esc(o.phone)}">${esc(o.phone||'—')}</a></b></div>
+      ${o.salesmanId?`<div class="kv"><span>🧑‍💼 ${t('salesman')}</span><b>${esc(salesmanName(o.salesmanId))}</b></div>`:''}
       <div class="kv"><span>${t('order_date')} / ${t('delivery')}</span><b>${fmtDate(o.orderDate)} → ${fmtDate(o.deliveryDate)} ${dl!==null&&st!=='delivered'?`<span class="deliv ${dl<0?'soon':dl<=4?'soon':''}" style="margin-left:4px">${dl<0?Math.abs(dl)+'d '+t('late'):dl+'d'}</span>`:''}</b></div>
       <div class="kv"><span>${t('total')}</span><b>${money(o.total)}</b></div>
       <div class="kv"><span>${t('received')}</span><b>${money(orderReceived(o))}</b></div>
       <div class="kv"><span>${t('baaki')}</span><b style="color:var(--saffron2);font-size:16px">${money(baaki)}</b></div>
     </div>
 
-    <div class="card">
+    <div class="card simple-hide">
       <div class="section-h" style="margin-top:0;display:flex;justify-content:space-between;align-items:center">💰 ${t('payments')}
         <button class="btn sm primary" style="padding:5px 12px" onclick="openPayment('${o.id}')">+ ${t('add_payment')}</button></div>
       ${paymentHistoryHTML(o)}
@@ -1140,7 +1157,7 @@ async function openAltDetail(id){
       <div class="row" style="margin-top:10px;align-items:center;gap:8px"><span class="hint">👷 ${t('karigar')}</span><select onchange="setAltKarigar('${a.id}',this.value)" style="${selStyle}">${kopts}</select></div>
     </div>
 
-    <div class="card">
+    <div class="card simple-hide">
       <div class="section-h" style="margin-top:0;display:flex;justify-content:space-between;align-items:center">💰 ${t('payments')}
         <button class="btn sm primary" style="padding:5px 12px" onclick="openAltPayment('${a.id}')">+ ${t('add_payment')}</button></div>
       ${altPaymentHistoryHTML(a)}
@@ -1207,8 +1224,8 @@ function waAlteration(id){const a=altById(id);if(!a)return;const baaki=orderBaak
 function altMenu(id){modal(t('alt_options'),`
     <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();openAltForm('${id}')">✏️ ${t('edit_alteration')}</button>
     <button class="btn ghost block" style="margin-bottom:8px" onclick="waAlteration('${id}')">💬 ${t('wa_customer')}</button>
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();openAltInvoice('${id}')">🧾 ${t('invoice')}</button>
-    <button class="btn danger block" onclick="delAlteration('${id}')">🗑️ ${t('delete_alteration')}</button>`,[]);}
+    <button class="btn ghost block simple-hide" style="margin-bottom:8px" onclick="closeSheet();openAltInvoice('${id}')">🧾 ${t('invoice')}</button>
+    <button class="btn danger block simple-hide" onclick="delAlteration('${id}')">🗑️ ${t('delete_alteration')}</button>`,[]);}
 function delAlteration(id){confirmModal(t('confirm_alt_del'),t('confirm_alt_del_msg'),async()=>{const a=altById(id);
   for(const p of(a.photos||[]))await mDel(p);
   for(const e of(a.log||[]))if(e.voiceId)await mDel(e.voiceId);
@@ -1535,10 +1552,10 @@ function orderMenu(id){const o=DB.orders.find(x=>x.id===id);const canAlt=o&&orde
     <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();masterSlipMenu('${id}')">📋 ${t('send_meas')}</button>
     <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();orderPrint('${id}')">🖨️ ${t('print')} (${t('all_items')})</button>
     <button class="btn ghost block" style="margin-bottom:8px" onclick="waOrder('${id}')">💬 ${t('wa_customer')}</button>
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();openOrderInvoice('${id}')">🧾 ${t('invoice')}</button>
+    <button class="btn ghost block simple-hide" style="margin-bottom:8px" onclick="closeSheet();openOrderInvoice('${id}')">🧾 ${t('invoice')}</button>
     ${canAlt?`<button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();openAltForm(null,'${id}')">${t('start_alteration')}</button>`:''}
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="backupMenu()">💾 ${t('backup')}</button>
-    <button class="btn danger block" onclick="delOrder('${id}')">🗑️ ${t('delete_order')}</button>`,[]);}
+    <button class="btn ghost block simple-hide" style="margin-bottom:8px" onclick="backupMenu()">💾 ${t('backup')}</button>
+    <button class="btn danger block simple-hide" onclick="delOrder('${id}')">🗑️ ${t('delete_order')}</button>`,[]);}
 function delOrder(id){confirmModal(t('confirm_del'),t('confirm_del_msg'),async()=>{const o=DB.orders.find(x=>x.id===id);
   for(const p of(o.photos||[]))await mDel(p);for(const e of(o.log||[]))if(e.voiceId)await mDel(e.voiceId);
   for(const v of(o.voiceNotes||[]))if(v.voiceId)await mDel(v.voiceId);
@@ -1720,8 +1737,16 @@ function settingsMenu(){modal(t('settings'),`
   <button class="btn ghost block" style="margin-bottom:8px" onclick="toggleSTTLang(this)">🎤 ${t('voice_lang')}: <b>${sttLangLabel()}</b></button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();shopInfoEdit()">🧾 ${t('shop_details')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();karigarMaster()">👷 ${t('karigar_master')}</button>
+  <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();salesmanMaster()">🧑‍💼 ${t('salesman_master')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();itemMaster()">🧩 ${t('item_master')}</button>
+  <label style="display:flex;align-items:flex-start;gap:8px;margin:4px 0 12px;padding:10px;background:var(--bg2);border-radius:var(--r2);cursor:pointer" onclick="event.stopPropagation()">
+    <input type="checkbox" id="simpleModeChk" ${localStorage.getItem('pb_ob_simple')==='1'?'checked':''} onchange="toggleSimpleMode(this.checked)" style="width:20px;height:20px;margin-top:2px">
+    <span><b style="font-size:14px">${t('simple_mode')}</b><br><span class="hint" style="font-size:12px">${t('simple_mode_desc')}</span></span>
+  </label>
   <button class="btn ghost block" onclick="backupMenu()">💾 ${t('backup')}</button>`,[]);}
+function toggleSimpleMode(on){localStorage.setItem('pb_ob_simple',on?'1':'0');document.body.classList.toggle('simple-mode',on);
+  const act=document.querySelector('.tabpane.active');
+  if(act&&act.id==='tab-detail'&&detailId)openDetail(detailId); else renderOrders();}
 
 function karigarMaster(){
   const ks=DB.karigars||[];
@@ -1748,6 +1773,31 @@ function karigarSave(id){const name=($('#kName').value||'').trim();if(!name){toa
 function karigarDelete(id){confirmModal(t('confirm_del'),t('confirm_del_msg'),()=>{DB.karigars=(DB.karigars||[]).filter(x=>x.id!==id);
   DB.orders.forEach(o=>{if(o.assign)for(const g in o.assign)if(o.assign[g]===id)delete o.assign[g];});
   save();karigarMaster();toast(t('t_deleted'));});}
+
+function salesmanMaster(){
+  const ks=DB.salesmen||[];
+  $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:6px">${t('salesman_master')}</h2>
+    <p class="hint" style="margin-bottom:12px">${t('salesman_desc')}</p>
+    ${ks.map(k=>`<div class="cust-result"><div><b>🧑‍💼 ${esc(k.name)}</b></div>
+      <div style="display:flex;gap:6px"><button class="btn sm ghost" onclick="salesmanEdit('${k.id}')">✏️</button><button class="btn sm danger" onclick="salesmanDelete('${k.id}')">✕</button></div></div>`).join('')||'<p class="hint">'+t('no_salesmen')+'</p>'}
+    <button class="btn primary block" style="margin-top:10px" onclick="salesmanEdit()">+ ${t('add_salesman')}</button>
+    <div class="modal-actions"><button class="btn ghost block" onclick="closeSheet()">${t('close')}</button></div>`;
+  showSheet();
+}
+function salesmanEdit(id){const ex=id?(DB.salesmen||[]).find(x=>x.id===id):null;
+  $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:12px">${ex?t('edit'):t('add_salesman')}</h2>
+    <div class="field"><label>${t('salesman_name')}</label><input id="smName" value="${ex?esc(ex.name):''}" placeholder="${t('salesman_name')}"></div>
+    <div class="modal-actions"><button class="btn ghost" onclick="salesmanMaster()">${t('cancel')}</button><button class="btn primary" onclick="salesmanSave('${id||''}')">${t('save')}</button></div>`;
+  showSheet();
+}
+function salesmanSave(id){const name=($('#smName').value||'').trim();if(!name){toast(t('salesman_name'),'bad');return;}
+  DB.salesmen=DB.salesmen||[];
+  if(id){const k=DB.salesmen.find(x=>x.id===id);if(k)k.name=name;}else{DB.salesmen.push({id:uid(),name});}
+  save();salesmanMaster();toast(t('t_saved'),'ok');}
+function salesmanDelete(id){confirmModal(t('confirm_del'),t('confirm_del_msg'),()=>{DB.salesmen=(DB.salesmen||[]).filter(x=>x.id!==id);
+  DB.orders.forEach(o=>{if(o.salesmanId===id)o.salesmanId='';});
+  save();salesmanMaster();toast(t('t_deleted'));});}
+function salesmanName(id){const k=(DB.salesmen||[]).find(x=>x.id===id);return k?k.name:'';}
 function karigarName(id){const k=(DB.karigars||[]).find(x=>x.id===id);return k?k.name:'';}
 async function pickKarigarContact(){
   if(!(navigator.contacts&&navigator.contacts.select)){toast(t('contacts_na'),'bad');return;}
@@ -1863,7 +1913,7 @@ function toast(msg,kind){const el=$('#toast');el.textContent=msg;el.className='t
 /* ====================== INIT ====================== */
 function updateHeadStat(){const due=DB.orders.reduce((s,o)=>s+orderBaaki(o),0);
   const hs=$('#headStat');if(hs)hs.innerHTML=`<b>${DB.orders.length}</b> ${t('orders_word')} · <b>${money(due)}</b> ${t('due')}<br><span onclick="backupMenu()" style="text-decoration:underline;cursor:pointer">💾 ${t('backup')}</span>`;}
-async function init(){load();try{await openIDB();}catch(e){}applyLang();renderOrders();}
+async function init(){load();try{await openIDB();}catch(e){}applyLang();document.body.classList.toggle('simple-mode',localStorage.getItem('pb_ob_simple')==='1');renderOrders();}
 init();
 </script>
 </body>
