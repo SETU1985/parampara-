@@ -198,12 +198,15 @@
   <section class="tabpane active" id="tab-orders"><div id="ordersList"></div></section>
   <section class="tabpane" id="tab-customers"><div id="custList"></div></section>
   <section class="tabpane" id="tab-detail"><div id="detailPane"></div></section>
+  <section class="tabpane" id="tab-alterations"><div id="altList"></div></section>
+  <section class="tabpane" id="tab-altdetail"><div id="altDetailPane"></div></section>
 </main>
 
 <nav>
   <button class="on" id="nav-orders" onclick="go('orders')"><span class="nico">📋</span><span data-t="nav_orders"></span></button>
   <button class="add" onclick="openOrderForm()"><span class="nico">+</span></button>
   <button id="nav-customers" onclick="go('customers')"><span class="nico">👥</span><span data-t="nav_customers"></span></button>
+  <button id="nav-alterations" onclick="go('alterations')"><span class="nico">🔧</span><span data-t="nav_alterations"></span></button>
 </nav>
 
 <div id="fracbar">
@@ -285,7 +288,17 @@ const T={
   t_updated:'Order updated', t_deleted:'Deleted', t_cust_updated:'Updated', t_storage:'Storage full — back up and delete some old orders',
   t_wrong:'Wrong file', t_restored:'Restored', t_no_ono:'Enter an order number', t_no_name:'Enter customer name',
   t_no_deliv:'Select a delivery date', t_no_item:'Add at least one item', t_dup:'This order number already exists',
-  t_voice:'Voice saved', t_status:'Status: {s}', t_update_added:'Update added', late:'late'
+  t_voice:'Voice saved', t_status:'Status: {s}', t_update_added:'Update added', late:'late',
+  nav_alterations:'Alter', alterations:'Alterations', new_alteration:'New Alteration', edit_alteration:'Edit Alteration',
+  alt_no:'Alteration No', alt_item:'Item / Issue', alt_item_ph:'e.g. Sherwani — waist tight',
+  alt_received_date:'Received Date', alt_charge:'Charge ₹', alt_orig_order:'Linked Order',
+  no_alterations:'No alterations yet', no_alterations_sub:'Tap 🔧 below to add one',
+  start_alteration:'🔧 Start Alteration', alt_from_order:'From order #{n}',
+  as_received:'Received', as_progress:'With Karigar', as_ready:'Ready', as_delivered:'Delivered',
+  confirm_alt_del:'Delete alteration?', confirm_alt_del_msg:'This will be permanently deleted.',
+  alt_options:'Alteration options', delete_alteration:'Delete alteration',
+  t_alt_created:'Alteration #{n} created', t_alt_updated:'Alteration updated', t_no_alt_item:'Enter item / issue',
+  no_orig_link:'— walk-in, no linked order —', unlink:'Unlink order', t_alt_dup:'This alteration number already exists'
  },
  hi:{
   sub:'ORDERBOOK', search_ph:'Naam, phone, order no…',
@@ -339,7 +352,17 @@ const T={
   t_updated:'Order update hua', t_deleted:'Delete ho gaya', t_cust_updated:'Updated', t_storage:'Storage bhar gaya — backup lekar purane delete karein',
   t_wrong:'Galat file', t_restored:'Restore ho gaya', t_no_ono:'Order number likhein', t_no_name:'Customer ka naam likhein',
   t_no_deliv:'Delivery date select karein', t_no_item:'Kam se kam ek item add karein', t_dup:'Yeh order number pehle se hai',
-  t_voice:'Voice save hui', t_status:'Status: {s}', t_update_added:'Update add hua', late:'late'
+  t_voice:'Voice save hui', t_status:'Status: {s}', t_update_added:'Update add hua', late:'late',
+  nav_alterations:'Alter', alterations:'Alterations', new_alteration:'Nayi Alteration', edit_alteration:'Alteration Edit',
+  alt_no:'Alteration No', alt_item:'Item / Problem', alt_item_ph:'jaise Sherwani — kamar tight',
+  alt_received_date:'Received Date', alt_charge:'Charge ₹', alt_orig_order:'Linked Order',
+  no_alterations:'Abhi koi alteration nahi', no_alterations_sub:'Neeche 🔧 dabakar add karein',
+  start_alteration:'🔧 Alteration Shuru Karein', alt_from_order:'Order #{n} se',
+  as_received:'Mila', as_progress:'Karigar ke paas', as_ready:'Ready', as_delivered:'Delivered',
+  confirm_alt_del:'Alteration delete?', confirm_alt_del_msg:'Yeh permanently delete ho jaayega.',
+  alt_options:'Alteration options', delete_alteration:'Alteration delete',
+  t_alt_created:'Alteration #{n} ban gayi', t_alt_updated:'Alteration update hui', t_no_alt_item:'Item / problem likhein',
+  no_orig_link:'— walk-in, koi order linked nahi —', unlink:'Order unlink karein', t_alt_dup:'Yeh alteration number pehle se hai'
  }
 };
 let lang = localStorage.getItem('pb_ob_lang') || 'en';
@@ -353,6 +376,11 @@ const STATUS_LABEL={
  hi:{new:'Naya',cut:'Cut',handwork:'Hath-kaam',stitching:'Silai',checking:'Checking',ready:'Ready',delivered:'Delivered'}
 };
 const sLabel=s=>(STATUS_LABEL[lang]&&STATUS_LABEL[lang][s])||STATUS_LABEL.en[s]||s;
+
+/* ---- alteration workflow (separate, lighter pipeline) ---- */
+const ASTATUS=['received','progress','ready','delivered'];
+const ASTATUS_CLASS={received:'st-new',progress:'st-stitching',ready:'st-ready',delivered:'st-delivered'};
+const aLabel=s=>t('as_'+s);
 
 /* ---- garment definitions (matches the PARAMPARA slip) ---- */
 const UPPER_COLS=[{k:'L',n:'Length'},{k:'C',n:'Chest'},{k:'B',n:'Belly'},{k:'H',n:'Hip'},{k:'S',n:'Shoulder'},{k:'SL',n:'Sleeve'},{k:'N',n:'Neck'},{k:'FC',n:'Front Cross'},{k:'Bi',n:'Bicep'}];
@@ -375,15 +403,16 @@ function itemCols(item){ if(!item)return []; if(item.cat==='custom')return item.
 const commonFor=c=>c==='lower'?LOWER_COMMON:(c==='upper'?UPPER_COMMON:[]);
 
 /* ---- state ---- */
-let DB={orders:[],customers:[]}, form=null, detailId=null;
+let DB={orders:[],customers:[]}, form=null, detailId=null, altForm=null, altDetailId=null;
 
 function load(){ try{const r=localStorage.getItem('pb_ob_v1'); if(r)DB=JSON.parse(r);}catch(e){}
-  if(!DB.orders)DB.orders=[]; if(!DB.customers)DB.customers=[]; if(!DB.designLib)DB.designLib={}; if(!DB.karigars)DB.karigars=[]; if(!DB.bodyTypes)DB.bodyTypes=[]; if(!DB.measLib)DB.measLib={};
+  if(!DB.orders)DB.orders=[]; if(!DB.customers)DB.customers=[]; if(!DB.designLib)DB.designLib={}; if(!DB.karigars)DB.karigars=[]; if(!DB.bodyTypes)DB.bodyTypes=[]; if(!DB.measLib)DB.measLib={}; if(!DB.alterations)DB.alterations=[];
   if(DB.customItems===undefined) DB.customItems=[
     {id:'ci_safa',n:'Safa',ico:'👳',cat:'custom',fields:[{k:'f_head',n:'Head',type:'number',options:[]}]},
     {id:'ci_juti',n:'Juti',ico:'👞',cat:'custom',fields:[{k:'f_type',n:'Type',type:'select',options:['Nagra','Loafer','Mojari']},{k:'f_size',n:'Size',type:'number',options:[]}]}
   ];
   (DB.orders||[]).forEach(migratePayments);
+  (DB.alterations||[]).forEach(migratePayments);
 }
 function save(){ try{localStorage.setItem('pb_ob_v1',JSON.stringify(DB)); updateHeadStat(); autoSnapshot();}catch(e){toast(t('t_storage'),'bad');} }
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -417,6 +446,9 @@ function masterDate(deliveryDate){const dl=daysLeft(deliveryDate);if(dl==null)re
   let buf=0; if(dl>1)buf=Math.min(5,Math.max(1,Math.round(dl*0.25)));   // give karigar a buffer that scales with available time
   const d=new Date(deliveryDate);d.setDate(d.getDate()-buf);return d.toISOString().slice(0,10);}
 function nextOrderNo(){let mx=0;DB.orders.forEach(o=>{const n=parseInt(String(o.orderNo).replace(/\D/g,''));if(!isNaN(n)&&n>mx)mx=n;});return mx?String(mx+1):'';}
+function nextAltNo(){let mx=0;(DB.alterations||[]).forEach(a=>{const n=parseInt(String(a.altNo).replace(/\D/g,''));if(!isNaN(n)&&n>mx)mx=n;});return 'A'+(mx?mx+1:1);}
+function altById(id){return (DB.alterations||[]).find(a=>a.id===id);}
+function altsForOrder(oid){return (DB.alterations||[]).filter(a=>a.origOrderId===oid);}
 const custById=id=>DB.customers.find(c=>c.id===id);
 function todayISO(){return new Date().toISOString().slice(0,10);}
 function migratePayments(o){ if(!Array.isArray(o.payments)){ o.payments=(+o.advance>0)?[{amt:+o.advance,date:(o.orderDate||(o.created||'').slice(0,10)||todayISO())}]:[]; } }
@@ -438,6 +470,8 @@ function applyLang(){
 }
 function toggleLang(){ lang=lang==='en'?'hi':'en'; localStorage.setItem('pb_ob_lang',lang); applyLang();
   const act=document.querySelector('.tabpane.active'); if(act&&act.id==='tab-detail'&&detailId) openDetail(detailId);
+  else if(act&&act.id==='tab-altdetail'&&altDetailId) openAltDetail(altDetailId);
+  else if(act&&act.id==='tab-alterations') renderAlterations();
   else if(act&&act.id==='tab-customers') renderCustomers(); else renderOrders();
   if($('#scrim').classList.contains('show')) closeSheet();
 }
@@ -450,7 +484,7 @@ function go(tab){
   const n=$('#nav-'+tab); if(n)n.classList.add('on');
   $('#searchWrap').style.display=tab==='orders'?'':'none';
   window.scrollTo(0,0);
-  if(tab==='orders')renderOrders(); if(tab==='customers')renderCustomers();
+  if(tab==='orders')renderOrders(); if(tab==='customers')renderCustomers(); if(tab==='alterations')renderAlterations();
 }
 
 /* ====================== ORDERS LIST + DELIVERY PLANNER ====================== */
@@ -505,8 +539,9 @@ function renderOrders(){
     const tags=sortItems(o.items).map(gid=>{const g=G(gid);const s=itemStatusOf(o,gid);const dot=(s==='ready'||s==='delivered')?'✅':'';return g?`<span class="gtag" style="cursor:pointer" onclick="event.stopPropagation();focusItem('${o.id}','${gid}')">${g.ico} ${esc(g.n)} ${dot}</span>`:'';}).join('');
     const rc=readyCount(o),tot=(o.items||[]).length;
     const ready=st==='ready';
+    const altN=altsForOrder(o.id).length;
     return `<div class="card ocard" onclick="openDetail('${o.id}')">
-      <div class="top"><div><div class="ono">#${esc(o.orderNo)}</div>
+      <div class="top"><div><div class="ono">#${esc(o.orderNo)} ${altN?`<span style="color:var(--saffron2)">🔧${altN}</span>`:''}</div>
         <div class="name">${esc(o.customerName)}</div><div class="meta">📞 ${esc(o.phone||'—')}</div></div>
         <div class="deliv ${dcls}">${dtxt}</div></div>
       <div class="gtags">${tags||'<span class="gtag">'+t('no_items')+'</span>'}</div>
@@ -833,6 +868,7 @@ function pickItemPhoto(src,gid){captureForm();photoTarget={type:'item',gid};cons
 async function processPhoto(e){const file=e.target.files[0];if(!file)return;
   const blob=await downscale(file);const id='img_'+uid();await mPut(id,blob);
   if(photoTarget.type==='item'){const gid=photoTarget.gid;form.itemPhotos=form.itemPhotos||{};form.itemPhotos[gid]=form.itemPhotos[gid]||[];form.itemPhotos[gid].push(id);renderItemPhotos(gid);}
+  else if(photoTarget.type==='alt'){altForm.photos=altForm.photos||[];altForm.photos.push(id);renderAltFormPhotos();}
   else {form.photos.push(id);renderFormPhotos();}
   toast(t('t_photo'));}
 $('#filePick').addEventListener('change',processPhoto);
@@ -923,6 +959,204 @@ async function openDetail(id,focusGid){
   }
 }
 
+/* ====================== ALTERATIONS (separate lightweight order type) ====================== */
+function renderAlterations(){
+  const el=$('#altList');
+  const list=(DB.alterations||[]).slice().sort((a,b)=>new Date(b.created)-new Date(a.created));
+  const addBtn=`<button class="btn primary block" style="margin-bottom:12px" onclick="openAltForm()">+ ${t('new_alteration')}</button>`;
+  if(!list.length){el.innerHTML=addBtn+`<div class="empty"><div class="big">🔧</div><p><b>${t('no_alterations')}</b></p><p style="font-size:13px">${t('no_alterations_sub')}</p></div>`;return;}
+  el.innerHTML=addBtn+list.map(a=>{
+    const dl=daysLeft(a.deliveryDate),baaki=orderBaaki(a),st=a.status||'received';
+    let dcls='',dtxt=a.deliveryDate?fmtDate(a.deliveryDate):'—';
+    if(st!=='delivered'&&dl!==null&&dl<0){dcls='soon';dtxt=Math.abs(dl)+'d '+t('late');}
+    else if(st!=='delivered'&&dl!==null&&dl<=2){dcls='soon';dtxt=dl+'d';}
+    const kname=a.karigarId?karigarName(a.karigarId):'';
+    const origO=a.origOrderId?DB.orders.find(x=>x.id===a.origOrderId):null;
+    return `<div class="card ocard" onclick="openAltDetail('${a.id}')">
+      <div class="top"><div><div class="ono">🔧 #${esc(a.altNo)}</div>
+        <div class="name">${esc(a.customerName||'—')}</div><div class="meta">📞 ${esc(a.phone||'—')}</div></div>
+        <div class="deliv ${dcls}">${dtxt}</div></div>
+      <div class="gtags">${a.itemDesc?`<span class="gtag">${esc(a.itemDesc)}</span>`:''}${origO?`<span class="gtag">↩ #${esc(origO.orderNo)}</span>`:''}${kname?`<span class="gtag">👷 ${esc(kname)}</span>`:''}</div>
+      <div class="botrow"><span class="pill ${ASTATUS_CLASS[st]}">${aLabel(st)}</span><span style="font-size:12px;color:var(--txt2)">${baaki>0?`<span style="color:var(--saffron2);font-weight:700">${money(baaki)}</span>`:''}</span></div>
+    </div>`;
+  }).join('');
+}
+
+function openAltForm(editId,origOrderId){
+  if(editId){
+    const a=altById(editId);
+    altForm={editId,altNo:a.altNo,origOrderId:a.origOrderId||null,customerId:a.customerId||null,customerName:a.customerName||'',phone:a.phone||'',
+      itemDesc:a.itemDesc||'',notes:a.notes||'',receivedDate:a.receivedDate||todayISO(),deliveryDate:a.deliveryDate||'',charge:a.charge||'',
+      karigarId:a.karigarId||'',photos:[...(a.photos||[])],voiceNotes:JSON.parse(JSON.stringify(a.voiceNotes||[]))};
+  }else{
+    let cid=null,cname='',cphone='',idesc='';
+    if(origOrderId){const o=DB.orders.find(x=>x.id===origOrderId);
+      if(o){cid=o.customerId;cname=o.customerName;cphone=o.phone;idesc=t('alt_from_order',{n:o.orderNo});}}
+    altForm={editId:null,altNo:nextAltNo(),origOrderId:origOrderId||null,customerId:cid,customerName:cname,phone:cphone,
+      itemDesc:idesc,notes:'',receivedDate:todayISO(),deliveryDate:'',charge:'',karigarId:'',photos:[],voiceNotes:[]};
+  }
+  renderAltForm();
+}
+function unlinkAltOrder(){captureAltForm();altForm.origOrderId=null;altForm.customerId=null;renderAltForm();}
+function renderAltForm(){
+  const f=altForm;
+  const origO=f.origOrderId?DB.orders.find(x=>x.id===f.origOrderId):null;
+  const kopts=`<option value="">${t('karigar_none')}</option>`+(DB.karigars||[]).map(k=>`<option value="${k.id}" ${k.id===f.karigarId?'selected':''}>${esc(k.name)}</option>`).join('');
+  $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:14px">${f.editId?t('edit_alteration'):t('new_alteration')}</h2>
+    <div class="row"><div class="field"><label>${t('alt_no')}</label><input id="a_no" value="${esc(f.altNo)}"></div>
+      <div class="field"><label>${t('alt_received_date')}</label><input id="a_rdate" type="date" value="${esc(f.receivedDate)}"></div></div>
+    ${origO?`<div class="field"><label>${t('alt_orig_order')}</label><div class="cust-result"><div><b>#${esc(origO.orderNo)}</b><div class="hint">${esc(origO.customerName)}</div></div><button class="btn sm ghost" onclick="unlinkAltOrder()">${t('unlink')}</button></div></div>`:`<p class="hint" style="margin:0 0 12px">${t('no_orig_link')}</p>`}
+    <div class="field"><label>${t('customer')}</label><input id="a_cname" value="${esc(f.customerName)}" placeholder="${t('name_ph')}">
+      <input id="a_cphone" type="tel" placeholder="${t('phone')}" value="${esc(f.phone)}" style="margin-top:8px"></div>
+    <div class="field"><label>${t('alt_item')} ${micBtn('#a_item')}</label><textarea id="a_item" placeholder="${t('alt_item_ph')}">${esc(f.itemDesc)}</textarea></div>
+    <div class="row"><div class="field"><label>${t('delivery')}</label><input id="a_ddate" type="date" value="${esc(f.deliveryDate)}"></div>
+      <div class="field"><label>${t('alt_charge')}</label><input id="a_charge" type="number" inputmode="numeric" value="${esc(f.charge)}" placeholder="0"></div></div>
+    <div class="field"><label>👷 ${t('karigar')}</label><select id="a_karigar">${kopts}</select></div>
+    <div class="field"><label>${t('order_notes')} ${micBtn('#a_notes')}</label><textarea id="a_notes" placeholder="${t('notes_ph')}">${esc(f.notes||'')}</textarea></div>
+    <div class="section-h">${t('photo_label')}</div><div id="a_photos" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+    <div class="row" style="margin-top:8px"><button class="btn sm ghost" onclick="pickAltPhoto('cam')">📷 ${t('camera')}</button><button class="btn sm ghost" onclick="pickAltPhoto('lib')">🖼️ ${t('gallery')}</button></div>
+    <div class="section-h">${t('voice_notes')}</div>${voiceSection('avn')}
+    <div class="modal-actions"><button class="btn ghost" onclick="closeSheet()">${t('cancel')}</button>
+      <button class="btn primary" onclick="saveAlteration()">${f.editId?t('update'):t('save_order')}</button></div><div class="fab-pad"></div>`;
+  showSheet();renderAltFormPhotos();bindVoice('avn',()=>altForm.voiceNotes,null);
+}
+function pickAltPhoto(src){captureAltForm();photoTarget={type:'alt'};const inp=src==='cam'?$('#filePickCam'):$('#filePick');inp.value='';inp.click();}
+async function renderAltFormPhotos(){const el=$('#a_photos');if(!el)return;el.innerHTML='';
+  for(const id of altForm.photos){const url=await mURL(id);const w=document.createElement('div');w.className='thumb-wrap';
+    w.innerHTML=`<img class="thumb" src="${url||''}"><div class="thumb-x">✕</div>`;
+    w.querySelector('.thumb').onclick=()=>viewPhoto(url);
+    w.querySelector('.thumb-x').onclick=async()=>{await mDel(id);altForm.photos=altForm.photos.filter(x=>x!==id);renderAltFormPhotos();};
+    el.appendChild(w);}}
+function captureAltForm(){const f=altForm;
+  if($('#a_no'))f.altNo=$('#a_no').value.trim();
+  if($('#a_rdate'))f.receivedDate=$('#a_rdate').value;
+  if($('#a_cname'))f.customerName=$('#a_cname').value.trim();
+  if($('#a_cphone'))f.phone=$('#a_cphone').value.trim();
+  if($('#a_item'))f.itemDesc=$('#a_item').value.trim();
+  if($('#a_ddate'))f.deliveryDate=$('#a_ddate').value;
+  if($('#a_charge'))f.charge=$('#a_charge').value;
+  if($('#a_karigar'))f.karigarId=$('#a_karigar').value;
+  if($('#a_notes'))f.notes=$('#a_notes').value;
+}
+function saveAlteration(){
+  captureAltForm();const f=altForm;
+  if(!f.itemDesc){toast(t('t_no_alt_item'),'bad');return;}
+  if(DB.alterations.find(a=>String(a.altNo)===String(f.altNo)&&a.id!==f.editId)){toast(t('t_alt_dup'),'bad');return;}
+  if(f.editId){
+    const a=altById(f.editId);
+    Object.assign(a,{altNo:f.altNo,origOrderId:f.origOrderId,customerId:f.customerId,customerName:f.customerName,phone:f.phone,
+      itemDesc:f.itemDesc,notes:f.notes,receivedDate:f.receivedDate,deliveryDate:f.deliveryDate,charge:f.charge,total:f.charge,
+      karigarId:f.karigarId,photos:f.photos,voiceNotes:f.voiceNotes});
+    save();closeSheet();toast(t('t_alt_updated'),'ok');openAltDetail(a.id);
+  }else{
+    const a={id:uid(),created:new Date().toISOString(),altNo:f.altNo,origOrderId:f.origOrderId,customerId:f.customerId,customerName:f.customerName,phone:f.phone,
+      itemDesc:f.itemDesc,notes:f.notes,receivedDate:f.receivedDate,deliveryDate:f.deliveryDate,charge:f.charge,total:f.charge,payments:[],
+      karigarId:f.karigarId||'',photos:f.photos,voiceNotes:f.voiceNotes,status:'received',log:[{id:uid(),ts:new Date().toISOString(),text:aLabel('received'),voiceId:null}]};
+    DB.alterations.push(a);save();closeSheet();toast(t('t_alt_created',{n:a.altNo}),'ok');go('alterations');
+  }
+}
+async function openAltDetail(id){
+  altDetailId=id;const a=altById(id);if(!a){go('alterations');return;}
+  if(!a.log)a.log=[]; if(!a.voiceNotes)a.voiceNotes=[]; if(!a.status)a.status='received'; if(!a.photos)a.photos=[];
+  go('altdetail');$('#searchWrap').style.display='none';
+  const baaki=orderBaaki(a),dl=daysLeft(a.deliveryDate),st=a.status||'received';
+  const origO=a.origOrderId?DB.orders.find(x=>x.id===a.origOrderId):null;
+  const kopts=`<option value="">${t('karigar_none')}</option>`+(DB.karigars||[]).map(k=>`<option value="${k.id}" ${k.id===a.karigarId?'selected':''}>${esc(k.name)}</option>`).join('');
+  const selStyle='flex:1;background:var(--bg2);border:1px solid var(--line);color:var(--txt);padding:9px 10px;border-radius:var(--r2);font-size:15px';
+
+  $('#altDetailPane').innerHTML=`
+    <div class="detail-hd"><button class="back" onclick="go('alterations')">←</button>
+      <div style="flex:1"><div style="color:var(--saffron);font-size:11px;font-weight:700">🔧 #${esc(a.altNo)}</div><h2>${esc(a.customerName||'—')}</h2></div>
+      <button class="btn sm ghost" onclick="altMenu('${a.id}')">⋯</button></div>
+
+    <div class="card">
+      <div class="kv"><span>${t('phone')}</span><b><a href="tel:${esc(a.phone)}">${esc(a.phone||'—')}</a></b></div>
+      ${origO?`<div class="kv"><span>${t('alt_orig_order')}</span><b><a href="#" onclick="event.preventDefault();openDetail('${origO.id}')">#${esc(origO.orderNo)}</a></b></div>`:''}
+      <div class="kv"><span>${t('alt_received_date')} / ${t('delivery')}</span><b>${fmtDate(a.receivedDate)} → ${a.deliveryDate?fmtDate(a.deliveryDate):'—'} ${dl!==null&&st!=='delivered'?`<span class="deliv ${dl<0?'soon':dl<=2?'soon':''}" style="margin-left:4px">${dl<0?Math.abs(dl)+'d '+t('late'):dl+'d'}</span>`:''}</b></div>
+      <div class="kv"><span>${t('alt_charge')}</span><b>${money(a.total)}</b></div>
+      <div class="kv"><span>${t('received')}</span><b>${money(orderReceived(a))}</b></div>
+      <div class="kv"><span>${t('baaki')}</span><b style="color:var(--saffron2);font-size:16px">${money(baaki)}</b></div>
+    </div>
+
+    <div class="card">
+      <div class="row" style="align-items:center;gap:8px"><span class="hint">📍 ${t('status')}</span><select onchange="setAltStatus('${a.id}',this.value)" style="${selStyle}">${ASTATUS.map(s=>`<option value="${s}" ${s===st?'selected':''}>${aLabel(s)}</option>`).join('')}</select></div>
+      <div class="row" style="margin-top:10px;align-items:center;gap:8px"><span class="hint">👷 ${t('karigar')}</span><select onchange="setAltKarigar('${a.id}',this.value)" style="${selStyle}">${kopts}</select></div>
+    </div>
+
+    <div class="card">
+      <div class="section-h" style="margin-top:0;display:flex;justify-content:space-between;align-items:center">💰 ${t('payments')}
+        <button class="btn sm primary" style="padding:5px 12px" onclick="openAltPayment('${a.id}')">+ ${t('add_payment')}</button></div>
+      ${altPaymentHistoryHTML(a)}
+    </div>
+    ${a.itemDesc?`<div class="card"><div class="section-h" style="margin-top:0">${t('alt_item')}</div>${esc(a.itemDesc)}</div>`:''}
+    ${a.notes?`<div class="card"><div class="section-h" style="margin-top:0">${t('order_notes')}</div>${esc(a.notes)}</div>`:''}
+
+    <div class="section-h">${t('timeline')}</div>
+    <div class="card" id="addUpdateBox">
+      <div style="display:flex;gap:10px;align-items:center">
+        <input id="upTextA" placeholder="${t('update_ph')}" style="flex:1;background:var(--bg2);border:1px solid var(--line);color:var(--txt);padding:11px 12px;border-radius:var(--r2);outline:none">
+        ${micBtn('#upTextA')}
+        <button class="btn primary sm" onclick="addAltUpdate('${a.id}')">${t('add')}</button>
+      </div>
+    </div>
+    <div id="altTimeline"></div>
+
+    <div class="section-h">${t('voice_notes')}</div>${voiceSection('advn')}
+    <div id="ad_photos" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"></div>
+    <div class="row" style="margin-top:14px;gap:6px"><button class="btn ghost" onclick="openAltForm('${a.id}')">✏️ ${t('edit')}</button><button class="btn ghost" onclick="waAlteration('${a.id}')">💬 ${t('customer')}</button></div>
+    <div class="fab-pad"></div>`;
+
+  renderAltTimeline(a);
+  bindVoice('advn',()=>a.voiceNotes,()=>save());
+  const pe=$('#ad_photos'); for(const pid of(a.photos||[])){const url=await mURL(pid);const im=document.createElement('img');im.className='thumb';im.src=url||'';im.onclick=()=>viewPhoto(url);pe.appendChild(im);}
+}
+function setAltStatus(id,s){const a=altById(id);if(!a||a.status===s)return;a.status=s;a.log=a.log||[];
+  a.log.push({id:uid(),ts:new Date().toISOString(),text:aLabel(s),voiceId:null});save();openAltDetail(id);toast(aLabel(s),'ok');}
+function setAltKarigar(id,kid){const a=altById(id);if(!a)return;a.karigarId=kid;a.log=a.log||[];
+  a.log.push({id:uid(),ts:new Date().toISOString(),text:kid?('👷 '+karigarName(kid)):t('karigar_none'),voiceId:null});
+  if(kid&&a.status==='received'){a.status='progress';a.log.push({id:uid(),ts:new Date().toISOString(),text:aLabel('progress'),voiceId:null});}
+  save();openAltDetail(id);toast(t('t_saved'),'ok');}
+function altPaymentHistoryHTML(a){migratePayments(a);
+  if(!a.payments.length)return `<p class="hint">${t('no_payments')}</p>`;
+  return a.payments.map((p,i)=>`<div class="kv"><span>${fmtDate(p.date)}</span><b>${money(p.amt)} <span onclick="delAltPayment('${a.id}',${i})" style="color:#d9534f;cursor:pointer;margin-left:8px">🗑️</span></b></div>`).join('');}
+function openAltPayment(id){const a=altById(id);if(!a)return;const bk=orderBaaki(a);
+  modal(t('add_payment'),`<div class="field"><label>${t('pay_amount')} ₹</label><input id="p_amt" type="number" inputmode="numeric" placeholder="${bk||''}"></div>
+    <div class="field" style="margin-top:10px"><label>${t('pay_date')}</label><input id="p_date" type="date" value="${todayISO()}"></div>`,
+    [{label:t('cancel'),cls:'ghost',fn:closeSheet},{label:t('add'),cls:'primary',fn:()=>saveAltPayment(id)}]);}
+function saveAltPayment(id){const a=altById(id);if(!a)return;migratePayments(a);
+  const amt=+(($('#p_amt')&&$('#p_amt').value)||0);const date=($('#p_date')&&$('#p_date').value)||todayISO();
+  if(!amt||amt<=0){toast(t('pay_amount'),'bad');return;}
+  a.payments.push({amt,date});a.payments.sort((x,y)=>String(x.date).localeCompare(String(y.date)));
+  save();closeSheet();openAltDetail(id);toast('✔️','ok');}
+function delAltPayment(id,i){const a=altById(id);if(!a||!a.payments)return;
+  confirmModal(t('del_pay'),'',()=>{a.payments.splice(i,1);save();closeSheet();openAltDetail(id);});}
+function addAltUpdate(id){const a=altById(id);const txt=$('#upTextA').value.trim();if(!txt)return;
+  a.log=a.log||[];a.log.push({id:uid(),ts:new Date().toISOString(),text:txt,voiceId:null});
+  $('#upTextA').value='';save();renderAltTimeline(a);toast(t('t_update_added'),'ok');}
+function delAltUpdate(id,eid){const a=altById(id);const e=(a.log||[]).find(x=>x.id===eid);
+  if(e&&e.voiceId)mDel(e.voiceId);a.log=a.log.filter(x=>x.id!==eid);save();renderAltTimeline(a);}
+async function renderAltTimeline(a){const el=$('#altTimeline');if(!el)return;
+  const log=(a.log||[]).slice().reverse();
+  if(!log.length){el.innerHTML='';return;}
+  el.innerHTML=`<div class="card">${log.map(e=>`<div class="tl-entry"><div class="tl-dot"></div><div style="flex:1">
+    <div class="tl-time">${fmtDateTime(e.ts)}</div>${e.text?`<div class="tl-text">${esc(e.text)}</div>`:''}
+    ${e.voiceId?`<audio controls data-v="${e.voiceId}"></audio>`:''}
+    </div><button class="btn sm danger" style="padding:4px 8px" onclick="delAltUpdate('${a.id}','${e.id}')">✕</button></div>`).join('')}</div>`;
+  for(const au of el.querySelectorAll('audio[data-v]')){const url=await mURL(au.dataset.v);if(url)au.src=url;}
+}
+function waAlteration(id){const a=altById(id);if(!a)return;const baaki=orderBaaki(a);
+  const txt=`Namaste ${a.customerName||''} ji 🙏\n\nPARAMPARA — Alteration #${a.altNo}\n${a.itemDesc||''}\n\n${aLabel(a.status)}\nDelivery: ${a.deliveryDate?fmtDate(a.deliveryDate):'—'}\nCharge: ${money(a.total)} | ${t('received')}: ${money(orderReceived(a))} | ${t('baaki')}: ${money(baaki)}`;
+  window.open(waLink(a.phone,txt),'_blank');closeSheet();}
+function altMenu(id){modal(t('alt_options'),`
+    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();openAltForm('${id}')">✏️ ${t('edit_alteration')}</button>
+    <button class="btn ghost block" style="margin-bottom:8px" onclick="waAlteration('${id}')">💬 ${t('wa_customer')}</button>
+    <button class="btn danger block" onclick="delAlteration('${id}')">🗑️ ${t('delete_alteration')}</button>`,[]);}
+function delAlteration(id){confirmModal(t('confirm_alt_del'),t('confirm_alt_del_msg'),async()=>{const a=altById(id);
+  for(const p of(a.photos||[]))await mDel(p);
+  for(const e of(a.log||[]))if(e.voiceId)await mDel(e.voiceId);
+  for(const v of(a.voiceNotes||[]))if(v.voiceId)await mDel(v.voiceId);
+  DB.alterations=DB.alterations.filter(x=>x.id!==id);save();closeSheet();go('alterations');toast(t('t_deleted'));});}
+
 function focusItem(oid,gid){openDetail(oid,gid);}
 function waReady(id){const o=DB.orders.find(x=>x.id===id);if(!o)return;
   const txt=`Namaste ${o.customerName} ji 🙏\n\nWe are pleased to inform you that your order (#${o.orderNo}) is ready.\n\nPARAMPARA`;
@@ -1009,11 +1243,13 @@ async function recToggle(btn,lbl,onDone){
 function micHelp(){modal(t('mic_blocked'),`<p style="color:var(--txt2);font-size:14px;line-height:1.6">${t('mic_help')}</p>`,[{label:t('ok'),cls:'primary',fn:closeSheet}]);}
 
 /* ====================== MENU / DELETE / WA ====================== */
-function orderMenu(id){modal(t('order_options'),`
+function orderMenu(id){const o=DB.orders.find(x=>x.id===id);const canAlt=o&&orderDelivered(o);
+  modal(t('order_options'),`
     <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();openOrderForm('${id}')">✏️ ${t('edit_order')}</button>
     <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();masterSlipMenu('${id}')">📋 ${t('send_meas')}</button>
     <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();orderPrint('${id}')">🖨️ ${t('print')} (${t('all_items')})</button>
     <button class="btn ghost block" style="margin-bottom:8px" onclick="waOrder('${id}')">💬 ${t('wa_customer')}</button>
+    ${canAlt?`<button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();openAltForm(null,'${id}')">${t('start_alteration')}</button>`:''}
     <button class="btn ghost block" style="margin-bottom:8px" onclick="backupMenu()">💾 ${t('backup')}</button>
     <button class="btn danger block" onclick="delOrder('${id}')">🗑️ ${t('delete_order')}</button>`,[]);}
 function delOrder(id){confirmModal(t('confirm_del'),t('confirm_del_msg'),async()=>{const o=DB.orders.find(x=>x.id===id);
