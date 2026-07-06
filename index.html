@@ -315,7 +315,8 @@ const T={
   shop_details:'Shop Details (for Invoice)', shop_name:'Shop Name', shop_address:'Address', proprietor:'Proprietor',
   shop_phone:'Phone', shop_email:'Email', shop_tagline:'Tagline', shop_terms:'Terms & Conditions',
   hsn:'HSN/SAC', qty:'Qty', unit:'Unit', payment_mode:'Payment Mode', pm_cash:'Cash', pm_upi:'UPI', pm_card:'Card', pm_credit:'Credit',
-  discount:'Discount ₹', inv_price:'Price ₹ (before discount)',
+  discount:'Discount ₹', inv_price:'Price ₹ (before discount)', inv_items_hint:'One combined line by default. Split into separate rows only if you want to show a different price per piece.',
+  inv_includes:'Includes (shown under item name)', inv_includes_ph:'e.g. Coat, Pant, Shirt',
   prev_balance:'Previous Balance', curr_balance:'Current Balance', amount_words:'Amount in Words', bill_to:'Bill To',
   nav_invoices:'Bills', invoices:'Invoices', no_invoices:'No invoices yet', no_invoices_sub:'Create one from any order\'s ⋯ menu',
   inv_sales:'Sales', inv_tax:'GST', salesman_master:'Salesman Master', salesman_desc:'Add your sales staff.', no_salesmen:'No salesman yet',
@@ -391,7 +392,8 @@ const T={
   shop_details:'Shop Details (Invoice ke liye)', shop_name:'Shop ka naam', shop_address:'Address', proprietor:'Proprietor',
   shop_phone:'Phone', shop_email:'Email', shop_tagline:'Tagline', shop_terms:'Terms & Conditions',
   hsn:'HSN/SAC', qty:'Qty', unit:'Unit', payment_mode:'Payment Mode', pm_cash:'Cash', pm_upi:'UPI', pm_card:'Card', pm_credit:'Credit (Udhaar)',
-  discount:'Discount ₹', inv_price:'Price ₹ (discount se pehle)',
+  discount:'Discount ₹', inv_price:'Price ₹ (discount se pehle)', inv_items_hint:'Default me ek hi combined line hai. Alag rows sirf tab banayein jab har piece ka rate alag dikhana ho.',
+  inv_includes:'Includes (item naam ke neeche dikhega)', inv_includes_ph:'jaise Coat, Pant, Shirt',
   prev_balance:'Pichla Baaki', curr_balance:'Total Baaki (abhi tak)', amount_words:'Amount in Words', bill_to:'Bill To',
   nav_invoices:'Bills', invoices:'Invoices', no_invoices:'Abhi koi invoice nahi', no_invoices_sub:'Kisi bhi order ke ⋯ menu se banayein',
   inv_sales:'Sales', inv_tax:'GST', salesman_master:'Salesman Master', salesman_desc:'Apne sales staff ko jodein.', no_salesmen:'Abhi koi salesman nahi',
@@ -517,6 +519,27 @@ function customerOutstanding(customerId,exKind,exId){
   (DB.orders||[]).forEach(o=>{if(o.customerId===customerId&&!(exKind==='order'&&o.id===exId))sum+=orderBaaki(o);});
   (DB.alterations||[]).forEach(a=>{if(a.customerId===customerId&&!(exKind==='alt'&&a.id===exId))sum+=orderBaaki(a);});
   return sum;}
+function invGroupItems(gids){
+  const used=new Set();const has=id=>gids.includes(id);
+  const nameOf=id=>{const g=G(id);return g?g.n.toLowerCase():'';};
+  const ACCESSORY_NAMES=['safa','juti','dupatta','kamarbandh','mojri','stole','brooch'];
+  const isAccessory=id=>ACCESSORY_NAMES.some(n=>nameOf(id).includes(n));
+  const groups=[];
+  if(has('coat')){const mem=gids.filter(id=>!used.has(id)&&['coat','pant','shirt','waistcoat'].includes(id));
+    mem.forEach(m=>used.add(m));groups.push({label:`Suit (${mem.length}pc)`,members:mem});}
+  if(has('sherwani')&&!used.has('sherwani')){
+    const mem=gids.filter(id=>!used.has(id)&&(id==='sherwani'||['kurta','pant','churidar','pyjama'].includes(id)||isAccessory(id)));
+    mem.forEach(m=>used.add(m));groups.push({label:mem.length>1?'Sherwani Set':'Sherwani',members:mem});}
+  if(has('kurta')&&!used.has('kurta')){const mem=gids.filter(id=>!used.has(id)&&['kurta','pyjama','jacket'].includes(id));
+    mem.forEach(m=>used.add(m));let label='Kurta';
+    if(mem.includes('jacket'))label='Kurta Jacket Set'; else if(mem.includes('pyjama'))label='Kurta Set';
+    groups.push({label,members:mem});}
+  if(has('indo')&&!used.has('indo')){
+    const mem=gids.filter(id=>!used.has(id)&&(id==='indo'||['pant','churidar'].includes(id)));
+    mem.forEach(m=>used.add(m));groups.push({label:mem.length>1?'Indo-Western Set':'Indo-Western',members:mem});}
+  gids.forEach(g=>{if(!used.has(g)){used.add(g);const gg=G(g);groups.push({label:gg?gg.n:g,members:[g]});}});
+  return groups;
+}
 const custById=id=>DB.customers.find(c=>c.id===id);
 function todayISO(){return new Date().toISOString().slice(0,10);}
 function migratePayments(o){ if(!Array.isArray(o.payments)){ o.payments=(+o.advance>0)?[{amt:+o.advance,date:(o.orderDate||(o.created||'').slice(0,10)||todayISO())}]:[]; } }
@@ -1243,10 +1266,14 @@ function openInvoiceForm(kind,id){
   if(rec.invoice){ invForm=JSON.parse(JSON.stringify(rec.invoice)); invForm.kind=kind; invForm.id=id; }
   else{
     let items;
-    if(kind==='alt'){ items=[{label:rec.itemDesc||t('alterations'),hsn:'',qty:1,unit:'Pcs',price:+rec.total||0,disc:0}]; }
-    else{ const gids=sortItems(rec.items||[]); const n=gids.length||1; const each=Math.round((+rec.total||0)/n);
-      items=gids.map((gid,i)=>{const g=G(gid);return {label:g?g.n:'Item',hsn:'',qty:1,unit:'Pcs',price:i===n-1?((+rec.total||0)-each*(n-1)):each,disc:0};});
-      if(!items.length)items=[{label:'Item',hsn:'',qty:1,unit:'Pcs',price:+rec.total||0,disc:0}];
+    if(kind==='alt'){ items=[{label:rec.itemDesc||t('alterations'),hsn:'',qty:1,unit:'Pcs',price:+rec.total||0,disc:0,includes:''}]; }
+    else{ const gids=sortItems(rec.items||[]); const groups=invGroupItems(gids);
+      const totalMembers=groups.reduce((s,gr)=>s+gr.members.length,0)||1;
+      items=groups.map(gr=>{const share=Math.round((+rec.total||0)*gr.members.length/totalMembers);
+        const names=gr.members.map(m=>{const gg=G(m);return gg?gg.n:m;});
+        return {label:gr.label,hsn:'',qty:1,unit:'Set',price:share,disc:0,includes:names.length>1?names.join(', '):''};});
+      if(items.length){const sum=items.reduce((s,it)=>s+it.price,0);items[items.length-1].price+=((+rec.total||0)-sum);}
+      if(!items.length)items=[{label:'Item',hsn:'',qty:1,unit:'Pcs',price:+rec.total||0,disc:0,includes:''}];
     }
     invForm={kind,id,no:nextInvoiceNo(),date:todayISO(),interstate:false,paymentMode:'Cash',items};
   }
@@ -1255,6 +1282,7 @@ function openInvoiceForm(kind,id){
 function invItemRow(i,it){
   return `<div class="card" style="padding:10px;margin-bottom:8px">
     <div class="field" style="margin:0"><label>${t('alt_item')}</label><input data-iin="${i}" list="invItemList" value="${esc(it.label)}"></div>
+    <div class="field" style="margin:8px 0 0"><label>${t('inv_includes')}</label><input data-iincl="${i}" value="${esc(it.includes||'')}" placeholder="${t('inv_includes_ph')}"></div>
     <div class="row" style="margin-top:8px"><div class="field" style="margin:0"><label>${t('hsn')}</label><input data-ihsn="${i}" value="${esc(it.hsn||'')}"></div>
       <div class="field" style="margin:0"><label>${t('qty')}</label><input data-iqty="${i}" type="number" inputmode="numeric" value="${esc(it.qty||1)}"></div></div>
     <div class="row" style="margin-top:8px"><div class="field" style="margin:0"><label>${t('inv_price')}</label><input data-ipr="${i}" type="number" inputmode="numeric" value="${esc(it.price)}"></div>
@@ -1275,12 +1303,14 @@ function renderInvoiceForm(){
       <option value="UPI" ${f.paymentMode==='UPI'?'selected':''}>${t('pm_upi')}</option>
       <option value="Card" ${f.paymentMode==='Card'?'selected':''}>${t('pm_card')}</option>
       <option value="Credit" ${f.paymentMode==='Credit'?'selected':''}>${t('pm_credit')}</option></select></div>
-    <div class="section-h">${t('items')}</div>${rows}
+    <div class="section-h">${t('items')}</div>
+    <p class="hint" style="margin:0 0 10px">${t('inv_items_hint')}</p>
+    ${rows}
     <button class="btn ghost block" style="margin-bottom:8px" onclick="invAddItem()">+ ${t('add_item')}</button>
     <div class="modal-actions"><button class="btn ghost" onclick="closeSheet()">${t('cancel')}</button><button class="btn primary" onclick="saveInvoice()">${t('save_generate')}</button></div><div class="fab-pad"></div>`;
   showSheet();
 }
-function invAddItem(){captureInvoiceForm();invForm.items.push({label:'',hsn:'',qty:1,unit:'Pcs',price:0,disc:0});renderInvoiceForm();}
+function invAddItem(){captureInvoiceForm();invForm.items.push({label:'',hsn:'',qty:1,unit:'Pcs',price:0,disc:0,includes:''});renderInvoiceForm();}
 function invDelItem(i){captureInvoiceForm();invForm.items.splice(i,1);renderInvoiceForm();}
 function captureInvoiceForm(){const f=invForm;
   if($('#inv_no'))f.no=$('#inv_no').value.trim();
@@ -1288,6 +1318,7 @@ function captureInvoiceForm(){const f=invForm;
   if($('#inv_inter'))f.interstate=$('#inv_inter').checked;
   if($('#inv_pm'))f.paymentMode=$('#inv_pm').value;
   document.querySelectorAll('[data-iin]').forEach(inp=>{f.items[+inp.dataset.iin].label=inp.value.trim();});
+  document.querySelectorAll('[data-iincl]').forEach(inp=>{f.items[+inp.dataset.iincl].includes=inp.value.trim();});
   document.querySelectorAll('[data-ihsn]').forEach(inp=>{f.items[+inp.dataset.ihsn].hsn=inp.value.trim();});
   document.querySelectorAll('[data-iqty]').forEach(inp=>{f.items[+inp.dataset.iqty].qty=(+inp.value||1);});
   document.querySelectorAll('[data-ipr]').forEach(inp=>{f.items[+inp.dataset.ipr].price=+inp.value||0;});
@@ -1317,7 +1348,7 @@ function buildInvoiceText(rec,inv){
   if(rec.orderNo)s+=`Order #${rec.orderNo}\n`; else if(rec.altNo)s+=`Alteration #${rec.altNo}\n`;
   s+='\n';
   (inv.items||[]).forEach(it=>{const qty=+it.qty||1;const p=+it.price||0;const d=Math.min(+it.disc||0,p);const net=p-d;
-    s+=`${it.label}${qty>1?' x'+qty:''} — ${money(net)}${d?' (disc '+money(d)+')':''} (GST ${invRate(net/qty)}%)\n`;});
+    s+=`${it.label}${qty>1?' x'+qty:''} — ${money(net)}${d?' (disc '+money(d)+')':''} (GST ${invRate(net/qty)}%)${it.includes?'\n  Includes: '+it.includes:''}\n`;});
   if(comp.discount>0)s+=`\nGross: ${money(comp.gross)}\nDiscount: −${money(comp.discount)}\n`;
   s+=`\nTaxable: ${money(comp.taxable)}\n`;
   if(inv.interstate)s+=`IGST: ${money(comp.igst)}\n`; else s+=`CGST: ${money(comp.cgst)}  SGST: ${money(comp.sgst)}\n`;
@@ -1329,7 +1360,7 @@ function buildInvoiceText(rec,inv){
 function buildInvoiceHTML(rec,inv){
   const comp=invCompute(inv),shop=DB.shopInfo||{};
   const rows=(inv.items||[]).map((it,i)=>{const p=+it.price||0,d=Math.min(+it.disc||0,p),net=p-d,qty=+it.qty||1,unitP=p/qty,r=invRate(net/qty),base=r2(net/(1+r/100)),gstAmt=r2(net-base);
-    return `<tr><td>${i+1}</td><td>${esc(it.label)}</td><td style="text-align:center">${esc(it.hsn||'')}</td><td style="text-align:center">${qty}</td><td style="text-align:center">${esc(it.unit||'Pcs')}</td>
+    return `<tr><td>${i+1}</td><td>${esc(it.label)}${it.includes?`<br><span style="font-size:11px;color:#777">Includes: ${esc(it.includes)}</span>`:''}</td><td style="text-align:center">${esc(it.hsn||'')}</td><td style="text-align:center">${qty}</td><td style="text-align:center">${esc(it.unit||'Pcs')}</td>
       <td style="text-align:right">${money(r2(unitP))}</td><td style="text-align:right">${d?money(d):'—'}</td><td style="text-align:right">${money(gstAmt)}<br><span style="font-size:11px;color:#777">(${r}%)</span></td>
       <td style="text-align:right"><b>${money(net)}</b></td></tr>`;}).join('');
   const received=orderReceived(rec),baaki=orderBaaki(rec);
