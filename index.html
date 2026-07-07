@@ -209,6 +209,7 @@
   <section class="tabpane" id="tab-alterations"><div id="altList"></div></section>
   <section class="tabpane" id="tab-altdetail"><div id="altDetailPane"></div></section>
   <section class="tabpane" id="tab-invoices"><div id="invList"></div></section>
+  <section class="tabpane" id="tab-purchases"><div id="purchList"></div></section>
   <section class="tabpane" id="tab-reports"><div id="reportsPane"></div></section>
 </main>
 
@@ -216,8 +217,8 @@
   <button class="on" id="nav-orders" onclick="go('orders')"><span class="nico">📋</span><span data-t="nav_orders"></span></button>
   <button class="add" onclick="openOrderForm()"><span class="nico">+</span></button>
   <button id="nav-customers" onclick="go('customers')"><span class="nico">👥</span><span data-t="nav_customers"></span></button>
-  <button id="nav-alterations" onclick="go('alterations')"><span class="nico">🔧</span><span data-t="nav_alterations"></span></button>
-  <button id="nav-invoices" onclick="go('invoices')" class="simple-hide"><span class="nico">🧾</span><span data-t="nav_invoices"></span></button>
+  <button id="nav-invoices" onclick="go('invoices')" class="simple-hide"><span class="nico">🧾</span><span data-t="nav_sale"></span></button>
+  <button id="nav-purchases" onclick="go('purchases')" class="simple-hide"><span class="nico">📦</span><span data-t="nav_purchases"></span></button>
 </nav>
 
 <div id="fracbar">
@@ -323,7 +324,7 @@ const T={
   sub_total:'Sub Total', grand_total:'Grand Total (after discount)', total_due:'Total Due',
   preview:'Preview', t_popup_blocked:'Please allow popups to preview',
   prev_balance:'Previous Balance', curr_balance:'Current Balance', amount_words:'Amount in Words', bill_to:'Bill To',
-  nav_invoices:'Invoice', invoices:'Sale Invoices', no_invoices:'No sale invoices yet', no_invoices_sub:'Create one from any order\'s ⋯ menu',
+  nav_invoices:'Invoice', nav_sale:'Sale', nav_purchases:'Purchase', invoices:'Sale Invoices', no_invoices:'No sale invoices yet', no_invoices_sub:'Create one from any order\'s ⋯ menu',
   advanced_options:'⚙️ Advanced options (rarely needed)',
   inv_sales:'Sales', inv_tax:'GST', salesman_master:'Salesman Master', salesman_desc:'Add your sales staff.', no_salesmen:'No salesman yet',
   add_salesman:'Add salesman', salesman_name:'Salesman name', salesman:'Salesman', salesman_none:'— not set —',
@@ -338,7 +339,8 @@ const T={
   creditors_report:'Creditors (To Pay)', rp_no_creditors:'Nothing to pay 🎉', rp_creditor_total:'Total To Pay',
   t_purch_saved:'Purchase saved', t_no_supplier:'Enter supplier name', t_no_amount:'Enter amount', purch_options:'Purchase options', delete_purchase:'Delete purchase',
   purch_bill_no:'Bill No (optional)', past_suppliers:'— pick from past suppliers —', from_contacts:'From Contacts', bill_photo:'Bill Photo',
-  contacts_na:'Contacts picker not supported on this browser', t_contact_loaded:'Contact loaded'
+  contacts_na:'Contacts picker not supported on this browser', t_contact_loaded:'Contact loaded',
+  no_purchases:'No purchases yet', no_purchases_sub:'Tap + New Purchase to add fabric/stock entries',
  },
  hi:{
   sub:'ORDERBOOK', search_ph:'Naam, phone, order no…',
@@ -416,7 +418,7 @@ const T={
   sub_total:'Sub Total', grand_total:'Grand Total (discount ke baad)', total_due:'Total Due',
   preview:'Preview', t_popup_blocked:'Preview ke liye popup allow karein',
   prev_balance:'Pichla Baaki', curr_balance:'Total Baaki (abhi tak)', amount_words:'Amount in Words', bill_to:'Bill To',
-  nav_invoices:'Invoice', invoices:'Sale Invoices', no_invoices:'Abhi koi sale invoice nahi', no_invoices_sub:'Kisi bhi order ke ⋯ menu se banayein',
+  nav_invoices:'Invoice', nav_sale:'Sale', nav_purchases:'Purchase', invoices:'Sale Invoices', no_invoices:'Abhi koi sale invoice nahi', no_invoices_sub:'Kisi bhi order ke ⋯ menu se banayein',
   advanced_options:'⚙️ Advanced options (kam hi chahiye)',
   inv_sales:'Sales', inv_tax:'GST', salesman_master:'Salesman Master', salesman_desc:'Apne sales staff ko jodein.', no_salesmen:'Abhi koi salesman nahi',
   add_salesman:'Salesman jodein', salesman_name:'Salesman ka naam', salesman:'Salesman', salesman_none:'— set nahi —',
@@ -431,7 +433,8 @@ const T={
   creditors_report:'Creditors (Dena Hai)', rp_no_creditors:'Kisi ko kuch dena nahi 🎉', rp_creditor_total:'Total Dena',
   t_purch_saved:'Purchase save hua', t_no_supplier:'Supplier ka naam likhein', t_no_amount:'Amount likhein', purch_options:'Purchase options', delete_purchase:'Purchase delete',
   purch_bill_no:'Bill No (optional)', past_suppliers:'— purane suppliers me se chunein —', from_contacts:'Contacts se', bill_photo:'Bill ki Photo',
-  contacts_na:'Is browser me contacts picker nahi chalta', t_contact_loaded:'Contact aa gaya'
+  contacts_na:'Is browser me contacts picker nahi chalta', t_contact_loaded:'Contact aa gaya',
+  no_purchases:'Abhi koi purchase nahi', no_purchases_sub:'+ New Purchase dabakar fabric/stock entry karein',
  }
 };
 let lang = localStorage.getItem('pb_ob_lang') || 'en';
@@ -603,6 +606,8 @@ function toggleLang(){ lang=lang==='en'?'hi':'en'; localStorage.setItem('pb_ob_l
   else if(act&&act.id==='tab-altdetail'&&altDetailId) openAltDetail(altDetailId);
   else if(act&&act.id==='tab-alterations') renderAlterations();
   else if(act&&act.id==='tab-invoices') renderInvoices();
+  else if(act&&act.id==='tab-purchases') renderPurchases();
+  else if(act&&act.id==='tab-reports') renderReports();
   else if(act&&act.id==='tab-customers') renderCustomers(); else renderOrders();
   if($('#scrim').classList.contains('show')) closeSheet();
 }
@@ -615,7 +620,7 @@ function go(tab){
   const n=$('#nav-'+tab); if(n)n.classList.add('on');
   $('#searchWrap').style.display=tab==='orders'?'':'none';
   window.scrollTo(0,0);
-  if(tab==='orders')renderOrders(); if(tab==='customers')renderCustomers(); if(tab==='alterations')renderAlterations(); if(tab==='invoices')renderInvoices(); if(tab==='reports')renderReports();
+  if(tab==='orders')renderOrders(); if(tab==='customers')renderCustomers(); if(tab==='alterations')renderAlterations(); if(tab==='invoices')renderInvoices(); if(tab==='reports')renderReports(); if(tab==='purchases')renderPurchases();
 }
 
 /* ====================== ORDERS LIST + DELIVERY PLANNER ====================== */
@@ -1097,6 +1102,24 @@ async function openDetail(id,focusGid){
 }
 
 /* ====================== ALTERATIONS (separate lightweight order type) ====================== */
+function renderPurchases(){
+  const el=$('#purchList');
+  const list=(DB.purchases||[]).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+  const addBtn=`<div class="row" style="margin-bottom:12px;gap:8px">
+    <button class="btn primary" style="flex:1" onclick="openPurchaseForm()">+ ${t('new_purchase')}</button>
+    <button class="btn ghost" style="flex:1" onclick="go('reports')">📊 ${t('reports')}</button></div>`;
+  if(!list.length){el.innerHTML=addBtn+`<div class="empty"><div class="big">📦</div><p><b>${t('no_purchases')}</b></p><p style="font-size:13px">${t('no_purchases_sub')}</p></div>`;return;}
+  el.innerHTML=addBtn+list.map(p=>{
+    const baaki=orderBaaki(p);
+    return `<div class="card ocard" onclick="purchMenu('${p.id}')">
+      <div class="top"><div><div class="ono">📦 ${esc(p.supplier)}</div>
+        <div class="meta">${esc((p.desc||'').slice(0,50))}${(p.desc||'').length>50?'…':''}</div></div>
+        <div class="deliv">${fmtDate(p.date)}</div></div>
+      <div class="botrow"><span style="font-weight:800">${money(p.total)}</span>${baaki>0?`<span style="font-size:12px;color:var(--saffron2);font-weight:700">${t('baaki')}: ${money(baaki)}</span>`:'<span class="pill st-delivered">'+t('pm_cash')+'</span>'}</div>
+    </div>`;
+  }).join('');
+}
+
 function renderAlterations(){
   const el=$('#altList');
   const list=(DB.alterations||[]).slice().sort((a,b)=>new Date(b.created)-new Date(a.created));
@@ -2192,6 +2215,7 @@ function settingsMenu(){modal(t('settings'),`
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();karigarMaster()">👷 ${t('karigar_master')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();salesmanMaster()">🧑‍💼 ${t('salesman_master')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();itemMaster()">🧩 ${t('item_master')}</button>
+  <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();go('alterations')">🔧 ${t('alterations')}</button>
   <label style="display:flex;align-items:flex-start;gap:8px;margin:4px 0 12px;padding:10px;background:var(--bg2);border-radius:var(--r2);cursor:pointer" onclick="event.stopPropagation()">
     <input type="checkbox" id="simpleModeChk" ${localStorage.getItem('pb_ob_simple')==='1'?'checked':''} onchange="toggleSimpleMode(this.checked)" style="width:20px;height:20px;margin-top:2px">
     <span><b style="font-size:14px">${t('simple_mode')}</b><br><span class="hint" style="font-size:12px">${t('simple_mode_desc')}</span></span>
