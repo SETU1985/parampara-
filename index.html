@@ -183,6 +183,23 @@
   body.simple-mode select{font-size:16px !important; padding:12px !important}
   body.simple-mode .simple-hide{display:none !important}
   body.simple-mode nav button span{font-size:12px}
+  .home-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+  .home-shop{font-size:22px;font-weight:800;color:var(--saffron);letter-spacing:.5px}
+  .home-sub{font-size:13px;color:var(--txt2);margin-top:2px}
+  .home-stats{display:flex;gap:8px;margin-bottom:20px}
+  .home-stat{flex:1;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:12px 8px;text-align:center}
+  .hs-val{font-size:20px;font-weight:800;color:var(--txt)}
+  .hs-lbl{font-size:11px;color:var(--txt2);margin-top:3px}
+  .home-sec-title{font-size:14px;font-weight:700;color:var(--txt2);margin:18px 0 10px;text-transform:uppercase;letter-spacing:.5px}
+  .home-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .home-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:22px 10px;cursor:pointer;transition:.15s;color:var(--txt)}
+  .home-tile:active{background:var(--card);transform:scale(.97)}
+  .ht-ico{font-size:30px}
+  .ht-lbl{font-size:14px;font-weight:600}
+  .home-monthbox{margin-top:16px;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:12px 14px;font-size:14px;color:var(--txt2)}
+  .home-monthbox b{color:var(--txt);font-size:16px}
+  body.simple-mode .ht-ico{font-size:34px}
+  body.simple-mode .ht-lbl{font-size:16px}
 </style>
 </head>
 <body>
@@ -203,7 +220,8 @@
 </header>
 
 <main>
-  <section class="tabpane active" id="tab-orders"><div id="ordersList"></div></section>
+  <section class="tabpane active" id="tab-home"><div id="homePane"></div></section>
+  <section class="tabpane" id="tab-orders"><div id="ordersList"></div></section>
   <section class="tabpane" id="tab-customers"><div id="custList"></div></section>
   <section class="tabpane" id="tab-detail"><div id="detailPane"></div></section>
   <section class="tabpane" id="tab-alterations"><div id="altList"></div></section>
@@ -214,9 +232,9 @@
 </main>
 
 <nav>
-  <button class="on" id="nav-orders" onclick="go('orders')"><span class="nico">📋</span><span data-t="nav_orders"></span></button>
+  <button class="on" id="nav-home" onclick="go('home')"><span class="nico">🏠</span><span data-t="nav_home"></span></button>
+  <button id="nav-orders" onclick="go('orders')"><span class="nico">📋</span><span data-t="nav_orders"></span></button>
   <button class="add" onclick="openOrderForm()"><span class="nico">+</span></button>
-  <button id="nav-customers" onclick="go('customers')"><span class="nico">👥</span><span data-t="nav_customers"></span></button>
   <button id="nav-invoices" onclick="go('invoices')" class="simple-hide"><span class="nico">🧾</span><span data-t="nav_sale"></span></button>
   <button id="nav-purchases" onclick="go('purchases')" class="simple-hide"><span class="nico">📦</span><span data-t="nav_purchases"></span></button>
 </nav>
@@ -250,7 +268,10 @@ window.PB_ICON192='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAIAAAD
 const T={
  en:{
   sub:'ORDERBOOK', search_ph:'Search name, phone, order no…',
-  nav_orders:'Orders', nav_customers:'Customers', backup:'Backup',
+  nav_home:'Home', nav_orders:'Orders', nav_customers:'Customers', backup:'Backup',
+  home_tailoring:'Tailoring', home_accounts:'Billing & Accounts', home_alterations:'Alterations',
+  home_new_order:'New Order', home_reports:'Reports', home_new_sale:'Direct Sale', home_settings:'Settings',
+  home_pending_orders:'Pending', home_due_today:'Due Today', home_to_collect:'To Collect', home_month_sales:'This Month Sale',
   orders_word:'orders', due:'due',
   no_orders:'No orders yet', no_orders_sub:'Tap + below to create your first order',
   nothing:'Nothing found', try_other:'Try another name or number',
@@ -341,10 +362,14 @@ const T={
   purch_bill_no:'Bill No (optional)', past_suppliers:'— pick from past suppliers —', from_contacts:'From Contacts', bill_photo:'Bill Photo',
   contacts_na:'Contacts picker not supported on this browser', t_contact_loaded:'Contact loaded',
   no_purchases:'No purchases yet', no_purchases_sub:'Tap + New Purchase to add fabric/stock entries',
+  purch_rate:'Rate ₹', purch_amount_line:'Amount ₹', purch_item_ph:'e.g. Suiting fabric, Buttons, Lining', purch_items_hint:'Add each item from the supplier bill as a separate row — total is calculated automatically.',
  },
  hi:{
   sub:'ORDERBOOK', search_ph:'Naam, phone, order no…',
-  nav_orders:'Orders', nav_customers:'Customers', backup:'Backup',
+  nav_home:'Home', nav_orders:'Orders', nav_customers:'Customers', backup:'Backup',
+  home_tailoring:'Tailoring', home_accounts:'Billing & Accounts', home_alterations:'Alterations',
+  home_new_order:'Naya Order', home_reports:'Reports', home_new_sale:'Direct Sale', home_settings:'Settings',
+  home_pending_orders:'Pending', home_due_today:'Aaj Delivery', home_to_collect:'Lena Baaki', home_month_sales:'Is Mahine Sale',
   orders_word:'orders', due:'baaki',
   no_orders:'Koi order nahi', no_orders_sub:'Neeche + dabakar pehla order banayein',
   nothing:'Kuch nahi mila', try_other:'Doosra naam ya number try karein',
@@ -435,6 +460,7 @@ const T={
   purch_bill_no:'Bill No (optional)', past_suppliers:'— purane suppliers me se chunein —', from_contacts:'Contacts se', bill_photo:'Bill ki Photo',
   contacts_na:'Is browser me contacts picker nahi chalta', t_contact_loaded:'Contact aa gaya',
   no_purchases:'Abhi koi purchase nahi', no_purchases_sub:'+ New Purchase dabakar fabric/stock entry karein',
+  purch_rate:'Rate ₹', purch_amount_line:'Amount ₹', purch_item_ph:'jaise Suiting fabric, Buttons, Lining', purch_items_hint:'Supplier ke bill ka har item alag row me daalein — total apne aap calculate hoga.',
  }
 };
 let lang = localStorage.getItem('pb_ob_lang') || 'en';
@@ -608,6 +634,7 @@ function toggleLang(){ lang=lang==='en'?'hi':'en'; localStorage.setItem('pb_ob_l
   else if(act&&act.id==='tab-invoices') renderInvoices();
   else if(act&&act.id==='tab-purchases') renderPurchases();
   else if(act&&act.id==='tab-reports') renderReports();
+  else if(act&&act.id==='tab-home') renderHome();
   else if(act&&act.id==='tab-customers') renderCustomers(); else renderOrders();
   if($('#scrim').classList.contains('show')) closeSheet();
 }
@@ -620,7 +647,7 @@ function go(tab){
   const n=$('#nav-'+tab); if(n)n.classList.add('on');
   $('#searchWrap').style.display=tab==='orders'?'':'none';
   window.scrollTo(0,0);
-  if(tab==='orders')renderOrders(); if(tab==='customers')renderCustomers(); if(tab==='alterations')renderAlterations(); if(tab==='invoices')renderInvoices(); if(tab==='reports')renderReports(); if(tab==='purchases')renderPurchases();
+  if(tab==='home')renderHome(); if(tab==='orders')renderOrders(); if(tab==='customers')renderCustomers(); if(tab==='alterations')renderAlterations(); if(tab==='invoices')renderInvoices(); if(tab==='reports')renderReports(); if(tab==='purchases')renderPurchases();
 }
 
 /* ====================== ORDERS LIST + DELIVERY PLANNER ====================== */
@@ -647,6 +674,55 @@ function deliveryList(){
 function delLabel(){return delFilter==='date'?(delDate?fmtDate(delDate):t('f_date')):t('f_'+delFilter);}
 function setDelFilter(f){delFilter=f;if(f!=='date')delDate='';renderOrders();}
 function setDelDate(v){delDate=v;delFilter='date';renderOrders();}
+
+/* ====================== HOME DASHBOARD ====================== */
+function renderHome(){
+  const el=$('#homePane');
+  const simple=document.body.classList.contains('simple-mode');
+  // tailoring stats
+  const activeOrders=(DB.orders||[]).filter(o=>!orderDelivered(o));
+  const pendingCount=activeOrders.length;
+  const dueToday=activeOrders.filter(o=>daysLeft(o.deliveryDate)===0).length;
+  // accounts stats
+  const toCollect=r2((DB.orders||[]).concat(DB.alterations||[],DB.sales||[]).reduce((s,r)=>s+orderBaaki(r),0));
+  const today=new Date();const mFrom=today.toISOString().slice(0,7);
+  let monthSale=0;allInvoices().forEach(x=>{if(String(x.inv.date||'').slice(0,7)===mFrom){monthSale+=invCompute(x.inv).total;}});
+  (DB.sales||[]).forEach(s=>{}); // sales already have invoices
+
+  const tile=(icon,label,onclick)=>`<button class="home-tile" onclick="${onclick}"><span class="ht-ico">${icon}</span><span class="ht-lbl">${label}</span></button>`;
+  const stat=(label,value,color)=>`<div class="home-stat"><div class="hs-val" style="${color?'color:'+color:''}">${value}</div><div class="hs-lbl">${label}</div></div>`;
+
+  el.innerHTML=`
+    <div class="home-hd">
+      <div><div class="home-shop">${esc((DB.shopInfo&&DB.shopInfo.name)||'PARAMPARA')}</div>
+      <div class="home-sub">${new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'short'})}</div></div>
+      <button class="btn sm ghost" onclick="settingsMenu()">⚙️</button>
+    </div>
+
+    <div class="home-stats">
+      ${stat(t('home_pending_orders'),pendingCount)}
+      ${stat(t('home_due_today'),dueToday,dueToday>0?'var(--saffron2)':'')}
+      ${stat(t('home_to_collect'),money(toCollect),toCollect>0?'var(--saffron2)':'')}
+    </div>
+
+    <div class="home-sec-title">📋 ${t('home_tailoring')}</div>
+    <div class="home-grid">
+      ${tile('➕',t('home_new_order'),"openOrderForm()")}
+      ${tile('📋',t('nav_orders'),"go('orders')")}
+      ${tile('👥',t('nav_customers'),"go('customers')")}
+      ${tile('🔧',t('home_alterations'),"go('alterations')")}
+    </div>
+
+    ${simple?'':`<div class="simple-hide"><div class="home-sec-title">💰 ${t('home_accounts')}</div>
+    <div class="home-grid">
+      ${tile('🛍️',t('home_new_sale'),"openSaleForm()")}
+      ${tile('🧾',t('nav_sale'),"go('invoices')")}
+      ${tile('📦',t('nav_purchases'),"go('purchases')")}
+      ${tile('📊',t('home_reports'),"go('reports')")}
+    </div>
+    <div class="home-monthbox">${t('home_month_sales')}: <b>${money(r2(monthSale))}</b></div></div>`}
+    <div class="fab-pad"></div>`;
+}
 
 function renderOrders(){
   const q=($('#search').value||'').toLowerCase().trim();
@@ -1755,9 +1831,11 @@ function renderInvoices(){
 let purchForm=null;
 function openPurchaseForm(editId){
   if(editId){const p=(DB.purchases||[]).find(x=>x.id===editId);
-    purchForm={editId,supplier:p.supplier||'',phone:p.phone||'',billNo:p.billNo||'',date:p.date||todayISO(),desc:p.desc||'',
-      amount:p.total||'',paidNow:null,paymentMode:p.paymentMode||'Cash',notes:p.notes||'',photos:[...(p.photos||[])]};}
-  else purchForm={editId:null,supplier:'',phone:'',billNo:'',date:todayISO(),desc:'',amount:'',paidNow:null,paymentMode:'Cash',notes:'',photos:[]};
+    const items=(p.items&&p.items.length)?JSON.parse(JSON.stringify(p.items)):[{label:p.desc||'',hsn:'',qty:1,unit:'Pcs',rate:p.total||0,amount:p.total||0}];
+    purchForm={editId,supplier:p.supplier||'',phone:p.phone||'',billNo:p.billNo||'',date:p.date||todayISO(),items,
+      discType:p.discType||'amount',discValue:p.discValue||0,paidNow:null,paymentMode:p.paymentMode||'Cash',notes:p.notes||'',photos:[...(p.photos||[])]};}
+  else purchForm={editId:null,supplier:'',phone:'',billNo:'',date:todayISO(),
+      items:[{label:'',hsn:'',qty:1,unit:'Mtr',rate:'',amount:0}],discType:'amount',discValue:0,paidNow:null,paymentMode:'Cash',notes:'',photos:[]};
   renderPurchaseForm();
 }
 function capturePurchForm(){const f=purchForm;if(!f)return;
@@ -1765,12 +1843,34 @@ function capturePurchForm(){const f=purchForm;if(!f)return;
   if($('#pu_phone'))f.phone=$('#pu_phone').value.trim();
   if($('#pu_billno'))f.billNo=$('#pu_billno').value.trim();
   if($('#pu_date'))f.date=$('#pu_date').value;
-  if($('#pu_desc'))f.desc=$('#pu_desc').value.trim();
-  if($('#pu_amount'))f.amount=$('#pu_amount').value;
   if($('#pu_paid'))f.paidNow=$('#pu_paid').value===''?null:(+$('#pu_paid').value||0);
   if($('#pu_pm'))f.paymentMode=$('#pu_pm').value;
+  if($('#pu_disctype'))f.discType=$('#pu_disctype').value;
+  if($('#pu_discval'))f.discValue=+$('#pu_discval').value||0;
   if($('#pu_notes'))f.notes=$('#pu_notes').value.trim();
+  document.querySelectorAll('[data-puin]').forEach(inp=>{f.items[+inp.dataset.puin].label=inp.value.trim();});
+  document.querySelectorAll('[data-puhsn]').forEach(inp=>{f.items[+inp.dataset.puhsn].hsn=inp.value.trim();});
+  document.querySelectorAll('[data-puqty]').forEach(inp=>{f.items[+inp.dataset.puqty].qty=+inp.value||0;});
+  document.querySelectorAll('[data-puunit]').forEach(inp=>{f.items[+inp.dataset.puunit].unit=inp.value.trim()||'Pcs';});
+  document.querySelectorAll('[data-purate]').forEach(inp=>{f.items[+inp.dataset.purate].rate=+inp.value||0;});
+  document.querySelectorAll('[data-puamt]').forEach(inp=>{f.items[+inp.dataset.puamt].amount=+inp.value||0;});
 }
+function purchAddItem(){capturePurchForm();purchForm.items.push({label:'',hsn:'',qty:1,unit:'Mtr',rate:'',amount:0});renderPurchaseForm();}
+function purchDelItem(i){capturePurchForm();purchForm.items.splice(i,1);if(!purchForm.items.length)purchForm.items.push({label:'',hsn:'',qty:1,unit:'Mtr',rate:'',amount:0});renderPurchaseForm();}
+function purchRateQtyChanged(i){capturePurchForm();const it=purchForm.items[i];
+  if((+it.qty||0)&&(+it.rate||0)){it.amount=r2((+it.qty)*(+it.rate));const amtEl=document.querySelector(`[data-puamt="${i}"]`);if(amtEl)amtEl.value=it.amount;}
+  updatePurchTotal();}
+function purchCompute(f){
+  const gross=r2(f.items.reduce((s,it)=>s+(+it.amount||0),0));
+  let discAmt=f.discType==='percent'?r2(gross*(+f.discValue||0)/100):r2(+f.discValue||0);
+  discAmt=Math.max(0,Math.min(discAmt,gross));
+  return {gross,discount:discAmt,total:r2(gross-discAmt)};
+}
+function purchTotalsBoxHTML(comp){return `${comp.discount>0?`<div class="kv"><span>${t('sub_total')}</span><b>${money(comp.gross)}</b></div>
+    <div class="kv"><span>${t('discount')}</span><b>− ${money(comp.discount)}</b></div>`:''}
+    <div class="kv"><span>${t('grand_total')}</span><b style="font-size:18px">${money(comp.total)}</b></div>`;}
+function updatePurchTotal(){capturePurchForm();const comp=purchCompute(purchForm);
+  const box=$('#puTotalsBox');if(box)box.innerHTML=purchTotalsBoxHTML(comp);}
 function pastSuppliers(){const seen={};const out=[];
   (DB.purchases||[]).slice().reverse().forEach(p=>{const k=(p.supplier||'').trim();if(k&&!seen[k.toLowerCase()]){seen[k.toLowerCase()]=1;out.push({name:k,phone:p.phone||''});}});
   return out;}
@@ -1792,22 +1892,43 @@ async function renderPurchPhotos(){const el=$('#pu_photos');if(!el)return;el.inn
     w.querySelector('.thumb').onclick=()=>viewPhoto(url);
     w.querySelector('.thumb-x').onclick=async()=>{await mDel(id);purchForm.photos=purchForm.photos.filter(x=>x!==id);renderPurchPhotos();};
     el.appendChild(w);}}
+function purchItemRow(i,it){
+  return `<div class="card" style="padding:10px;margin-bottom:8px">
+    <div class="field" style="margin:0"><label>${t('inv_item_name')}</label><input data-puin="${i}" list="invItemList" value="${esc(it.label)}" placeholder="${t('purch_item_ph')}"></div>
+    <div class="row" style="margin-top:8px"><div class="field" style="margin:0"><label>${t('hsn')}</label><input data-puhsn="${i}" value="${esc(it.hsn||'')}"></div>
+      <div class="field" style="margin:0"><label>${t('qty')}</label><input data-puqty="${i}" type="number" inputmode="numeric" value="${it.qty?esc(it.qty):''}" placeholder="1" oninput="purchRateQtyChanged(${i})"></div></div>
+    <div class="row" style="margin-top:8px"><div class="field" style="margin:0"><label>${t('unit')}</label><input data-puunit="${i}" value="${esc(it.unit||'Mtr')}"></div>
+      <div class="field" style="margin:0"><label>${t('purch_rate')}</label><input data-purate="${i}" type="number" inputmode="numeric" value="${it.rate?esc(it.rate):''}" placeholder="0" oninput="purchRateQtyChanged(${i})"></div></div>
+    <div class="field" style="margin-top:8px"><label>${t('purch_amount_line')}</label><input data-puamt="${i}" type="number" inputmode="numeric" value="${it.amount?esc(it.amount):''}" placeholder="0" oninput="updatePurchTotal()"></div>
+    <button class="btn sm danger" style="margin-top:8px" onclick="purchDelItem(${i})">${t('remove')}</button></div>`;
+}
 function renderPurchaseForm(){
   const f=purchForm;
   const p=f.editId?(DB.purchases||[]).find(x=>x.id===f.editId):null;
   const sups=pastSuppliers();
   const supSel=sups.length?`<select onchange="puPickSupplier(this.value)" style="margin-bottom:6px">
       <option value="">${t('past_suppliers')}</option>${sups.map(s=>`<option value="${esc(s.name)}" ${s.name===f.supplier?'selected':''}>${esc(s.name)}</option>`).join('')}</select>`:'';
-  $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:12px">📦 ${f.editId?t('edit_purchase'):t('new_purchase')}</h2>
+  const dlist=`<datalist id="invItemList">${allItems().map(g=>`<option value="${esc(g.n)}">`).join('')}</datalist>`;
+  const rows=f.items.map((it,i)=>purchItemRow(i,it)).join('');
+  const comp0=purchCompute(f);
+  $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:12px">📦 ${f.editId?t('edit_purchase'):t('new_purchase')}</h2>${dlist}
     <div class="field"><label>${t('supplier')}</label>${supSel}
       <input id="pu_supplier" value="${esc(f.supplier)}" placeholder="${t('supplier_ph')}">
       <input id="pu_phone" type="tel" placeholder="${t('phone')}" value="${esc(f.phone)}" style="margin-top:8px">
       ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost" style="margin-top:8px" onclick="puPickContact()">📇 ${t('from_contacts')}</button>`:''}</div>
     <div class="row"><div class="field"><label>${t('purch_date')}</label><input id="pu_date" type="date" value="${esc(f.date)}"></div>
       <div class="field"><label>${t('purch_bill_no')}</label><input id="pu_billno" value="${esc(f.billNo)}"></div></div>
-    <div class="field"><label>${t('purch_desc')} ${micBtn('#pu_desc')}</label><textarea id="pu_desc" placeholder="${t('purch_desc_ph')}">${esc(f.desc)}</textarea></div>
-    <div class="row"><div class="field"><label>${t('purch_amount')}</label><input id="pu_amount" type="number" inputmode="numeric" value="${f.amount?esc(f.amount):''}" placeholder="0"></div>
-      <div class="field"><label>${t('paid_now')}</label><input id="pu_paid" type="number" inputmode="numeric" value="" placeholder="${f.editId?'—':'0'}"></div></div>
+    <div class="section-h">${t('items')}</div>
+    <p class="hint" style="margin:0 0 10px">${t('purch_items_hint')}</p>
+    ${rows}
+    <button class="btn ghost block" style="margin-bottom:8px" onclick="purchAddItem()">+ ${t('add_item')}</button>
+    <div class="section-h">${t('discount')}</div>
+    <div class="row"><div class="field"><label>${t('disc_type')}</label><select id="pu_disctype" onchange="updatePurchTotal()">
+      <option value="amount" ${f.discType==='percent'?'':'selected'}>₹ ${t('disc_amount')}</option>
+      <option value="percent" ${f.discType==='percent'?'selected':''}>% ${t('disc_percent')}</option></select></div>
+      <div class="field"><label>${t('disc_value')}</label><input id="pu_discval" type="number" inputmode="numeric" value="${f.discValue?esc(f.discValue):''}" placeholder="0" oninput="updatePurchTotal()"></div></div>
+    <div class="card" id="puTotalsBox">${purchTotalsBoxHTML(comp0)}</div>
+    <div class="field"><label>${t('paid_now')}</label><input id="pu_paid" type="number" inputmode="numeric" value="" placeholder="${f.editId?'—':'0'}"></div>
     ${f.editId&&p?`<p class="hint" style="margin:0 0 10px">${t('received')}: ${money(orderReceived(p))} · ${t('baaki')}: <b style="color:var(--saffron2)">${money(orderBaaki(p))}</b></p>`:''}
     <div class="field"><label>${t('payment_mode')}</label><select id="pu_pm">
       <option value="Cash" ${f.paymentMode==='Cash'?'selected':''}>${t('pm_cash')}</option>
@@ -1823,17 +1944,18 @@ function renderPurchaseForm(){
 }
 function savePurchase(){
   capturePurchForm();const f=purchForm;
-  f.amount=+f.amount||0;
+  const comp=purchCompute(f);const total=comp.total;
+  const desc=f.items.map(it=>it.label).filter(Boolean).join(', ');
   if(!f.supplier){toast(t('t_no_supplier'),'bad');return;}
-  if(!f.amount){toast(t('t_no_amount'),'bad');return;}
+  if(!total){toast(t('t_no_amount'),'bad');return;}
   if(f.editId){
     const p=(DB.purchases||[]).find(x=>x.id===f.editId);
-    Object.assign(p,{supplier:f.supplier,phone:f.phone,billNo:f.billNo,date:f.date,desc:f.desc,total:f.amount,paymentMode:f.paymentMode,notes:f.notes,photos:f.photos||[]});
+    Object.assign(p,{supplier:f.supplier,phone:f.phone,billNo:f.billNo,date:f.date,desc,items:f.items,discType:f.discType,discValue:f.discValue,total,paymentMode:f.paymentMode,notes:f.notes,photos:f.photos||[]});
     if(f.paidNow!=null&&f.paidNow>0){p.payments=p.payments||[];p.payments.push({amt:f.paidNow,date:todayISO()});}
   }else{
-    const paid=(f.paidNow!=null)?f.paidNow:(f.paymentMode==='Credit'?0:f.amount);
-    DB.purchases.push({id:uid(),created:new Date().toISOString(),supplier:f.supplier,phone:f.phone,billNo:f.billNo,date:f.date,desc:f.desc,
-      total:f.amount,paymentMode:f.paymentMode,notes:f.notes,photos:f.photos||[],payments:paid>0?[{amt:paid,date:f.date}]:[]});
+    const paid=(f.paidNow!=null)?f.paidNow:(f.paymentMode==='Credit'?0:total);
+    DB.purchases.push({id:uid(),created:new Date().toISOString(),supplier:f.supplier,phone:f.phone,billNo:f.billNo,date:f.date,desc,items:f.items,discType:f.discType,discValue:f.discValue,
+      total,paymentMode:f.paymentMode,notes:f.notes,photos:f.photos||[],payments:paid>0?[{amt:paid,date:f.date}]:[]});
   }
   save();closeSheet();toast(t('t_purch_saved'),'ok');renderReports();go('reports');
 }
@@ -2392,7 +2514,7 @@ function toast(msg,kind){const el=$('#toast');el.textContent=msg;el.className='t
 /* ====================== INIT ====================== */
 function updateHeadStat(){const due=DB.orders.reduce((s,o)=>s+orderBaaki(o),0);
   const hs=$('#headStat');if(hs)hs.innerHTML=`<b>${DB.orders.length}</b> ${t('orders_word')} · <b>${money(due)}</b> ${t('due')}<br><span onclick="backupMenu()" style="text-decoration:underline;cursor:pointer">💾 ${t('backup')}</span>`;}
-async function init(){load();try{await openIDB();}catch(e){}applyLang();document.body.classList.toggle('simple-mode',localStorage.getItem('pb_ob_simple')==='1');renderOrders();}
+async function init(){load();try{await openIDB();}catch(e){}applyLang();document.body.classList.toggle('simple-mode',localStorage.getItem('pb_ob_simple')==='1');renderHome();}
 init();
 </script>
 </body>
