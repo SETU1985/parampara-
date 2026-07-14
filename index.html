@@ -36,6 +36,11 @@
   .gtag.on-tag{background:var(--saffron); color:#1a1206; border-color:var(--saffron); font-weight:700}
   /* ---------- POS ---------- */
   .pos-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+  .mscrim{z-index:110}          /* must sit ABOVE the main sheet (z-index 90) */
+  .mscrim .sheet{max-height:85vh}
+    .draft-card{border:1px dashed var(--saffron) !important; background:rgba(224,138,26,.05); cursor:pointer}
+  .draft-card .ono{color:var(--saffron2); font-size:11px; letter-spacing:1px; font-weight:900}
+  .draft-card:active{transform:scale(.99)}
   .inst-tag{background:var(--saffron);color:#1a1206;font-size:11px;font-weight:900;
     padding:1px 7px;border-radius:20px;margin-left:4px}
   .chip.chip-add{border-style:dashed;opacity:.75}
@@ -360,6 +365,7 @@
 </div>
 
 <div class="scrim" id="scrim"><div class="sheet" id="sheet"></div></div>
+<div class="scrim mscrim" id="mscrim"><div class="sheet" id="msheet"></div></div>
 <div class="toast" id="toast"></div>
 <input type="file" id="filePick" accept="image/*" style="display:none">
 <input type="file" id="filePickCam" accept="image/*" capture="environment" style="display:none">
@@ -690,6 +696,9 @@ const T={
   mem_rel_ph:'Groom / Brother…',
   mem_del:'Remove this person?',
   mem_del_msg:'{n} and their {c} garment(s) will be removed from this order. Sure?',
+  dft_badge:'UNFINISHED', dft_no_name:'No name yet', dft_tap:'Tap to carry on where you left off',
+  dft_saved:'Saved {when}', dft_now:'just now', dft_mins:'{n} min ago', dft_hrs:'{n} hr ago',
+  dft_parked:'Kept as an unfinished order — it is on the Orders page',
   variant:'Type / variant', variant_ph:'e.g. worn under sherwani, short {g}…',
   variant_hint:'Same garment, different cut? Name it, then ➕ to add another one with its own measurements.',
   add_another:'Add another {g}', item_notes:'Notes for this item', item_notes_ph:'e.g. flower work, dori, 2 button…',
@@ -1345,6 +1354,9 @@ const T={
   mem_rel_ph:'दूल्हा / भाई…',
   mem_del:'इस व्यक्ति को हटाएँ?',
   mem_del_msg:'{n} और उनके {c} कपड़े इस ऑर्डर से हट जाएँगे। पक्का?',
+  dft_badge:'अधूरा ऑर्डर', dft_no_name:'अभी नाम नहीं', dft_tap:'जहाँ छोड़ा था वहीं से आगे बढ़ें',
+  dft_saved:'{when} सहेजा', dft_now:'अभी', dft_mins:'{n} मिनट पहले', dft_hrs:'{n} घंटे पहले',
+  dft_parked:'अधूरे ऑर्डर में रख दिया — ऑर्डर पेज पर मिलेगा',
   variant:'प्रकार / वैरिएंट', variant_ph:'जैसे शेरवानी के अंदर, शॉर्ट {g}…',
   variant_hint:'एक ही कपड़ा, अलग कट? नाम दें, फिर ➕ दबाकर दूसरा जोड़ें — उसका नाप अलग रहेगा।',
   add_another:'एक और {g} जोड़ें', item_notes:'इस आइटम के नोट', item_notes_ph:'जैसे फूल वर्क, डोरी, 2 बटन…',
@@ -3560,6 +3572,40 @@ function renderHome(){
     <div class="fab-pad"></div>`;
 }
 
+/* Unfinished orders are real things sitting in the shop — show them on the Orders page.
+   No pop-up ambush, and starting a new order never overwrites one. */
+function draftCardHTML(){
+  const list=draftList(); if(!list.length)return '';
+  return list.map(d=>{
+    const f=d.form;
+    const who=f.customerName?esc(f.customerName):(f.orderNo?('#'+esc(f.orderNo)):t('dft_no_name'));
+    const names=sortItems(f.items||[]).map(k=>{const g=G(k);return g?g.n:k;});
+    const uniq=[...new Set(names)];
+    const tags=uniq.slice(0,5).map(n=>`<span class="gtag">${esc(n)}</span>`).join('')
+      + (uniq.length>5?`<span class="gtag">+${uniq.length-5}</span>`:'');
+    return `<div class="card draft-card" onclick="resumeDraft('${d.id}')">
+      <div class="top"><div>
+        <div class="ono">📝 ${t('dft_badge')}</div>
+        <div class="name">${who}</div>
+        <div class="meta">${t('dft_saved',{when:draftAge(d.ts)})}</div>
+      </div>
+      <button class="btn sm danger" onclick="event.stopPropagation();discardDraft('${d.id}')">✕</button></div>
+      ${tags?`<div class="gtags" style="margin-top:8px">${tags}</div>`:''}
+      <div class="botrow"><span class="hint">${t('dft_tap')}</span>
+        <span class="btn sm primary">${t('draft_continue')}</span></div>
+    </div>`;}).join('');
+}
+function resumeDraft(id){
+  const m=getDrafts(); const d=m[id];
+  if(!d){renderOrders();return;}
+  form=d.form; form._did=id;
+  renderForm();
+}
+function discardDraft(id){
+  confirmModal(t('draft_disc_title'),t('draft_disc_msg'),()=>{
+    dropDraft(id); renderOrders(); renderHome(); toast(t('draft_discarded'));
+  });
+}
 function renderOrders(){
   const q=($('#search').value||'').toLowerCase().trim();
   let list=deliveryList();
@@ -3578,8 +3624,9 @@ function renderOrders(){
   const remind=backupDue?`<div class="card" style="border-color:#5a4a1a;background:#241d10"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
     <div style="font-size:13px"><b>⚠️ ${t('backup_due')}</b></div>
     <div style="display:flex;gap:6px"><button class="btn sm primary" onclick="backupMenu()">${t('backup_now')}</button><button class="btn sm ghost" onclick="backupDismissed=true;renderOrders()">✕</button></div></div></div>`:'';
-  if(!list.length){el.innerHTML=remind+bar+banner+`<div class="empty"><div class="big">📋</div><p><b>${q?t('nothing'):(delFilter==='all'?t('no_orders'):t('no_deliveries'))}</b></p><p style="font-size:13px">${q?t('try_other'):(delFilter==='all'?t('no_orders_sub'):'')}</p></div>`;return;}
-  el.innerHTML=remind+bar+banner+list.map(o=>{
+  const dcard=draftCardHTML();
+  if(!list.length){el.innerHTML=remind+bar+banner+dcard+`<div class="empty"><div class="big">📋</div><p><b>${q?t('nothing'):(delFilter==='all'?t('no_orders'):t('no_deliveries'))}</b></p><p style="font-size:13px">${q?t('try_other'):(delFilter==='all'?t('no_orders_sub'):'')}</p></div>`;return;}
+  el.innerHTML=remind+bar+banner+dcard+list.map(o=>{
     const dl=daysLeft(o.deliveryDate),baaki=orderBaaki(o),st=orderSummaryStatus(o);
     let dcls='',dtxt=fmtDate(o.deliveryDate);
     if(st!=='delivered'&&dl!==null&&dl<0){dcls='soon';dtxt=Math.abs(dl)+'d '+t('late');}
@@ -3670,48 +3717,82 @@ function saveCustEdit(id){const c=custById(id);c.name=$('#ec_name').value.trim()
 
 /* ====================== ORDER FORM ====================== */
 /* ====================== DRAFT AUTO-SAVE (crash / interruption proof) ====================== */
-const DRAFT_KEY='pb_ob_draft';
-let _draftT=null, _draftTick=null;
+/* ====================== DRAFTS (crash / interruption proof) ======================
+   Several unfinished orders can sit in the shop at once, so we keep a MAP of drafts.
+   Each open form owns one draft id — a new order never overwrites someone else's draft. */
+const DRAFTS_KEY='pb_ob_drafts';
+const DRAFT_KEY='pb_ob_draft';           // legacy single-draft key (migrated below)
+let _draftT=null, _draftTick=null, _draftOff=false;
+
+function getDrafts(){
+  let m={};
+  try{ m=JSON.parse(localStorage.getItem(DRAFTS_KEY)||'{}')||{}; }catch(e){ m={}; }
+  // migrate the old single draft
+  try{
+    const old=localStorage.getItem(DRAFT_KEY);
+    if(old){ const d=JSON.parse(old);
+      if(d&&d.form){ const id='d'+(d.ts||Date.now()); m[id]={ts:d.ts||Date.now(),form:d.form}; }
+      localStorage.removeItem(DRAFT_KEY);
+      localStorage.setItem(DRAFTS_KEY,JSON.stringify(m));
+    }
+  }catch(e){}
+  // drop anything that has no real content
+  Object.keys(m).forEach(k=>{ if(!m[k]||!m[k].form||!formHasContent(m[k].form))delete m[k]; });
+  return m;
+}
+function draftList(){
+  const m=getDrafts();
+  return Object.keys(m).map(id=>({id,ts:m[id].ts,form:m[id].form}))
+    .sort((a,b)=>b.ts-a.ts);
+}
+function putDraft(id,form){
+  const m=getDrafts(); m[id]={ts:Date.now(),form:form};
+  try{ localStorage.setItem(DRAFTS_KEY,JSON.stringify(m)); }catch(e){}
+}
+function dropDraft(id){
+  const m=getDrafts(); delete m[id];
+  try{ localStorage.setItem(DRAFTS_KEY,JSON.stringify(m)); }catch(e){}
+}
 
 function formHasContent(f){
   if(!f)return false;
   if(f.customerName||f.phone)return true;
   if((f.items||[]).length)return true;
-  if(f.notes||f.total||f.advance||f.deliveryDate)return true;
+  if(f.notes||f.deliveryDate)return true;
   if((f.photos||[]).length||(f.voiceNotes||[]).length)return true;
   if(f.m&&Object.keys(f.m).some(g=>Object.keys(f.m[g]||{}).length))return true;
   if(f.design&&Object.values(f.design).some(v=>v))return true;
   return false;
 }
-function formIsOpen(){ return sheetIsOpen() && !!document.getElementById('f_ono'); }
+function formIsOpen(){
+  // a modal on top no longer removes the form, so the form is open whenever it is in the DOM
+  return sheetIsOpen() && !!document.getElementById('f_ono');
+}
 
-let _draftOff=false;
 function saveDraft(){
   if(_draftOff)return;
   if(!formIsOpen())return;
   try{
     captureForm();
-    if(!formHasContent(form)){ localStorage.removeItem(DRAFT_KEY); return; }
-    localStorage.setItem(DRAFT_KEY,JSON.stringify({ts:Date.now(),form:form}));
+    if(!form._did)form._did='d'+uid();
+    if(!formHasContent(form)){ dropDraft(form._did); return; }
+    putDraft(form._did, form);
     const h=document.getElementById('draftHint');
     if(h){ h.innerHTML='✅ '+t('draft_saved')+' · '+new Date().toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'}); h.classList.add('dh-on'); }
   }catch(e){}
 }
 function saveDraftSoon(){ clearTimeout(_draftT); _draftT=setTimeout(saveDraft,600); }
 function clearDraft(){
-  _draftOff=true;                                   // saved — stop every pending autosave
+  _draftOff=true;
   try{clearInterval(_draftTick);clearTimeout(_draftT);}catch(e){}
-  try{localStorage.removeItem(DRAFT_KEY);}catch(e){}
-}
-function getDraft(){
-  try{ const r=localStorage.getItem(DRAFT_KEY); if(!r)return null;
-    const d=JSON.parse(r); if(!d||!d.form||!formHasContent(d.form))return null; return d;
-  }catch(e){ return null; }
+  if(form&&form._did)dropDraft(form._did);
 }
 function draftAge(ts){
   const mins=Math.round((Date.now()-ts)/60000);
-  if(mins<1)return 'abhi';
-  if(mins<60)return mins+' min pehle';
+  if(mins<1)return t('dft_now');
+  if(mins<60)return t('dft_mins',{n:mins});
+  const hrs=Math.round(mins/60);
+  if(hrs<24)return t('dft_hrs',{n:hrs});
   const d=new Date(ts);
   return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'});
 }
@@ -3727,27 +3808,17 @@ document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==
 window.addEventListener('pagehide',saveDraft);
 window.addEventListener('blur',saveDraft);
 
-function offerDraft(){
-  const d=getDraft(); if(!d)return false;
-  const f=d.form;
-  const who=f.customerName?esc(f.customerName):(f.orderNo?('Order #'+esc(f.orderNo)):'—');
-  const names=sortItems(f.items||[]).map(g=>{const x=G(g);return x?x.n:g;}).join(', ');
-  const items=names?('<br>'+esc(names)):'';
-  modal(t('draft_found_title'),
-    `<p style="color:var(--txt2);font-size:14px;line-height:1.7">${t('draft_found_msg',{who:who,items:items,when:draftAge(d.ts)})}</p>`,
-    [{label:t('draft_discard'),cls:'ghost',fn:()=>{clearDraft();closeSheet();toast(t('draft_discarded'),'ok');}},
-     {label:t('draft_continue'),cls:'primary',fn:()=>{ form=d.form; closeSheet(); renderForm(); }}]);
-  return true;
-}
 function cancelOrderForm(){
   captureForm();
   if(formHasContent(form)){
-    confirmModal(t('draft_disc_title'),t('draft_disc_msg'),()=>{ clearDraft(); closeSheet(); });
+    // don't destroy work — park it as a draft, it stays visible on the Orders page
+    saveDraft();
+    closeSheet(); go('orders');
+    toast(t('dft_parked'),'ok');
   }else{ clearDraft(); closeSheet(); }
 }
 
 function openOrderForm(editId){
-  if(!editId && offerDraft()) return;
   if(editId){const o=DB.orders.find(x=>x.id===editId);
     form={editId,orderNo:o.orderNo,customerId:o.customerId,customerName:o.customerName,phone:o.phone,salesmanId:o.salesmanId||'',
       orderDate:o.orderDate,deliveryDate:o.deliveryDate,items:[...(o.items||[])],
@@ -3760,6 +3831,7 @@ function openOrderForm(editId){
     form={editId:null,orderNo:nextOrderNo(),customerId:null,customerName:'',phone:'',salesmanId:'',
       orderDate:new Date().toISOString().slice(0,10),deliveryDate:'',items:[],m:{},design:{},variant:{},notes:'',total:'',advance:'',photos:[],voiceNotes:[],itemPhotos:{},itemVoice:{},bodyType:[],members:[]};
   }
+  form._did = form._did || ('d'+uid());
   renderForm();
 }
 let _sheetScroll=0;
@@ -6333,8 +6405,9 @@ async function restoreSnapshot(key){
 let _sheetOn=false, _popping=false, _curTab='home', _exitArm=0;
 function sheetIsOpen(){return $('#scrim').classList.contains('show');}
 function pushGuard(){try{history.pushState({pbGuard:Date.now()},'');}catch(e){}}
-function showSheet(){$('#scrim').classList.add('show');_sheetOn=true;}
+function showSheet(){closeModal();$('#scrim').classList.add('show');_sheetOn=true;}
 function closeSheet(){
+  if(modalIsOpen()){ closeModal(); return; }      // a modal on top closes first — the form stays
   $('#scrim').classList.remove('show');$('#fracbar').classList.remove('show');
   _sheetOn=false;   // history guard stays put; back press is handled in popstate
   try{ clearInterval(_draftTick); clearTimeout(_draftT); }catch(e){}
@@ -6342,6 +6415,7 @@ function closeSheet(){
 window.addEventListener('popstate',()=>{
   _popping=true;
   try{
+    if(modalIsOpen()){ closeModal(); pushGuard(); return; }     // back out of the modal only
     if(sheetIsOpen()||_sheetOn){ saveDraft(); closeSheet(); pushGuard(); return; }
     if(_curTab && _curTab!=='home'){ go('home'); pushGuard(); return; }
     // on Home with nothing open: ask once before letting the app close
@@ -6351,9 +6425,17 @@ window.addEventListener('popstate',()=>{
   } finally { _popping=false; }
 });
 $('#scrim').addEventListener('click',e=>{if(e.target===$('#scrim'))closeSheet();});
-function modal(title,html,actions){const acts=(actions||[]).map((a,i)=>`<button class="btn ${a.cls||'ghost'}" data-mi="${i}">${a.label}</button>`).join('');
-  $('#sheet').innerHTML=`<div class="grip"></div>${title?`<h3 style="margin-bottom:14px">${title}</h3>`:''}${html}${actions&&actions.length?`<div class="modal-actions">${acts}</div>`:''}`;
-  (actions||[]).forEach((a,i)=>{const b=$('#sheet').querySelector(`[data-mi="${i}"]`);if(b)b.onclick=a.fn;});showSheet();}
+/* A modal lives on its own layer. It must NEVER wipe the sheet underneath —
+   that used to destroy a half-filled order form (and everything typed into it). */
+function modalIsOpen(){ const e=$('#mscrim'); return !!e && e.classList.contains('show'); }
+function modal(title,html,actions){
+  const acts=(actions||[]).map((a,i)=>`<button class="btn ${a.cls||'ghost'}" data-mi="${i}">${a.label}</button>`).join('');
+  $('#msheet').innerHTML=`<div class="grip"></div>${title?`<h3 style="margin-bottom:14px">${title}</h3>`:''}${html}${actions&&actions.length?`<div class="modal-actions">${acts}</div>`:''}`;
+  (actions||[]).forEach((a,i)=>{const b=$('#msheet').querySelector(`[data-mi="${i}"]`);if(b)b.onclick=a.fn;});
+  $('#mscrim').classList.add('show');
+  $('#msheet').scrollTop=0;
+}
+function closeModal(){ const e=$('#mscrim'); if(e)e.classList.remove('show'); }
 function confirmModal(ti,m,onYes){modal(ti,`<p style="color:var(--txt2);font-size:14px;line-height:1.6">${m}</p>`,[{label:t('no'),cls:'ghost',fn:closeSheet},{label:t('yes'),cls:'danger',fn:()=>{closeSheet();onYes();}}]);}
 let toastT=null;
 function toast(msg,kind){const el=$('#toast');el.textContent=msg;el.className='toast show '+(kind||'');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2400);}
@@ -6361,7 +6443,7 @@ function toast(msg,kind){const el=$('#toast');el.textContent=msg;el.className='t
 /* ====================== INIT ====================== */
 function updateHeadStat(){const due=DB.orders.reduce((s,o)=>s+orderBaaki(o),0);
   const hs=$('#headStat');if(hs)hs.innerHTML=`<b>${DB.orders.length}</b> ${t('orders_word')} · <b>${money(due)}</b> ${t('due')}<br><span onclick="backupMenu()" style="text-decoration:underline;cursor:pointer">💾 ${t('backup')}</span>`;}
-async function init(){load();try{await openIDB();}catch(e){}applyLang();document.body.classList.toggle('simple-mode',localStorage.getItem('pb_ob_simple')==='1');renderHome();_curTab='home';pushGuard();setTimeout(()=>{try{offerDraft();}catch(e){}},700);}
+async function init(){load();try{await openIDB();}catch(e){}applyLang();document.body.classList.toggle('simple-mode',localStorage.getItem('pb_ob_simple')==='1');renderHome();_curTab='home';pushGuard();}
 init();
 </script>
 </body>
