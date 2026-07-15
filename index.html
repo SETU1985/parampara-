@@ -36,6 +36,9 @@
   .gtag.on-tag{background:var(--saffron); color:#1a1206; border-color:var(--saffron); font-weight:700}
   /* ---------- POS ---------- */
   .pos-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+  .tile-soon{opacity:.45; position:relative}
+  .tile-soon .soon{position:absolute; top:6px; right:8px; font-size:9px; font-weight:900;
+    color:var(--saffron2); letter-spacing:.5px}
   .mscrim{z-index:110}          /* must sit ABOVE the main sheet (z-index 90) */
   .mscrim .sheet{max-height:85vh}
     .draft-card{border:1px dashed var(--saffron) !important; background:rgba(224,138,26,.05); cursor:pointer}
@@ -351,7 +354,7 @@
 <nav>
   <button class="on" id="nav-home" onclick="go('home')"><span class="nico">🏠</span><span data-t="nav_home"></span></button>
   <button id="nav-orders" onclick="go('orders')"><span class="nico">📋</span><span data-t="nav_orders"></span></button>
-  <button class="add" onclick="openOrderForm()"><span class="nico">+</span></button>
+  <button class="add" onclick="quickAdd()"><span class="nico">+</span></button>
   <button id="nav-invoices" onclick="go('invoices')" class="simple-hide"><span class="nico">🧾</span><span data-t="nav_sale"></span></button>
   <button id="nav-purchases" onclick="go('purchases')" class="simple-hide"><span class="nico">📦</span><span data-t="nav_purchases"></span></button>
 </nav>
@@ -392,7 +395,7 @@ const T={
   nav_customers:'Customers',
   backup:'Backup',
   home_tailoring:'Tailoring',
-  home_accounts:'Billing & Accounts',
+  home_accounts:'Accounts',
   home_alterations:'Alterations',
   home_new_order:'New Order',
   home_reports:'Reports',
@@ -696,6 +699,49 @@ const T={
   mem_rel_ph:'Groom / Brother…',
   mem_del:'Remove this person?',
   mem_del_msg:'{n} and their {c} garment(s) will be removed from this order. Sure?',
+  home_billing:'Billing', hub_sale:'Sale', hub_sale_sub:'Invoices, credit notes and estimates.',
+  hub_purchase:'Purchase', hub_purchase_sub:'Purchase bills, debit notes and purchase orders.',
+  hub_accounts:'Accounts', hub_accounts_sub:'Everything about money.',
+  purchases_list:'Purchase list', credit_note:'Credit Note', debit_note:'Debit Note',
+  estimate:'Estimate', purchase_order:'Purchase Order', soon:'SOON', coming_soon:'Coming in the next update',
+  qa_title:'What do you want to do?', qa_sub:'Everything you add day to day, in one place.',
+  pay_in:'Payment In', pay_out:'Payment Out',
+  pay_in_hint:'Money received that is not against a bill (advance, old balance…).',
+  pay_out_hint:'Money paid out that is not against a purchase bill.',
+  cb_title:'Cash & Bank', cb_sub:'Where your money sits, and what has moved.',
+  cb_total:'Cash + Bank', cb_balance:'Balance', cb_opening:'Opening', cb_open_date:'As on',
+  cb_open_hint:'Enter the balance as it stood on that date. Everything after it is calculated.',
+  cb_add_bank:'Add a bank account', cb_acc_name:'Account name', cb_acc_ph:'e.g. ICICI Current',
+  cb_bank_name:'Bank', cb_accno:'A/C number', cb_ifsc:'IFSC',
+  cb_need_name:'Enter an account name', cb_del_msg:'Remove the account “{n}”?',
+  cb_moves:'Movements', cb_no_moves:'Nothing has moved yet',
+  cb_contra:'Cash ↔ Bank transfer', cb_contra_hint:'Moving your own money between cash and bank. It is not income or expense.',
+  cb_from:'From', cb_to:'To', cb_same_acc:'Pick two different accounts', cb_need_two:'Add a bank account first',
+  cb_into:'Into', cb_paid_from:'Paid from',
+  exp_title:'Expenses', exp_sub:'Every rupee that goes out of the shop.',
+  exp_total:'Total spent', exp_add:'Add expense', exp_cat:'Head', exp_cat_ph:'e.g. Rent, Electricity',
+  exp_new_cat:'New head', exp_need_cat:'Choose a head', exp_none:'No expense in this period', exp_other:'Other',
+  db_title:'Day Book', db_sub:'Opening balance, everything in and out, closing balance.',
+  db_opening:'Opening balance', db_closing:'Closing balance', db_in:'Money in', db_out:'Money out',
+  db_entries:'Entries', db_none:'Nothing moved in this period', db_today:'Today', db_yest:'Yesterday',
+  or_title:'Order Reports', or_sub:'What was ordered, what is made, what is still running.',
+  or_orders:'Orders', or_pending:'Pending', or_done:'Delivered', or_late:'Overdue orders',
+  or_value:'Order value', or_pieces:'Garments', or_due:'Still to collect',
+  or_product:'Product-wise', or_product_hint:'How many sherwanis, suits, kurtas… and how many are ready.',
+  or_ready:'Ready', or_left:'Left', or_month:'Month by month', or_fy:'This FY',
+  cr_sub:'Suppliers you still owe. Biggest first.', cr_from_n:'To {n} suppliers',
+  ml_manage:'Manage', ml_hint:'Remove anything you no longer use. ✏️ renames it everywhere.',
+  ml_empty:'Nothing saved yet', ml_used:'used in {n} place(s)',
+  ml_del_title:'Remove this?', ml_del_msg:'“{n}” will be removed from the saved list.',
+  ml_del_used:'“{n}” is used in {c} place(s). Removing it will take it out of those too. Sure?',
+  ml_rename:'Rename', ml_new_name:'New name',
+  ml_variant_hint:'These are the types you saved for this garment. Remove the ones you never use.',
+  ml_incl_hint:'The parts that make up a set. Removing one takes it out of every item too.',
+  ml_exp_hint:'Your expense heads. Renaming one updates every past entry.',
+  ml_rel_hint:'Relations you have used before (Groom, Brother…).',
+  ml_size_hint:'Renaming a size keeps the stock with it.',
+  ml_fab_hint:'⚠️ Removing a fabric also removes every roll of it.',
+  amount:'Amount', lg_contra_to:'Transferred to {a}', lg_contra_from:'Transferred from {a}',
   dft_badge:'UNFINISHED', dft_no_name:'No name yet', dft_tap:'Tap to carry on where you left off',
   dft_saved:'Saved {when}', dft_now:'just now', dft_mins:'{n} min ago', dft_hrs:'{n} hr ago',
   dft_parked:'Kept as an unfinished order — it is on the Orders page',
@@ -1050,7 +1096,7 @@ const T={
   nav_customers:'ग्राहक',
   backup:'बैकअप',
   home_tailoring:'सिलाई',
-  home_accounts:'बिलिंग और हिसाब',
+  home_accounts:'हिसाब',
   home_alterations:'अल्टरेशन',
   home_new_order:'नया ऑर्डर',
   home_reports:'रिपोर्ट',
@@ -1354,6 +1400,49 @@ const T={
   mem_rel_ph:'दूल्हा / भाई…',
   mem_del:'इस व्यक्ति को हटाएँ?',
   mem_del_msg:'{n} और उनके {c} कपड़े इस ऑर्डर से हट जाएँगे। पक्का?',
+  home_billing:'बिलिंग', hub_sale:'बिक्री', hub_sale_sub:'इनवॉइस, क्रेडिट नोट और एस्टिमेट।',
+  hub_purchase:'ख़रीद', hub_purchase_sub:'ख़रीद बिल, डेबिट नोट और परचेज़ ऑर्डर।',
+  hub_accounts:'हिसाब', hub_accounts_sub:'पैसे से जुड़ा सब कुछ।',
+  purchases_list:'ख़रीद सूची', credit_note:'क्रेडिट नोट', debit_note:'डेबिट नोट',
+  estimate:'एस्टिमेट', purchase_order:'परचेज़ ऑर्डर', soon:'जल्द', coming_soon:'अगले अपडेट में आएगा',
+  qa_title:'क्या करना है?', qa_sub:'रोज़ का सब कुछ, एक जगह।',
+  pay_in:'पैसा आया', pay_out:'पैसा गया',
+  pay_in_hint:'जो पैसा किसी बिल के बिना आया (एडवांस, पुराना बकाया…)।',
+  pay_out_hint:'जो पैसा किसी ख़रीद बिल के बिना दिया।',
+  cb_title:'कैश और बैंक', cb_sub:'पैसा कहाँ पड़ा है, और कहाँ से कहाँ गया।',
+  cb_total:'कैश + बैंक', cb_balance:'बैलेंस', cb_opening:'ओपनिंग', cb_open_date:'इस तारीख को',
+  cb_open_hint:'उस तारीख का बैलेंस डालें। उसके बाद का हिसाब अपने-आप बनेगा।',
+  cb_add_bank:'बैंक खाता जोड़ें', cb_acc_name:'खाते का नाम', cb_acc_ph:'जैसे ICICI करंट',
+  cb_bank_name:'बैंक', cb_accno:'खाता नंबर', cb_ifsc:'IFSC',
+  cb_need_name:'खाते का नाम डालें', cb_del_msg:'खाता “{n}” हटाएँ?',
+  cb_moves:'लेन-देन', cb_no_moves:'अभी कोई लेन-देन नहीं',
+  cb_contra:'कैश ↔ बैंक ट्रांसफ़र', cb_contra_hint:'अपना ही पैसा कैश से बैंक या बैंक से कैश। यह आमदनी या ख़र्च नहीं है।',
+  cb_from:'से', cb_to:'को', cb_same_acc:'दो अलग खाते चुनें', cb_need_two:'पहले एक बैंक खाता जोड़ें',
+  cb_into:'किसमें आया', cb_paid_from:'किससे दिया',
+  exp_title:'ख़र्च', exp_sub:'दुकान से जाने वाला हर रुपया।',
+  exp_total:'कुल ख़र्च', exp_add:'ख़र्च जोड़ें', exp_cat:'मद', exp_cat_ph:'जैसे किराया, बिजली',
+  exp_new_cat:'नई मद', exp_need_cat:'मद चुनें', exp_none:'इस अवधि में कोई ख़र्च नहीं', exp_other:'अन्य',
+  db_title:'रोज़नामचा', db_sub:'ओपनिंग बैलेंस, सारा आना-जाना, क्लोज़िंग बैलेंस।',
+  db_opening:'ओपनिंग बैलेंस', db_closing:'क्लोज़िंग बैलेंस', db_in:'पैसा आया', db_out:'पैसा गया',
+  db_entries:'एंट्री', db_none:'इस अवधि में कुछ नहीं हुआ', db_today:'आज', db_yest:'कल',
+  or_title:'ऑर्डर रिपोर्ट', or_sub:'क्या ऑर्डर हुआ, क्या बन गया, क्या चल रहा है।',
+  or_orders:'ऑर्डर', or_pending:'बाकी', or_done:'डिलीवर', or_late:'देर से चल रहे ऑर्डर',
+  or_value:'ऑर्डर की क़ीमत', or_pieces:'कपड़े', or_due:'वसूली बाकी',
+  or_product:'प्रोडक्ट के हिसाब से', or_product_hint:'कितनी शेरवानी, सूट, कुर्ते… और कितने तैयार हैं।',
+  or_ready:'तैयार', or_left:'बाकी', or_month:'महीने-दर-महीने', or_fy:'इस वित्त वर्ष',
+  cr_sub:'जिन सप्लायर को देना बाकी है। सबसे बड़ा ऊपर।', cr_from_n:'{n} सप्लायर को',
+  ml_manage:'सँभालें', ml_hint:'जो अब काम नहीं आता उसे हटा दें। ✏️ से हर जगह नाम बदल जाएगा।',
+  ml_empty:'अभी कुछ सहेजा नहीं', ml_used:'{n} जगह इस्तेमाल में',
+  ml_del_title:'हटाएँ?', ml_del_msg:'“{n}” सहेजी सूची से हट जाएगा।',
+  ml_del_used:'“{n}” {c} जगह इस्तेमाल में है। हटाने पर वहाँ से भी निकल जाएगा। पक्का?',
+  ml_rename:'नाम बदलें', ml_new_name:'नया नाम',
+  ml_variant_hint:'इस कपड़े के लिए सहेजे गए प्रकार। जो काम नहीं आते उन्हें हटा दें।',
+  ml_incl_hint:'सेट के हिस्से। हटाने पर हर आइटम से भी निकल जाएगा।',
+  ml_exp_hint:'आपकी ख़र्च की मदें। नाम बदलने पर हर पुरानी एंट्री भी बदल जाएगी।',
+  ml_rel_hint:'पहले इस्तेमाल किए रिश्ते (दूल्हा, भाई…)।',
+  ml_size_hint:'साइज़ का नाम बदलने पर उसका स्टॉक साथ रहेगा।',
+  ml_fab_hint:'⚠️ कपड़ा हटाने पर उसके सारे रोल भी हट जाएँगे।',
+  amount:'राशि', lg_contra_to:'{a} में भेजा', lg_contra_from:'{a} से आया',
   dft_badge:'अधूरा ऑर्डर', dft_no_name:'अभी नाम नहीं', dft_tap:'जहाँ छोड़ा था वहीं से आगे बढ़ें',
   dft_saved:'{when} सहेजा', dft_now:'अभी', dft_mins:'{n} मिनट पहले', dft_hrs:'{n} घंटे पहले',
   dft_parked:'अधूरे ऑर्डर में रख दिया — ऑर्डर पेज पर मिलेगा',
@@ -1795,6 +1884,10 @@ function load(){ try{const r=localStorage.getItem('pb_ob_v1'); if(r)DB=JSON.pars
   if(!DB.itemMaster)DB.itemMaster=[];
   if(!DB.measHide)DB.measHide={};
   if(!DB.followups)DB.followups={};
+  if(!DB.accounts)DB.accounts=[{id:'cash',type:'cash',name:'Cash',opening:0,openingDate:todayISO()}];
+  if(!DB.ledger)DB.ledger=[];
+  if(!DB.expCats)DB.expCats=['किराया / Rent','बिजली / Electricity','वेतन / Salary','कारीगर / Tailor',
+    'चाय-नाश्ता / Tea','ट्रांसपोर्ट / Transport','पैकिंग / Packing','मरम्मत / Repair','अन्य / Other'];
   if(!DB.variantLib)DB.variantLib={kurta:['सामान्य / Normal','शेरवानी के अंदर','जैकेट सेट का','शॉर्ट कुर्ता']};
     if(!DB.relLib)DB.relLib=['Dulha','Bhai','Papa','Jija','Mama','Chacha','Dost','Beta'];
     if(!DB.numCfg)DB.numCfg={invPrefix:'INV',invMode:'fy',invStart:0,ordPrefix:'',ordStart:0};
@@ -2191,7 +2284,9 @@ function fabricBody(keepFocus){
     <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:12.5px;color:var(--txt2)">
       <input type="checkbox" ${_fabHideEmpty?'checked':''} onchange="_fabHideEmpty=this.checked;fabricBody()" style="width:17px;height:17px">
       ${t('stk_hide_empty')}</label>
-    <button class="btn primary block" style="margin-bottom:10px" onclick="thaanEdit()">➕ ${t('stk_add_thaan')}</button>
+    <div class="row" style="margin-bottom:10px;gap:6px">
+      <button class="btn primary" style="flex:1" onclick="thaanEdit()">➕ ${t('stk_add_thaan')}</button>
+      ${(DB.fabItems||[]).length?`<button class="btn ghost" style="flex:0 0 auto;padding:0 14px" onclick="manageFabItems()">⚙️</button>`:''}</div>
     <div class="hint" style="margin-bottom:8px">${t('stk_n_thaans',{n:list.length})}</div>
     ${list.map(th=>{
       const f=FI(th.fabId)||{}; const bal=thaanBal(th);
@@ -2459,7 +2554,9 @@ function readyBody(keepFocus){
     <div class="field" style="margin-bottom:10px">
       <input id="rdySearch" value="${esc(_rdyQ)}" placeholder="🔍 ${t('stk_rdy_search')}" oninput="setRdyQ(this.value)"></div>
     <button class="btn primary block" style="margin-bottom:6px" onclick="readyEdit()">➕ ${t('stk_add_ready')}</button>
-    <button class="btn ghost block" style="margin-bottom:10px" onclick="sizeCfg()">📐 ${t('stk_sizes')}</button>
+    <div class="row" style="margin-bottom:10px;gap:6px">
+      <button class="btn ghost" style="flex:1" onclick="sizeCfg()">📐 ${t('stk_sizes')}</button>
+      <button class="btn ghost" style="flex:0 0 auto;padding:0 14px" onclick="manageSizes()">⚙️</button></div>
     ${list.map(m=>{
       const tot=readyTotal(m);
       const chips=sizes.filter(sz=>readyQty(m,sz)>0)
@@ -3053,6 +3150,696 @@ function growthReport(){
   showSheet();
 }
 
+/* ==================================================================
+   ACCOUNTS — cash & bank, ledger, expenses, day book
+   Every rupee that moves is one ledger line. Invoices keep their own
+   payment list, so the day book reads from BOTH and never double counts.
+   ================================================================== */
+const ACC = id => (DB.accounts||[]).find(a=>a.id===id);
+function accName(id){ const a=ACC(id); return a?a.name:'—'; }
+function cashAcc(){ return (DB.accounts||[]).find(a=>a.type==='cash')||DB.accounts[0]; }
+function bankAccs(){ return (DB.accounts||[]).filter(a=>a.type==='bank'); }
+
+/* which account did a payment land in? old payments carry only the invoice's mode */
+function payAcc(rec,p){
+  if(p.acc)return p.acc;
+  const mode=(rec.invoice&&rec.invoice.paymentMode)||rec.paymentMode||'Cash';
+  if(/cash/i.test(mode))return (cashAcc()||{}).id;
+  const b=bankAccs()[0];
+  return b?b.id:(cashAcc()||{}).id;
+}
+
+/* ---- every money movement, from every source, as one flat list ---- */
+function moneyLines(from,to){
+  const out=[];
+  const inRange=d=>(!from||d>=from)&&(!to||d<=to);
+  const push=o=>{ if(inRange(o.date))out.push(o); };
+
+  // money IN — customers paying on orders / alterations / direct sales
+  const inSrc=[['order',DB.orders],['alt',DB.alterations],['sale',DB.sales]];
+  inSrc.forEach(([kind,list])=>{
+    (list||[]).forEach(rec=>{
+      migratePayments(rec);
+      (rec.payments||[]).forEach((p,i)=>push({
+        id:rec.id+'_p'+i, dir:'in', date:p.date, amt:+p.amt||0,
+        acc:payAcc(rec,p), party:rec.customerName||'—', partyId:rec.customerId||null,
+        ref: kind==='order'?('Order #'+rec.orderNo) : kind==='alt'?('Alteration #'+rec.altNo)
+             : ('Invoice '+((rec.invoice&&rec.invoice.no)||'')),
+        refKind:kind, refId:rec.id, note:'', cat:''
+      }));
+    });
+  });
+
+  // money OUT — what we paid suppliers
+  (DB.purchases||[]).forEach(pu=>{
+    migratePayments(pu);
+    (pu.payments||[]).forEach((p,i)=>push({
+      id:pu.id+'_p'+i, dir:'out', date:p.date, amt:+p.amt||0,
+      acc:payAcc(pu,p), party:pu.supplier||'—', partyId:null,
+      ref:'Purchase'+(pu.billNo?(' '+pu.billNo):''), refKind:'purchase', refId:pu.id, note:'', cat:''
+    }));
+  });
+
+  // everything entered by hand: expenses, manual receipts/payments, contra
+  (DB.ledger||[]).forEach(l=>{
+    if(l.dir==='contra'){
+      push({...l, dir:'out', acc:l.acc, ref:t('lg_contra_to',{a:accName(l.toAcc)}), _contra:1});
+      push({...l, id:l.id+'_b', dir:'in', acc:l.toAcc, ref:t('lg_contra_from',{a:accName(l.acc)}), _contra:1});
+    } else push({...l});
+  });
+
+  return out.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+}
+
+/* ---- balances ---- */
+function accBalance(accId,upto){
+  const a=ACC(accId); if(!a)return 0;
+  let bal=+a.opening||0;
+  moneyLines(a.openingDate||'', upto||'9999-12-31').forEach(l=>{
+    if(l.acc!==accId)return;
+    bal += (l.dir==='in') ? l.amt : -l.amt;
+  });
+  return r2(bal);
+}
+function allBalances(upto){
+  return (DB.accounts||[]).map(a=>({acc:a, bal:accBalance(a.id,upto)}));
+}
+function totalCashBank(upto){ return r2(allBalances(upto).reduce((s,x)=>s+x.bal,0)); }
+
+/* payables = what we still owe suppliers */
+function totalPayables(){ return r2((DB.purchases||[]).reduce((s,p)=>s+orderBaaki(p),0)); }
+
+/* ---------------- CASH & BANK ---------------- */
+function cashBank(){
+  const bals=allBalances();
+  const total=totalCashBank();
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin-bottom:4px">🏦 ${t('cb_title')}</h2>
+    <p class="hint" style="margin-bottom:14px">${t('cb_sub')}</p>
+    <div class="card pos-total" style="margin-bottom:14px">
+      <div class="sum-row grand" style="border-top:none;padding-top:0">
+        <span>${t('cb_total')}</span><b>${money(total)}</b></div></div>
+    ${bals.map(x=>`<div class="card" style="margin-bottom:8px" onclick="accDetail('${x.acc.id}')">
+      <div class="kv"><div>
+        <b style="font-size:15px">${x.acc.type==='cash'?'💵':'🏦'} ${esc(x.acc.name)}</b>
+        ${x.acc.bankName?`<div class="hint">${esc(x.acc.bankName)}${x.acc.accNo?' · ****'+esc(String(x.acc.accNo).slice(-4)):''}</div>`:''}
+        <div class="hint">${t('cb_opening')}: ${money(x.acc.opening||0)} · ${fmtDate(x.acc.openingDate)}</div>
+      </div><div style="text-align:right">
+        <div style="font-size:18px;font-weight:900;color:${x.bal<0?'var(--bad)':'var(--saffron2)'}">${money(x.bal)}</div>
+        <div class="hint">${t('cb_balance')}</div></div></div></div>`).join('')}
+    <button class="btn ghost block" style="margin-top:6px;margin-bottom:8px" onclick="accEdit()">➕ ${t('cb_add_bank')}</button>
+    <button class="btn ghost block" style="margin-bottom:8px" onclick="contraEntry()">🔄 ${t('cb_contra')}</button>
+    <div class="modal-actions"><button class="btn ghost block" onclick="closeSheet()">${t('close')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+let _acc=null;
+function accEdit(id){
+  const ex=id?ACC(id):null;
+  _acc = ex ? {...ex} : {id:null,type:'bank',name:'',bankName:'',accNo:'',ifsc:'',upi:'',opening:'',openingDate:todayISO()};
+  const d=_acc;
+  modal((d.id?t('edit'):t('cb_add_bank')),
+    `<div class="field"><label>${t('cb_acc_name')} *</label><input id="ac_name" value="${esc(d.name)}" placeholder="${t('cb_acc_ph')}"></div>
+     ${d.type==='bank'?`
+     <div class="field"><label>${t('cb_bank_name')}</label><input id="ac_bank" value="${esc(d.bankName||'')}" placeholder="ICICI Bank"></div>
+     <div class="row"><div class="field"><label>${t('cb_accno')}</label><input id="ac_no" value="${esc(d.accNo||'')}"></div>
+       <div class="field"><label>${t('cb_ifsc')}</label><input id="ac_ifsc" value="${esc(d.ifsc||'')}"></div></div>`:''}
+     <div class="row"><div class="field"><label>${t('cb_opening')} ₹</label>
+        <input id="ac_open" type="number" inputmode="numeric" value="${esc(d.opening)}" placeholder="0"></div>
+       <div class="field"><label>${t('cb_open_date')}</label>
+        <input id="ac_odate" type="date" value="${esc(d.openingDate)}"></div></div>
+     <p class="hint">${t('cb_open_hint')}</p>`,
+    [{label:t('cancel'),cls:'ghost',fn:()=>cashBank()},
+     ...(d.id&&d.type!=='cash'?[{label:'🗑️',cls:'danger',fn:()=>accDel(d.id)}]:[]),
+     {label:t('save'),cls:'primary',fn:accSave}]);
+}
+function accSave(){
+  const d=_acc;
+  const name=($('#ac_name').value||'').trim();
+  if(!name){toast(t('cb_need_name'),'bad');return;}
+  const rec={
+    id:d.id||uid(), type:d.type, name,
+    bankName:$('#ac_bank')?$('#ac_bank').value.trim():'',
+    accNo:$('#ac_no')?$('#ac_no').value.trim():'',
+    ifsc:$('#ac_ifsc')?$('#ac_ifsc').value.trim():'',
+    opening:+$('#ac_open').value||0, openingDate:$('#ac_odate').value||todayISO()};
+  if(d.id){ Object.assign(ACC(d.id),rec); } else DB.accounts.push(rec);
+  save(); toast(t('t_saved'),'ok'); cashBank();
+}
+function accDel(id){
+  const a=ACC(id); if(!a||a.type==='cash')return;
+  confirmModal(t('confirm_del'),t('cb_del_msg',{n:a.name}),()=>{
+    DB.accounts=(DB.accounts||[]).filter(x=>x.id!==id); save(); cashBank(); toast(t('t_deleted'));});
+}
+function accDetail(id){
+  const a=ACC(id); if(!a)return;
+  const lines=moneyLines(a.openingDate||'', '9999-12-31').filter(l=>l.acc===id)
+    .sort((x,y)=>String(y.date).localeCompare(String(x.date))).slice(0,60);
+  let run=accBalance(id);
+  const rows=lines.map(l=>{
+    const bal=run; run = (l.dir==='in') ? r2(run-l.amt) : r2(run+l.amt);
+    return `<div style="padding:9px 0;border-bottom:1px solid var(--line)">
+      <div class="kv"><span style="font-size:13px"><b>${esc(l.party||l.ref)}</b></span>
+        <b style="color:${l.dir==='in'?'var(--ok)':'var(--bad)'}">${l.dir==='in'?'+':'−'}${money(l.amt)}</b></div>
+      <div class="kv"><span class="hint">${esc(l.ref)}${l.cat?' · '+esc(l.cat):''} · ${fmtDate(l.date)}</span>
+        <span class="hint">${money(bal)}</span></div></div>`;}).join('')
+    ||`<p class="hint">${t('cb_no_moves')}</p>`;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin-bottom:2px">${a.type==='cash'?'💵':'🏦'} ${esc(a.name)}</h2>
+    <p class="hint" style="margin-bottom:12px">${a.bankName?esc(a.bankName):''}${a.accNo?' · '+esc(a.accNo):''}</p>
+    <div class="card pos-total" style="margin-bottom:12px">
+      <div class="sum-row"><span>${t('cb_opening')} (${fmtDate(a.openingDate)})</span><b>${money(a.opening||0)}</b></div>
+      <div class="sum-row grand"><span>${t('cb_balance')}</span><b>${money(accBalance(id))}</b></div></div>
+    <button class="btn ghost block" style="margin-bottom:10px" onclick="accEdit('${id}')">✏️ ${t('edit')}</button>
+    <div class="section-h">${t('cb_moves')}</div>
+    ${rows}
+    <div class="modal-actions"><button class="btn ghost block" onclick="cashBank()">${t('close')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+/* ---------------- CONTRA (cash ↔ bank) ---------------- */
+function contraEntry(){
+  const accs=DB.accounts||[];
+  if(accs.length<2){toast(t('cb_need_two'),'bad');return;}
+  modal('🔄 '+t('cb_contra'),
+    `<p class="hint" style="margin-bottom:10px">${t('cb_contra_hint')}</p>
+     <div class="row"><div class="field"><label>${t('cb_from')}</label><select id="ct_from">
+        ${accs.map(a=>`<option value="${a.id}">${esc(a.name)} — ${money(accBalance(a.id))}</option>`).join('')}</select></div>
+       <div class="field"><label>${t('cb_to')}</label><select id="ct_to">
+        ${accs.map((a,i)=>`<option value="${a.id}" ${i===1?'selected':''}>${esc(a.name)}</option>`).join('')}</select></div></div>
+     <div class="row"><div class="field"><label>${t('amount')} ₹ *</label>
+        <input id="ct_amt" type="number" inputmode="numeric" placeholder="0"></div>
+       <div class="field"><label>${t('pay_date')}</label><input id="ct_date" type="date" value="${todayISO()}"></div></div>
+     <div class="field"><label>${t('stk_note')}</label><input id="ct_note" placeholder="${t('stk_note_ph')}"></div>`,
+    [{label:t('cancel'),cls:'ghost',fn:()=>cashBank()},
+     {label:t('save'),cls:'primary',fn:()=>{
+       const f=$('#ct_from').value, to=$('#ct_to').value, amt=+$('#ct_amt').value||0;
+       if(f===to){toast(t('cb_same_acc'),'bad');return;}
+       if(amt<=0){toast(t('t_no_amount'),'bad');return;}
+       DB.ledger.push({id:uid(),dir:'contra',date:$('#ct_date').value||todayISO(),amt,
+         acc:f,toAcc:to,party:'',ref:'',refKind:'contra',cat:'',note:($('#ct_note').value||'').trim(),photos:[]});
+       save(); toast(t('t_saved'),'ok'); cashBank();
+     }}]);
+}
+/* ---------------- PAYMENT IN / OUT (manual) ---------------- */
+let _pay=null;
+function payEntry(dir){
+  _pay={dir,photos:[]};
+  const accs=DB.accounts||[];
+  const parties = dir==='in'
+    ? [...new Set((DB.customers||[]).map(c=>c.name).filter(Boolean))]
+    : [...new Set((DB.purchases||[]).map(p=>p.supplier).filter(Boolean))];
+  modal((dir==='in'?'⬇️ '+t('pay_in'):'⬆️ '+t('pay_out')),
+    `<p class="hint" style="margin-bottom:10px">${dir==='in'?t('pay_in_hint'):t('pay_out_hint')}</p>
+     <datalist id="partyList">${parties.map(p=>`<option value="${esc(p)}">`).join('')}</datalist>
+     <div class="field"><label>${dir==='in'?t('customer'):t('supplier')} *</label>
+       <input id="py_party" list="partyList" placeholder="${t('name_ph')}"></div>
+     <div class="row"><div class="field"><label>${t('amount')} ₹ *</label>
+        <input id="py_amt" type="number" inputmode="numeric" placeholder="0"></div>
+       <div class="field"><label>${t('pay_date')}</label><input id="py_date" type="date" value="${todayISO()}"></div></div>
+     <div class="field"><label>${t('cb_into')}</label><select id="py_acc">
+       ${accs.map(a=>`<option value="${a.id}">${esc(a.name)}</option>`).join('')}</select></div>
+     <div class="field"><label>${t('stk_note')}</label><input id="py_note" placeholder="${t('stk_note_ph')}"></div>`,
+    [{label:t('cancel'),cls:'ghost',fn:closeSheet},
+     {label:t('save'),cls:'primary',fn:()=>{
+        const party=($('#py_party').value||'').trim(), amt=+$('#py_amt').value||0;
+        if(!party){toast(t('t_no_name'),'bad');return;}
+        if(amt<=0){toast(t('t_no_amount'),'bad');return;}
+        DB.ledger.push({id:uid(),dir,date:$('#py_date').value||todayISO(),amt,
+          acc:$('#py_acc').value, party, partyId:null,
+          ref: dir==='in'?t('pay_in'):t('pay_out'), refKind:'manual', cat:'',
+          note:($('#py_note').value||'').trim(), photos:[]});
+        save(); closeSheet(); toast(t('t_saved'),'ok'); dayBook();
+     }}]);
+}
+
+/* ---------------- EXPENSES ---------------- */
+let _exp=null, _expFrom='', _expTo='';
+function expenses(){
+  const from=_expFrom||monthStart(), to=_expTo||todayISO();
+  const list=(DB.ledger||[]).filter(l=>l.refKind==='expense'&&l.date>=from&&l.date<=to)
+    .sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  const total=r2(list.reduce((s,l)=>s+l.amt,0));
+  const byCat={};
+  list.forEach(l=>{const c=l.cat||t('exp_other');byCat[c]=r2((byCat[c]||0)+l.amt);});
+  const cats=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin-bottom:4px">💸 ${t('exp_title')}</h2>
+    <p class="hint" style="margin-bottom:12px">${t('exp_sub')}</p>
+    <div class="row" style="margin-bottom:12px">
+      <div class="field" style="margin:0"><label>${t('rp_from')}</label>
+        <input type="date" value="${from}" onchange="_expFrom=this.value;expenses()"></div>
+      <div class="field" style="margin:0"><label>${t('rp_to')}</label>
+        <input type="date" value="${to}" onchange="_expTo=this.value;expenses()"></div></div>
+    <div class="card pos-total" style="margin-bottom:12px">
+      <div class="sum-row grand" style="border-top:none;padding-top:0">
+        <span>${t('exp_total')}</span><b style="color:var(--bad)">${money(total)}</b></div>
+      ${cats.map(([c,v])=>`<div class="sum-row" style="min-height:34px;padding:5px 0">
+        <span>${esc(c)}</span><b>${money(v)}</b></div>`).join('')}</div>
+    <button class="btn primary block" style="margin-bottom:12px" onclick="expEdit()">➕ ${t('exp_add')}</button>
+    ${list.map(l=>`<div class="card" style="margin-bottom:8px" onclick="expEdit('${l.id}')">
+      <div class="kv"><div>
+        <b>${esc(l.cat||t('exp_other'))}</b>
+        ${l.note?`<div class="hint">${esc(l.note)}</div>`:''}
+        <div class="hint">${fmtDate(l.date)} · ${esc(accName(l.acc))}${(l.photos||[]).length?' · 📷':''}</div>
+      </div><b style="color:var(--bad);font-size:16px">${money(l.amt)}</b></div></div>`).join('')
+      ||`<div class="empty" style="padding:24px 10px"><p>${t('exp_none')}</p></div>`}
+    <div class="modal-actions"><button class="btn ghost block" onclick="closeSheet()">${t('close')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function expEdit(id){
+  const ex=id?(DB.ledger||[]).find(l=>l.id===id):null;
+  _exp = ex ? {...ex, photos:[...(ex.photos||[])]}
+            : {id:null,dir:'out',date:todayISO(),amt:'',acc:(cashAcc()||{}).id,cat:'',note:'',photos:[]};
+  expRender();
+}
+function expRender(){
+  const d=_exp, accs=DB.accounts||[];
+  const chips=(DB.expCats||[]).map(c=>`<span class="gtag ${d.cat===c?'on-tag':''}" style="cursor:pointer"
+      onclick="expPickCat('${esc(c).replace(/'/g,"\\'")}')">${esc(c)}</span>`).join('');
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin-bottom:12px">💸 ${d.id?t('edit'):t('exp_add')}</h2>
+    <div class="row"><div class="field"><label>${t('amount')} ₹ *</label>
+        <input id="ex_amt" type="number" inputmode="numeric" value="${esc(d.amt)}" placeholder="0"></div>
+      <div class="field"><label>${t('pay_date')}</label><input id="ex_date" type="date" value="${esc(d.date)}"></div></div>
+    <div class="field"><label>${t('exp_cat')} *</label>
+      <input id="ex_cat" value="${esc(d.cat)}" placeholder="${t('exp_cat_ph')}">
+      <div class="gtags" style="margin-top:8px">${chips}
+        <span class="gtag" style="cursor:pointer;border-style:dashed" onclick="expAddCat()">➕ ${t('exp_new_cat')}</span>
+        ${(DB.expCats||[]).length?`<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="manageExpCats()">⚙️ ${t('ml_manage')}</span>`:''}</div></div>
+    <div class="field"><label>${t('cb_paid_from')}</label><select id="ex_acc">
+      ${accs.map(a=>`<option value="${a.id}" ${a.id===d.acc?'selected':''}>${esc(a.name)}</option>`).join('')}</select></div>
+
+    <details style="margin-top:6px"><summary style="font-size:13px;color:var(--saffron2);cursor:pointer;font-weight:700;padding:6px 0">⚙️ ${t('pos_more')}</summary>
+      <div class="field" style="margin-top:10px"><label>${t('stk_note')}</label>
+        <input id="ex_note" value="${esc(d.note)}" placeholder="${t('stk_note_ph')}"></div>
+      <div class="hint" style="margin-bottom:4px">📷 ${t('bill_photo')}</div>
+      <div class="media-row" id="ex_photos"></div>
+      <div class="row" style="margin-top:6px;gap:6px">
+        <button class="btn sm ghost" onclick="pickExpPhoto('cam')">📷 ${t('camera')}</button>
+        <button class="btn sm ghost" onclick="pickExpPhoto('lib')">🖼️ ${t('gallery')}</button></div>
+    </details>
+
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="expenses()">${t('cancel')}</button>
+      ${d.id?`<button class="btn danger" onclick="expDel('${d.id}')">🗑️</button>`:''}
+      <button class="btn primary" style="flex:2" onclick="expSave()">${t('save')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet(); renderExpPhotos();
+}
+function expCapture(){ const d=_exp; if(!d)return;
+  if($('#ex_amt'))d.amt=$('#ex_amt').value;
+  if($('#ex_date'))d.date=$('#ex_date').value;
+  if($('#ex_cat'))d.cat=$('#ex_cat').value.trim();
+  if($('#ex_acc'))d.acc=$('#ex_acc').value;
+  if($('#ex_note'))d.note=$('#ex_note').value.trim();
+}
+function expPickCat(c){ expCapture(); _exp.cat=(_exp.cat===c)?'':c; expRender(); }
+function expAddCat(){ expCapture();
+  modal(t('exp_new_cat'),`<div class="field"><label>${t('exp_cat')}</label><input id="newCat" placeholder="${t('exp_cat_ph')}"></div>`,
+    [{label:t('cancel'),cls:'ghost',fn:()=>expRender()},
+     {label:t('save'),cls:'primary',fn:()=>{const v=($('#newCat').value||'').trim();
+       if(v){DB.expCats=DB.expCats||[];if(!DB.expCats.includes(v))DB.expCats.push(v);_exp.cat=v;save();}
+       expRender();}}]);
+  setTimeout(()=>{const e=$('#newCat');if(e)e.focus();},120);
+}
+function expSave(){ expCapture(); const d=_exp;
+  const amt=+d.amt||0;
+  if(amt<=0){toast(t('t_no_amount'),'bad');return;}
+  if(!d.cat){toast(t('exp_need_cat'),'bad');return;}
+  if(d.id){ const l=(DB.ledger||[]).find(x=>x.id===d.id);
+    Object.assign(l,{date:d.date,amt,acc:d.acc,cat:d.cat,note:d.note,photos:[...(d.photos||[])]});
+  } else {
+    DB.ledger.push({id:uid(),dir:'out',date:d.date||todayISO(),amt,acc:d.acc,
+      party:d.cat, ref:t('exp_title'), refKind:'expense', cat:d.cat, note:d.note, photos:[...(d.photos||[])]});
+  }
+  save(); toast(t('t_saved'),'ok'); expenses();
+}
+function expDel(id){ confirmModal(t('confirm_del'),t('confirm_del_msg'),()=>{
+  DB.ledger=(DB.ledger||[]).filter(l=>l.id!==id); save(); expenses(); toast(t('t_deleted'));});}
+function pickExpPhoto(src){ expCapture(); photoTarget={type:'exp'};
+  const inp=src==='cam'?$('#filePickCam'):$('#filePick'); inp.value=''; inp.click(); }
+async function renderExpPhotos(){ const el=$('#ex_photos'); if(!el)return; el.innerHTML='';
+  for(const id of(_exp.photos||[])){ const url=await mURL(id);
+    const w=document.createElement('div'); w.className='thumb-wrap';
+    w.innerHTML=`<img class="thumb" src="${url||''}"><div class="thumb-x">✕</div>`;
+    w.querySelector('.thumb').onclick=()=>viewPhoto(url);
+    w.querySelector('.thumb-x').onclick=async()=>{await mDel(id);_exp.photos=(_exp.photos||[]).filter(x=>x!==id);renderExpPhotos();};
+    el.appendChild(w);}}
+
+/* ---------------- DAY BOOK ---------------- */
+let _dbFrom='', _dbTo='';
+function monthStart(){ const d=new Date(); return new Date(d.getFullYear(),d.getMonth(),1).toISOString().slice(0,10); }
+function dayBook(){
+  const from=_dbFrom||todayISO(), to=_dbTo||todayISO();
+  const lines=moneyLines(from,to).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  const real=lines.filter(l=>!l._contra);     // a cash↔bank transfer is neither income nor expense
+  const inTot=r2(real.filter(l=>l.dir==='in').reduce((s,l)=>s+l.amt,0));
+  const outTot=r2(real.filter(l=>l.dir==='out').reduce((s,l)=>s+l.amt,0));
+
+  // opening = balance of every account the day before `from`
+  const prev=new Date(from); prev.setDate(prev.getDate()-1);
+  const prevISO=prev.toISOString().slice(0,10);
+  const openRows=(DB.accounts||[]).map(a=>({a,bal:accBalance(a.id,prevISO)}));
+  const openTot=r2(openRows.reduce((s,x)=>s+x.bal,0));
+  const closeRows=(DB.accounts||[]).map(a=>({a,bal:accBalance(a.id,to)}));
+  const closeTot=r2(closeRows.reduce((s,x)=>s+x.bal,0));
+
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin-bottom:4px">📒 ${t('db_title')}</h2>
+    <p class="hint" style="margin-bottom:12px">${t('db_sub')}</p>
+    <div class="gtags" style="margin-bottom:10px">
+      <span class="gtag ${from===todayISO()&&to===todayISO()?'on-tag':''}" style="cursor:pointer" onclick="_dbFrom='';_dbTo='';dayBook()">${t('db_today')}</span>
+      <span class="gtag" style="cursor:pointer" onclick="_dbFrom=yesterdayISO();_dbTo=yesterdayISO();dayBook()">${t('db_yest')}</span>
+      <span class="gtag" style="cursor:pointer" onclick="_dbFrom=monthStart();_dbTo=todayISO();dayBook()">${t('rp_month')}</span>
+    </div>
+    <div class="row" style="margin-bottom:12px">
+      <div class="field" style="margin:0"><label>${t('rp_from')}</label>
+        <input type="date" value="${from}" onchange="_dbFrom=this.value;dayBook()"></div>
+      <div class="field" style="margin:0"><label>${t('rp_to')}</label>
+        <input type="date" value="${to}" onchange="_dbTo=this.value;dayBook()"></div></div>
+
+    <div class="card pos-total" style="margin-bottom:12px">
+      <div class="sum-row"><span>${t('db_opening')}</span><b>${money(openTot)}</b></div>
+      ${openRows.map(x=>`<div class="sum-row" style="min-height:28px;padding:2px 0">
+        <span class="hint" style="padding-left:10px">${esc(x.a.name)}</span><span class="hint">${money(x.bal)}</span></div>`).join('')}
+      <div class="sum-sep"></div>
+      <div class="sum-row"><span>⬇️ ${t('db_in')}</span><b style="color:var(--ok)">+ ${money(inTot)}</b></div>
+      <div class="sum-row"><span>⬆️ ${t('db_out')}</span><b class="neg">− ${money(outTot)}</b></div>
+      <div class="sum-row due"><span>${t('db_closing')}</span><b>${money(closeTot)}</b></div>
+      ${closeRows.map(x=>`<div class="sum-row" style="min-height:28px;padding:2px 0">
+        <span class="hint" style="padding-left:10px">${esc(x.a.name)}</span><span class="hint">${money(x.bal)}</span></div>`).join('')}
+    </div>
+
+    <div class="section-h">${t('db_entries')} <span class="hint">(${lines.length})</span></div>
+    ${lines.map(l=>`<div class="card" style="margin-bottom:6px;padding:11px">
+      <div class="kv"><div style="flex:1">
+        <b style="font-size:14px">${l._contra?('🔄 '+t('cb_contra')):esc(l.party||l.ref)}</b>
+        <div class="hint">${esc(l.ref)}${l.cat?' · '+esc(l.cat):''}${l.note?' · '+esc(l.note):''}</div>
+        <div class="hint">${fmtDate(l.date)} · ${esc(accName(l.acc))}</div>
+      </div><b style="font-size:16px;color:${l._contra?'var(--mut)':(l.dir==='in'?'var(--ok)':'var(--bad)')}">${l.dir==='in'?'+':'−'}${money(l.amt)}</b></div>
+    </div>`).join('')||`<div class="empty" style="padding:24px 10px"><p>${t('db_none')}</p></div>`}
+    <div class="modal-actions"><button class="btn ghost block" onclick="closeSheet()">${t('close')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function yesterdayISO(){ const d=new Date(); d.setDate(d.getDate()-1); return d.toISOString().slice(0,10); }
+
+/* ---------------- ORDER REPORTS ---------------- */
+let _orFrom='', _orTo='';
+function orderReports(){
+  const from=_orFrom||fyStart(), to=_orTo||todayISO();
+  const all=(DB.orders||[]).filter(o=>{const d=o.orderDate||(o.created||'').slice(0,10);return d>=from&&d<=to;});
+  const done=all.filter(orderDelivered), pend=all.filter(o=>!orderDelivered(o));
+  const late=pend.filter(o=>daysLeft(o.deliveryDate)<0);
+
+  // product-wise: how many sherwanis, suits, kurtas…
+  const prod={};
+  all.forEach(o=>(o.items||[]).forEach(k=>{
+    const g=G(k); if(!g)return;
+    prod[g.n]=prod[g.n]||{n:0,done:0};
+    prod[g.n].n++;
+    const st=itemStatusOf(o,k);
+    if(st==='ready'||st==='delivered')prod[g.n].done++;
+  }));
+  const prods=Object.entries(prod).sort((a,b)=>b[1].n-a[1].n);
+  const totPieces=prods.reduce((s,[,v])=>s+v.n,0);
+
+  // month by month
+  const months={};
+  all.forEach(o=>{const d=(o.orderDate||(o.created||'').slice(0,10)).slice(0,7);
+    months[d]=months[d]||{n:0,v:0};months[d].n++;months[d].v=r2(months[d].v+orderTotal(o));});
+  const mk=Object.keys(months).sort().reverse();
+  const value=r2(all.reduce((s,o)=>s+orderTotal(o),0));
+  const due=r2(all.reduce((s,o)=>s+orderBaaki(o),0));
+
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin-bottom:4px">📊 ${t('or_title')}</h2>
+    <p class="hint" style="margin-bottom:12px">${t('or_sub')}</p>
+    <div class="gtags" style="margin-bottom:10px">
+      <span class="gtag" style="cursor:pointer" onclick="_orFrom=monthStart();_orTo=todayISO();orderReports()">${t('rp_month')}</span>
+      <span class="gtag" style="cursor:pointer" onclick="_orFrom=fyStart();_orTo=todayISO();orderReports()">${t('or_fy')}</span>
+      <span class="gtag" style="cursor:pointer" onclick="_orFrom='2000-01-01';_orTo=todayISO();orderReports()">${t('rp_all')}</span>
+    </div>
+    <div class="row" style="margin-bottom:12px">
+      <div class="field" style="margin:0"><label>${t('rp_from')}</label>
+        <input type="date" value="${from}" onchange="_orFrom=this.value;orderReports()"></div>
+      <div class="field" style="margin:0"><label>${t('rp_to')}</label>
+        <input type="date" value="${to}" onchange="_orTo=this.value;orderReports()"></div></div>
+
+    <div class="home-stats" style="margin-bottom:14px">
+      <div class="home-stat tappable" onclick="closeSheet();setDelFilter('all');go('orders')">
+        <div class="hs-val">${all.length}</div><div class="hs-lbl">${t('or_orders')}</div></div>
+      <div class="home-stat tappable" onclick="closeSheet();setDelFilter('pending');go('orders')">
+        <div class="hs-val" style="color:var(--saffron2)">${pend.length}</div><div class="hs-lbl">${t('or_pending')}</div></div>
+      <div class="home-stat"><div class="hs-val" style="color:var(--ok)">${done.length}</div>
+        <div class="hs-lbl">${t('or_done')}</div></div>
+    </div>
+    ${late.length?`<div class="card" style="border-color:var(--bad);margin-bottom:14px" onclick="closeSheet();setDelFilter('pending');go('orders')">
+      <div class="kv"><b style="color:var(--bad)">⚠️ ${t('or_late')}</b>
+        <b style="color:var(--bad);font-size:18px">${late.length}</b></div></div>`:''}
+
+    <div class="card pos-total" style="margin-bottom:14px">
+      <div class="sum-row"><span>${t('or_value')}</span><b>${money(value)}</b></div>
+      <div class="sum-row"><span>${t('or_pieces')}</span><b>${totPieces}</b></div>
+      <div class="sum-row due"><span>${t('or_due')}</span><b>${money(due)}</b></div></div>
+
+    <div class="section-h">👔 ${t('or_product')}</div>
+    <p class="hint" style="margin:0 0 8px">${t('or_product_hint')}</p>
+    ${prods.length?`<div class="card" style="margin-bottom:14px">
+      ${prods.map(([n,v])=>`<div style="padding:9px 0;border-bottom:1px solid var(--line)">
+        <div class="kv"><b>${esc(n)}</b><b style="color:var(--saffron2)">${v.n}</b></div>
+        <div class="gr-bar" style="margin-top:5px"><div class="gr-fill" style="width:${Math.round(v.n/prods[0][1].n*100)}%"></div></div>
+        <div class="kv" style="margin-top:3px"><span class="hint">${t('or_ready')}: ${v.done}</span>
+          <span class="hint">${t('or_left')}: ${v.n-v.done}</span></div></div>`).join('')}
+    </div>`:`<p class="hint" style="margin-bottom:14px">${t('stat_none')}</p>`}
+
+    <div class="section-h">📅 ${t('or_month')}</div>
+    ${mk.length?`<div class="card" style="margin-bottom:14px">
+      ${mk.map(m=>{const d=new Date(m+'-01');
+        return `<div class="kv" style="padding:8px 0;border-bottom:1px solid var(--line)">
+          <div><b>${d.toLocaleDateString('en-IN',{month:'long',year:'numeric'})}</b>
+            <div class="hint">${months[m].n} ${t('or_orders').toLowerCase()}</div></div>
+          <b style="color:var(--saffron2)">${money(months[m].v)}</b></div>`;}).join('')}
+    </div>`:''}
+
+    <div class="modal-actions"><button class="btn ghost block" onclick="closeSheet()">${t('close')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function fyStart(){ const d=new Date(); const y=d.getMonth()>=3?d.getFullYear():d.getFullYear()-1; return y+'-04-01'; }
+
+/* ---------------- HUBS ---------------- */
+function hubHTML(title,sub,tiles){
+  return `<div class="grip"></div>
+    <h2 style="margin-bottom:4px">${title}</h2>
+    <p class="hint" style="margin-bottom:14px">${sub}</p>
+    <div class="home-grid">${tiles.map(([ico,label,fn,dim])=>
+      `<button class="home-tile ${dim?'tile-soon':''}" onclick="${dim?`toast(t('coming_soon'),'')`:fn}">
+        <span class="ht-ico">${ico}</span><span class="ht-lbl">${label}</span>
+        ${dim?`<span class="soon">${t('soon')}</span>`:''}</button>`).join('')}</div>
+    <div class="modal-actions"><button class="btn ghost block" onclick="closeSheet()">${t('close')}</button></div>
+    <div class="fab-pad"></div>`;
+}
+function saleHub(){
+  $('#sheet').innerHTML=hubHTML('🧾 '+t('hub_sale'), t('hub_sale_sub'), [
+    ['➕', t('new_sale'), "closeSheet();openSaleForm()"],
+    ['📋', t('home_invoices'), "closeSheet();go('invoices')"],
+    ['↩️', t('credit_note'), "", true],
+    ['📄', t('estimate'), "", true],
+  ]);
+  showSheet();
+}
+function purchaseHub(){
+  $('#sheet').innerHTML=hubHTML('🚚 '+t('hub_purchase'), t('hub_purchase_sub'), [
+    ['➕', t('new_purchase'), "closeSheet();openPurchaseForm()"],
+    ['📋', t('purchases_list'), "closeSheet();go('purchases')"],
+    ['↪️', t('debit_note'), "", true],
+    ['📝', t('purchase_order'), "", true],
+  ]);
+  showSheet();
+}
+function accountsHub(){
+  $('#sheet').innerHTML=hubHTML('💰 '+t('hub_accounts'), t('hub_accounts_sub'), [
+    ['📒', t('db_title'), "closeSheet();dayBook()"],
+    ['🏦', t('cb_title'), "closeSheet();cashBank()"],
+    ['💸', t('exp_title'), "closeSheet();expenses()"],
+    ['🔔', t('debtors_report'), "closeSheet();followUps()"],
+    ['📤', t('creditors_report'), "closeSheet();creditors()"],
+    ['📦', t('stk_title'), "closeSheet();stockHome()"],
+    ['📊', t('reports'), "closeSheet();go('reports')"],
+    ['📈', t('gr_title'), "closeSheet();growthReport()"],
+  ]);
+  showSheet();
+}
+/* who we owe money to */
+function creditors(){
+  const list=(DB.purchases||[]).filter(p=>orderBaaki(p)>0);
+  const map={};
+  list.forEach(p=>{const k=p.supplier||'—';
+    map[k]=map[k]||{name:k,phone:p.phone||'',recs:[],due:0};
+    map[k].recs.push(p); map[k].due=r2(map[k].due+orderBaaki(p));
+    if(!map[k].phone&&p.phone)map[k].phone=p.phone;});
+  const groups=Object.values(map).sort((a,b)=>b.due-a.due);
+  const total=r2(groups.reduce((s,g)=>s+g.due,0));
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin-bottom:4px">📤 ${t('creditors_report')}</h2>
+    <p class="hint" style="margin-bottom:12px">${t('cr_sub')}</p>
+    ${groups.length?`<div class="card pos-total" style="margin-bottom:14px">
+      <div class="sum-row due" style="border-top:none;margin:0;padding:4px 0">
+        <span>${t('rp_creditor_total')}</span><b>${money(total)}</b></div>
+      <div class="hint">${t('cr_from_n',{n:groups.length})}</div></div>`:''}
+    ${groups.map(g=>`<div class="card" style="margin-bottom:8px">
+      <div class="kv"><div style="flex:1">
+        <b style="font-size:15px">${esc(g.name)}</b>
+        ${g.phone?`<div class="hint">📞 ${esc(g.phone)}</div>`:''}
+        ${g.recs.map(p=>`<div class="hint">• ${esc(p.billNo||fmtDate(p.date))} — ${money(orderBaaki(p))}</div>`).join('')}
+      </div><b style="color:var(--bad);font-size:18px">${money(g.due)}</b></div>
+      <div class="row" style="margin-top:10px;gap:6px">
+        <button class="btn primary" style="flex:2" onclick="closeSheet();payEntry('out')">⬆️ ${t('pay_out')}</button>
+        ${g.phone?`<a class="btn ghost" href="tel:${esc(g.phone)}" style="display:flex;align-items:center;justify-content:center;text-decoration:none">📞</a>`:''}
+      </div></div>`).join('')
+      ||`<div class="empty" style="padding:30px 10px"><div class="big">🎉</div><p>${t('rp_no_creditors')}</p></div>`}
+    <div class="modal-actions"><button class="btn ghost block" onclick="closeSheet()">${t('close')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+/* ---------------- QUICK ACTIONS (the + button) ---------------- */
+function quickAdd(){
+  $('#sheet').innerHTML=hubHTML('⚡ '+t('qa_title'), t('qa_sub'), [
+    ['👔', t('home_new_order'), "closeSheet();openOrderForm()"],
+    ['🧾', t('new_sale'), "closeSheet();openSaleForm()"],
+    ['🚚', t('new_purchase'), "closeSheet();openPurchaseForm()"],
+    ['⬇️', t('pay_in'), "closeSheet();payEntry('in')"],
+    ['⬆️', t('pay_out'), "closeSheet();payEntry('out')"],
+    ['💸', t('exp_add'), "closeSheet();expEdit()"],
+  ]);
+  showSheet();
+}
+
+/* ==================================================================
+   MANAGE A LIST — one screen for every "saved options" library.
+   Anywhere you can ADD something, you can now REMOVE it too.
+   ================================================================== */
+let _mlCtx=null;
+function manageLib(opts){
+  // opts: {title, hint, list(), remove(v), rename(old,new), back(), inUse(v)}
+  _mlCtx=opts;
+  mlRender();
+}
+function mlRender(){
+  const o=_mlCtx; if(!o)return;
+  const list=o.list()||[];
+  const rows=list.map((v,i)=>{
+    const used=o.inUse?o.inUse(v):0;
+    return `<div class="kv" style="padding:10px 0;border-bottom:1px solid var(--line)">
+      <span style="flex:1">${esc(v)}${used?`<div class="hint">${t('ml_used',{n:used})}</div>`:''}</span>
+      <span style="display:flex;gap:6px">
+        ${o.rename?`<button class="btn sm ghost" onclick="mlRename(${i})">✏️</button>`:''}
+        <button class="btn sm danger" onclick="mlDel(${i})">🗑️</button>
+      </span></div>`;}).join('') || `<p class="hint">${t('ml_empty')}</p>`;
+  modal('⚙️ '+o.title,
+    `<p class="hint" style="margin-bottom:8px">${o.hint||t('ml_hint')}</p>${rows}`,
+    [{label:t('close'),cls:'primary',fn:()=>{ closeModal(); if(o.back)o.back(); }}]);
+}
+function mlDel(i){
+  const o=_mlCtx; const v=(o.list()||[])[i]; if(v==null)return;
+  const used=o.inUse?o.inUse(v):0;
+  const msg = used ? t('ml_del_used',{n:esc(String(v)),c:used}) : t('ml_del_msg',{n:esc(String(v))});
+  confirmModal(t('ml_del_title'),msg,()=>{ o.remove(v); save(); mlRender(); toast(t('t_deleted')); });
+}
+function mlRename(i){
+  const o=_mlCtx; const v=(o.list()||[])[i]; if(v==null)return;
+  modal(t('ml_rename'),
+    `<div class="field"><label>${t('ml_new_name')}</label><input id="mlNew" value="${esc(v)}"></div>`,
+    [{label:t('cancel'),cls:'ghost',fn:()=>mlRender()},
+     {label:t('save'),cls:'primary',fn:()=>{
+        const nv=($('#mlNew').value||'').trim();
+        if(nv&&nv!==v){ o.rename(v,nv); save(); toast(t('t_saved'),'ok'); }
+        mlRender();
+     }}]);
+  setTimeout(()=>{const e=$('#mlNew');if(e)e.focus();},120);
+}
+const rmFrom = (arr,v)=>{ const i=arr.indexOf(v); if(i>=0)arr.splice(i,1); };
+const rnIn   = (arr,o,n)=>{ const i=arr.indexOf(o); if(i>=0)arr[i]=n; };
+
+/* ---- the libraries ---- */
+function manageVariants(gid,backKey){
+  const g=G(gid);
+  manageLib({
+    title:t('variant')+' — '+(g?g.n:''),
+    hint:t('ml_variant_hint'),
+    list:()=>((DB.variantLib||{})[gid]||[]),
+    inUse:v=>(DB.orders||[]).reduce((n,o)=>n+Object.keys(o.variant||{}).filter(k=>garmentOf(k)===gid&&o.variant[k]===v).length,0),
+    remove:v=>{ DB.variantLib[gid]=DB.variantLib[gid]||[]; rmFrom(DB.variantLib[gid],v); },
+    rename:(o2,n)=>{ rnIn(DB.variantLib[gid],o2,n);
+      (DB.orders||[]).forEach(o=>{Object.keys(o.variant||{}).forEach(k=>{ if(garmentOf(k)===gid&&o.variant[k]===o2)o.variant[k]=n; });}); },
+    back:()=>renderForm()
+  });
+}
+function manageIncl(back){
+  manageLib({
+    title:t('im_incl'),
+    hint:t('ml_incl_hint'),
+    list:()=>(DB.inclLib||[]),
+    inUse:v=>(DB.itemMaster||[]).filter(m=>(m.incl||[]).includes(v)).length,
+    remove:v=>{ rmFrom(DB.inclLib,v);
+      (DB.itemMaster||[]).forEach(m=>{ if(m.incl)rmFrom(m.incl,v); }); },
+    rename:(o,n)=>{ rnIn(DB.inclLib,o,n);
+      (DB.itemMaster||[]).forEach(m=>{ if(m.incl)rnIn(m.incl,o,n); }); },
+    back:back
+  });
+}
+function manageExpCats(){
+  manageLib({
+    title:t('exp_cat'),
+    hint:t('ml_exp_hint'),
+    list:()=>(DB.expCats||[]),
+    inUse:v=>(DB.ledger||[]).filter(l=>l.cat===v).length,
+    remove:v=>{ rmFrom(DB.expCats,v); },
+    rename:(o,n)=>{ rnIn(DB.expCats,o,n);
+      (DB.ledger||[]).forEach(l=>{ if(l.cat===o){l.cat=n; if(l.party===o)l.party=n;} }); },
+    back:()=>expRender()
+  });
+}
+function manageRels(){
+  manageLib({
+    title:t('mem_rel_ph'),
+    hint:t('ml_rel_hint'),
+    list:()=>(DB.relLib||[]),
+    remove:v=>{ rmFrom(DB.relLib,v); },
+    rename:(o,n)=>{ rnIn(DB.relLib,o,n); },
+    back:()=>renderForm()
+  });
+}
+function manageSizes(){
+  manageLib({
+    title:t('stk_sizes'),
+    hint:t('ml_size_hint'),
+    list:()=>(DB.stkCfg.sizes||[]),
+    inUse:v=>readyItems().filter(m=>readyQty(m,v)>0).length,
+    remove:v=>{ rmFrom(DB.stkCfg.sizes,v); },
+    rename:(o,n)=>{ rnIn(DB.stkCfg.sizes,o,n);
+      readyItems().forEach(m=>{ if(m.stk&&m.stk[o]!=null){m.stk[n]=m.stk[o];delete m.stk[o];} }); },
+    back:()=>stockHome('ready')
+  });
+}
+function manageFabItems(){
+  manageLib({
+    title:t('stk_fab_name'),
+    hint:t('ml_fab_hint'),
+    list:()=>(DB.fabItems||[]).map(f=>f.name),
+    inUse:v=>{ const f=(DB.fabItems||[]).find(x=>x.name===v); return f?(DB.thaans||[]).filter(t2=>t2.fabId===f.id).length:0; },
+    remove:v=>{ const f=(DB.fabItems||[]).find(x=>x.name===v); if(!f)return;
+      DB.thaans=(DB.thaans||[]).filter(t2=>t2.fabId!==f.id);
+      DB.fabItems=(DB.fabItems||[]).filter(x=>x.id!==f.id); },
+    rename:(o,n)=>{ const f=(DB.fabItems||[]).find(x=>x.name===o); if(f)f.name=n; },
+    back:()=>stockHome('fabric')
+  });
+}
+
 /* ================== UPI QR CODE (offline, no library) ================== */
 function qrMake(text){
   const EXP=new Array(512),LOG=new Array(256);
@@ -3530,6 +4317,7 @@ function renderHome(){
   const dueToday=activeOrders.filter(o=>daysLeft(o.deliveryDate)===0).length;
   // accounts stats
   const toCollect=r2((DB.orders||[]).concat(DB.alterations||[],DB.sales||[]).reduce((s,r)=>s+orderBaaki(r),0));
+  const payables=totalPayables();
   const today=new Date();const mFrom=today.toISOString().slice(0,7);
   let monthSale=0;allInvoices().forEach(x=>{if(String(x.inv.date||'').slice(0,7)===mFrom){monthSale+=invCompute(x.inv).total;}});
   (DB.sales||[]).forEach(s=>{}); // sales already have invoices
@@ -3546,29 +4334,44 @@ function renderHome(){
 
     <div class="home-stats">
       ${stat(t('home_pending_orders'),pendingCount,'',"statDetail('pending')")}
-      ${stat(t('home_due_today'),dueToday,dueToday>0?'var(--saffron2)':'',"statDetail('duetoday')")}
       ${stat(t('home_to_collect'),money(toCollect),toCollect>0?'var(--saffron2)':'',"followUps()")}
+      ${stat(t('creditors_report'),money(payables),payables>0?'var(--bad)':'',"creditors()")}
     </div>
 
     <div class="home-sec-title">📋 ${t('home_tailoring')}</div>
     <div class="home-grid">
-      ${tile('➕',t('home_new_order'),"openOrderForm()")}
       ${tile('📋',t('nav_orders'),"go('orders')")}
-      ${tile('👥',t('nav_customers'),"go('customers')")}
+      ${tile('📊',t('or_title'),"orderReports()")}
       ${tile('🔧',t('home_alterations'),"go('alterations')")}
+      ${tile('👥',t('nav_customers'),"go('customers')")}
     </div>
 
-    ${simple?'':`<div class="simple-hide"><div class="home-sec-title">💰 ${t('home_accounts')}</div>
+    ${simple?'':`<div class="simple-hide">
+    <div class="home-sec-title">🧾 ${t('home_billing')}</div>
     <div class="home-grid">
-      ${tile('➕',t('new_sale'),"openSaleForm()")}
-      ${tile('🧾',t('home_invoices'),"go('invoices')")}
-      ${tile('🔔',t('fu_title'),"followUps()")}
-      ${tile('📦',t('stk_title'),"stockHome()")}
-      ${tile('🚚',t('nav_purchases'),"go('purchases')")}
-      ${tile('📈',t('gr_title'),"growthReport()")}
-      ${tile('📊',t('home_reports'),"go('reports')")}
+      ${tile('🧾',t('hub_sale'),"saleHub()")}
+      ${tile('🚚',t('hub_purchase'),"purchaseHub()")}
     </div>
-    <div class="home-monthbox">${t('home_month_sales')}: <b>${money(r2(monthSale))}</b></div></div>`}
+
+    <div class="home-sec-title">💰 ${t('home_accounts')}</div>
+    <div class="home-grid">
+      ${tile('📒',t('db_title'),"dayBook()")}
+      ${tile('🏦',t('cb_title'),"cashBank()")}
+      ${tile('💸',t('exp_title'),"expenses()")}
+      ${tile('🔔',t('debtors_report'),"followUps()")}
+      ${tile('📤',t('creditors_report'),"creditors()")}
+      ${tile('📦',t('stk_title'),"stockHome()")}
+      ${tile('📊',t('reports'),"go('reports')")}
+      ${tile('📈',t('gr_title'),"growthReport()")}
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <div class="kv"><span class="hint">💵 ${t('cb_total')}</span>
+        <b style="color:var(--saffron2)">${money(totalCashBank())}</b></div>
+      <div class="kv" style="margin-top:6px"><span class="hint">📈 ${t('home_month_sales')}</span>
+        <b>${money(monthSale)}</b></div>
+    </div>
+    </div>`}
     <div class="fab-pad"></div>`;
 }
 
@@ -3904,6 +4707,7 @@ function measCardHTML(f,key){
         <div style="display:flex;gap:6px">
           <input class="vInput" data-v="${dkey}" list="vlist_${cid}" value="${esc(vcur)}" placeholder="${t('variant_ph',{g:g.n})}" style="flex:1">
           <button class="btn ghost" style="flex:0 0 auto;padding:0 12px" onclick="addAnother('${dkey}')" title="${t('add_another',{g:g.n})}">➕</button>
+          ${vlist.length?`<button class="btn ghost" style="flex:0 0 auto;padding:0 10px" onclick="manageVariants('${gid}')" title="${t('ml_manage')}">⚙️</button>`:''}
         </div>
         <datalist id="vlist_${cid}">${vlist.map(v=>`<option value="${esc(v)}">`).join('')}</datalist>
         <p class="hint" style="margin-top:4px">${t('variant_hint')}</p>
@@ -3960,6 +4764,7 @@ function memberBlockHTML(f,mem,idx,multi){
         <input class="mem-name" data-mname="${mem.id}" value="${esc(nm)}" placeholder="${t('mem_name_ph')}">
         <input class="mem-rel" data-mrel="${mem.id}" list="relList" value="${esc(rel)}" placeholder="${t('mem_rel_ph')}">
       </div>
+      <button class="btn sm ghost" onclick="manageRels()" title="${t('ml_manage')}">⚙️</button>
       <button class="btn sm danger" onclick="delMember('${mem.id}')">✕</button>
     </div>`:''}
     <div class="chip-grid">${chips}</div>
@@ -4315,6 +5120,7 @@ async function processPhoto(e){const file=e.target.files[0];if(!file)return;
   else if(photoTarget.type==='alt'){altForm.photos=altForm.photos||[];altForm.photos.push(id);renderAltFormPhotos();}
   else if(photoTarget.type==='purch'){purchForm.photos=purchForm.photos||[];purchForm.photos.push(id);renderPurchPhotos();}
   else if(photoTarget.type==='fab'){_th.photos=_th.photos||[];_th.photos.push(id);renderThaanPhotos();}
+  else if(photoTarget.type==='exp'){_exp.photos=_exp.photos||[];_exp.photos.push(id);renderExpPhotos();}
   else if(photoTarget.type==='rdy'){_rd.photos=_rd.photos||[];_rd.photos.push(id);renderReadyPhotos();}
   else {form.photos.push(id);renderFormPhotos();}
   toast(t('t_photo'));}
@@ -5010,7 +5816,8 @@ function posIncl(i){
     return `<span class="gtag ${on?'on-tag':''}" style="cursor:pointer" onclick="posTogglePart(${i},'${esc(p).replace(/'/g,"\\'")}')">${on?'✓ ':''}${esc(p)}</span>`;}).join('');
   modal('📎 '+t('inv_includes')+' — '+(it.label||'#'+(i+1)),
     `<p class="hint" style="margin-bottom:8px">${t('im_incl_desc')}</p>
-     <div class="gtags">${chips}<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="posAddPart(${i})">${t('im_add_part')}</span></div>`,
+     <div class="gtags">${chips}<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="posAddPart(${i})">${t('im_add_part')}</span>
+       ${(DB.inclLib||[]).length?`<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="manageIncl(()=>posIncl(${i}))">⚙️ ${t('ml_manage')}</span>`:''}</div>`,
     [{label:t('close'),cls:'primary',fn:()=>{closeSheet();renderInvoiceForm();}}]);
 }
 function posTogglePart(i,p){
@@ -6238,7 +7045,8 @@ function imRender(){
       <div class="field"><label>${t('im_rate')}</label><input id="im_rate" type="number" inputmode="numeric" value="${esc(d.rate)}" placeholder="0"></div></div>
     <div class="section-h">${t('im_incl')}</div>
     <p class="hint" style="margin:0 0 8px">${t('im_incl_desc')}</p>
-    <div class="gtags">${chips}<span class="gtag" onclick="imAddPart()" style="cursor:pointer;border-style:dashed">${t('im_add_part')}</span></div>
+    <div class="gtags">${chips}<span class="gtag" onclick="imAddPart()" style="cursor:pointer;border-style:dashed">${t('im_add_part')}</span>
+      ${(DB.inclLib||[]).length?`<span class="gtag" onclick="manageIncl(()=>imRender())" style="cursor:pointer;border-style:dashed">⚙️ ${t('ml_manage')}</span>`:''}</div>
     <div class="modal-actions"><button class="btn ghost" onclick="imBack()">${t('cancel')}</button>
       <button class="btn primary" onclick="imSave()">${t('save')}</button></div><div class="fab-pad"></div>`;
   showSheet();
