@@ -127,6 +127,7 @@
   .rate-in input{flex:1;width:100%;background:transparent;border:none;color:var(--txt);font-size:15px;font-weight:700;outline:none}
   .rate-in:focus-within{border-color:var(--saffron)}
   .pl-amt{min-width:80px;text-align:right;font-size:16px;font-weight:800;color:var(--saffron2)}
+  .amt-in input{font-weight:800;color:var(--saffron2)}
   .pos-total{background:var(--card2);border-color:var(--saffron);border-width:1px}
   /* one clean money sequence: Sub -> Discount -> Total -> Payment -> Received -> Due */
   .gr-bar{height:7px;background:var(--card);border-radius:4px;overflow:hidden}
@@ -346,7 +347,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK</small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v16</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1040,6 +1041,8 @@ const T={
   disc_value:'Discount Value',
   inv_item_name:'Item Name',
   inv_item_name_ph:'e.g. Suit 3pc, Sherwani, Readymade Shirt',
+  pos_rate:'Rate',
+  pos_amt:'Amount',
   inv_quick_pick:'— Quick pick from Item Master —',
   sub_total:'Sub Total',
   grand_total:'Grand Total (after discount)',
@@ -1760,6 +1763,8 @@ const T={
   disc_value:'छूट की राशि',
   inv_item_name:'आइटम का नाम',
   inv_item_name_ph:'जैसे सूट 3 पीस, शेरवानी, रेडीमेड शर्ट',
+  pos_rate:'रेट',
+  pos_amt:'रकम',
   inv_quick_pick:'— आइटम मास्टर से चुनें —',
   sub_total:'उप-योग',
   grand_total:'कुल योग (छूट के बाद)',
@@ -4828,20 +4833,10 @@ function measCardHTML(f,key){
 
   return `<div class="mcard"><div class="mh">
       <b>${g.ico} ${g.n}${instOf(key)>1?' <span class="inst-tag">'+instOf(key)+'</span>':''}</b>
-      <button class="btn sm danger" onclick="toggleItem('${dkey}')">${t('remove')}</button></div>
+      <span style="display:flex;gap:6px">
+        <button class="btn sm ghost" onclick="addAnother('${dkey}')" title="${t('add_another',{g:g.n})}">➕</button>
+        <button class="btn sm danger" onclick="toggleItem('${dkey}')">${t('remove')}</button></span></div>
     <div class="mb">
-
-      <div class="field" style="margin:0 0 12px">
-        <label>${t('variant')}</label>
-        <div style="display:flex;gap:6px">
-          <input class="vInput" data-v="${dkey}" list="vlist_${cid}" value="${esc(vcur)}" placeholder="${t('variant_ph',{g:g.n})}" style="flex:1">
-          <button class="btn ghost" style="flex:0 0 auto;padding:0 12px" onclick="addAnother('${dkey}')" title="${t('add_another',{g:g.n})}">➕</button>
-          ${vlist.length?`<button class="btn ghost" style="flex:0 0 auto;padding:0 10px" onclick="manageVariants('${gid}')" title="${t('ml_manage')}">⚙️</button>`:''}
-        </div>
-        <datalist id="vlist_${cid}">${vlist.map(v=>`<option value="${esc(v)}">`).join('')}</datalist>
-        <p class="hint" style="margin-top:4px">${t('variant_hint')}</p>
-      </div>
-
       <div class="mgrid">${fields}</div>
       <div class="gtags" style="margin-top:6px">
         <span class="gtag" onclick="addMeas('${gid}')" style="cursor:pointer;border-style:dashed">📏 ${t('add_meas')}</span>
@@ -4920,9 +4915,6 @@ function renderForm(){
     <div id="draftHint" class="draft-hint">🔒 ${t('draft_never')}</div>
     <div class="row"><div class="field"><label>${t('order_no')} *</label><input id="f_ono" value="${esc(f.orderNo)}" placeholder="2481"></div>
       <div class="field"><label>${t('delivery')} *</label><input id="f_ddate" type="date" value="${esc(f.deliveryDate)}"></div></div>
-    <div class="field"><label>🧑‍💼 ${t('salesman')}</label><select id="f_sm">
-      <option value="">${t('salesman_none')}</option>
-      ${(DB.salesmen||[]).map(k=>`<option value="${k.id}" ${k.id===f.salesmanId?'selected':''}>${esc(k.name)}</option>`).join('')}</select></div>
     <div class="field"><label>${t('customer')}</label><div id="custPicked">${(f.customerId||f.customerName)?customerPickedHTML():''}</div>
       <div id="custSearchWrap" style="${f.customerName?'display:none':''}">
         <input id="f_cname" placeholder="${t('name_ph')}" oninput="custSearch(this.value)" value="${esc(f.customerName)}">
@@ -5656,7 +5648,7 @@ function openInvoiceForm(kind,id){
     }
     invNormItems(items);
     invForm={kind,id,no:nextInvoiceNo(),date:todayISO(),interstate:false,paymentMode:'UPI',discType:'amount',discValue:0,
-      saleType:kind==='sale'?'mto':null, orderNo:'',
+      saleType:kind==='sale'?'rdy':null, orderNo:'',
       deliveryDate:rec.deliveryDate||'', salesmanId:rec.salesmanId||'',
       customerId:kind==='sale'?(rec.customerId||null):undefined,
       customerName:kind==='sale'?(rec.customerName||''):undefined,phone:kind==='sale'?(rec.phone||''):undefined,
@@ -5754,7 +5746,7 @@ function renderInvoiceForm(){
     || `<p class="hint" style="grid-column:1/-1;margin:0">${t('pos_no_items')}</p>`;
 
   $('#sheet').innerHTML=`<div class="grip"></div>
-    <datalist id="invItemList">${masters.map(m=>`<option value="${esc(m.name)}">`).join('')}</datalist>
+    <datalist id="invStockList">${[...(DB.itemMaster||[]).map(m=>m.name),...(DB.fabItems||[]).map(f=>f.name)].filter(Boolean).map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
     <div class="pos-head">
       <h2 style="margin:0">🧾 ${f.kind==='sale'?t('new_sale'):t('invoice')}</h2>
       <span class="hint">#${esc(f.no)} · ${fmtDate(f.date)}</span>
@@ -5867,7 +5859,7 @@ function posLineHTML(i,it){
   const amt=r2((+it.qty||1)*(+it.rate||0));
   return `<div class="pos-line" id="posLine${i}">
     <div class="pl-top">
-      <input class="pl-name" data-iin="${i}" value="${esc(it.label||'')}" placeholder="${t('inv_item_name_ph')}">
+      <input class="pl-name" data-iin="${i}" list="invStockList" value="${esc(it.label||'')}" placeholder="${t('inv_item_name_ph')}">
       <button class="pl-x" onclick="posDel(${i})">✕</button>
     </div>
     <div class="pl-incl-chips" id="posIncl${i}">${posInclChipsHTML(i,it)}</div>
@@ -5877,8 +5869,8 @@ function posLineHTML(i,it){
         <input class="qty-in" data-iqty="${i}" type="number" inputmode="numeric" min="1" value="${esc(it.qty||1)}" oninput="posLineCalc(${i})">
         <button onclick="posQty(${i},1)">+</button>
       </div>
-      <div class="rate-in"><span>₹</span><input data-irate="${i}" type="number" inputmode="numeric" value="${it.rate?esc(it.rate):''}" placeholder="0" oninput="posLineCalc(${i})"></div>
-      <div class="pl-amt" id="posAmt${i}">${money(amt)}</div>
+      <div class="rate-in"><span>₹</span><input data-irate="${i}" type="number" inputmode="numeric" value="${it.rate?esc(it.rate):''}" placeholder="${t('pos_rate')}" oninput="posLineCalc(${i})"></div>
+      <div class="rate-in amt-in"><span>₹</span><input data-iamt="${i}" type="number" inputmode="numeric" value="${amt?esc(amt):''}" placeholder="${t('pos_amt')}" oninput="posAmtEdit(${i})"></div>
     </div>
     <input type="hidden" data-ihsn="${i}" value="${esc(it.hsn||'')}">
   </div>`;
@@ -5897,7 +5889,17 @@ function posLineCalc(i){            // ← no re-render: cursor stays exactly wh
   const rEl=document.querySelector('[data-irate="'+i+'"]');
   const q=+((qEl||{}).value)||1, r=+((rEl||{}).value)||0;
   if(invForm.items[i]){invForm.items[i].qty=q;invForm.items[i].rate=r;invForm.items[i].price=r2(q*r);}
-  const a=$('#posAmt'+i); if(a)a.textContent=money(r2(q*r));
+  const a=document.querySelector('[data-iamt="'+i+'"]'); if(a&&document.activeElement!==a)a.value=r2(q*r)||'';
+  updateInvTotals();
+}
+function posAmtEdit(i){             // type the total; rate is derived (qty stays)
+  const qEl=document.querySelector('[data-iqty="'+i+'"]');
+  const aEl=document.querySelector('[data-iamt="'+i+'"]');
+  const rEl=document.querySelector('[data-irate="'+i+'"]');
+  const q=+((qEl||{}).value)||1, amt=+((aEl||{}).value)||0;
+  const r=q?r2(amt/q):amt;
+  if(invForm.items[i]){invForm.items[i].qty=q;invForm.items[i].rate=r;invForm.items[i].price=r2(amt);}
+  if(rEl&&document.activeElement!==rEl)rEl.value=r||'';
   updateInvTotals();
 }
 function posQty(i,d){
@@ -6295,12 +6297,8 @@ function saveInvoice(){
   f.items=(f.items||[]).filter(it=>it.label||+it.price);
   if(!f.items.length||f.items.every(it=>!(+it.price))){toast(t('t_no_invitem'),'bad');return;}
 
-  // No Ready/MTO tab any more: decide automatically.
-  // All items are readymade stock -> counter sale; anything stitched/custom -> made-to-order (creates an order).
-  if(f.kind==='sale'){
-    const allReady=f.items.length&&f.items.every(it=>{const m=(DB.itemMaster||[]).find(x=>x.id===it.masterId);return m&&m.kind==='ready';});
-    f.saleType=allReady?'rdy':'mto';
-  }
+  // Invoice is billing only — it does NOT auto-create/sync an order.
+  // (Wedding bills carry many items; the tailoring order is taken separately in Orders.)
 
   // Make-to-order: this bill belongs on a real ORDER, not a counter sale.
   // Create the order (or reuse the number), move everything onto it, drop the sale stub.
