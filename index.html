@@ -68,9 +68,19 @@
   .type-tabs .tt.on{background:var(--saffron);color:#1a1206;font-weight:800}
   .head-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
   .head-grid input:disabled{opacity:.55}
+  .cust-2col{display:flex;gap:8px}
+  .cust-2col>div{flex:1;min-width:0}
+  .tap-mini{font-size:10.5px;color:var(--mut);letter-spacing:.6px;text-transform:uppercase;margin:2px 0 6px}
+  .bold-in{font-weight:700}
   .linked-chip{display:inline-block;background:rgba(224,138,26,.12);border:1px solid var(--saffron);
     color:var(--saffron2);font-size:12.5px;font-weight:800;padding:6px 12px;border-radius:20px;margin-bottom:10px}
   .pos-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:7px;margin-bottom:6px}
+  .bf-row{border:1px solid var(--line);border-radius:10px;padding:8px;margin-bottom:8px;background:var(--card2)}
+  .bf-l1{display:flex;gap:6px;margin-bottom:6px}
+  .bf-l1 input{width:100%;min-width:0}
+  .bf-l2{display:flex;gap:6px;align-items:center}
+  .bf-l2 .bf-name{flex:1;min-width:0}
+  .bf-cam.has{border-color:var(--saffron);color:var(--saffron2)}
   .pos-tile{background:var(--card2);border:1px solid var(--line2);border-radius:10px;padding:7px 8px;text-align:center;
     cursor:pointer;user-select:none;transition:transform .08s,background .15s;min-height:42px;
     display:flex;flex-direction:column;justify-content:center;gap:2px}
@@ -85,6 +95,13 @@
   .pos-badge.low{background:var(--saffron)}
   .pos-tile.out{opacity:.42}
   .pos-tile.out .pos-badge{background:var(--bad);color:#fff}
+  .cust-row{display:flex;gap:8px}
+  .cust-row #inv_cname{flex:1.5;min-width:0}
+  .cust-row #inv_cphone{flex:1;min-width:0}
+  .dd-row{display:flex;gap:10px}
+  .dd-row .field{flex:1;min-width:0}
+  .dd-row label{font-weight:700;color:var(--txt2)}
+  .bold-in{font-weight:700}
   .pos-line{background:var(--card2);border:1px solid var(--line2);border-radius:12px;padding:10px 11px;margin-bottom:8px}
   .pl-top{display:flex;gap:8px;align-items:center}
   .pl-name{flex:1;background:transparent;border:none;border-bottom:1px solid var(--line);color:var(--txt);
@@ -532,6 +549,8 @@ const T={
   f_date:'Date',
   no_deliveries:'No deliveries in this range',
   backup_now:'Backup',
+  backup_due:'Backup pending — save a copy',
+  all:'All',
   send_backup:'Send backup (WhatsApp/Email/Drive)',
   send_backup_hint:'Pick WhatsApp or Gmail from the menu. To send to both, tap twice.',
   restore_auto:'Restore auto-backup',
@@ -690,6 +709,16 @@ const T={
   pos_from_order:'From order',
   inv_items_n:'{n} items',
   pos_manual:'✏️ Type an item myself (not in master)',
+  pos_add_item:'Add item',
+  pos_search_items:'Search stock & saved items',
+  pos_custom_item:'Custom item (one-time)',
+  pos_manage_items:'Edit / delete items',
+  pos_search_ph:'Search fabric, readymade, saved items…',
+  pos_no_results:'Nothing found',
+  pos_shortcut:'quick shortcut',
+  add_items:'Add items',
+  pos_search_type:'Search or type an item',
+  pos_add_custom:'Add "{q}"',
   srt_new:'Newest first',
   srt_old:'Oldest first',
   srt_hi:'Highest first',
@@ -799,6 +828,13 @@ const T={
   stk_fab_search:'Search serial, fabric or party...',
   stk_hide_empty:'Hide finished rolls',
   stk_add_thaan:'Add fabric',
+  stk_bulk:'Bulk',
+  stk_bulk_title:'Opening / Bulk Fabric',
+  stk_bulk_desc:'Add many thaans fast. Only Serial + Meter are needed — name, rate, supplier are optional.',
+  stk_bulk_shared:'Category / Supplier / Rack above apply to every row (leave blank if mixed).',
+  stk_add_rows:'Add 8 more rows',
+  stk_save_all:'Save all',
+  stk_bulk_none:'Fill at least Serial + Meter in one row',
   stk_n_thaans:'{n} fabric rolls',
   stk_no_thaan:'No fabric yet — tap “Add fabric” to start',
   stk_cutpiece:'CUT-PIECE',
@@ -1233,6 +1269,8 @@ const T={
   f_date:'तारीख',
   no_deliveries:'इस अवधि में कोई डिलीवरी नहीं',
   backup_now:'बैकअप',
+  backup_due:'बैकअप बाकी है — एक कॉपी सेव करें',
+  all:'सभी',
   send_backup:'बैकअप भेजें (WhatsApp/ईमेल/ड्राइव)',
   send_backup_hint:'मेन्यू से WhatsApp या Gmail चुनें। दोनों में भेजना हो तो दो बार दबाएँ।',
   restore_auto:'ऑटो-बैकअप से वापस लाएँ',
@@ -1391,6 +1429,16 @@ const T={
   pos_from_order:'ऑर्डर से',
   inv_items_n:'{n} आइटम',
   pos_manual:'✏️ आइटम खुद लिखें (मास्टर में नहीं है)',
+  pos_add_item:'आइटम जोड़ें',
+  pos_search_items:'स्टॉक और सेव किए आइटम खोजें',
+  pos_custom_item:'कस्टम आइटम (एक बार का)',
+  pos_manage_items:'आइटम एडिट / डिलीट करें',
+  pos_search_ph:'फैब्रिक, रेडीमेड, आइटम खोजें…',
+  pos_no_results:'कुछ नहीं मिला',
+  pos_shortcut:'तेज़ शॉर्टकट',
+  add_items:'आइटम जोड़ें',
+  pos_search_type:'आइटम खोजें या लिखें',
+  pos_add_custom:'"{q}" जोड़ें',
   srt_new:'नया पहले',
   srt_old:'पुराना पहले',
   srt_hi:'बड़ा → छोटा',
@@ -1500,6 +1548,13 @@ const T={
   stk_fab_search:'सीरियल, कपड़ा या पार्टी खोजें…',
   stk_hide_empty:'ख़त्म कपड़े छिपाएँ',
   stk_add_thaan:'कपड़ा जोड़ें',
+  stk_bulk:'बल्क',
+  stk_bulk_title:'ओपनिंग / बल्क फैब्रिक',
+  stk_bulk_desc:'कई थान तेज़ी से जोड़ें। सिर्फ़ Serial + Meter ज़रूरी — नाम, रेट, सप्लायर वैकल्पिक।',
+  stk_bulk_shared:'ऊपर की Category / Supplier / Rack नीचे सभी लाइनों पर लगेंगी (अलग-अलग हो तो खाली छोड़ें)।',
+  stk_add_rows:'8 और लाइनें',
+  stk_save_all:'सब सेव करें',
+  stk_bulk_none:'कम से कम एक लाइन में Serial + Meter भरें',
   stk_n_thaans:'{n} कपड़े',
   stk_no_thaan:'अभी कोई कपड़ा नहीं — “कपड़ा जोड़ें” दबाएँ',
   stk_cutpiece:'कट-पीस',
@@ -1811,10 +1866,12 @@ const ASTATUS_CLASS={received:'st-new',progress:'st-stitching',ready:'st-ready',
 const aLabel=s=>t('as_'+s);
 
 /* ---- garment definitions (matches the PARAMPARA slip) ---- */
-const UPPER_COLS=[{k:'L',n:'Length'},{k:'C',n:'Chest'},{k:'B',n:'Belly'},{k:'H',n:'Hip'},{k:'S',n:'Shoulder'},{k:'SL',n:'Sleeve'},{k:'N',n:'Neck'},{k:'FC',n:'Front Cross'},{k:'Bi',n:'Bicep'}];
+const UPPER_COLS=[{k:'L',n:'Length'},{k:'C',n:'Chest'},{k:'B',n:'Belly'},{k:'UB',n:'Upper Belly'},{k:'H',n:'Hip'},{k:'S',n:'Shoulder'},{k:'SL',n:'Sleeve'},{k:'N',n:'Neck'},{k:'Bi',n:'Bicep'}];
 const LOWER_COLS=[{k:'W',n:'Waist'},{k:'L',n:'Length'},{k:'H',n:'Hip'},{k:'TH',n:'Thigh'},{k:'AF',n:'Crotch (F)'},{k:'HF',n:'Crotch (H)'},{k:'P',n:'Pindli'},{k:'M',n:'Mori'}];
-const UPPER_COMMON=['C','B','H','S','SL','N','FC','Bi'];   // body cols reused across upper garments
+const UPPER_COMMON=['C','B','UB','H','S','SL','N','Bi'];   // body cols reused across upper garments
 const LOWER_COMMON=['W','H','TH','AF','HF','P'];           // body cols reused across lower garments
+const GLOBAL_MEAS=['H'];                                    // Hip is one body measurement shared upper<->lower
+const MEAS_DERIVE={waistcoat:{S:-0.5}};                     // Bandi/Waist Coat shoulder = upper shoulder − 0.5
 const GARMENTS=[
   {id:'coat',n:'Coat',cat:'upper',ico:'🧥'},{id:'waistcoat',n:'Waist Coat',cat:'upper',ico:'🦺',skip:['SL','Bi']},
   {id:'shirt',n:'Shirt',cat:'upper',ico:'👔'},{id:'jacket',n:'Jacket',cat:'upper',ico:'🧥',skip:['SL','Bi']},
@@ -2289,6 +2346,7 @@ function fabricBody(keepFocus){
       ${t('stk_hide_empty')}</label>
     <div class="row" style="margin-bottom:10px;gap:6px">
       <button class="btn primary" style="flex:1" onclick="thaanEdit()">➕ ${t('stk_add_thaan')}</button>
+      <button class="btn ghost" style="flex:0 0 auto;padding:0 12px" onclick="bulkFabOpen()">📋 ${t('stk_bulk')}</button>
       ${(DB.fabItems||[]).length?`<button class="btn ghost" style="flex:0 0 auto;padding:0 14px" onclick="manageFabItems()">⚙️</button>`:''}</div>
     <div class="hint" style="margin-bottom:8px">${t('stk_n_thaans',{n:list.length})}</div>
     ${list.map(th=>{
@@ -2462,6 +2520,72 @@ function thaanSave(){
   _th={id:null,serial:nextThaanSerial(),fabId:'',name:'',category:cat,party,mtr:'',used:0,rate:'',rack,count:1,notes:'',photos:[]};
   thaanRender();
 }
+let _bulk=null;
+function bulkFabOpen(){ _bulk={rows:[]}; for(let k=0;k<8;k++)_bulk.rows.push({serial:'',mtr:'',rate:'',name:'',photos:[]}); bulkFabRender(); }
+function bulkSet(i,f,v){ if(_bulk&&_bulk.rows[i])_bulk.rows[i][f]=v; }
+function bulkAddRows(){ for(let k=0;k<8;k++)_bulk.rows.push({serial:'',mtr:'',rate:'',name:'',photos:[]}); bulkFabRender(); }
+function bulkDelRow(i){ _bulk.rows.splice(i,1); if(!_bulk.rows.length)_bulk.rows.push({serial:'',mtr:'',rate:'',name:'',photos:[]}); bulkFabRender(); }
+function pickBulkPhoto(src,i){ photoTarget={type:'bulkfab',i}; const inp=src==='cam'?$('#filePickCam'):$('#filePick'); inp.value=''; inp.click(); }
+function bulkPhotoBadge(i){ const el=document.querySelector('.bf-row[data-r="'+i+'"] .bf-cam'); if(el){const n=((_bulk.rows[i]||{}).photos||[]).length; el.textContent=n?('📷 '+n):'📷'; el.classList.toggle('has',!!n);} }
+function bulkFabRender(){
+  const rows=_bulk.rows.map((r,i)=>{const n=(r.photos||[]).length;
+    return `<div class="bf-row" data-r="${i}">
+      <div class="bf-l1">
+        <input class="bf-serial" value="${esc(r.serial)}" placeholder="Serial *" oninput="bulkSet(${i},'serial',this.value)">
+        <input type="number" inputmode="decimal" value="${esc(r.mtr)}" placeholder="Mtr *" oninput="bulkSet(${i},'mtr',this.value)">
+        <input type="number" inputmode="numeric" value="${esc(r.rate)}" placeholder="₹/mtr" oninput="bulkSet(${i},'rate',this.value)">
+      </div>
+      <div class="bf-l2">
+        <input class="bf-name" value="${esc(r.name)}" placeholder="Name (optional)" oninput="bulkSet(${i},'name',this.value)">
+        <button class="btn sm ghost bf-cam ${n?'has':''}" onclick="pickBulkPhoto('cam',${i})">${n?('📷 '+n):'📷'}</button>
+        <button class="btn sm ghost" onclick="pickBulkPhoto('lib',${i})">🖼️</button>
+        <button class="btn sm danger" onclick="bulkDelRow(${i})">✕</button>
+      </div>
+    </div>`;}).join('');
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin-bottom:4px">📋 ${t('stk_bulk_title')}</h2>
+    <p class="hint" style="margin-bottom:12px">${t('stk_bulk_desc')}</p>
+    <div class="head-grid" style="grid-template-columns:1fr 1fr 1fr">
+      <div class="field" style="margin:0"><label>Category</label><input id="bf_cat" list="fabCats" value=""></div>
+      <div class="field" style="margin:0"><label>Supplier</label><input id="bf_party" value=""></div>
+      <div class="field" style="margin:0"><label>Rack</label><input id="bf_rack" list="fabRacks" value=""></div>
+    </div>
+    <datalist id="fabCats">${[...new Set((DB.fabItems||[]).map(x=>x.category).filter(Boolean))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
+    <datalist id="fabRacks">${[...new Set((DB.thaans||[]).map(x=>x.rack).filter(Boolean))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
+    <p class="hint" style="margin:2px 0 8px">${t('stk_bulk_shared')}</p>
+    <div id="bfRows">${rows}</div>
+    <button class="btn ghost block" style="margin:4px 0 14px" onclick="bulkAddRows()">➕ ${t('stk_add_rows')}</button>
+    <div class="modal-actions">
+      <button class="btn ghost block" onclick="stockHome('fabric')">${t('cancel')}</button>
+      <button class="btn primary block" onclick="bulkFabSave()">✅ ${t('stk_save_all')}</button>
+    </div>`;
+  showSheet();
+}
+function bulkFabSave(){
+  const cat=($('#bf_cat').value||'').trim(), party=($('#bf_party').value||'').trim(), rack=($('#bf_rack').value||'').trim();
+  DB.stkCfg=DB.stkCfg||{}; DB.fabItems=DB.fabItems||[]; DB.thaans=DB.thaans||[];
+  const rows=(_bulk.rows||[]).filter(r=>String(r.serial||'').trim() && (+r.mtr>0));
+  if(!rows.length){toast(t('stk_bulk_none'),'bad');return;}
+  let made=0;
+  rows.forEach(r=>{
+    let serial=String(r.serial).trim();
+    while(serialTaken(serial))serial=serial+'A';
+    let name=(r.name||'').trim()||cat||('Fabric '+serial);
+    const rate=+r.rate||0, mtr=+r.mtr||0;
+    let f=DB.fabItems.find(x=>String(x.name).toLowerCase()===name.toLowerCase());
+    if(!f){f={id:uid(),name,category:cat,party,rate};DB.fabItems.push(f);}
+    else{if(cat)f.category=cat;if(party)f.party=party;if(rate)f.rate=rate;}
+    const th={id:uid(),created:new Date().toISOString(),serial,fabId:f.id,mtr,used:0,rate,rack,party,notes:'',photos:[...(r.photos||[])]};
+    DB.thaans.push(th);
+    move({dir:MV_IN,target:'fab',thaanId:th.id,qty:mtr,rate,reason:'opening',ref:t('stk_opening')});
+    const num=String(serial).match(/\d+/); if(num && +num[0]>=(DB.stkCfg.nextSerial||1))DB.stkCfg.nextSerial=+num[0]+1;
+    made++;
+  });
+  save();
+  toast(t('stk_added',{n:made}),'ok');
+  _bulk=null; stockHome('fabric');
+}
+
 function thaanDetail(id){
   const th=TH(id); if(!th)return;
   const f=FI(th.fabId)||{};
@@ -4946,6 +5070,7 @@ function captureForm(){const f=form;
   if($('#f_notes'))f.notes=$('#f_notes').value;
   f.variant=f.variant||{};
   document.querySelectorAll('[data-v]').forEach(inp=>{
+    if(typeof inp.value!=='string')return;   // skip non-input elements sharing this attribute
     const v=inp.value.trim(); const k=inp.dataset.v;
     if(v){f.variant[k]=v;
       const gid=garmentOf(k);
@@ -4992,19 +5117,37 @@ function prefillGarment(key){
   const f=form,g=G(key); if(!g)return; const common=commonFor(g.cat); if(!f.m[key])f.m[key]={};
   const mid=memberOf(key), gid=g.id;
   const allow=itemCols(g).map(c=>c.k);   // don't carry columns this garment doesn't have (e.g. sleeveless)
+  const putRaw=(k,val)=>{if(!allow.includes(k)||f.m[key][k]||val==null||val==='')return;f.m[key][k]=val;};
+  const putDeriv=(k,val)=>{if(!allow.includes(k)||f.m[key][k]||val==null||val==='')return;const dv=deriveMeasVal(g.id,k,val);if(dv!=='')f.m[key][k]=dv;};
   // copy from THIS member's other garments only — never mix two people's bodies
   for(const ok of f.items){ if(ok===key)continue; if(memberOf(ok)!==mid)continue;
-    const og=G(ok); if(!og||og.cat!==g.cat||!f.m[ok])continue;
-    common.forEach(k=>{if(allow.includes(k)&&!f.m[key][k]&&f.m[ok][k])f.m[key][k]=f.m[ok][k];}); }
+    const og=G(ok); if(!og||!f.m[ok])continue;
+    if(og.cat===g.cat){ common.forEach(k=>{if(f.m[ok][k])putDeriv(k,f.m[ok][k]);}); }
+    else { GLOBAL_MEAS.forEach(k=>{if(f.m[ok][k])putDeriv(k,f.m[ok][k]);}); }   // Hip flows upper<->lower
+  }
   // the saved customer's own measurements only help the first (main) member
   const isMain = !mid || (f.members&&f.members[0]&&f.members[0].id===mid);
   if(isMain && f.customerId){const c=custById(f.customerId); if(c&&c.m){
-    if(c.m[gid]){Object.keys(c.m[gid]).forEach(k=>{if(allow.includes(k)&&!f.m[key][k])f.m[key][k]=c.m[gid][k];});}
-    else {for(const okid of Object.keys(c.m)){const og=G(okid);if(!og||og.cat!==g.cat)continue;common.forEach(k=>{if(allow.includes(k)&&!f.m[key][k]&&c.m[okid][k])f.m[key][k]=c.m[okid][k];});break;}}
+    if(c.m[gid]){Object.keys(c.m[gid]).forEach(k=>{putRaw(k,c.m[gid][k]);});}      // own saved → no derivation
+    else {for(const okid of Object.keys(c.m)){const og=G(okid);if(!og||og.cat!==g.cat)continue;common.forEach(k=>{if(c.m[okid][k])putDeriv(k,c.m[okid][k]);});break;}}
+    GLOBAL_MEAS.forEach(k=>{if(f.m[key][k])return;for(const okid of Object.keys(c.m)){if(c.m[okid]&&c.m[okid][k]){putDeriv(k,c.m[okid][k]);break;}}});
   }}
 }
 /* keep a measurement to max 2 whole digits (+ optional .dd or fraction). No 3-digit values. */
 function sanitizeMeas(v){if(!v)return '';const m=String(v).match(/^(\d{0,2})([.][0-9]{0,2})?([½¼¾⅛])?/);return m?m[0]:'';}
+/* parse "18½" / "18.5" -> 18.5 ; format 17.5 -> "17½" (keeps tailor-friendly fractions) */
+function parseMeas(v){if(v==null)return null;v=String(v).trim();if(!v)return null;
+  const map={'½':.5,'¼':.25,'¾':.75,'⅛':.125};let frac=0;
+  for(const ch in map){if(v.indexOf(ch)>=0){frac=map[ch];v=v.replace(ch,'');}}
+  v=v.trim();if(v==='')return frac||null;const n=parseFloat(v);if(isNaN(n))return frac||null;return n+frac;}
+function fmtMeas(n){if(n==null||isNaN(n))return '';if(n<0)n=0;
+  const whole=Math.floor(n),frac=+(n-whole).toFixed(3),fm={0.5:'½',0.25:'¼',0.75:'¾',0.125:'⅛'};
+  if(fm[frac]!=null)return (whole?whole:'')+fm[frac];
+  if(frac===0)return String(whole);
+  return (Math.round(n*100)/100).toString();}
+/* apply garment-specific derivation (e.g. waistcoat shoulder = source − 0.5) */
+function deriveMeasVal(gid,k,v){const d=(MEAS_DERIVE[gid]||{})[k];
+  if(d==null||v==null||v==='')return v;const n=parseMeas(v);if(n==null)return v;return fmtMeas(n+d);}
 /* fraction bar + live body-measurement propagation across garments */
 let _mfocus=null;
 function bindMeasInputs(){
@@ -5018,11 +5161,15 @@ function bindMeasInputs(){
 }
 function propagate(inp){
   const g=G(inp.dataset.g),k=inp.dataset.k,v=inp.value.trim();
-  if(!g||!commonFor(g.cat).includes(k))return; // only BODY columns flow, never Length
+  if(!g)return;
+  const isGlobal=GLOBAL_MEAS.includes(k);
+  if(!isGlobal && !commonFor(g.cat).includes(k))return; // only BODY columns flow, never Length
+  if((MEAS_DERIVE[g.id]||{})[k]!=null)return;            // derived field (e.g. waistcoat shoulder) — manual, don't push back
   document.querySelectorAll('.mInput').forEach(other=>{ if(other===inp)return;
-    const og=G(other.dataset.g);
-    if(og&&og.cat===g.cat&&other.dataset.k===k){
-      if(!other.value.trim()||other.dataset.auto==='1'){ other.value=v; other.dataset.auto='1'; other.classList.toggle('filled',!!v); }
+    const og=G(other.dataset.g); if(!og)return;
+    const sameGroup = isGlobal ? true : (og.cat===g.cat);
+    if(sameGroup && other.dataset.k===k){
+      if(!other.value.trim()||other.dataset.auto==='1'){ const dv=deriveMeasVal(og.id,k,v); other.value=dv; other.dataset.auto='1'; other.classList.toggle('filled',!!dv); }
     }
   });
 }
@@ -5135,6 +5282,7 @@ async function processPhoto(e){const file=e.target.files[0];if(!file)return;
   else if(photoTarget.type==='fab'){_th.photos=_th.photos||[];_th.photos.push(id);renderThaanPhotos();}
   else if(photoTarget.type==='exp'){_exp.photos=_exp.photos||[];_exp.photos.push(id);renderExpPhotos();}
   else if(photoTarget.type==='rdy'){_rd.photos=_rd.photos||[];_rd.photos.push(id);renderReadyPhotos();}
+  else if(photoTarget.type==='bulkfab'){ if(_bulk&&_bulk.rows[photoTarget.i]){_bulk.rows[photoTarget.i].photos=_bulk.rows[photoTarget.i].photos||[];_bulk.rows[photoTarget.i].photos.push(id);bulkPhotoBadge(photoTarget.i);} }
   else {form.photos.push(id);renderFormPhotos();}
   toast(t('t_photo'));}
 $('#filePick').addEventListener('change',processPhoto);
@@ -5454,9 +5602,9 @@ async function renderAltTimeline(a){const el=$('#altTimeline');if(!el)return;
   if(!log.length){el.innerHTML='';return;}
   el.innerHTML=`<div class="card">${log.map(e=>`<div class="tl-entry"><div class="tl-dot"></div><div style="flex:1">
     <div class="tl-time">${fmtDateTime(e.ts)}</div>${e.text?`<div class="tl-text">${esc(e.text)}</div>`:''}
-    ${e.voiceId?`<audio controls data-v="${e.voiceId}"></audio>`:''}
+    ${e.voiceId?`<audio controls data-aud="${e.voiceId}"></audio>`:''}
     </div><button class="btn sm danger" style="padding:4px 8px" onclick="delAltUpdate('${a.id}','${e.id}')">✕</button></div>`).join('')}</div>`;
-  for(const au of el.querySelectorAll('audio[data-v]')){const url=await mURL(au.dataset.v);if(url)au.src=url;}
+  for(const au of el.querySelectorAll('audio[data-aud]')){const url=await mURL(au.dataset.aud);if(url)au.src=url;}
 }
 function waAlteration(id){const a=altById(id);if(!a)return;const baaki=orderBaaki(a);
   const txt=`Namaste ${a.customerName||''} ji 🙏\n\nPARAMPARA — Alteration #${a.altNo}\n${a.itemDesc||''}\n\n${aLabel(a.status)}\nDelivery: ${a.deliveryDate?fmtDate(a.deliveryDate):'—'}\nCharge: ${money(a.total)} | ${t('received')}: ${money(orderReceived(a))} | ${t('baaki')}: ${money(baaki)}`;
@@ -5586,14 +5734,15 @@ function renderInvoiceForm(){
   const masters=(DB.itemMaster||[]);
 
   const custBlock = f.kind==='sale' ? `
-    <div class="field" style="margin:0 0 10px">
-      <div id="invCustPicked">${(f.customerId||f.customerName)?invCustomerPickedHTML():''}</div>
-      <div id="invCustSearchWrap" style="${f.customerName?'display:none':''}">
-        <input id="inv_cname" placeholder="👤 ${t('name_ph')}" oninput="invCustSearch(this.value)" value="${esc(f.customerName||'')}">
-        <div id="invCustResults"></div>
-        <input id="inv_cphone" type="tel" placeholder="📞 ${t('phone')}" value="${esc(f.phone||'')}" style="margin-top:8px">
-        ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost block" style="margin-top:8px" onclick="invPickContact()">📇 ${t('from_contacts')}</button>`:''}
-      </div></div>` : '';
+    <div id="invCustPicked" style="margin-bottom:10px">${(f.customerId||f.customerName)?invCustomerPickedHTML():''}</div>
+    <div id="invCustSearchWrap" style="${(f.customerId||f.customerName)?'display:none':''};margin-bottom:10px">
+      <div class="cust-2col">
+        <div><input id="inv_cname" placeholder="👤 ${t('name_ph')}" oninput="invCustSearch(this.value)" value="${esc(f.customerName||'')}"></div>
+        <div><input id="inv_cphone" type="tel" placeholder="📞 ${t('phone')}" value="${esc(f.phone||'')}"></div>
+      </div>
+      <div id="invCustResults"></div>
+      ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost block" style="margin-top:8px" onclick="invPickContact()">📇 ${t('from_contacts')}</button>`:''}
+    </div>` : '';
 
   const tiles = masters.map(m=>{
       const isR=m.kind==='ready';
@@ -5610,47 +5759,39 @@ function renderInvoiceForm(){
       <h2 style="margin:0">🧾 ${f.kind==='sale'?t('new_sale'):t('invoice')}</h2>
       <span class="hint">#${esc(f.no)} · ${fmtDate(f.date)}</span>
     </div>
-    ${f.kind==='sale'?`
-    <div class="type-tabs">
-      <button class="tt ${f.saleType!=='mto'?'on':''}" onclick="posSetType('rdy')">🛍️ ${t('pos_t_ready')}</button>
-      <button class="tt ${f.saleType==='mto'?'on':''}" onclick="posSetType('mto')">✂️ ${t('pos_t_mto')}</button>
-    </div>`:`
-    <div class="linked-chip">👔 ${t('pos_linked')} #${esc((invRecOf(f.kind,f.id)||{}).orderNo||(invRecOf(f.kind,f.id)||{}).altNo||'')}</div>`}
+    ${f.kind!=='sale'?`<div class="linked-chip">👔 ${t('pos_linked')} #${esc((invRecOf(f.kind,f.id)||{}).orderNo||(invRecOf(f.kind,f.id)||{}).altNo||'')}</div>`:''}
+
+    ${custBlock}
 
     <div class="head-grid">
       <div class="field" style="margin:0"><label>${t('invoice_no')}</label>
         <input id="inv_no" value="${esc(f.no)}"></div>
       <div class="field" style="margin:0"><label>${t('invoice_date')}</label>
         <input id="inv_date" type="date" value="${esc(f.date)}"></div>
+    </div>
+
+    <div class="tap-mini">⚡ ${t('pos_tap_add')} — ${t('pos_shortcut')}</div>
+    <div class="pos-tiles">${tiles}</div>
+    <button class="btn primary block" style="margin:4px 0 12px" onclick="posAddMenu()">➕ ${t('pos_add_item')}</button>
+
+    <div id="posLines"></div>
+
+    <div class="head-grid" style="margin-top:8px">
       <div class="field" style="margin:0"><label>📅 ${t('inv_delivery')}</label>
-        <input id="inv_ddate" type="date" value="${esc(f.deliveryDate||'')}"></div>
-      ${(f.kind==='sale'&&f.saleType==='mto')?`
+        <input id="inv_ddate" type="date" class="bold-in" value="${esc(f.deliveryDate||'')}"></div>
+      ${f.kind==='sale'?`
       <div class="field" style="margin:0"><label>👔 ${t('pos_orderno')}</label>
         <div style="display:flex;gap:6px">
-          <input id="pos_ono" list="posOrderList" value="${esc(f.orderNo||'')}"
+          <input id="pos_ono" list="posOrderList" class="bold-in" value="${esc(f.orderNo||'')}"
             placeholder="${t('pos_ono_auto')}" style="flex:1" onchange="posLinkOrder(this.value)">
           <button class="btn ghost" style="flex:0 0 auto;padding:0 10px" onclick="invLoadFromOrder()">🔍</button>
         </div>
         <datalist id="posOrderList">${(DB.orders||[]).slice(-60).reverse()
           .map(o=>`<option value="${esc(o.orderNo)}">${esc(o.customerName||'')}</option>`).join('')}</datalist>
-      </div>`:(f.kind!=='sale'?`
+      </div>`:`
       <div class="field" style="margin:0"><label>👔 ${t('pos_orderno')}</label>
-        <input value="${esc((invRecOf(f.kind,f.id)||{}).orderNo||(invRecOf(f.kind,f.id)||{}).altNo||'')}" disabled></div>`:'')}
+        <input class="bold-in" value="${esc((invRecOf(f.kind,f.id)||{}).orderNo||(invRecOf(f.kind,f.id)||{}).altNo||'')}" disabled></div>`}
     </div>
-    ${(f.kind==='sale'&&f.saleType==='mto')?`<p class="hint" style="margin:-4px 0 12px">${t('pos_mto_hint')}</p>`:''}
-
-    ${custBlock}
-
-    <div class="section-h" style="margin-top:4px">⚡ ${t('pos_tap_add')}</div>
-    <div class="pos-tiles">${tiles}
-      <div class="pos-tile add" onclick="posNewItem()"><b>➕ ${t('add_item_master')}</b></div>
-      <div class="pos-tile add" onclick="invLoadFromOrder()"><b>📋 ${t('pos_from_order')}</b></div>
-    </div>
-
-    <div class="section-h" style="display:flex;justify-content:space-between;align-items:baseline">
-      <span>🧾 ${t('pos_bill')}</span><span class="hint" id="posCount"></span></div>
-    <div id="posLines"></div>
-    <button class="btn ghost block" style="margin-bottom:14px" onclick="posBlank()">✏️ ${t('pos_manual')}</button>
 
     <div class="card pos-total" id="invTotalsBox">
       <div class="sum-row"><span>${t('sub_total')}</span><b id="tSub">${money(comp0.gross)}</b></div>
@@ -5817,6 +5958,67 @@ function posBlank(){
 }
 function posDel(i){captureInvoiceForm();invForm.items.splice(i,1);posRefresh();}
 function posNewItem(){captureInvoiceForm();_imDraft=null;imEdit(null,{type:'inv',i:-1});}
+/* ---- one clean "Add item" entry: search stock, custom line, from order, edit/delete ---- */
+function posAddMenu(){
+  captureInvoiceForm();
+  modal('➕ '+t('pos_add_item'),
+    `<button class="btn ghost block" style="margin-bottom:8px" onclick="posSearchAdd()">🔍 ${t('pos_search_items')}</button>
+     <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();posBlank()">✏️ ${t('pos_custom_item')}</button>
+     <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();invLoadFromOrder()">📋 ${t('pos_from_order')}</button>
+     <button class="btn ghost block" onclick="posManageItems()">⚙️ ${t('pos_manage_items')}</button>`,
+    [{label:t('close'),cls:'ghost',fn:()=>closeModal()}]);
+}
+function posSearchAdd(){
+  modal('🔍 '+t('pos_search_items'),
+    `<div class="field" style="margin:0 0 10px"><input id="posSearchQ" placeholder="${t('pos_search_ph')}" oninput="posSearchRun(this.value)" autocomplete="off"></div>
+     <div id="posSearchRes"></div>`,
+    [{label:t('close'),cls:'ghost',fn:()=>{closeModal();renderInvoiceForm();}}]);
+  setTimeout(()=>{const el=$('#posSearchQ');if(el)el.focus();posSearchRun('');},120);
+}
+function posSearchRun(q){
+  const box=$('#posSearchRes'); if(!box)return;
+  q=(q||'').trim().toLowerCase();
+  const masters=(DB.itemMaster||[]).filter(m=>!q||String(m.name).toLowerCase().includes(q)).slice(0,15);
+  const fabs=(DB.fabItems||[]).filter(f=>!q||String(f.name).toLowerCase().includes(q)||String(f.category||'').toLowerCase().includes(q)).slice(0,15);
+  let h='';
+  if(masters.length){ h+=`<div class="hint" style="margin:2px 0 4px">📦 ${t('item_master')}</div>`;
+    h+=masters.map(m=>{const isR=m.kind==='ready';const tot=isR?readyTotal(m):0;
+      return `<div class="cust-result" style="margin-bottom:6px" onclick="posAddMaster('${m.id}')">
+        <div><b>${esc(m.name)}</b>${m.rate?`<div class="hint">₹${esc(m.rate)}</div>`:''}${isR?`<div class="hint">In stock: ${tot}</div>`:''}</div>
+        <span class="btn sm primary">+</span></div>`;}).join('');
+  }
+  if(fabs.length){ h+=`<div class="hint" style="margin:9px 0 4px">🧵 Fabric</div>`;
+    h+=fabs.map(f=>`<div class="cust-result" style="margin-bottom:6px" onclick="posAddFabric('${f.id}')">
+        <div><b>${esc(f.name)}</b>${f.category?`<div class="hint">${esc(f.category)}</div>`:''}${f.rate?`<div class="hint">₹${esc(f.rate)}/mtr</div>`:''}</div>
+        <span class="btn sm primary">+</span></div>`).join('');
+  }
+  box.innerHTML=h||`<p class="hint">${t('pos_no_results')}</p>`;
+}
+function posAddMaster(mid){ closeModal(); posAdd(mid); }
+function posAddFabric(fid){
+  const f=(DB.fabItems||[]).find(x=>x.id===fid); closeModal(); if(!f)return;
+  captureInvoiceForm();
+  invForm.items=(invForm.items||[]).filter(it=>it.label||+it.rate);
+  invForm.items.push({masterId:'',label:f.name+(f.category?' ('+f.category+')':''),hsn:f.hsn||'',qty:1,unit:'Mtr',rate:f.rate||'',price:'',disc:0,incl:[],includes:''});
+  posRefresh(); toast('+ '+f.name,'ok');
+}
+function posManageItems(){
+  const rows=(DB.itemMaster||[]).map(m=>`<div class="cust-result" style="margin-bottom:6px">
+      <div><b>${esc(m.name)}</b>${m.incl&&m.incl.length?`<div class="hint">${esc(m.incl.join(' + '))}</div>`:''}${m.rate?`<div class="hint">₹${esc(m.rate)}</div>`:''}</div>
+      <span style="display:flex;gap:6px">
+        <button class="btn sm ghost" onclick="imEdit('${m.id}',{type:'inv',i:-1})">✏️</button>
+        <button class="btn sm danger" onclick="posDelMaster('${m.id}')">✕</button></span></div>`).join('')
+    ||`<p class="hint">${t('no_items_master')}</p>`;
+  modal('⚙️ '+t('pos_manage_items'),rows,
+    [{label:'➕ '+t('add_item_master'),cls:'ghost',fn:()=>{closeModal();posNewItem();}},
+     {label:t('close'),cls:'primary',fn:()=>{closeModal();renderInvoiceForm();}}]);
+}
+function posDelMaster(mid){
+  const m=(DB.itemMaster||[]).find(x=>x.id===mid); if(!m)return;
+  modal(t('confirm_del'),`<p class="hint">${esc(m.name)}</p>`,
+    [{label:t('no'),cls:'ghost',fn:()=>posManageItems()},
+     {label:t('yes'),cls:'danger',fn:()=>{DB.itemMaster=(DB.itemMaster||[]).filter(x=>x.id!==mid);save();posManageItems();toast(t('t_deleted'));}}]);
+}
 function posIncl(i){
   captureInvoiceForm();
   const it=invForm.items[i]; if(!it)return;
@@ -5871,24 +6073,44 @@ function posTogglePartInline(i,p){
   renderPosInclChips(i);
 }
 function posAddPartInline(i){
-  const it=(invForm.items||[])[i]||{};
-  const picked=Array.isArray(it.incl)?it.incl:[];
-  const lib=(DB.inclLib||[]).filter(p=>!picked.includes(p));
-  const libChips=lib.length?`<p class="hint" style="margin:2px 0 6px">${t('im_incl_desc')}</p>
-     <div class="gtags" style="margin-bottom:12px">${lib.map(p=>`<span class="gtag" style="cursor:pointer" onclick="posQuickPart(${i},'${esc(p).replace(/'/g,"\\'")}')">${esc(p)}</span>`).join('')}</div>`:'';
-  modal(t('im_add_part'),`${libChips}<div class="field"><label>${t('im_new_part')}</label><input id="posNewPartI" placeholder="${t('im_part_ph')}"></div>`,
-    [{label:t('close'),cls:'ghost',fn:()=>{closeModal();renderPosInclChips(i);}},
-     {label:t('save'),cls:'primary',fn:()=>{const v=($('#posNewPartI').value||'').trim();
-       if(v){DB.inclLib=DB.inclLib||[];if(!DB.inclLib.includes(v))DB.inclLib.push(v);
-         const it2=(invForm.items||[])[i];if(it2){it2.incl=Array.isArray(it2.incl)?it2.incl:[];if(!it2.incl.includes(v))it2.incl.push(v);it2.includes=it2.incl.join(', ');}save();}
-       closeModal(); renderPosInclChips(i);}}]);
+  modal('📎 '+t('inv_includes'),
+    `<p class="hint" style="margin:0 0 8px">${t('im_incl_desc')}</p>
+     <div class="gtags" id="posInclPool"></div>
+     <div class="field" style="margin-top:12px"><label>${t('im_new_part')}</label>
+       <div style="display:flex;gap:6px">
+         <input id="posNewPartI" placeholder="${t('im_part_ph')}" style="flex:1" autocomplete="off">
+         <button class="btn ghost" style="flex:0 0 auto;padding:0 14px" onclick="posAddNewPart(${i})">${t('add')}</button>
+       </div></div>`,
+    [{label:t('close'),cls:'primary',fn:()=>{closeModal();renderPosInclChips(i);}}]);
+  posRenderPool(i);
   setTimeout(()=>{const el=$('#posNewPartI');if(el)el.focus();},120);
 }
-function posQuickPart(i,p){
-  const it=(invForm.items||[])[i]; if(!it)return;
-  it.incl=Array.isArray(it.incl)?it.incl:[]; if(!it.incl.includes(p))it.incl.push(p);
-  it.includes=it.incl.join(', '); closeModal(); renderPosInclChips(i);
+function posPoolChip(i,p,on){
+  return `<span class="gtag ${on?'on-tag':''}" style="cursor:pointer" onclick="posPoolToggle(${i},'${esc(p).replace(/'/g,"\\'")}')">${on?'✓ ':''}${esc(p)}</span>`;
 }
+function posRenderPool(i){
+  const el=$('#posInclPool'); if(!el)return;
+  const it=(invForm.items||[])[i]||{}; const picked=Array.isArray(it.incl)?it.incl:[];
+  const mst=(DB.itemMaster||[]).find(m=>m.id===it.masterId);
+  const pool=[]; (mst?mst.incl||[]:[]).forEach(p=>{if(!pool.includes(p))pool.push(p);});
+  picked.forEach(p=>{if(!pool.includes(p))pool.push(p);});
+  (DB.inclLib||[]).forEach(p=>{if(!pool.includes(p))pool.push(p);});
+  el.innerHTML=pool.map(p=>posPoolChip(i,p,picked.includes(p))).join('')||`<span class="hint">${t('pos_no_results')}</span>`;
+}
+function posPoolToggle(i,p){
+  const it=(invForm.items||[])[i]; if(!it)return;
+  it.incl=Array.isArray(it.incl)?it.incl:[];
+  const k=it.incl.indexOf(p); if(k>=0)it.incl.splice(k,1); else it.incl.push(p);
+  it.includes=it.incl.join(', ');
+  posRenderPool(i);
+}
+function posAddNewPart(i){
+  const inp=$('#posNewPartI'); if(!inp)return; const v=(inp.value||'').trim(); if(!v)return;
+  DB.inclLib=DB.inclLib||[]; if(!DB.inclLib.includes(v))DB.inclLib.push(v);
+  const it=(invForm.items||[])[i]; if(it){it.incl=Array.isArray(it.incl)?it.incl:[];if(!it.incl.includes(v))it.incl.push(v);it.includes=it.incl.join(', ');}
+  save(); inp.value=''; posRenderPool(i); inp.focus();
+}
+
 function invPickSalesman(id){
   captureInvoiceForm();
   invForm.salesmanId = (invForm.salesmanId===id) ? '' : id;   // tap again to unselect
@@ -6072,6 +6294,13 @@ function saveInvoice(){
   if(!f.no){toast(t('t_no_invno'),'bad');return;}
   f.items=(f.items||[]).filter(it=>it.label||+it.price);
   if(!f.items.length||f.items.every(it=>!(+it.price))){toast(t('t_no_invitem'),'bad');return;}
+
+  // No Ready/MTO tab any more: decide automatically.
+  // All items are readymade stock -> counter sale; anything stitched/custom -> made-to-order (creates an order).
+  if(f.kind==='sale'){
+    const allReady=f.items.length&&f.items.every(it=>{const m=(DB.itemMaster||[]).find(x=>x.id===it.masterId);return m&&m.kind==='ready';});
+    f.saleType=allReady?'rdy':'mto';
+  }
 
   // Make-to-order: this bill belongs on a real ORDER, not a counter sale.
   // Create the order (or reuse the number), move everything onto it, drop the sale stub.
@@ -6846,9 +7075,9 @@ async function renderTimeline(o){
   if(!log.length){el.innerHTML='';return;}
   el.innerHTML=`<div class="card">${log.map(e=>`<div class="tl-entry"><div class="tl-dot"></div><div style="flex:1">
     <div class="tl-time">${fmtDateTime(e.ts)}</div>${e.text?`<div class="tl-text">${esc(e.text)}</div>`:''}
-    ${e.voiceId?`<audio controls data-v="${e.voiceId}"></audio>`:''}
+    ${e.voiceId?`<audio controls data-aud="${e.voiceId}"></audio>`:''}
     </div><button class="btn sm danger" style="padding:4px 8px" onclick="delUpdate('${o.id}','${e.id}')">✕</button></div>`).join('')}</div>`;
-  for(const a of el.querySelectorAll('audio[data-v]')){const url=await mURL(a.dataset.v);if(url)a.src=url;}
+  for(const a of el.querySelectorAll('audio[data-aud]')){const url=await mURL(a.dataset.aud);if(url)a.src=url;}
 }
 function delUpdate(id,eid){const o=DB.orders.find(x=>x.id===id);const e=(o.log||[]).find(x=>x.id===eid);
   if(e&&e.voiceId)mDel(e.voiceId);o.log=o.log.filter(x=>x.id!==eid);save();renderTimeline(o);}
@@ -6876,10 +7105,10 @@ async function renderVoiceList(prefix){
   const ctx=voiceCtx[prefix],el=$('#'+prefix+'List'); if(!el||!ctx)return;
   const list=ctx.getList()||[];
   el.innerHTML=list.length?list.slice().reverse().map(v=>`<div class="tl-entry"><div class="tl-dot"></div>
-    <div style="flex:1"><div class="tl-time">${fmtDateTime(v.ts)}</div><audio controls data-v="${v.voiceId}"></audio></div>
+    <div style="flex:1"><div class="tl-time">${fmtDateTime(v.ts)}</div><audio controls data-aud="${v.voiceId}"></audio></div>
     <button class="btn sm ghost" style="padding:4px 8px" onclick="shareVoice('${v.voiceId}')">📤</button>
     <button class="btn sm danger" style="padding:4px 8px" onclick="delVoice('${prefix}','${v.id}')">✕</button></div>`).join(''):'';
-  for(const a of el.querySelectorAll('audio[data-v]')){const u=await mURL(a.dataset.v);if(u)a.src=u;}
+  for(const a of el.querySelectorAll('audio[data-aud]')){const u=await mURL(a.dataset.aud);if(u)a.src=u;}
 }
 async function shareVoice(voiceId){
   const b=await mGet(voiceId); if(!b){toast(t('t_wrong'),'bad');return;}
