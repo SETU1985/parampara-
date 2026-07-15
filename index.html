@@ -70,15 +70,15 @@
   .head-grid input:disabled{opacity:.55}
   .linked-chip{display:inline-block;background:rgba(224,138,26,.12);border:1px solid var(--saffron);
     color:var(--saffron2);font-size:12.5px;font-weight:800;padding:6px 12px;border-radius:20px;margin-bottom:10px}
-  .pos-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px;margin-bottom:6px}
-  .pos-tile{background:var(--card2);border:1px solid var(--line2);border-radius:12px;padding:12px 10px;text-align:center;
-    cursor:pointer;user-select:none;transition:transform .08s,background .15s;min-height:56px;
-    display:flex;flex-direction:column;justify-content:center;gap:3px}
+  .pos-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:7px;margin-bottom:6px}
+  .pos-tile{background:var(--card2);border:1px solid var(--line2);border-radius:10px;padding:7px 8px;text-align:center;
+    cursor:pointer;user-select:none;transition:transform .08s,background .15s;min-height:42px;
+    display:flex;flex-direction:column;justify-content:center;gap:2px}
   .pos-tile:active{transform:scale(.95);background:var(--saffron);color:#1a1206}
-  .pos-tile b{font-size:13px;font-weight:700;line-height:1.25}
-  .pos-tile span{font-size:11px;color:var(--saffron2);font-weight:700}
+  .pos-tile b{font-size:12px;font-weight:700;line-height:1.2}
+  .pos-tile span{font-size:10px;color:var(--saffron2);font-weight:700}
   .pos-tile.add{border-style:dashed;background:transparent}
-  .pos-tile.add b{color:var(--txt2);font-size:12px}
+  .pos-tile.add b{color:var(--txt2);font-size:11px}
   .pos-tile{position:relative}
   .pos-badge{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;line-height:20px;
     background:var(--ok);color:#0b1a0f;border-radius:10px;font-size:11px;font-weight:900;padding:0 5px}
@@ -93,6 +93,9 @@
   .pl-x{background:transparent;border:none;color:#d9534f;font-size:16px;padding:4px 6px;cursor:pointer}
   .pl-incl{font-size:11.5px;color:var(--mut);margin:7px 0 9px;cursor:pointer;padding:3px 0}
   .pl-incl:active{color:var(--saffron2)}
+  .pl-incl-chips{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin:7px 0 9px}
+  .pl-incl-chips .gtag.sm{font-size:11px;padding:3px 8px}
+  .pl-incl-chips .incl-lbl{font-size:11px;color:var(--mut);margin-right:2px}
   .pl-row{display:flex;align-items:center;gap:8px}
   .qty-step{display:flex;align-items:center;background:var(--card);border:1px solid var(--line2);border-radius:9px;overflow:hidden}
   .qty-step button{background:transparent;border:none;color:var(--saffron2);font-size:18px;font-weight:800;
@@ -2330,14 +2333,16 @@ function thaanRender(){
   const names=[...new Set((DB.fabItems||[]).map(f=>f.name))];
   const cats=[...new Set((DB.fabItems||[]).map(f=>f.category).filter(Boolean))];
   const parties=[...new Set((DB.thaans||[]).map(t=>t.party).filter(Boolean).concat((DB.purchases||[]).map(p=>p.supplier).filter(Boolean)))];
+  const racks=[...new Set((DB.thaans||[]).map(t=>t.rack).filter(Boolean))];
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">🧵 ${d.id?t('stk_edit_thaan'):t('stk_add_thaan')}</h2>
     <p class="hint" style="margin-bottom:12px">${d.id?'':t('stk_thaan_hint')}</p>
     <datalist id="fabNames">${names.map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
     <datalist id="fabCats">${cats.map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
     <datalist id="fabParties">${parties.map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
+    <datalist id="fabRacks">${racks.map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
 
-    <div class="field"><label>${t('stk_fab_name')} *</label>
+    <div class="field"><label>${t('stk_fab_name')}</label>
       <input id="th_name" list="fabNames" value="${esc(d.name)}" placeholder="${t('stk_fab_name_ph')}">
       <p class="hint" style="margin-top:4px">${t('stk_fab_name_hint')}</p></div>
 
@@ -2355,7 +2360,7 @@ function thaanRender(){
     <div class="row"><div class="field"><label>${t('stk_rate')}</label>
         <input id="th_rate" type="number" inputmode="numeric" value="${esc(d.rate)}" placeholder="850"></div>
       <div class="field"><label>📍 ${t('stk_rack')}</label>
-        <input id="th_rack" value="${esc(d.rack)}" placeholder="A-3"></div></div>
+        <input id="th_rack" list="fabRacks" value="${esc(d.rack)}" placeholder="A-3"></div></div>
 
     ${!d.id?`<div class="field"><label>${t('stk_count')}</label>
       <input id="th_count" type="number" inputmode="numeric" min="1" value="${esc(d.count)}">
@@ -2402,7 +2407,7 @@ function readyCapture(){
 }
 function thaanSave(){
   const d=_th;
-  const name=($('#th_name').value||'').trim();
+  let name=($('#th_name').value||'').trim();
   const cat=($('#th_cat').value||'').trim();
   const party=($('#th_party').value||'').trim();
   const serial=($('#th_serial').value||'').trim();
@@ -2411,8 +2416,8 @@ function thaanSave(){
   const rack=($('#th_rack').value||'').trim();
   const notes=($('#th_notes').value||'').trim();
   const count=d.id?1:Math.max(1,+($('#th_count')||{}).value||1);
-  if(!name){toast(t('stk_need_name'),'bad');return;}
   if(!serial){toast(t('stk_need_serial'),'bad');return;}
+  if(!name)name=cat||('Fabric '+serial);
   if(mtr<=0){toast(t('stk_need_mtr'),'bad');return;}
 
   // fabric quality (item) — created on the fly, reused if it already exists
@@ -4825,7 +4830,15 @@ function renderForm(){
       return `<div class="card" style="border-style:dashed;margin-bottom:6px">
         <p class="hint">💡 ${t('bill_after_save')}</p></div>`;
     })()}
-    <div class="field" style="margin-top:14px"><label>${t('order_notes')} ${micBtn('#f_notes')}</label><textarea id="f_notes" placeholder="${t('notes_ph')}">${esc(f.notes)}</textarea></div>
+    <div class="field" style="margin-top:14px"><label>🧑‍💼 ${t('salesman')}</label>
+      <input type="hidden" id="f_sm" value="${esc(f.salesmanId||'')}">
+      <div class="gtags" id="ordSmChips">
+        ${(DB.salesmen||[]).map(k=>{const on=k.id===f.salesmanId;
+          return `<span class="gtag ${on?'on-tag':''}" data-osm="${k.id}" style="cursor:pointer" onclick="ordPickSalesman('${k.id}')">${on?'✓ ':''}${esc(k.name)}</span>`;}).join('')
+          ||`<span class="hint">${t('sm_none_yet')}</span>`}
+        <span class="gtag" style="cursor:pointer;border-style:dashed" onclick="ordAddSalesman()">➕ ${t('add_salesman')}</span>
+      </div></div>
+    <div class="field"><label>${t('order_notes')} ${micBtn('#f_notes')}</label><textarea id="f_notes" placeholder="${t('notes_ph')}">${esc(f.notes)}</textarea></div>
     <div class="section-h">${t('voice_notes')}</div>${voiceSection('vn')}
     <div class="field"><label>${t('photo_label')}</label><div id="f_photos" style="display:flex;gap:8px;flex-wrap:wrap"></div>
       <div class="row" style="margin-top:8px"><button class="btn sm ghost" onclick="pickPhoto('cam')">📷 ${t('camera')}</button><button class="btn sm ghost" onclick="pickPhoto('lib')">🖼️ ${t('gallery')}</button></div></div>
@@ -5495,7 +5508,7 @@ function openInvoiceForm(kind,id){
     }
     invNormItems(items);
     invForm={kind,id,no:nextInvoiceNo(),date:todayISO(),interstate:false,paymentMode:'UPI',discType:'amount',discValue:0,
-      saleType:kind==='sale'?'rdy':null, orderNo:'',
+      saleType:kind==='sale'?'mto':null, orderNo:'',
       deliveryDate:rec.deliveryDate||'', salesmanId:rec.salesmanId||'',
       customerId:kind==='sale'?(rec.customerId||null):undefined,
       customerName:kind==='sale'?(rec.customerName||''):undefined,phone:kind==='sale'?(rec.phone||''):undefined,
@@ -5713,10 +5726,10 @@ function posLineHTML(i,it){
   const amt=r2((+it.qty||1)*(+it.rate||0));
   return `<div class="pos-line" id="posLine${i}">
     <div class="pl-top">
-      <input class="pl-name" data-iin="${i}" value="${esc(it.label||'')}" placeholder="${t('inv_item_name_ph')}" list="invItemList">
+      <input class="pl-name" data-iin="${i}" value="${esc(it.label||'')}" placeholder="${t('inv_item_name_ph')}">
       <button class="pl-x" onclick="posDel(${i})">✕</button>
     </div>
-    <div class="pl-incl" onclick="posIncl(${i})">${picked.length?'📎 '+esc(picked.join(' + ')):'📎 '+t('pos_add_incl')}</div>
+    <div class="pl-incl-chips" id="posIncl${i}">${posInclChipsHTML(i,it)}</div>
     <div class="pl-row">
       <div class="qty-step">
         <button onclick="posQty(${i},-1)">−</button>
@@ -5836,6 +5849,46 @@ function posAddPart(i){
        posIncl(i);}}]);
   setTimeout(()=>{const el=$('#posNewPart');if(el)el.focus();},120);
 }
+/* ---- inline includes chips on each bill line (edit/add/remove right there) ---- */
+function posInclChipsHTML(i,it){
+  const picked=Array.isArray(it.incl)?it.incl:[];
+  const mst=(DB.itemMaster||[]).find(m=>m.id===it.masterId);
+  const pool=[]; (mst?mst.incl||[]:[]).forEach(p=>{if(!pool.includes(p))pool.push(p);});
+  picked.forEach(p=>{if(!pool.includes(p))pool.push(p);});
+  const chips=pool.map(p=>{const on=picked.includes(p);
+    return `<span class="gtag sm ${on?'on-tag':''}" style="cursor:pointer" onclick="posTogglePartInline(${i},'${esc(p).replace(/'/g,"\\'")}')">${on?'✓ ':''}${esc(p)}</span>`;}).join('');
+  return `<span class="incl-lbl">📎 ${t('inv_includes')}</span>${chips}<span class="gtag sm" style="cursor:pointer;border-style:dashed" onclick="posAddPartInline(${i})">＋</span>`;
+}
+function renderPosInclChips(i){
+  const el=$('#posIncl'+i); const it=(invForm.items||[])[i];
+  if(el&&it)el.innerHTML=posInclChipsHTML(i,it);
+}
+function posTogglePartInline(i,p){
+  const it=(invForm.items||[])[i]; if(!it)return;
+  it.incl=Array.isArray(it.incl)?it.incl:[];
+  const k=it.incl.indexOf(p); if(k>=0)it.incl.splice(k,1); else it.incl.push(p);
+  it.includes=it.incl.join(', ');
+  renderPosInclChips(i);
+}
+function posAddPartInline(i){
+  const it=(invForm.items||[])[i]||{};
+  const picked=Array.isArray(it.incl)?it.incl:[];
+  const lib=(DB.inclLib||[]).filter(p=>!picked.includes(p));
+  const libChips=lib.length?`<p class="hint" style="margin:2px 0 6px">${t('im_incl_desc')}</p>
+     <div class="gtags" style="margin-bottom:12px">${lib.map(p=>`<span class="gtag" style="cursor:pointer" onclick="posQuickPart(${i},'${esc(p).replace(/'/g,"\\'")}')">${esc(p)}</span>`).join('')}</div>`:'';
+  modal(t('im_add_part'),`${libChips}<div class="field"><label>${t('im_new_part')}</label><input id="posNewPartI" placeholder="${t('im_part_ph')}"></div>`,
+    [{label:t('close'),cls:'ghost',fn:()=>{closeModal();renderPosInclChips(i);}},
+     {label:t('save'),cls:'primary',fn:()=>{const v=($('#posNewPartI').value||'').trim();
+       if(v){DB.inclLib=DB.inclLib||[];if(!DB.inclLib.includes(v))DB.inclLib.push(v);
+         const it2=(invForm.items||[])[i];if(it2){it2.incl=Array.isArray(it2.incl)?it2.incl:[];if(!it2.incl.includes(v))it2.incl.push(v);it2.includes=it2.incl.join(', ');}save();}
+       closeModal(); renderPosInclChips(i);}}]);
+  setTimeout(()=>{const el=$('#posNewPartI');if(el)el.focus();},120);
+}
+function posQuickPart(i,p){
+  const it=(invForm.items||[])[i]; if(!it)return;
+  it.incl=Array.isArray(it.incl)?it.incl:[]; if(!it.incl.includes(p))it.incl.push(p);
+  it.includes=it.incl.join(', '); closeModal(); renderPosInclChips(i);
+}
 function invPickSalesman(id){
   captureInvoiceForm();
   invForm.salesmanId = (invForm.salesmanId===id) ? '' : id;   // tap again to unselect
@@ -5884,6 +5937,30 @@ function invAddSalesman(){
         DB.salesmen.push(rec); save(); invForm.salesmanId=rec.id;
         renderInvoiceForm(); toast(t('t_saved'),'ok');}}]);
   setTimeout(()=>{const el=$('#qsmName');if(el)el.focus();},120);
+}
+/* ---- order form salesman: in-place toggle, no full re-render on tap ---- */
+function ordPickSalesman(id){
+  const cur=$('#f_sm'); if(!cur)return;
+  const now=cur.value===id?'':id; cur.value=now; if(window.form)form.salesmanId=now;
+  document.querySelectorAll('#ordSmChips [data-osm]').forEach(el=>{
+    const nm=((DB.salesmen||[]).find(k=>k.id===el.dataset.osm)||{}).name||'';
+    const on=el.dataset.osm===now; el.classList.toggle('on-tag',on);
+    el.textContent=(on?'✓ ':'')+nm;
+  });
+}
+function ordAddSalesman(){
+  captureForm();
+  modal(t('add_salesman'),
+    `<div class="field"><label>${t('salesman_name')} *</label><input id="osmName" placeholder="${t('salesman_name')}"></div>
+     <div class="field"><label>${t('phone')}</label><input id="osmPhone" type="tel" placeholder="9800000000"></div>`,
+    [{label:t('cancel'),cls:'ghost',fn:()=>renderForm()},
+     {label:t('save'),cls:'primary',fn:()=>{
+        const n=$('#osmName').value.trim(), p=$('#osmPhone').value.trim();
+        if(!n){toast(t('t_wrong'),'bad');return;}
+        DB.salesmen=DB.salesmen||[]; const rec={id:uid(),name:n,phone:p};
+        DB.salesmen.push(rec); save(); if(window.form)form.salesmanId=rec.id;
+        renderForm(); toast(t('t_saved'),'ok');}}]);
+  setTimeout(()=>{const el=$('#osmName');if(el)el.focus();},120);
 }
 function invLoadFromOrder(){
   captureInvoiceForm();
@@ -6143,89 +6220,149 @@ function buildInvoiceHTML(rec,inv){
   const comp=invCompute(inv),shop=DB.shopInfo||{};
   const sm=rec.salesmanId?(DB.salesmen||[]).find(x=>x.id===rec.salesmanId):null;
   const rows=(inv.items||[]).map((it,i)=>{const p=+it.price||0,qty=+it.qty||1,unitP=p/qty,r=invRate(unitP),base=r2(p/(1+r/100)),gstAmt=r2(p-base);
-    return `<tr><td>${i+1}</td><td>${esc(it.label)}${it.includes?`<br><span style="font-size:11px;color:#777">Includes: ${esc(it.includes)}</span>`:''}</td><td style="text-align:center">${esc(it.hsn||'')}</td><td style="text-align:center">${qty}</td><td style="text-align:center">${esc(it.unit||'Pcs')}</td>
-      <td style="text-align:right">${money(r2(unitP))}</td><td style="text-align:right">${money(gstAmt)}<br><span style="font-size:11px;color:#777">(${r}%)</span></td>
-      <td style="text-align:right"><b>${money(p)}</b></td></tr>`;}).join('');
+    return `<tr>
+      <td class="c">${i+1}</td>
+      <td><span class="inm">${esc(it.label)}</span>${it.includes?`<div class="incl">+ ${esc(it.includes)}</div>`:''}</td>
+      <td class="c">${esc(it.hsn||'')}</td>
+      <td class="c">${qty}</td>
+      <td class="c">${esc(it.unit||'Pcs')}</td>
+      <td class="r">${money(r2(unitP))}</td>
+      <td class="r">${money(gstAmt)} <span class="pct">(${r}%)</span></td>
+      <td class="r b">${money(p)}</td></tr>`;}).join('');
   const received=orderReceived(rec),baaki=orderBaaki(rec);
   const prevBal=customerOutstanding(rec.customerId,rec.orderNo?'order':(rec.altNo?'alt':'sale'),rec.id);
   const currBal=r2(prevBal+baaki);
   const stateLine=gstState(shop.gstin);
   const taxRow=inv.interstate
-    ? `<tr><td></td><td style="text-align:right">${money(comp.taxable)}</td><td colspan="2" style="text-align:right">${money(comp.igst)}</td><td style="text-align:right">${money(comp.cgst+comp.sgst+comp.igst)}</td></tr>`
-    : `<tr><td></td><td style="text-align:right">${money(comp.taxable)}</td><td style="text-align:right">${money(comp.cgst)}</td><td style="text-align:right">${money(comp.sgst)}</td><td style="text-align:right">${money(comp.cgst+comp.sgst)}</td></tr>`;
+    ? `<tr><td class="r">${money(comp.taxable)}</td><td class="r" colspan="2">${money(comp.igst)}</td><td class="r b">${money(comp.igst)}</td></tr>`
+    : `<tr><td class="r">${money(comp.taxable)}</td><td class="r">${money(comp.cgst)}</td><td class="r">${money(comp.sgst)}</td><td class="r b">${money(comp.cgst+comp.sgst)}</td></tr>`;
+  const contact=[shop.phone?'Ph: '+esc(shop.phone):'',shop.email?'Email: '+esc(shop.email):''].filter(Boolean).join('&nbsp;&nbsp;|&nbsp;&nbsp;');
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Invoice ${esc(inv.no)}</title><style>
-    *{font-family:Arial,sans-serif;color:#222;box-sizing:border-box}body{margin:20px}
-    h1{text-align:center;font-size:22px;margin:0 0 14px}
-    table{width:100%;border-collapse:collapse;font-size:12.5px}
-    td,th{border:1px solid #999;padding:5px 7px}
-    th{background:#f2f2f2}
-    .outer{border:1px solid #999}
-    .noborder td{border:none;padding:2px 7px}
-    .logo{font-size:22px;font-weight:800;color:#c97e10;letter-spacing:.5px}
-    .tagline{font-size:11px;color:#2e7d32;font-weight:600;letter-spacing:1px;margin-top:-2px}
-    .small{font-size:12px;color:#333}
-    .lbl{color:#555}
-    @media print{@page{margin:10mm}body{margin:0}}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Segoe UI',Arial,sans-serif;color:#2b2b2b;font-size:12.5px;margin:20px;background:#fff}
+    .doc{max-width:820px;margin:0 auto;border:1px solid #e4d7bc}
+    .bless{text-align:center;font-size:13px;font-weight:700;color:#a8590a;letter-spacing:1px;padding:6px 6px 0}
+    .top{display:flex;align-items:center;gap:14px;padding:16px 18px;border-bottom:3px solid #b8860b;background:linear-gradient(90deg,#fbf6ea,#ffffff)}
+    .mono{width:58px;height:58px;flex:0 0 auto;border-radius:12px;background:#7a1e2b;color:#e8c874;font-family:Georgia,serif;font-size:30px;font-weight:700;display:flex;align-items:center;justify-content:center}
+    .brand{flex:1}
+    .brand .nm{font-family:Georgia,'Times New Roman',serif;font-size:25px;font-weight:700;color:#7a1e2b;letter-spacing:.5px}
+    .brand .tg{font-size:10.5px;color:#b8860b;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-top:1px}
+    .brand .ln{font-size:11.5px;color:#555;margin-top:4px}
+    .brand .gst{font-size:11.5px;color:#333;margin-top:2px}
+    .tiname{text-align:center;font-size:12px;font-weight:700;letter-spacing:5px;color:#7a1e2b;padding:6px;background:#f7efe0;border-bottom:1px solid #e4d7bc}
+    .two{display:flex;border-bottom:1px solid #e4d7bc}
+    .two>div{flex:1;padding:11px 16px}
+    .two>div:first-child{border-right:1px solid #e4d7bc}
+    .cap{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:#b8860b;font-weight:700;margin-bottom:5px}
+    .cust{font-size:15px;font-weight:700;color:#2b2b2b}
+    .muted{color:#666;font-size:11.5px}
+    .kvr{display:flex;justify-content:space-between;font-size:12px;padding:1.5px 0}
+    .kvr b{color:#2b2b2b}
+    .dd{background:#fff3cd;color:#7a4f01;font-weight:700;padding:1px 7px;border-radius:3px}
+    table.items{width:100%;border-collapse:collapse;font-size:12px}
+    table.items th{background:#7a1e2b;color:#fdf6e8;font-weight:600;padding:8px;text-align:left;font-size:10.5px;letter-spacing:.4px;text-transform:uppercase}
+    table.items td{padding:7px 8px;border-bottom:1px solid #eee;vertical-align:top}
+    table.items tbody tr:nth-child(even) td{background:#faf7f0}
+    .items .c{text-align:center}.items .r{text-align:right;white-space:nowrap}.items .b{font-weight:700}
+    .items .inm{font-weight:600}
+    .items .incl{font-size:10.5px;color:#8a7a55;font-style:italic;margin-top:2px}
+    .items .pct{color:#999;font-size:10px}
+    .sumwrap{display:flex;border-bottom:1px solid #e4d7bc}
+    .sumwrap .lft{flex:1.15;padding:12px 16px;border-right:1px solid #e4d7bc}
+    .sumwrap .rgt{flex:1;padding:12px 16px}
+    table.tax{width:100%;border-collapse:collapse;font-size:11.5px}
+    table.tax th,table.tax td{border:1px solid #e0e0e0;padding:5px 7px;text-align:right}
+    table.tax th{background:#f7efe0;color:#7a1e2b;font-weight:700;text-align:right}
+    table.tot{width:100%;font-size:12.5px;border-collapse:collapse}
+    table.tot td{padding:3px 0}
+    table.tot .r{text-align:right}
+    table.tot .grand td{border-top:2px solid #7a1e2b;border-bottom:2px solid #7a1e2b;padding:7px 0;font-size:15px;font-weight:700;color:#7a1e2b}
+    table.tot .bal td{font-weight:700}
+    .words{padding:9px 16px;font-size:12px;border-bottom:1px solid #e4d7bc;background:#faf7f0}
+    .words b{color:#7a1e2b}
+    .pay{display:flex;border-bottom:1px solid #e4d7bc}
+    .pay .lft{flex:1.15;padding:12px 16px;border-right:1px solid #e4d7bc}
+    .pay .rgt{flex:1;padding:12px 16px;text-align:right}
+    .qr{margin-top:10px}
+    .qr img{width:108px;height:108px}
+    .sign{margin-top:32px;font-size:13px;font-weight:700;color:#2b2b2b}
+    .foot{padding:8px 16px;font-size:11px;color:#555;line-height:1.5}
+    .foot b{color:#7a1e2b}
+    @media print{@page{margin:8mm}body{margin:0}.doc{border:none;max-width:100%}}
   </style></head><body>
-  ${shop.blessing?`<div style="text-align:center;font-size:15px;font-weight:bold;color:#a8590a;margin:0 0 8px;letter-spacing:.5px">${esc(shop.blessing)}</div>`:''}
-  <h1>Tax Invoice</h1>
-  <table class="outer" style="margin-bottom:0"><tr>
-    <td style="width:120px;text-align:center;border:none">
-      <div class="logo">${esc((shop.name||'PARAMPARA').slice(0,1))}</div>
-    </td>
-    <td style="border:none">
-      <div class="logo">${esc(shop.name||'PARAMPARA')}</div>
-      ${shop.tagline?`<div class="tagline">${esc(shop.tagline)}</div>`:''}
-      <div class="small">${esc(shop.address||'')}</div>
-      <div class="small">${shop.phone?'Phone: <b>'+esc(shop.phone)+'</b>':''} ${shop.email?'&nbsp;&nbsp;Email: <b>'+esc(shop.email)+'</b>':''}</div>
-      <div class="small">GSTIN: <b>${esc(shop.gstin||'')}</b>${stateLine?' &nbsp; State: <b>'+esc(stateLine)+'</b>':''}</div>
-    </td>
-  </tr></table>
-  <table style="margin-top:-1px">
-    <tr><th style="width:50%">Bill To</th><th>Invoice Details</th></tr>
-    <tr><td><b>${esc((rec.customerName||'').toUpperCase())}</b><br>Contact No: ${esc(rec.phone||'')}${sm?`<br><span style="font-size:11px;color:#555">Salesman: ${esc(sm.name)}${sm.phone?' ('+esc(sm.phone)+')':''}</span>`:''}</td>
-      <td>No: <b>${esc(inv.no)}</b><br>Date: <b>${fmtDate(inv.date)}</b><br>${rec.orderNo?'Order No: <b>'+esc(rec.orderNo)+'</b><br>':(rec.altNo?'Alteration No: <b>'+esc(rec.altNo)+'</b><br>':'')}${rec.deliveryDate?'Delivery Date: <span style="background:#fff3cd;padding:2px 7px;border-radius:3px;font-weight:800;color:#7a4f01">'+fmtDate(rec.deliveryDate)+'</span>':''}</td></tr>
-  </table>
-  ${sm?`<table style="margin-top:-1px"><tr><td style="font-size:12px">📞 <b>For any query, please contact our salesman ${esc(sm.name)}${sm.phone?' at '+esc(sm.phone):''}.</b></td></tr></table>`:''}
-  <table style="margin-top:-1px">
-    <thead><tr><th>#</th><th>Item name</th><th>HSN/SAC</th><th>Qty</th><th>Unit</th><th>Price/Unit (₹)</th><th>GST (₹)</th><th>Amount (₹)</th></tr></thead>
-    <tbody>${rows}</tbody>
-    <tr><td colspan="7" style="text-align:right"><b>Total</b></td><td style="text-align:right"><b>${money(comp.gross)}</b></td></tr>
-  </table>
-  <table style="margin-top:-1px"><tr>
-    <td style="width:60%;vertical-align:top;padding:0;border:none">
-      <table>
-        <tr><th colspan="4">Tax Summary</th></tr>
-        <tr><th>Taxable (₹)</th><th>CGST (₹)</th><th>SGST (₹)</th><th>Total Tax (₹)</th></tr>
-        ${taxRow}
-      </table>
-    </td>
-    <td style="width:40%;vertical-align:top;padding:0;border:none">
-      <table class="noborder">
-        ${comp.discount>0?`<tr><td class="lbl">Gross</td><td style="text-align:right">${money(comp.gross)}</td></tr>
-        <tr><td class="lbl">Discount</td><td style="text-align:right">− ${money(comp.discount)}</td></tr>`:''}
-        <tr><td class="lbl">Sub Total</td><td style="text-align:right">${money(comp.total)}</td></tr>
-        <tr><td class="lbl"><b>Total</b></td><td style="text-align:right"><b>${money(comp.total)}</b></td></tr>
-        <tr><td class="lbl">Received</td><td style="text-align:right">${money(received)}</td></tr>
-        <tr><td class="lbl">Balance (this bill)</td><td style="text-align:right"><b>${money(baaki)}</b></td></tr>
-        <tr><td class="lbl">Previous Balance</td><td style="text-align:right">${money(prevBal)}</td></tr>
-        <tr><td class="lbl"><b>Current Balance</b></td><td style="text-align:right"><b>${money(currBal)}</b></td></tr>
-      </table>
-    </td>
-  </tr></table>
-  <table style="margin-top:-1px"><tr><td style="font-size:12px"><b>Amount in Words:</b> ${numToWordsIndian(comp.total)}</td></tr></table>
-  <table style="margin-top:-1px"><tr><td style="width:50%"><b>Payment Mode:</b> ${esc(inv.paymentMode||'Cash')}</td>
-    <td style="text-align:right"><b>For ${esc(shop.name||'PARAMPARA')}:</b><br><br><br>${esc(shop.proprietor||'')}</td></tr></table>
-  ${(()=>{const _qa=(DB.shopInfo&&DB.shopInfo.qrOpen)?0:(baaki>0?baaki:comp.total);
-    const q=qrDataURL(_qa,'Invoice '+inv.no,300);
-    return q?`<table style="margin-top:-1px"><tr><td style="text-align:center;padding:10px">
-      <img src="${q}" style="width:120px;height:120px"><br>
-      <b style="font-size:12px">${_qa>0?'Scan to pay '+money(_qa):'Scan to pay'}</b>
-      <div style="font-size:11px;color:#666">${esc(shop.upi||'')}</div></td></tr></table>`:'';})()}
-  ${shop.terms?`<table style="margin-top:-1px"><tr><td style="font-size:12px"><b>Terms &amp; Conditions:</b><br>${esc(shop.terms)}</td></tr></table>`:''}
-  ${rec.notes?`<table style="margin-top:-1px"><tr><td style="font-size:12px"><b>Notes:</b> ${esc(rec.notes)}</td></tr></table>`:''}
+  <div class="doc">
+    ${shop.blessing?`<div class="bless">${esc(shop.blessing)}</div>`:''}
+    <div class="top">
+      <div class="mono">${esc((shop.name||'PARAMPARA').slice(0,1).toUpperCase())}</div>
+      <div class="brand">
+        <div class="nm">${esc(shop.name||'PARAMPARA')}</div>
+        ${shop.tagline?`<div class="tg">${esc(shop.tagline)}</div>`:''}
+        ${shop.address?`<div class="ln">${esc(shop.address)}</div>`:''}
+        ${contact?`<div class="ln">${contact}</div>`:''}
+        <div class="gst">GSTIN: <b>${esc(shop.gstin||'')}</b>${stateLine?'&nbsp;&nbsp;&nbsp;State: <b>'+esc(stateLine)+'</b>':''}</div>
+      </div>
+    </div>
+    <div class="tiname">TAX INVOICE</div>
+    <div class="two">
+      <div>
+        <div class="cap">Billed To</div>
+        <div class="cust">${esc((rec.customerName||'-').toUpperCase())}</div>
+        ${rec.phone?`<div class="muted">Contact: ${esc(rec.phone)}</div>`:''}
+        ${sm?`<div class="muted">Sales Executive: ${esc(sm.name)}${sm.phone?' ('+esc(sm.phone)+')':''}</div>`:''}
+      </div>
+      <div>
+        <div class="cap">Invoice Details</div>
+        <div class="kvr"><span class="muted">Invoice No</span><b>${esc(inv.no)}</b></div>
+        <div class="kvr"><span class="muted">Date</span><b>${fmtDate(inv.date)}</b></div>
+        ${rec.orderNo?`<div class="kvr"><span class="muted">Order No</span><b>${esc(rec.orderNo)}</b></div>`:(rec.altNo?`<div class="kvr"><span class="muted">Alteration No</span><b>${esc(rec.altNo)}</b></div>`:'')}
+        ${rec.deliveryDate?`<div class="kvr"><span class="muted">Delivery Date</span><span class="dd">${fmtDate(rec.deliveryDate)}</span></div>`:''}
+      </div>
+    </div>
+    <table class="items">
+      <thead><tr><th class="c">#</th><th>Item</th><th class="c">HSN</th><th class="c">Qty</th><th class="c">Unit</th><th class="r">Rate</th><th class="r">GST</th><th class="r">Amount</th></tr></thead>
+      <tbody>${rows}
+        <tr><td colspan="7" class="r" style="border-top:2px solid #d8c9a6;font-weight:700;padding-top:8px">Total</td><td class="r b" style="border-top:2px solid #d8c9a6;padding-top:8px">${money(comp.gross)}</td></tr>
+      </tbody>
+    </table>
+    <div class="sumwrap">
+      <div class="lft">
+        <div class="cap">Tax Summary</div>
+        <table class="tax">
+          <tr><th>Taxable</th><th>${inv.interstate?'IGST':'CGST'}</th><th>${inv.interstate?'&nbsp;':'SGST'}</th><th>Total Tax</th></tr>
+          ${taxRow}
+        </table>
+      </div>
+      <div class="rgt">
+        <table class="tot">
+          ${comp.discount>0?`<tr><td class="muted">Gross</td><td class="r">${money(comp.gross)}</td></tr>
+          <tr><td class="muted">Discount</td><td class="r">- ${money(comp.discount)}</td></tr>`:''}
+          <tr class="grand"><td>Grand Total</td><td class="r">${money(comp.total)}</td></tr>
+          <tr><td class="muted">Received</td><td class="r">${money(received)}</td></tr>
+          <tr class="bal"><td>Balance (this bill)</td><td class="r">${money(baaki)}</td></tr>
+          ${prevBal>0?`<tr><td class="muted">Previous Balance</td><td class="r">${money(prevBal)}</td></tr>
+          <tr class="bal"><td>Current Balance</td><td class="r">${money(currBal)}</td></tr>`:''}
+        </table>
+      </div>
+    </div>
+    <div class="words"><b>Amount in Words:</b> ${numToWordsIndian(comp.total)}</div>
+    <div class="pay">
+      <div class="lft">
+        <div class="kvr"><span class="muted">Payment Mode</span><b>${esc(inv.paymentMode||'Cash')}</b></div>
+        ${(()=>{const _qa=(shop.qrOpen)?0:(baaki>0?baaki:comp.total);const q=qrDataURL(_qa,'Invoice '+inv.no,300);
+          return q?`<div class="qr"><img src="${q}"><div style="font-size:11px;color:#666;margin-top:3px">${_qa>0?'Scan to pay '+money(_qa):'Scan to pay'}${shop.upi?' &middot; '+esc(shop.upi):''}</div></div>`:'';})()}
+      </div>
+      <div class="rgt">
+        <div class="muted">For <b style="color:#7a1e2b">${esc(shop.name||'PARAMPARA')}</b></div>
+        <div class="sign">${esc(shop.proprietor||'')}</div>
+        <div class="muted" style="margin-top:2px">Authorised Signatory</div>
+      </div>
+    </div>
+    ${shop.terms?`<div class="foot"><b>Terms &amp; Conditions:</b> ${esc(shop.terms)}</div>`:''}
+    ${rec.notes?`<div class="foot"><b>Notes:</b> ${esc(rec.notes)}</div>`:''}
+  </div>
   </body></html>`;
 }
+
 function printInvoice(kind,id){const rec=invRecOf(kind,id);if(!rec||!rec.invoice)return;
   const html=buildInvoiceHTML(rec,rec.invoice);
   const ifr=document.createElement('iframe');ifr.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
@@ -6567,7 +6704,7 @@ function renderPurchaseForm(){
       <option value="Card" ${f.paymentMode==='Card'?'selected':''}>${t('pm_card')}</option></select></div>
     <div class="field"><label>🧾 ${t('bill_photo')}</label><div id="pu_photos" style="display:flex;gap:8px;flex-wrap:wrap"></div>
       <div class="row" style="margin-top:8px"><button class="btn sm ghost" onclick="pickPurchPhoto('cam')">📷 ${t('camera')}</button><button class="btn sm ghost" onclick="pickPurchPhoto('lib')">🖼️ ${t('gallery')}</button></div></div>
-    <div class="field"><label>${t('order_notes')}</label><textarea id="pu_notes" placeholder="${t('notes_ph')}">${esc(f.notes)}</textarea></div>
+    <div class="field"><label>${t('notes')}</label><textarea id="pu_notes" placeholder="${t('notes_ph')}">${esc(f.notes)}</textarea></div>
     <div class="modal-actions"><button class="btn ghost" onclick="closeSheet()">${t('cancel')}</button>
       <button class="btn primary" onclick="savePurchase()">${t('save')}</button></div><div class="fab-pad"></div>`;
   showSheet();renderPurchPhotos();
