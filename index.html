@@ -126,6 +126,11 @@
   .rate-in span{color:var(--mut);font-size:14px}
   .rate-in input{flex:1;width:100%;background:transparent;border:none;color:var(--txt);font-size:15px;font-weight:700;outline:none}
   .rate-in:focus-within{border-color:var(--saffron)}
+  .kr-list{display:flex;flex-direction:column;gap:7px}
+  .kr-row{display:flex;align-items:center;gap:10px}
+  .kr-star{font-size:20px;cursor:pointer;color:var(--mut);width:24px;text-align:center;user-select:none}
+  .kr-star.on{color:var(--saffron)}
+  .kr-name{flex:1;font-weight:600}
   .pl-amt{min-width:80px;text-align:right;font-size:16px;font-weight:800;color:var(--saffron2)}
   .amt-in input{font-weight:800;color:var(--saffron2)}
   .pos-total{background:var(--card2);border-color:var(--saffron);border-width:1px}
@@ -165,6 +170,8 @@
   .disc-grp input{width:74px;height:38px;text-align:right;padding:0 8px;font-size:14px;font-weight:700}
   .disc-grp b{min-width:74px;text-align:right}
   .sum-row.pay select{width:auto;min-width:130px;height:40px;padding:0 10px;font-size:14px;font-weight:700}
+  .split-lbl{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--txt2);margin:8px 0}
+  .split-lbl input{width:17px;height:17px}
   .recv-grp{display:flex;align-items:center;gap:3px;background:var(--card);border:1px solid var(--line2);
     border-radius:9px;padding:0 10px;height:40px;width:130px}
   .recv-grp>span{color:var(--mut);font-size:14px}
@@ -347,7 +354,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v16</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v25</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -517,6 +524,9 @@ const T={
   no_karigars:'No tailors yet',
   add_karigar:'Add tailor',
   karigar_name:'Tailor name',
+  karigar_specialty:'Specialty & rates',
+  karigar_rate:'rate',
+  karigar_rates_hint:'★ the garments this karigar makes. Set the fixed rate once — it auto-fills when you receive the work.',
   karigar:'Tailor',
   karigar_none:'— not assigned —',
   karigar_slips:'Tailor slips',
@@ -671,6 +681,7 @@ const T={
   unit:'Unit',
   payment_mode:'Payment Mode',
   pm_cash:'Cash',
+  split_pay:'Split payment (cash + online)',
   pm_upi:'UPI',
   pm_card:'Card',
   pm_credit:'Credit',
@@ -701,9 +712,10 @@ const T={
   sm_manage:'Manage',
   sm_none_yet:'No salesman yet — add one',
   pos_tap_add:'Tap to add',
+  tile_edit_hint:'Edit its name, rate or includes — or delete this shortcut.',
   pos_bill:'Bill',
   pos_blank:'Blank line',
-  pos_empty:'No item yet — tap an item above',
+  pos_empty:'No item yet — tap a shortcut above, or ➕ Add item below',
   pos_more:'More options',
   pos_no_items:'No item in your master yet. Tap “+ New item”.',
   pos_add_incl:'Add includes',
@@ -717,6 +729,10 @@ const T={
   pos_search_ph:'Search fabric, readymade, saved items…',
   pos_no_results:'Nothing found',
   pos_shortcut:'quick shortcut',
+  done:'Done',
+  added:'Added',
+  pos_add_typed_hint:'Add this exact name to the bill',
+  pos_search_start:'Type an item and tap Add — or pick a saved one below.',
   add_items:'Add items',
   pos_search_type:'Search or type an item',
   pos_add_custom:'Add "{q}"',
@@ -1239,6 +1255,9 @@ const T={
   no_karigars:'अभी कोई कारीगर नहीं',
   add_karigar:'कारीगर जोड़ें',
   karigar_name:'कारीगर का नाम',
+  karigar_specialty:'स्पेशलिटी और रेट',
+  karigar_rate:'रेट',
+  karigar_rates_hint:'जो कपड़े ये कारीगर बनाता है उन्हें ★ करें। रेट एक बार सेट करें — काम रिसीव करते समय अपने आप भर जाएगा।',
   karigar:'कारीगर',
   karigar_none:'— नहीं दिया —',
   karigar_slips:'कारीगर पर्ची',
@@ -1393,6 +1412,7 @@ const T={
   unit:'यूनिट',
   payment_mode:'भुगतान का तरीका',
   pm_cash:'नकद',
+  split_pay:'स्प्लिट पेमेंट (कैश + ऑनलाइन)',
   pm_upi:'UPI',
   pm_card:'कार्ड',
   pm_credit:'उधार',
@@ -1423,9 +1443,10 @@ const T={
   sm_manage:'सँभालें',
   sm_none_yet:'अभी कोई सेल्समैन नहीं — एक जोड़ें',
   pos_tap_add:'दबाकर जोड़ें',
+  tile_edit_hint:'नाम, रेट या includes बदलें — या इस शॉर्टकट को हटाएँ।',
   pos_bill:'बिल',
   pos_blank:'खाली लाइन',
-  pos_empty:'अभी कोई आइटम नहीं — ऊपर से आइटम दबाएँ',
+  pos_empty:'अभी कोई आइटम नहीं — ऊपर शॉर्टकट दबाएँ, या नीचे ➕ Add item',
   pos_more:'और विकल्प',
   pos_no_items:'मास्टर में अभी कोई आइटम नहीं। “+ नया आइटम” दबाएँ।',
   pos_add_incl:'शामिल जोड़ें',
@@ -1439,6 +1460,10 @@ const T={
   pos_search_ph:'फैब्रिक, रेडीमेड, आइटम खोजें…',
   pos_no_results:'कुछ नहीं मिला',
   pos_shortcut:'तेज़ शॉर्टकट',
+  done:'हो गया',
+  added:'जोड़ा',
+  pos_add_typed_hint:'यही नाम बिल में जोड़ें',
+  pos_search_start:'आइटम टाइप करके Add दबाएँ — या नीचे से सेव किया चुनें।',
   add_items:'आइटम जोड़ें',
   pos_search_type:'आइटम खोजें या लिखें',
   pos_add_custom:'"{q}" जोड़ें',
@@ -3297,7 +3322,7 @@ function bankAccs(){ return (DB.accounts||[]).filter(a=>a.type==='bank'); }
 /* which account did a payment land in? old payments carry only the invoice's mode */
 function payAcc(rec,p){
   if(p.acc)return p.acc;
-  const mode=(rec.invoice&&rec.invoice.paymentMode)||rec.paymentMode||'Cash';
+  const mode=(p&&p.mode)||(rec.invoice&&rec.invoice.paymentMode)||rec.paymentMode||'Cash';
   if(/cash/i.test(mode))return (cashAcc()||{}).id;
   const b=bankAccs()[0];
   return b?b.id:(cashAcc()||{}).id;
@@ -5740,7 +5765,10 @@ function renderInvoiceForm(){
       const isR=m.kind==='ready';
       const tot=isR?readyTotal(m):0;
       const out=isR&&tot<=0;
-      return `<div class="pos-tile ${out?'out':''}" onclick="${out?`toast(t('stk_out_of'),'bad')`:`posAdd('${m.id}')`}">
+      return `<div class="pos-tile ${out?'out':''}"
+        onclick="tileTap('${m.id}',${out?1:0})"
+        ontouchstart="tileHoldStart('${m.id}')" ontouchend="tileHoldEnd()" ontouchmove="tileHoldEnd()" ontouchcancel="tileHoldEnd()"
+        oncontextmenu="event.preventDefault();tileEdit('${m.id}');return false;">
         ${isR?`<span class="pos-badge ${tot<=2?'low':''}">${tot}</span>`:''}
         <b>${esc(m.name)}</b>${m.rate?`<span>₹${esc(m.rate)}</span>`:''}</div>`;}).join('')
     || `<p class="hint" style="grid-column:1/-1;margin:0">${t('pos_no_items')}</p>`;
@@ -5762,11 +5790,14 @@ function renderInvoiceForm(){
         <input id="inv_date" type="date" value="${esc(f.date)}"></div>
     </div>
 
-    <div class="tap-mini">⚡ ${t('pos_tap_add')} — ${t('pos_shortcut')}</div>
+    <div class="tap-mini" style="display:flex;justify-content:space-between;align-items:center">
+      <span>⚡ ${t('pos_tap_add')} — ${t('pos_shortcut')}</span>
+      <button class="btn sm ghost" style="padding:3px 12px;font-size:12px" onclick="posManageItems()">✏️ ${t('edit')}</button>
+    </div>
     <div class="pos-tiles">${tiles}</div>
-    <button class="btn primary block" style="margin:4px 0 12px" onclick="posAddMenu()">➕ ${t('pos_add_item')}</button>
 
     <div id="posLines"></div>
+    <button class="btn primary block" style="margin:8px 0 14px" onclick="posAddMenu()">➕ ${t('pos_add_item')}</button>
 
     <div class="head-grid" style="margin-top:8px">
       <div class="field" style="margin:0"><label>📅 ${t('inv_delivery')}</label>
@@ -5801,13 +5832,23 @@ function renderInvoiceForm(){
 
       <div class="sum-sep"></div>
 
+      ${f.split ? `
+      <div class="sum-row pay"><span>💵 ${t('pm_cash')}</span>
+        <span class="recv-grp"><span>₹</span><input id="inv_cash" type="number" inputmode="numeric" value="${esc(f.split.cash!=null?f.split.cash:'')}" placeholder="0" oninput="updateInvTotals()"></span></div>
+      <div class="sum-row pay"><span>📱 ${t('pm_upi')}</span>
+        <span class="recv-grp"><span>₹</span><input id="inv_upi" type="number" inputmode="numeric" value="${esc(f.split.upi!=null?f.split.upi:'')}" placeholder="0" oninput="updateInvTotals()"></span></div>
+      <label class="split-lbl"><input type="checkbox" checked onchange="invToggleSplit()"> ${t('split_pay')}</label>
+      <div class="sum-row pay"><span>${t('received')}</span><b id="tRecvSplit">${money((+f.split.cash||0)+(+f.split.upi||0))}</b></div>
+      <div class="sum-row due"><span>${t('total_due')}</span>
+        <b id="tDue">${money(Math.max(0,r2(comp0.total-((+f.split.cash||0)+(+f.split.upi||0)))))}</b></div>
+      ` : `
       <div class="sum-row pay"><span>${t('payment_mode')}</span>
         <select id="inv_pm" onchange="updateInvTotals()">
           <option value="UPI" ${f.paymentMode==='UPI'?'selected':''}>${t('pm_upi')}</option>
           <option value="Cash" ${f.paymentMode==='Cash'?'selected':''}>${t('pm_cash')}</option>
           <option value="Card" ${f.paymentMode==='Card'?'selected':''}>${t('pm_card')}</option>
           <option value="Bank" ${f.paymentMode==='Bank'?'selected':''}>${t('pm_bank')}</option></select></div>
-
+      <label class="split-lbl"><input type="checkbox" onchange="invToggleSplit()"> ${t('split_pay')}</label>
       ${(()=>{
         const rec0=invRecOf(f.kind,f.id)||{};
         const paid=orderReceived(rec0);
@@ -5826,6 +5867,7 @@ function renderInvoiceForm(){
           <div class="sum-row due"><span>${t('total_due')}</span>
             <b id="tDue">${money(Math.max(0,r2(comp0.total-(+shown||0))))}</b></div>`;
       })()}
+      `}
     </div>
 
     <details style="margin-top:14px">
@@ -5927,6 +5969,17 @@ function posLinkOrder(no){
     });
   } else go();
 }
+let _tileHold=null,_tileHeld=false;
+function tileHoldStart(mid){ _tileHeld=false; if(_tileHold)clearTimeout(_tileHold);
+  _tileHold=setTimeout(function(){_tileHold=null;_tileHeld=true;try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){} tileEdit(mid);},500); }
+function tileHoldEnd(){ if(_tileHold){clearTimeout(_tileHold);_tileHold=null;} }
+function tileTap(mid,out){ tileHoldEnd(); if(_tileHeld){_tileHeld=false;return;} if(out){toast(t('stk_out_of'),'bad');return;} posAdd(mid); }
+function tileEdit(mid){ const m=(DB.itemMaster||[]).find(x=>x.id===mid); if(!m)return;
+  modal('✏️ '+esc(m.name),`<p class="hint">${t('tile_edit_hint')}</p>`,
+    [{label:'✏️ '+t('edit'),cls:'ghost',fn:function(){closeModal();imEdit(mid,{type:'inv',i:-1});}},
+     {label:'🗑️ '+t('delete'),cls:'danger',fn:function(){closeModal();posDelMaster(mid);}},
+     {label:t('close'),cls:'primary',fn:closeModal}]);
+}
 function posAdd(mid,size){
   captureInvoiceForm();
   const m=(DB.itemMaster||[]).find(x=>x.id===mid); if(!m)return;
@@ -5961,28 +6014,27 @@ function posBlank(){
 function posDel(i){captureInvoiceForm();invForm.items.splice(i,1);posRefresh();}
 function posNewItem(){captureInvoiceForm();_imDraft=null;imEdit(null,{type:'inv',i:-1});}
 /* ---- one clean "Add item" entry: search stock, custom line, from order, edit/delete ---- */
-function posAddMenu(){
-  captureInvoiceForm();
-  modal('➕ '+t('pos_add_item'),
-    `<button class="btn ghost block" style="margin-bottom:8px" onclick="posSearchAdd()">🔍 ${t('pos_search_items')}</button>
-     <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();posBlank()">✏️ ${t('pos_custom_item')}</button>
-     <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();invLoadFromOrder()">📋 ${t('pos_from_order')}</button>
-     <button class="btn ghost block" onclick="posManageItems()">⚙️ ${t('pos_manage_items')}</button>`,
-    [{label:t('close'),cls:'ghost',fn:()=>closeModal()}]);
-}
+function posAddMenu(){ posSearchAdd(); }
 function posSearchAdd(){
-  modal('🔍 '+t('pos_search_items'),
-    `<div class="field" style="margin:0 0 10px"><input id="posSearchQ" placeholder="${t('pos_search_ph')}" oninput="posSearchRun(this.value)" autocomplete="off"></div>
-     <div id="posSearchRes"></div>`,
-    [{label:t('close'),cls:'ghost',fn:()=>{closeModal();renderInvoiceForm();}}]);
+  modal('➕ '+t('pos_add_item'),
+    `<div class="field" style="margin:0 0 8px"><input id="posSearchQ" placeholder="${t('pos_search_ph')}" oninput="posSearchRun(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();posAddTyped();}" autocomplete="off"></div>
+     <div id="posSearchRes"></div>
+     <div id="posSearchAdded" class="hint" style="margin:8px 0 2px;min-height:16px"></div>
+     <div class="row" style="gap:6px;margin-top:6px">
+       <button class="btn sm ghost" style="flex:1" onclick="closeModal();invLoadFromOrder()">📋 ${t('pos_from_order')}</button>
+     </div>`,
+    [{label:t('done'),cls:'primary',fn:()=>{closeModal();renderInvoiceForm();}}]);
   setTimeout(()=>{const el=$('#posSearchQ');if(el)el.focus();posSearchRun('');},120);
 }
-function posSearchRun(q){
+function posSearchRun(qraw){
   const box=$('#posSearchRes'); if(!box)return;
-  q=(q||'').trim().toLowerCase();
-  const masters=(DB.itemMaster||[]).filter(m=>!q||String(m.name).toLowerCase().includes(q)).slice(0,15);
-  const fabs=(DB.fabItems||[]).filter(f=>!q||String(f.name).toLowerCase().includes(q)||String(f.category||'').toLowerCase().includes(q)).slice(0,15);
+  const q=(qraw||'').trim(); const ql=q.toLowerCase();
+  const masters=(DB.itemMaster||[]).filter(m=>!ql||String(m.name).toLowerCase().includes(ql)).slice(0,12);
+  const fabs=(DB.fabItems||[]).filter(f=>!ql||String(f.name).toLowerCase().includes(ql)||String(f.category||'').toLowerCase().includes(ql)).slice(0,12);
   let h='';
+  if(q){ h+=`<div class="cust-result" style="margin-bottom:8px;border:1px solid var(--saffron)" onclick="posAddTyped()">
+      <div><b>➕ ${t('add')} “${esc(q)}”</b><div class="hint">${t('pos_add_typed_hint')}</div></div>
+      <span class="btn sm primary">${t('add')}</span></div>`; }
   if(masters.length){ h+=`<div class="hint" style="margin:2px 0 4px">📦 ${t('item_master')}</div>`;
     h+=masters.map(m=>{const isR=m.kind==='ready';const tot=isR?readyTotal(m):0;
       return `<div class="cust-result" style="margin-bottom:6px" onclick="posAddMaster('${m.id}')">
@@ -5994,16 +6046,39 @@ function posSearchRun(q){
         <div><b>${esc(f.name)}</b>${f.category?`<div class="hint">${esc(f.category)}</div>`:''}${f.rate?`<div class="hint">₹${esc(f.rate)}/mtr</div>`:''}</div>
         <span class="btn sm primary">+</span></div>`).join('');
   }
-  box.innerHTML=h||`<p class="hint">${t('pos_no_results')}</p>`;
+  const thaans=ql?(DB.thaans||[]).filter(th=>{
+      const fi=(DB.fabItems||[]).find(x=>x.id===th.fabId)||{};
+      return String(th.serial||'').toLowerCase().includes(ql)
+        || String(fi.name||'').toLowerCase().includes(ql)
+        || String(fi.category||'').toLowerCase().includes(ql);
+    }).slice(0,12):[];
+  if(thaans.length){ h+=`<div class="hint" style="margin:9px 0 4px">🧵 Fabric rolls</div>`;
+    h+=thaans.map(th=>{const fi=(DB.fabItems||[]).find(x=>x.id===th.fabId)||{};const rt=th.rate||fi.rate||0;const bal=thaanBal(th);
+      return `<div class="cust-result" style="margin-bottom:6px" onclick="posAddThaan('${th.id}')">
+        <div><b>${esc(fi.name||'Fabric')} · #${esc(th.serial)}</b><div class="hint">${bal} mtr left${rt?` · ₹${esc(rt)}/mtr`:''}</div></div>
+        <span class="btn sm primary">+</span></div>`;}).join('');
+  }
+  box.innerHTML=h||`<p class="hint" style="padding:6px 0">${q?t('pos_no_results'):t('pos_search_start')}</p>`;
 }
-function posAddMaster(mid){ closeModal(); posAdd(mid); }
-function posAddFabric(fid){
-  const f=(DB.fabItems||[]).find(x=>x.id===fid); closeModal(); if(!f)return;
+function posPushItem(o){
   captureInvoiceForm();
   invForm.items=(invForm.items||[]).filter(it=>it.label||+it.rate);
-  invForm.items.push({masterId:'',label:f.name+(f.category?' ('+f.category+')':''),hsn:f.hsn||'',qty:1,unit:'Mtr',rate:f.rate||'',price:'',disc:0,incl:[],includes:''});
-  posRefresh(); toast('+ '+f.name,'ok');
+  invForm.items.push(Object.assign({masterId:'',label:'',hsn:'',qty:1,unit:'Pcs',rate:'',price:'',disc:0,incl:[],includes:''},o));
+  posRefresh();
 }
+function posSearchNote(name){ const el=$('#posSearchAdded'); if(el)el.textContent='✓ '+t('added')+': '+name; const q=$('#posSearchQ'); if(q){q.value='';q.focus();} posSearchRun(''); }
+function posAddTyped(){ const inp=$('#posSearchQ'); if(!inp)return; const v=(inp.value||'').trim(); if(!v)return; posPushItem({label:v}); posSearchNote(v); }
+function posAddMaster(mid){ const m=(DB.itemMaster||[]).find(x=>x.id===mid); if(!m)return;
+  posPushItem({masterId:m.id,label:m.name,hsn:m.hsn||'',unit:(m.incl&&m.incl.length>1)?'Set':'Pcs',rate:m.rate||'',incl:[...(m.incl||[])],includes:(m.incl||[]).join(', ')});
+  posSearchNote(m.name); }
+function posAddFabric(fid){ const f=(DB.fabItems||[]).find(x=>x.id===fid); if(!f)return;
+  posPushItem({label:f.name+(f.category?' ('+f.category+')':''),hsn:f.hsn||'',unit:'Mtr',rate:f.rate||'',fabId:f.id});
+  posSearchNote(f.name); }
+function posAddThaan(tid){ const th=(DB.thaans||[]).find(x=>x.id===tid); if(!th)return;
+  const fi=(DB.fabItems||[]).find(x=>x.id===th.fabId)||{};
+  posPushItem({label:(fi.name||'Fabric')+' ('+th.serial+')',hsn:fi.hsn||'',unit:'Mtr',rate:th.rate||fi.rate||'',thaanId:th.id,fabId:th.fabId});
+  posSearchNote(th.serial+' · '+(fi.name||'')); }
+
 function posManageItems(){
   const rows=(DB.itemMaster||[]).map(m=>`<div class="cust-result" style="margin-bottom:6px">
       <div><b>${esc(m.name)}</b>${m.incl&&m.incl.length?`<div class="hint">${esc(m.incl.join(' + '))}</div>`:''}${m.rate?`<div class="hint">₹${esc(m.rate)}</div>`:''}</div>
@@ -6250,6 +6325,13 @@ function updateInvTotals(){
   set('tTotal',money(comp.total));
   const recv=invForm.receivedNow!=null?invForm.receivedNow:0;
   set('tDue',money(Math.max(0,r2(comp.total-recv))));
+  if(invForm.split)set('tRecvSplit',money(recv));
+}
+function invToggleSplit(){
+  captureInvoiceForm();
+  if(invForm.split){ invForm.split=null; }
+  else { const r=+invForm.receivedNow||0; invForm.split={cash:'',upi:r||''}; }
+  renderInvoiceForm();
 }
 function previewInvoice(){
   captureInvoiceForm();const f=invForm;
@@ -6259,8 +6341,15 @@ function previewInvoice(){
   if(f.kind==='sale'){
     const comp=invCompute(tempInv);
     const recv=(f.receivedNow!=null)?f.receivedNow:comp.total;
+    let pays=recv>0?[{amt:recv,date:f.date}]:[];
+    if(f.split && ((+f.split.cash||0)>0 || (+f.split.upi||0)>0)){
+      pays=[];
+      if((+f.split.cash||0)>0)pays.push({amt:r2(+f.split.cash),date:f.date,mode:'Cash'});
+      if((+f.split.upi||0)>0)pays.push({amt:r2(+f.split.upi),date:f.date,mode:'UPI'});
+      tempInv.paymentMode=pays.map(p=>p.mode+' '+money(p.amt)).join(' + ');
+    }
     previewRec=Object.assign({},rec,{customerName:f.customerName||'',phone:f.phone||'',total:comp.total,notes:f.notes||'',
-      payments:recv>0?[{amt:recv,date:f.date}]:[]});
+      payments:pays});
   }
   const html=buildInvoiceHTML(previewRec,tempInv);
   const win=window.open('','_blank');
@@ -6280,6 +6369,11 @@ function captureInvoiceForm(){const f=invForm;
   if($('#inv_cphone')&&!f.customerId)f.phone=$('#inv_cphone').value.trim();
   if($('#inv_notes'))f.notes=$('#inv_notes').value.trim();
   if($('#inv_recv'))f.receivedNow=$('#inv_recv').value===''?null:(+$('#inv_recv').value||0);
+  if(f.split){
+    if($('#inv_cash'))f.split.cash=$('#inv_cash').value===''?'':(+$('#inv_cash').value||0);
+    if($('#inv_upi'))f.split.upi=$('#inv_upi').value===''?'':(+$('#inv_upi').value||0);
+    f.receivedNow=(+f.split.cash||0)+(+f.split.upi||0);
+  }
   if($('#inv_ddate'))f.deliveryDate=$('#inv_ddate').value;
   if($('#pos_ono'))f.orderNo=($('#pos_ono').value||'').trim();
   if($('#inv_sm'))f.salesmanId=$('#inv_sm').value;
@@ -6364,12 +6458,18 @@ function saveInvoice(){
     const recv=(f.receivedNow!=null)?f.receivedNow:comp.total;
     rec.payments=recv>0?[{amt:recv,date:f.date}]:[];
   }
-  // learn any new item names into the master so next bill is one tap
+  // Split payment: record cash and online separately so Cash & Bank routes each correctly
+  if(f.split && ((+f.split.cash||0)>0 || (+f.split.upi||0)>0)){
+    const d=f.date||todayISO(), pays=[];
+    if((+f.split.cash||0)>0)pays.push({amt:r2(+f.split.cash),date:d,mode:'Cash'});
+    if((+f.split.upi||0)>0)pays.push({amt:r2(+f.split.upi),date:d,mode:'UPI'});
+    rec.payments=pays;
+    rec.invoice.paymentMode=pays.map(p=>p.mode+' '+money(p.amt)).join(' + ');
+  }
   DB.itemMaster=DB.itemMaster||[];
-  f.items.forEach(it=>{ if(!it.label)return;
-    let m=DB.itemMaster.find(x=>String(x.name).toLowerCase()===String(it.label).toLowerCase());
-    if(!m){ DB.itemMaster.push({id:uid(),name:it.label,hsn:it.hsn||'',rate:it.rate||'',incl:[...(it.incl||[])],kind:'stitch',stk:{}}); }
-  });
+  // NOTE: bill items do NOT auto-become tap-to-add shortcuts anymore.
+  // Shortcuts are curated by hand (⚡ Edit / Manage / long-press) so the shortcut row
+  // stays clean and separate from what gets billed. Adding to the bill never touches shortcuts.
   // readymade items leave stock; stitched (made-to-order) items never touch stock
   if(!f._stockDone){
     f.items.forEach(it=>{
@@ -6380,6 +6480,16 @@ function saveInvoice(){
       if(sz){ readySet(m,sz,readyQty(m,sz)-q); }
       move({dir:MV_OUT,target:'ready',itemId:m.id,size:sz,qty:q,rate:+it.rate||0,
         reason:'sale',ref:'Invoice '+f.no,refId:f.id});
+    });
+    // fabric sold on the bill leaves stock too — meters out of the roll
+    f.items.forEach(it=>{
+      if(it.unit!=='Mtr')return;
+      const q=+it.qty||0; if(q<=0)return;
+      let th=it.thaanId?(DB.thaans||[]).find(x=>x.id===it.thaanId):null;
+      if(!th && it.fabId){ th=(DB.thaans||[]).filter(x=>x.fabId===it.fabId && thaanBal(x)>0).sort((a,b)=>thaanBal(b)-thaanBal(a))[0]; }
+      if(!th)return;
+      th.used=r2((+th.used||0)+q);
+      move({dir:MV_OUT,target:'fab',thaanId:th.id,qty:q,rate:+it.rate||0,reason:'sale',ref:'Invoice '+f.no,refId:f.id});
     });
     f._stockDone=true;
     rec.invoice._stockDone=true;
@@ -7362,17 +7472,35 @@ function karigarMaster(){
     <div class="modal-actions"><button class="btn ghost block" onclick="closeSheet()">${t('close')}</button></div>`;
   showSheet();
 }
+let _krSpec=new Set();
 function karigarEdit(id){const ex=id?(DB.karigars||[]).find(x=>x.id===id):null;
+  _krSpec=new Set((ex&&ex.specialties)||[]);
+  const rates=(ex&&ex.rates)||{};
+  const rows=GARMENTS.map(g=>{const on=_krSpec.has(g.id);
+    return `<div class="kr-row">
+      <span class="kr-star ${on?'on':''}" data-spec="${g.id}" onclick="toggleKrSpec('${g.id}')">${on?'★':'☆'}</span>
+      <span class="kr-name">${g.ico} ${esc(g.n)}</span>
+      <div class="rate-in" style="flex:0 0 118px;max-width:118px"><span>₹</span><input data-krate="${g.id}" type="number" inputmode="numeric" value="${rates[g.id]?esc(rates[g.id]):''}" placeholder="${t('karigar_rate')}"></div>
+    </div>`;}).join('');
   $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:12px">${ex?t('edit'):t('add_karigar')}</h2>
     <div class="field"><label>${t('karigar_name')}</label><input id="kName" value="${ex?esc(ex.name):''}" placeholder="${t('karigar_name')}"></div>
     <div class="field" style="margin-top:10px"><label>${t('phone')}</label><input id="kPhone" type="tel" inputmode="numeric" value="${ex?esc(ex.phone||''):''}" placeholder="${t('phone')}"></div>
     ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost" style="margin-top:10px" onclick="pickKarigarContact()">📇 ${t('from_contacts')}</button>`:''}
+    <div class="section-h" style="margin-top:16px">🧵 ${t('karigar_specialty')}</div>
+    <p class="hint" style="margin-bottom:10px">${t('karigar_rates_hint')}</p>
+    <div class="kr-list">${rows}</div>
     <div class="modal-actions"><button class="btn ghost" onclick="karigarMaster()">${t('cancel')}</button><button class="btn primary" onclick="karigarSave('${id||''}')">${t('save')}</button></div>`;
   showSheet();
 }
+function toggleKrSpec(gid){ if(_krSpec.has(gid))_krSpec.delete(gid); else _krSpec.add(gid);
+  const el=document.querySelector('.kr-star[data-spec="'+gid+'"]'); if(el){const on=_krSpec.has(gid);el.classList.toggle('on',on);el.textContent=on?'★':'☆';} }
 function karigarSave(id){const name=($('#kName').value||'').trim();if(!name){toast(t('karigar_name'),'bad');return;}
-  const phone=($('#kPhone').value||'').replace(/[^\d+]/g,'');DB.karigars=DB.karigars||[];
-  if(id){const k=DB.karigars.find(x=>x.id===id);if(k){k.name=name;k.phone=phone;}}else{DB.karigars.push({id:uid(),name,phone});}
+  const phone=($('#kPhone').value||'').replace(/[^\d+]/g,'');
+  const rates={}; document.querySelectorAll('[data-krate]').forEach(inp=>{const v=+inp.value||0;if(v>0)rates[inp.dataset.krate]=v;});
+  const specialties=[..._krSpec];
+  DB.karigars=DB.karigars||[];
+  if(id){const k=DB.karigars.find(x=>x.id===id);if(k){k.name=name;k.phone=phone;k.rates=rates;k.specialties=specialties;}}
+  else{DB.karigars.push({id:uid(),name,phone,rates,specialties});}
   save();karigarMaster();toast(t('t_saved'),'ok');}
 function karigarDelete(id){confirmModal(t('confirm_del'),t('confirm_del_msg'),()=>{DB.karigars=(DB.karigars||[]).filter(x=>x.id!==id);
   DB.orders.forEach(o=>{if(o.assign)for(const g in o.assign)if(o.assign[g]===id)delete o.assign[g];});
