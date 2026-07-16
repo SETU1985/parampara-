@@ -354,7 +354,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v25</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v27</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -733,6 +733,11 @@ const T={
   added:'Added',
   pos_add_typed_hint:'Add this exact name to the bill',
   pos_search_start:'Type an item and tap Add — or pick a saved one below.',
+  pos_sec_stock:'In stock (readymade + fabric)',
+  pos_stock_empty:'No stock yet. Type a name above and tap Add for a one-off item.',
+  pos_sec_ready:'Readymade — from stock',
+  pos_sec_fabric:'Fabric — from stock',
+  pos_sec_saved:'Saved items',
   add_items:'Add items',
   pos_search_type:'Search or type an item',
   pos_add_custom:'Add "{q}"',
@@ -1464,6 +1469,11 @@ const T={
   added:'जोड़ा',
   pos_add_typed_hint:'यही नाम बिल में जोड़ें',
   pos_search_start:'आइटम टाइप करके Add दबाएँ — या नीचे से सेव किया चुनें।',
+  pos_sec_stock:'स्टॉक में (रेडीमेड + फैब्रिक)',
+  pos_stock_empty:'अभी स्टॉक नहीं। ऊपर नाम टाइप करके Add दबाएँ।',
+  pos_sec_ready:'रेडीमेड — स्टॉक से',
+  pos_sec_fabric:'फैब्रिक — स्टॉक से',
+  pos_sec_saved:'सेव किए आइटम',
   add_items:'आइटम जोड़ें',
   pos_search_type:'आइटम खोजें या लिखें',
   pos_add_custom:'"{q}" जोड़ें',
@@ -5901,7 +5911,7 @@ function posLineHTML(i,it){
   const amt=r2((+it.qty||1)*(+it.rate||0));
   return `<div class="pos-line" id="posLine${i}">
     <div class="pl-top">
-      <input class="pl-name" data-iin="${i}" list="invStockList" value="${esc(it.label||'')}" placeholder="${t('inv_item_name_ph')}">
+      <input class="pl-name" data-iin="${i}" value="${esc(it.label||'')}" placeholder="${t('inv_item_name_ph')}">
       <button class="pl-x" onclick="posDel(${i})">✕</button>
     </div>
     <div class="pl-incl-chips" id="posIncl${i}">${posInclChipsHTML(i,it)}</div>
@@ -6029,37 +6039,20 @@ function posSearchAdd(){
 function posSearchRun(qraw){
   const box=$('#posSearchRes'); if(!box)return;
   const q=(qraw||'').trim(); const ql=q.toLowerCase();
-  const masters=(DB.itemMaster||[]).filter(m=>!ql||String(m.name).toLowerCase().includes(ql)).slice(0,12);
-  const fabs=(DB.fabItems||[]).filter(f=>!ql||String(f.name).toLowerCase().includes(ql)||String(f.category||'').toLowerCase().includes(ql)).slice(0,12);
+  const match=s=>!ql||String(s||'').toLowerCase().includes(ql);
+  // Search shows ONLY real stock: readymade pieces + fabric rolls. Dummy shortcut presets never appear here.
+  const ready=(DB.itemMaster||[]).filter(m=>m.kind==='ready'&&match(m.name)).slice(0,12);
+  const rolls=(DB.thaans||[]).filter(th=>{const fi=(DB.fabItems||[]).find(x=>x.id===th.fabId)||{};return match(th.serial)||match(fi.name)||match(fi.category);}).slice(0,15);
+  const row=(onclick,title,sub)=>`<div class="cust-result" style="margin-bottom:6px" onclick="${onclick}"><div><b>${title}</b>${sub?`<div class="hint">${sub}</div>`:''}</div><span class="btn sm primary">+</span></div>`;
   let h='';
-  if(q){ h+=`<div class="cust-result" style="margin-bottom:8px;border:1px solid var(--saffron)" onclick="posAddTyped()">
-      <div><b>➕ ${t('add')} “${esc(q)}”</b><div class="hint">${t('pos_add_typed_hint')}</div></div>
-      <span class="btn sm primary">${t('add')}</span></div>`; }
-  if(masters.length){ h+=`<div class="hint" style="margin:2px 0 4px">📦 ${t('item_master')}</div>`;
-    h+=masters.map(m=>{const isR=m.kind==='ready';const tot=isR?readyTotal(m):0;
-      return `<div class="cust-result" style="margin-bottom:6px" onclick="posAddMaster('${m.id}')">
-        <div><b>${esc(m.name)}</b>${m.rate?`<div class="hint">₹${esc(m.rate)}</div>`:''}${isR?`<div class="hint">In stock: ${tot}</div>`:''}</div>
-        <span class="btn sm primary">+</span></div>`;}).join('');
-  }
-  if(fabs.length){ h+=`<div class="hint" style="margin:9px 0 4px">🧵 Fabric</div>`;
-    h+=fabs.map(f=>`<div class="cust-result" style="margin-bottom:6px" onclick="posAddFabric('${f.id}')">
-        <div><b>${esc(f.name)}</b>${f.category?`<div class="hint">${esc(f.category)}</div>`:''}${f.rate?`<div class="hint">₹${esc(f.rate)}/mtr</div>`:''}</div>
-        <span class="btn sm primary">+</span></div>`).join('');
-  }
-  const thaans=ql?(DB.thaans||[]).filter(th=>{
-      const fi=(DB.fabItems||[]).find(x=>x.id===th.fabId)||{};
-      return String(th.serial||'').toLowerCase().includes(ql)
-        || String(fi.name||'').toLowerCase().includes(ql)
-        || String(fi.category||'').toLowerCase().includes(ql);
-    }).slice(0,12):[];
-  if(thaans.length){ h+=`<div class="hint" style="margin:9px 0 4px">🧵 Fabric rolls</div>`;
-    h+=thaans.map(th=>{const fi=(DB.fabItems||[]).find(x=>x.id===th.fabId)||{};const rt=th.rate||fi.rate||0;const bal=thaanBal(th);
-      return `<div class="cust-result" style="margin-bottom:6px" onclick="posAddThaan('${th.id}')">
-        <div><b>${esc(fi.name||'Fabric')} · #${esc(th.serial)}</b><div class="hint">${bal} mtr left${rt?` · ₹${esc(rt)}/mtr`:''}</div></div>
-        <span class="btn sm primary">+</span></div>`;}).join('');
-  }
-  box.innerHTML=h||`<p class="hint" style="padding:6px 0">${q?t('pos_no_results'):t('pos_search_start')}</p>`;
+  if(q){ h+=`<div class="cust-result" style="margin-bottom:10px;border:1px solid var(--saffron)" onclick="posAddTyped()"><div><b>➕ ${t('add')} “${esc(q)}”</b><div class="hint">${t('pos_add_typed_hint')}</div></div><span class="btn sm primary">${t('add')}</span></div>`; }
+  if(ready.length||rolls.length){ h+=`<div class="hint" style="margin:2px 0 4px">📦 ${t('pos_sec_stock')}</div>`;
+    h+=ready.map(m=>row(`posAddMaster('${m.id}')`,esc(m.name),`In stock: ${readyTotal(m)}${m.rate?` · ₹${esc(m.rate)}`:''}`)).join('');
+    h+=rolls.map(th=>{const fi=(DB.fabItems||[]).find(x=>x.id===th.fabId)||{};const rt=th.rate||fi.rate||0;
+      return row(`posAddThaan('${th.id}')`,`${esc(fi.name||'Fabric')} · #${esc(th.serial)}`,`${thaanBal(th)} mtr left${rt?` · ₹${esc(rt)}/mtr`:''}`);}).join(''); }
+  box.innerHTML=h||`<p class="hint" style="padding:6px 0">${q?t('pos_no_results'):(ready.length||rolls.length?'':t('pos_stock_empty'))}</p>`;
 }
+
 function posPushItem(o){
   captureInvoiceForm();
   invForm.items=(invForm.items||[]).filter(it=>it.label||+it.rate);
