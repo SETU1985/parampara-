@@ -126,6 +126,7 @@
   .rate-in span{color:var(--mut);font-size:14px}
   .rate-in input{flex:1;width:100%;background:transparent;border:none;color:var(--txt);font-size:15px;font-weight:700;outline:none}
   .rate-in:focus-within{border-color:var(--saffron)}
+  .cust-result.pos-top{border:1px solid var(--saffron)!important;background:rgba(224,138,26,.10)}
   .kr-list{display:flex;flex-direction:column;gap:7px}
   .kr-row{display:flex;align-items:center;gap:10px}
   .kr-star{font-size:20px;cursor:pointer;color:var(--mut);width:24px;text-align:center;user-select:none}
@@ -261,6 +262,7 @@
   .mfield input.filled{color:var(--saffron2)}
   .prefilled-note{font-size:11px; color:var(--ok); margin:4px 0 0}
 
+  .pur-collapsed{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r2);background:var(--card2);margin-bottom:8px;cursor:pointer}
   .cust-result{padding:11px 12px; border:1px solid var(--line); border-radius:var(--r2); background:var(--bg2); margin-bottom:7px; display:flex; justify-content:space-between; align-items:center}
   .cust-result b{font-size:15px}
   .kv{display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--line); font-size:14px}
@@ -354,7 +356,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v27</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v37</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1136,6 +1138,7 @@ const T={
   rp_creditor_total:'Total Payable',
   t_purch_saved:'Purchase saved',
   t_no_supplier:'Enter supplier name',
+  t_no_billno:'Bill number is required',
   t_no_amount:'Enter amount',
   purch_options:'Purchase options',
   delete_purchase:'Delete purchase',
@@ -1872,6 +1875,7 @@ const T={
   rp_creditor_total:'कुल देना है',
   t_purch_saved:'ख़रीद सहेजी गई',
   t_no_supplier:'सप्लायर का नाम डालें',
+  t_no_billno:'बिल नंबर ज़रूरी है',
   t_no_amount:'राशि डालें',
   purch_options:'ख़रीद विकल्प',
   delete_purchase:'ख़रीद हटाएँ',
@@ -2322,7 +2326,7 @@ function stockHome(tab){
   const fabMtr=r2((DB.thaans||[]).reduce((s,t)=>s+thaanBal(t),0));
   const fabVal=r2((DB.thaans||[]).reduce((s,t)=>s+thaanValue(t),0));
   const rdyPcs=readyItems().reduce((s,m)=>s+readyTotal(m),0);
-  const rdyVal=r2(readyItems().reduce((s,m)=>s+readyTotal(m)*(+m.rate||0),0));
+  const rdyVal=r2(readyItems().reduce((s,m)=>s+readyTotal(m)*(+m.cost||+m.rate||0),0));
 
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:10px">📦 ${t('stk_title')}</h2>
@@ -2561,69 +2565,76 @@ function thaanSave(){
   thaanRender();
 }
 let _bulk=null;
-function bulkFabOpen(){ _bulk={rows:[]}; for(let k=0;k<8;k++)_bulk.rows.push({serial:'',mtr:'',rate:'',name:'',photos:[]}); bulkFabRender(); }
-function bulkSet(i,f,v){ if(_bulk&&_bulk.rows[i])_bulk.rows[i][f]=v; }
-function bulkAddRows(){ for(let k=0;k<8;k++)_bulk.rows.push({serial:'',mtr:'',rate:'',name:'',photos:[]}); bulkFabRender(); }
-function bulkDelRow(i){ _bulk.rows.splice(i,1); if(!_bulk.rows.length)_bulk.rows.push({serial:'',mtr:'',rate:'',name:'',photos:[]}); bulkFabRender(); }
-function pickBulkPhoto(src,i){ photoTarget={type:'bulkfab',i}; const inp=src==='cam'?$('#filePickCam'):$('#filePick'); inp.value=''; inp.click(); }
-function bulkPhotoBadge(i){ const el=document.querySelector('.bf-row[data-r="'+i+'"] .bf-cam'); if(el){const n=((_bulk.rows[i]||{}).photos||[]).length; el.textContent=n?('📷 '+n):'📷'; el.classList.toggle('has',!!n);} }
+function bulkFabOpen(){ _bulk={cat:'',party:'',rack:'',entry:{serial:'',mtr:'',rate:'',name:''},entryPhotos:[],added:[]}; bulkFabRender(); setTimeout(()=>{const el=$('#bfSerial');if(el)el.focus();},80); }
+function bulkShared(f,v){ if(_bulk)_bulk[f]=v; }
+function bulkEntry(f,v){ if(_bulk)_bulk.entry[f]=v; }
+function pickBulkPhoto(src){ photoTarget={type:'bulkfab'}; const inp=src==='cam'?$('#filePickCam'):$('#filePick'); inp.value=''; inp.click(); }
+function bulkPhotoBadge(){ const el=$('#bfCam'); if(el){const n=(_bulk.entryPhotos||[]).length; el.textContent=n?('📷 '+n):'📷'; el.classList.toggle('has',!!n);} }
+function bulkAddOne(){
+  const gv=id=>{const el=$(id);return el?el.value:'';};
+  const serial=(gv('#bfSerial')||'').trim();
+  const mtr=+(gv('#bfMtr')||0);
+  const rate=+(gv('#bfRate')||0);
+  let name=(gv('#bfName')||'').trim();
+  if(!serial||!(mtr>0)){toast(t('stk_bulk_none'),'bad');const se=$('#bfSerial');if(se)se.focus();return;}
+  DB.stkCfg=DB.stkCfg||{}; DB.fabItems=DB.fabItems||[]; DB.thaans=DB.thaans||[];
+  const cat=(_bulk.cat||'').trim(), party=(_bulk.party||'').trim(), rack=(_bulk.rack||'').trim();
+  let ser=serial; while(serialTaken(ser))ser=ser+'A';
+  if(!name)name=cat||('Fabric '+ser);
+  let f=DB.fabItems.find(x=>String(x.name).toLowerCase()===name.toLowerCase());
+  if(!f){f={id:uid(),name,category:cat,party,rate};DB.fabItems.push(f);}
+  else{if(cat)f.category=cat;if(party)f.party=party;if(rate)f.rate=rate;}
+  const th={id:uid(),created:new Date().toISOString(),serial:ser,fabId:f.id,mtr,used:0,rate,rack,party,notes:'',photos:[...(_bulk.entryPhotos||[])]};
+  DB.thaans.push(th);
+  move({dir:MV_IN,target:'fab',thaanId:th.id,qty:mtr,rate,reason:'opening',ref:t('stk_opening')});
+  const num=String(ser).match(/\d+/); if(num && +num[0]>=(DB.stkCfg.nextSerial||1))DB.stkCfg.nextSerial=+num[0]+1;
+  save();
+  _bulk.added.unshift({id:th.id,serial:ser,name:f.name,mtr,rate});
+  _bulk.entry={serial:'',mtr:'',rate:'',name:''}; _bulk.entryPhotos=[];
+  bulkFabRender();
+  setTimeout(()=>{const el=$('#bfSerial');if(el)el.focus();},60);
+}
+function bulkDelAdded(id){
+  const idx=(_bulk.added||[]).findIndex(a=>a.id===id); if(idx<0)return;
+  DB.thaans=(DB.thaans||[]).filter(x=>x.id!==id);
+  DB.moves=(DB.moves||[]).filter(m=>m.thaanId!==id);
+  _bulk.added.splice(idx,1); save(); bulkFabRender();
+}
 function bulkFabRender(){
-  const rows=_bulk.rows.map((r,i)=>{const n=(r.photos||[]).length;
-    return `<div class="bf-row" data-r="${i}">
-      <div class="bf-l1">
-        <input class="bf-serial" value="${esc(r.serial)}" placeholder="Serial *" oninput="bulkSet(${i},'serial',this.value)">
-        <input type="number" inputmode="decimal" value="${esc(r.mtr)}" placeholder="Mtr *" oninput="bulkSet(${i},'mtr',this.value)">
-        <input type="number" inputmode="numeric" value="${esc(r.rate)}" placeholder="₹/mtr" oninput="bulkSet(${i},'rate',this.value)">
-      </div>
-      <div class="bf-l2">
-        <input class="bf-name" value="${esc(r.name)}" placeholder="Name (optional)" oninput="bulkSet(${i},'name',this.value)">
-        <button class="btn sm ghost bf-cam ${n?'has':''}" onclick="pickBulkPhoto('cam',${i})">${n?('📷 '+n):'📷'}</button>
-        <button class="btn sm ghost" onclick="pickBulkPhoto('lib',${i})">🖼️</button>
-        <button class="btn sm danger" onclick="bulkDelRow(${i})">✕</button>
-      </div>
-    </div>`;}).join('');
+  const added=_bulk.added||[];
+  const totalMtr=added.reduce((s,a)=>s+(+a.mtr||0),0);
+  const addedHTML=added.map(a=>`<div class="pur-collapsed">
+     <div style="min-width:0"><b>#${esc(a.serial)} · ${esc(a.name)}</b><div class="hint">${a.mtr} mtr${a.rate?` · ₹${esc(a.rate)}/mtr`:''}</div></div>
+     <button class="btn sm danger" style="flex:0 0 auto" onclick="bulkDelAdded('${a.id}')">✕</button></div>`).join('');
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">📋 ${t('stk_bulk_title')}</h2>
     <p class="hint" style="margin-bottom:12px">${t('stk_bulk_desc')}</p>
     <div class="head-grid" style="grid-template-columns:1fr 1fr 1fr">
-      <div class="field" style="margin:0"><label>Category</label><input id="bf_cat" list="fabCats" value=""></div>
-      <div class="field" style="margin:0"><label>Supplier</label><input id="bf_party" value=""></div>
-      <div class="field" style="margin:0"><label>Rack</label><input id="bf_rack" list="fabRacks" value=""></div>
+      <div class="field" style="margin:0"><label>Category</label><input id="bf_cat" list="fabCats" value="${esc(_bulk.cat)}" oninput="bulkShared('cat',this.value)"></div>
+      <div class="field" style="margin:0"><label>Supplier</label><input id="bf_party" value="${esc(_bulk.party)}" oninput="bulkShared('party',this.value)"></div>
+      <div class="field" style="margin:0"><label>Rack</label><input id="bf_rack" list="fabRacks" value="${esc(_bulk.rack)}" oninput="bulkShared('rack',this.value)"></div>
     </div>
     <datalist id="fabCats">${[...new Set((DB.fabItems||[]).map(x=>x.category).filter(Boolean))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
     <datalist id="fabRacks">${[...new Set((DB.thaans||[]).map(x=>x.rack).filter(Boolean))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
-    <p class="hint" style="margin:2px 0 8px">${t('stk_bulk_shared')}</p>
-    <div id="bfRows">${rows}</div>
-    <button class="btn ghost block" style="margin:4px 0 14px" onclick="bulkAddRows()">➕ ${t('stk_add_rows')}</button>
-    <div class="modal-actions">
-      <button class="btn ghost block" onclick="stockHome('fabric')">${t('cancel')}</button>
-      <button class="btn primary block" onclick="bulkFabSave()">✅ ${t('stk_save_all')}</button>
+    <p class="hint" style="margin:2px 0 10px">${t('stk_bulk_shared')}</p>
+    <div class="card" style="padding:10px;border-color:var(--saffron);margin-bottom:14px">
+      <div class="bf-l1">
+        <input id="bfSerial" value="${esc(_bulk.entry.serial)}" placeholder="Serial *" oninput="bulkEntry('serial',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();var m=$('#bfMtr');if(m)m.focus();}">
+        <input id="bfMtr" type="number" inputmode="decimal" value="${esc(_bulk.entry.mtr)}" placeholder="Mtr *" oninput="bulkEntry('mtr',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();var r=$('#bfRate');if(r)r.focus();}">
+        <input id="bfRate" type="number" inputmode="numeric" value="${esc(_bulk.entry.rate)}" placeholder="₹/mtr" oninput="bulkEntry('rate',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();bulkAddOne();}">
+      </div>
+      <div class="bf-l2" style="margin-top:8px">
+        <input id="bfName" value="${esc(_bulk.entry.name)}" placeholder="Name (optional)" oninput="bulkEntry('name',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();bulkAddOne();}">
+        <button id="bfCam" class="btn sm ghost ${(_bulk.entryPhotos||[]).length?'has':''}" onclick="pickBulkPhoto('cam')">${(_bulk.entryPhotos||[]).length?('📷 '+_bulk.entryPhotos.length):'📷'}</button>
+        <button class="btn sm ghost" onclick="pickBulkPhoto('lib')">🖼️</button>
+      </div>
+      <button class="btn primary block" style="margin-top:10px" onclick="bulkAddOne()">➕ ${t('add')} &amp; next</button>
+    </div>
+    ${added.length?`<div class="hint" style="margin:2px 0 8px">✅ ${added.length} added · ${totalMtr} mtr total</div>${addedHTML}`:`<p class="hint" style="text-align:center;padding:8px 0">Add your first thaan above ↑</p>`}
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn primary block" onclick="stockHome('fabric')">✅ ${t('done')}</button>
     </div>`;
   showSheet();
-}
-function bulkFabSave(){
-  const cat=($('#bf_cat').value||'').trim(), party=($('#bf_party').value||'').trim(), rack=($('#bf_rack').value||'').trim();
-  DB.stkCfg=DB.stkCfg||{}; DB.fabItems=DB.fabItems||[]; DB.thaans=DB.thaans||[];
-  const rows=(_bulk.rows||[]).filter(r=>String(r.serial||'').trim() && (+r.mtr>0));
-  if(!rows.length){toast(t('stk_bulk_none'),'bad');return;}
-  let made=0;
-  rows.forEach(r=>{
-    let serial=String(r.serial).trim();
-    while(serialTaken(serial))serial=serial+'A';
-    let name=(r.name||'').trim()||cat||('Fabric '+serial);
-    const rate=+r.rate||0, mtr=+r.mtr||0;
-    let f=DB.fabItems.find(x=>String(x.name).toLowerCase()===name.toLowerCase());
-    if(!f){f={id:uid(),name,category:cat,party,rate};DB.fabItems.push(f);}
-    else{if(cat)f.category=cat;if(party)f.party=party;if(rate)f.rate=rate;}
-    const th={id:uid(),created:new Date().toISOString(),serial,fabId:f.id,mtr,used:0,rate,rack,party,notes:'',photos:[...(r.photos||[])]};
-    DB.thaans.push(th);
-    move({dir:MV_IN,target:'fab',thaanId:th.id,qty:mtr,rate,reason:'opening',ref:t('stk_opening')});
-    const num=String(serial).match(/\d+/); if(num && +num[0]>=(DB.stkCfg.nextSerial||1))DB.stkCfg.nextSerial=+num[0]+1;
-    made++;
-  });
-  save();
-  toast(t('stk_added',{n:made}),'ok');
-  _bulk=null; stockHome('fabric');
 }
 
 function thaanDetail(id){
@@ -2722,7 +2733,7 @@ function readyBody(keepFocus){
   el.innerHTML=`
     <div class="field" style="margin-bottom:10px">
       <input id="rdySearch" value="${esc(_rdyQ)}" placeholder="🔍 ${t('stk_rdy_search')}" oninput="setRdyQ(this.value)"></div>
-    <button class="btn primary block" style="margin-bottom:6px" onclick="readyEdit()">➕ ${t('stk_add_ready')}</button>
+    <div class="row" style="gap:6px;margin-bottom:6px"><button class="btn primary" style="flex:1" onclick="readyEdit()">➕ ${t('stk_add_ready')}</button><button class="btn ghost" style="flex:0 0 auto;padding:0 12px" onclick="readyBulkOpen()">📋 Bulk</button></div>
     <div class="row" style="margin-bottom:10px;gap:6px">
       <button class="btn ghost" style="flex:1" onclick="sizeCfg()">📐 ${t('stk_sizes')}</button>
       <button class="btn ghost" style="flex:0 0 auto;padding:0 14px" onclick="manageSizes()">⚙️</button></div>
@@ -2744,6 +2755,77 @@ function readyBody(keepFocus){
       ||`<div class="empty" style="padding:26px 10px"><p>${t('stk_no_ready')}</p></div>`}`;
   if(keepFocus){const e=$('#rdySearch');if(e){const v=e.value;e.focus();e.setSelectionRange(v.length,v.length);}}
   loadStockThumbs();
+}
+let _rbulk=null;
+function readyBulkOpen(){ _rbulk={cat:'',entry:{name:'',sizes:[],qty:'1',cost:'',sell:''},entryPhotos:[],added:[]}; readyBulkRender(); setTimeout(()=>{const el=$('#rbName');if(el)el.focus();},80); }
+function rbShared(v){ if(_rbulk)_rbulk.cat=v; }
+function rbToggleSize(si){ const sz=(DB.stkCfg.sizes||[])[si]; if(sz==null)return; const a=_rbulk.entry.sizes; const k=a.indexOf(sz); if(k>=0)a.splice(k,1); else a.push(sz);
+  const el=document.querySelector('#rbSizes [data-si="'+si+'"]'); if(el)el.classList.toggle('on-tag',a.includes(sz)); }
+function pickReadyBulkPhoto(src){ photoTarget={type:'rbulk'}; const inp=src==='cam'?$('#filePickCam'):$('#filePick'); inp.value=''; inp.click(); }
+function readyBulkPhotoBadge(){ const el=$('#rbCam'); if(el){const n=(_rbulk.entryPhotos||[]).length; el.textContent=n?('📷 '+n):'📷'; el.classList.toggle('has',!!n);} }
+function readyBulkAddOne(){
+  const gv=id=>{const el=$(id);return el?el.value:'';};
+  const name=(gv('#rbName')||'').trim();
+  const sizes=_rbulk.entry.sizes.slice();
+  const qty=+(gv('#rbQty')||0);
+  const cost=+(gv('#rbCost')||0);
+  const sell=+(gv('#rbSell')||0);
+  if(!name){toast('Item name zaroori','bad');const e=$('#rbName');if(e)e.focus();return;}
+  if(!sizes.length){toast('Kam se kam ek size chuno','bad');return;}
+  if(!(qty>0)){toast('Qty daalo','bad');return;}
+  DB.itemMaster=DB.itemMaster||[];
+  let m=DB.itemMaster.find(x=>x.kind==='ready'&&String(x.name).toLowerCase()===name.toLowerCase());
+  if(!m){m={id:uid(),name,kind:'ready',stk:{},incl:[],photos:[],category:(_rbulk.cat||'')};DB.itemMaster.push(m);}
+  m.stk=m.stk||{};
+  sizes.forEach(sz=>{m.stk[sz]=(+m.stk[sz]||0)+qty;});
+  if(cost)m.cost=cost;
+  if(sell)m.sell=sell;
+  m.rate=(m.sell||m.cost||m.rate||'');
+  if(_rbulk.cat)m.category=_rbulk.cat;
+  if((_rbulk.entryPhotos||[]).length)m.photos=(m.photos||[]).concat(_rbulk.entryPhotos);
+  sizes.forEach(sz=>{try{move({dir:MV_IN,target:'ready',itemId:m.id,size:sz,qty,rate:cost,reason:'opening',ref:t('stk_opening')});}catch(e){}});
+  save();
+  _rbulk.added.unshift({name:m.name,sizesArr:sizes,sizes:sizes.join(', '),qty,pcs:sizes.length*qty,cost});
+  _rbulk.entry={name:'',sizes:[],qty:'1',cost:'',sell:''}; _rbulk.entryPhotos=[];
+  readyBulkRender();
+  setTimeout(()=>{const el=$('#rbName');if(el)el.focus();},60);
+}
+function readyBulkDelAdded(idx){
+  const a=_rbulk.added[idx]; if(!a)return;
+  const m=(DB.itemMaster||[]).find(x=>x.kind==='ready'&&String(x.name).toLowerCase()===a.name.toLowerCase());
+  if(m&&m.stk){ (a.sizesArr||[]).forEach(sz=>{m.stk[sz]=Math.max(0,(+m.stk[sz]||0)-a.qty);}); }
+  _rbulk.added.splice(idx,1); save(); readyBulkRender();
+}
+function readyBulkRender(){
+  const added=_rbulk.added||[];
+  const totalPcs=added.reduce((s,a)=>s+(+a.pcs||0),0);
+  const addedHTML=added.map((a,idx)=>`<div class="pur-collapsed">
+     <div style="min-width:0"><b>${esc(a.name)}</b><div class="hint">Size ${esc(a.sizes)} · ${a.pcs} pcs${a.cost?` · ₹${esc(a.cost)}`:''}</div></div>
+     <button class="btn sm danger" style="flex:0 0 auto" onclick="readyBulkDelAdded(${idx})">✕</button></div>`).join('');
+  const e=_rbulk.entry;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin-bottom:4px">👔 Readymade — Bulk</h2>
+    <p class="hint" style="margin-bottom:12px">Ek design bharo → Add → agla. Purchase price zaroori, Selling optional.</p>
+    <div class="field"><label>Category (optional — sab pe lagega)</label><input id="rb_cat" list="rdyCats" value="${esc(_rbulk.cat)}" oninput="rbShared(this.value)" placeholder="Suit / Kurta / Sherwani"></div>
+    <datalist id="rdyCats">${[...new Set((DB.itemMaster||[]).filter(x=>x.kind==='ready'&&x.category).map(x=>x.category))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
+    <div class="card" style="padding:10px;border-color:var(--saffron);margin:10px 0 14px">
+      <div class="field" style="margin:0"><input id="rbName" value="${esc(e.name)}" placeholder="Item name * (e.g. S-01 Tuxedo)" oninput="_rbulk.entry.name=this.value"></div>
+      <div class="hint" style="margin:10px 0 5px">Size — ek ya zyada tap karo</div>
+      <div class="gtags" id="rbSizes">${(DB.stkCfg.sizes||[]).map((sz,si)=>`<span class="gtag ${e.sizes.includes(sz)?'on-tag':''}" data-si="${si}" style="cursor:pointer" onclick="rbToggleSize(${si})">${esc(sz)}</span>`).join('')}</div>
+      <div class="bf-l1" style="margin-top:10px">
+        <input id="rbQty" type="number" inputmode="numeric" value="${esc(e.qty)}" placeholder="Qty (pcs)">
+        <input id="rbCost" type="number" inputmode="numeric" value="${esc(e.cost)}" placeholder="Purchase ₹">
+        <input id="rbSell" type="number" inputmode="numeric" value="${esc(e.sell)}" placeholder="Selling ₹ (opt)" onkeydown="if(event.key==='Enter'){event.preventDefault();readyBulkAddOne();}">
+      </div>
+      <div class="bf-l2" style="margin-top:10px;gap:6px">
+        <button id="rbCam" class="btn sm ghost ${(_rbulk.entryPhotos||[]).length?'has':''}" onclick="pickReadyBulkPhoto('cam')">${(_rbulk.entryPhotos||[]).length?('📷 '+_rbulk.entryPhotos.length):'📷'}</button>
+        <button class="btn sm ghost" onclick="pickReadyBulkPhoto('lib')">🖼️</button>
+        <button class="btn primary" style="flex:1" onclick="readyBulkAddOne()">➕ ${t('add')} &amp; next</button>
+      </div>
+    </div>
+    ${added.length?`<div class="hint" style="margin:2px 0 8px">✅ ${added.length} items · ${totalPcs} pcs total</div>${addedHTML}`:`<p class="hint" style="text-align:center;padding:8px 0">Add your first item above ↑</p>`}
+    <div class="modal-actions" style="margin-top:16px"><button class="btn primary block" onclick="stockHome('ready')">✅ ${t('done')}</button></div>`;
+  showSheet();
 }
 let _rd=null;
 function readyEdit(id){
@@ -5309,7 +5391,8 @@ async function processPhoto(e){const file=e.target.files[0];if(!file)return;
   else if(photoTarget.type==='fab'){_th.photos=_th.photos||[];_th.photos.push(id);renderThaanPhotos();}
   else if(photoTarget.type==='exp'){_exp.photos=_exp.photos||[];_exp.photos.push(id);renderExpPhotos();}
   else if(photoTarget.type==='rdy'){_rd.photos=_rd.photos||[];_rd.photos.push(id);renderReadyPhotos();}
-  else if(photoTarget.type==='bulkfab'){ if(_bulk&&_bulk.rows[photoTarget.i]){_bulk.rows[photoTarget.i].photos=_bulk.rows[photoTarget.i].photos||[];_bulk.rows[photoTarget.i].photos.push(id);bulkPhotoBadge(photoTarget.i);} }
+  else if(photoTarget.type==='rbulk'){ if(_rbulk){_rbulk.entryPhotos=_rbulk.entryPhotos||[];_rbulk.entryPhotos.push(id);readyBulkPhotoBadge();} }
+  else if(photoTarget.type==='bulkfab'){ if(_bulk){_bulk.entryPhotos=_bulk.entryPhotos||[];_bulk.entryPhotos.push(id);bulkPhotoBadge();} }
   else {form.photos.push(id);renderFormPhotos();}
   toast(t('t_photo'));}
 $('#filePick').addEventListener('change',processPhoto);
@@ -5677,7 +5760,7 @@ function openInvoiceForm(kind,id){
   else{
     let items;
     if(kind==='alt'){ items=[{label:rec.itemDesc||t('alterations'),hsn:'',qty:1,unit:'Pcs',price:+rec.total||0,disc:0,includes:''}]; }
-    else if(kind==='sale'){ items=[{label:'',hsn:'',qty:1,unit:'Pcs',rate:'',price:'',disc:0,incl:[],includes:'',masterId:''}]; }
+    else if(kind==='sale'){ items=[]; }
     else{ items=orderBillLines(rec);
       if(!items.length)items=[{label:'Item',hsn:'',qty:1,unit:'Pcs',rate:'',price:'',disc:0,includes:''}];
     }
@@ -5758,7 +5841,7 @@ function renderInvoiceForm(){
   invNormItems(f.items);
   if(f.paymentMode==='Credit'||!f.paymentMode)f.paymentMode='UPI';
   const comp0=invCompute(f);
-  const masters=(DB.itemMaster||[]);
+  const masters=(DB.itemMaster||[]).filter(m=>m.kind!=='ready');   // tiles = curated shortcuts only; readymade stock shows in "Add item" search, not as tiles
 
   const custBlock = f.kind==='sale' ? `
     <div id="invCustPicked" style="margin-bottom:10px">${(f.customerId||f.customerName)?invCustomerPickedHTML():''}</div>
@@ -5804,7 +5887,7 @@ function renderInvoiceForm(){
       <span>⚡ ${t('pos_tap_add')} — ${t('pos_shortcut')}</span>
       <button class="btn sm ghost" style="padding:3px 12px;font-size:12px" onclick="posManageItems()">✏️ ${t('edit')}</button>
     </div>
-    <div class="pos-tiles">${tiles}</div>
+    <div class="pos-tiles">${tiles}<div class="pos-tile add" onclick="posNewItem()"><b>➕ New</b></div></div>
 
     <div id="posLines"></div>
     <button class="btn primary block" style="margin:8px 0 14px" onclick="posAddMenu()">➕ ${t('pos_add_item')}</button>
@@ -6027,7 +6110,7 @@ function posNewItem(){captureInvoiceForm();_imDraft=null;imEdit(null,{type:'inv'
 function posAddMenu(){ posSearchAdd(); }
 function posSearchAdd(){
   modal('➕ '+t('pos_add_item'),
-    `<div class="field" style="margin:0 0 8px"><input id="posSearchQ" placeholder="${t('pos_search_ph')}" oninput="posSearchRun(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();posAddTyped();}" autocomplete="off"></div>
+    `<div class="field" style="margin:0 0 8px"><input id="posSearchQ" placeholder="${t('pos_search_ph')}" oninput="posSearchRun(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();posEnter();}" autocomplete="off"></div>
      <div id="posSearchRes"></div>
      <div id="posSearchAdded" class="hint" style="margin:8px 0 2px;min-height:16px"></div>
      <div class="row" style="gap:6px;margin-top:6px">
@@ -6036,22 +6119,34 @@ function posSearchAdd(){
     [{label:t('done'),cls:'primary',fn:()=>{closeModal();renderInvoiceForm();}}]);
   setTimeout(()=>{const el=$('#posSearchQ');if(el)el.focus();posSearchRun('');},120);
 }
+let _posItems=[], _posTopFn=null;
 function posSearchRun(qraw){
   const box=$('#posSearchRes'); if(!box)return;
-  const q=(qraw||'').trim(); const ql=q.toLowerCase();
-  const match=s=>!ql||String(s||'').toLowerCase().includes(ql);
+  const q=(qraw||'').trim();
+  const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');   // ignore spaces, #, - , case
+  const key=s=>{const n=norm(s);return /^\d+$/.test(n)?String(parseInt(n,10)||0):n;};   // pure numbers: drop leading zeros (01=1=001)
+  const qn=key(q);
+  const match=s=>!qn||key(s).includes(qn);
   // Search shows ONLY real stock: readymade pieces + fabric rolls. Dummy shortcut presets never appear here.
   const ready=(DB.itemMaster||[]).filter(m=>m.kind==='ready'&&match(m.name)).slice(0,12);
   const rolls=(DB.thaans||[]).filter(th=>{const fi=(DB.fabItems||[]).find(x=>x.id===th.fabId)||{};return match(th.serial)||match(fi.name)||match(fi.category);}).slice(0,15);
-  const row=(onclick,title,sub)=>`<div class="cust-result" style="margin-bottom:6px" onclick="${onclick}"><div><b>${title}</b>${sub?`<div class="hint">${sub}</div>`:''}</div><span class="btn sm primary">+</span></div>`;
+  const exact = qn && (ready.some(m=>key(m.name)===qn) || rolls.some(th=>{const fi=(DB.fabItems||[]).find(x=>x.id===th.fabId)||{};return key(th.serial)===qn||key(fi.name)===qn;}));
+  _posItems=[];
+  const scoreOf=fields=>{let b=9;for(const f of fields){if(!f)continue;if(f===qn)b=Math.min(b,0);else if(f.indexOf(qn)===0)b=Math.min(b,1);else if(f.includes(qn))b=Math.min(b,2);}return b;};
+  ready.forEach(m=>_posItems.push({title:esc(m.name),sub:`In stock: ${readyTotal(m)}${m.rate?` · ₹${esc(m.rate)}`:''}`,act:()=>posAddMaster(m.id),score:qn?scoreOf([key(m.name)]):3}));
+  rolls.forEach(th=>{const fi=(DB.fabItems||[]).find(x=>x.id===th.fabId)||{};const rt=th.rate||fi.rate||0;
+    _posItems.push({title:`${esc(fi.name||'Fabric')} · #${esc(th.serial)}`,sub:`${thaanBal(th)} mtr left${rt?` · ₹${esc(rt)}/mtr`:''}`,act:()=>posAddThaan(th.id),score:qn?scoreOf([key(th.serial),key(fi.name)]):3});});
+  if(qn)_posItems.sort((a,b)=>a.score-b.score);
+  // Enter adds the top match; if nothing matched but text typed, Enter adds it as a one-off
+  _posTopFn = (q&&_posItems.length) ? _posItems[0].act : ((q&&!exact) ? ()=>posAddTyped() : null);
   let h='';
-  if(q){ h+=`<div class="cust-result" style="margin-bottom:10px;border:1px solid var(--saffron)" onclick="posAddTyped()"><div><b>➕ ${t('add')} “${esc(q)}”</b><div class="hint">${t('pos_add_typed_hint')}</div></div><span class="btn sm primary">${t('add')}</span></div>`; }
-  if(ready.length||rolls.length){ h+=`<div class="hint" style="margin:2px 0 4px">📦 ${t('pos_sec_stock')}</div>`;
-    h+=ready.map(m=>row(`posAddMaster('${m.id}')`,esc(m.name),`In stock: ${readyTotal(m)}${m.rate?` · ₹${esc(m.rate)}`:''}`)).join('');
-    h+=rolls.map(th=>{const fi=(DB.fabItems||[]).find(x=>x.id===th.fabId)||{};const rt=th.rate||fi.rate||0;
-      return row(`posAddThaan('${th.id}')`,`${esc(fi.name||'Fabric')} · #${esc(th.serial)}`,`${thaanBal(th)} mtr left${rt?` · ₹${esc(rt)}/mtr`:''}`);}).join(''); }
-  box.innerHTML=h||`<p class="hint" style="padding:6px 0">${q?t('pos_no_results'):(ready.length||rolls.length?'':t('pos_stock_empty'))}</p>`;
+  if(_posItems.length){ h+=`<div class="hint" style="margin:2px 0 4px">📦 ${t('pos_sec_stock')}</div>`;
+    h+=_posItems.map((it,i)=>`<div class="cust-result ${(i===0&&q)?'pos-top':''}" style="margin-bottom:6px" onclick="posPick(${i})"><div><b>${it.title}</b>${it.sub?`<div class="hint">${it.sub}</div>`:''}</div><span class="btn sm primary">+</span></div>`).join(''); }
+  if(q && !exact){ h+=`<div class="cust-result" style="margin:10px 0 0;border:1px dashed var(--line2)" onclick="posAddTyped()"><div><b>➕ ${t('add')} “${esc(q)}”</b><div class="hint">${t('pos_add_typed_hint')}</div></div><span class="btn sm ghost">${t('add')}</span></div>`; }
+  box.innerHTML=h||`<p class="hint" style="padding:6px 0">${q?t('pos_no_results'):(_posItems.length?'':t('pos_stock_empty'))}</p>`;
 }
+function posPick(i){ const it=_posItems[i]; if(it&&it.act)it.act(); }
+function posEnter(){ if(_posTopFn)_posTopFn(); else posAddTyped(); }
 
 function posPushItem(o){
   captureInvoiceForm();
@@ -6073,7 +6168,7 @@ function posAddThaan(tid){ const th=(DB.thaans||[]).find(x=>x.id===tid); if(!th)
   posSearchNote(th.serial+' · '+(fi.name||'')); }
 
 function posManageItems(){
-  const rows=(DB.itemMaster||[]).map(m=>`<div class="cust-result" style="margin-bottom:6px">
+  const rows=(DB.itemMaster||[]).filter(m=>m.kind!=='ready').map(m=>`<div class="cust-result" style="margin-bottom:6px">
       <div><b>${esc(m.name)}</b>${m.incl&&m.incl.length?`<div class="hint">${esc(m.incl.join(' + '))}</div>`:''}${m.rate?`<div class="hint">₹${esc(m.rate)}</div>`:''}</div>
       <span style="display:flex;gap:6px">
         <button class="btn sm ghost" onclick="imEdit('${m.id}',{type:'inv',i:-1})">✏️</button>
@@ -6952,7 +7047,7 @@ function capturePurchForm(){const f=purchForm;if(!f)return;
   document.querySelectorAll('[data-purate]').forEach(inp=>{f.items[+inp.dataset.purate].rate=+inp.value||0;});
   document.querySelectorAll('[data-puamt]').forEach(inp=>{f.items[+inp.dataset.puamt].amount=+inp.value||0;});
 }
-function purchAddItem(){capturePurchForm();purchForm.items.push({label:'',hsn:'',qty:1,unit:'Mtr',rate:'',amount:0});renderPurchaseForm();}
+function purchAddItem(){capturePurchForm();purchForm._openIdx=purchForm.items.length;purchForm.items.push({label:'',hsn:'',qty:1,unit:'Mtr',rate:'',amount:0});renderPurchaseForm();purchFocusOpen();}
 function purchDelItem(i){capturePurchForm();purchForm.items.splice(i,1);if(!purchForm.items.length)purchForm.items.push({label:'',hsn:'',qty:1,unit:'Mtr',rate:'',amount:0});renderPurchaseForm();}
 function purchRateQtyChanged(i){capturePurchForm();const it=purchForm.items[i];
   if((+it.qty||0)&&(+it.rate||0)){it.amount=r2((+it.qty)*(+it.rate));const amtEl=document.querySelector(`[data-puamt="${i}"]`);if(amtEl)amtEl.value=it.amount;}
@@ -6990,8 +7085,15 @@ async function renderPurchPhotos(){const el=$('#pu_photos');if(!el)return;el.inn
     w.querySelector('.thumb-x').onclick=async()=>{await mDel(id);purchForm.photos=purchForm.photos.filter(x=>x!==id);renderPurchPhotos();};
     el.appendChild(w);}}
 function purchItemRow(i,it){
-  return `<div class="card" style="padding:10px;margin-bottom:8px">
-    <div class="field" style="margin:0"><label>${t('inv_item_name')}</label><input data-puin="${i}" list="invItemList" value="${esc(it.label)}" placeholder="${t('purch_item_ph')}"></div>
+  const f=purchForm;
+  const open=(i===f._openIdx)||!it.label;
+  if(!open){
+    return `<div class="pur-collapsed" onclick="purchExpand(${i})">
+      <div style="min-width:0"><b>${esc(it.label)}</b><div class="hint">${it.qty||1} ${esc(it.unit||'')} × ₹${esc(it.rate||0)} = ₹${esc(it.amount||0)}</div></div>
+      <button class="btn sm danger" style="flex:0 0 auto" onclick="event.stopPropagation();purchDelItem(${i})">✕</button></div>`;
+  }
+  return `<div class="card" style="padding:10px;margin-bottom:8px;border-color:var(--saffron)">
+    <div class="field" style="margin:0"><label>${t('inv_item_name')}</label><input data-puin="${i}" value="${esc(it.label)}" placeholder="${t('purch_item_ph')}"></div>
     <div class="row" style="margin-top:8px"><div class="field" style="margin:0"><label>${t('hsn')}</label><input data-puhsn="${i}" value="${esc(it.hsn||'')}"></div>
       <div class="field" style="margin:0"><label>${t('qty')}</label><input data-puqty="${i}" type="number" inputmode="numeric" value="${it.qty?esc(it.qty):''}" placeholder="1" oninput="purchRateQtyChanged(${i})"></div></div>
     <div class="row" style="margin-top:8px"><div class="field" style="margin:0"><label>${t('unit')}</label><input data-puunit="${i}" value="${esc(it.unit||'Mtr')}"></div>
@@ -6999,13 +7101,16 @@ function purchItemRow(i,it){
     <div class="field" style="margin-top:8px"><label>${t('purch_amount_line')}</label><input data-puamt="${i}" type="number" inputmode="numeric" value="${it.amount?esc(it.amount):''}" placeholder="0" oninput="updatePurchTotal()"></div>
     <button class="btn sm danger" style="margin-top:8px" onclick="purchDelItem(${i})">${t('remove')}</button></div>`;
 }
+function purchExpand(i){capturePurchForm();purchForm._openIdx=i;renderPurchaseForm();purchFocusOpen();}
+function purchFocusOpen(){setTimeout(()=>{const el=document.querySelector('[data-puin="'+purchForm._openIdx+'"]');if(el){el.focus();el.scrollIntoView({block:'center'});}},90);}
 function renderPurchaseForm(){
   const f=purchForm;
+  if(f._openIdx==null||f._openIdx>=f.items.length)f._openIdx=f.items.length-1;
   const p=f.editId?(DB.purchases||[]).find(x=>x.id===f.editId):null;
   const sups=pastSuppliers();
   const supSel=sups.length?`<select onchange="puPickSupplier(this.value)" style="margin-bottom:6px">
       <option value="">${t('past_suppliers')}</option>${sups.map(s=>`<option value="${esc(s.name)}" ${s.name===f.supplier?'selected':''}>${esc(s.name)}</option>`).join('')}</select>`:'';
-  const dlist=`<datalist id="invItemList">${allItems().map(g=>`<option value="${esc(g.n)}">`).join('')}</datalist>`;
+  const dlist='';
   const rows=f.items.map((it,i)=>purchItemRow(i,it)).join('');
   const comp0=purchCompute(f);
   $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:12px">📦 ${f.editId?t('edit_purchase'):t('new_purchase')}</h2>${dlist}
@@ -7014,7 +7119,7 @@ function renderPurchaseForm(){
       <input id="pu_phone" type="tel" placeholder="${t('phone')}" value="${esc(f.phone)}" style="margin-top:8px">
       ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost" style="margin-top:8px" onclick="puPickContact()">📇 ${t('from_contacts')}</button>`:''}</div>
     <div class="row"><div class="field"><label>${t('purch_date')}</label><input id="pu_date" type="date" value="${esc(f.date)}"></div>
-      <div class="field"><label>${t('purch_bill_no')}</label><input id="pu_billno" value="${esc(f.billNo)}"></div></div>
+      <div class="field"><label>${t('purch_bill_no')} *</label><input id="pu_billno" value="${esc(f.billNo)}"></div></div>
     <div class="section-h">${t('items')}</div>
     <p class="hint" style="margin:0 0 10px">${t('purch_items_hint')}</p>
     ${rows}
@@ -7044,6 +7149,7 @@ function savePurchase(){
   const comp=purchCompute(f);const total=comp.total;
   const desc=f.items.map(it=>it.label).filter(Boolean).join(', ');
   if(!f.supplier){toast(t('t_no_supplier'),'bad');return;}
+  if(!(f.billNo||'').trim()){toast(t('t_no_billno'),'bad');return;}
   if(!total){toast(t('t_no_amount'),'bad');return;}
   if(f.editId){
     const p=(DB.purchases||[]).find(x=>x.id===f.editId);
