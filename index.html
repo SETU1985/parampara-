@@ -356,7 +356,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v37</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v39</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -2503,7 +2503,8 @@ function thaanCapture(){
 function readyCapture(){
   const d=_rd; if(!d)return;
   if($('#rd_name'))d.name=$('#rd_name').value.trim();
-  if($('#rd_rate'))d.rate=$('#rd_rate').value;
+  if($('#rd_cost'))d.cost=$('#rd_cost').value;
+  if($('#rd_sell'))d.sell=$('#rd_sell').value;
   if($('#rd_hsn'))d.hsn=$('#rd_hsn').value.trim();
   szSync();
 }
@@ -2780,7 +2781,7 @@ function readyBulkAddOne(){
   sizes.forEach(sz=>{m.stk[sz]=(+m.stk[sz]||0)+qty;});
   if(cost)m.cost=cost;
   if(sell)m.sell=sell;
-  m.rate=(m.sell||m.cost||m.rate||'');
+  m.rate=(m.sell||'');
   if(_rbulk.cat)m.category=_rbulk.cat;
   if((_rbulk.entryPhotos||[]).length)m.photos=(m.photos||[]).concat(_rbulk.entryPhotos);
   sizes.forEach(sz=>{try{move({dir:MV_IN,target:'ready',itemId:m.id,size:sz,qty,rate:cost,reason:'opening',ref:t('stk_opening')});}catch(e){}});
@@ -2830,8 +2831,8 @@ function readyBulkRender(){
 let _rd=null;
 function readyEdit(id){
   const ex=id?(DB.itemMaster||[]).find(x=>x.id===id):null;
-  _rd = ex ? {id:ex.id,name:ex.name,rate:ex.rate||'',hsn:ex.hsn||'',stk:Object.assign({},ex.stk||{}),photos:[...(ex.photos||[])]}
-    : {id:null,name:'',rate:'',hsn:'',stk:{},photos:[]};
+  _rd = ex ? {id:ex.id,name:ex.name,cost:ex.cost||'',sell:(ex.sell!=null&&ex.sell!==''?ex.sell:(ex.rate||'')),hsn:ex.hsn||'',stk:Object.assign({},ex.stk||{}),photos:[...(ex.photos||[])]}
+    : {id:null,name:'',cost:'',sell:'',hsn:'',stk:{},photos:[]};
   readyRender();
 }
 function readyRender(){
@@ -2850,9 +2851,11 @@ function readyRender(){
     <p class="hint" style="margin-bottom:12px">${t('stk_ready_hint')}</p>
     <div class="field"><label>${t('im_name')} *</label>
       <input id="rd_name" value="${esc(d.name)}" placeholder="${t('stk_ready_ph')}"></div>
-    <div class="row"><div class="field"><label>${t('stk_sell_rate')}</label>
-        <input id="rd_rate" type="number" inputmode="numeric" value="${esc(d.rate)}" placeholder="0"></div>
-      <div class="field"><label>${t('im_hsn')}</label><input id="rd_hsn" value="${esc(d.hsn)}" placeholder="6203"></div></div>
+    <div class="row"><div class="field"><label>Purchase ₹</label>
+        <input id="rd_cost" type="number" inputmode="numeric" value="${esc(d.cost)}" placeholder="0"></div>
+      <div class="field"><label>Selling ₹ (optional)</label>
+        <input id="rd_sell" type="number" inputmode="numeric" value="${esc(d.sell)}" placeholder="0"></div></div>
+    <div class="field"><label>${t('im_hsn')}</label><input id="rd_hsn" value="${esc(d.hsn)}" placeholder="6203"></div>
     <div class="section-h" style="display:flex;justify-content:space-between;align-items:baseline">
       <span>📐 ${t('stk_size_grid')}</span><span class="hint" id="szTot">${t('stk_n_pcs',{n:tot})}</span></div>
     <p class="hint" style="margin:0 0 10px">${t('stk_grid_hint')}</p>
@@ -2884,19 +2887,19 @@ function readySave(){
   const name=($('#rd_name').value||'').trim();
   if(!name){toast(t('t_no_im_name'),'bad');return;}
   szSync();
-  const rate=+$('#rd_rate').value||0, hsn=($('#rd_hsn').value||'').trim();
+  const cost=+$('#rd_cost').value||0, sell=+$('#rd_sell').value||0, hsn=($('#rd_hsn').value||'').trim();
   DB.itemMaster=DB.itemMaster||[];
   let m;
   if(d.id)m=DB.itemMaster.find(x=>x.id===d.id);
-  else{m={id:uid(),name,hsn,rate,incl:[],kind:'ready',stk:{},photos:[]};DB.itemMaster.push(m);}
+  else{m={id:uid(),name,hsn,incl:[],kind:'ready',stk:{},photos:[]};DB.itemMaster.push(m);}
   const before=Object.assign({},m.stk||{});
-  m.name=name;m.rate=rate;m.hsn=hsn;m.kind='ready';m.stk={};m.photos=[...(d.photos||[])];
+  m.name=name;m.cost=cost;m.sell=sell;m.rate=sell;m.hsn=hsn;m.kind='ready';m.stk={};m.photos=[...(d.photos||[])];
   (DB.stkCfg.sizes||[]).forEach(sz=>{ readySet(m,sz,d.stk[sz]||0); });
   // log the difference so reports & "slow moving" stay honest
   (DB.stkCfg.sizes||[]).forEach(sz=>{
     const b=+before[sz]||0, a=readyQty(m,sz);
     if(a!==b)move({dir:a>b?MV_IN:MV_OUT,target:'ready',itemId:m.id,size:sz,
-      qty:Math.abs(a-b),rate:rate,reason:d.id?'adjust':'opening',
+      qty:Math.abs(a-b),rate:cost,reason:d.id?'adjust':'opening',
       ref:d.id?t('stk_manual'):t('stk_opening')});
   });
   save(); toast(t('t_saved'),'ok'); stockHome('ready');
@@ -6133,7 +6136,11 @@ function posSearchRun(qraw){
   const exact = qn && (ready.some(m=>key(m.name)===qn) || rolls.some(th=>{const fi=(DB.fabItems||[]).find(x=>x.id===th.fabId)||{};return key(th.serial)===qn||key(fi.name)===qn;}));
   _posItems=[];
   const scoreOf=fields=>{let b=9;for(const f of fields){if(!f)continue;if(f===qn)b=Math.min(b,0);else if(f.indexOf(qn)===0)b=Math.min(b,1);else if(f.includes(qn))b=Math.min(b,2);}return b;};
-  ready.forEach(m=>_posItems.push({title:esc(m.name),sub:`In stock: ${readyTotal(m)}${m.rate?` · ₹${esc(m.rate)}`:''}`,act:()=>posAddMaster(m.id),score:qn?scoreOf([key(m.name)]):3}));
+  ready.forEach(m=>{
+    const szs=(DB.stkCfg.sizes||[]).filter(sz=>readyQty(m,sz)>0);
+    _posItems.push({title:esc(m.name),sub:`In stock: ${readyTotal(m)}${m.sell?` · ₹${esc(m.sell)}`:''}`,mid:m.id,sizes:szs,
+      act:()=>{ if(szs.length)posAddReadySize(m.id,szs[0]); else toast(t('stk_out_of'),'bad'); },score:qn?scoreOf([key(m.name)]):3});
+  });
   rolls.forEach(th=>{const fi=(DB.fabItems||[]).find(x=>x.id===th.fabId)||{};const rt=th.rate||fi.rate||0;
     _posItems.push({title:`${esc(fi.name||'Fabric')} · #${esc(th.serial)}`,sub:`${thaanBal(th)} mtr left${rt?` · ₹${esc(rt)}/mtr`:''}`,act:()=>posAddThaan(th.id),score:qn?scoreOf([key(th.serial),key(fi.name)]):3});});
   if(qn)_posItems.sort((a,b)=>a.score-b.score);
@@ -6141,9 +6148,24 @@ function posSearchRun(qraw){
   _posTopFn = (q&&_posItems.length) ? _posItems[0].act : ((q&&!exact) ? ()=>posAddTyped() : null);
   let h='';
   if(_posItems.length){ h+=`<div class="hint" style="margin:2px 0 4px">📦 ${t('pos_sec_stock')}</div>`;
-    h+=_posItems.map((it,i)=>`<div class="cust-result ${(i===0&&q)?'pos-top':''}" style="margin-bottom:6px" onclick="posPick(${i})"><div><b>${it.title}</b>${it.sub?`<div class="hint">${it.sub}</div>`:''}</div><span class="btn sm primary">+</span></div>`).join(''); }
+    h+=_posItems.map((it,i)=>{
+      if(it.sizes){   // readymade → tap a SIZE (so the right size's stock is deducted)
+        const szchips=it.sizes.length
+          ? `<div class="hint" style="margin:6px 0 3px">${t('stk_pick_size')}:</div><div class="gtags">`+it.sizes.map(sz=>`<span class="gtag" style="cursor:pointer" onclick="event.stopPropagation();posAddReadySize('${it.mid}','${esc(sz).replace(/'/g,"\\'")}')">${esc(sz)} <b style="color:var(--saffron2)">(${readyQty((DB.itemMaster||[]).find(x=>x.id===it.mid)||{},sz)})</b></span>`).join('')+`</div>`
+          : `<div class="hint" style="margin-top:6px">${t('stk_out_of')}</div>`;
+        return `<div class="cust-result ${(i===0&&q)?'pos-top':''}" style="margin-bottom:6px;display:block">
+          <div><b>${it.title}</b>${it.sub?`<div class="hint">${it.sub}</div>`:''}</div>${szchips}</div>`;
+      }
+      return `<div class="cust-result ${(i===0&&q)?'pos-top':''}" style="margin-bottom:6px" onclick="posPick(${i})"><div><b>${it.title}</b>${it.sub?`<div class="hint">${it.sub}</div>`:''}</div><span class="btn sm primary">+</span></div>`;
+    }).join(''); }
   if(q && !exact){ h+=`<div class="cust-result" style="margin:10px 0 0;border:1px dashed var(--line2)" onclick="posAddTyped()"><div><b>➕ ${t('add')} “${esc(q)}”</b><div class="hint">${t('pos_add_typed_hint')}</div></div><span class="btn sm ghost">${t('add')}</span></div>`; }
   box.innerHTML=h||`<p class="hint" style="padding:6px 0">${q?t('pos_no_results'):(_posItems.length?'':t('pos_stock_empty'))}</p>`;
+}
+function posAddReadySize(mid,size){
+  const m=(DB.itemMaster||[]).find(x=>x.id===mid); if(!m)return;
+  if(readyQty(m,size)<=0){toast(t('stk_out_of'),'bad');return;}
+  posPushItem({masterId:m.id,label:m.name+' ('+size+')',hsn:m.hsn||'',qty:1,unit:'Pcs',size:size,rate:(m.sell||''),incl:[],includes:''});
+  posSearchNote(m.name+' '+size);
 }
 function posPick(i){ const it=_posItems[i]; if(it&&it.act)it.act(); }
 function posEnter(){ if(_posTopFn)_posTopFn(); else posAddTyped(); }
@@ -6157,7 +6179,8 @@ function posPushItem(o){
 function posSearchNote(name){ const el=$('#posSearchAdded'); if(el)el.textContent='✓ '+t('added')+': '+name; const q=$('#posSearchQ'); if(q){q.value='';q.focus();} posSearchRun(''); }
 function posAddTyped(){ const inp=$('#posSearchQ'); if(!inp)return; const v=(inp.value||'').trim(); if(!v)return; posPushItem({label:v}); posSearchNote(v); }
 function posAddMaster(mid){ const m=(DB.itemMaster||[]).find(x=>x.id===mid); if(!m)return;
-  posPushItem({masterId:m.id,label:m.name,hsn:m.hsn||'',unit:(m.incl&&m.incl.length>1)?'Set':'Pcs',rate:m.rate||'',incl:[...(m.incl||[])],includes:(m.incl||[]).join(', ')});
+  const billRate=(m.kind==='ready')?(m.sell||''):(m.rate||'');   // never put purchase price on a customer bill
+  posPushItem({masterId:m.id,label:m.name,hsn:m.hsn||'',unit:(m.incl&&m.incl.length>1)?'Set':'Pcs',rate:billRate,incl:[...(m.incl||[])],includes:(m.incl||[]).join(', ')});
   posSearchNote(m.name); }
 function posAddFabric(fid){ const f=(DB.fabItems||[]).find(x=>x.id===fid); if(!f)return;
   posPushItem({label:f.name+(f.category?' ('+f.category+')':''),hsn:f.hsn||'',unit:'Mtr',rate:f.rate||'',fabId:f.id});
