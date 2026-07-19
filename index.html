@@ -156,6 +156,10 @@
   .home-stat.tappable:active{transform:scale(.96);border-color:var(--saffron)}
   .hs-go{color:var(--saffron2);font-weight:900}
     .sum-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;min-height:44px}
+.il{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.il:last-child{border-bottom:0}
+.il>span:first-child{color:var(--txt2);font-size:14px}
+
   .sum-row>span:first-child{font-size:13.5px;color:var(--txt2);white-space:nowrap}
   .sum-row>b{font-size:15px;font-weight:800}
   .sum-row b.neg{color:#e08a8a}
@@ -356,7 +360,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v39</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v50</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -372,7 +376,7 @@
 <main>
   <section class="tabpane active" id="tab-home"><div id="homePane"></div></section>
   <section class="tabpane" id="tab-orders"><div id="ordersList"></div></section>
-  <section class="tabpane" id="tab-customers"><div id="custList"></div></section>
+  <section class="tabpane" id="tab-customers"><div id="custCampBar"></div><div id="custList"></div></section>
   <section class="tabpane" id="tab-detail"><div id="detailPane"></div></section>
   <section class="tabpane" id="tab-alterations"><div id="altList"></div></section>
   <section class="tabpane" id="tab-altdetail"><div id="altDetailPane"></div></section>
@@ -735,7 +739,8 @@ const T={
   added:'Added',
   pos_add_typed_hint:'Add this exact name to the bill',
   pos_search_start:'Type an item and tap Add — or pick a saved one below.',
-  pos_sec_stock:'In stock (readymade + fabric)',
+  pos_sec_stock:'In stock & saved items',
+  pos_preset_norate:'rate to be typed',
   pos_stock_empty:'No stock yet. Type a name above and tap Add for a one-off item.',
   pos_sec_ready:'Readymade — from stock',
   pos_sec_fabric:'Fabric — from stock',
@@ -1138,11 +1143,11 @@ const T={
   rp_creditor_total:'Total Payable',
   t_purch_saved:'Purchase saved',
   t_no_supplier:'Enter supplier name',
-  t_no_billno:'Bill number is required',
+  t_no_billno:'Invoice number is required',
   t_no_amount:'Enter amount',
   purch_options:'Purchase options',
   delete_purchase:'Delete purchase',
-  purch_bill_no:'Bill No (optional)',
+  purch_bill_no:'Invoice No',
   past_suppliers:'— pick from past suppliers —',
   bill_photo:'Bill Photo',
   no_purchases:'No purchases yet',
@@ -1152,7 +1157,46 @@ const T={
   purch_item_ph:'e.g. Suiting fabric, Buttons, Lining',
   purch_items_hint:'Add each item from the supplier bill as a separate row — total is calculated automatically.',
   master:'Master',
-  bill_no:'Bill No',
+  bill_no:'Invoice No',
+  pur_sug_head:'Saved items — tap to fill',
+  pur_sug_none:'Nothing saved yet — just type the name',
+  pur_sug_left:'left',
+  pur_sug_fab:'fabric design',
+  pur_sug_ready:'readymade',
+  pur_sug_past:'bought before',
+  pur_party_bal:'Balance',
+  pur_need_name:'Type the item name first',
+  pur_save_new:'Save & New',
+  pur_new_hint:'New item — saves with this purchase',
+  pur_design_ph:'Design no (optional)',
+  pur_colour_ph:'Colour / Size (optional)',
+  pur_more_fields:'Design, colour',
+  cust_visits:'visits',
+  cust_loaded:'Customer loaded · {n} past visits',
+  cust_had_due:'Old balance: {n}',
+  cust_business:'Total business',
+  cust_bills:'Bills',
+  cust_alts:'Alterations',
+  cust_lastvisit:'Last visit',
+  camp_title:'Message customers',
+  camp_sub:'Greetings, offers, or hand the list to your marketing person.',
+  camp_f_all:'Everyone', camp_f_due:'Has balance', camp_f_lapsed:'Not seen 6 months', camp_f_recent:'Came recently',
+  camp_found:'{n} with a number', camp_chosen:'chosen', camp_all:'Select all', camp_none:'Clear',
+  camp_empty:'Nobody matches this filter yet.',
+  camp_msg:'Message', camp_msg_ph:'Namaste {name}, Diwali par 20% off...',
+  camp_name_tip:'Use {name} for their name, {baaki} for their balance.',
+  camp_send:'Send on WhatsApp, one by one', camp_csv:'Download list (CSV)',
+  camp_legal:'WhatsApp does not allow one-tap bulk sending, so each chat opens in turn — you tap send. Message only customers who are happy to hear from you.',
+  camp_none_sel:'Choose at least one customer', camp_no_msg:'Write the message first',
+  camp_sending:'Sending', camp_open:'Open chat', camp_skip:'Skip',
+  camp_step_tip:'The chat opens with the message ready — tap send there, then come back for the next.',
+  camp_done_t:'Finished', camp_done:'Went through all {n}.',
+  camp_csv_done:'{n} customers downloaded',
+  pur_stock_made:'{n} added to stock',
+  pur_stock_merged:'{n} merged into existing stock',
+  pur_sug_new:'Add New Item',
+  pur_sug_purch:'Purchase',
+  pur_sug_instock:'In stock',
  },
  hi:{
   sub:'ऑर्डरबुक',
@@ -1472,7 +1516,8 @@ const T={
   added:'जोड़ा',
   pos_add_typed_hint:'यही नाम बिल में जोड़ें',
   pos_search_start:'आइटम टाइप करके Add दबाएँ — या नीचे से सेव किया चुनें।',
-  pos_sec_stock:'स्टॉक में (रेडीमेड + फैब्रिक)',
+  pos_sec_stock:'स्टॉक और सेव किए आइटम',
+  pos_preset_norate:'रेट टाइप करें',
   pos_stock_empty:'अभी स्टॉक नहीं। ऊपर नाम टाइप करके Add दबाएँ।',
   pos_sec_ready:'रेडीमेड — स्टॉक से',
   pos_sec_fabric:'फैब्रिक — स्टॉक से',
@@ -1875,11 +1920,11 @@ const T={
   rp_creditor_total:'कुल देना है',
   t_purch_saved:'ख़रीद सहेजी गई',
   t_no_supplier:'सप्लायर का नाम डालें',
-  t_no_billno:'बिल नंबर ज़रूरी है',
+  t_no_billno:'इनवॉइस नंबर ज़रूरी है',
   t_no_amount:'राशि डालें',
   purch_options:'ख़रीद विकल्प',
   delete_purchase:'ख़रीद हटाएँ',
-  purch_bill_no:'बिल नं. (वैकल्पिक)',
+  purch_bill_no:'इनवॉइस नं.',
   past_suppliers:'— पुराने सप्लायर से चुनें —',
   bill_photo:'बिल की फ़ोटो',
   no_purchases:'अभी कोई ख़रीद नहीं',
@@ -1889,7 +1934,46 @@ const T={
   purch_item_ph:'जैसे सूटिंग कपड़ा, बटन, लाइनिंग',
   purch_items_hint:'सप्लायर के बिल का हर आइटम अलग लाइन में डालें — कुल अपने-आप जुड़ जाएगा।',
   master:'मास्टर',
-  bill_no:'बिल नं.',
+  bill_no:'इनवॉइस नं.',
+  pur_sug_head:'सेव किए आइटम — भरने के लिए टैप करें',
+  pur_sug_none:'अभी कुछ सेव नहीं — नाम टाइप करें',
+  pur_sug_left:'बचा',
+  pur_sug_fab:'फैब्रिक डिज़ाइन',
+  pur_sug_ready:'रेडीमेड',
+  pur_sug_past:'पहले खरीदा',
+  pur_party_bal:'बकाया',
+  pur_need_name:'पहले आइटम का नाम लिखें',
+  pur_save_new:'सेव और नया',
+  pur_new_hint:'नया आइटम — इसी खरीद के साथ सेव होगा',
+  pur_design_ph:'डिज़ाइन नं. (वैकल्पिक)',
+  pur_colour_ph:'कलर / साइज़ (वैकल्पिक)',
+  pur_more_fields:'डिज़ाइन, कलर',
+  cust_visits:'बार आए',
+  cust_loaded:'ग्राहक मिल गया · {n} बार पहले आए',
+  cust_had_due:'पुराना बकाया: {n}',
+  cust_business:'कुल कारोबार',
+  cust_bills:'बिल',
+  cust_alts:'अल्टरेशन',
+  cust_lastvisit:'पिछली बार',
+  camp_title:'ग्राहकों को मैसेज',
+  camp_sub:'बधाई, ऑफर, या लिस्ट अपने मार्केटिंग वाले को दें।',
+  camp_f_all:'सभी', camp_f_due:'बकाया वाले', camp_f_lapsed:'6 महीने से नहीं आए', camp_f_recent:'हाल में आए',
+  camp_found:'{n} के नंबर हैं', camp_chosen:'चुने', camp_all:'सब चुनें', camp_none:'हटाएं',
+  camp_empty:'इस फ़िल्टर में कोई नहीं।',
+  camp_msg:'मैसेज', camp_msg_ph:'नमस्ते {name}, दिवाली पर 20% छूट...',
+  camp_name_tip:'{name} से नाम, {baaki} से बकाया आ जाएगा।',
+  camp_send:'WhatsApp पर एक-एक करके भेजें', camp_csv:'लिस्ट डाउनलोड (CSV)',
+  camp_legal:'WhatsApp एक साथ सबको भेजने नहीं देता, इसलिए एक-एक चैट खुलेगी — भेजना आप दबाएंगे। सिर्फ़ उन्हीं को भेजें जो सुनना चाहते हैं।',
+  camp_none_sel:'कम से कम एक ग्राहक चुनें', camp_no_msg:'पहले मैसेज लिखें',
+  camp_sending:'भेज रहे हैं', camp_open:'चैट खोलें', camp_skip:'छोड़ें',
+  camp_step_tip:'चैट मैसेज के साथ खुलेगी — वहाँ भेजें, फिर वापस आकर अगला।',
+  camp_done_t:'हो गया', camp_done:'सभी {n} हो गए।',
+  camp_csv_done:'{n} ग्राहक डाउनलोड हुए',
+  pur_stock_made:'{n} स्टॉक में जुड़े',
+  pur_stock_merged:'{n} पुराने स्टॉक में जुड़े',
+  pur_sug_new:'नया आइटम जोड़ें',
+  pur_sug_purch:'खरीद',
+  pur_sug_instock:'स्टॉक में',
  },
 };
 let lang = localStorage.getItem('pb_ob_lang') || 'en';
@@ -2168,19 +2252,36 @@ function invGroupItems(keys){
   const nameOf=id=>{const g=G(id);return g?g.n.toLowerCase():'';};
   const ACCESSORY_NAMES=['safa','juti','dupatta','kamarbandh','mojri','stole','brooch'];
   const isAccessory=id=>ACCESSORY_NAMES.some(n=>nameOf(id).includes(n));
+  // Anchors are matched by NAME, not id, so CUSTOM garments group like the built-ins:
+  // "Open Indo" / "Close Indo" behave as an Indo anchor, "Jodhpuri Sherwani" as a Sherwani anchor.
+  const named=(id,words)=>words.some(w=>nameOf(id).includes(w));
+  const anchorOf=w=>gids.find(id=>!used.has(id)&&named(id,w));
+  const isLower=id=>named(id,['pant','churidar','pyjama','trouser']);
+  // a set takes only ONE lower — otherwise an Indo set on the same order would swallow
+  // the Kurta's pyjama and the Kurta would bill with nothing under it
+  const oneLower=taken=>gids.find(id=>!used.has(id)&&taken.indexOf(id)<0&&isLower(id));
   const groups=[];
   if(has('coat')){const mem=gids.filter(id=>!used.has(id)&&['coat','pant','shirt','waistcoat'].includes(id));
     mem.forEach(m=>used.add(m));groups.push({label:`Suit (${mem.length}pc)`,members:mem});}
-  if(has('sherwani')&&!used.has('sherwani')){
-    const mem=gids.filter(id=>!used.has(id)&&(id==='sherwani'||['kurta','pant','churidar','pyjama'].includes(id)||isAccessory(id)));
-    mem.forEach(m=>used.add(m));groups.push({label:mem.length>1?'Sherwani Set':'Sherwani',members:mem});}
+  const shA=anchorOf(['sherwani']);
+  if(shA){
+    const mem=[shA].concat(gids.filter(id=>id!==shA&&!used.has(id)&&(named(id,['kurta'])||isAccessory(id))));
+    const lw=oneLower(mem); if(lw)mem.push(lw);
+    mem.forEach(m=>used.add(m));
+    const nm=(G(shA)||{}).n||'Sherwani';
+    groups.push({label:mem.length>1?nm+' Set':nm,members:mem});}
+  const inA=anchorOf(['indo']);
+  if(inA){
+    // jacket belongs INSIDE an indo set (open indo is worn over a jacket) — it must not bill separately
+    const mem=[inA].concat(gids.filter(id=>id!==inA&&!used.has(id)&&(named(id,['jacket'])||isAccessory(id))));
+    const lw=oneLower(mem); if(lw)mem.push(lw);
+    mem.forEach(m=>used.add(m));
+    // the line is named after the garment Setu actually took the order for: "Open Indo", not "Indo-Western Set"
+    groups.push({label:(G(inA)||{}).n||'Indo-Western',members:mem});}
   if(has('kurta')&&!used.has('kurta')){const mem=gids.filter(id=>!used.has(id)&&['kurta','pyjama','jacket'].includes(id));
     mem.forEach(m=>used.add(m));let label='Kurta';
     if(mem.includes('jacket'))label='Kurta Jacket Set'; else if(mem.includes('pyjama'))label='Kurta Set';
     groups.push({label,members:mem});}
-  if(has('indo')&&!used.has('indo')){
-    const mem=gids.filter(id=>!used.has(id)&&(id==='indo'||['pant','churidar'].includes(id)));
-    mem.forEach(m=>used.add(m));groups.push({label:mem.length>1?'Indo-Western Set':'Indo-Western',members:mem});}
   gids.forEach(g=>{if(!used.has(g)){used.add(g);const gg=G(g);groups.push({label:gg?gg.n:g,members:[g]});}});
   return groups;
 }
@@ -4738,9 +4839,108 @@ function printDeliveries(){
 }
 
 /* ====================== CUSTOMERS ====================== */
+/* ===== customer campaign: greetings, offers, and handing the list to a marketer =====
+   True bulk WhatsApp needs the WhatsApp Business API — a web app cannot blast messages.
+   So this does the two things that ARE possible and legal: a tap-through sender that
+   opens each chat with the message pre-filled, and a CSV the marketing person can use. */
+let _camp={filter:'all',sel:{},msg:'',idx:0};
+function campFiltered(){
+  const now=Date.now(), MON=30*24*3600*1000;
+  return (DB.customers||[]).filter(c=>{
+    if(!ph10(c.phone))return false;                 // no usable number, nothing to send to
+    const s=custSummary(c.id);
+    if(_camp.filter==='due')return s.due>0;
+    if(_camp.filter==='lapsed')return !s.last || (now-new Date(s.last).getTime())>6*MON;
+    if(_camp.filter==='recent')return s.last && (now-new Date(s.last).getTime())<=6*MON;
+    return true;
+  }).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+}
+function campSelected(){ return campFiltered().filter(c=>_camp.sel[c.id]); }
+function openCampaign(){
+  _camp={filter:'all',sel:{},msg:'',idx:0};
+  campRender();
+}
+function campRender(){
+  const list=campFiltered();
+  const chosen=campSelected().length;
+  const F=[['all','camp_f_all'],['due','camp_f_due'],['lapsed','camp_f_lapsed'],['recent','camp_f_recent']];
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin-bottom:4px">📣 ${t('camp_title')}</h2>
+    <p class="hint" style="margin:0 0 12px">${t('camp_sub')}</p>
+    <div class="gtags" style="margin-bottom:10px">${F.map(f=>
+      `<span class="gtag ${_camp.filter===f[0]?'on-tag':''}" style="cursor:pointer" onclick="campSetFilter('${f[0]}')">${t(f[1])}</span>`).join('')}</div>
+    <div class="kv" style="margin-bottom:8px">
+      <span class="hint">${t('camp_found',{n:list.length})} · <b>${chosen}</b> ${t('camp_chosen')}</span>
+      <span><button class="btn sm ghost" onclick="campAll(1)">${t('camp_all')}</button>
+        <button class="btn sm ghost" onclick="campAll(0)">${t('camp_none')}</button></span></div>
+    <div style="max-height:32vh;overflow:auto;margin-bottom:12px">
+      ${list.map(c=>{const s=custSummary(c.id);
+        return `<label class="cust-result" style="margin-bottom:6px;cursor:pointer">
+          <span style="display:flex;gap:10px;align-items:center;min-width:0">
+            <input type="checkbox" style="width:18px;height:18px;margin:0" ${_camp.sel[c.id]?'checked':''} onchange="campPick('${c.id}',this.checked)">
+            <span style="min-width:0"><b>${esc(c.name)}</b><div class="hint">${esc(c.phone)}${s.due>0?` · <span style="color:var(--saffron2)">${t('baaki')} ${money(s.due)}</span>`:''}</div></span>
+          </span></label>`;}).join('')||`<p class="hint">${t('camp_empty')}</p>`}
+    </div>
+    <div class="field"><label>${t('camp_msg')}</label>
+      <textarea id="camp_msg" rows="4" placeholder="${t('camp_msg_ph')}" oninput="_camp.msg=this.value">${esc(_camp.msg)}</textarea>
+      <p class="hint" style="margin-top:4px">${t('camp_name_tip')}</p></div>
+    <button class="btn primary block" style="margin-bottom:8px" onclick="campStart()">📲 ${t('camp_send')}</button>
+    <button class="btn ghost block" style="margin-bottom:8px" onclick="campCSV()">📄 ${t('camp_csv')}</button>
+    <p class="hint">${t('camp_legal')}</p>
+    <div class="modal-actions"><button class="btn ghost block" onclick="closeSheet()">${t('close')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function campSetFilter(f){ _camp.msg=(($('#camp_msg')||{}).value)||_camp.msg; _camp.filter=f; campRender(); }
+function campPick(id,on){ if(on)_camp.sel[id]=1; else delete _camp.sel[id];
+  const k=$('#sheet').querySelector('.kv .hint'); if(k)k.innerHTML=t('camp_found',{n:campFiltered().length})+' · <b>'+campSelected().length+'</b> '+t('camp_chosen'); }
+function campAll(on){ _camp.msg=(($('#camp_msg')||{}).value)||_camp.msg;
+  _camp.sel={}; if(on)campFiltered().forEach(c=>_camp.sel[c.id]=1); campRender(); }
+function campText(c){
+  const s=custSummary(c.id);
+  return String(_camp.msg||'')
+    .replace(/\{name\}/gi,c.name||'')
+    .replace(/\{baaki\}/gi,money(s.due));
+}
+function campStart(){
+  _camp.msg=(($('#camp_msg')||{}).value)||_camp.msg;
+  const list=campSelected();
+  if(!list.length){toast(t('camp_none_sel'),'bad');return;}
+  if(!String(_camp.msg).trim()){toast(t('camp_no_msg'),'bad');return;}
+  _camp.idx=0; campStep(list);
+}
+function campStep(list){
+  if(_camp.idx>=list.length){ modal(t('camp_done_t'),`<p>${t('camp_done',{n:list.length})}</p>`,[{label:t('close'),cls:'primary',fn:closeSheet}]); return; }
+  const c=list[_camp.idx];
+  modal(t('camp_sending'),`
+    <p class="hint" style="margin-bottom:8px">${_camp.idx+1} / ${list.length}</p>
+    <div class="card" style="padding:12px 14px;margin-bottom:10px">
+      <b>${esc(c.name)}</b><div class="hint">${esc(c.phone)}</div>
+      <p style="margin:8px 0 0;white-space:pre-wrap;font-size:13px">${esc(campText(c))}</p></div>
+    <p class="hint">${t('camp_step_tip')}</p>`,
+    [{label:t('camp_skip'),cls:'ghost',fn:()=>{_camp.idx++;campStep(list);}},
+     {label:'📲 '+t('camp_open'),cls:'primary',fn:()=>{
+        window.open('https://wa.me/91'+ph10(c.phone)+'?text='+encodeURIComponent(campText(c)),'_blank');
+        _camp.idx++; setTimeout(()=>campStep(list),400);}}]);
+}
+function campCSV(){
+  const list=campSelected().length?campSelected():campFiltered();
+  const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const rows=[['Name','Phone','Visits','Total Business','Balance Due','Last Visit'].map(q).join(',')];
+  list.forEach(c=>{const s=custSummary(c.id);
+    rows.push([c.name,ph10(c.phone),s.visits,s.spent,s.due,s.last?fmtDate(s.last):''].map(q).join(','));});
+  const blob=new Blob(['\ufeff'+rows.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='parampara-customers-'+todayISO()+'.csv';
+  a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+  toast(t('camp_csv_done',{n:list.length}),'ok');
+}
 function renderCustomers(){
   const el=$('#custList');
   const list=DB.customers.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  const bar=$('#custCampBar');
+  if(bar)bar.innerHTML=list.length?`<button class="btn ghost block" style="margin-bottom:10px" onclick="openCampaign()">📣 ${t('camp_title')}</button>`:'';
   if(!list.length){el.innerHTML=`<div class="empty"><div class="big">👥</div><p><b>${t('no_cust')}</b></p><p style="font-size:13px">${t('no_cust_sub')}</p></div>`;return;}
   el.innerHTML=list.map(c=>{const cnt=DB.orders.filter(o=>o.customerId===c.id).length,saved=Object.keys(c.m||{}).length;
     return `<div class="card" onclick="openCustomer('${c.id}')"><div style="display:flex;justify-content:space-between;align-items:center">
@@ -4750,16 +4950,31 @@ function renderCustomers(){
 }
 function openCustomer(id){
   const c=custById(id); if(!c)return;
-  const orders=DB.orders.filter(o=>o.customerId===id).sort((a,b)=>new Date(b.created)-new Date(a.created));
+  const byNew=(a,b)=>new Date(b.created||b.date)-new Date(a.created||a.date);
+  const orders=(DB.orders||[]).filter(o=>o.customerId===id).sort(byNew);
+  const bills=(DB.sales||[]).filter(x=>x.customerId===id).sort(byNew);
+  const alts=(DB.alterations||[]).filter(a=>a.customerId===id).sort(byNew);
+  const sm=custSummary(id);
   const blocks=Object.keys(c.m||{}).map(gid=>{const g=G(gid);if(!g)return '';const cols=mcols(g),v=c.m[gid];
     const cells=cols.filter(col=>v[col.k]).map(col=>`<span class="gtag">${col.n}: <b>${esc(v[col.k])}</b></span>`).join('');
     return `<div style="margin-bottom:10px"><div style="font-weight:700;margin-bottom:5px">${g.ico} ${g.n}</div><div class="gtags">${cells||'<span class="hint">—</span>'}</div></div>`;}).join('');
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h2>${esc(c.name)}</h2><button class="btn sm ghost" onclick="editCustomer('${id}')">✏️ ${t('edit')}</button></div>
     <div class="kv"><span>${t('phone')}</span><b><a href="tel:${esc(c.phone)}">${esc(c.phone||'—')}</a></b></div>
+    <div class="card" style="padding:12px 14px;margin:10px 0">
+      <div class="il"><span>${t('cust_business')}</span><b>${money(sm.spent)}</b></div>
+      <div class="il"><span>${t('baaki')}</span>
+        <b style="color:${sm.due>0?'var(--saffron2)':'var(--ok)'}">${sm.due>0?money(sm.due):'✓ 0'}</b></div>
+      <div class="il"><span>${t('cust_visits')}</span><b>${sm.visits}</b></div>
+      ${sm.last?`<div class="il"><span>${t('cust_lastvisit')}</span><b>${fmtDate(sm.last)}</b></div>`:''}
+    </div>
     <div class="section-h">${t('meas_title')}</div>${blocks||'<p class="hint">'+t('no_meas')+'</p>'}
     <div class="section-h">${t('cust_orders')} (${orders.length})</div>
-    ${orders.map(o=>`<div class="cust-result" onclick="closeSheet();openDetail('${o.id}')"><div><b>#${esc(o.orderNo)}</b> <span class="hint">${fmtDate(o.created)}</span></div><div class="hint">${money(o.total)}</div></div>`).join('')||'<p class="hint">—</p>'}
+    ${orders.map(o=>`<div class="cust-result" onclick="closeSheet();openDetail('${o.id}')"><div><b>#${esc(o.orderNo)}</b> <span class="hint">${fmtDate(o.created)}</span></div><div class="hint">${money(o.total)}${orderBaaki(o)>0?` · <span style="color:var(--saffron2)">${t('baaki')} ${money(orderBaaki(o))}</span>`:''}</div></div>`).join('')||'<p class="hint">—</p>'}
+    ${bills.length?`<div class="section-h">${t('cust_bills')} (${bills.length})</div>
+      ${bills.map(b=>`<div class="cust-result"><div><b>${esc(b.no||b.invNo||'—')}</b> <span class="hint">${fmtDate(b.date||b.created)}</span></div><div class="hint">${money(b.total)}${orderBaaki(b)>0?` · <span style="color:var(--saffron2)">${t('baaki')} ${money(orderBaaki(b))}</span>`:''}</div></div>`).join('')}`:''}
+    ${alts.length?`<div class="section-h">${t('cust_alts')} (${alts.length})</div>
+      ${alts.map(a=>`<div class="cust-result"><div><b>#${esc(a.altNo||'—')}</b> <span class="hint">${fmtDate(a.created||a.date)}</span></div><div class="hint">${money(a.total)}</div></div>`).join('')}`:''}
     <div class="modal-actions"><button class="btn ghost block" onclick="closeSheet()">${t('close')}</button></div>`;
   showSheet();
 }
@@ -5037,7 +5252,7 @@ function renderForm(){
       <div class="field"><label>${t('delivery')} *</label><input id="f_ddate" type="date" value="${esc(f.deliveryDate)}"></div></div>
     <div class="field"><label>${t('customer')}</label><div id="custPicked">${(f.customerId||f.customerName)?customerPickedHTML():''}</div>
       <div id="custSearchWrap" style="${f.customerName?'display:none':''}">
-        <input id="f_cname" placeholder="${t('name_ph')}" oninput="custSearch(this.value)" value="${esc(f.customerName)}">
+        <input id="f_cname" placeholder="${t('name_ph')}" autocomplete="off" onfocus="custSearch(this.value)" oninput="custSearch(this.value)" value="${esc(f.customerName)}">
         <div id="custResults"></div>
         <input id="f_cphone" type="tel" placeholder="${t('phone')}" value="${esc(f.phone)}" style="margin-top:8px">
         ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost" style="margin-top:8px" onclick="pickContact()">📇 ${t('from_contacts')}</button>`:''}</div></div>
@@ -5198,9 +5413,66 @@ function captureForm(){const f=form;
   document.querySelectorAll('.mInput').forEach(inp=>{const gid=inp.dataset.g,k=inp.dataset.k,v=inp.value.trim();if(!f.m[gid])f.m[gid]={};if(v)f.m[gid][k]=v;else delete f.m[gid][k];});
   document.querySelectorAll('[data-design]').forEach(inp=>{f.design[inp.dataset.design]=inp.value.trim();});
 }
-function custSearch(q){const box=$('#custResults');q=q.trim().toLowerCase();if(q.length<2){box.innerHTML='';return;}
-  const hits=DB.customers.filter(c=>(c.name||'').toLowerCase().includes(q)||(c.phone||'').includes(q)).slice(0,5);
-  box.innerHTML=hits.map(c=>`<div class="cust-result" style="margin-top:7px" onclick="pickCustomer('${c.id}')"><div><b>${esc(c.name)}</b><div class="hint">${esc(c.phone||'')} · ${Object.keys(c.m||{}).length} ${t('saved_meas')}</div></div><span class="btn sm primary">${t('select')}</span></div>`).join('');}
+/* One rule everywhere: cursor in the field → the list appears, even before anything is typed.
+   Empty box = the most recent ones, which is what you want 90% of the time. */
+/* ===== one customer, one record =====
+   Everything a customer has ever done lives against their id. Search the name or the
+   phone anywhere in the app and this is what comes back — measurements, orders, bills,
+   alterations, what they still owe, and when they last came. */
+function custSummary(id){
+  const ords=(DB.orders||[]).filter(o=>o.customerId===id);
+  const alts=(DB.alterations||[]).filter(a=>a.customerId===id);
+  const bils=(DB.sales||[]).filter(x=>x.customerId===id);
+  const all=ords.concat(alts,bils);
+  const c=custById(id)||{};
+  let last=null;
+  all.forEach(x=>{const d=x.created||x.date; if(d&&(!last||d>last))last=d;});
+  return {
+    meas: Object.keys(c.m||{}).length,
+    orders: ords.length, alts: alts.length, bills: bils.length,
+    visits: all.length,
+    spent: r2(all.reduce((s,x)=>s+(+x.total||0),0)),
+    due: r2(customerOutstanding(id)),
+    last
+  };
+}
+/* one line of context, used by every customer picker in the app */
+function custSubHTML(c){
+  const s=custSummary(c.id);
+  const bits=[];
+  if(c.phone)bits.push(esc(c.phone));
+  if(s.meas)bits.push(s.meas+' '+t('saved_meas'));
+  if(s.visits)bits.push(s.visits+' '+t('cust_visits'));
+  if(s.due>0)bits.push(`<span style="color:var(--saffron2);font-weight:700">${t('baaki')} ${money(s.due)}</span>`);
+  return bits.join(' · ')||'—';
+}
+function custRowHTML(c,onclick){
+  return `<div class="cust-result" style="margin-top:7px" onclick="${onclick}">
+    <div style="min-width:0"><b>${esc(c.name)}</b><div class="hint">${custSubHTML(c)}</div></div>
+    <span class="btn sm primary">${t('select')}</span></div>`;
+}
+/* Phones get saved every which way — "98300 11111", "+91 9830011111", "091-98300-11111".
+   Strip to digits and compare the last 10, so however it was saved and however it's
+   typed, it matches. */
+const phDigits=v=>String(v||'').replace(/\D/g,'');
+const ph10=v=>{const d=phDigits(v);return d.length>10?d.slice(-10):d;};
+function custHits(q,limit){
+  const lim=limit||6;
+  const raw=String(q||'').trim();
+  const all=(DB.customers||[]);
+  if(!raw)return all.slice().reverse().slice(0,lim);
+  const lc=raw.toLowerCase(), dq=phDigits(raw);
+  return all.filter(c=>{
+    if((c.name||'').toLowerCase().includes(lc))return true;
+    if(!dq)return false;
+    const cd=phDigits(c.phone);
+    return cd.includes(dq) || (dq.length>=10 && ph10(c.phone)===ph10(raw));
+  }).slice(0,lim);
+}
+function custSearch(q){const box=$('#custResults'); if(!box)return;
+  const hits=custHits(q);
+  if(!hits.length){box.innerHTML='';return;}
+  box.innerHTML=hits.map(c=>custRowHTML(c,`pickCustomer('${c.id}')`)).join('');}
 function pickCustomer(id){captureForm();const c=custById(id);form.customerId=id;form.customerName=c.name;form.phone=c.phone;
   form.items.forEach(gid=>prefillGarment(gid));renderForm();toast(t('t_meas_loaded',{n:Object.keys(c.m||{}).length}),'ok');}
 async function pickContact(){
@@ -5581,7 +5853,9 @@ function renderAltForm(){
     <div class="row"><div class="field"><label>${t('alt_no')}</label><input id="a_no" value="${esc(f.altNo)}"></div>
       <div class="field"><label>${t('alt_received_date')}</label><input id="a_rdate" type="date" value="${esc(f.receivedDate)}"></div></div>
     ${origO?`<div class="field"><label>${t('alt_orig_order')}</label><div class="cust-result"><div><b>#${esc(origO.orderNo)}</b><div class="hint">${esc(origO.customerName)}</div></div><button class="btn sm ghost" onclick="unlinkAltOrder()">${t('unlink')}</button></div></div>`:`<p class="hint" style="margin:0 0 12px">${t('no_orig_link')}</p>`}
-    <div class="field"><label>${t('customer')}</label><input id="a_cname" value="${esc(f.customerName)}" placeholder="${t('name_ph')}">
+    <div class="field"><label>${t('customer')}</label><input id="a_cname" value="${esc(f.customerName)}" placeholder="${t('name_ph')}"
+      autocomplete="off" onfocus="altCustSearch(this.value)" oninput="altCustSearch(this.value)">
+      <div id="altCustResults"></div>
       <input id="a_cphone" type="tel" placeholder="${t('phone')}" value="${esc(f.phone)}" style="margin-top:8px"></div>
     <div class="field"><label>${t('alt_item')} ${micBtn('#a_item')}</label><textarea id="a_item" placeholder="${t('alt_item_ph')}">${esc(f.itemDesc)}</textarea></div>
     <div class="row"><div class="field"><label>${t('delivery')}</label><input id="a_ddate" type="date" value="${esc(f.deliveryDate)}"></div>
@@ -5850,7 +6124,7 @@ function renderInvoiceForm(){
     <div id="invCustPicked" style="margin-bottom:10px">${(f.customerId||f.customerName)?invCustomerPickedHTML():''}</div>
     <div id="invCustSearchWrap" style="${(f.customerId||f.customerName)?'display:none':''};margin-bottom:10px">
       <div class="cust-2col">
-        <div><input id="inv_cname" placeholder="👤 ${t('name_ph')}" oninput="invCustSearch(this.value)" value="${esc(f.customerName||'')}"></div>
+        <div><input id="inv_cname" placeholder="👤 ${t('name_ph')}" autocomplete="off" onfocus="invCustSearch(this.value)" oninput="invCustSearch(this.value)" value="${esc(f.customerName||'')}"></div>
         <div><input id="inv_cphone" type="tel" placeholder="📞 ${t('phone')}" value="${esc(f.phone||'')}"></div>
       </div>
       <div id="invCustResults"></div>
@@ -5912,58 +6186,57 @@ function renderInvoiceForm(){
         <input class="bold-in" value="${esc((invRecOf(f.kind,f.id)||{}).orderNo||(invRecOf(f.kind,f.id)||{}).altNo||'')}" disabled></div>`}
     </div>
 
-    <div class="card pos-total" id="invTotalsBox">
-      <div class="sum-row"><span>${t('sub_total')}</span><b id="tSub">${money(comp0.gross)}</b></div>
+    <div class="card pos-total" id="invTotalsBox" style="padding:12px 14px">
+      <div class="il"><span>${t('sub_total')}</span><b id="tSub">${money(comp0.gross)}</b></div>
 
-      <div class="sum-row"><span>${t('discount')}</span>
-        <span class="disc-grp">
-          <select id="inv_disctype" onchange="updateInvTotals()">
-            <option value="amount" ${f.discType==='percent'?'':'selected'}>₹</option>
-            <option value="percent" ${f.discType==='percent'?'selected':''}>%</option></select>
-          <input id="inv_discval" type="number" inputmode="numeric" value="${f.discValue?esc(f.discValue):''}" placeholder="0" oninput="updateInvTotals()">
-          <b id="tDisc" class="neg">− ${money(comp0.discount)}</b>
+      <div class="il"><span>${t('discount')}</span>
+        <span style="display:flex;gap:6px;align-items:center">
+          <button class="btn sm ghost" id="ivDiscTog" style="min-width:40px;padding:4px 8px" onclick="invToggleDisc()">${f.discType==='percent'?'%':'₹'}</button>
+          <input id="inv_discval" type="number" inputmode="numeric" value="${f.discValue?esc(f.discValue):''}" placeholder="0"
+            style="width:82px;text-align:right;margin:0" oninput="updateInvTotals()">
+          <input type="hidden" id="inv_disctype" value="${f.discType==='percent'?'percent':'amount'}">
+          <b id="tDisc" class="neg" style="min-width:66px;text-align:right">− ${money(comp0.discount)}</b>
         </span></div>
 
-      <div class="sum-row grand"><span>${t('grand_total')}</span><b id="tTotal">${money(comp0.total)}</b></div>
-
-      <div class="sum-sep"></div>
+      <div class="il"><span>${t('grand_total')}</span><b id="tTotal" style="font-size:18px">${money(comp0.total)}</b></div>
 
       ${f.split ? `
-      <div class="sum-row pay"><span>💵 ${t('pm_cash')}</span>
-        <span class="recv-grp"><span>₹</span><input id="inv_cash" type="number" inputmode="numeric" value="${esc(f.split.cash!=null?f.split.cash:'')}" placeholder="0" oninput="updateInvTotals()"></span></div>
-      <div class="sum-row pay"><span>📱 ${t('pm_upi')}</span>
-        <span class="recv-grp"><span>₹</span><input id="inv_upi" type="number" inputmode="numeric" value="${esc(f.split.upi!=null?f.split.upi:'')}" placeholder="0" oninput="updateInvTotals()"></span></div>
-      <label class="split-lbl"><input type="checkbox" checked onchange="invToggleSplit()"> ${t('split_pay')}</label>
-      <div class="sum-row pay"><span>${t('received')}</span><b id="tRecvSplit">${money((+f.split.cash||0)+(+f.split.upi||0))}</b></div>
-      <div class="sum-row due"><span>${t('total_due')}</span>
-        <b id="tDue">${money(Math.max(0,r2(comp0.total-((+f.split.cash||0)+(+f.split.upi||0)))))}</b></div>
-      ` : `
-      <div class="sum-row pay"><span>${t('payment_mode')}</span>
-        <select id="inv_pm" onchange="updateInvTotals()">
-          <option value="UPI" ${f.paymentMode==='UPI'?'selected':''}>${t('pm_upi')}</option>
-          <option value="Cash" ${f.paymentMode==='Cash'?'selected':''}>${t('pm_cash')}</option>
-          <option value="Card" ${f.paymentMode==='Card'?'selected':''}>${t('pm_card')}</option>
-          <option value="Bank" ${f.paymentMode==='Bank'?'selected':''}>${t('pm_bank')}</option></select></div>
-      <label class="split-lbl"><input type="checkbox" onchange="invToggleSplit()"> ${t('split_pay')}</label>
-      ${(()=>{
+      <div class="il"><span>💵 ${t('pm_cash')}</span>
+        <input id="inv_cash" type="number" inputmode="numeric" value="${esc(f.split.cash!=null?f.split.cash:'')}" placeholder="0"
+          style="width:112px;text-align:right;margin:0" oninput="updateInvTotals()"></div>
+      <div class="il"><span>📱 ${t('pm_upi')}</span>
+        <input id="inv_upi" type="number" inputmode="numeric" value="${esc(f.split.upi!=null?f.split.upi:'')}" placeholder="0"
+          style="width:112px;text-align:right;margin:0" oninput="updateInvTotals()"></div>
+      <div class="il"><span>${t('received')}</span><b id="tRecvSplit">${money((+f.split.cash||0)+(+f.split.upi||0))}</b></div>
+      <div class="il"><span>${t('total_due')}</span>
+        <b id="tDue" style="font-size:17px;color:var(--saffron2)">${money(Math.max(0,r2(comp0.total-((+f.split.cash||0)+(+f.split.upi||0)))))}</b></div>
+      ` : (()=>{
         const rec0=invRecOf(f.kind,f.id)||{};
         const paid=orderReceived(rec0);
-        const many=(rec0.payments||[]).length>1;
-        if(many){            // real payment history — never let a bill edit overwrite it
-          return `<div class="sum-row pay"><span>${t('received')}</span>
-            <b>${money(paid)}</b></div>
-            <div class="sum-row due"><span>${t('total_due')}</span>
-              <b id="tDue">${money(Math.max(0,r2(comp0.total-paid)))}</b></div>
-            <p class="hint" style="margin-top:6px">${t('pay_in_detail')}</p>`;
+        if((rec0.payments||[]).length>1){   // real payment history — a bill edit must never overwrite it
+          return `<div class="il"><span>${t('received')}</span><b>${money(paid)}</b></div>
+            <div class="il"><span>${t('total_due')}</span>
+              <b id="tDue" style="font-size:17px;color:var(--saffron2)">${money(Math.max(0,r2(comp0.total-paid)))}</b></div>
+            <p class="hint" style="margin:6px 0 0">${t('pay_in_detail')}</p>`;
         }
         const shown = f.receivedNow!=null ? f.receivedNow : (paid||'');
-        return `<div class="sum-row pay"><span>${t('received_now')}</span>
-          <span class="recv-grp"><span>₹</span>
-            <input id="inv_recv" type="number" inputmode="numeric" value="${esc(shown)}" placeholder="0" oninput="updateInvTotals()"></span></div>
-          <div class="sum-row due"><span>${t('total_due')}</span>
-            <b id="tDue">${money(Math.max(0,r2(comp0.total-(+shown||0))))}</b></div>`;
+        return `<div class="il">
+            <span style="display:flex;gap:8px;align-items:center">
+              <input type="checkbox" id="inv_paidfull" style="width:18px;height:18px;margin:0" onchange="invPaidFull(this.checked)"
+                ${(+shown>0&&r2(+shown)===r2(comp0.total))?'checked':''}>
+              <span>${t('received_now')}</span></span>
+            <input id="inv_recv" type="number" inputmode="numeric" value="${esc(shown)}" placeholder="0"
+              style="width:112px;text-align:right;margin:0" oninput="updateInvTotals()"></div>
+          <div class="il"><span>${t('total_due')}</span>
+            <b id="tDue" style="font-size:17px;color:var(--saffron2)">${money(Math.max(0,r2(comp0.total-(+shown||0))))}</b></div>`;
       })()}
-      `}
+
+      <div class="il" style="border-bottom:0;padding-bottom:0">
+        <span class="hint">${t('payment_mode')}</span>
+        <span class="gtags" id="ivModes" style="justify-content:flex-end">
+          ${PU_MODES.map(m=>`<span class="gtag sm ${(!f.split&&f.paymentMode===m[0])?'on-tag':''}" data-pm="${m[0]}" style="cursor:pointer" onclick="invSetMode('${m[0]}')">${t(m[1])}</span>`).join('')}
+          <span class="gtag sm ${f.split?'on-tag':''}" style="cursor:pointer;border-style:dashed" onclick="invToggleSplit()">⇄ ${t('split_pay')}</span></span>
+        <input type="hidden" id="inv_pm" value="${esc(f.paymentMode||'Cash')}"></div>
     </div>
 
     <details style="margin-top:14px">
@@ -5997,9 +6270,11 @@ function posLineHTML(i,it){
   const amt=r2((+it.qty||1)*(+it.rate||0));
   return `<div class="pos-line" id="posLine${i}">
     <div class="pl-top">
-      <input class="pl-name" data-iin="${i}" value="${esc(it.label||'')}" placeholder="${t('inv_item_name_ph')}">
+      <input class="pl-name" data-iin="${i}" value="${esc(it.label||'')}" placeholder="${t('inv_item_name_ph')}"
+        autocomplete="off" onfocus="posNameSug(${i})" oninput="posNameSug(${i})">
       <button class="pl-x" onclick="posDel(${i})">✕</button>
     </div>
+    <div id="posNS${i}"></div>
     <div class="pl-incl-chips" id="posIncl${i}">${posInclChipsHTML(i,it)}</div>
     <div class="pl-row">
       <div class="qty-step">
@@ -6081,10 +6356,15 @@ function posAdd(mid,size){
   const m=(DB.itemMaster||[]).find(x=>x.id===mid); if(!m)return;
   if(m.kind==='ready'&&!size){ posPickSize(m); return; }
   if(size)m._pickedSize=size;
-  const ex=(invForm.items||[]).findIndex(it=>it.masterId===mid);
-  if(ex>=0){                                   // already in the bill → just bump qty
-    invForm.items[ex].qty=(+invForm.items[ex].qty||1)+1;
-    posRefresh(); toast(m.name+' ×'+invForm.items[ex].qty,'ok'); return;
+  // Readymade = a fixed stock piece → tapping again is genuinely "one more of the same", bump qty
+  // (same SIZE only). Made-to-order / sets (Suit 3 PC, Sherwani…) are priced per customer, so the
+  // same item can appear twice on one bill at two different rates → ALWAYS a fresh line.
+  if(m.kind==='ready'){
+    const ex=(invForm.items||[]).findIndex(it=>it.masterId===mid && (it.size||'')===(size||''));
+    if(ex>=0){
+      invForm.items[ex].qty=(+invForm.items[ex].qty||1)+1;
+      posRefresh(); toast(m.name+' ×'+invForm.items[ex].qty,'ok'); return;
+    }
   }
   invForm.items=(invForm.items||[]).filter(it=>it.label||+it.rate);   // drop empty rows
   invForm.items.push({masterId:m.id,label:m.name+(size?' ('+size+')':''),hsn:m.hsn||'',qty:1,
@@ -6130,16 +6410,24 @@ function posSearchRun(qraw){
   const key=s=>{const n=norm(s);return /^\d+$/.test(n)?String(parseInt(n,10)||0):n;};   // pure numbers: drop leading zeros (01=1=001)
   const qn=key(q);
   const match=s=>!qn||key(s).includes(qn);
-  // Search shows ONLY real stock: readymade pieces + fabric rolls. Dummy shortcut presets never appear here.
+  // Search shows real stock (readymade pieces + fabric rolls) PLUS saved made-to-order presets
+  // (Suit 3 PC, Sherwani…) — picking a preset links masterId so Includes + rate auto-fill,
+  // which a plain typed line can't do. Presets still never get auto-created from billed names.
   const ready=(DB.itemMaster||[]).filter(m=>m.kind==='ready'&&match(m.name)).slice(0,12);
+  const presets=(DB.itemMaster||[]).filter(m=>m.kind!=='ready'&&match(m.name)).slice(0,12);
   const rolls=(DB.thaans||[]).filter(th=>{const fi=(DB.fabItems||[]).find(x=>x.id===th.fabId)||{};return match(th.serial)||match(fi.name)||match(fi.category);}).slice(0,15);
-  const exact = qn && (ready.some(m=>key(m.name)===qn) || rolls.some(th=>{const fi=(DB.fabItems||[]).find(x=>x.id===th.fabId)||{};return key(th.serial)===qn||key(fi.name)===qn;}));
+  const exact = qn && (ready.some(m=>key(m.name)===qn) || presets.some(m=>key(m.name)===qn) || rolls.some(th=>{const fi=(DB.fabItems||[]).find(x=>x.id===th.fabId)||{};return key(th.serial)===qn||key(fi.name)===qn;}));
   _posItems=[];
   const scoreOf=fields=>{let b=9;for(const f of fields){if(!f)continue;if(f===qn)b=Math.min(b,0);else if(f.indexOf(qn)===0)b=Math.min(b,1);else if(f.includes(qn))b=Math.min(b,2);}return b;};
   ready.forEach(m=>{
     const szs=(DB.stkCfg.sizes||[]).filter(sz=>readyQty(m,sz)>0);
     _posItems.push({title:esc(m.name),sub:`In stock: ${readyTotal(m)}${m.sell?` · ₹${esc(m.sell)}`:''}`,mid:m.id,sizes:szs,
       act:()=>{ if(szs.length)posAddReadySize(m.id,szs[0]); else toast(t('stk_out_of'),'bad'); },score:qn?scoreOf([key(m.name)]):3});
+  });
+  presets.forEach(m=>{
+    const parts=(m.incl||[]).join(' + ');
+    _posItems.push({title:esc(m.name),sub:`${parts?esc(parts)+' · ':''}${m.rate?'₹'+esc(m.rate):t('pos_preset_norate')}`,
+      act:()=>posAddMaster(m.id),score:qn?scoreOf([key(m.name)]):3});
   });
   rolls.forEach(th=>{const fi=(DB.fabItems||[]).find(x=>x.id===th.fabId)||{};const rt=th.rate||fi.rate||0;
     _posItems.push({title:`${esc(fi.name||'Fabric')} · #${esc(th.serial)}`,sub:`${thaanBal(th)} mtr left${rt?` · ₹${esc(rt)}/mtr`:''}`,act:()=>posAddThaan(th.id),score:qn?scoreOf([key(th.serial),key(fi.name)]):3});});
@@ -6240,6 +6528,29 @@ function posAddPart(i){
   setTimeout(()=>{const el=$('#posNewPart');if(el)el.focus();},120);
 }
 /* ---- inline includes chips on each bill line (edit/add/remove right there) ---- */
+/* Same rule as everywhere else: cursor in a bill line's name → saved stock appears,
+   without having to go through the "Add item" screen first. */
+let _posNS={};
+function posNameSug(i){
+  const box=$('#posNS'+i), inp=document.querySelector('[data-iin="'+i+'"]'); if(!box||!inp)return;
+  const q=String(inp.value||'').trim();
+  const list=purSugList(q).slice(0,6); _posNS[i]=list;
+  if(!list.length){box.innerHTML='';return;}
+  box.innerHTML=`<div class="hint" style="margin:6px 0 4px">📦 ${t('pur_sug_head')}</div>`+
+    list.map((o,k)=>`<div class="cust-result" style="margin-bottom:6px" onclick="posNamePick(${i},${k})">
+      <div><b>${esc(o.title)}</b><div class="hint">${esc(o.sub)}</div></div>
+      <span class="btn sm primary">${t('select')}</span></div>`).join('');
+}
+function posNamePick(i,k){
+  const o=(_posNS[i]||[])[k]; if(!o)return;
+  const inp=document.querySelector('[data-iin="'+i+'"]'); if(inp)inp.value=o.val.label;
+  const box=$('#posNS'+i); if(box)box.innerHTML='';
+  captureInvoiceForm();
+  // a purchase rate is a COST — never push it onto a customer bill; Setu types the selling rate
+  const rt=document.querySelector('[data-irate="'+i+'"]');
+  if(rt&&!rt.value){rt.focus();rt.select&&rt.select();}
+  updateInvTotals();
+}
 function posInclChipsHTML(i,it){
   const picked=Array.isArray(it.incl)?it.incl:[];
   const mst=(DB.itemMaster||[]).find(m=>m.id===it.masterId);
@@ -6402,10 +6713,31 @@ function invPullOrder(oid){
 }
 function invCustomerPickedHTML(){return `<div class="cust-result"><div><b>${esc(invForm.customerName)}</b><div class="hint">${esc(invForm.phone||'')}</div></div><button class="btn sm ghost" onclick="invClearCustomer()">${t('change')}</button></div>`;}
 function invClearCustomer(){captureInvoiceForm();invForm.customerId=null;invForm.customerName='';invForm.phone='';renderInvoiceForm();}
-function invCustSearch(q){const box=$('#invCustResults');q=q.trim().toLowerCase();if(q.length<2){box.innerHTML='';return;}
-  const hits=(DB.customers||[]).filter(c=>(c.name||'').toLowerCase().includes(q)||(c.phone||'').includes(q)).slice(0,5);
-  box.innerHTML=hits.map(c=>`<div class="cust-result" style="margin-top:7px" onclick="invPickCustomer('${c.id}')"><div><b>${esc(c.name)}</b><div class="hint">${esc(c.phone||'')}</div></div><span class="btn sm primary">${t('select')}</span></div>`).join('');}
-function invPickCustomer(id){captureInvoiceForm();const c=custById(id);if(!c)return;invForm.customerId=id;invForm.customerName=c.name;invForm.phone=c.phone;renderInvoiceForm();}
+function invCustSearch(q){const box=$('#invCustResults'); if(!box)return;
+  const hits=custHits(q);
+  if(!hits.length){box.innerHTML='';return;}
+  box.innerHTML=hits.map(c=>custRowHTML(c,`invPickCustomer('${c.id}')`)).join('');}
+function altCustSearch(q){const box=$('#altCustResults'); if(!box)return;
+  const hits=custHits(q);
+  if(!hits.length){box.innerHTML='';return;}
+  box.innerHTML=hits.map(c=>custRowHTML(c,`altPickCustomer('${c.id}')`)).join('');}
+function altPickCustomer(id){
+  const c=custById(id); if(!c)return;
+  const n=$('#a_cname'); if(n)n.value=c.name||'';
+  const ph=$('#a_phone'); if(ph&&c.phone)ph.value=c.phone;
+  const box=$('#altCustResults'); if(box)box.innerHTML='';
+  if(altForm)altForm.customerId=id;
+  const s=custSummary(id);
+  if(s.due>0)toast(t('cust_had_due',{n:money(s.due)}),'bad');
+}
+function invPickCustomer(id){
+  captureInvoiceForm();const c=custById(id);if(!c)return;
+  invForm.customerId=id;invForm.customerName=c.name;invForm.phone=c.phone;
+  renderInvoiceForm();
+  const s=custSummary(id);
+  if(s.due>0)toast(t('cust_had_due',{n:money(s.due)}),'bad');
+  else if(s.visits)toast(t('cust_loaded',{n:s.visits}),'ok');
+}
 async function invPickContact(){
   if(!(navigator.contacts&&navigator.contacts.select)){toast(t('contacts_na'),'bad');return;}
   try{
@@ -6437,6 +6769,25 @@ function updateInvTotals(){
   const recv=invForm.receivedNow!=null?invForm.receivedNow:0;
   set('tDue',money(Math.max(0,r2(comp.total-recv))));
   if(invForm.split)set('tRecvSplit',money(recv));
+  const cb=$('#inv_paidfull'); if(cb)cb.checked=(recv>0&&r2(recv)===r2(comp.total));
+}
+function invToggleDisc(){
+  const h=$('#inv_disctype'), b=$('#ivDiscTog'); if(!h)return;
+  h.value=(h.value==='percent')?'amount':'percent';
+  if(b)b.textContent=(h.value==='percent')?'%':'₹';
+  updateInvTotals();
+}
+function invSetMode(m){
+  const h=$('#inv_pm'); if(h)h.value=m;
+  invForm.paymentMode=m;
+  if(invForm.split){ invToggleSplit(); return; }   // picking one mode means it isn't split any more
+  document.querySelectorAll('#ivModes .gtag').forEach(el=>el.classList.toggle('on-tag',el.dataset.pm===m));
+}
+function invPaidFull(on){
+  captureInvoiceForm();
+  const comp=invCompute(invForm);
+  const el=$('#inv_recv'); if(el)el.value=on?r2(comp.total):'';
+  updateInvTotals();
 }
 function invToggleSplit(){
   captureInvoiceForm();
@@ -7050,7 +7401,7 @@ function openPurchaseForm(editId){
     purchForm={editId,supplier:p.supplier||'',phone:p.phone||'',billNo:p.billNo||'',date:p.date||todayISO(),items,
       discType:p.discType||'amount',discValue:p.discValue||0,paidNow:null,paymentMode:p.paymentMode||'Cash',notes:p.notes||'',photos:[...(p.photos||[])]};}
   else purchForm={editId:null,supplier:'',phone:'',billNo:'',date:todayISO(),
-      items:[{label:'',hsn:'',qty:1,unit:'Mtr',rate:'',amount:0}],discType:'amount',discValue:0,paidNow:null,paymentMode:'Cash',notes:'',photos:[]};
+      items:[],discType:'amount',discValue:0,paidNow:null,paymentMode:'Cash',notes:'',photos:[]};
   renderPurchaseForm();
 }
 function capturePurchForm(){const f=purchForm;if(!f)return;
@@ -7063,29 +7414,75 @@ function capturePurchForm(){const f=purchForm;if(!f)return;
   if($('#pu_disctype'))f.discType=$('#pu_disctype').value;
   if($('#pu_discval'))f.discValue=+$('#pu_discval').value||0;
   if($('#pu_notes'))f.notes=$('#pu_notes').value.trim();
-  document.querySelectorAll('[data-puin]').forEach(inp=>{f.items[+inp.dataset.puin].label=inp.value.trim();});
-  document.querySelectorAll('[data-puhsn]').forEach(inp=>{f.items[+inp.dataset.puhsn].hsn=inp.value.trim();});
-  document.querySelectorAll('[data-puqty]').forEach(inp=>{f.items[+inp.dataset.puqty].qty=+inp.value||0;});
-  document.querySelectorAll('[data-puunit]').forEach(inp=>{f.items[+inp.dataset.puunit].unit=inp.value.trim()||'Pcs';});
-  document.querySelectorAll('[data-purate]').forEach(inp=>{f.items[+inp.dataset.purate].rate=+inp.value||0;});
-  document.querySelectorAll('[data-puamt]').forEach(inp=>{f.items[+inp.dataset.puamt].amount=+inp.value||0;});
+  // items are committed by the entry line (purDraftAdd), not read back from row inputs
 }
-function purchAddItem(){capturePurchForm();purchForm._openIdx=purchForm.items.length;purchForm.items.push({label:'',hsn:'',qty:1,unit:'Mtr',rate:'',amount:0});renderPurchaseForm();purchFocusOpen();}
-function purchDelItem(i){capturePurchForm();purchForm.items.splice(i,1);if(!purchForm.items.length)purchForm.items.push({label:'',hsn:'',qty:1,unit:'Mtr',rate:'',amount:0});renderPurchaseForm();}
-function purchRateQtyChanged(i){capturePurchForm();const it=purchForm.items[i];
-  if((+it.qty||0)&&(+it.rate||0)){it.amount=r2((+it.qty)*(+it.rate));const amtEl=document.querySelector(`[data-puamt="${i}"]`);if(amtEl)amtEl.value=it.amount;}
-  updatePurchTotal();}
 function purchCompute(f){
   const gross=r2(f.items.reduce((s,it)=>s+(+it.amount||0),0));
   let discAmt=f.discType==='percent'?r2(gross*(+f.discValue||0)/100):r2(+f.discValue||0);
   discAmt=Math.max(0,Math.min(discAmt,gross));
   return {gross,discount:discAmt,total:r2(gross-discAmt)};
 }
-function purchTotalsBoxHTML(comp){return `${comp.discount>0?`<div class="kv"><span>${t('sub_total')}</span><b>${money(comp.gross)}</b></div>
-    <div class="kv"><span>${t('discount')}</span><b>− ${money(comp.discount)}</b></div>`:''}
-    <div class="kv"><span>${t('grand_total')}</span><b style="font-size:18px">${money(comp.total)}</b></div>`;}
-function updatePurchTotal(){capturePurchForm();const comp=purchCompute(purchForm);
-  const box=$('#puTotalsBox');if(box)box.innerHTML=purchTotalsBoxHTML(comp);}
+/* Money block, Vyapar-compact: Discount / Total / Paid / Balance Due, one line each.
+   Everything is inline — no section headings, no full-width labelled fields. */
+const PU_MODES=[['Cash','pm_cash'],['UPI','pm_upi'],['Bank','pm_bank'],['Card','pm_card']];
+// when editing, money already paid on this bill must come off the balance too
+function puPrior(){ if(!purchForm||!purchForm.editId)return 0;
+  const p=(DB.purchases||[]).find(x=>x.id===purchForm.editId); return p?orderReceived(p):0; }
+function purchTotalsBoxHTML(comp){
+  const f=purchForm, pct=f.discType==='percent';
+  const paid=(f.paidNow==null||f.paidNow==='')?'':f.paidNow;
+  const bal=r2(Math.max(0,comp.total-puPrior()-(+paid||0)));
+  const ln='display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)';
+  return `<div style="${ln}"><span>${t('discount')}</span>
+      <span style="display:flex;gap:6px;align-items:center">
+        <button class="btn sm ghost" id="puDiscTog" style="min-width:40px;padding:4px 8px" onclick="puToggleDisc()">${pct?'%':'₹'}</button>
+        <input id="pu_discval" type="number" inputmode="numeric" value="${f.discValue?esc(f.discValue):''}" placeholder="0"
+          style="width:96px;text-align:right;margin:0" oninput="updatePurchTotal()">
+        <input type="hidden" id="pu_disctype" value="${pct?'percent':'amount'}"></span></div>
+    <div style="${ln}"><span>${t('grand_total')}</span><b id="puTotalAmt" style="font-size:18px">${money(comp.total)}</b></div>
+    <div style="${ln}">
+      <span style="display:flex;gap:8px;align-items:center">
+        <input type="checkbox" id="pu_paidfull" style="width:18px;height:18px;margin:0" onchange="puPaidFull(this.checked)"
+          ${(+paid>0&&r2(+paid)===r2(Math.max(0,comp.total-puPrior())))?'checked':''}>
+        <span>${t('paid_now')}</span></span>
+      <input id="pu_paid" type="number" inputmode="numeric" value="${paid}" placeholder="0"
+        style="width:112px;text-align:right;margin:0" oninput="updatePurchTotal()"></div>
+    <div style="${ln}"><span>${t('baaki')}</span>
+      <b id="puBalDue" style="font-size:17px;color:var(--saffron2)">${money(bal)}</b></div>
+    <div style="${ln};border-bottom:0;padding-bottom:0">
+      <span class="hint">${t('payment_mode')}</span>
+      <span class="gtags" id="puModes" style="justify-content:flex-end">${PU_MODES.map(m=>
+        `<span class="gtag sm ${f.paymentMode===m[0]?'on-tag':''}" data-pm="${m[0]}" style="cursor:pointer" onclick="puSetMode('${m[0]}')">${t(m[1])}</span>`).join('')}</span>
+      <input type="hidden" id="pu_pm" value="${esc(f.paymentMode||'Cash')}"></div>`;
+}
+/* recalc updates only the NUMBERS — never re-renders the inputs, so nothing typed is lost */
+function updatePurchTotal(){
+  capturePurchForm();
+  const comp=purchCompute(purchForm);
+  const paid=+purchForm.paidNow||0;
+  const a=$('#puTotalAmt'); if(a)a.textContent=money(comp.total);
+  const due=r2(Math.max(0,comp.total-puPrior()));
+  const b=$('#puBalDue'); if(b)b.textContent=money(r2(Math.max(0,due-paid)));
+  const c=$('#pu_paidfull'); if(c)c.checked=(paid>0&&r2(paid)===due);
+}
+function puToggleDisc(){
+  const h=$('#pu_disctype'), b=$('#puDiscTog'); if(!h)return;
+  h.value=(h.value==='percent')?'amount':'percent';
+  if(b)b.textContent=(h.value==='percent')?'%':'₹';
+  updatePurchTotal();
+}
+function puPaidFull(on){
+  capturePurchForm();
+  const comp=purchCompute(purchForm);
+  const el=$('#pu_paid'); if(el)el.value=on?r2(Math.max(0,comp.total-puPrior())):'';
+  updatePurchTotal();
+}
+function puSetMode(m){
+  const h=$('#pu_pm'); if(h)h.value=m;
+  purchForm.paymentMode=m;
+  document.querySelectorAll('#puModes .gtag').forEach(el=>
+    el.classList.toggle('on-tag', el.dataset.pm===m));
+}
 function pastSuppliers(){const seen={};const out=[];
   (DB.purchases||[]).slice().reverse().forEach(p=>{const k=(p.supplier||'').trim();if(k&&!seen[k.toLowerCase()]){seen[k.toLowerCase()]=1;out.push({name:k,phone:p.phone||''});}});
   return out;}
@@ -7107,25 +7504,205 @@ async function renderPurchPhotos(){const el=$('#pu_photos');if(!el)return;el.inn
     w.querySelector('.thumb').onclick=()=>viewPhoto(url);
     w.querySelector('.thumb-x').onclick=async()=>{await mDel(id);purchForm.photos=purchForm.photos.filter(x=>x!==id);renderPurchPhotos();};
     el.appendChild(w);}}
+
+/* ============ PURCHASE: one-screen entry ============
+   Vyapar makes you go Purchase → Add Items → Add New Item (three screens) and asks
+   twelve fields for a new item. A boutique needs four. So: one always-open entry
+   line right on the purchase screen. Type → Add → it collapses → type the next.
+   A name that isn't saved yet is simply a new item; no separate master form. */
+function supBalance(name){
+  const n=String(name||'').trim().toLowerCase(); if(!n)return 0;
+  return (DB.purchases||[]).reduce((sum,p)=>{
+    if(String(p.supplier||'').trim().toLowerCase()!==n)return sum;
+    if(purchForm&&purchForm.editId&&p.id===purchForm.editId)return sum;   // this bill isn't saved yet
+    return sum+Math.max(0,(+p.total||0)-orderReceived(p));},0);
+}
+function supBalHTML(name){
+  const b=supBalance(name);
+  if(!b)return '';
+  return `<span style="color:var(--saffron2);font-weight:700">${t('pur_party_bal')}: ${money(b)}</span>`;
+}
+function puSupSug(){
+  const box=$('#puSupSug'), el=$('#pu_supplier'); if(!box||!el)return;
+  const q=String(el.value||'').trim().toLowerCase();
+  let list=pastSuppliers();
+  if(q)list=list.filter(x=>x.name.toLowerCase().includes(q)||String(x.phone||'').includes(q));
+  list=list.slice(0,6);
+  if(!list.length||(q&&list.length===1&&list[0].name.toLowerCase()===q)){box.innerHTML='';return;}
+  box.innerHTML=list.map(x=>{const b=supBalance(x.name);
+    return `<div class="cust-result" style="margin-top:7px" onclick="puPickSup('${esc(x.name).replace(/'/g,"\\'")}')">
+      <div><b>${esc(x.name)}</b><div class="hint">${esc(x.phone||'')}${b?` · <span style="color:var(--saffron2);font-weight:700">${t('pur_party_bal')}: ${money(b)}</span>`:''}</div></div>
+      <span class="btn sm primary">${t('select')}</span></div>`;}).join('');
+}
+function puPickSup(name){
+  const el=$('#pu_supplier'); if(el)el.value=name;
+  const box=$('#puSupSug'); if(box)box.innerHTML='';
+  puSupChanged();
+  const b=$('#pu_billno'); if(b)b.focus();
+}
+function puSupChanged(){
+  const el=$('#pu_supplier'), box=$('#puPartyBal'); if(!el||!box)return;
+  box.innerHTML=supBalHTML(el.value);
+  const s=pastSuppliers().find(x=>x.name.toLowerCase()===el.value.trim().toLowerCase());
+  const ph=$('#pu_phone'); if(s&&s.phone&&ph&&!ph.value)ph.value=s.phone;
+}
+const PUR_UNITS=['Mtr','Pcs'];
+let _purD={unit:'Mtr',hsn:'',design:'',colour:'',showExtra:false};
+function purDraftHTML(){
+  return `<div class="card" id="puDraft" style="padding:12px 14px;margin-bottom:10px;border-color:var(--saffron)">
+    <input id="pu_dname" placeholder="${t('purch_item_ph')}" autocomplete="off"
+      onfocus="purDSug()" oninput="purDSug()" onkeydown="if(event.key==='Enter'){event.preventDefault();purDraftAdd();}" style="margin:0">
+    <div id="puDSug"></div>
+    <div class="row" style="margin-top:8px;gap:6px;align-items:center">
+      <input id="pu_dqty" type="number" inputmode="decimal" placeholder="${t('qty')}" value="1"
+        oninput="purDCalc()" style="margin:0;text-align:center">
+      <span class="gtags" id="puDUnits" style="flex:0 0 auto">${PUR_UNITS.map(u=>
+        `<span class="gtag sm ${_purD.unit===u?'on-tag':''}" data-u="${u}" style="cursor:pointer" onclick="purDUnit('${u}')">${u}</span>`).join('')}</span>
+      <input id="pu_drate" type="number" inputmode="decimal" placeholder="${t('purch_rate')}"
+        oninput="purDCalc()" onkeydown="if(event.key==='Enter'){event.preventDefault();purDraftAdd();}" style="margin:0;text-align:right"></div>
+    <div id="puDExtra" style="display:${_purD.showExtra?'block':'none'}">
+      <div class="row" style="margin-top:8px;gap:6px">
+        <input id="pu_ddesign" placeholder="${t('pur_design_ph')}" value="${esc(_purD.design||'')}" autocomplete="off" style="margin:0">
+        <input id="pu_dcolour" placeholder="${t('pur_colour_ph')}" value="${esc(_purD.colour||'')}" autocomplete="off" style="margin:0"></div>
+    </div>
+    <div class="kv" style="margin-top:8px">
+      <span style="display:flex;gap:10px;align-items:center">
+        <b id="puDAmt" style="font-size:16px">₹0</b>
+        <span class="hint" style="cursor:pointer" onclick="purDExtra()">${_purD.showExtra?'▴':'▾'} ${t('pur_more_fields')}</span></span>
+      <button class="btn primary sm" style="padding:7px 20px" onclick="purDraftAdd()">➕ ${t('add')}</button></div>
+  </div>`;
+}
+function purDExtra(){
+  _purD.showExtra=!_purD.showExtra;
+  const b=$('#puDExtra'); if(b)b.style.display=_purD.showExtra?'block':'none';
+  const rows=$('#puRows'); if(rows){} // no re-render — keeps whatever is typed
+  const lbl=document.querySelector('#puDraft .kv .hint'); if(lbl)lbl.textContent=(_purD.showExtra?'▴ ':'▾ ')+t('pur_more_fields');
+  if(_purD.showExtra){const d=$('#pu_ddesign'); if(d)d.focus();}
+}
+function purDUnit(u){ _purD.unit=u;
+  document.querySelectorAll('#puDUnits .gtag').forEach(el=>el.classList.toggle('on-tag',el.dataset.u===u)); }
+function purDCalc(){
+  const q=+(($('#pu_dqty')||{}).value)||0, r=+(($('#pu_drate')||{}).value)||0;
+  const el=$('#puDAmt'); if(el)el.textContent=money(r2(q*r));
+}
+function purDSug(){
+  const box=$('#puDSug'), inp=$('#pu_dname'); if(!box||!inp)return;
+  const q=(inp.value||'').trim();
+  const list=purSugList(q); _purSug.d=list;
+  const norm=v=>String(v||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const exact=q&&list.some(o=>norm(o.val.label)===norm(q));
+  let h='';
+  if(list.length){
+    h+=`<div class="hint" style="margin:8px 0 4px">📦 ${t('pur_sug_head')}</div>`;
+    h+=list.map((o,k)=>`<div class="cust-result" style="margin-bottom:6px" onclick="purDPick(${k})">
+      <div><b>${esc(o.title)}</b><div class="hint">${esc(o.sub)}</div></div>
+      <span class="btn sm primary">${t('select')}</span></div>`).join('');
+  }
+  // a name that isn't saved yet needs no separate master form — it just becomes a new item
+  if(q&&!exact){
+    h+=`<div class="cust-result" style="margin:6px 0 0;border:1px dashed var(--line2)" onclick="purDNew()">
+      <div><b>➕ ${t('pur_sug_new')}: “${esc(q)}”</b><div class="hint">${t('pur_new_hint')}</div></div>
+      <span class="btn sm ghost">${t('add')}</span></div>`;
+  }
+  if(!h&&!q)h=`<p class="hint" style="margin:8px 0 0">${t('pur_sug_none')}</p>`;
+  box.innerHTML=h;
+}
+function purDNew(){
+  const box=$('#puDSug'); if(box)box.innerHTML='';
+  _purD.hsn='';
+  const q=$('#pu_dqty'); if(q){q.focus();q.select&&q.select();}
+}
+function purDPick(k){
+  const o=(_purSug.d||[])[k]; if(!o)return;
+  const n=$('#pu_dname'); if(n)n.value=o.val.label;
+  const r=$('#pu_drate'); if(r&&o.val.rate!=='')r.value=o.val.rate;
+  _purD.hsn=o.val.hsn||''; if(o.val.unit)purDUnit(o.val.unit);
+  const box=$('#puDSug'); if(box)box.innerHTML='';
+  purDCalc();
+  const q=$('#pu_dqty'); if(q){q.focus();q.select&&q.select();}
+}
+/* commit the entry line into the list; silent=true is the auto-commit done on Save */
+function purDraftAdd(silent){
+  const n=$('#pu_dname'); if(!n)return false;
+  const label=(n.value||'').trim();
+  if(!label){ if(!silent)toast(t('pur_need_name'),'bad'); return false; }
+  const qty=+(($('#pu_dqty')||{}).value)||1, rate=+(($('#pu_drate')||{}).value)||0;
+  purchForm.items.push({label,hsn:_purD.hsn||'',qty,unit:_purD.unit||'Mtr',rate,amount:r2(qty*rate),
+    design:(($('#pu_ddesign')||{}).value||'').trim(), colour:(($('#pu_dcolour')||{}).value||'').trim()});
+  _purD.hsn='';
+  ['#pu_ddesign','#pu_dcolour'].forEach(id=>{const e=$(id); if(e)e.value='';});
+  const rows=$('#puRows'); if(rows)rows.innerHTML=purchForm.items.map((it,i)=>purchItemRow(i,it)).join('');
+  const c=$('#puItemCount'); if(c)c.textContent=t('inv_items_n',{n:purchForm.items.length});
+  n.value=''; const rt=$('#pu_drate'); if(rt)rt.value='';
+  const q=$('#pu_dqty'); if(q)q.value=1;
+  const box=$('#puDSug'); if(box)box.innerHTML='';
+  purDCalc(); updatePurchTotal();
+  if(!silent)n.focus();
+  return true;
+}
+/* tap an added line to correct it — it goes back into the entry line */
+function purReopen(i){
+  const it=purchForm.items[i]; if(!it)return;
+  purchForm.items.splice(i,1);
+  const n=$('#pu_dname'); if(n)n.value=it.label||'';
+  const q=$('#pu_dqty'); if(q)q.value=it.qty||1;
+  const r=$('#pu_drate'); if(r)r.value=it.rate||'';
+  _purD.hsn=it.hsn||''; purDUnit(it.unit||'Mtr');
+  const dd=$('#pu_ddesign'); if(dd)dd.value=it.design||'';
+  const dc=$('#pu_dcolour'); if(dc)dc.value=it.colour||'';
+  const rows=$('#puRows'); if(rows)rows.innerHTML=purchForm.items.map((x,k)=>purchItemRow(k,x)).join('');
+  const c=$('#puItemCount'); if(c)c.textContent=t('inv_items_n',{n:purchForm.items.length});
+  purDCalc(); updatePurchTotal();
+  if(n){n.focus();n.scrollIntoView({block:'center'});}
+}
+function purchDelItem(i){
+  purchForm.items.splice(i,1);
+  const rows=$('#puRows'); if(rows)rows.innerHTML=purchForm.items.map((x,k)=>purchItemRow(k,x)).join('');
+  const c=$('#puItemCount'); if(c)c.textContent=t('inv_items_n',{n:purchForm.items.length});
+  updatePurchTotal();
+}
 function purchItemRow(i,it){
   const f=purchForm;
-  const open=(i===f._openIdx)||!it.label;
-  if(!open){
-    return `<div class="pur-collapsed" onclick="purchExpand(${i})">
-      <div style="min-width:0"><b>${esc(it.label)}</b><div class="hint">${it.qty||1} ${esc(it.unit||'')} × ₹${esc(it.rate||0)} = ₹${esc(it.amount||0)}</div></div>
-      <button class="btn sm danger" style="flex:0 0 auto" onclick="event.stopPropagation();purchDelItem(${i})">✕</button></div>`;
-  }
-  return `<div class="card" style="padding:10px;margin-bottom:8px;border-color:var(--saffron)">
-    <div class="field" style="margin:0"><label>${t('inv_item_name')}</label><input data-puin="${i}" value="${esc(it.label)}" placeholder="${t('purch_item_ph')}"></div>
-    <div class="row" style="margin-top:8px"><div class="field" style="margin:0"><label>${t('hsn')}</label><input data-puhsn="${i}" value="${esc(it.hsn||'')}"></div>
-      <div class="field" style="margin:0"><label>${t('qty')}</label><input data-puqty="${i}" type="number" inputmode="numeric" value="${it.qty?esc(it.qty):''}" placeholder="1" oninput="purchRateQtyChanged(${i})"></div></div>
-    <div class="row" style="margin-top:8px"><div class="field" style="margin:0"><label>${t('unit')}</label><input data-puunit="${i}" value="${esc(it.unit||'Mtr')}"></div>
-      <div class="field" style="margin:0"><label>${t('purch_rate')}</label><input data-purate="${i}" type="number" inputmode="numeric" value="${it.rate?esc(it.rate):''}" placeholder="0" oninput="purchRateQtyChanged(${i})"></div></div>
-    <div class="field" style="margin-top:8px"><label>${t('purch_amount_line')}</label><input data-puamt="${i}" type="number" inputmode="numeric" value="${it.amount?esc(it.amount):''}" placeholder="0" oninput="updatePurchTotal()"></div>
-    <button class="btn sm danger" style="margin-top:8px" onclick="purchDelItem(${i})">${t('remove')}</button></div>`;
+  // Added items are ALWAYS one compact line. Tap to pull it back into the entry line and re-add.
+  return `<div class="pur-collapsed" onclick="purReopen(${i})">
+    <div style="min-width:0"><b>${esc(it.label)}</b>${it.serial?`<span class="hint"> · #${esc(it.serial)}</span>`:''}
+      <div class="hint">${[it.design,it.colour].filter(Boolean).map(esc).join(' · ')}${(it.design||it.colour)?' — ':''}${it.qty||1} ${esc(it.unit||'')} × ₹${esc(it.rate||0)} = <b>₹${esc(it.amount||0)}</b></div></div>
+    <button class="btn sm danger" style="flex:0 0 auto" onclick="event.stopPropagation();purchDelItem(${i})">✕</button></div>`;
 }
-function purchExpand(i){capturePurchForm();purchForm._openIdx=i;renderPurchaseForm();purchFocusOpen();}
-function purchFocusOpen(){setTimeout(()=>{const el=document.querySelector('[data-puin="'+purchForm._openIdx+'"]');if(el){el.focus();el.scrollIntoView({block:'center'});}},90);}
+let _purSug={};
+function purSugList(q){
+  const norm=v=>String(v||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const qn=norm(q), hit=v=>!qn||norm(v).includes(qn);
+  const out=[], seen=new Set();
+  const push=o=>{const k=o.title.toLowerCase(); if(seen.has(k))return; seen.add(k); out.push(o);};
+  // fabric ROLLS first — this is what a serial number search is for
+  (DB.thaans||[]).forEach(th=>{
+    const fi=(DB.fabItems||[]).find(x=>x.id===th.fabId)||{};
+    if(!(hit(th.serial)||hit(fi.name)||hit(fi.category)))return;
+    const rt=th.rate||fi.rate||'';
+    push({title:(fi.name||'Fabric')+' · #'+th.serial,
+      sub:thaanBal(th)+' mtr '+t('pur_sug_left')+(rt?' · ₹'+rt:''),
+      val:{label:(fi.name||'Fabric')+' ('+th.serial+')',hsn:fi.hsn||'',unit:'Mtr',rate:rt}});
+  });
+  // fabric designs (no roll picked)
+  (DB.fabItems||[]).forEach(fi=>{ if(!(hit(fi.name)||hit(fi.category)))return;
+    push({title:fi.name||'Fabric',sub:(fi.category?fi.category+' · ':'')+t('pur_sug_fab'),
+      val:{label:fi.name||'',hsn:fi.hsn||'',unit:'Mtr',rate:fi.rate||''}}); });
+  // readymade masters
+  (DB.itemMaster||[]).filter(m=>m.kind==='ready').forEach(m=>{ if(!hit(m.name))return;
+    const bits=[];
+    if(m.cost)bits.push(t('pur_sug_purch')+': ₹'+m.cost);
+    bits.push(t('pur_sug_instock')+': '+readyTotal(m));
+    push({title:m.name,sub:bits.join(' · '),
+      val:{label:m.name,hsn:m.hsn||'',unit:'Pcs',rate:m.cost||''}}); });
+  // anything bought before, so repeat purchases need no retyping
+  (DB.purchases||[]).forEach(pu=>(pu.items||[]).forEach(it=>{ if(!it.label||!hit(it.label))return;
+    push({title:it.label,sub:t('pur_sug_past')+(it.rate?' · ₹'+it.rate:''),
+      val:{label:it.label,hsn:it.hsn||'',unit:it.unit||'Mtr',rate:it.rate||''}}); }));
+  return out.slice(0,12);
+}
+/* "Add New Item" = this is not in stock yet; keep whatever was typed and move on.
+   The purchase itself is what brings the item in, so nothing needs creating up front. */
 function renderPurchaseForm(){
   const f=purchForm;
   if(f._openIdx==null||f._openIdx>=f.items.length)f._openIdx=f.items.length-1;
@@ -7137,37 +7714,108 @@ function renderPurchaseForm(){
   const rows=f.items.map((it,i)=>purchItemRow(i,it)).join('');
   const comp0=purchCompute(f);
   $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:12px">📦 ${f.editId?t('edit_purchase'):t('new_purchase')}</h2>${dlist}
-    <div class="field"><label>${t('supplier')}</label>${supSel}
-      <input id="pu_supplier" value="${esc(f.supplier)}" placeholder="${t('supplier_ph')}">
-      <input id="pu_phone" type="tel" placeholder="${t('phone')}" value="${esc(f.phone)}" style="margin-top:8px">
-      ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost" style="margin-top:8px" onclick="puPickContact()">📇 ${t('from_contacts')}</button>`:''}</div>
-    <div class="row"><div class="field"><label>${t('purch_date')}</label><input id="pu_date" type="date" value="${esc(f.date)}"></div>
-      <div class="field"><label>${t('purch_bill_no')} *</label><input id="pu_billno" value="${esc(f.billNo)}"></div></div>
-    <div class="section-h">${t('items')}</div>
-    <p class="hint" style="margin:0 0 10px">${t('purch_items_hint')}</p>
-    ${rows}
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="purchAddItem()">+ ${t('add_item')}</button>
-    <div class="section-h">${t('discount')}</div>
-    <div class="row"><div class="field"><label>${t('disc_type')}</label><select id="pu_disctype" onchange="updatePurchTotal()">
-      <option value="amount" ${f.discType==='percent'?'':'selected'}>₹ ${t('disc_amount')}</option>
-      <option value="percent" ${f.discType==='percent'?'selected':''}>% ${t('disc_percent')}</option></select></div>
-      <div class="field"><label>${t('disc_value')}</label><input id="pu_discval" type="number" inputmode="numeric" value="${f.discValue?esc(f.discValue):''}" placeholder="0" oninput="updatePurchTotal()"></div></div>
-    <div class="card" id="puTotalsBox">${purchTotalsBoxHTML(comp0)}</div>
-    <div class="field"><label>${t('paid_now')}</label><input id="pu_paid" type="number" inputmode="numeric" value="" placeholder="${f.editId?'—':'0'}"></div>
+    <div class="card" style="padding:12px 14px;margin-bottom:10px">
+      <div class="kv" style="align-items:baseline;margin-bottom:4px">
+        <label style="margin:0">${t('supplier')} *</label>
+        <span id="puPartyBal" class="hint">${supBalHTML(f.supplier)}</span></div>
+      <input id="pu_supplier" value="${esc(f.supplier)}" placeholder="${t('supplier_ph')}"
+        autocomplete="off" onfocus="puSupSug()" oninput="puSupChanged();puSupSug()" style="margin:0">
+      <div id="puSupSug"></div>
+      <div class="row" style="margin-top:8px;gap:8px">
+        <input id="pu_phone" type="tel" placeholder="${t('phone')}" value="${esc(f.phone)}" style="margin:0">
+        ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost" style="flex:0 0 auto" onclick="puPickContact()">📇</button>`:''}</div>
+      <div class="row" style="margin-top:8px;gap:8px">
+        <input id="pu_billno" value="${esc(f.billNo)}" placeholder="${t('purch_bill_no')} *" style="margin:0">
+        <input id="pu_date" type="date" value="${esc(f.date)}" style="margin:0"></div>
+    </div>
+    <div class="kv" style="margin:0 2px 6px"><span class="section-h" style="margin:0">${t('items')}</span>
+      <span class="hint" id="puItemCount">${t('inv_items_n',{n:f.items.length})}</span></div>
+    <div id="puRows">${rows}</div>
+    ${purDraftHTML()}
+    <div class="card" id="puTotalsBox" style="padding:12px 14px">${purchTotalsBoxHTML(comp0)}</div>
     ${f.editId&&p?`<p class="hint" style="margin:0 0 10px">${t('received')}: ${money(orderReceived(p))} · ${t('baaki')}: <b style="color:var(--saffron2)">${money(orderBaaki(p))}</b></p>`:''}
-    <div class="field"><label>${t('payment_mode')}</label><select id="pu_pm">
-      <option value="UPI" ${f.paymentMode==='UPI'?'selected':''}>${t('pm_upi')}</option>
-      <option value="Cash" ${f.paymentMode==='Cash'?'selected':''}>${t('pm_cash')}</option>
-      <option value="Bank" ${f.paymentMode==='Bank'?'selected':''}>${t('pm_bank')}</option>
-      <option value="Card" ${f.paymentMode==='Card'?'selected':''}>${t('pm_card')}</option></select></div>
     <div class="field"><label>🧾 ${t('bill_photo')}</label><div id="pu_photos" style="display:flex;gap:8px;flex-wrap:wrap"></div>
       <div class="row" style="margin-top:8px"><button class="btn sm ghost" onclick="pickPurchPhoto('cam')">📷 ${t('camera')}</button><button class="btn sm ghost" onclick="pickPurchPhoto('lib')">🖼️ ${t('gallery')}</button></div></div>
     <div class="field"><label>${t('notes')}</label><textarea id="pu_notes" placeholder="${t('notes_ph')}">${esc(f.notes)}</textarea></div>
-    <div class="modal-actions"><button class="btn ghost" onclick="closeSheet()">${t('cancel')}</button>
+    <div class="modal-actions"><button class="btn ghost" onclick="savePurchaseNew()">${t('pur_save_new')}</button>
       <button class="btn primary" onclick="savePurchase()">${t('save')}</button></div><div class="fab-pad"></div>`;
   showSheet();renderPurchPhotos();
 }
+/* ===== purchase → stock, automatic =====
+   The SERIAL is the identity (the app's own barcode); the party's design no is just a label,
+   because not every party prints one. Merge rule Setu set out: same design + same colour/size
+   + same rate → the SAME serial, quantity just grows. Any one of them different → new serial.
+   Mtr = fabric roll, Pcs = readymade piece. */
+function purStockKey(it){
+  const n=v=>String(v||'').trim().toLowerCase().replace(/\s+/g,' ');
+  return [n(it.label),n(it.design),n(it.colour),r2(it.rate)].join('|');
+}
+/* Opening stock entered before this existed has no _key. Match it the same way and
+   stamp the key on, so old stock merges instead of spawning a duplicate serial. */
+function purMatchThaan(it,key){
+  let th=(DB.thaans||[]).find(x=>x._key===key); if(th)return th;
+  const n=v=>String(v||'').trim().toLowerCase().replace(/\s+/g,' ');
+  th=(DB.thaans||[]).find(x=>{
+    if(x._key)return false;
+    const nm=n((FI(x.fabId)||{}).name)||n(x.name);
+    const want=n(it.label);
+    const bySerial=n(x.serial)&&n(x.serial)===want;     // opening stock often named by serial
+    if(!(bySerial||(nm&&nm===want)||(n(x.design)&&n(x.design)===n(it.design))))return false;
+    return n(x.colour)===n(it.colour) && r2(x.rate)===r2(it.rate);
+  });
+  if(th)th._key=key;
+  return th;
+}
+function purMatchReady(it,key){
+  let m=(DB.itemMaster||[]).find(x=>x.kind==='ready'&&x._key===key); if(m)return m;
+  const n=v=>String(v||'').trim().toLowerCase().replace(/\s+/g,' ');
+  m=(DB.itemMaster||[]).find(x=>x.kind==='ready'&&!x._key&&n(x.name)===n(it.label)&&r2(x.cost)===r2(it.rate));
+  if(m)m._key=key;
+  return m;
+}
+function purApplyStock(pur){
+  if(pur._stockDone)return {made:0,merged:0};
+  let made=0,merged=0;
+  (pur.items||[]).forEach(it=>{
+    const qty=+it.qty||0, rate=+it.rate||0;
+    if(!it.label||qty<=0)return;
+    const key=purStockKey(it);
+    if((it.unit||'Mtr')==='Pcs'){
+      // ---- readymade ----
+      let m=purMatchReady(it,key);
+      const size=(it.colour||'').trim()||'-';
+      if(m){ readySet(m,size,(+(m.stk||{})[size]||0)+qty); merged++; }
+      else{
+        m={id:uid(),kind:'ready',name:it.label,_key:key,serial:nextThaanSerial(),design:it.design||'',
+           hsn:it.hsn||'',cost:rate,sell:'',rate:'',stk:{}};
+        readySet(m,size,qty); DB.itemMaster.push(m); bumpSerial(); made++;
+        it.serial=m.serial;
+      }
+      it.masterId=m.id; if(!it.serial)it.serial=m.serial;
+      move({date:pur.date,dir:'in',target:'ready',itemId:m.id,size,qty,rate,
+        reason:'purchase',ref:pur.billNo||'',refId:pur.id});
+    }else{
+      // ---- fabric ----
+      let th=purMatchThaan(it,key);
+      if(th){ th.mtr=r2((+th.mtr||0)+qty); merged++; }
+      else{
+        let f=(DB.fabItems||[]).find(x=>String(x.name||'').trim().toLowerCase()===String(it.label).trim().toLowerCase());
+        if(!f){ f={id:uid(),name:it.label,category:'',party:pur.supplier||'',rate}; DB.fabItems.push(f); }
+        th={id:uid(),created:new Date().toISOString(),serial:nextThaanSerial(),fabId:f.id,_key:key,
+            design:it.design||'',colour:it.colour||'',mtr:qty,used:0,rate,rack:'',party:pur.supplier||'',
+            notes:'',photos:[]};
+        DB.thaans.push(th); bumpSerial(); made++;
+      }
+      it.thaanId=th.id; it.fabId=th.fabId; it.serial=th.serial;
+      move({date:pur.date,dir:'in',target:'fabric',thaanId:th.id,qty,rate,
+        reason:'purchase',ref:pur.billNo||'',refId:pur.id});
+    }
+  });
+  pur._stockDone=true;
+  return {made,merged};
+}
 function savePurchase(){
+  purDraftAdd(true);              // an item still sitting in the entry line counts
   capturePurchForm();const f=purchForm;
   const comp=purchCompute(f);const total=comp.total;
   const desc=f.items.map(it=>it.label).filter(Boolean).join(', ');
@@ -7180,11 +7828,22 @@ function savePurchase(){
     if(f.paidNow!=null&&f.paidNow>0){p.payments=p.payments||[];p.payments.push({amt:f.paidNow,date:todayISO()});}
   }else{
     const paid=(f.paidNow!=null)?f.paidNow:(f.paymentMode==='Credit'?0:total);
-    DB.purchases.push({id:uid(),created:new Date().toISOString(),supplier:f.supplier,phone:f.phone,billNo:f.billNo,date:f.date,desc,items:f.items,discType:f.discType,discValue:f.discValue,
-      total,paymentMode:f.paymentMode,notes:f.notes,photos:f.photos||[],payments:paid>0?[{amt:paid,date:f.date}]:[]});
+    const rec={id:uid(),created:new Date().toISOString(),supplier:f.supplier,phone:f.phone,billNo:f.billNo,date:f.date,desc,items:f.items,discType:f.discType,discValue:f.discValue,
+      total,paymentMode:f.paymentMode,notes:f.notes,photos:f.photos||[],payments:paid>0?[{amt:paid,date:f.date}]:[]};
+    DB.purchases.push(rec);
+    const r=purApplyStock(rec);
+    if(r.made)toast(t('pur_stock_made',{n:r.made}),'ok');
+    if(r.merged)toast(t('pur_stock_merged',{n:r.merged}),'ok');
   }
-  save();closeSheet();toast(t('t_purch_saved'),'ok');purQ='';purSort='new';go('purchases');
+  save();toast(t('t_purch_saved'),'ok');purQ='';purSort='new';
+  if(_purSaveNew){ _purSaveNew=false;
+    const sup=f.supplier,ph=f.phone;
+    openPurchaseForm(); purchForm.supplier=sup; purchForm.phone=ph; renderPurchaseForm();
+    setTimeout(()=>{const n=$('#pu_dname');if(n)n.focus();},120); return; }
+  closeSheet(); go('purchases');
 }
+let _purSaveNew=false;
+function savePurchaseNew(){ _purSaveNew=true; savePurchase(); }
 function purchMenu(id){const p=(DB.purchases||[]).find(x=>x.id===id);if(!p)return;
   modal(t('purch_options'),`
     <p class="hint" style="margin-bottom:10px"><b>${esc(p.supplier)}</b> · ${fmtDate(p.date)} · ${money(p.total)}<br>${esc(p.desc||'')}</p>
