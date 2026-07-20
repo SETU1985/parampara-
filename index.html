@@ -363,7 +363,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v53</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v54</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -579,6 +579,9 @@ const T={
   no_snapshots:'No auto-backups yet',
   no_custom_items:'No custom items yet',
   add_item:'Add item',
+  stk_oversell:'⚠️ Billed more than stock — check quantity',
+  stk_oversell_f:'⚠️ Billed meters exceed roll balance — check',
+  split_over:'⚠️ Split total is more than the bill — check Cash/UPI',
   item_name:'Item name',
   icon:'Icon',
   fields:'Fields',
@@ -1356,6 +1359,9 @@ const T={
   no_snapshots:'अभी कोई ऑटो-बैकअप नहीं',
   no_custom_items:'अभी कोई अपना आइटम नहीं',
   add_item:'आइटम जोड़ें',
+  stk_oversell:'⚠️ स्टॉक से ज़्यादा बिल हुआ — मात्रा जाँचें',
+  stk_oversell_f:'⚠️ थान में इतने मीटर नहीं हैं — जाँचें',
+  split_over:'⚠️ स्प्लिट राशि बिल से ज़्यादा है — Cash/UPI जाँचें',
   item_name:'आइटम का नाम',
   icon:'आइकन',
   fields:'फ़ील्ड',
@@ -2405,6 +2411,23 @@ function move(o){
     dir:o.dir, target:o.target, thaanId:o.thaanId||null, itemId:o.itemId||null,
     size:o.size||'', qty:+o.qty||0, rate:+o.rate||0, reason:o.reason||'',
     ref:o.ref||'', refId:o.refId||'', note:o.note||''});
+}
+/* Reverse every stock movement a bill/order/purchase made — used when that record is deleted,
+   so deleting a wrong bill puts the pieces / meters back instead of losing them silently. */
+function revertStockByRef(refId){
+  if(!refId)return;
+  (DB.moves||[]).filter(m=>m.refId===refId).forEach(mv=>{
+    const q=+mv.qty||0; if(!q)return;
+    const sign=mv.dir===MV_OUT?1:-1;              // OUT reversed = put back; IN reversed = take out
+    if(mv.target==='ready'&&mv.itemId&&mv.size){
+      const m=(DB.itemMaster||[]).find(x=>x.id===mv.itemId);
+      if(m)readySet(m,mv.size,readyQty(m,mv.size)+sign*q);
+    }else if(mv.target==='fab'&&mv.thaanId){
+      const th=(DB.thaans||[]).find(x=>x.id===mv.thaanId);
+      if(th)th.used=r2(Math.max(0,(+th.used||0)-sign*q));
+    }
+  });
+  DB.moves=(DB.moves||[]).filter(m=>m.refId!==refId);
 }
 function lastMoveTs(pred){
   let t=null;
@@ -6771,10 +6794,13 @@ function updateInvTotals(){
   set('tSub',money(comp.gross));
   set('tDisc','− '+money(comp.discount));
   set('tTotal',money(comp.total));
+  const cb=$('#inv_paidfull'), rv=$('#inv_recv');
+  if(cb&&cb.checked&&rv&&document.activeElement!==rv){   // "paid full" stays true as items change
+    rv.value=r2(comp.total); invForm.receivedNow=r2(comp.total); }
   const recv=invForm.receivedNow!=null?invForm.receivedNow:0;
   set('tDue',money(Math.max(0,r2(comp.total-recv))));
   if(invForm.split)set('tRecvSplit',money(recv));
-  const cb=$('#inv_paidfull'); if(cb)cb.checked=(recv>0&&r2(recv)===r2(comp.total));
+  if(cb&&!(cb.checked&&document.activeElement!==rv))cb.checked=(recv>0&&r2(recv)===r2(comp.total));
 }
 function invToggleDisc(){
   const h=$('#inv_disctype'), b=$('#ivDiscTog'); if(!h)return;
@@ -6857,6 +6883,8 @@ function saveInvoice(){
   if(!f.no){toast(t('t_no_invno'),'bad');return;}
   f.items=(f.items||[]).filter(it=>it.label||+it.price);
   if(!f.items.length||f.items.every(it=>!(+it.price))){toast(t('t_no_invitem'),'bad');return;}
+  if(f.split){ const sSum=r2((+f.split.cash||0)+(+f.split.upi||0));
+    if(sSum>r2(invCompute(f).total)+0.5){toast(t('split_over'),'bad');return;} }
 
   // Invoice is billing only — it does NOT auto-create/sync an order.
   // (Wedding bills carry many items; the tailoring order is taken separately in Orders.)
@@ -6912,7 +6940,7 @@ function saveInvoice(){
     rec.total=comp.total;
     if(f.customerName)rec.customerName=f.customerName;
     if(f.phone)rec.phone=f.phone;
-    const recv=(f.receivedNow!=null)?f.receivedNow:comp.total;
+    const recv=(f.receivedNow!=null)?(+f.receivedNow||0):0;   // blank box = advance not received yet
     if(!(rec.payments||[]).length){ rec.payments = recv>0?[{amt:recv,date:f.date}]:[]; }
   }
   if(f.kind==='sale'){
@@ -6922,8 +6950,12 @@ function saveInvoice(){
     else{ let c=(DB.customers||[]).find(x=>(x.name||'').toLowerCase()===(f.customerName||'').toLowerCase()&&(x.phone||'')===(f.phone||''));
       if(!c&&f.customerName){c={id:uid(),name:f.customerName,phone:f.phone||'',m:{}};DB.customers.push(c);}
       if(c)rec.customerId=c.id; }
-    const recv=(f.receivedNow!=null)?f.receivedNow:comp.total;
-    rec.payments=recv>0?[{amt:recv,date:f.date}]:[];
+    // money follows what the SCREEN showed: blank Received box = nothing received (full due),
+    // never a silent auto-paid. Real payment history (e.g. split cash+UPI) is never overwritten.
+    if(!((rec.payments||[]).length>1)){
+      const recv=(f.receivedNow!=null)?(+f.receivedNow||0):0;
+      rec.payments=recv>0?[{amt:recv,date:f.date}]:[];
+    }
   }
   // Split payment: record cash and online separately so Cash & Bank routes each correctly
   if(f.split && ((+f.split.cash||0)>0 || (+f.split.upi||0)>0)){
@@ -6944,7 +6976,7 @@ function saveInvoice(){
       if(!m||m.kind!=='ready')return;
       const sz=it.size||'';
       const q=+it.qty||1;
-      if(sz){ readySet(m,sz,readyQty(m,sz)-q); }
+      if(sz){ if(q>readyQty(m,sz))toast(t('stk_oversell'),'bad'); readySet(m,sz,readyQty(m,sz)-q); }
       move({dir:MV_OUT,target:'ready',itemId:m.id,size:sz,qty:q,rate:+it.rate||0,
         reason:'sale',ref:'Invoice '+f.no,refId:f.id});
     });
@@ -6955,6 +6987,7 @@ function saveInvoice(){
       let th=it.thaanId?(DB.thaans||[]).find(x=>x.id===it.thaanId):null;
       if(!th && it.fabId){ th=(DB.thaans||[]).filter(x=>x.fabId===it.fabId && thaanBal(x)>0).sort((a,b)=>thaanBal(b)-thaanBal(a))[0]; }
       if(!th)return;
+      if(q>thaanBal(th))toast(t('stk_oversell_f'),'bad');
       th.used=r2((+th.used||0)+q);
       move({dir:MV_OUT,target:'fab',thaanId:th.id,qty:q,rate:+it.rate||0,reason:'sale',ref:'Invoice '+f.no,refId:f.id});
     });
@@ -6997,6 +7030,7 @@ function openInvoicePreview(kind,id){
   showSheet();
 }
 function delSale(id){confirmModal(t('confirm_del'),t('confirm_del_msg'),()=>{
+  revertStockByRef(id);                       // put sold pieces / meters back in stock
   DB.sales=(DB.sales||[]).filter(x=>x.id!==id);save();closeSheet();renderInvoices();toast(t('t_deleted'));});}
 function buildInvoiceText(rec,inv){
   const comp=invCompute(inv);
@@ -7858,6 +7892,7 @@ function purchMenu(id){const p=(DB.purchases||[]).find(x=>x.id===id);if(!p)retur
 function delPurchase(id){confirmModal(t('confirm_del'),t('confirm_del_msg'),async()=>{
   const p=(DB.purchases||[]).find(x=>x.id===id);
   if(p)for(const ph of(p.photos||[]))await mDel(ph);
+  revertStockByRef(id);                       // remove the stock this purchase created
   DB.purchases=(DB.purchases||[]).filter(x=>x.id!==id);save();closeSheet();renderReports();toast(t('t_deleted'));});}
 
 /* ====================== REPORTS ====================== */
@@ -8051,6 +8086,7 @@ function delOrder(id){confirmModal(t('confirm_del'),t('confirm_del_msg'),async()
   for(const v of(o.voiceNotes||[]))if(v.voiceId)await mDel(v.voiceId);
   for(const k in(o.itemPhotos||{}))for(const p of o.itemPhotos[k])await mDel(p);
   for(const k in(o.itemVoice||{}))for(const v of o.itemVoice[k])if(v.voiceId)await mDel(v.voiceId);
+  revertStockByRef(id);                       // put cut fabric / billed stock back
   DB.orders=DB.orders.filter(x=>x.id!==id);save();closeSheet();go('orders');toast(t('t_deleted'));});}
 function waLink(phone,text){const p=(phone||'').replace(/\D/g,'');const full=p.length===10?'91'+p:p;return `https://wa.me/${full}?text=${encodeURIComponent(text)}`;}
 function waOrder(id){const o=DB.orders.find(x=>x.id===id);const baaki=orderBaaki(o);
