@@ -323,6 +323,9 @@
   @keyframes slideup{from{transform:translateY(100%)} to{transform:none}}
   .grip{width:38px; height:4px; border-radius:4px; background:var(--line2); margin:0 auto 14px}
   .modal-actions{display:flex; gap:10px; margin-top:18px} .modal-actions .btn{flex:1}
+  /* Add-item button stays put while the bill list grows underneath it */
+  .pos-addbar{position:sticky; top:0; z-index:6; background:var(--card); padding:8px 0 10px; margin:2px 0 6px;
+    box-shadow:0 8px 10px -8px rgba(0,0,0,.55)}
   .toast{position:fixed; bottom:calc(86px + var(--safe-b)); left:50%; transform:translateX(-50%) translateY(20px);
     background:#2c2418; border:1px solid var(--line2); color:var(--txt); padding:11px 18px; border-radius:30px;
     font-size:13px; font-weight:600; z-index:130; opacity:0; transition:.25s; pointer-events:none; max-width:90%}
@@ -360,7 +363,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v50</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v53</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -6166,8 +6169,8 @@ function renderInvoiceForm(){
     </div>
     <div class="pos-tiles">${tiles}<div class="pos-tile add" onclick="posNewItem()"><b>➕ New</b></div></div>
 
+    <div class="pos-addbar"><button class="btn primary block" onclick="posAddMenu()">➕ ${t('pos_add_item')}</button></div>
     <div id="posLines"></div>
-    <button class="btn primary block" style="margin:8px 0 14px" onclick="posAddMenu()">➕ ${t('pos_add_item')}</button>
 
     <div class="head-grid" style="margin-top:8px">
       <div class="field" style="margin:0"><label>📅 ${t('inv_delivery')}</label>
@@ -6422,7 +6425,7 @@ function posSearchRun(qraw){
   ready.forEach(m=>{
     const szs=(DB.stkCfg.sizes||[]).filter(sz=>readyQty(m,sz)>0);
     _posItems.push({title:esc(m.name),sub:`In stock: ${readyTotal(m)}${m.sell?` · ₹${esc(m.sell)}`:''}`,mid:m.id,sizes:szs,
-      act:()=>{ if(szs.length)posAddReadySize(m.id,szs[0]); else toast(t('stk_out_of'),'bad'); },score:qn?scoreOf([key(m.name)]):3});
+      act:()=>{ if(szs.length)posAddReadySize(m.id,szs[0]); else posAddMaster(m.id); },score:qn?scoreOf([key(m.name)]):3});
   });
   presets.forEach(m=>{
     const parts=(m.incl||[]).join(' + ');
@@ -6440,9 +6443,11 @@ function posSearchRun(qraw){
       if(it.sizes){   // readymade → tap a SIZE (so the right size's stock is deducted)
         const szchips=it.sizes.length
           ? `<div class="hint" style="margin:6px 0 3px">${t('stk_pick_size')}:</div><div class="gtags">`+it.sizes.map(sz=>`<span class="gtag" style="cursor:pointer" onclick="event.stopPropagation();posAddReadySize('${it.mid}','${esc(sz).replace(/'/g,"\\'")}')">${esc(sz)} <b style="color:var(--saffron2)">(${readyQty((DB.itemMaster||[]).find(x=>x.id===it.mid)||{},sz)})</b></span>`).join('')+`</div>`
-          : `<div class="hint" style="margin-top:6px">${t('stk_out_of')}</div>`;
-        return `<div class="cust-result ${(i===0&&q)?'pos-top':''}" style="margin-bottom:6px;display:block">
-          <div><b>${it.title}</b>${it.sub?`<div class="hint">${it.sub}</div>`:''}</div>${szchips}</div>`;
+          : '';
+        return `<div class="cust-result ${(i===0&&q)?'pos-top':''}" style="margin-bottom:6px;display:block;cursor:pointer" onclick="posPick(${i})">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+            <div><b>${it.title}</b>${it.sub?`<div class="hint">${it.sub}</div>`:''}</div>
+            <span class="btn sm primary" style="flex:0 0 auto">+</span></div>${szchips}</div>`;
       }
       return `<div class="cust-result ${(i===0&&q)?'pos-top':''}" style="margin-bottom:6px" onclick="posPick(${i})"><div><b>${it.title}</b>${it.sub?`<div class="hint">${it.sub}</div>`:''}</div><span class="btn sm primary">+</span></div>`;
     }).join(''); }
