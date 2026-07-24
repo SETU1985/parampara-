@@ -131,6 +131,8 @@
     margin:8px 0 6px;padding-bottom:6px;border-bottom:1px solid var(--line);
     font-size:12.5px;color:var(--txt2);font-weight:700}
   .sug-head a{color:var(--saffron2);cursor:pointer;font-weight:800;white-space:nowrap}
+  .fu-open{cursor:pointer;padding:3px 0}
+  .fu-open:active{opacity:.6}
   .bal-get{color:#1a9d5a;font-weight:800;white-space:nowrap}
   .bal-give{color:#d3453b;font-weight:800;white-space:nowrap}
   .bal-zero{color:var(--mut);font-weight:700;white-space:nowrap}
@@ -261,6 +263,9 @@
   .st-delivered{background:var(--bg2); color:var(--mut)}
 
   .chip-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(88px,1fr)); gap:8px}
+  .save-dock{position:sticky; bottom:0; z-index:60; display:flex; gap:8px; padding:10px 0 12px;
+    background:linear-gradient(180deg,transparent,var(--card) 24%); margin-top:14px}
+  .save-dock .btn{flex:1}
   .chip{padding:15px 8px; text-align:center; border-radius:var(--r2); border:1px solid var(--line);
     background:var(--bg2); color:var(--txt2); font-size:14px; font-weight:600; transition:.12s; position:relative;
     min-height:62px; display:flex; flex-direction:column; align-items:center; justify-content:center}
@@ -313,6 +318,10 @@
   #fracbar{position:fixed; left:0; right:0; bottom:0; z-index:120; display:none;
     background:#2a2218; border-top:1px solid var(--line2); padding:8px calc(8px + var(--safe-b)) calc(8px + var(--safe-b)); gap:6px; justify-content:center}
   #fracbar.show{display:flex}
+  .mcard.collapsed .mb{display:none}
+  .mh-tap{cursor:pointer}
+  .mcard.collapsed .mh{border-bottom:none}
+  .mcard.collapsed{opacity:.92}
   #fracbar button{flex:1; max-width:80px; padding:12px 0; border-radius:9px; background:var(--card2); border:1px solid var(--line2); font-size:18px; font-weight:700}
 
   nav{position:fixed; bottom:0; left:0; right:0; z-index:50; background:linear-gradient(180deg,#1c1810,#16130f);
@@ -358,6 +367,9 @@
   body.simple-mode .pill{font-size:14px; padding:6px 12px}
   body.simple-mode select{font-size:16px !important; padding:12px !important}
   body.simple-mode .simple-hide{display:none !important}
+  body.no-billing .mod-billing{display:none !important}
+  body.no-stock .mod-stock{display:none !important}
+  body.no-accounts .mod-accounts{display:none !important}
   body.simple-mode nav button span{font-size:12px}
   .home-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
   .home-shop{font-size:22px;font-weight:800;color:var(--saffron);letter-spacing:.5px}
@@ -382,7 +394,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v73</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v78</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -411,8 +423,8 @@
   <button class="on" id="nav-home" onclick="go('home')"><span class="nico">🏠</span><span data-t="nav_home"></span></button>
   <button id="nav-orders" onclick="navQuick('orders')"><span class="nico">📋</span><span data-t="nav_orders"></span></button>
   <button class="add" onclick="quickAdd()"><span class="nico">+</span></button>
-  <button id="nav-invoices" onclick="navQuick('invoices')" class="simple-hide"><span class="nico">🧾</span><span data-t="nav_sale"></span></button>
-  <button id="nav-purchases" onclick="navQuick('purchases')" class="simple-hide"><span class="nico">📦</span><span data-t="nav_purchases"></span></button>
+  <button id="nav-invoices" onclick="navQuick('invoices')" class="simple-hide mod-billing"><span class="nico">🧾</span><span data-t="nav_sale"></span></button>
+  <button id="nav-purchases" onclick="navQuick('purchases')" class="simple-hide mod-billing"><span class="nico">📦</span><span data-t="nav_purchases"></span></button>
 </nav>
 
 <div id="fracbar">
@@ -1074,6 +1086,45 @@ const T={
   su_start:'Start',
   su_later:'Bank details, UPI and terms can be added later from Settings.',
   su_need_name:'Please enter your shop name',
+  mod_off:'That section is switched off in Settings',
+  of_title:'Find orders',
+  of_sub:'Filter by karigar, status, item, date — tap any order to open it.',
+  of_by_delivery:'By delivery date',
+  of_by_order:'By order date',
+  of_today:'Today',
+  of_7d:'Next 7 days',
+  of_all:'All dates',
+  of_apply:'Apply dates',
+  of_any_status:'Any status',
+  of_any_karigar:'Any karigar',
+  of_any_item:'Any item',
+  of_any_sm:'Any salesman',
+  of_item:'Item',
+  of_pending:'Pending (not ready)',
+  of_late_only:'Late only',
+  of_search:'Customer, phone or order no',
+  of_clear:'Clear {n} filters',
+  of_orders:'Orders',
+  of_value:'Order value',
+  of_none:'No orders match these filters',
+  of_late:'{n} days late',
+  it_done:'Done — next item',
+  it_next:'Next item opened',
+  it_all_done:'All items filled',
+  it_empty:'not filled',
+  it_items:'Items',
+  it_filled:'filled',
+  su_mod_head:'What will you use?',
+  su_mod_sub:'Keep it light to begin with — you can switch any of these on later.',
+  su_mod_orders:'Orders, karigar & delivery',
+  su_mod_always:'Always on',
+  su_mod_billing:'Billing (sale & purchase bills)',
+  su_mod_stock:'Stock (fabric & readymade)',
+  su_mod_accounts:'Cash, bank & expenses',
+  su_mod_note:'Order advance and balance are part of the order book — they stay whatever you pick.',
+  mod_title:'Modules',
+  mod_sub:'Switch on only what you use. Nothing is deleted when you switch a part off.',
+  mod_saved:'Modules updated',
   bk_never:'No backup taken yet — your data lives only on this device',
   bk_days:'{n} days since your last backup',
   su_done:'Welcome, {n}',
@@ -1989,6 +2040,45 @@ const T={
   su_start:'शुरू करें',
   su_later:'बैंक विवरण, UPI और शर्तें बाद में सेटिंग्स से जोड़ सकते हैं।',
   su_need_name:'दुकान का नाम भरें',
+  mod_off:'यह हिस्सा सेटिंग्स में बंद है',
+  of_title:'ऑर्डर खोजें',
+  of_sub:'कारीगर, स्थिति, आइटम, तारीख़ से छाँटें — किसी भी ऑर्डर पर टैप करके खोलें।',
+  of_by_delivery:'डिलीवरी तारीख़ से',
+  of_by_order:'ऑर्डर तारीख़ से',
+  of_today:'आज',
+  of_7d:'अगले 7 दिन',
+  of_all:'सभी तारीख़ें',
+  of_apply:'तारीख़ लगाएँ',
+  of_any_status:'कोई भी स्थिति',
+  of_any_karigar:'कोई भी कारीगर',
+  of_any_item:'कोई भी आइटम',
+  of_any_sm:'कोई भी सेल्समैन',
+  of_item:'आइटम',
+  of_pending:'बाकी (तैयार नहीं)',
+  of_late_only:'सिर्फ़ लेट',
+  of_search:'ग्राहक, फ़ोन या ऑर्डर नं.',
+  of_clear:'{n} फ़िल्टर हटाएँ',
+  of_orders:'ऑर्डर',
+  of_value:'ऑर्डर मूल्य',
+  of_none:'इन फ़िल्टर से कोई ऑर्डर नहीं मिला',
+  of_late:'{n} दिन लेट',
+  it_done:'हो गया — अगला आइटम',
+  it_next:'अगला आइटम खुला',
+  it_all_done:'सभी आइटम भर गए',
+  it_empty:'नहीं भरा',
+  it_items:'आइटम',
+  it_filled:'भरे',
+  su_mod_head:'आप क्या-क्या इस्तेमाल करेंगे?',
+  su_mod_sub:'शुरू में हल्का रखें — बाद में कभी भी चालू कर सकते हैं।',
+  su_mod_orders:'ऑर्डर, कारीगर और डिलीवरी',
+  su_mod_always:'हमेशा चालू',
+  su_mod_billing:'बिलिंग (बिक्री और खरीद बिल)',
+  su_mod_stock:'स्टॉक (कपड़ा और रेडीमेड)',
+  su_mod_accounts:'कैश, बैंक और खर्चे',
+  su_mod_note:'ऑर्डर का एडवांस और बाकी ऑर्डर बुक का ही हिस्सा है — वह हर हाल में रहेगा।',
+  mod_title:'मॉड्यूल',
+  mod_sub:'जो इस्तेमाल करते हैं वही चालू रखें। बंद करने से कुछ मिटता नहीं है।',
+  mod_saved:'मॉड्यूल अपडेट हुए',
   bk_never:'अभी तक बैकअप नहीं लिया — डेटा सिर्फ़ इसी डिवाइस में है',
   bk_days:'पिछले बैकअप को {n} दिन हो गए',
   su_done:'स्वागत है, {n}',
@@ -2387,6 +2477,10 @@ function load(){ try{const r=localStorage.getItem('pb_ob_v1'); if(r)DB=JSON.pars
   if(DB.shopInfo && DB.shopInfo.blessing===undefined)DB.shopInfo.blessing='|| ॐ श्री गणेशाय नमः ||';
   if(!DB.inclLib)DB.inclLib=['Sherwani','Kurta','Pyjama','Churidar','Indo-Western','Jacket','Coat','Blazer','Waistcoat','Shirt','Pant','Trouser','Dupatta','Stole','Safa'];
   // A fresh install must NOT carry any shop's identity — the setup screen fills these in.
+  // Which parts of the app this shop uses. All ON by default (Setu's own install);
+  // a fresh install picks during setup. Order + karigar + delivery are ALWAYS on —
+  // that is the product, everything else is an add-on.
+  if(!DB.modules)DB.modules={billing:true,stock:true,accounts:true};
   if(!DB.shopInfo)DB.shopInfo={name:'',blessing:'|| ओं श्री गणेशाय नमः ||',tagline:'',gstin:'',address:'',proprietor:'',phone:'',email:'',terms:'1. Fitting/measurement issues must be pointed out at the trial stage; once stitching is finalised and the garment is delivered, it is considered accepted.\n2. Goods must be collected within 30 days of the confirmed delivery date. We are not responsible for goods not collected within this period.\n3. Once goods leave the shop, we are not responsible for any damage, loss, or discrepancy.\n4. Full and final payment is required before delivery of goods.\n5. Kindly call and confirm your appointment before visiting for delivery.\n6. For any queries, please contact us on the number mentioned above.'};
   else if(DB.shopInfo.terms==='Thanks for doing business with us!'){DB.shopInfo.terms='1. Fitting/measurement issues must be pointed out at the trial stage; once stitching is finalised and the garment is delivered, it is considered accepted — fit-related returns or exchanges will not be entertained.\n2. Goods must be collected within 30 days of the confirmed delivery date. We are not responsible for goods not collected within this period.\n3. Once goods leave the shop, we are not responsible for any damage, loss, or discrepancy.\n4. Full and final payment is required before delivery of goods.\n5. Kindly call and confirm your appointment before visiting for delivery. Delivery may not be given without prior confirmation.\n6. For any queries, please contact our salesman (number mentioned above).\n7. Subject to Kolkata jurisdiction only.';}
   if(DB.customItems===undefined) DB.customItems=[
@@ -2761,7 +2855,7 @@ function readySet(m,size,q){ m.stk=m.stk||{}; const v=Math.max(0,Math.round(+q||
 
 /* ======================= STOCK HOME ======================= */
 let _stkTab='fabric';
-function stockHome(tab){
+function stockHome(tab){ if(!modOn('stock')){toast(t('mod_off'),'bad');return;}
   if(tab)_stkTab=tab;
   const tabs=[['fabric','🧵 '+t('stk_fabric')],['ready','👔 '+t('stk_ready')],['reports','📊 '+t('stk_reports')]];
   const fabMtr=r2((DB.thaans||[]).reduce((s,t)=>s+thaanBal(t),0));
@@ -4029,7 +4123,7 @@ function totalPayables(){
 }
 
 /* ---------------- CASH & BANK ---------------- */
-function cashBank(){
+function cashBank(){ if(!modOn('accounts')){toast(t('mod_off'),'bad');return;}
   const bals=allBalances();
   const total=totalCashBank();
   $('#sheet').innerHTML=`<div class="grip"></div>
@@ -4224,7 +4318,7 @@ function payEntry(dir){
 
 /* ---------------- EXPENSES ---------------- */
 let _exp=null, _expFrom='', _expTo='';
-function expenses(){
+function expenses(){ if(!modOn('accounts')){toast(t('mod_off'),'bad');return;}
   const from=_expFrom||monthStart(), to=_expTo||todayISO();
   const list=(DB.ledger||[]).filter(l=>l.refKind==='expense'&&l.date>=from&&l.date<=to)
     .sort((a,b)=>String(b.date).localeCompare(String(a.date)));
@@ -4340,7 +4434,7 @@ async function renderExpPhotos(){ const el=$('#ex_photos'); if(!el)return; el.in
 /* ---------------- DAY BOOK ---------------- */
 let _dbFrom='', _dbTo='';
 function monthStart(){ const d=new Date(); return new Date(d.getFullYear(),d.getMonth(),1).toISOString().slice(0,10); }
-function dayBook(){
+function dayBook(){ if(!modOn('accounts')){toast(t('mod_off'),'bad');return;}
   const from=_dbFrom||todayISO(), to=_dbTo||todayISO();
   const lines=moneyLines(from,to).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
   const real=lines.filter(l=>!l._contra);     // a cash↔bank transfer is neither income nor expense
@@ -4397,6 +4491,116 @@ function yesterdayISO(){ const d=new Date(); d.setDate(d.getDate()-1); return d.
 
 /* ---------------- ORDER REPORTS ---------------- */
 let _orFrom='', _orTo='';
+/* ===================== ORDER EXPLORER — filters + drill-down =====================
+   Karigar / status / item / salesman / date live per ITEM, so an order matches when
+   ANY of its items matches. Every row opens the real order. */
+let _ofBasis='delivery', _ofFrom='', _ofTo='', _ofStatus='', _ofKar='', _ofSm='', _ofItem='', _ofQ='';
+function ofDateOf(o){ return _ofBasis==='delivery' ? (o.deliveryDate||'') : (o.orderDate||(o.created||'').slice(0,10)); }
+function ofItemMatch(o,gid){
+  if(_ofKar && ((o.assign&&o.assign[gid])||'')!==_ofKar) return false;
+  if(_ofItem){ const g=G(gid); if(!g||g.id!==_ofItem && garmentOf(gid)!==_ofItem) return false; }
+  if(_ofStatus){
+    const st=itemStatusOf(o,gid);
+    if(_ofStatus==='pending' && (st==='ready'||st==='delivered')) return false;
+    if(_ofStatus!=='pending' && st!==_ofStatus) return false;
+  }
+  return true;
+}
+function ofMatches(){
+  const q=String(_ofQ||'').trim().toLowerCase();
+  return (DB.orders||[]).filter(o=>{
+    const d=ofDateOf(o);
+    if(_ofFrom && (!d || d<_ofFrom)) return false;
+    if(_ofTo   && (!d || d>_ofTo))   return false;
+    if(_ofSm && (o.salesmanId||'')!==_ofSm) return false;
+    if(q){
+      const hay=[o.customerName,o.phone,o.orderNo].join(' ').toLowerCase();
+      if(hay.indexOf(q)<0) return false;
+    }
+    const items=(o.items||[]);
+    if(_ofKar||_ofItem||_ofStatus){
+      if(_ofStatus==='late'){ return !orderDelivered(o) && daysLeft(o.deliveryDate)<0; }
+      if(!items.some(gid=>ofItemMatch(o,gid))) return false;
+    }
+    return true;
+  }).sort((a,b)=>String(ofDateOf(a)).localeCompare(String(ofDateOf(b))));
+}
+function ofSet(k,v){ if(k==='basis')_ofBasis=v; else if(k==='status')_ofStatus=v;
+  else if(k==='kar')_ofKar=v; else if(k==='sm')_ofSm=v; else if(k==='item')_ofItem=v; else if(k==='q')_ofQ=v;
+  orderFilter(); }
+function ofRange(from,to){ _ofFrom=from; _ofTo=to; orderFilter(); }
+function ofClear(){ _ofBasis='delivery';_ofFrom='';_ofTo='';_ofStatus='';_ofKar='';_ofSm='';_ofItem='';_ofQ=''; orderFilter(); }
+function orderFilter(){
+  const list=ofMatches();
+  let pieces=0, value=0, recv=0, due=0;
+  list.forEach(o=>{ pieces+=(o.items||[]).length; value=r2(value+orderTotal(o));
+    recv=r2(recv+orderReceived(o)); due=r2(due+orderBaaki(o)); });
+  const kars=(DB.karigars||[]), sms=(DB.salesmen||[]);
+  const garms=allItems();
+  const sel=(id,cur,opts,ph,key)=>`<select onchange="ofSet('${key}',this.value)" style="width:100%">
+      <option value="">${esc(ph)}</option>
+      ${opts.map(o=>`<option value="${esc(o[0])}" ${cur===o[0]?'selected':''}>${esc(o[1])}</option>`).join('')}</select>`;
+  const active=[_ofStatus,_ofKar,_ofSm,_ofItem,_ofQ,_ofFrom].filter(Boolean).length;
+  const rows=list.map(o=>{
+    const dl=daysLeft(o.deliveryDate);
+    const lateCol = orderDelivered(o)?'' : dl<0?'color:var(--bad)' : dl===0?'color:var(--saffron2)':'';
+    const b=orderBaaki(o);
+    const who=(o.items||[]).map(gid=>((DB.karigars||[]).find(k=>k.id===((o.assign&&o.assign[gid])||''))||{}).name).filter(Boolean);
+    return `<div class="card ocard" style="margin-bottom:8px" onclick="closeSheet();openDetail('${o.id}')">
+      <div class="kv"><div style="min-width:0">
+        <b>#${esc(o.orderNo||'—')} ${esc(o.customerName||'—')}</b>
+        <div class="hint">${(o.items||[]).length} ${t('it_items')} · ${sLabel(orderSummaryStatus(o))}${who.length?' · 👷 '+esc([...new Set(who)].join(', ')):''}</div>
+        <div class="hint" style="${lateCol}">📅 ${fmtDate(o.deliveryDate)}${(!orderDelivered(o)&&dl<0)?` · ${t('of_late',{n:Math.abs(dl)})}`:''}</div>
+      </div><div style="text-align:right">
+        <b>${money(orderTotal(o))}</b>
+        ${b>0?`<div class="hint">${balArrow(b)}</div>`:''}
+      </div></div></div>`;
+  }).join('') || `<p class="hint" style="padding:22px 0;text-align:center">${t('of_none')}</p>`;
+
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin-bottom:4px">🔎 ${t('of_title')}</h2>
+    <p class="hint" style="margin-bottom:10px">${t('of_sub')}</p>
+
+    <div class="gtags" style="margin-bottom:8px">
+      <span class="gtag ${_ofBasis==='delivery'?'on-tag':''}" style="cursor:pointer" onclick="ofSet('basis','delivery')">📅 ${t('of_by_delivery')}</span>
+      <span class="gtag ${_ofBasis==='order'?'on-tag':''}" style="cursor:pointer" onclick="ofSet('basis','order')">🧾 ${t('of_by_order')}</span>
+    </div>
+    <div class="gtags" style="margin-bottom:10px">
+      <span class="gtag" style="cursor:pointer" onclick="ofRange(todayISO(),todayISO())">${t('of_today')}</span>
+      <span class="gtag" style="cursor:pointer" onclick="ofRange(todayISO(),addDaysISO(7))">${t('of_7d')}</span>
+      <span class="gtag" style="cursor:pointer" onclick="ofRange(monthStart(),todayISO())">${t('rp_month')}</span>
+      <span class="gtag" style="cursor:pointer" onclick="ofRange('','')">${t('of_all')}</span>
+    </div>
+    <div class="row" style="margin-bottom:8px">
+      <div class="field" style="margin:0"><label class="hint">${t('rp_from')}</label>${dateField('of_from',_ofFrom||todayISO())}</div>
+      <div class="field" style="margin:0"><label class="hint">${t('rp_to')}</label>${dateField('of_to',_ofTo||todayISO())}</div>
+    </div>
+    <button class="btn sm ghost block" style="margin-bottom:10px" onclick="_ofFrom=$('#of_from').value;_ofTo=$('#of_to').value;orderFilter()">${t('of_apply')}</button>
+
+    <div class="field" style="margin-bottom:8px"><label class="hint">📍 ${t('status')}</label>
+      ${sel('of_st',_ofStatus,[['pending',t('of_pending')],['late',t('of_late_only')]].concat(STATUS.map(s=>[s,sLabel(s)])),t('of_any_status'),'status')}</div>
+    <div class="field" style="margin-bottom:8px"><label class="hint">👷 ${t('karigar')}</label>
+      ${sel('of_kar',_ofKar,kars.map(k=>[k.id,k.name]),t('of_any_karigar'),'kar')}</div>
+    <div class="field" style="margin-bottom:8px"><label class="hint">✂️ ${t('of_item')}</label>
+      ${sel('of_item',_ofItem,garms.map(g=>[g.id,g.n]),t('of_any_item'),'item')}</div>
+    ${sms.length?`<div class="field" style="margin-bottom:8px"><label class="hint">🧑‍💼 ${t('salesman')}</label>
+      ${sel('of_sm',_ofSm,sms.map(k=>[k.id,k.name]),t('of_any_sm'),'sm')}</div>`:''}
+    <input value="${esc(_ofQ)}" placeholder="🔍 ${t('of_search')}" onchange="ofSet('q',this.value)" style="margin-bottom:10px">
+    ${active?`<button class="btn sm ghost block" style="margin-bottom:10px" onclick="ofClear()">✕ ${t('of_clear',{n:active})}</button>`:''}
+
+    <div class="card pos-total" style="margin-bottom:12px;padding:12px 14px">
+      <div class="il"><span>${t('of_orders')}</span><b>${list.length} · ${pieces} ${t('it_items')}</b></div>
+      <div class="il"><span>${t('of_value')}</span><b>${money(value)}</b></div>
+      <div class="il"><span>${t('received')}</span><b>${money(recv)}</b></div>
+      <div class="il" style="border-bottom:0"><span>${t('total_due')}</span><b>${balArrow(due)}</b></div>
+    </div>
+    ${rows}
+    <div class="modal-actions"><button class="btn ghost block" onclick="closeSheet()">${t('close')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function addDaysISO(n){ const d=new Date(); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
+
 function orderReports(){
   const from=_orFrom||fyStart(), to=_orTo||todayISO();
   const all=(DB.orders||[]).filter(o=>{const d=o.orderDate||(o.created||'').slice(0,10);return d>=from&&d<=to;});
@@ -4491,7 +4695,7 @@ function hubHTML(title,sub,tiles){
     <div class="modal-actions"><button class="btn ghost block" onclick="closeSheet()">${t('close')}</button></div>
     <div class="fab-pad"></div>`;
 }
-function saleHub(){
+function saleHub(){ if(!modOn('billing')){toast(t('mod_off'),'bad');return;}
   $('#sheet').innerHTML=hubHTML('🧾 '+t('hub_sale'), t('hub_sale_sub'), [
     ['➕', t('new_sale'), "closeSheet();openSaleForm()"],
     ['📋', t('home_invoices'), "closeSheet();go('invoices')"],
@@ -4500,7 +4704,7 @@ function saleHub(){
   ]);
   showSheet();
 }
-function purchaseHub(){
+function purchaseHub(){ if(!modOn('billing')){toast(t('mod_off'),'bad');return;}
   $('#sheet').innerHTML=hubHTML('🚚 '+t('hub_purchase'), t('hub_purchase_sub'), [
     ['➕', t('new_purchase'), "closeSheet();openPurchaseForm()"],
     ['📋', t('purchases_list'), "closeSheet();go('purchases')"],
@@ -4523,7 +4727,7 @@ function accountsHub(){
   showSheet();
 }
 /* who we owe money to */
-function creditors(){
+function creditors(){ if(!modOn('billing')){toast(t('mod_off'),'bad');return;}
   const list=(DB.purchases||[]).filter(p=>orderBaaki(p)>0);
   const map={};
   list.forEach(p=>{const k=p.supplier||'—';
@@ -4544,7 +4748,7 @@ function creditors(){
       <div class="kv"><div style="flex:1">
         <b style="font-size:15px">${esc(g.name)}</b>
         ${g.phone?`<div class="hint">📞 ${esc(g.phone)}</div>`:''}
-        ${g.recs.map(p=>`<div class="hint">• ${esc(p.billNo||fmtDate(p.date))} — ${money(orderBaaki(p))}</div>`).join('')}
+        ${g.recs.map(p=>`<div class="hint fu-open" onclick="closeSheet();purchMenu('${p.id}')">• ${esc(p.billNo||fmtDate(p.date))} — ${money(orderBaaki(p))} <span style="color:var(--saffron2)">›</span></div>`).join('')}
       </div><b style="color:var(--bad);font-size:18px">${money(g.due)}</b></div>
       <div class="row" style="margin-top:10px;gap:6px">
         <button class="btn primary" style="flex:2" onclick="closeSheet();payEntry('out')">⬆️ ${t('pay_out')}</button>
@@ -4569,14 +4773,18 @@ function navQuick(tab){
   else if(tab==='purchases')openPurchaseForm();
 }
 function quickAdd(){
-  $('#sheet').innerHTML=hubHTML('⚡ '+t('qa_title'), t('qa_sub'), [
-    ['👔', t('home_new_order'), "closeSheet();openOrderForm()"],
-    ['🧾', t('new_sale'), "closeSheet();openSaleForm()"],
-    ['🚚', t('new_purchase'), "closeSheet();openPurchaseForm()"],
-    ['⬇️', t('pay_in'), "closeSheet();payEntry('in')"],
-    ['⬆️', t('pay_out'), "closeSheet();payEntry('out')"],
-    ['💸', t('exp_add'), "closeSheet();expEdit()"],
-  ]);
+  const items=[['👔', t('home_new_order'), "closeSheet();openOrderForm()"],
+    ['🔧', t('new_alteration'), "closeSheet();openAltForm()"]];
+  if(modOn('billing')){
+    items.push(['🧾', t('new_sale'), "closeSheet();openSaleForm()"]);
+    items.push(['🚚', t('new_purchase'), "closeSheet();openPurchaseForm()"]);
+  }
+  items.push(['⬇️', t('pay_in'), "closeSheet();payEntry('in')"]);   // order advances live here too
+  if(modOn('accounts')){
+    items.push(['⬆️', t('pay_out'), "closeSheet();payEntry('out')"]);
+    items.push(['💸', t('exp_add'), "closeSheet();expEdit()"]);
+  }
+  $('#sheet').innerHTML=hubHTML('⚡ '+t('qa_title'), t('qa_sub'), items);
   showSheet();
 }
 
@@ -5101,12 +5309,15 @@ function followUps(){
   const groups=dueGroups();
   const total=r2(groups.reduce((s,g)=>s+g.due,0));
   const rows=groups.map(g=>{
-    const lines=g.recs.map(r=>`<div class="hint" style="margin-left:2px">• ${esc(recLabel(r))} — ${money(orderBaaki(r))}</div>`).join('');
+    // every row here points at a real record — make them open it
+    const openOf=r=>r._kind==='order'?`openDetail('${r.id}')`:r._kind==='alt'?`openAltDetail('${r.id}')`:`openInvoicePreview('sale','${r.id}')`;
+    const lines=g.recs.map(r=>`<div class="hint fu-open" style="margin-left:2px" onclick="closeSheet();${openOf(r)}">• ${esc(recLabel(r))} — ${money(orderBaaki(r))} <span style="color:var(--saffron2)">›</span></div>`).join('');
+    const nameTap=g.custId?`openCustomer('${g.custId}')`:(g.recs.length===1?openOf(g.recs[0]):'');
     const last=fuText(g.key);
     return `<div class="card" style="margin-bottom:10px">
       <div class="kv" style="align-items:flex-start">
         <div style="flex:1">
-          <b style="font-size:15px">${esc(g.name)}</b>
+          <b style="font-size:15px" ${nameTap?`class="fu-open" onclick="closeSheet();${nameTap}"`:''}>${esc(g.name)}${nameTap?' <span style="color:var(--saffron2)">›</span>':''}</b>
           ${g.phone?`<div class="hint">📞 ${esc(g.phone)}</div>`:`<div class="hint" style="color:var(--bad)">⚠️ ${t('fu_no_phone')}</div>`}
           <div style="margin-top:6px">${lines}</div>
           ${last?`<div class="hint" style="margin-top:6px;color:var(--saffron2)">🔔 ${last}</div>`:''}
@@ -5221,6 +5432,16 @@ function renderSetup(){
         <textarea id="su_addr" rows="2">${esc(s.address||'')}</textarea></div>
       <div class="field" style="margin-top:10px"><label>${t('su_gstin')}</label>
         <input id="su_gstin" value="${esc(s.gstin||'')}" autocomplete="off"></div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <b style="font-size:14px">${t('su_mod_head')}</b>
+      <p class="hint" style="margin:4px 0 10px">${t('su_mod_sub')}</p>
+      <div class="kv" style="padding:8px 0"><span>📋 ${t('su_mod_orders')}</span><b style="color:var(--ok)">${t('su_mod_always')}</b></div>
+      ${[['billing','🧾',t('su_mod_billing')],['stock','📦',t('su_mod_stock')],['accounts','💰',t('su_mod_accounts')]]
+        .map(m=>`<label style="display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);cursor:pointer">
+          <input type="checkbox" id="su_mod_${m[0]}" style="width:20px;height:20px">
+          <span>${m[1]} ${esc(m[2])}</span></label>`).join('')}
+      <p class="hint" style="margin:10px 0 0">${t('su_mod_note')}</p>
       <button class="btn primary block" style="margin-top:14px" onclick="setupSave()">${t('su_start')}</button>
       <p class="hint" style="margin:10px 0 0">${t('su_later')}</p>
     </div>
@@ -5236,7 +5457,10 @@ function setupSave(){
     phone:($('#su_phone').value||'').trim(),
     address:($('#su_addr').value||'').trim(),
     gstin:($('#su_gstin').value||'').trim()});
-  save(); syncShopNameKey(); toast(t('su_done',{n:nm}),'ok'); renderHome();
+  DB.modules={billing:!!($('#su_mod_billing')||{}).checked,
+              stock:!!($('#su_mod_stock')||{}).checked,
+              accounts:!!($('#su_mod_accounts')||{}).checked};
+  save(); syncShopNameKey(); applyModules(); toast(t('su_done',{n:nm}),'ok'); renderHome();
 }
 function renderHome(){
   if(setupNeeded()){ renderSetup(); return; }
@@ -5253,7 +5477,7 @@ function renderHome(){
   let monthSale=0;allInvoices().forEach(x=>{if(String(x.inv.date||'').slice(0,7)===mFrom){monthSale+=invCompute(x.inv).total;}});
   (DB.sales||[]).forEach(s=>{}); // sales already have invoices
 
-  const tile=(icon,label,onclick)=>`<button class="home-tile" onclick="${onclick}"><span class="ht-ico">${icon}</span><span class="ht-lbl">${label}</span></button>`;
+  const tile=(icon,label,onclick,cls)=>`<button class="home-tile${cls?' '+cls:''}" onclick="${onclick}"><span class="ht-ico">${icon}</span><span class="ht-lbl">${label}</span></button>`;
   const stat=(label,value,color,onclick)=>`<div class="home-stat${onclick?' tappable':''}" ${onclick?`onclick="${onclick}"`:''}><div class="hs-val" style="${color?'color:'+color:''}">${value}</div><div class="hs-lbl">${label}${onclick?' <span class="hs-go">›</span>':''}</div></div>`;
 
   el.innerHTML=`
@@ -5273,28 +5497,29 @@ function renderHome(){
     <div class="home-sec-title">📋 ${t('home_tailoring')}</div>
     <div class="home-grid">
       ${tile('📋',t('nav_orders'),"go('orders')")}
+      ${tile('🔎',t('of_title'),"orderFilter()")}
       ${tile('📊',t('or_title'),"orderReports()")}
       ${tile('🔧',t('home_alterations'),"go('alterations')")}
       ${tile('👥',t('nav_customers'),"go('customers')")}
     </div>
 
     ${simple?'':`<div class="simple-hide">
-    <div class="home-sec-title">🧾 ${t('home_billing')}</div>
-    <div class="home-grid">
+    <div class="home-sec-title mod-billing">🧾 ${t('home_billing')}</div>
+    <div class="home-grid mod-billing">
       ${tile('🧾',t('hub_sale'),"saleHub()")}
       ${tile('🚚',t('hub_purchase'),"purchaseHub()")}
     </div>
 
     <div class="home-sec-title">💰 ${t('home_accounts')}</div>
     <div class="home-grid">
-      ${tile('📒',t('db_title'),"dayBook()")}
-      ${tile('🏦',t('cb_title'),"cashBank()")}
-      ${tile('💸',t('exp_title'),"expenses()")}
+      ${tile('📒',t('db_title'),"dayBook()",'mod-accounts')}
+      ${tile('🏦',t('cb_title'),"cashBank()",'mod-accounts')}
+      ${tile('💸',t('exp_title'),"expenses()",'mod-accounts')}
       ${tile('🔔',t('debtors_report'),"followUps()")}
-      ${tile('📤',t('creditors_report'),"creditors()")}
-      ${tile('📦',t('stk_title'),"stockHome()")}
-      ${tile('📊',t('reports'),"go('reports')")}
-      ${tile('📈',t('gr_title'),"growthReport()")}
+      ${tile('📤',t('creditors_report'),"creditors()",'mod-billing')}
+      ${tile('📦',t('stk_title'),"stockHome()",'mod-stock')}
+      ${tile('📊',t('reports'),"go('reports')",'mod-billing')}
+      ${tile('📈',t('gr_title'),"growthReport()",'mod-billing')}
     </div>
 
     <div class="card" style="margin-top:12px">
@@ -5547,9 +5772,9 @@ function openCustomer(id){
     <div class="section-h">${t('cust_orders')} (${orders.length})</div>
     ${orders.map(o=>`<div class="cust-result" onclick="closeSheet();openDetail('${o.id}')"><div><b>#${esc(o.orderNo)}</b> <span class="hint">${fmtDate(o.created)}</span></div><div class="hint">${money(o.total)}${orderBaaki(o)>0?` · <span style="color:var(--saffron2)">${t('baaki')} ${money(orderBaaki(o))}</span>`:''}</div></div>`).join('')||'<p class="hint">—</p>'}
     ${bills.length?`<div class="section-h">${t('cust_bills')} (${bills.length})</div>
-      ${bills.map(b=>`<div class="cust-result"><div><b>${esc(b.no||b.invNo||'—')}</b> <span class="hint">${fmtDate(b.date||b.created)}</span></div><div class="hint">${money(b.total)}${orderBaaki(b)>0?` · <span style="color:var(--saffron2)">${t('baaki')} ${money(orderBaaki(b))}</span>`:''}</div></div>`).join('')}`:''}
+      ${bills.map(b=>`<div class="cust-result" onclick="closeSheet();openInvoicePreview('sale','${b.id}')"><div><b>${esc((b.invoice&&b.invoice.no)||b.no||b.invNo||'—')}</b> <span class="hint">${fmtDate(b.date||b.created)}</span></div><div class="hint">${money(orderTotal(b))}${orderBaaki(b)>0?` · <span style="color:var(--saffron2)">${t('baaki')} ${money(orderBaaki(b))}</span>`:''} <span style="color:var(--saffron2)">›</span></div></div>`).join('')}`:''}
     ${alts.length?`<div class="section-h">${t('cust_alts')} (${alts.length})</div>
-      ${alts.map(a=>`<div class="cust-result"><div><b>#${esc(a.altNo||'—')}</b> <span class="hint">${fmtDate(a.created||a.date)}</span></div><div class="hint">${money(a.total)}</div></div>`).join('')}`:''}
+      ${alts.map(a=>`<div class="cust-result" onclick="closeSheet();openAltDetail('${a.id}')"><div><b>#${esc(a.altNo||'—')}</b> <span class="hint">${fmtDate(a.created||a.date)}</span></div><div class="hint">${money(a.total)}${orderBaaki(a)>0?` · <span style="color:var(--saffron2)">${t('baaki')} ${money(orderBaaki(a))}</span>`:''} <span style="color:var(--saffron2)">›</span></div></div>`).join('')}`:''}
     <div class="modal-actions"><button class="btn ghost block" onclick="closeSheet()">${t('close')}</button></div>`;
   showSheet();
 }
@@ -5761,6 +5986,39 @@ function delMember(mid){
   if(nItems)confirmModal(t('mem_del'),t('mem_del_msg',{n:(mem&&mem.name)||t('mem_this'),c:nItems}),go);
   else go();
 }
+/* ONE item open at a time. With four garments on one person the old form was four
+   full measurement sheets stacked — endless scrolling, and things get missed.
+   A filled item now folds into a single summary line. */
+let _openItem=null;
+function measFilledCount(f,key){
+  const g=G(key); if(!g)return {done:0,total:0,len:''};
+  const cols=vcols(g), vals=f.m[key]||{};
+  let done=0; cols.forEach(c=>{ if(String(vals[c.k]||'').trim())done++; });
+  return {done,total:cols.length,len:String(vals.L||'').trim()};
+}
+function itemOpen(key){
+  _sheetScroll=$('#sheet')?$('#sheet').scrollTop:0;
+  captureForm();
+  _openItem=(_openItem===key)?null:key;
+  renderForm();
+  if(_openItem)setTimeout(()=>{const c=document.querySelector('.mcard[data-key="'+cssId(_openItem)+'"]');if(c)c.scrollIntoView({block:'nearest'});},60);
+}
+/* Done on an item folds it away and opens the next one still empty. */
+function itemDone(key){
+  captureForm();
+  const rest=(form.items||[]).filter(k=>k!==key);
+  const next=rest.find(k=>{const s=measFilledCount(form,k);return !s.len;});
+  _openItem=next||null;
+  renderForm();
+  // nothing left to fill → go back up to the garment chips, where the next choice is:
+  // add another item, or save from the dock that travels with you
+  setTimeout(()=>{
+    const target=next?document.querySelector('.mcard[data-key="'+cssId(next)+'"]')
+                     :document.querySelector('.chip-grid');
+    if(target)target.scrollIntoView({block:next?'nearest':'center',behavior:'smooth'});
+  },60);
+  toast(next?t('it_next'):t('it_all_done'),'ok');
+}
 function measCardHTML(f,key){
   const g=G(key); if(!g)return '';
   const cols=vcols(g), vals=f.m[key]||{};
@@ -5777,9 +6035,19 @@ function measCardHTML(f,key){
   const npicked=notes.split('/').map(x=>x.trim()).filter(Boolean);
   const nlib=(DB.designLib[gid]||[]).filter(tok=>!npicked.includes(tok));
 
-  return `<div class="mcard"><div class="mh">
+  const st=measFilledCount(f,key);
+  const isOpen=(_openItem===key);
+  if(!isOpen){
+    return `<div class="mcard collapsed" data-key="${cssId(key)}">
+      <div class="mh mh-tap" onclick="itemOpen('${dkey}')">
+        <b>${st.len?'✅':'⬜'} ${g.ico} ${g.n}${instOf(key)>1?' <span class="inst-tag">'+instOf(key)+'</span>':''}</b>
+        <span class="hint" style="margin-left:auto;text-align:right">${st.len?`L <b style="color:var(--saffron2)">${esc(st.len)}</b> · `:`<span style="color:var(--bad)">${t('it_empty')}</span> · `}${st.done}/${st.total}</span>
+        <span style="color:var(--saffron2);margin-left:8px">▾</span>
+      </div></div>`;
+  }
+  return `<div class="mcard" data-key="${cssId(key)}"><div class="mh mh-tap" onclick="itemOpen('${dkey}')">
       <b>${g.ico} ${g.n}${instOf(key)>1?' <span class="inst-tag">'+instOf(key)+'</span>':''}</b>
-      <span style="display:flex;gap:6px">
+      <span style="display:flex;gap:6px" onclick="event.stopPropagation()">
         <button class="btn sm ghost" onclick="addAnother('${dkey}')" title="${t('add_another',{g:g.n})}">➕</button>
         <button class="btn sm danger" onclick="toggleItem('${dkey}')">${t('remove')}</button></span></div>
     <div class="mb">
@@ -5799,6 +6067,8 @@ function measCardHTML(f,key){
 
       <div style="margin-top:12px"><div class="hint" style="margin-bottom:4px">📷 ${t('photo_label')}</div><div class="media-row" id="ip_${cid}"></div>
         <div class="row" style="margin-top:6px;gap:6px"><button class="btn sm ghost" onclick="pickItemPhoto('cam','${dkey}')">📷 ${t('camera')}</button><button class="btn sm ghost" onclick="pickItemPhoto('lib','${dkey}')">🖼️ ${t('gallery')}</button></div></div>
+
+      <button class="btn primary block" style="margin-top:14px" onclick="itemDone('${dkey}')">✓ ${t('it_done')}</button>
     </div></div>`;
 }
 /* add a SECOND (third…) of the same garment — a sherwani kurta is not a jacket-set kurta */
@@ -5811,6 +6081,7 @@ function addAnother(key){
   const nk=itemKey(mid,gid,n);
   form.items.push(nk);
   prefillGarment(nk);
+  _openItem=nk;
   renderForm();
   setTimeout(()=>{const el=document.querySelector('.vInput[data-v="'+nk+'"]');if(el)el.focus();},80);
 }
@@ -5839,6 +6110,9 @@ function memberBlockHTML(f,mem,idx,multi){
     </div>`:''}
     <div class="chip-grid">${chips}</div>
     ${mine.length?`<p class="prefilled-note">${t('prefill_note')}</p>`:''}
+    ${mine.length?(()=>{const done=mine.filter(k=>measFilledCount(f,k).len).length;
+      return `<div class="billed-bar" style="margin-top:10px"><span>✂️ ${t('it_items')}</span>
+        <span class="hint" style="color:inherit">${done}/${mine.length} ${t('it_filled')}</span></div>`;})():''}
     <div style="margin-top:10px">${cards}</div>
   </div>`;
 }
@@ -5904,8 +6178,8 @@ function renderForm(){
     <div class="section-h">${t('voice_notes')}</div>${voiceSection('vn')}
     <div class="field"><label>${t('photo_label')}</label><div id="f_photos" style="display:flex;gap:8px;flex-wrap:wrap"></div>
       <div class="row" style="margin-top:8px"><button class="btn sm ghost" onclick="pickPhoto('cam')">📷 ${t('camera')}</button><button class="btn sm ghost" onclick="pickPhoto('lib')">🖼️ ${t('gallery')}</button></div></div>
-    <div class="modal-actions"><button class="btn ghost" onclick="cancelOrderForm()">${t('cancel')}</button>
-      <button class="btn primary" onclick="saveOrder()">${f.editId?t('update'):t('save_order')}</button></div><div class="fab-pad"></div>`;
+    <div class="save-dock"><button class="btn ghost" onclick="cancelOrderForm()">${t('cancel')}</button>
+      <button class="btn primary" style="flex:2" onclick="saveOrder()">💾 ${f.editId?t('update'):t('save_order')}</button></div><div class="fab-pad"></div>`;
   showSheet(); bindMeasInputs(); renderFormPhotos(); bindVoice('vn',()=>form.voiceNotes,null);
   bindDraftAutosave();
   document.querySelectorAll('[data-dtok]').forEach(ch=>ch.onclick=()=>appendDesign(ch.dataset.dgid,ch.dataset.dtok));
@@ -6146,9 +6420,11 @@ async function pickContact(){
   }catch(e){/* cancelled */}
 }
 function toggleItem(key){_sheetScroll=$('#sheet')?$('#sheet').scrollTop:0;captureForm();const i=form.items.indexOf(key);
-  if(i>=0){form.items.splice(i,1);delete form.m[key];delete form.design[key];}
-  else {form.items.push(key);prefillGarment(key);}
-  renderForm();}
+  if(i>=0){form.items.splice(i,1);delete form.m[key];delete form.design[key];
+    if(_openItem===key)_openItem=null;}
+  else {form.items.push(key);prefillGarment(key);_openItem=key;}   // open the one just added
+  renderForm();
+  if(_openItem)setTimeout(()=>{const c=document.querySelector('.mcard[data-key="'+cssId(_openItem)+'"]');if(c)c.scrollIntoView({block:'nearest'});},60);}
 
 /* live prefill: copy BODY columns (not length) from any same-category garment already filled */
 function prefillGarment(key){
@@ -6972,38 +7248,27 @@ function renderInvoiceForm(){
     <div class="card pos-total" id="invTotalsBox" style="padding:12px 14px">
       <div class="il"><span>${t('sub_total')}</span><b id="tSub">${money(comp0.gross)}</b></div>
 
-      <div class="il"><span>${t('discount')}</span>
-        <span style="display:flex;gap:6px;align-items:center">
-          <button class="btn sm ghost" id="ivDiscTog" style="min-width:40px;padding:4px 8px" onclick="invToggleDisc()">${f.discType==='percent'?'%':'₹'}</button>
-          <input id="inv_discval" type="number" inputmode="numeric" value="${f.discValue?esc(f.discValue):''}" placeholder="0"
-            style="width:82px;text-align:right;margin:0" oninput="updateInvTotals()">
-          <input type="hidden" id="inv_disctype" value="${f.discType==='percent'?'percent':'amount'}">
-          <b id="tDisc" class="neg" style="min-width:66px;text-align:right">− ${money(comp0.discount)}</b>
-        </span></div>
-
-      <div class="il"><span>🚚 ${t('courier')}</span>
-        <input id="inv_courier" type="number" inputmode="numeric" value="${f.courier?esc(f.courier):''}" placeholder="0"
-          style="width:112px;text-align:right;margin:0" oninput="updateInvTotals()"></div>
+      <div class="il" id="ivDiscLine" style="${comp0.discount>0?'':'display:none'}"><span>${t('discount')}</span>
+        <b id="tDisc" class="neg">− ${money(comp0.discount)}</b></div>
+      <div class="il" id="ivCourLine" style="${comp0.courier>0?'':'display:none'}"><span>🚚 ${t('courier')}</span>
+        <b id="tCour">+ ${money(comp0.courier)}</b></div>
 
       <div class="il"><span>${t('grand_total')}</span><b id="tTotal" style="font-size:18px">${money(comp0.total)}</b></div>
 
-      ${f.split ? `
-      <div class="il"><span>💵 ${t('pm_cash')}</span>
-        <input id="inv_cash" type="number" inputmode="numeric" value="${esc(f.split.cash!=null?f.split.cash:'')}" placeholder="0"
-          style="width:112px;text-align:right;margin:0" oninput="updateInvTotals()"></div>
-      <div class="il"><span>📱 ${t('pm_upi')}</span>
-        <input id="inv_upi" type="number" inputmode="numeric" value="${esc(f.split.upi!=null?f.split.upi:'')}" placeholder="0"
-          style="width:112px;text-align:right;margin:0" oninput="updateInvTotals()"></div>
-      <div class="il"><span>${t('received')}</span><b id="tRecvSplit">${money((+f.split.cash||0)+(+f.split.upi||0))}</b></div>
-      <div class="il"><span>${t('total_due')}</span>
-        <b id="tDue" style="font-size:17px;color:var(--saffron2)">${money(Math.max(0,r2(comp0.total-((+f.split.cash||0)+(+f.split.upi||0)))))}</b></div>
-      ` : (()=>{
+      ${(()=>{
         const rec0=invRecOf(f.kind,f.id)||{};
         const paid=orderReceived(rec0);
+        if(f.split){
+          return `<div class="il"><span>💵 ${t('pm_cash')}</span>
+              <input id="inv_cash" type="number" inputmode="numeric" value="${esc(f.split.cash!=null?f.split.cash:'')}" placeholder="0"
+                style="width:112px;text-align:right;margin:0" oninput="updateInvTotals()"></div>
+            <div class="il"><span>📱 ${t('pm_upi')}</span>
+              <input id="inv_upi" type="number" inputmode="numeric" value="${esc(f.split.upi!=null?f.split.upi:'')}" placeholder="0"
+                style="width:112px;text-align:right;margin:0" oninput="updateInvTotals()"></div>
+            <div class="il"><span>${t('received')}</span><b id="tRecvSplit">${money((+f.split.cash||0)+(+f.split.upi||0))}</b></div>`;
+        }
         if((rec0.payments||[]).length>1){   // real payment history — a bill edit must never overwrite it
           return `<div class="il"><span>${t('received')}</span><b>${money(paid)}</b></div>
-            <div class="il"><span>${t('total_due')}</span>
-              <b id="tDue" style="font-size:17px;color:var(--saffron2)">${money(Math.max(0,r2(comp0.total-paid)))}</b></div>
             <p class="hint" style="margin:6px 0 0">${t('pay_in_detail')}</p>`;
         }
         const shown = f.receivedNow!=null ? f.receivedNow : (paid||'');
@@ -7013,24 +7278,36 @@ function renderInvoiceForm(){
                 ${(+shown>0&&r2(+shown)===r2(comp0.total))?'checked':''}>
               <span>${t('received_now')}</span></span>
             <input id="inv_recv" type="number" inputmode="numeric" value="${esc(shown)}" placeholder="0"
-              style="width:112px;text-align:right;margin:0" oninput="updateInvTotals()"></div>
-          <div class="il"><span>${t('total_due')}</span>
-            <b id="tDue" style="font-size:17px;color:var(--saffron2)">${money(Math.max(0,r2(comp0.total-(+shown||0))))}</b></div>`;
+              style="width:112px;text-align:right;margin:0" oninput="updateInvTotals()"></div>`;
       })()}
 
-      <div class="il il-stack" style="border-bottom:0;padding-bottom:0">
+      <div class="il il-stack">
         <span class="hint">${t('payment_mode')}</span>
         <span class="gtags" id="ivModes">
           ${PU_MODES.map(m=>`<span class="gtag sm ${(!f.split&&f.paymentMode===m[0])?'on-tag':''}" data-pm="${m[0]}" style="cursor:pointer" onclick="invSetMode('${m[0]}')">${t(m[1])}</span>`).join('')}
           <span class="gtag sm ${f.split?'on-tag':''}" style="cursor:pointer;border-style:dashed" onclick="invToggleSplit()">⇄ ${t('split_pay')}</span></span>
         <input type="hidden" id="inv_pm" value="${esc(f.paymentMode||'Cash')}"></div>
-      <div class="il il-stack" id="ivAccRow" style="border-bottom:0;padding-top:6px;${/cash/i.test(f.paymentMode||'')&&!f.split?'display:none':''}">
+      <div class="il il-stack" id="ivAccRow" style="padding-top:6px;${/cash/i.test(f.paymentMode||'')&&!f.split?'display:none':''}">
         <span class="hint">${t('acc_into')}</span>
         <span style="width:100%">${acctSelHTML('inv_acc', f.acc||(defaultAcc()||{}).id)}</span></div>
+
+      <div class="il" style="border-bottom:0"><span>${t('total_due')}</span>
+        <b id="tDue" style="font-size:17px;color:var(--saffron2)">${money(Math.max(0,r2(comp0.total-invRecvNow(f,comp0))))}</b></div>
     </div>
 
     <details style="margin-top:14px">
       <summary style="font-size:13px;color:var(--saffron2);cursor:pointer;font-weight:700;padding:6px 0">⚙️ ${t('pos_more')}</summary>
+      <div class="il" style="padding-top:10px"><span>${t('discount')}</span>
+        <span style="display:flex;gap:6px;align-items:center">
+          <button class="btn sm ghost" id="ivDiscTog" style="min-width:40px;padding:4px 8px" onclick="invToggleDisc()">${f.discType==='percent'?'%':'₹'}</button>
+          <input id="inv_discval" type="number" inputmode="numeric" value="${f.discValue?esc(f.discValue):''}" placeholder="0"
+            style="width:82px;text-align:right;margin:0" oninput="updateInvTotals()">
+          <input type="hidden" id="inv_disctype" value="${f.discType==='percent'?'percent':'amount'}">
+        </span></div>
+      <div class="il"><span>🚚 ${t('courier')}</span>
+        <input id="inv_courier" type="number" inputmode="numeric" value="${f.courier?esc(f.courier):''}" placeholder="0"
+          style="width:112px;text-align:right;margin:0" oninput="updateInvTotals()"></div>
+
       <div class="field" style="margin-top:10px"><label>🧑‍💼 ${t('salesman')}</label>
         <input type="hidden" id="inv_sm" value="${esc(f.salesmanId||'')}">
         <div class="gtags">
@@ -7107,6 +7384,7 @@ function posLineCalc(i){            // ← no re-render: cursor stays exactly wh
   if(invForm.items[i]){invForm.items[i].qty=q;invForm.items[i].rate=r;invForm.items[i].price=r2(q*r);}
   const a=document.querySelector('[data-iamt="'+i+'"]'); if(a&&document.activeElement!==a)a.value=r2(q*r)||'';
   const lb=$('#posLineAmt'+i); if(lb)lb.textContent=money(r2(q*r));
+  const bs=$('#posBilledSummary'); if(bs)bs.innerHTML=posBilledSummary();
   updateInvTotals();
 }
 function posAmtEdit(i){             // type the total; rate is derived (qty stays)
@@ -7118,6 +7396,7 @@ function posAmtEdit(i){             // type the total; rate is derived (qty stay
   if(invForm.items[i]){invForm.items[i].qty=q;invForm.items[i].rate=r;invForm.items[i].price=r2(amt);}
   if(rEl&&document.activeElement!==rEl)rEl.value=r||'';
   const lb=$('#posLineAmt'+i); if(lb)lb.textContent=money(r2(amt));
+  const bs=$('#posBilledSummary'); if(bs)bs.innerHTML=posBilledSummary();
   updateInvTotals();
 }
 function posQty(i,d){
@@ -7602,17 +7881,30 @@ function invTotalsBoxHTML(comp){
     ${comp.discount>0?`<div class="kv"><span>${t('discount')}</span><b>− ${money(comp.discount)}</b></div>`:''}
     <div class="kv"><span>${t('grand_total')}</span><b style="font-size:17px">${money(comp.total)}</b></div>`;
 }
+/* Received-now, whichever way it was entered (split / history / single box). */
+function invRecvNow(f,comp){
+  if(f.split)return r2((+f.split.cash||0)+(+f.split.upi||0));
+  const rec0=invRecOf(f.kind,f.id)||{};
+  const paid=orderReceived(rec0);
+  if((rec0.payments||[]).length>1)return paid;
+  return r2(f.receivedNow!=null?(+f.receivedNow||0):(paid||0));
+}
 function updateInvTotals(){
   captureInvoiceForm();
   const comp=invCompute(invForm);
   const set=(id,v)=>{const e=$('#'+id); if(e)e.textContent=v;};
   set('tSub',money(comp.gross));
   set('tDisc','− '+money(comp.discount));
+  set('tCour','+ '+money(comp.courier));
   set('tTotal',money(comp.total));
+  // the discount / courier lines only appear once they are actually used
+  const dl=$('#ivDiscLine'); if(dl)dl.style.display=comp.discount>0?'':'none';
+  const cl=$('#ivCourLine'); if(cl)cl.style.display=comp.courier>0?'':'none';
+  const bs=$('#posBilledSummary'); if(bs)bs.innerHTML=posBilledSummary();
   const cb=$('#inv_paidfull'), rv=$('#inv_recv');
   if(cb&&cb.checked&&rv&&document.activeElement!==rv){   // "paid full" stays true as items change
     rv.value=r2(comp.total); invForm.receivedNow=r2(comp.total); }
-  const recv=invForm.receivedNow!=null?invForm.receivedNow:0;
+  const recv=invRecvNow(invForm,comp);
   set('tDue',money(Math.max(0,r2(comp.total-recv))));
   if(invForm.split)set('tRecvSplit',money(recv));
   if(cb&&!(cb.checked&&document.activeElement!==rv))cb.checked=(recv>0&&r2(recv)===r2(comp.total));
@@ -9650,14 +9942,43 @@ function itemPrint(oid,gid){const o=DB.orders.find(x=>x.id===oid);if(o)doPrint(o
 function orderPrint(oid){const o=DB.orders.find(x=>x.id===oid);if(o)doPrint(o,null);}
 
 /* ====================== SETTINGS + ITEM MASTER ====================== */
+/* Turn parts of the app on or off. Nothing is deleted — a switched-off module
+   just stops showing, and switching it back on brings the data straight back. */
+function modulesEdit(){
+  const row=(k,ico,label)=>`<label style="display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line);cursor:pointer">
+    <input type="checkbox" id="md_${k}" ${modOn(k)?'checked':''} style="width:20px;height:20px">
+    <span>${ico} ${esc(label)}</span></label>`;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin-bottom:4px">🧩 ${t('mod_title')}</h2>
+    <p class="hint" style="margin-bottom:12px">${t('mod_sub')}</p>
+    <div class="card">
+      <div class="kv" style="padding:8px 0"><span>📋 ${t('su_mod_orders')}</span><b style="color:var(--ok)">${t('su_mod_always')}</b></div>
+      ${row('billing','🧾',t('su_mod_billing'))}
+      ${row('stock','📦',t('su_mod_stock'))}
+      ${row('accounts','💰',t('su_mod_accounts'))}
+      <p class="hint" style="margin:10px 0 0">${t('su_mod_note')}</p>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeSheet()">${t('close')}</button>
+      <button class="btn primary" onclick="modulesSave()">${t('save')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function modulesSave(){
+  DB.modules={billing:!!($('#md_billing')||{}).checked,
+              stock:!!($('#md_stock')||{}).checked,
+              accounts:!!($('#md_accounts')||{}).checked};
+  save(); applyModules(); closeSheet(); renderHome(); toast(t('mod_saved'),'ok');
+}
 function settingsMenu(){modal(t('settings'),`
   <button class="btn ghost block" style="margin-bottom:8px" onclick="toggleSTTLang(this)">🎤 ${t('voice_lang')}: <b>${sttLangLabel()}</b></button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();shopInfoEdit()">🧾 ${t('shop_details')}</button>
+  <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();modulesEdit()">🧩 ${t('mod_title')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();karigarMaster()">👷 ${t('karigar_master')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();paymentQR()">💳 ${t('qr_title')}</button>
     <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();numberingEdit()">🔢 ${t('num_title')}</button>
     <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();importVyapar()">📥 ${t('imp_title')}</button>
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();stockHome()">📦 ${t('stk_title')}</button>
+    <button class="btn ghost block mod-stock" style="margin-bottom:8px" onclick="closeSheet();stockHome()">📦 ${t('stk_title')}</button>
     <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();itemMaster()">📦 ${t('item_master')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();salesmanMaster()">🧑‍💼 ${t('salesman_master')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();garmentMaster()">🧩 ${t('garment_master')}</button>
@@ -9894,6 +10215,15 @@ function itemDelete(id){confirmModal(t('confirm_item_del'),t('confirm_item_del_m
 
 /* ====================== BACKUP ====================== */
 /* One short key just for the installed-app name. Never parse the whole DB at boot. */
+/* Is this module switched on for this shop? */
+function modOn(k){ return !!((DB.modules||{})[k]); }
+/* Body classes drive the hiding, same trick simple-mode already uses. */
+function applyModules(){
+  const b=document.body;
+  b.classList.toggle('no-billing', !modOn('billing'));
+  b.classList.toggle('no-stock',   !modOn('stock'));
+  b.classList.toggle('no-accounts',!modOn('accounts'));
+}
 function syncShopNameKey(){
   try{ localStorage.setItem('pb_ob_shopname', String(((DB.shopInfo||{}).name)||'').slice(0,40)); }catch(e){}
 }
@@ -10042,7 +10372,7 @@ function toast(msg,kind){const el=$('#toast');el.textContent=msg;el.className='t
 /* ====================== INIT ====================== */
 function updateHeadStat(){const due=DB.orders.reduce((s,o)=>s+orderBaaki(o),0);
   const hs=$('#headStat');if(hs)hs.innerHTML=`<b>${DB.orders.length}</b> ${t('orders_word')} · <b>${money(due)}</b> ${t('due')}<br><span onclick="backupMenu()" style="text-decoration:underline;cursor:pointer">💾 ${t('backup')}</span>`;}
-async function init(){load();syncShopNameKey();try{await openIDB();}catch(e){}applyLang();document.body.classList.toggle('simple-mode',localStorage.getItem('pb_ob_simple')==='1');renderHome();_curTab='home';pushGuard();}
+async function init(){load();syncShopNameKey();applyModules();try{await openIDB();}catch(e){}applyLang();document.body.classList.toggle('simple-mode',localStorage.getItem('pb_ob_simple')==='1');renderHome();_curTab='home';pushGuard();}
 init();
 </script>
 </body>
