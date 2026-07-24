@@ -394,7 +394,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v79</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v80</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1088,6 +1088,22 @@ const T={
   su_need_name:'Please enter your shop name',
   mod_off:'That section is switched off in Settings',
   kb_title:'Karigar hisab',
+  ki_give:'Give work',
+  ki_take:'Take back',
+  ki_give_sub:'tick every piece he is taking',
+  ki_take_sub:'tick every piece he has handed in',
+  ki_none_free:'Nothing left to give out',
+  ki_none_with:'Nothing is with him right now',
+  ki_only_his:'Only the items he makes',
+  ki_toggle_all:'Select / clear all',
+  ki_selected:'Selected',
+  ki_do_give:'Give these',
+  ki_do_take:'Take these back',
+  ki_pick_some:'Tick at least one piece',
+  ki_gave:'{n} pieces given',
+  ki_took:'{n} pieces taken back',
+  ki_given_on:'given',
+  ki_send_hisab:'Send hisab',
   kb_sub:'What each master is holding, what he has handed back, and what you owe him.',
   kb_total_payable:'Total payable',
   kb_payable:'payable',
@@ -2074,6 +2090,22 @@ const T={
   su_need_name:'दुकान का नाम भरें',
   mod_off:'यह हिस्सा सेटिंग्स में बंद है',
   kb_title:'कारीगर हिसाब',
+  ki_give:'काम देना',
+  ki_take:'वापस लेना',
+  ki_give_sub:'जो-जो पीस वह ले जा रहा है, टिक करें',
+  ki_take_sub:'जो-जो पीस उसने जमा किया, टिक करें',
+  ki_none_free:'देने के लिए कुछ नहीं बचा',
+  ki_none_with:'अभी उसके पास कुछ नहीं है',
+  ki_only_his:'सिर्फ़ वही आइटम जो वह बनाता है',
+  ki_toggle_all:'सब चुनें / हटाएँ',
+  ki_selected:'चुने',
+  ki_do_give:'ये दे दिए',
+  ki_do_take:'ये वापस लिए',
+  ki_pick_some:'कम से कम एक पीस टिक करें',
+  ki_gave:'{n} पीस दिए',
+  ki_took:'{n} पीस वापस लिए',
+  ki_given_on:'दिया',
+  ki_send_hisab:'हिसाब भेजें',
   kb_sub:'किस मास्टर के पास क्या है, क्या जमा किया, और कितना देना है।',
   kb_total_payable:'कुल देना',
   kb_payable:'देना',
@@ -10140,6 +10172,123 @@ function karPays(kid){ return (DB.karigarPays||[]).filter(p=>p.karigarId===kid)
 function karPaid(kid){ return r2(karPays(kid).reduce((s,p)=>s+(+p.amt||0)+(+p.settled||0),0)); }
 function karBalance(kid){ return r2(karEarned(kid)-karPaid(kid)); }
 
+/* ============ GIVE / TAKE BACK IN BULK — worked from the KARIGAR's side ============
+   In a boutique the master turns up at the shop and only THEN is it decided which
+   pieces he takes. Going into each order one by one is not workable, and the same
+   is true when he returns a bundle from several orders. So both directions are done
+   from one screen: tick many items across many orders, one date, one action. */
+let _kiSel=new Set(), _kiOnlyHis=true;
+function kiItemsFree(kid){                    // nothing assigned yet, still to be made
+  const k=(DB.karigars||[]).find(x=>x.id===kid)||{};
+  const spec=new Set(k.specialties||[]);
+  const out=[];
+  (DB.orders||[]).forEach(o=>(o.items||[]).forEach(gid=>{
+    if((o.assign&&o.assign[gid])||'')return;
+    const st=itemStatusOf(o,gid); if(st==='ready'||st==='delivered')return;
+    const g=G(gid); if(!g)return;
+    if(_kiOnlyHis && spec.size && !spec.has(g.id))return;
+    out.push({o,gid,g});
+  }));
+  return out.sort((a,b)=>String(a.o.deliveryDate||'').localeCompare(String(b.o.deliveryDate||'')));
+}
+function kiItemsWith(kid){                    // given to him, not yet handed back
+  const out=[];
+  (DB.orders||[]).forEach(o=>(o.items||[]).forEach(gid=>{
+    if(((o.assign&&o.assign[gid])||'')!==kid)return;
+    if(karRecvDate(o,gid))return;
+    const g=G(gid); if(!g)return;
+    out.push({o,gid,g});
+  }));
+  return out.sort((a,b)=>String(a.o.deliveryDate||'').localeCompare(String(b.o.deliveryDate||'')));
+}
+function kiRow(x,kid){
+  const key=x.o.id+'~'+x.gid, on=_kiSel.has(key);
+  const dl=x.o.deliveryDate?daysLeft(x.o.deliveryDate):null;
+  const col = dl===null?'' : dl<0?'color:var(--bad)' : dl===0?'color:var(--saffron2)':'';
+  return `<label class="cust-result" style="margin-bottom:6px;cursor:pointer;${on?'border-color:var(--saffron)':''}">
+    <input type="checkbox" ${on?'checked':''} onchange="kiToggle('${esc(key)}')" style="width:22px;height:22px;flex:0 0 auto">
+    <div style="flex:1;min-width:0">
+      <b>${x.g.ico} ${esc(x.g.n)}</b>
+      <div class="hint">#${esc(x.o.orderNo||'—')} · ${esc(x.o.customerName||'—')}</div>
+      <div class="hint" style="${col}">📅 ${fmtDate(x.o.deliveryDate)}</div>
+    </div></label>`;
+}
+function kiToggle(key){ if(_kiSel.has(key))_kiSel.delete(key); else _kiSel.add(key);
+  const n=$('#kiCount'); if(n)n.textContent=_kiSel.size; }
+function kiSelectAll(kid,mode){
+  const list = mode==='give'?kiItemsFree(kid):kiItemsWith(kid);
+  const all = list.every(x=>_kiSel.has(x.o.id+'~'+x.gid));
+  list.forEach(x=>{const k=x.o.id+'~'+x.gid; if(all)_kiSel.delete(k); else _kiSel.add(k);});
+  karigarIssue(kid,mode);
+}
+/* mode 'give' = hand work out, mode 'take' = receive it back */
+function karigarIssue(kid,mode){
+  const k=(DB.karigars||[]).find(x=>x.id===kid); if(!k)return;
+  const give=(mode!=='take');
+  const list=give?kiItemsFree(kid):kiItemsWith(kid);
+  const rows=list.map(x=>kiRow(x,kid)).join('')
+    || `<p class="hint" style="padding:20px 0;text-align:center">${give?t('ki_none_free'):t('ki_none_with')}</p>`;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin-bottom:2px">${give?'📤 '+t('ki_give'):'📥 '+t('ki_take')}</h2>
+    <p class="hint" style="margin-bottom:10px">👷 ${esc(k.name)} · ${give?t('ki_give_sub'):t('ki_take_sub')}</p>
+    <div class="field"><label>${t('pay_date')}</label>${dateField('ki_date',todayISO())}</div>
+    ${give&&(k.specialties||[]).length?`<label style="display:flex;align-items:center;gap:8px;margin:10px 0;cursor:pointer">
+      <input type="checkbox" ${_kiOnlyHis?'checked':''} onchange="_kiOnlyHis=this.checked;karigarIssue('${kid}','give')" style="width:20px;height:20px">
+      <span class="hint">${t('ki_only_his')}</span></label>`:''}
+    <div class="kv" style="margin:10px 0">
+      <button class="btn sm ghost" onclick="kiSelectAll('${kid}','${give?'give':'take'}')">${t('ki_toggle_all')}</button>
+      <span class="hint">${t('ki_selected')}: <b id="kiCount">${_kiSel.size}</b></span></div>
+    ${rows}
+    <div class="save-dock">
+      <button class="btn ghost" onclick="_kiSel.clear();karigarLedger('${kid}')">${t('back')}</button>
+      <button class="btn primary" style="flex:2" onclick="kiApply('${kid}','${give?'give':'take'}')">
+        ${give?'📤 '+t('ki_do_give'):'📥 '+t('ki_do_take')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function kiApply(kid,mode){
+  if(!_kiSel.size){toast(t('ki_pick_some'),'bad');return;}
+  const d=($('#ki_date')||{}).value||todayISO();
+  let n=0;
+  _kiSel.forEach(key=>{
+    const [oid,gid]=key.split('~');
+    const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
+    if(mode==='give'){
+      o.assign=o.assign||{}; o.assign[gid]=kid;
+      o.issued=o.issued||{}; o.issued[gid]=d;
+    }else{
+      o.recv=o.recv||{}; o.recv[gid]=d;
+    }
+    n++;
+  });
+  _kiSel.clear(); save();
+  toast(mode==='give'?t('ki_gave',{n}):t('ki_took',{n}),'ok');
+  karigarLedger(kid);
+}
+/* the master's statement — which order, which piece, what it earned */
+function karStatementText(kid){
+  const k=(DB.karigars||[]).find(x=>x.id===kid)||{};
+  const jobs=karJobs(kid), pays=karPays(kid);
+  const L=[];
+  L.push(((DB.shopInfo||{}).name||'').toUpperCase());
+  L.push('');
+  L.push('👷 '+(k.name||''));
+  L.push('');
+  L.push(t('kb_submitted')+':');
+  jobs.forEach((j,i)=>L.push(`${i+1}. ${j.label}${j.who?' — '+j.who:''} · ${fmtDate(j.date)} · ${money(j.amt)}`));
+  L.push('');
+  L.push(`${t('kb_earned')}: ${money(karEarned(kid))}`);
+  L.push(`${t('kb_paid')}: ${money(karPaid(kid))}`);
+  L.push(`*${t('kb_balance')}: ${money(karBalance(kid))}*`);
+  if(pays.length){ L.push(''); L.push(t('kb_payments')+':');
+    pays.slice(0,10).forEach(p=>L.push(`• ${fmtDate(p.date)} — ${money(p.amt)}${p.settled>0?' (+'+money(p.settled)+' '+t('kb_settled')+')':''}`)); }
+  return L.join('\n');
+}
+function karStatementSend(kid){
+  const k=(DB.karigars||[]).find(x=>x.id===kid)||{};
+  waSend(k.phone||'', karStatementText(kid));
+}
+
 /* ---- all masters, with what each is owed ---- */
 function karigarBook(){
   const ks=DB.karigars||[];
@@ -10174,7 +10323,8 @@ function karigarLedger(kid){
     if(((o.assign&&o.assign[gid])||'')!==kid)return;
     if(karRecvDate(o,gid))return;
     const g=G(gid);
-    out.push(`<div class="hint fu-open" onclick="closeSheet();openDetail('${o.id}')">• #${esc(o.orderNo||'—')} ${esc((g&&g.n)||'')} — ${esc(o.customerName||'')} <span style="color:var(--saffron2)">›</span></div>`);
+    const iss=(o.issued&&o.issued[gid])||'';
+    out.push(`<div class="hint fu-open" onclick="closeSheet();openDetail('${o.id}')">• #${esc(o.orderNo||'—')} ${esc((g&&g.n)||'')} — ${esc(o.customerName||'')}${iss?` · ${t('ki_given_on')} ${fmtDate(iss)}`:''} <span style="color:var(--saffron2)">›</span></div>`);
   }));
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:2px">👷 ${esc(k.name)}</h2>
@@ -10184,7 +10334,12 @@ function karigarLedger(kid){
       <div class="il"><span>${t('kb_paid')}</span><b>${money(paid)}</b></div>
       <div class="il" style="border-bottom:0"><span><b>${t('kb_balance')}</b></span><b style="font-size:17px">${balArrow(-bal)}</b></div>
     </div>
-    <button class="btn primary block" style="margin-bottom:12px" onclick="karPayEntry('${kid}')">💰 ${t('kb_pay')}</button>
+    <div class="row" style="gap:8px;margin-bottom:8px">
+      <button class="btn primary" style="flex:1" onclick="_kiSel.clear();karigarIssue('${kid}','give')">📤 ${t('ki_give')}</button>
+      <button class="btn primary" style="flex:1" onclick="_kiSel.clear();karigarIssue('${kid}','take')">📥 ${t('ki_take')}</button></div>
+    <div class="row" style="gap:8px;margin-bottom:12px">
+      <button class="btn ghost" style="flex:1" onclick="karPayEntry('${kid}')">💰 ${t('kb_pay')}</button>
+      <button class="btn ghost" style="flex:1" onclick="karStatementSend('${kid}')">💬 ${t('ki_send_hisab')}</button></div>
     ${out.length?`<div class="section-h">${t('kb_out_now')} (${out.length})</div>${out.join('')}`:''}
     <div class="section-h">${t('kb_submitted')} (${jobs.length})</div>
     ${jobs.slice(0,40).map(j=>`<div class="cust-result" style="margin-bottom:6px">
