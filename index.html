@@ -394,7 +394,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v78</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v79</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1087,6 +1087,38 @@ const T={
   su_later:'Bank details, UPI and terms can be added later from Settings.',
   su_need_name:'Please enter your shop name',
   mod_off:'That section is switched off in Settings',
+  kb_title:'Karigar hisab',
+  kb_sub:'What each master is holding, what he has handed back, and what you owe him.',
+  kb_total_payable:'Total payable',
+  kb_payable:'payable',
+  kb_with_him:'{n} pieces with him',
+  kb_nothing_out:'nothing pending with him',
+  kb_earned:'Work handed back',
+  kb_paid:'Paid',
+  kb_balance:'Balance',
+  kb_pay:'Pay karigar',
+  kb_pay_sub:'Balance right now: {a}',
+  kb_full:'Full',
+  kb_part:'Part payment',
+  kb_short:'Left after this payment',
+  kb_settle:'Settle the rest — nothing carries forward',
+  kb_settle_hint:'Use when you negotiate the amount down. Without this, the shortfall stays as his balance for next week.',
+  kb_note_ph:'e.g. Saturday settlement',
+  kb_need_amt:'Enter the amount',
+  kb_settled_ok:'Paid — {a} settled off',
+  kb_ledger_note:'Karigar payment — {n}',
+  kb_out_now:'Still with him',
+  kb_submitted:'Handed back',
+  kb_payments:'Payments',
+  kb_none_sub:'Nothing handed back yet',
+  kb_none_pay:'No payments yet',
+  kb_settled:'settled',
+  kb_recv_on:'Taken back on',
+  kb_mark_recv:'Taken back today',
+  kb_recv_ok:'Marked as taken back',
+  kb_his_rate:'His amount ₹',
+  kb_own_rework:'His own work — no payment',
+  kb_own_rework_hint:'Alteration on a piece this master made himself. Tick it and nothing is added to his hisab.',
   of_title:'Find orders',
   of_sub:'Filter by karigar, status, item, date — tap any order to open it.',
   of_by_delivery:'By delivery date',
@@ -2041,6 +2073,38 @@ const T={
   su_later:'बैंक विवरण, UPI और शर्तें बाद में सेटिंग्स से जोड़ सकते हैं।',
   su_need_name:'दुकान का नाम भरें',
   mod_off:'यह हिस्सा सेटिंग्स में बंद है',
+  kb_title:'कारीगर हिसाब',
+  kb_sub:'किस मास्टर के पास क्या है, क्या जमा किया, और कितना देना है।',
+  kb_total_payable:'कुल देना',
+  kb_payable:'देना',
+  kb_with_him:'{n} पीस उसके पास',
+  kb_nothing_out:'उसके पास कुछ बाकी नहीं',
+  kb_earned:'जमा किया काम',
+  kb_paid:'दिया',
+  kb_balance:'बाकी',
+  kb_pay:'कारीगर को पैसा दें',
+  kb_pay_sub:'अभी का बाकी: {a}',
+  kb_full:'पूरा',
+  kb_part:'कुछ हिस्सा',
+  kb_short:'इस भुगतान के बाद बचेगा',
+  kb_settle:'बाकी सेटल — अगले हफ़्ते नहीं जाएगा',
+  kb_settle_hint:'जब आप बात करके रकम कम कराते हैं तब लगाएँ। बिना इसके बची रकम अगले हफ़्ते उसके हिसाब में रहेगी।',
+  kb_note_ph:'जैसे शनिवार का हिसाब',
+  kb_need_amt:'रकम भरें',
+  kb_settled_ok:'दिया — {a} सेटल हो गया',
+  kb_ledger_note:'कारीगर भुगतान — {n}',
+  kb_out_now:'अभी उसके पास',
+  kb_submitted:'जमा किया',
+  kb_payments:'भुगतान',
+  kb_none_sub:'अभी कुछ जमा नहीं',
+  kb_none_pay:'अभी कोई भुगतान नहीं',
+  kb_settled:'सेटल',
+  kb_recv_on:'वापस लिया',
+  kb_mark_recv:'आज वापस लिया',
+  kb_recv_ok:'वापस लिया दर्ज हुआ',
+  kb_his_rate:'उसकी रकम ₹',
+  kb_own_rework:'उसी का काम — पैसा नहीं',
+  kb_own_rework_hint:'जो पीस इसी मास्टर ने बनाया, उसी का सुधार। टिक करने पर उसके हिसाब में कुछ नहीं जुड़ेगा।',
   of_title:'ऑर्डर खोजें',
   of_sub:'कारीगर, स्थिति, आइटम, तारीख़ से छाँटें — किसी भी ऑर्डर पर टैप करके खोलें।',
   of_by_delivery:'डिलीवरी तारीख़ से',
@@ -5497,6 +5561,7 @@ function renderHome(){
     <div class="home-sec-title">📋 ${t('home_tailoring')}</div>
     <div class="home-grid">
       ${tile('📋',t('nav_orders'),"go('orders')")}
+      ${tile('👷',t('kb_title'),"karigarBook()")}
       ${tile('🔎',t('of_title'),"orderFilter()")}
       ${tile('📊',t('or_title'),"orderReports()")}
       ${tile('🔧',t('home_alterations'),"go('alterations')")}
@@ -6636,7 +6701,17 @@ async function openDetail(id,focusGid){
     const sStat=`<div class="row" style="margin-top:8px;align-items:center;gap:8px"><span class="hint">📍 ${t('status')}</span><select id="stsel_${cssId(gid)}" onchange="setItemStatus('${o.id}','${gid}',this.value)" style="${selStyle}">${STATUS.map(s=>`<option value="${s}" ${s===ist?'selected':''}>${sLabel(s)}</option>`).join('')}</select></div>`;
     const kid=(o.assign&&o.assign[gid])||'';
     const kopts=`<option value="">${t('karigar_none')}</option>`+(DB.karigars||[]).map(k=>`<option value="${k.id}" ${k.id===kid?'selected':''}>${esc(k.name)}</option>`).join('');
-    const ksel=`<div class="row" style="margin-top:8px;align-items:center;gap:8px"><span class="hint">👷 ${t('karigar')}</span><select onchange="setItemKarigar('${o.id}','${gid}',this.value)" style="${selStyle}">${kopts}</select></div>`;
+    const rdate=karRecvDate(o,gid), ramt=karRateFor(o,gid);
+    const ksel=`<div class="row" style="margin-top:8px;align-items:center;gap:8px"><span class="hint">👷 ${t('karigar')}</span><select onchange="setItemKarigar('${o.id}','${gid}',this.value)" style="${selStyle}">${kopts}</select></div>`
+      + (kid?`<div class="row" style="margin-top:8px;align-items:center;gap:8px">
+          <span class="hint">📥 ${t('kb_recv_on')}</span>
+          <span style="flex:1">${rdate?`<b style="color:var(--ok)">${fmtDate(rdate)}</b>
+            <button class="btn sm ghost" style="margin-left:8px" onclick="setItemRecv('${o.id}','${gid}','')">✕</button>`
+            :`<button class="btn sm primary" onclick="setItemRecv('${o.id}','${gid}',todayISO())">${t('kb_mark_recv')}</button>`}</span></div>
+        ${rdate?`<div class="row" style="margin-top:6px;align-items:center;gap:8px">
+          <span class="hint">💰 ${t('kb_his_rate')}</span>
+          <input type="number" inputmode="numeric" value="${esc(ramt||'')}" placeholder="0"
+            onchange="setItemKarAmt('${o.id}','${gid}',this.value)" style="width:110px;text-align:right;margin:0"></div>`:''}`:'');
     return `<div class="mcard"><div class="mh"><b>${g.ico} ${esc(itemTitle(o,gid))}${_who?` <span class="who-tag">${esc(_who)}</span>`:''}</b><span class="pill st-${ist}" id="pill_${cssId(gid)}">${sLabel(ist)}</span></div><div class="mb">
       <div class="gtags">${cells||'<span class="hint">—</span>'}</div>${dn}
       ${sStat}
@@ -6767,13 +6842,13 @@ function openAltForm(editId,origOrderId){
     const a=altById(editId);
     altForm={editId,altNo:a.altNo,origOrderId:a.origOrderId||null,customerId:a.customerId||null,customerName:a.customerName||'',phone:a.phone||'',
       itemDesc:a.itemDesc||'',notes:a.notes||'',receivedDate:a.receivedDate||todayISO(),deliveryDate:a.deliveryDate||'',charge:a.charge||'',
-      karigarId:a.karigarId||'',photos:[...(a.photos||[])],voiceNotes:JSON.parse(JSON.stringify(a.voiceNotes||[]))};
+      karigarId:a.karigarId||'',noKarigarPay:!!a.noKarigarPay,karAmt:a.karAmt||'',recvDate:a.recvDate||'',photos:[...(a.photos||[])],voiceNotes:JSON.parse(JSON.stringify(a.voiceNotes||[]))};
   }else{
     let cid=null,cname='',cphone='',idesc='';
     if(origOrderId){const o=DB.orders.find(x=>x.id===origOrderId);
       if(o){cid=o.customerId;cname=o.customerName;cphone=o.phone;idesc=t('alt_from_order',{n:o.orderNo});}}
     altForm={editId:null,altNo:nextAltNo(),origOrderId:origOrderId||null,customerId:cid,customerName:cname,phone:cphone,
-      itemDesc:idesc,notes:'',receivedDate:todayISO(),deliveryDate:'',charge:'',karigarId:'',photos:[],voiceNotes:[]};
+      itemDesc:idesc,notes:'',receivedDate:todayISO(),deliveryDate:'',charge:'',karigarId:'',noKarigarPay:false,karAmt:'',recvDate:'',photos:[],voiceNotes:[]};
   }
   renderAltForm();
 }
@@ -6793,7 +6868,17 @@ function renderAltForm(){
     <div class="field"><label>${t('alt_item')} ${micBtn('#a_item')}</label><textarea id="a_item" placeholder="${t('alt_item_ph')}">${esc(f.itemDesc)}</textarea></div>
     <div class="row"><div class="field"><label>${t('delivery')}</label>${dateField("a_ddate",f.deliveryDate)}</div>
       <div class="field"><label>${t('alt_charge')}</label><input id="a_charge" type="number" inputmode="numeric" value="${esc(f.charge)}" placeholder="0"></div></div>
-    <div class="field"><label>👷 ${t('karigar')}</label><select id="a_karigar">${kopts}</select></div>
+    <div class="field"><label>👷 ${t('karigar')}</label><select id="a_karigar" onchange="captureAltForm();renderAltForm()">${kopts}</select></div>
+    ${f.karigarId?`<div class="card" style="padding:12px;margin-bottom:10px">
+      <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer">
+        <input type="checkbox" id="a_nopay" ${f.noKarigarPay?'checked':''} onchange="captureAltForm();renderAltForm()" style="width:20px;height:20px;margin-top:2px">
+        <span><b style="font-size:14px">${t('kb_own_rework')}</b><br><span class="hint" style="font-size:12px">${t('kb_own_rework_hint')}</span></span></label>
+      ${f.noKarigarPay?'':`<div class="row" style="margin-top:10px">
+        <div class="field" style="margin:0"><label>💰 ${t('kb_his_rate')}</label>
+          <input id="a_karamt" type="number" inputmode="numeric" value="${esc(f.karAmt||'')}" placeholder="0"></div>
+        <div class="field" style="margin:0"><label>📥 ${t('kb_recv_on')}</label>${dateField('a_recvdate',f.recvDate||'')}</div>
+      </div>`}
+    </div>`:''}
     <div class="field"><label>${t('order_notes')} ${micBtn('#a_notes')}</label><textarea id="a_notes" placeholder="${t('notes_ph')}">${esc(f.notes||'')}</textarea></div>
     <div class="section-h">${t('photo_label')}</div><div id="a_photos" style="display:flex;gap:8px;flex-wrap:wrap"></div>
     <div class="row" style="margin-top:8px"><button class="btn sm ghost" onclick="pickAltPhoto('cam')">📷 ${t('camera')}</button><button class="btn sm ghost" onclick="pickAltPhoto('lib')">🖼️ ${t('gallery')}</button></div>
@@ -6818,6 +6903,9 @@ function captureAltForm(){const f=altForm;
   if($('#a_ddate'))f.deliveryDate=$('#a_ddate').value;
   if($('#a_charge'))f.charge=$('#a_charge').value;
   if($('#a_karigar'))f.karigarId=$('#a_karigar').value;
+  if($('#a_nopay'))f.noKarigarPay=!!$('#a_nopay').checked;
+  if($('#a_karamt'))f.karAmt=$('#a_karamt').value;
+  if($('#a_recvdate'))f.recvDate=$('#a_recvdate').value;
   if($('#a_notes'))f.notes=$('#a_notes').value;
 }
 function saveAlteration(){
@@ -6828,7 +6916,7 @@ function saveAlteration(){
     const a=altById(f.editId);
     Object.assign(a,{altNo:f.altNo,origOrderId:f.origOrderId,customerId:f.customerId,customerName:f.customerName,phone:f.phone,
       itemDesc:f.itemDesc,notes:f.notes,receivedDate:f.receivedDate,deliveryDate:f.deliveryDate,charge:f.charge,total:f.charge,
-      karigarId:f.karigarId,photos:f.photos,voiceNotes:f.voiceNotes});
+      karigarId:f.karigarId,noKarigarPay:!!f.noKarigarPay,karAmt:+f.karAmt||0,recvDate:f.recvDate||'',photos:f.photos,voiceNotes:f.voiceNotes});
     save();closeSheet();toast(t('t_alt_updated'),'ok');openAltDetail(a.id);
   }else{
     const a={id:uid(),created:new Date().toISOString(),altNo:f.altNo,origOrderId:f.origOrderId,customerId:f.customerId,customerName:f.customerName,phone:f.phone,
@@ -9811,6 +9899,20 @@ async function shareMaster(o,gids,phone){
   }catch(e){ if(e&&e.name==='AbortError')return; }
   waSend(phone||'',text);
 }
+/* Handing the piece back is what earns the master his money — so the date matters. */
+function setItemRecv(oid,gid,d){
+  const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
+  o.recv=o.recv||{};
+  if(d)o.recv[gid]=d; else delete o.recv[gid];
+  save(); openDetail(oid);
+  if(d)toast(t('kb_recv_ok'),'ok');
+}
+function setItemKarAmt(oid,gid,v){
+  const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
+  o.karAmt=o.karAmt||{};
+  if(String(v).trim()==='')delete o.karAmt[gid]; else o.karAmt[gid]=+v||0;
+  save();
+}
 function setItemKarigar(oid,gid,kid){const o=DB.orders.find(x=>x.id===oid);if(!o)return;o.assign=o.assign||{};
   if(kid)o.assign[gid]=kid; else delete o.assign[gid];
   o.log=o.log||[];const g=G(gid);o.log.push({id:uid(),ts:new Date().toISOString(),text:(g?g.n+' → ':'')+(kid?('👷 '+karigarName(kid)):t('karigar_none')),voiceId:null});
@@ -9974,6 +10076,7 @@ function settingsMenu(){modal(t('settings'),`
   <button class="btn ghost block" style="margin-bottom:8px" onclick="toggleSTTLang(this)">🎤 ${t('voice_lang')}: <b>${sttLangLabel()}</b></button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();shopInfoEdit()">🧾 ${t('shop_details')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();modulesEdit()">🧩 ${t('mod_title')}</button>
+  <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();karigarBook()">👷 ${t('kb_title')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();karigarMaster()">👷 ${t('karigar_master')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();paymentQR()">💳 ${t('qr_title')}</button>
     <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();numberingEdit()">🔢 ${t('num_title')}</button>
@@ -9996,6 +10099,163 @@ function toggleSalesNav(on){localStorage.setItem('pb_ob_salesnav',on?'1':'0');to
 function toggleSimpleMode(on){localStorage.setItem('pb_ob_simple',on?'1':'0');document.body.classList.toggle('simple-mode',on);
   const act=document.querySelector('.tabpane.active');
   if(act&&act.id==='tab-detail'&&detailId)openDetail(detailId); else renderOrders();}
+
+/* ================== KARIGAR WORK & PAYMENT (job-work ledger) ==================
+   A master EARNS when he hands work back (jama), not when it is given out.
+   So every item carries a receiving date; earnings = rate of that garment (or a
+   per-item override). Saturday settlement: pay full, pay part (the rest simply
+   carries forward as balance), or negotiate — the shortfall is recorded as a
+   settlement so the balance closes honestly instead of being silently dropped.
+   Rework of his OWN piece is free; altering somebody else's work is paid. */
+function karRateFor(o,gid){
+  if(o.karAmt && o.karAmt[gid]!=null && o.karAmt[gid]!=='') return +o.karAmt[gid]||0;
+  const kid=(o.assign&&o.assign[gid])||''; if(!kid)return 0;
+  const k=(DB.karigars||[]).find(x=>x.id===kid)||{};
+  const g=G(gid); if(!g)return 0;
+  return +((k.rates||{})[g.id])||0;
+}
+function karRecvDate(o,gid){ return (o.recv&&o.recv[gid])||''; }
+/* every piece this master has handed back, from orders and from paid alterations */
+function karJobs(kid){
+  const out=[];
+  (DB.orders||[]).forEach(o=>(o.items||[]).forEach(gid=>{
+    if(((o.assign&&o.assign[gid])||'')!==kid)return;
+    const d=karRecvDate(o,gid); if(!d)return;                 // not handed back yet
+    const g=G(gid);
+    out.push({kind:'order',id:o.id,gid,date:d,
+      label:`#${o.orderNo||'—'} · ${(g&&g.n)||''}`,who:o.customerName||'',amt:karRateFor(o,gid)});
+  }));
+  (DB.alterations||[]).forEach(a=>{
+    if((a.karigarId||'')!==kid)return;
+    if(a.noKarigarPay)return;                                  // his own rework — free
+    if(!a.recvDate)return;
+    out.push({kind:'alt',id:a.id,gid:'',date:a.recvDate,
+      label:`🔧 #${a.altNo||'—'} · ${a.itemDesc||''}`,who:a.customerName||'',amt:+a.karAmt||0});
+  });
+  return out.sort((x,y)=>String(y.date).localeCompare(String(x.date)));
+}
+function karEarned(kid){ return r2(karJobs(kid).reduce((s,j)=>s+(+j.amt||0),0)); }
+function karPays(kid){ return (DB.karigarPays||[]).filter(p=>p.karigarId===kid)
+  .sort((a,b)=>String(b.date).localeCompare(String(a.date))); }
+function karPaid(kid){ return r2(karPays(kid).reduce((s,p)=>s+(+p.amt||0)+(+p.settled||0),0)); }
+function karBalance(kid){ return r2(karEarned(kid)-karPaid(kid)); }
+
+/* ---- all masters, with what each is owed ---- */
+function karigarBook(){
+  const ks=DB.karigars||[];
+  const rows=ks.map(k=>{
+    const bal=karBalance(k.id), pend=(DB.orders||[]).reduce((n,o)=>n+(o.items||[])
+      .filter(gid=>((o.assign&&o.assign[gid])||'')===k.id && !karRecvDate(o,gid)).length,0);
+    return `<div class="card" style="margin-bottom:8px" onclick="karigarLedger('${k.id}')">
+      <div class="kv"><div style="min-width:0">
+        <b>👷 ${esc(k.name)}</b>
+        <div class="hint">${pend?`${t('kb_with_him',{n:pend})}`:t('kb_nothing_out')}</div>
+      </div><div style="text-align:right">${balArrow(-bal)}<div class="hint">${t('kb_payable')}</div></div></div></div>`;
+  }).join('') || `<p class="hint" style="padding:20px 0;text-align:center">${t('no_karigars')}</p>`;
+  const total=r2(ks.reduce((s,k)=>s+karBalance(k.id),0));
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin-bottom:4px">👷 ${t('kb_title')}</h2>
+    <p class="hint" style="margin-bottom:12px">${t('kb_sub')}</p>
+    <div class="card pos-total" style="margin-bottom:12px;padding:12px 14px">
+      <div class="il" style="border-bottom:0"><span>${t('kb_total_payable')}</span><b>${balArrow(-total)}</b></div></div>
+    ${rows}
+    <button class="btn ghost block" style="margin-top:8px" onclick="closeSheet();karigarMaster()">⚙️ ${t('karigar_master')}</button>
+    <div class="modal-actions"><button class="btn ghost block" onclick="closeSheet()">${t('close')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+/* ---- one master: what he handed back, what he was paid, what is left ---- */
+function karigarLedger(kid){
+  const k=(DB.karigars||[]).find(x=>x.id===kid); if(!k)return;
+  const jobs=karJobs(kid), pays=karPays(kid);
+  const earned=karEarned(kid), paid=karPaid(kid), bal=r2(earned-paid);
+  const out=[];
+  (DB.orders||[]).forEach(o=>(o.items||[]).forEach(gid=>{
+    if(((o.assign&&o.assign[gid])||'')!==kid)return;
+    if(karRecvDate(o,gid))return;
+    const g=G(gid);
+    out.push(`<div class="hint fu-open" onclick="closeSheet();openDetail('${o.id}')">• #${esc(o.orderNo||'—')} ${esc((g&&g.n)||'')} — ${esc(o.customerName||'')} <span style="color:var(--saffron2)">›</span></div>`);
+  }));
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin-bottom:2px">👷 ${esc(k.name)}</h2>
+    <p class="hint" style="margin-bottom:12px">${esc(k.phone||'')}</p>
+    <div class="card pos-total" style="margin-bottom:12px;padding:12px 14px">
+      <div class="il"><span>${t('kb_earned')}</span><b>${money(earned)}</b></div>
+      <div class="il"><span>${t('kb_paid')}</span><b>${money(paid)}</b></div>
+      <div class="il" style="border-bottom:0"><span><b>${t('kb_balance')}</b></span><b style="font-size:17px">${balArrow(-bal)}</b></div>
+    </div>
+    <button class="btn primary block" style="margin-bottom:12px" onclick="karPayEntry('${kid}')">💰 ${t('kb_pay')}</button>
+    ${out.length?`<div class="section-h">${t('kb_out_now')} (${out.length})</div>${out.join('')}`:''}
+    <div class="section-h">${t('kb_submitted')} (${jobs.length})</div>
+    ${jobs.slice(0,40).map(j=>`<div class="cust-result" style="margin-bottom:6px">
+      <div style="min-width:0"><b>${esc(j.label)}</b><div class="hint">${esc(j.who)} · ${fmtDate(j.date)}</div></div>
+      <b>${money(j.amt)}</b></div>`).join('')||`<p class="hint">${t('kb_none_sub')}</p>`}
+    <div class="section-h">${t('kb_payments')} (${pays.length})</div>
+    ${pays.map(p=>`<div class="cust-result" style="margin-bottom:6px">
+      <div style="min-width:0"><b>${money(p.amt)}${p.settled>0?` <span class="hint">+ ${money(p.settled)} ${t('kb_settled')}</span>`:''}</b>
+        <div class="hint">${fmtDate(p.date)}${p.note?' · '+esc(p.note):''}</div></div>
+      <button class="btn sm danger" onclick="karPayDel('${p.id}')">✕</button></div>`).join('')||`<p class="hint">${t('kb_none_pay')}</p>`}
+    <div class="modal-actions"><button class="btn ghost block" onclick="karigarBook()">${t('back')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+/* ---- Saturday settlement ---- */
+function karPayEntry(kid){
+  const bal=karBalance(kid);
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin-bottom:4px">💰 ${t('kb_pay')}</h2>
+    <p class="hint" style="margin-bottom:12px">${t('kb_pay_sub',{a:money(bal)})}</p>
+    <div class="field"><label>${t('pay_date')}</label>${dateField('kp_date',todayISO())}</div>
+    <div class="field" style="margin-top:10px"><label>${t('amount')} ₹</label>
+      <input id="kp_amt" type="number" inputmode="numeric" placeholder="0" value="">
+      <div class="gtags" style="margin-top:8px">
+        <span class="gtag" style="cursor:pointer" onclick="$('#kp_amt').value=${bal>0?bal:0};karPayCalc(${bal})">${t('kb_full')} ${money(bal)}</span>
+        <span class="gtag" style="cursor:pointer" onclick="$('#kp_amt').focus()">${t('kb_part')}</span></div></div>
+    <div class="field" style="margin-top:10px"><label>${t('cb_paid_from')}</label>${acctSelHTML('kp_acc',(defaultAcc()||{}).id)}</div>
+    <div class="card" style="padding:12px 14px;margin-top:12px">
+      <div class="kv"><span class="hint">${t('kb_short')}</span><b id="kpShort">${money(bal)}</b></div>
+      <label style="display:flex;align-items:flex-start;gap:8px;margin-top:10px;cursor:pointer">
+        <input type="checkbox" id="kp_settle" style="width:20px;height:20px;margin-top:2px">
+        <span><b style="font-size:14px">${t('kb_settle')}</b><br><span class="hint" style="font-size:12px">${t('kb_settle_hint')}</span></span></label>
+    </div>
+    <div class="field" style="margin-top:10px"><label>${t('stk_note')}</label><input id="kp_note" placeholder="${t('kb_note_ph')}"></div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="karigarLedger('${kid}')">${t('back')}</button>
+      <button class="btn primary" onclick="karPaySave('${kid}',${bal})">${t('save')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+  const el=$('#kp_amt'); if(el)el.addEventListener('input',()=>karPayCalc(bal));
+}
+function karPayCalc(bal){
+  const amt=+($('#kp_amt')||{}).value||0;
+  const e=$('#kpShort'); if(e)e.textContent=money(r2(Math.max(0,bal-amt)));
+}
+function karPaySave(kid,bal){
+  const amt=+($('#kp_amt')||{}).value||0;
+  if(amt<=0){toast(t('kb_need_amt'),'bad');return;}
+  const date=($('#kp_date')||{}).value||todayISO();
+  const acc=($('#kp_acc')&&$('#kp_acc').value!=='__new')?$('#kp_acc').value:(defaultAcc()||{}).id;
+  const settle=!!($('#kp_settle')||{}).checked;
+  const short=r2(Math.max(0,bal-amt));
+  DB.karigarPays=DB.karigarPays||[];
+  DB.karigarPays.push({id:uid(),karigarId:kid,date,amt:r2(amt),
+    settled: settle?short:0,                     // negotiated off — closes the balance honestly
+    acc,note:(($('#kp_note')||{}).value||'').trim()});
+  DB.ledger=DB.ledger||[];
+  const k=(DB.karigars||[]).find(x=>x.id===kid)||{};
+  DB.ledger.push({id:uid(),dir:'out',date,amt:r2(amt),acc,party:k.name||'',partyId:null,
+    ref:'KAR',refKind:'karigar_pay',cat:'',note:t('kb_ledger_note',{n:k.name||''}),photos:[]});
+  save(); karigarLedger(kid);
+  toast(settle&&short>0?t('kb_settled_ok',{a:money(short)}):t('t_saved'),'ok');
+}
+function karPayDel(pid){
+  confirmModal(t('confirm_del'),t('confirm_del_msg'),()=>{
+    const p=(DB.karigarPays||[]).find(x=>x.id===pid); const kid=p?p.karigarId:'';
+    DB.karigarPays=(DB.karigarPays||[]).filter(x=>x.id!==pid);
+    DB.ledger=(DB.ledger||[]).filter(l=>!(l.refKind==='karigar_pay'&&l.date===(p||{}).date&&r2(l.amt)===r2((p||{}).amt)));
+    save(); if(kid)karigarLedger(kid); else karigarBook(); toast(t('t_deleted'));
+  });
+}
 
 function karigarMaster(){
   const ks=DB.karigars||[];
