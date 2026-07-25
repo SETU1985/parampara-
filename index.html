@@ -394,7 +394,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v80</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v81</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -523,6 +523,10 @@ const T={
   body_type:'Body type',
   add_type:'Add type',
   type_ph:'Type body type (e.g. Slim)',
+  gc_more:'More', gc_less:'Less',
+  it_extras:'Voice note · Photo', ord_extras:'Order notes · Voice · Photo', hide_x:'Hide ▴',
+  bp_title:'Body photos', bp_front:'Front', bp_side:'Side', bp_back:'Back',
+  bp_hint:'Take front / side / back once — body shape then shows on every order.',
   add_meas:'Add measurement',
   meas_ph:'Measurement name (e.g. Kali)',
   voice_dl:'Voice note downloaded — attach it in WhatsApp',
@@ -1525,6 +1529,10 @@ const T={
   body_type:'शरीर का प्रकार',
   add_type:'प्रकार जोड़ें',
   type_ph:'शरीर का प्रकार (जैसे स्लिम)',
+  gc_more:'और', gc_less:'कम',
+  it_extras:'वॉइस नोट · फोटो', ord_extras:'ऑर्डर नोट्स · वॉइस · फोटो', hide_x:'छिपाएँ ▴',
+  bp_title:'बॉडी फोटो', bp_front:'सामने', bp_side:'साइड', bp_back:'पीछे',
+  bp_hint:'सामने / साइड / पीछे — एक बार लें, हर ऑर्डर पर शरीर की बनावट दिखेगी।',
   add_meas:'नाप जोड़ें',
   meas_ph:'नाप का नाम (जैसे कली)',
   voice_dl:'वॉइस नोट डाउनलोड हुआ — WhatsApp में भेजें',
@@ -5865,6 +5873,7 @@ function openCustomer(id){
       <div class="il"><span>${t('cust_visits')}</span><b>${sm.visits}</b></div>
       ${sm.last?`<div class="il"><span>${t('cust_lastvisit')}</span><b>${fmtDate(sm.last)}</b></div>`:''}
     </div>
+    ${(c.bodyPhotos&&(c.bodyPhotos.front||c.bodyPhotos.side||c.bodyPhotos.back))?`<div class="section-h">🧍 ${t('bp_title')}</div><div class="media-row" id="cv_body" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start"></div>`:''}
     <div class="section-h">${t('meas_title')}</div>${blocks||'<p class="hint">'+t('no_meas')+'</p>'}
     <div class="section-h">${t('cust_orders')} (${orders.length})</div>
     ${orders.map(o=>`<div class="cust-result" onclick="closeSheet();openDetail('${o.id}')"><div><b>#${esc(o.orderNo)}</b> <span class="hint">${fmtDate(o.created)}</span></div><div class="hint">${money(o.total)}${orderBaaki(o)>0?` · <span style="color:var(--saffron2)">${t('baaki')} ${money(orderBaaki(o))}</span>`:''}</div></div>`).join('')||'<p class="hint">—</p>'}
@@ -5873,7 +5882,7 @@ function openCustomer(id){
     ${alts.length?`<div class="section-h">${t('cust_alts')} (${alts.length})</div>
       ${alts.map(a=>`<div class="cust-result" onclick="closeSheet();openAltDetail('${a.id}')"><div><b>#${esc(a.altNo||'—')}</b> <span class="hint">${fmtDate(a.created||a.date)}</span></div><div class="hint">${money(a.total)}${orderBaaki(a)>0?` · <span style="color:var(--saffron2)">${t('baaki')} ${money(orderBaaki(a))}</span>`:''} <span style="color:var(--saffron2)">›</span></div></div>`).join('')}`:''}
     <div class="modal-actions"><button class="btn ghost block" onclick="closeSheet()">${t('close')}</button></div>`;
-  showSheet();
+  showSheet(); renderBodySlots(id,'cv_body',false);
 }
 function newCustomer(){
   const c={id:uid(),name:'',phone:'',created:new Date().toISOString(),m:{}};
@@ -5898,6 +5907,9 @@ function editCustomer(id,isNew){const c=custById(id); _custPhotoId=id;
   $('#sheet').innerHTML=`<div class="grip"></div><h3 style="margin-bottom:14px">${t('cust_edit')}</h3>
     <div class="field"><label>${t('customer')}</label><input id="ec_name" value="${esc(c.name)}"></div>
     <div class="field"><label>${t('phone')}</label><input id="ec_phone" type="tel" value="${esc(c.phone)}"></div>
+    <div class="section-h">🧍 ${t('bp_title')}</div>
+    <p class="hint" style="margin:0 0 8px">${t('bp_hint')}</p>
+    <div class="media-row" id="cu_body" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start"></div>
     <div class="section-h">📷 ${t('cust_photos')}</div>
     <p class="hint" style="margin:0 0 8px">${t('cust_photos_hint')}</p>
     <div class="media-row" id="cu_photos"></div>
@@ -5905,7 +5917,36 @@ function editCustomer(id,isNew){const c=custById(id); _custPhotoId=id;
       <button class="btn ghost" onclick="pickCustPhoto('${id}','cam')">📷 ${t('camera')}</button>
       <button class="btn ghost" onclick="pickCustPhoto('${id}','lib')">🖼️ ${t('gallery')}</button></div>
     <div class="modal-actions"><button class="btn ghost" onclick="${isNew?`custCancelNew('${id}')`:`openCustomer('${id}')`}">${t('cancel')}</button><button class="btn primary" onclick="saveCustEdit('${id}')">${t('save')}</button></div>`;
-  showSheet(); renderCustPhotos();}
+  showSheet(); renderCustPhotos(); renderCustBody();}
+/* ---- 3-angle body photos (front/side/back) on the customer ---- */
+let _cbodySlot='';
+function pickBodyPhoto(cid,slot,src){ _custPhotoId=cid; _cbodySlot=slot; photoTarget={type:'cbody'};
+  const inp=src==='lib'?$('#filePick'):$('#filePickCam'); inp.value=''; inp.click(); }
+async function renderBodySlots(cid,elId,capture){const el=$('#'+elId);if(!el)return;
+  const c=custById(cid||''); if(!c){el.innerHTML='';return;}
+  const bp=c.bodyPhotos||{}; let h='';
+  for(const s of ['front','side','back']){const pid=bp[s], lbl=t('bp_'+s);
+    if(pid){const url=await mURL(pid);
+      h+=`<div style="text-align:center"><img class="thumb" data-bview="${s}" src="${url||''}"><div class="hint" style="font-size:10px">${lbl}</div></div>`;}
+    else if(capture)h+=`<button class="btn sm ghost" onclick="pickBodyPhoto('${cid}','${s}')" style="align-self:center">📷 ${lbl}</button>`;}
+  el.innerHTML=h;
+  el.querySelectorAll('[data-bview]').forEach(im=>im.onclick=()=>viewPhoto(im.src));}
+async function renderCustBody(){const el=$('#cu_body');if(!el)return;
+  const c=custById(_custPhotoId||''); if(!c)return; const bp=c.bodyPhotos||{}; let h='';
+  for(const s of ['front','side','back']){const pid=bp[s], lbl=t('bp_'+s);
+    if(pid){const url=await mURL(pid);
+      h+=`<div class="thumb-wrap" style="text-align:center"><img class="thumb" data-bs="${s}" src="${url||''}"><div class="thumb-x" data-bx="${s}">✕</div><div class="hint" style="font-size:10px">${lbl}</div></div>`;}
+    else h+=`<button class="btn sm ghost" onclick="pickBodyPhoto('${_custPhotoId}','${s}')" style="align-self:center">📷 ${lbl}</button>`;}
+  el.innerHTML=h;
+  el.querySelectorAll('[data-bs]').forEach(im=>im.onclick=()=>viewPhoto(im.src));
+  el.querySelectorAll('[data-bx]').forEach(x=>x.onclick=async()=>{const s=x.dataset.bx;const c2=custById(_custPhotoId);if(!c2)return;
+    const pid=(c2.bodyPhotos||{})[s]; if(pid)await mDel(pid); if(c2.bodyPhotos)delete c2.bodyPhotos[s]; save(); renderCustBody();});}
+/* ---- manage salesmen straight from the order form ---- */
+function ordManageSalesman(){captureForm();const list=DB.salesmen||[];
+  const html=list.length?list.map(k=>`<div class="kv"><span>🧑‍💼 ${esc(k.name)}${k.phone?` <span class="hint">${esc(k.phone)}</span>`:''}</span><span onclick="ordDelSalesman('${k.id}')" style="color:#d9534f;cursor:pointer">🗑️</span></div>`).join(''):`<p class="hint">${t('sm_none_yet')}</p>`;
+  modal('🧑‍💼 '+t('ml_manage'),html,[{label:t('close'),cls:'ghost',fn:()=>renderForm()}]);}
+function ordDelSalesman(id){DB.salesmen=(DB.salesmen||[]).filter(x=>x.id!==id);
+  if(window.form&&form.salesmanId===id)form.salesmanId=''; save(); ordManageSalesman();}
 let _custPhotoId=null;
 function pickCustPhoto(id,src){ _custPhotoId=id; photoTarget={type:'cust'};
   const inp=src==='cam'?$('#filePickCam'):$('#filePick'); inp.value=''; inp.click(); }
@@ -6037,9 +6078,15 @@ function openOrderForm(editId){
       orderDate:new Date().toISOString().slice(0,10),deliveryDate:'',items:[],m:{},design:{},variant:{},notes:'',total:'',advance:'',photos:[],voiceNotes:[],itemPhotos:{},itemVoice:{},bodyType:[],members:[]};
   }
   form._did = form._did || ('d'+uid());
+  _gcMore={}; _xOpen={}; _ordX=false;
   renderForm();
 }
 let _sheetScroll=0;
+/* ---- fold state: garment chips / item extras / order extras ---- */
+let _gcMore={}, _xOpen={}, _ordX=false;
+function gcToggle(mid){_sheetScroll=$('#sheet')?$('#sheet').scrollTop:0;captureForm();_gcMore[mid]=!_gcMore[mid];renderForm();}
+function xToggle(key){_sheetScroll=$('#sheet')?$('#sheet').scrollTop:0;captureForm();_xOpen[key]=!_xOpen[key];renderForm();}
+function ordXToggle(){_sheetScroll=$('#sheet')?$('#sheet').scrollTop:0;captureForm();_ordX=!_ordX;renderForm();}
 
 /* ---------- one measurement card, for one member's one garment ---------- */
 /* ---------- MEMBERS on the order form ---------- */
@@ -6160,10 +6207,12 @@ function measCardHTML(f,key){
       <div class="hint" style="margin:8px 0 4px">${t('design_lib')}</div>
       <div class="gtags">${nlib.map(tok=>`<span class="gtag" data-dgid="${dkey}" data-dtok="${esc(tok)}" style="cursor:pointer">+ ${esc(tok)}</span>`).join('')}<span class="gtag" onclick="addDesignOption('${gid}','${dkey}')" style="cursor:pointer;border-style:dashed">➕ ${t('add_option')}</span></div>
 
-      <div style="margin-top:14px"><div class="hint" style="margin-bottom:4px">🎙️ ${t('voice_notes')}</div>${voiceSection('iv_'+cid)}</div>
-
+      ${(()=>{const vc=((f.itemVoice||{})[key]||[]).length, pc=((f.itemPhotos||{})[key]||[]).length;
+        if(!_xOpen[key])return `<button class="btn sm ghost block" style="margin-top:14px" onclick="xToggle('${dkey}')">🎙️ ${t('it_extras')}${vc?` · 🎙️ ${vc}`:''}${pc?` · 📷 ${pc}`:''} ▾</button>`;
+        return `<div style="margin-top:14px"><div class="hint" style="margin-bottom:4px">🎙️ ${t('voice_notes')}</div>${voiceSection('iv_'+cid)}</div>
       <div style="margin-top:12px"><div class="hint" style="margin-bottom:4px">📷 ${t('photo_label')}</div><div class="media-row" id="ip_${cid}"></div>
         <div class="row" style="margin-top:6px;gap:6px"><button class="btn sm ghost" onclick="pickItemPhoto('cam','${dkey}')">📷 ${t('camera')}</button><button class="btn sm ghost" onclick="pickItemPhoto('lib','${dkey}')">🖼️ ${t('gallery')}</button></div></div>
+      <button class="btn sm ghost block" style="margin-top:10px" onclick="xToggle('${dkey}')">${t('hide_x')}</button>`;})()}
 
       <button class="btn primary block" style="margin-top:14px" onclick="itemDone('${dkey}')">✓ ${t('it_done')}</button>
     </div></div>`;
@@ -6187,12 +6236,16 @@ function cssId(key){ return String(key).replace(/[^a-zA-Z0-9]/g,'_'); }
 /* ---------- the whole block for ONE member ---------- */
 function memberBlockHTML(f,mem,idx,multi){
   const mine=itemsOfMember(f,mem.id);
-  const chips=allItems().map(g=>{
+  const _all=allItems(), GC_N=6, _folds=_all.length>GC_N, _exp=!!_gcMore[mem.id];
+  const _vis=(!_folds||_exp)?_all:_all.filter((g,i)=>i<GC_N||(f.items||[]).some(k=>memberOf(k)===mem.id&&garmentOf(k)===g.id));
+  const _hid=_all.length-_vis.length;
+  const chips=_vis.map(g=>{
     const key=itemKey(mem.id,g.id);
     const n=(f.items||[]).filter(k=>memberOf(k)===mem.id&&garmentOf(k)===g.id).length;
     const on=n>0;
     return `<div class="chip ${on?'on':''}" onclick="toggleItem('${esc(key)}')"><span class="ico">${g.ico}</span>${g.n}${on?`<span class="badge">${n>1?n:'✓'}</span>`:''}</div>`;}).join('')
-    + `<div class="chip chip-add" onclick="garmentMaster()"><span class="ico">➕</span>${t('new_garment')}</div>`;
+    + ((!_folds||_exp)?`<div class="chip chip-add" onclick="garmentMaster()"><span class="ico">➕</span>${t('new_garment')}</div>`:'')
+    + (_folds?`<div class="chip chip-add" onclick="gcToggle('${mem.id}')"><span class="ico">${_exp?'▴':'▾'}</span>${_exp?t('gc_less'):t('gc_more')+' ('+_hid+')'}</div>`:'');
   const cards=sortItems(mine).map(k=>measCardHTML(f,k)).join('');
   const nm=mem.name||'', rel=mem.rel||'';
   return `<div class="mem-block" ${multi?'':'style="border:none;padding:0;background:transparent"'}>
@@ -6240,7 +6293,8 @@ function renderForm(){
         ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost" style="margin-top:8px" onclick="pickContact()">📇 ${t('from_contacts')}</button>`:''}</div></div>
     ${itemsSection}
     <div class="section-h">🧍 ${t('body_type')}</div>
-    <div class="gtags" id="btRow">${(DB.bodyTypes||[]).map(bt=>`<span class="gtag" data-bt="${esc(bt)}" style="cursor:pointer;${(f.bodyType||[]).includes(bt)?'background:var(--saffron);color:#1a1206;border-color:var(--saffron)':''}">${esc(bt)}</span>`).join('')}<span class="gtag" onclick="addBodyType()" style="cursor:pointer;border-style:dashed">➕ ${t('add_type')}</span></div>
+    ${f.customerId?`<div class="media-row" id="btPhotos" style="margin-bottom:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start"></div>`:''}
+    <div class="gtags" id="btRow">${(DB.bodyTypes||[]).map(bt=>`<span class="gtag" data-bt="${esc(bt)}" style="cursor:pointer;${(f.bodyType||[]).includes(bt)?'background:var(--saffron);color:#1a1206;border-color:var(--saffron)':''}">${esc(bt)}</span>`).join('')}<span class="gtag" onclick="addBodyType()" style="cursor:pointer;border-style:dashed">➕ ${t('add_type')}</span><span class="gtag" onclick="addBodyType()" style="cursor:pointer;border-style:dashed">⚙️ ${t('ml_manage')}</span></div>
     ${(()=>{const ord=f.editId?DB.orders.find(x=>x.id===f.editId):null;
       if(ord&&ord.invoice){
         return `<div class="section-h">${t('bill')}</div>
@@ -6270,14 +6324,18 @@ function renderForm(){
           return `<span class="gtag ${on?'on-tag':''}" data-osm="${k.id}" style="cursor:pointer" onclick="ordPickSalesman('${k.id}')">${on?'✓ ':''}${esc(k.name)}</span>`;}).join('')
           ||`<span class="hint">${t('sm_none_yet')}</span>`}
         <span class="gtag" style="cursor:pointer;border-style:dashed" onclick="ordAddSalesman()">➕ ${t('add_salesman')}</span>
+        ${(DB.salesmen||[]).length?`<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="ordManageSalesman()">⚙️</span>`:''}
       </div></div>
-    <div class="field"><label>${t('order_notes')} ${micBtn('#f_notes')}</label><textarea id="f_notes" placeholder="${t('notes_ph')}">${esc(f.notes)}</textarea></div>
+    ${(()=>{const nn=(f.notes||'').trim()?1:0, vc=(f.voiceNotes||[]).length, pc=(f.photos||[]).length;
+      if(!_ordX)return `<button class="btn ghost block" style="margin-top:4px" onclick="ordXToggle()">📎 ${t('ord_extras')}${nn?' · 📝 ✓':''}${vc?` · 🎙️ ${vc}`:''}${pc?` · 📷 ${pc}`:''} ▾</button>`;
+      return `<div class="field"><label>${t('order_notes')} ${micBtn('#f_notes')}</label><textarea id="f_notes" placeholder="${t('notes_ph')}">${esc(f.notes)}</textarea></div>
     <div class="section-h">${t('voice_notes')}</div>${voiceSection('vn')}
     <div class="field"><label>${t('photo_label')}</label><div id="f_photos" style="display:flex;gap:8px;flex-wrap:wrap"></div>
       <div class="row" style="margin-top:8px"><button class="btn sm ghost" onclick="pickPhoto('cam')">📷 ${t('camera')}</button><button class="btn sm ghost" onclick="pickPhoto('lib')">🖼️ ${t('gallery')}</button></div></div>
+    <button class="btn sm ghost block" onclick="ordXToggle()">${t('hide_x')}</button>`;})()}
     <div class="save-dock"><button class="btn ghost" onclick="cancelOrderForm()">${t('cancel')}</button>
       <button class="btn primary" style="flex:2" onclick="saveOrder()">💾 ${f.editId?t('update'):t('save_order')}</button></div><div class="fab-pad"></div>`;
-  showSheet(); bindMeasInputs(); renderFormPhotos(); bindVoice('vn',()=>form.voiceNotes,null);
+  showSheet(); bindMeasInputs(); renderFormPhotos(); bindVoice('vn',()=>form.voiceNotes,null); renderBodySlots(f.customerId,'btPhotos',true);
   bindDraftAutosave();
   document.querySelectorAll('[data-dtok]').forEach(ch=>ch.onclick=()=>appendDesign(ch.dataset.dgid,ch.dataset.dtok));
   document.querySelectorAll('[data-bt]').forEach(ch=>ch.onclick=()=>setBodyType(ch.dataset.bt));
@@ -6290,7 +6348,7 @@ function appendDesign(gid,tok){const inp=document.querySelector('[data-design="'
 function addDesignOption(gid,key){_sheetScroll=$('#sheet')?$('#sheet').scrollTop:0;captureForm();const g=G(gid);const list=(DB.designLib[gid]||[]);
   key=key||gid;
   const listHTML=list.length?`<div class="hint" style="margin:12px 0 4px">${t('saved_options')}</div>`+list.map((o,i)=>`<div class="kv"><span>${esc(o)}</span><span onclick="delDesignOption('${gid}',${i})" style="color:#d9534f;cursor:pointer">🗑️</span></div>`).join(''):'';
-  modal(t('add_option')+(g?' — '+g.n:''),`<div class="field"><input id="newopt" placeholder="${t('option_ph')}" autocomplete="off"></div>${listHTML}`,
+  modal(t('add_option')+' / '+t('ml_manage')+(g?' — '+g.n:''),`<div class="field"><input id="newopt" placeholder="${t('option_ph')}" autocomplete="off"></div>${listHTML}`,
    [{label:t('close'),cls:'ghost',fn:()=>renderForm()},
     {label:t('add'),cls:'primary',fn:()=>{const v=(($('#newopt')&&$('#newopt').value)||'').trim();if(!v){renderForm();return;}
       DB.designLib[gid]=DB.designLib[gid]||[];if(!DB.designLib[gid].includes(v))DB.designLib[gid].push(v);
@@ -6300,7 +6358,7 @@ function delDesignOption(gid,i){if(DB.designLib[gid]){DB.designLib[gid].splice(i
 function setBodyType(bt){_sheetScroll=$('#sheet')?$('#sheet').scrollTop:0;captureForm();form.bodyType=form.bodyType||[];const i=form.bodyType.indexOf(bt);if(i>=0)form.bodyType.splice(i,1);else form.bodyType.push(bt);renderForm();}
 function addBodyType(){_sheetScroll=$('#sheet')?$('#sheet').scrollTop:0;captureForm();const list=(DB.bodyTypes||[]);
   const listHTML=list.length?`<div class="hint" style="margin:12px 0 4px">${t('saved_options')}</div>`+list.map((o,i)=>`<div class="kv"><span>${esc(o)}</span><span onclick="delBodyType(${i})" style="color:#d9534f;cursor:pointer">🗑️</span></div>`).join(''):'';
-  modal('🧍 '+t('add_type'),`<div class="field"><input id="newbt" placeholder="${t('type_ph')}" autocomplete="off"></div>${listHTML}`,
+  modal('🧍 '+t('add_type')+' / '+t('ml_manage'),`<div class="field"><input id="newbt" placeholder="${t('type_ph')}" autocomplete="off"></div>${listHTML}`,
    [{label:t('close'),cls:'ghost',fn:()=>renderForm()},
     {label:t('add'),cls:'primary',fn:()=>{const v=(($('#newbt')&&$('#newbt').value)||'').trim();if(!v){renderForm();return;}
       DB.bodyTypes=DB.bodyTypes||[];if(!DB.bodyTypes.includes(v))DB.bodyTypes.push(v);form.bodyType=form.bodyType||[];if(!form.bodyType.includes(v))form.bodyType.push(v);save();renderForm();}}]);}
@@ -6696,6 +6754,9 @@ async function processPhoto(e){const file=e.target.files[0];if(!file)return;
   else if(photoTarget.type==='rbulk'){ if(_rbulk){_rbulk.entryPhotos=_rbulk.entryPhotos||[];_rbulk.entryPhotos.push(id);readyBulkPhotoBadge();} }
   else if(photoTarget.type==='bulkfab'){ if(_bulk){_bulk.entryPhotos=_bulk.entryPhotos||[];_bulk.entryPhotos.push(id);bulkPhotoBadge();} }
   else if(photoTarget.type==='cust'){ const c=custById(_custPhotoId||''); if(c){c.photos=c.photos||[];c.photos.push(id);save();renderCustPhotos();} }
+  else if(photoTarget.type==='cbody'){ const c=custById(_custPhotoId||''); if(c){c.bodyPhotos=c.bodyPhotos||{};
+    const old=c.bodyPhotos[_cbodySlot]; if(old)await mDel(old);
+    c.bodyPhotos[_cbodySlot]=id; save(); renderCustBody(); renderBodySlots(_custPhotoId,'btPhotos',true); renderBodySlots(_custPhotoId,'cv_body',false); } }
   else if(photoTarget.type==='puritem'){ _purD.photos=_purD.photos||[]; _purD.photos.push(id); purItemPhotoBadge(); }
   else if(photoTarget.type==='imaster'){ if(_imDraft){_imDraft.photos=_imDraft.photos||[];_imDraft.photos.push(id);imRender();} }
   else {form.photos.push(id);renderFormPhotos();}
