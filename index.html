@@ -217,6 +217,15 @@
 
   main{padding:14px 14px 24px; max-width:760px; margin:0 auto}
   .tabpane{display:none} .tabpane.active{display:block; animation:fade .2s ease}
+  .ktabs{display:flex; gap:6px; background:var(--bg2); border:1px solid var(--line); border-radius:var(--r2);
+    padding:4px; margin:12px 0 14px; overflow-x:auto; -webkit-overflow-scrolling:touch}
+  .ktab{flex:1 0 auto; text-align:center; padding:9px 12px; border-radius:calc(var(--r2) - 4px);
+    font-size:13px; font-weight:700; color:var(--txt2); white-space:nowrap; cursor:pointer}
+  .ktab.on{background:var(--saffron); color:#1a1206}
+  .krow{display:flex; align-items:center; gap:10px; padding:11px 12px; border-bottom:1px solid var(--line)}
+  .krow:last-child{border-bottom:0}
+  .krow .kn{flex:1; min-width:0; font-weight:700}
+  .kpc{min-width:52px; text-align:center; font-weight:800; font-size:17px; color:var(--saffron2)}
   @keyframes fade{from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:none}}
 
   .row{display:flex; gap:10px} .row>*{flex:1}
@@ -394,7 +403,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v81</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v86</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -463,7 +472,7 @@ const T={
   nav_orders:'Orders',
   nav_customers:'Customers',
   backup:'Backup',
-  home_tailoring:'Tailoring',
+  home_tailoring:'Order & Karigar',
   home_accounts:'Accounts',
   home_alterations:'Alterations',
   home_new_order:'New Order',
@@ -496,7 +505,7 @@ const T={
   remove:'Remove',
   design_label:'Design / customisation',
   design_ph:'e.g. flower work, dori, print…',
-  prefill_note:'✓ Body measurements auto-filled — just enter the Length for each',
+  prefill_note:'✓ Body ke naap khud bhar gaye — bas Length daalo',
   saved_meas:'saved',
   bill:'Payment',
   total:'Total',
@@ -523,11 +532,11 @@ const T={
   body_type:'Body type',
   add_type:'Add type',
   type_ph:'Type body type (e.g. Slim)',
-  gc_more:'More', gc_less:'Less',
-  it_extras:'Voice note · Photo', ord_extras:'Order notes · Voice · Photo', hide_x:'Hide ▴',
-  bp_title:'Body photos', bp_front:'Front', bp_side:'Side', bp_back:'Back',
-  bp_hint:'Take front / side / back once — body shape then shows on every order.',
-  add_meas:'Add measurement',
+  gc_more:'Aur', gc_less:'Kam',
+  it_extras:'Voice note · Photo', ord_extras:'Order note · Voice · Photo', hide_x:'Chhupao ▴',
+  bp_title:'Body photo', bp_front:'Front', bp_side:'Side', bp_back:'Back',
+  bp_hint:'Ek baar front / side / back le lo — phir har order me body shape dikhega.',
+  add_meas:'Naap jodo',
   meas_ph:'Measurement name (e.g. Kali)',
   voice_dl:'Voice note downloaded — attach it in WhatsApp',
   order_notes:'Order Notes',
@@ -723,6 +732,7 @@ const T={
   alt_no:'Alteration No',
   alt_item:'Item / Issue',
   alt_item_ph:'e.g. Sherwani — waist tight',
+  alt_pick_item_hint:'Pick the garment to add its measurements (optional).',
   alt_received_date:'Received Date',
   alt_charge:'Charge ₹',
   alt_orig_order:'Linked Order',
@@ -790,13 +800,13 @@ const T={
   im_add_part:'+ New part',
   im_new_part:'New part name',
   im_part_ph:'e.g. Waistcoat',
-  manage_meas:'Manage fields',
+  manage_meas:'Field sambhalo',
   manage_meas_desc:'Turn a field off to hide it from this garment. Custom fields can be deleted.',
   mm_on:'On',
   mm_off:'Off',
   mm_del_msg:'Delete the custom field “{n}” everywhere?',
-  design_added:'Added — tap to remove',
-  design_lib:'Tap to add',
+  design_added:'Jud gaya — hatane ke liye dabao',
+  design_lib:'Jodne ke liye dabao',
   back_exit:'Press back again to close the app',
   sm_manage:'Manage',
   sm_none_yet:'No salesman yet — add one',
@@ -839,7 +849,7 @@ const T={
   members:'People in this order',
   members_hint:'One bill, one delivery — but each person has their own measurements.',
   add_member:'+ Add another person',
-  add_member_first:'Add another person (family / group order)',
+  add_member_first:'Aur koi member jodo (family / group order)',
   mem_name_ph:'Name',
   mem_rel_ph:'Groom / Brother…',
   mem_del:'Remove this person?',
@@ -869,7 +879,7 @@ const T={
   db_title:'Day Book', db_sub:'Opening balance, everything in and out, closing balance.',
   db_opening:'Opening balance', db_closing:'Closing balance', db_in:'Money in', db_out:'Money out',
   db_entries:'Entries', db_none:'Nothing moved in this period', db_today:'Today', db_yest:'Yesterday',
-  or_title:'Order Reports', or_sub:'What was ordered, what is made, what is still running.',
+  or_title:'Order report', or_sub:'What was ordered, what is made, what is still running.',
   or_orders:'Orders', or_pending:'Pending', or_done:'Delivered', or_late:'Overdue orders',
   or_value:'Order value', or_pieces:'Garments', or_due:'Still to collect',
   or_product:'Product-wise', or_product_hint:'How many sherwanis, suits, kurtas… and how many are ready.',
@@ -892,7 +902,7 @@ const T={
   dft_parked:'Kept as an unfinished order — it is on the Orders page',
   variant:'Type / variant', variant_ph:'e.g. worn under sherwani, short {g}…',
   variant_hint:'Same garment, different cut? Name it, then ➕ to add another one with its own measurements.',
-  add_another:'Add another {g}', item_notes:'Notes for this item', item_notes_ph:'e.g. flower work, dori, 2 button…',
+  add_another:'Add another {g}', item_notes:'Is item ke note', item_notes_ph:'e.g. flower work, dori, 2 button…',
   new_garment:'New item', garment_master:'Item Types (Sherwani, Kurta…)',
   mem_this:'This person',
   mem_count:'{p} people · {g} garments',
@@ -992,12 +1002,12 @@ const T={
   stk_issued:'{n} m issued',
   stk_left:'left',
   stk_rdy_search:'Search readymade item...',
-  stk_add_ready:'Add readymade item',
+  stk_add_ready:'Readymade item jodo',
   stk_sizes:'Size list',
   stk_no_ready:'No readymade item yet',
-  stk_out:'Out of stock',
+  stk_out:'Stock khatam',
   stk_out_of:'Out of stock',
-  stk_ready_hint:'Enter the design once, then just fill the count for each size.',
+  stk_ready_hint:'Design ek baar likho, phir har size ki ginti bhar do.',
   stk_ready_ph:'e.g. Sherwani Maroon Zari',
   stk_sell_rate:'Selling rate ₹',
   stk_size_grid:'Size grid',
@@ -1092,46 +1102,77 @@ const T={
   su_need_name:'Please enter your shop name',
   mod_off:'That section is switched off in Settings',
   kb_title:'Karigar hisab',
-  ki_give:'Give work',
-  ki_take:'Take back',
-  ki_give_sub:'tick every piece he is taking',
-  ki_take_sub:'tick every piece he has handed in',
+  rb_title:'Readymade — bahut saare ek saath',
+  rb_sub:'Ek design bharo → Add → agla. Purchase price zaroori, Selling optional.',
+  rb_cat:'Category (optional — sab pe lagega)', rb_size_hint:'Size — ek ya zyada tap karo',
+  rb_name_ph:'Item ka naam * (jaise S-01 Tuxedo)', rb_qty_ph:'Kitne piece',
+  rb_cost_ph:'Purchase ₹', rb_sell_ph:'Selling ₹ (optional)',
+  rb_cost_lbl:'Purchase ₹', rb_sell_lbl:'Selling ₹ (optional)',
+  rb_add_next:'Add karo — agla', rb_first:'Pehla item upar bharo ↑',
+  rb_added_n:'{i} item · kul {p} piece', rb_size:'Size', rb_bulk:'Bahut saare',
+  rb_need_name:'Item ka naam zaroori', rb_need_size:'Kam se kam ek size chuno', rb_need_qty:'Kitne piece hain, wo daalo',
+  stk_rdy_del_msg:'Ye readymade item hat jayega. Pakka?',
+  stk_rdy_del_stock:'Iske {n} piece stock me hain. Item aur uska stock dono hat jayenge. Pakka?',
+  ab_title:'Aaj ka kaam', ab_all_clear:'Sab theek hai', ab_all_clear_sub:'Kuch late nahi, kuch atka nahi, kisi ka paisa baaki nahi.',
+  ab_late:'Late — abhi tak ready nahi', ab_soon:'{n} din me dena — ready nahi', ab_nokar:'Kisi master ko diya nahi',
+  ab_stuck:'Master ke paas {n}+ din se', ab_payable:'Masters ko dena', ab_nobody:'koi nahi',
+  ab_days_with:'{n} din se uske paas', ab_none:'Abhi yahan kuch nahi.',
+  ab_late_sub:'Delivery date nikal gayi aur piece abhi ready nahi hai.',
+  ab_soon_sub:'Ye teen din me dene hain. Pehle inke peeche lago.',
+  ab_nokar_sub:'Ye abhi koi bana nahi raha — late hone se pehle baant do.',
+  ab_stuck_sub:'Bahut din pehle diya tha, abhi tak jama nahi. Master se poocho.',
+  se_title:'Order ka status', se_sub:'Naam, number ya order no likho — har chalu piece dikhega.',
+  se_ph:'Naam / mobile / order no', se_nohit:'Koi customer nahi mila.',
+  se_live:'{n} chalu order', se_none_live:'Abhi koi chalu order nahi.',
+  se_send:'WhatsApp pe status bhejo', se_full_profile:'Poori profile aur naap',
+  se_wa_intro:'Aapke order ka status:',
+  kb_tab_hisab:'📊 Hisab', kb_tab_out:'📤 Uske paas', kb_tab_made:'📥 Banaya', kb_tab_pays:'💰 Paisa',
+  kb_pieces_made:'Banaye piece', kb_by_item:'Kaun item kitna', kb_pcs:'piece',
+  kb_range_month:'Is mahine', kb_range_lmonth:'Pichle mahine', kb_range_all:'Poora', kb_range_custom:'Chuno',
+  kb_avg_rate:'Ek piece ka average', kb_no_pieces:'Is samay me kuch nahi banaya.',
+  kb_report:'Karigar report', kb_report_sub:'Har master, kaun item kitna aur kitna paisa.',
+  kb_pick_master:'Kaun master?', kb_total_pieces:'{n} piece bahar',
+  kb_spec_none:'No specialty set', kb_period:'Samay',
+  ki_give:'Maal dena',
+  ki_take:'Maal jama lena',
+  ki_give_sub:'jo-jo piece wo le ja raha hai, tick karo',
+  ki_take_sub:'jo-jo piece usne jama kiya, tick karo',
   ki_none_free:'Nothing left to give out',
   ki_none_with:'Nothing is with him right now',
-  ki_only_his:'Only the items he makes',
-  ki_toggle_all:'Select / clear all',
-  ki_selected:'Selected',
-  ki_do_give:'Give these',
-  ki_do_take:'Take these back',
+  ki_only_his:'Sirf wahi item jo wo banata hai',
+  ki_toggle_all:'Sab chuno / hatao',
+  ki_selected:'Chune',
+  ki_do_give:'Ye de diye',
+  ki_do_take:'Ye jama liye',
   ki_pick_some:'Tick at least one piece',
   ki_gave:'{n} pieces given',
   ki_took:'{n} pieces taken back',
-  ki_given_on:'given',
-  ki_send_hisab:'Send hisab',
+  ki_given_on:'diya',
+  ki_send_hisab:'Hisab bhejo',
   kb_sub:'What each master is holding, what he has handed back, and what you owe him.',
-  kb_total_payable:'Total payable',
-  kb_payable:'payable',
-  kb_with_him:'{n} pieces with him',
-  kb_nothing_out:'nothing pending with him',
-  kb_earned:'Work handed back',
-  kb_paid:'Paid',
-  kb_balance:'Balance',
-  kb_pay:'Pay karigar',
+  kb_total_payable:'Kul dena',
+  kb_payable:'dena',
+  kb_with_him:'{n} piece uske paas',
+  kb_nothing_out:'uske paas kuch baaki nahi',
+  kb_earned:'Jama kiya kaam',
+  kb_paid:'Diya',
+  kb_balance:'Baaki',
+  kb_pay:'Karigar ko paisa',
   kb_pay_sub:'Balance right now: {a}',
-  kb_full:'Full',
-  kb_part:'Part payment',
-  kb_short:'Left after this payment',
-  kb_settle:'Settle the rest — nothing carries forward',
+  kb_full:'Poora',
+  kb_part:'Thoda',
+  kb_short:'Iske baad baaki',
+  kb_settle:'Baaki khatam — aage nahi jayega',
   kb_settle_hint:'Use when you negotiate the amount down. Without this, the shortfall stays as his balance for next week.',
   kb_note_ph:'e.g. Saturday settlement',
   kb_need_amt:'Enter the amount',
   kb_settled_ok:'Paid — {a} settled off',
   kb_ledger_note:'Karigar payment — {n}',
-  kb_out_now:'Still with him',
-  kb_submitted:'Handed back',
+  kb_out_now:'Abhi uske paas',
+  kb_submitted:'Jama kiya',
   kb_payments:'Payments',
-  kb_none_sub:'Nothing handed back yet',
-  kb_none_pay:'No payments yet',
+  kb_none_sub:'Abhi kuch jama nahi kiya',
+  kb_none_pay:'Abhi koi paisa nahi diya',
   kb_settled:'settled',
   kb_recv_on:'Taken back on',
   kb_mark_recv:'Taken back today',
@@ -1139,7 +1180,7 @@ const T={
   kb_his_rate:'His amount ₹',
   kb_own_rework:'His own work — no payment',
   kb_own_rework_hint:'Alteration on a piece this master made himself. Tick it and nothing is added to his hisab.',
-  of_title:'Find orders',
+  of_title:'Order dhundo',
   of_sub:'Filter by karigar, status, item, date — tap any order to open it.',
   of_by_delivery:'By delivery date',
   of_by_order:'By order date',
@@ -1160,12 +1201,12 @@ const T={
   of_value:'Order value',
   of_none:'No orders match these filters',
   of_late:'{n} days late',
-  it_done:'Done — next item',
+  it_done:'Ho gaya — agla item',
   it_next:'Next item opened',
   it_all_done:'All items filled',
-  it_empty:'not filled',
+  it_empty:'nahi bhara',
   it_items:'Items',
-  it_filled:'filled',
+  it_filled:'bhare',
   su_mod_head:'What will you use?',
   su_mod_sub:'Keep it light to begin with — you can switch any of these on later.',
   su_mod_orders:'Orders, karigar & delivery',
@@ -1729,6 +1770,7 @@ const T={
   alt_no:'अल्टरेशन नं.',
   alt_item:'आइटम / समस्या',
   alt_item_ph:'जैसे शेरवानी — कमर टाइट',
+  alt_pick_item_hint:'नाप जोड़ने के लिए आइटम चुनें (वैकल्पिक)।',
   alt_received_date:'मिलने की तारीख',
   alt_charge:'चार्ज ₹',
   alt_orig_order:'जुड़ा ऑर्डर',
@@ -2098,6 +2140,37 @@ const T={
   su_need_name:'दुकान का नाम भरें',
   mod_off:'यह हिस्सा सेटिंग्स में बंद है',
   kb_title:'कारीगर हिसाब',
+  rb_title:'रेडीमेड — एक साथ कई',
+  rb_sub:'एक डिज़ाइन भरें → जोड़ें → अगला। ख़रीद दाम ज़रूरी, बिक्री दाम वैकल्पिक।',
+  rb_cat:'कैटेगरी (वैकल्पिक — सब पर लगेगी)', rb_size_hint:'साइज़ — एक या ज़्यादा दबाएँ',
+  rb_name_ph:'आइटम का नाम * (जैसे S-01 Tuxedo)', rb_qty_ph:'कितने पीस',
+  rb_cost_ph:'ख़रीद ₹', rb_sell_ph:'बिक्री ₹ (वैकल्पिक)',
+  rb_cost_lbl:'ख़रीद ₹', rb_sell_lbl:'बिक्री ₹ (वैकल्पिक)',
+  rb_add_next:'जोड़ें — अगला', rb_first:'पहला आइटम ऊपर भरें ↑',
+  rb_added_n:'{i} आइटम · कुल {p} पीस', rb_size:'साइज़', rb_bulk:'एक साथ कई',
+  rb_need_name:'आइटम का नाम ज़रूरी', rb_need_size:'कम से कम एक साइज़ चुनें', rb_need_qty:'कितने पीस हैं, वह डालें',
+  stk_rdy_del_msg:'यह रेडीमेड आइटम हट जाएगा। पक्का?',
+  stk_rdy_del_stock:'इसके {n} पीस स्टॉक में हैं। आइटम और उसका स्टॉक दोनों हट जाएँगे। पक्का?',
+  ab_title:'आज का काम', ab_all_clear:'सब ठीक है', ab_all_clear_sub:'कुछ लेट नहीं, कुछ अटका नहीं, किसी का पैसा बाकी नहीं।',
+  ab_late:'लेट — अभी तैयार नहीं', ab_soon:'{n} दिन में देना — तैयार नहीं', ab_nokar:'किसी मास्टर को दिया नहीं',
+  ab_stuck:'मास्टर के पास {n}+ दिन', ab_payable:'मास्टरों को देना', ab_nobody:'कोई नहीं',
+  ab_days_with:'{n} दिन से उसके पास', ab_none:'अभी यहाँ कुछ नहीं।',
+  ab_late_sub:'डिलीवरी की तारीख़ निकल गई और पीस अभी तैयार नहीं है।',
+  ab_soon_sub:'ये तीन दिन में देने हैं। पहले इन्हीं के पीछे लगें।',
+  ab_nokar_sub:'ये अभी कोई बना नहीं रहा — लेट होने से पहले बाँट दें।',
+  ab_stuck_sub:'बहुत दिन पहले दिया था, अभी तक जमा नहीं। मास्टर से पूछें।',
+  se_title:'ऑर्डर स्टेटस', se_sub:'नाम, नंबर या ऑर्डर नंबर लिखें — हर चालू पीस दिखेगा।',
+  se_ph:'नाम / मोबाइल / ऑर्डर नं.', se_nohit:'कोई कस्टमर नहीं मिला।',
+  se_live:'{n} चालू ऑर्डर', se_none_live:'अभी कोई चालू ऑर्डर नहीं।',
+  se_send:'WhatsApp पर स्टेटस भेजें', se_full_profile:'पूरी प्रोफ़ाइल और नाप',
+  se_wa_intro:'आपके ऑर्डर का स्टेटस:',
+  kb_tab_hisab:'📊 हिसाब', kb_tab_out:'📤 उसके पास', kb_tab_made:'📥 बनाया', kb_tab_pays:'💰 भुगतान',
+  kb_pieces_made:'बनाए पीस', kb_by_item:'आइटम-वार', kb_pcs:'पीस',
+  kb_range_month:'इस महीने', kb_range_lmonth:'पिछले महीने', kb_range_all:'पूरा', kb_range_custom:'चुनें',
+  kb_avg_rate:'औसत प्रति पीस', kb_no_pieces:'इस अवधि में कुछ नहीं बनाया।',
+  kb_report:'कारीगर रिपोर्ट', kb_report_sub:'हर मास्टर, आइटम-वार पीस और रकम।',
+  kb_pick_master:'कौन सा मास्टर?', kb_total_pieces:'{n} पीस बाहर',
+  kb_spec_none:'कोई स्पेशलिटी नहीं', kb_period:'अवधि',
   ki_give:'काम देना',
   ki_take:'वापस लेना',
   ki_give_sub:'जो-जो पीस वह ले जा रहा है, टिक करें',
@@ -3278,7 +3351,7 @@ function bulkEntryCardHTML(){
         <button id="bfCam" class="btn sm ghost ${(_bulk.entryPhotos||[]).length?'has':''}" onclick="pickBulkPhoto('cam')">${(_bulk.entryPhotos||[]).length?('📷 '+_bulk.entryPhotos.length):'📷'}</button>
         <button class="btn sm ghost" onclick="pickBulkPhoto('lib')">🖼️</button>
       </div>
-      <button class="btn primary block" style="margin-top:10px" onclick="bulkAddOne()">➕ ${t('add')} &amp; next</button>`;
+      <button class="btn primary block" style="margin-top:10px" onclick="bulkAddOne()">➕ ${t('rb_add_next')}</button>`;
 }
 function bulkAddedHTML(){
   const added=_bulk.added||[];
@@ -3323,7 +3396,7 @@ function bulkFabRender(){
         <button id="bfCam" class="btn sm ghost ${(_bulk.entryPhotos||[]).length?'has':''}" onclick="pickBulkPhoto('cam')">${(_bulk.entryPhotos||[]).length?('📷 '+_bulk.entryPhotos.length):'📷'}</button>
         <button class="btn sm ghost" onclick="pickBulkPhoto('lib')">🖼️</button>
       </div>
-      <button class="btn primary block" style="margin-top:10px" onclick="bulkAddOne()">➕ ${t('add')} &amp; next</button>
+      <button class="btn primary block" style="margin-top:10px" onclick="bulkAddOne()">➕ ${t('rb_add_next')}</button>
     </div>
     <div id="bfAddedWrap">${added.length?`<div class="hint" style="margin:2px 0 8px">✅ ${added.length} added · ${totalMtr} mtr total</div>${addedHTML}`:`<p class="hint" style="text-align:center;padding:8px 0">Add your first thaan above ↑</p>`}</div>
     <div class="modal-actions" style="margin-top:16px">
@@ -3430,7 +3503,7 @@ function readyBody(keepFocus){
   el.innerHTML=`
     <div class="field" style="margin-bottom:10px">
       <input id="rdySearch" value="${esc(_rdyQ)}" placeholder="🔍 ${t('stk_rdy_search')}" oninput="setRdyQ(this.value)"></div>
-    <div class="row" style="gap:6px;margin-bottom:6px"><button class="btn primary" style="flex:1" onclick="readyEdit()">➕ ${t('stk_add_ready')}</button><button class="btn ghost" style="flex:0 0 auto;padding:0 12px" onclick="readyBulkOpen()">📋 Bulk</button></div>
+    <div class="row" style="gap:6px;margin-bottom:6px"><button class="btn primary" style="flex:1" onclick="readyEdit()">➕ ${t('stk_add_ready')}</button><button class="btn ghost" style="flex:0 0 auto;padding:0 12px" onclick="readyBulkOpen()">📋 ${t('rb_bulk')}</button></div>
     <div class="row" style="margin-bottom:10px;gap:6px">
       <button class="btn ghost" style="flex:1" onclick="sizeCfg()">📐 ${t('stk_sizes')}</button>
       <button class="btn ghost" style="flex:0 0 auto;padding:0 14px" onclick="manageSizes()">⚙️</button></div>
@@ -3447,7 +3520,7 @@ function readyBody(keepFocus){
           <div style="text-align:right">
             <div style="font-size:20px;font-weight:900;color:${tot?'var(--txt)':'var(--bad)'}">${tot}</div>
             <div class="hint">${t('stk_pieces')}</div>
-            ${m.rate?`<div class="hint" style="color:var(--saffron2)">${money(r2(tot*(+m.rate||0)))}</div>`:''}
+            ${(+m.cost||0)?`<div class="hint" style="color:var(--saffron2)">${money(r2(tot*(+m.cost||0)))}</div>`:''}
           </div></div></div>`;}).join('')
       ||`<div class="empty" style="padding:26px 10px"><p>${t('stk_no_ready')}</p></div>`}`;
   if(keepFocus){const e=$('#rdySearch');if(e){const v=e.value;e.focus();e.setSelectionRange(v.length,v.length);}}
@@ -3467,9 +3540,9 @@ function readyBulkAddOne(){
   const qty=+(gv('#rbQty')||0);
   const cost=+(gv('#rbCost')||0);
   const sell=+(gv('#rbSell')||0);
-  if(!name){toast('Item name zaroori','bad');const e=$('#rbName');if(e)e.focus();return;}
-  if(!sizes.length){toast('Kam se kam ek size chuno','bad');return;}
-  if(!(qty>0)){toast('Qty daalo','bad');return;}
+  if(!name){toast(t('rb_need_name'),'bad');const e=$('#rbName');if(e)e.focus();return;}
+  if(!sizes.length){toast(t('rb_need_size'),'bad');return;}
+  if(!(qty>0)){toast(t('rb_need_qty'),'bad');return;}
   DB.itemMaster=DB.itemMaster||[];
   let m=DB.itemMaster.find(x=>x.kind==='ready'&&String(x.name).toLowerCase()===name.toLowerCase());
   if(!m){m={id:uid(),name,kind:'ready',stk:{},incl:[],photos:[],category:(_rbulk.cat||'')};DB.itemMaster.push(m);}
@@ -3480,47 +3553,57 @@ function readyBulkAddOne(){
   m.rate=(m.sell||'');
   if(_rbulk.cat)m.category=_rbulk.cat;
   if((_rbulk.entryPhotos||[]).length)m.photos=(m.photos||[]).concat(_rbulk.entryPhotos);
-  sizes.forEach(sz=>{try{move({dir:MV_IN,target:'ready',itemId:m.id,size:sz,qty,rate:cost,reason:'opening',ref:t('stk_opening')});}catch(e){}});
+  sizes.forEach(sz=>{try{move({dir:MV_IN,target:'ready',itemId:m.id,size:sz,qty,rate:cost,reason:'opening',ref:t('stk_opening'),refId:'rb_'+m.id+'_'+sz+'_'+Date.now()});}catch(e){}});
   save();
-  _rbulk.added.unshift({name:m.name,sizesArr:sizes,sizes:sizes.join(', '),qty,pcs:sizes.length*qty,cost});
+  _rbulk.added.unshift({name:m.name,itemId:m.id,sizesArr:sizes,sizes:sizes.join(', '),qty,pcs:sizes.length*qty,cost,ts:Date.now()});
   _rbulk.entry={name:'',sizes:[],qty:'1',cost:'',sell:''}; _rbulk.entryPhotos=[];
   readyBulkRender();
   setTimeout(()=>{const el=$('#rbName');if(el)el.focus();},60);
 }
 function readyBulkDelAdded(idx){
   const a=_rbulk.added[idx]; if(!a)return;
-  const m=(DB.itemMaster||[]).find(x=>x.kind==='ready'&&String(x.name).toLowerCase()===a.name.toLowerCase());
-  if(m&&m.stk){ (a.sizesArr||[]).forEach(sz=>{m.stk[sz]=Math.max(0,(+m.stk[sz]||0)-a.qty);}); }
+  const m=(DB.itemMaster||[]).find(x=>x.id===a.itemId)
+    ||(DB.itemMaster||[]).find(x=>x.kind==='ready'&&String(x.name).toLowerCase()===a.name.toLowerCase());
+  if(m){
+    (a.sizesArr||[]).forEach(sz=>{ readySet(m,sz,readyQty(m,sz)-a.qty); });
+    // drop the IN moves this entry created, else the movement history keeps phantom stock
+    (a.sizesArr||[]).forEach(sz=>{
+      const i=(DB.moves||[]).map((mv,k)=>({mv,k}))
+        .filter(x=>x.mv.itemId===m.id&&x.mv.size===sz&&x.mv.dir===MV_IN&&x.mv.reason==='opening'&&(+x.mv.qty||0)===a.qty)
+        .pop();
+      if(i)DB.moves.splice(i.k,1);
+    });
+  }
   _rbulk.added.splice(idx,1); save(); readyBulkRender();
 }
 function readyBulkRender(){
   const added=_rbulk.added||[];
   const totalPcs=added.reduce((s,a)=>s+(+a.pcs||0),0);
   const addedHTML=added.map((a,idx)=>`<div class="pur-collapsed">
-     <div style="min-width:0"><b>${esc(a.name)}</b><div class="hint">Size ${esc(a.sizes)} · ${a.pcs} pcs${a.cost?` · ₹${esc(a.cost)}`:''}</div></div>
+     <div style="min-width:0"><b>${esc(a.name)}</b><div class="hint">${t('rb_size')} ${esc(a.sizes)} · ${a.pcs} ${t('kb_pcs')}${a.cost?` · ₹${esc(a.cost)}`:''}</div></div>
      <button class="btn sm danger" style="flex:0 0 auto" onclick="readyBulkDelAdded(${idx})">✕</button></div>`).join('');
   const e=_rbulk.entry;
   $('#sheet').innerHTML=`<div class="grip"></div>
-    <h2 style="margin-bottom:4px">👔 Readymade — Bulk</h2>
-    <p class="hint" style="margin-bottom:12px">Ek design bharo → Add → agla. Purchase price zaroori, Selling optional.</p>
-    <div class="field"><label>Category (optional — sab pe lagega)</label><input id="rb_cat" list="rdyCats" value="${esc(_rbulk.cat)}" oninput="rbShared(this.value)" placeholder="Suit / Kurta / Sherwani"></div>
+    <h2 style="margin-bottom:4px">👔 ${t('rb_title')}</h2>
+    <p class="hint" style="margin-bottom:12px">${t('rb_sub')}</p>
+    <div class="field"><label>${t('rb_cat')}</label><input id="rb_cat" list="rdyCats" value="${esc(_rbulk.cat)}" oninput="rbShared(this.value)" placeholder="Suit / Kurta / Sherwani"></div>
     <datalist id="rdyCats">${[...new Set((DB.itemMaster||[]).filter(x=>x.kind==='ready'&&x.category).map(x=>x.category))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
     <div class="card" style="padding:10px;border-color:var(--saffron);margin:10px 0 14px">
-      <div class="field" style="margin:0"><input id="rbName" value="${esc(e.name)}" placeholder="Item name * (e.g. S-01 Tuxedo)" oninput="_rbulk.entry.name=this.value"></div>
-      <div class="hint" style="margin:10px 0 5px">Size — ek ya zyada tap karo</div>
+      <div class="field" style="margin:0"><input id="rbName" value="${esc(e.name)}" placeholder="${t('rb_name_ph')}" oninput="_rbulk.entry.name=this.value"></div>
+      <div class="hint" style="margin:10px 0 5px">${t('rb_size_hint')}</div>
       <div class="gtags" id="rbSizes">${(DB.stkCfg.sizes||[]).map((sz,si)=>`<span class="gtag ${e.sizes.includes(sz)?'on-tag':''}" data-si="${si}" style="cursor:pointer" onclick="rbToggleSize(${si})">${esc(sz)}</span>`).join('')}</div>
       <div class="bf-l1" style="margin-top:10px">
-        <input id="rbQty" type="number" inputmode="numeric" value="${esc(e.qty)}" placeholder="Qty (pcs)">
-        <input id="rbCost" type="number" inputmode="numeric" value="${esc(e.cost)}" placeholder="Purchase ₹">
-        <input id="rbSell" type="number" inputmode="numeric" value="${esc(e.sell)}" placeholder="Selling ₹ (opt)" onkeydown="if(event.key==='Enter'){event.preventDefault();readyBulkAddOne();}">
+        <input id="rbQty" type="number" inputmode="numeric" value="${esc(e.qty)}" placeholder="${t('rb_qty_ph')}">
+        <input id="rbCost" type="number" inputmode="numeric" value="${esc(e.cost)}" placeholder="${t('rb_cost_ph')}">
+        <input id="rbSell" type="number" inputmode="numeric" value="${esc(e.sell)}" placeholder="${t('rb_sell_ph')}" onkeydown="if(event.key==='Enter'){event.preventDefault();readyBulkAddOne();}">
       </div>
       <div class="bf-l2" style="margin-top:10px;gap:6px">
         <button id="rbCam" class="btn sm ghost ${(_rbulk.entryPhotos||[]).length?'has':''}" onclick="pickReadyBulkPhoto('cam')">${(_rbulk.entryPhotos||[]).length?('📷 '+_rbulk.entryPhotos.length):'📷'}</button>
         <button class="btn sm ghost" onclick="pickReadyBulkPhoto('lib')">🖼️</button>
-        <button class="btn primary" style="flex:1" onclick="readyBulkAddOne()">➕ ${t('add')} &amp; next</button>
+        <button class="btn primary" style="flex:1" onclick="readyBulkAddOne()">➕ ${t('rb_add_next')}</button>
       </div>
     </div>
-    ${added.length?`<div class="hint" style="margin:2px 0 8px">✅ ${added.length} items · ${totalPcs} pcs total</div>${addedHTML}`:`<p class="hint" style="text-align:center;padding:8px 0">Add your first item above ↑</p>`}
+    ${added.length?`<div class="hint" style="margin:2px 0 8px">✅ ${t('rb_added_n',{i:added.length,p:totalPcs})}</div>${addedHTML}`:`<p class="hint" style="text-align:center;padding:8px 0">${t('rb_first')}</p>`}
     <div class="modal-actions" style="margin-top:16px"><button class="btn primary block" onclick="stockHome('ready')">✅ ${t('done')}</button></div>`;
   showSheet();
 }
@@ -3547,9 +3630,9 @@ function readyRender(){
     <p class="hint" style="margin-bottom:12px">${t('stk_ready_hint')}</p>
     <div class="field"><label>${t('im_name')} *</label>
       <input id="rd_name" value="${esc(d.name)}" placeholder="${t('stk_ready_ph')}"></div>
-    <div class="row"><div class="field"><label>Purchase ₹</label>
+    <div class="row"><div class="field"><label>${t('rb_cost_lbl')}</label>
         <input id="rd_cost" type="number" inputmode="numeric" value="${esc(d.cost)}" placeholder="0"></div>
-      <div class="field"><label>Selling ₹ (optional)</label>
+      <div class="field"><label>${t('rb_sell_lbl')}</label>
         <input id="rd_sell" type="number" inputmode="numeric" value="${esc(d.sell)}" placeholder="0"></div></div>
     <div class="field"><label>${t('im_hsn')}</label><input id="rd_hsn" value="${esc(d.hsn)}" placeholder="6203"></div>
     <div class="section-h" style="display:flex;justify-content:space-between;align-items:baseline">
@@ -3564,10 +3647,20 @@ function readyRender(){
       <button class="btn sm ghost" onclick="pickReadyPhoto('lib')">🖼️ ${t('gallery')}</button></div>
 
     <div class="modal-actions"><button class="btn ghost" onclick="stockHome('ready')">${t('cancel')}</button>
+      ${d.id?`<button class="btn danger" onclick="readyDelete('${d.id}')">🗑️</button>`:''}
       <button class="btn primary" onclick="readySave()">${t('save')}</button></div>
     <div class="fab-pad"></div>`;
   showSheet(); renderReadyPhotos();
   document.querySelectorAll('[data-sz]').forEach(inp=>inp.addEventListener('input',szSync));
+}
+function readyDelete(id){
+  const m=(DB.itemMaster||[]).find(x=>x.id===id); if(!m)return;
+  const tot=readyTotal(m);
+  confirmModal('🗑️ '+esc(m.name), tot?t('stk_rdy_del_stock',{n:tot}):t('stk_rdy_del_msg'), ()=>{
+    DB.itemMaster=(DB.itemMaster||[]).filter(x=>x.id!==id);
+    DB.moves=(DB.moves||[]).filter(mv=>mv.itemId!==id);
+    save(); stockHome('ready'); toast(t('t_deleted'));
+  });
 }
 function szSync(){
   let tot=0;
@@ -3589,10 +3682,15 @@ function readySave(){
   if(d.id)m=DB.itemMaster.find(x=>x.id===d.id);
   else{m={id:uid(),name,hsn,incl:[],kind:'ready',stk:{},photos:[]};DB.itemMaster.push(m);}
   const before=Object.assign({},m.stk||{});
+  const cfg=(DB.stkCfg.sizes||[]);
+  // sizes the shop has since removed from the size list may still HOLD pieces —
+  // carry them over instead of wiping them, or those pieces vanish with no trace
+  const kept={}; Object.keys(before).forEach(sz=>{ if(!cfg.includes(sz)&&(+before[sz]||0)>0)kept[sz]=+before[sz]; });
   m.name=name;m.cost=cost;m.sell=sell;m.rate=sell;m.hsn=hsn;m.kind='ready';m.stk={};m.photos=[...(d.photos||[])];
-  (DB.stkCfg.sizes||[]).forEach(sz=>{ readySet(m,sz,d.stk[sz]||0); });
+  cfg.forEach(sz=>{ readySet(m,sz,d.stk[sz]||0); });
+  Object.keys(kept).forEach(sz=>{ readySet(m,sz,kept[sz]); });
   // log the difference so reports & "slow moving" stay honest
-  (DB.stkCfg.sizes||[]).forEach(sz=>{
+  [...new Set(cfg.concat(Object.keys(before)))].forEach(sz=>{
     const b=+before[sz]||0, a=readyQty(m,sz);
     if(a!==b)move({dir:a>b?MV_IN:MV_OUT,target:'ready',itemId:m.id,size:sz,
       qty:Math.abs(a-b),rate:cost,reason:d.id?'adjust':'opening',
@@ -5478,6 +5576,174 @@ function statRowsHTML(list,mode){
              ${due>0?`<div style="font-size:11px;color:var(--bad);font-weight:700">${t('baaki_sub')} ${money(due)}</div>`:''}`}
       </div></div></div>`;}).join('');
 }
+/* ================= ACTION BOARD — "aaj ka kaam" =================
+   The five things that actually go wrong in the shop, answered without a single tap:
+   a piece that is late, one due in the next few days, a piece nobody has been given,
+   a piece sitting too long with a master, and the masters' payable.
+   Everything works PER ITEM, because an order is late only if a piece inside it is. */
+const AB_SOON=3, AB_STUCK=7;
+function abPieces(){
+  const out=[];
+  (DB.orders||[]).forEach(o=>(o.items||[]).forEach(gid=>{
+    const st=itemStatusOf(o,gid);
+    if(st==='delivered')return;
+    const g=G(gid);
+    out.push({o,gid,g,st,
+      kid:(o.assign&&o.assign[gid])||'',
+      issued:(o.issued&&o.issued[gid])||'',
+      recv:karRecvDate(o,gid),
+      dl:o.deliveryDate?daysLeft(o.deliveryDate):null});
+  }));
+  return out;
+}
+function abBuckets(){
+  const p=abPieces(), notReady=x=>x.st!=='ready';
+  const late   =p.filter(x=>notReady(x)&&x.dl!==null&&x.dl<0);
+  const soon   =p.filter(x=>notReady(x)&&x.dl!==null&&x.dl>=0&&x.dl<=AB_SOON);
+  const noKar  =p.filter(x=>notReady(x)&&!x.kid);
+  const stuck  =p.filter(x=>!x.recv&&x.kid&&x.issued&&daysLeft(x.issued)!==null&&(-daysLeft(x.issued))>=AB_STUCK);
+  const payable=r2((DB.karigars||[]).reduce((s,k)=>s+karBalance(k.id),0));
+  return {late,soon,noKar,stuck,payable,
+    sort:a=>a.slice().sort((x,y)=>String(x.o.deliveryDate||'9999').localeCompare(String(y.o.deliveryDate||'9999')))};
+}
+function abRowHTML(x,showAge){
+  const late=x.dl!==null&&x.dl<0;
+  const age=x.issued?(-daysLeft(x.issued)):null;
+  const kn=x.kid?(((DB.karigars||[]).find(k=>k.id===x.kid)||{}).name||''):'';
+  return `<div class="cust-result fu-open" style="margin-bottom:6px" onclick="closeSheet();openDetail('${x.o.id}','${esc(x.gid)}')">
+    <div style="min-width:0;flex:1">
+      <b>${(x.g&&x.g.ico)||'▪'} ${esc((x.g&&x.g.n)||'')}</b>
+      <div class="hint">#${esc(x.o.orderNo||'—')} · ${esc(x.o.customerName||'')}</div>
+      <div class="hint" style="${late?'color:var(--bad)':''}">📅 ${fmtDate(x.o.deliveryDate)}${x.dl!==null?(late?' · '+Math.abs(x.dl)+'d '+t('late'):' · '+x.dl+'d'):''}</div>
+      <div class="hint">${kn?'👷 '+esc(kn):'⚠️ '+t('ab_nobody')}${showAge&&age!==null?' · '+t('ab_days_with',{n:age}):''} · ${sLabel(x.st)}</div>
+    </div><span style="color:var(--saffron2)">›</span></div>`;
+}
+function actionBoardHTML(){
+  const b=abBuckets();
+  const row=(ico,lbl,n,kind,col)=>n?`<div class="krow fu-open" onclick="actionList('${kind}')">
+    <span class="kpc" style="${col?'color:'+col:''}">${n}</span>
+    <span class="kn">${ico} ${lbl}</span><span style="color:var(--saffron2)">›</span></div>`:'';
+  const inner=row('🔴',t('ab_late'),b.late.length,'late','var(--bad)')
+    + row('🟠',t('ab_soon',{n:AB_SOON}),b.soon.length,'soon','var(--saffron2)')
+    + row('⚠️',t('ab_nokar'),b.noKar.length,'nokar','')
+    + row('⏳',t('ab_stuck',{n:AB_STUCK}),b.stuck.length,'stuck','')
+    + (b.payable>0?`<div class="krow fu-open" onclick="karigarBook()">
+        <span class="kpc" style="font-size:14px">${money(b.payable)}</span>
+        <span class="kn">💰 ${t('ab_payable')}</span><span style="color:var(--saffron2)">›</span></div>`:'');
+  if(!inner)return `<div class="card" style="margin-bottom:12px;padding:14px;border-color:var(--ok)">
+    <b style="color:var(--ok)">✅ ${t('ab_all_clear')}</b>
+    <div class="hint" style="margin-top:4px">${t('ab_all_clear_sub')}</div></div>`;
+  return `<div class="card" style="margin-bottom:12px;padding:0;overflow:hidden">
+    <div style="padding:11px 14px;background:var(--bg2);font-weight:800">🎯 ${t('ab_title')}</div>
+    ${inner}</div>`;
+}
+function actionList(kind){
+  const b=abBuckets();
+  const map={late:['🔴',t('ab_late'),b.late,false],
+             soon:['🟠',t('ab_soon',{n:AB_SOON}),b.soon,false],
+             nokar:['⚠️',t('ab_nokar'),b.noKar,false],
+             stuck:['⏳',t('ab_stuck',{n:AB_STUCK}),b.stuck,true]};
+  const [ico,title,list,age]=map[kind]||map.late;
+  const rows=b.sort(list).map(x=>abRowHTML(x,age)).join('')
+    ||`<p class="hint" style="padding:20px 0;text-align:center">${t('ab_none')}</p>`;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin-bottom:4px">${ico} ${title}</h2>
+    <p class="hint" style="margin-bottom:12px">${t('ab_'+kind+'_sub')}</p>
+    ${kind==='nokar'&&(DB.karigars||[]).length?`<button class="btn primary block" style="margin-bottom:12px" onclick="karPickMaster('give')">📤 ${t('ki_give')}</button>`:''}
+    ${rows}
+    <div class="modal-actions"><button class="btn ghost block" onclick="closeSheet()">${t('close')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+
+/* ============ CUSTOMER STATUS ENQUIRY — "mere order ka kya hua?" ============
+   One screen, searched by name or number, showing every live piece and its stage,
+   with a ready-to-send WhatsApp update. */
+function statusEnquiry(q){
+  const term=(q==null?(($('#se_q')||{}).value||''):q).trim().toLowerCase();
+  const digits=term.replace(/\D/g,'');
+  let hits=[];
+  if(term){
+    hits=(DB.customers||[]).filter(c=>
+      (c.name||'').toLowerCase().includes(term) ||
+      (digits&&String(c.phone||'').replace(/\D/g,'').includes(digits)));
+    (DB.orders||[]).forEach(o=>{ if(String(o.orderNo||'').toLowerCase()===term && o.customerId
+      && !hits.some(c=>c.id===o.customerId)){const c=custById(o.customerId); if(c)hits.push(c);} });
+  }
+  const rows=hits.slice(0,20).map(c=>{
+    const live=(DB.orders||[]).filter(o=>o.customerId===c.id&&!orderDelivered(o));
+    return `<div class="cust-result fu-open" style="margin-bottom:6px" onclick="custStatus('${c.id}')">
+      <div style="min-width:0"><b>${esc(c.name||'—')}</b>
+        <div class="hint">${esc(c.phone||'—')} · ${live.length?t('se_live',{n:live.length}):t('se_none_live')}</div></div>
+      <span style="color:var(--saffron2)">›</span></div>`;}).join('');
+  const html=`<div class="grip"></div>
+    <h2 style="margin-bottom:4px">📞 ${t('se_title')}</h2>
+    <p class="hint" style="margin-bottom:10px">${t('se_sub')}</p>
+    <input id="se_q" placeholder="${t('se_ph')}" autocomplete="off" value="${esc(term)}"
+      oninput="statusEnquiry()" inputmode="search">
+    <div style="margin-top:10px">${term?(rows||`<p class="hint" style="padding:14px 0;text-align:center">${t('se_nohit')}</p>`):''}</div>
+    <div class="modal-actions"><button class="btn ghost block" onclick="closeSheet()">${t('close')}</button></div>
+    <div class="fab-pad"></div>`;
+  const sh=$('#sheet');
+  if(q==null&&sh&&$('#se_q')){                    // typing: swap only the results, keep the cursor
+    const box=sh.querySelector('#se_q').nextElementSibling;
+    if(box){box.innerHTML=term?(rows||`<p class="hint" style="padding:14px 0;text-align:center">${t('se_nohit')}</p>`):'';return;}
+  }
+  sh.innerHTML=html; showSheet();
+  setTimeout(()=>{const el=$('#se_q');if(el&&q!=null)el.focus();},80);
+}
+function custStatusRows(c){
+  const live=(DB.orders||[]).filter(o=>o.customerId===c.id&&!orderDelivered(o))
+    .sort((a,b)=>String(a.deliveryDate||'9999').localeCompare(String(b.deliveryDate||'9999')));
+  return live;
+}
+function custStatus(cid){
+  const c=custById(cid); if(!c)return;
+  const live=custStatusRows(c);
+  const blocks=live.map(o=>{
+    const dl=o.deliveryDate?daysLeft(o.deliveryDate):null, late=dl!==null&&dl<0;
+    const items=sortItems(o.items||[]).map(gid=>{
+      const g=G(gid), st=itemStatusOf(o,gid);
+      const kid=(o.assign&&o.assign[gid])||'';
+      const kn=kid?(((DB.karigars||[]).find(k=>k.id===kid)||{}).name||''):'';
+      return `<div class="krow"><span class="kn">${(g&&g.ico)||'▪'} ${esc((g&&g.n)||'')}${kn?` <span class="hint">👷 ${esc(kn)}</span>`:''}</span>
+        <span class="pill st-${st}">${sLabel(st)}</span></div>`;}).join('');
+    return `<div class="card" style="padding:0;margin-bottom:10px;overflow:hidden">
+      <div class="fu-open" style="padding:11px 14px;background:var(--bg2)" onclick="closeSheet();openDetail('${o.id}')">
+        <div class="kv"><b>#${esc(o.orderNo||'—')}</b>
+          <span class="hint" style="${late?'color:var(--bad)':''}">📅 ${fmtDate(o.deliveryDate)}${dl!==null?(late?' · '+Math.abs(dl)+'d '+t('late'):' · '+dl+'d'):''}</span></div></div>
+      ${items}</div>`;}).join('');
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:2px"><h2 style="margin:0">${esc(c.name||'—')}</h2>
+      ${c.phone?`<button class="btn sm ghost" onclick="callNum('${esc(c.phone)}')">📞</button>`:''}</div>
+    <p class="hint" style="margin-bottom:12px">${esc(c.phone||'')}</p>
+    ${live.length?`<button class="btn primary block" style="margin-bottom:12px" onclick="custStatusSend('${cid}')">💬 ${t('se_send')}</button>
+      ${blocks}`:`<p class="hint" style="padding:14px 0;text-align:center">${t('se_none_live')}</p>`}
+    <button class="btn ghost block" onclick="closeSheet();openCustomer('${cid}')">👤 ${t('se_full_profile')}</button>
+    <div class="modal-actions"><button class="btn ghost block" onclick="statusEnquiry('')">${t('back')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function custStatusText(cid){
+  const c=custById(cid)||{}; const live=custStatusRows(c);
+  const L=[((DB.shopInfo||{}).name||'').toUpperCase(),''];
+  L.push((c.name||'')+' ji,');
+  L.push(t('se_wa_intro'));
+  live.forEach(o=>{
+    L.push('');
+    L.push('#'+(o.orderNo||'—')+' · '+t('delivery')+': '+fmtDate(o.deliveryDate));
+    sortItems(o.items||[]).forEach(gid=>{
+      const g=G(gid); L.push('• '+((g&&g.n)||'')+' — '+sLabel(itemStatusOf(o,gid)));
+    });
+  });
+  if(!live.length)L.push(t('se_none_live'));
+  return L.join('\n');
+}
+function custStatusSend(cid){
+  const c=custById(cid)||{};
+  waSend(c.phone||'', custStatusText(cid));
+}
+
 function statDetail(mode){
   const tag=(arr,k)=>(arr||[]).map(x=>{x._kind=k;return x;});
   let list=[], title='', sub='', total=0;
@@ -5598,10 +5864,13 @@ function renderHome(){
       ${stat(t('creditors_report'),money(payables),payables>0?'var(--bad)':'',"creditors()")}
     </div>
 
+    ${actionBoardHTML()}
+
     <div class="home-sec-title">📋 ${t('home_tailoring')}</div>
     <div class="home-grid">
       ${tile('📋',t('nav_orders'),"go('orders')")}
       ${tile('👷',t('kb_title'),"karigarBook()")}
+      ${tile('📞',t('se_title'),"statusEnquiry('')")}
       ${tile('🔎',t('of_title'),"orderFilter()")}
       ${tile('📊',t('or_title'),"orderReports()")}
       ${tile('🔧',t('home_alterations'),"go('alterations')")}
@@ -5866,6 +6135,7 @@ function openCustomer(id){
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h2>${esc(c.name)}</h2><div style="display:flex;gap:6px"><button class="btn sm ghost" onclick="editCustomer('${id}')">✏️ ${t('edit')}</button>
       <button class="btn sm danger" onclick="delCustomer('${id}')">🗑️</button></div></div>
     <div class="kv"><span>${t('phone')}</span><b><a onclick="callNum('${esc(c.phone)}')" style="cursor:pointer;text-decoration:underline">${esc(c.phone||'—')}</a></b></div>
+    ${(DB.orders||[]).some(o=>o.customerId===id&&!orderDelivered(o))?`<button class="btn ghost block" style="margin-top:10px" onclick="custStatus('${id}')">📞 ${t('se_title')}</button>`:''}
     <div class="card" style="padding:12px 14px;margin:10px 0">
       <div class="il"><span>${t('cust_business')}</span><b>${money(sm.spent)}</b></div>
       <div class="il"><span>${t('baaki')}</span>
@@ -6366,13 +6636,14 @@ function delBodyType(i){if(DB.bodyTypes){DB.bodyTypes.splice(i,1);save();}addBod
 function mcols(g){return itemCols(g).concat(((DB.measLib&&DB.measLib[g.id])||[]).map(l=>({k:'x_'+l,n:l})));}
 function measHidden(gid){return (DB.measHide&&DB.measHide[gid])||[];}
 function vcols(g){const h=measHidden(g.id);return mcols(g).filter(c=>!h.includes(c.k));}
-function addMeas(gid){_sheetScroll=$('#sheet')?$('#sheet').scrollTop:0;captureForm();const g=G(gid);const list=((DB.measLib&&DB.measLib[gid])||[]);
-  const listHTML=list.length?`<div class="hint" style="margin:12px 0 4px">${t('saved_options')}</div>`+list.map((o,i)=>`<div class="kv"><span>${esc(o)}</span><span onclick="delMeas('${gid}',${i})" style="color:#d9534f;cursor:pointer">🗑️</span></div>`).join(''):'';
+function addMeas(gid,ctx){ctx=ctx||'order';const rerender=ctx==='alt'?renderAltForm:renderForm;const cap=ctx==='alt'?captureAltForm:captureForm;
+  _sheetScroll=$('#sheet')?$('#sheet').scrollTop:0;cap();const g=G(gid);const list=((DB.measLib&&DB.measLib[gid])||[]);
+  const listHTML=list.length?`<div class="hint" style="margin:12px 0 4px">${t('saved_options')}</div>`+list.map((o,i)=>`<div class="kv"><span>${esc(o)}</span><span onclick="delMeas('${gid}',${i},'${ctx}')" style="color:#d9534f;cursor:pointer">🗑️</span></div>`).join(''):'';
   modal('📏 '+t('add_meas')+(g?' — '+g.n:''),`<div class="field"><input id="newmeas" placeholder="${t('meas_ph')}" autocomplete="off"></div>${listHTML}`,
-   [{label:t('close'),cls:'ghost',fn:()=>renderForm()},
-    {label:t('add'),cls:'primary',fn:()=>{const v=(($('#newmeas')&&$('#newmeas').value)||'').trim();if(!v){renderForm();return;}
-      DB.measLib=DB.measLib||{};DB.measLib[gid]=DB.measLib[gid]||[];if(!DB.measLib[gid].includes(v))DB.measLib[gid].push(v);save();renderForm();}}]);}
-function delMeas(gid,i){if(DB.measLib&&DB.measLib[gid]){DB.measLib[gid].splice(i,1);save();}addMeas(gid);}
+   [{label:t('close'),cls:'ghost',fn:()=>rerender()},
+    {label:t('add'),cls:'primary',fn:()=>{const v=(($('#newmeas')&&$('#newmeas').value)||'').trim();if(!v){rerender();return;}
+      DB.measLib=DB.measLib||{};DB.measLib[gid]=DB.measLib[gid]||[];if(!DB.measLib[gid].includes(v))DB.measLib[gid].push(v);save();rerender();}}]);}
+function delMeas(gid,i,ctx){if(DB.measLib&&DB.measLib[gid]){DB.measLib[gid].splice(i,1);save();}addMeas(gid,ctx);}
 /* --- design tokens: pick / remove --- */
 function designPicked(gid){
   const v=(form&&form.design&&form.design[gid])||'';
@@ -6386,8 +6657,8 @@ function removeDesign(gid,tok){
   renderForm();
 }
 /* --- measurement fields: show / hide / delete --- */
-function manageMeas(gid){
-  captureForm();
+function manageMeas(gid,ctx){ctx=ctx||'order';const rerender=ctx==='alt'?renderAltForm:renderForm;const cap=ctx==='alt'?captureAltForm:captureForm;
+  cap();
   const g=G(gid); if(!g)return;
   const all=mcols(g); const hid=measHidden(gid);
   const rows=all.map(c=>{
@@ -6396,28 +6667,29 @@ function manageMeas(gid){
     return `<div class="kv" style="padding:9px 0;border-bottom:1px solid var(--line)">
       <span style="${off?'opacity:.45;text-decoration:line-through':''}">${esc(c.n)}${custom?' <span class="hint">(custom)</span>':''}</span>
       <span style="display:flex;gap:12px;align-items:center">
-        <span onclick="toggleMeasField('${gid}','${esc(c.k)}')" style="cursor:pointer;font-weight:700;color:${off?'var(--mut)':'var(--ok)'}">${off?'✕ '+t('mm_off'):'✓ '+t('mm_on')}</span>
-        ${custom?`<span onclick="delMeasField('${gid}','${esc(c.k)}')" style="color:#d9534f;cursor:pointer">🗑️</span>`:''}
+        <span onclick="toggleMeasField('${gid}','${esc(c.k)}','${ctx}')" style="cursor:pointer;font-weight:700;color:${off?'var(--mut)':'var(--ok)'}">${off?'✕ '+t('mm_off'):'✓ '+t('mm_on')}</span>
+        ${custom?`<span onclick="delMeasField('${gid}','${esc(c.k)}','${ctx}')" style="color:#d9534f;cursor:pointer">🗑️</span>`:''}
       </span></div>`;}).join('');
   modal('⚙️ '+t('manage_meas')+' — '+g.n,
     `<p class="hint" style="margin-bottom:8px">${t('manage_meas_desc')}</p>${rows}`,
-    [{label:t('close'),cls:'primary',fn:()=>{closeSheet();renderForm();}}]);
+    [{label:t('close'),cls:'primary',fn:()=>{closeSheet();rerender();}}]);
 }
-function toggleMeasField(gid,k){
+function toggleMeasField(gid,k,ctx){
   const sc=$('#sheet')?$('#sheet').scrollTop:0;      // keep the list exactly where it was
   DB.measHide=DB.measHide||{}; DB.measHide[gid]=DB.measHide[gid]||[];
   const i=DB.measHide[gid].indexOf(k);
   if(i>=0)DB.measHide[gid].splice(i,1); else DB.measHide[gid].push(k);
-  save(); manageMeas(gid);
+  save(); manageMeas(gid,ctx);
   setTimeout(()=>{const sh=$('#sheet');if(sh)sh.scrollTop=sc;},0);
 }
-function delMeasField(gid,k){
+function delMeasField(gid,k,ctx){ctx=ctx||'order';const rerender=ctx==='alt'?renderAltForm:renderForm;
   const label=String(k).replace(/^x_/,'');
   confirmModal(t('confirm_del'),t('mm_del_msg',{n:label}),()=>{
     if(DB.measLib&&DB.measLib[gid]){DB.measLib[gid]=DB.measLib[gid].filter(l=>l!==label);}
     if(DB.measHide&&DB.measHide[gid]){DB.measHide[gid]=DB.measHide[gid].filter(x=>x!==k);}
     if(form&&form.m&&form.m[gid])delete form.m[gid][k];
-    save(); manageMeas(gid); toast(t('t_deleted'));
+    if(altForm&&altForm.meas)delete altForm.meas[k];
+    save(); manageMeas(gid,ctx); toast(t('t_deleted'));
   });
 }
 function itemVoiceList(gid){form.itemVoice=form.itemVoice||{};form.itemVoice[gid]=form.itemVoice[gid]||[];return form.itemVoice[gid];}
@@ -6680,7 +6952,9 @@ function saveOrder(){
       status:'new',itemStatus:(function(){const o={};f.items.forEach(g=>o[g]='new');return o;})(),log:[{id:uid(),ts:new Date().toISOString(),text:t('t_status',{s:sLabel('new')}),voiceId:null}]};
     DB.orders.push(o);clearDraft();save();closeSheet();toast(t('t_created',{n:o.orderNo}),'ok');
     go('orders');
-    openInvoiceForm('order',o.id);      // customer is still standing there — bill it now
+    // customer is still standing there — bill it now, but only on an install that HAS billing
+    if(modOn('billing'))openInvoiceForm('order',o.id);
+    else openDetail(o.id);
   }
 }
 
@@ -6935,15 +7209,34 @@ function openAltForm(editId,origOrderId){
     const a=altById(editId);
     altForm={editId,altNo:a.altNo,origOrderId:a.origOrderId||null,customerId:a.customerId||null,customerName:a.customerName||'',phone:a.phone||'',
       itemDesc:a.itemDesc||'',notes:a.notes||'',receivedDate:a.receivedDate||todayISO(),deliveryDate:a.deliveryDate||'',charge:a.charge||'',
-      karigarId:a.karigarId||'',noKarigarPay:!!a.noKarigarPay,karAmt:a.karAmt||'',recvDate:a.recvDate||'',photos:[...(a.photos||[])],voiceNotes:JSON.parse(JSON.stringify(a.voiceNotes||[]))};
+      karigarId:a.karigarId||'',noKarigarPay:!!a.noKarigarPay,karAmt:a.karAmt||'',recvDate:a.recvDate||'',photos:[...(a.photos||[])],voiceNotes:JSON.parse(JSON.stringify(a.voiceNotes||[])),
+      garmentId:a.garmentId||'',meas:JSON.parse(JSON.stringify(a.meas||{}))};
   }else{
     let cid=null,cname='',cphone='',idesc='';
     if(origOrderId){const o=DB.orders.find(x=>x.id===origOrderId);
       if(o){cid=o.customerId;cname=o.customerName;cphone=o.phone;idesc=t('alt_from_order',{n:o.orderNo});}}
     altForm={editId:null,altNo:nextAltNo(),origOrderId:origOrderId||null,customerId:cid,customerName:cname,phone:cphone,
-      itemDesc:idesc,notes:'',receivedDate:todayISO(),deliveryDate:'',charge:'',karigarId:'',noKarigarPay:false,karAmt:'',recvDate:'',photos:[],voiceNotes:[]};
+      itemDesc:idesc,notes:'',receivedDate:todayISO(),deliveryDate:'',charge:'',karigarId:'',noKarigarPay:false,karAmt:'',recvDate:'',photos:[],voiceNotes:[],
+      garmentId:'',meas:{}};
+    // if this alteration comes off an order with exactly one item, that garment is almost certainly the one being altered
+    if(origOrderId){const o=DB.orders.find(x=>x.id===origOrderId);
+      if(o&&o.items&&o.items.length===1){altForm.garmentId=garmentOf(o.items[0]);altPrefillAltMeas(altForm.garmentId);}}
   }
   renderAltForm();
+}
+function altPickGarment(gid){
+  _sheetScroll=$('#sheet')?$('#sheet').scrollTop:0; captureAltForm();
+  if(altForm.garmentId===gid){altForm.garmentId='';}
+  else{altForm.garmentId=gid; altForm.meas=altForm.meas||{}; if(!Object.keys(altForm.meas).length)altPrefillAltMeas(gid);}
+  renderAltForm();
+}
+/* prefill from the linked order's matching item, else the customer's own saved measurements */
+function altPrefillAltMeas(gid){
+  const f=altForm; f.meas=f.meas||{};
+  if(f.origOrderId){const o=DB.orders.find(x=>x.id===f.origOrderId);
+    if(o&&o.items){const key=o.items.find(k=>garmentOf(k)===gid);
+      if(key&&o.m&&o.m[key]){Object.keys(o.m[key]).forEach(k=>{if(o.m[key][k]&&!f.meas[k])f.meas[k]=o.m[key][k];});return;}}}
+  if(f.customerId){const c=custById(f.customerId); if(c&&c.m&&c.m[gid]){Object.keys(c.m[gid]).forEach(k=>{if(c.m[gid][k]&&!f.meas[k])f.meas[k]=c.m[gid][k];});}}
 }
 function unlinkAltOrder(){captureAltForm();altForm.origOrderId=null;altForm.customerId=null;renderAltForm();}
 function renderAltForm(){
@@ -6959,7 +7252,20 @@ function renderAltForm(){
       <div id="altCustResults"></div>
       <input id="a_cphone" type="tel" placeholder="${t('phone')}" value="${esc(f.phone)}" style="margin-top:8px"></div>
     <div class="field"><label>${t('alt_item')} ${micBtn('#a_item')}</label><textarea id="a_item" placeholder="${t('alt_item_ph')}">${esc(f.itemDesc)}</textarea></div>
-    <div class="row"><div class="field"><label>${t('delivery')}</label>${dateField("a_ddate",f.deliveryDate)}</div>
+    <div class="section-h">📏 ${t('meas_title')}</div>
+    <div class="chip-grid">${allItems().map(g=>`<div class="chip ${f.garmentId===g.id?'on':''}" onclick="altPickGarment('${g.id}')"><span class="ico">${g.ico}</span>${g.n}</div>`).join('')}</div>
+    ${f.garmentId?(()=>{const g=G(f.garmentId); if(!g)return '';
+      const cols=vcols(g), vals=f.meas||{};
+      const fields=cols.map(col=>{const isLen=col.k==='L'; const val=vals[col.k]||'';
+        if(col.type==='select'){const opts=['<option value="">—</option>'].concat((col.options||[]).map(o=>`<option value="${esc(o)}" ${val===o?'selected':''}>${esc(o)}</option>`)).join('');
+          return `<div class="mfield"><label>${esc(col.n)}</label><select class="mInput aInput" data-k="${col.k}" data-g="${esc(f.garmentId)}" style="width:100%;background:transparent;border:none;color:var(--txt);font-size:15px;font-weight:600;outline:none">${opts}</select></div>`;}
+        return `<div class="mfield ${isLen?'lenhl':''}"><label>${esc(col.n)}${isLen?' ★':''}</label>
+          <input class="mInput aInput ${val?'filled':''}" inputmode="${col.type==='text'?'text':'decimal'}" data-k="${col.k}" data-g="${esc(f.garmentId)}" value="${esc(val)}" placeholder="—"></div>`;}).join('');
+      return `<div class="mgrid" style="margin-top:10px">${fields}</div>
+        <div class="gtags" style="margin-top:6px">
+          <span class="gtag" onclick="addMeas('${f.garmentId}','alt')" style="cursor:pointer;border-style:dashed">📏 ${t('add_meas')}</span>
+          <span class="gtag" onclick="manageMeas('${f.garmentId}','alt')" style="cursor:pointer;border-style:dashed">⚙️ ${t('manage_meas')}</span></div>`;})():`<p class="hint" style="margin-top:8px">${t('alt_pick_item_hint')}</p>`}
+    <div class="row" style="margin-top:14px"><div class="field"><label>${t('delivery')}</label>${dateField("a_ddate",f.deliveryDate)}</div>
       <div class="field"><label>${t('alt_charge')}</label><input id="a_charge" type="number" inputmode="numeric" value="${esc(f.charge)}" placeholder="0"></div></div>
     <div class="field"><label>👷 ${t('karigar')}</label><select id="a_karigar" onchange="captureAltForm();renderAltForm()">${kopts}</select></div>
     ${f.karigarId?`<div class="card" style="padding:12px;margin-bottom:10px">
@@ -6978,7 +7284,7 @@ function renderAltForm(){
     <div class="section-h">${t('voice_notes')}</div>${voiceSection('avn')}
     <div class="modal-actions"><button class="btn ghost" onclick="closeSheet()">${t('cancel')}</button>
       <button class="btn primary" onclick="saveAlteration()">${f.editId?t('update'):t('save_order')}</button></div><div class="fab-pad"></div>`;
-  showSheet();renderAltFormPhotos();bindVoice('avn',()=>altForm.voiceNotes,null);
+  showSheet();renderAltFormPhotos();bindVoice('avn',()=>altForm.voiceNotes,null);bindMeasInputs();
 }
 function pickAltPhoto(src){captureAltForm();photoTarget={type:'alt'};const inp=src==='cam'?$('#filePickCam'):$('#filePick');inp.value='';inp.click();}
 async function renderAltFormPhotos(){const el=$('#a_photos');if(!el)return;el.innerHTML='';
@@ -7000,6 +7306,12 @@ function captureAltForm(){const f=altForm;
   if($('#a_karamt'))f.karAmt=$('#a_karamt').value;
   if($('#a_recvdate'))f.recvDate=$('#a_recvdate').value;
   if($('#a_notes'))f.notes=$('#a_notes').value;
+  f.meas=f.meas||{};
+  document.querySelectorAll('.aInput').forEach(inp=>{
+    if(typeof inp.value!=='string')return;
+    const v=inp.value.trim(), k=inp.dataset.k;
+    if(v)f.meas[k]=v; else delete f.meas[k];
+  });
 }
 function saveAlteration(){
   captureAltForm();const f=altForm;
@@ -7009,12 +7321,14 @@ function saveAlteration(){
     const a=altById(f.editId);
     Object.assign(a,{altNo:f.altNo,origOrderId:f.origOrderId,customerId:f.customerId,customerName:f.customerName,phone:f.phone,
       itemDesc:f.itemDesc,notes:f.notes,receivedDate:f.receivedDate,deliveryDate:f.deliveryDate,charge:f.charge,total:f.charge,
-      karigarId:f.karigarId,noKarigarPay:!!f.noKarigarPay,karAmt:+f.karAmt||0,recvDate:f.recvDate||'',photos:f.photos,voiceNotes:f.voiceNotes});
+      karigarId:f.karigarId,noKarigarPay:!!f.noKarigarPay,karAmt:+f.karAmt||0,recvDate:f.recvDate||'',photos:f.photos,voiceNotes:f.voiceNotes,
+      garmentId:f.garmentId||'',meas:f.meas||{}});
     save();closeSheet();toast(t('t_alt_updated'),'ok');openAltDetail(a.id);
   }else{
     const a={id:uid(),created:new Date().toISOString(),altNo:f.altNo,origOrderId:f.origOrderId,customerId:f.customerId,customerName:f.customerName,phone:f.phone,
       itemDesc:f.itemDesc,notes:f.notes,receivedDate:f.receivedDate,deliveryDate:f.deliveryDate,charge:f.charge,total:f.charge,payments:[],
-      karigarId:f.karigarId||'',photos:f.photos,voiceNotes:f.voiceNotes,status:'received',log:[{id:uid(),ts:new Date().toISOString(),text:aLabel('received'),voiceId:null}]};
+      karigarId:f.karigarId||'',noKarigarPay:!!f.noKarigarPay,karAmt:+f.karAmt||0,recvDate:f.recvDate||'',photos:f.photos,voiceNotes:f.voiceNotes,
+      garmentId:f.garmentId||'',meas:f.meas||{},status:'received',log:[{id:uid(),ts:new Date().toISOString(),text:aLabel('received'),voiceId:null}]};
     DB.alterations.push(a);save();closeSheet();toast(t('t_alt_created',{n:a.altNo}),'ok');go('alterations');
   }
 }
@@ -7052,6 +7366,10 @@ async function openAltDetail(id){
       ${altPaymentHistoryHTML(a)}
     </div>
     ${a.itemDesc?`<div class="card"><div class="section-h" style="margin-top:0">${t('alt_item')}</div>${esc(a.itemDesc)}</div>`:''}
+    ${(()=>{if(!a.garmentId)return '';const g=G(a.garmentId);if(!g)return '';const cols=mcols(g),v=a.meas||{};
+      const cells=cols.filter(col=>v[col.k]).map(col=>`<span class="gtag">${col.n}: <b>${esc(v[col.k])}</b></span>`).join('');
+      if(!cells)return '';
+      return `<div class="card"><div class="section-h" style="margin-top:0">${g.ico} ${g.n} — ${t('meas_title')}</div><div class="gtags">${cells}</div></div>`;})()}
     ${a.notes?`<div class="card"><div class="section-h" style="margin-top:0">${t('order_notes')}</div>${esc(a.notes)}</div>`:''}
 
     <div class="section-h">${t('timeline')}</div>
@@ -10232,13 +10550,68 @@ function karPays(kid){ return (DB.karigarPays||[]).filter(p=>p.karigarId===kid)
   .sort((a,b)=>String(b.date).localeCompare(String(a.date))); }
 function karPaid(kid){ return r2(karPays(kid).reduce((s,p)=>s+(+p.amt||0)+(+p.settled||0),0)); }
 function karBalance(kid){ return r2(karEarned(kid)-karPaid(kid)); }
+/* how many pieces are still lying with him right now */
+function karOutCount(kid){ return (DB.orders||[]).reduce((n,o)=>n+(o.items||[])
+  .filter(gid=>((o.assign&&o.assign[gid])||'')===kid && !karRecvDate(o,gid)).length,0); }
+
+/* ---- reporting period, shared by the ledger and the all-master report ---- */
+let _krRange={key:'month',from:'',to:''};
+function krRangeBounds(){
+  const now=new Date(), y=now.getFullYear(), m=now.getMonth();
+  const iso=d=>d.toISOString().slice(0,10);
+  if(_krRange.key==='month')  return {from:iso(new Date(y,m,1)),      to:iso(new Date(y,m+1,0))};
+  if(_krRange.key==='lmonth') return {from:iso(new Date(y,m-1,1)),    to:iso(new Date(y,m,0))};
+  if(_krRange.key==='custom') return {from:_krRange.from||'',         to:_krRange.to||''};
+  return {from:'',to:''};                                  // all time
+}
+function krRangeLabel(){
+  const b=krRangeBounds();
+  if(_krRange.key==='all')return t('kb_range_all');
+  return (b.from?fmtDate(b.from):'…')+' → '+(b.to?fmtDate(b.to):'…');
+}
+function krInRange(d){
+  const b=krRangeBounds();
+  if(b.from && String(d)<b.from)return false;
+  if(b.to   && String(d)>b.to)  return false;
+  return true;
+}
+/* item-wise piece counts + amount for one master in the current period.
+   "Made" means handed back — the same rule his money follows. */
+function karPieceStats(kid){
+  const map={}, jobs=karJobs(kid).filter(j=>krInRange(j.date));
+  jobs.forEach(j=>{
+    const g=j.gid?G(j.gid):null;
+    const key=g?g.id:(j.kind==='alt'?'__alt':'__other');
+    const nm =g?g.n :(j.kind==='alt'?t('alterations'):'—');
+    const ico=g?(g.ico||'▪'):'🔧';
+    map[key]=map[key]||{id:key,n:0,amt:0,nm,ico};
+    map[key].n++; map[key].amt+=(+j.amt||0);
+  });
+  const rows=Object.values(map).sort((a,b)=>b.n-a.n||b.amt-a.amt);
+  const totalN=rows.reduce((s,r)=>s+r.n,0), totalAmt=r2(rows.reduce((s,r)=>s+r.amt,0));
+  return {rows,totalN,totalAmt,jobs};
+}
 
 /* ============ GIVE / TAKE BACK IN BULK — worked from the KARIGAR's side ============
    In a boutique the master turns up at the shop and only THEN is it decided which
    pieces he takes. Going into each order one by one is not workable, and the same
    is true when he returns a bundle from several orders. So both directions are done
    from one screen: tick many items across many orders, one date, one action. */
-let _kiSel=new Set(), _kiOnlyHis=true;
+let _kiSel=new Set(), _kiOnlyHis=true, _kiTypeFilter=null;
+function kiVisibleList(kid,mode){
+  const give=mode!=='take';
+  const raw=give?kiItemsFree(kid):kiItemsWith(kid);
+  const typeMap={}; raw.forEach(x=>{typeMap[x.g.id]=typeMap[x.g.id]||{g:x.g,n:0};typeMap[x.g.id].n++;});
+  const types=Object.values(typeMap);
+  if(!_kiTypeFilter)_kiTypeFilter=new Set(types.map(x=>x.g.id));
+  const list=raw.filter(x=>_kiTypeFilter.has(x.g.id));
+  return {raw,types,list};
+}
+function kiTypeToggle(kid,mode,gid){
+  if(!_kiTypeFilter)_kiTypeFilter=new Set();
+  if(_kiTypeFilter.has(gid))_kiTypeFilter.delete(gid); else _kiTypeFilter.add(gid);
+  karigarIssue(kid,mode);
+}
 function kiItemsFree(kid){                    // nothing assigned yet, still to be made
   const k=(DB.karigars||[]).find(x=>x.id===kid)||{};
   const spec=new Set(k.specialties||[]);
@@ -10277,7 +10650,7 @@ function kiRow(x,kid){
 function kiToggle(key){ if(_kiSel.has(key))_kiSel.delete(key); else _kiSel.add(key);
   const n=$('#kiCount'); if(n)n.textContent=_kiSel.size; }
 function kiSelectAll(kid,mode){
-  const list = mode==='give'?kiItemsFree(kid):kiItemsWith(kid);
+  const {list}=kiVisibleList(kid,mode);
   const all = list.every(x=>_kiSel.has(x.o.id+'~'+x.gid));
   list.forEach(x=>{const k=x.o.id+'~'+x.gid; if(all)_kiSel.delete(k); else _kiSel.add(k);});
   karigarIssue(kid,mode);
@@ -10286,22 +10659,26 @@ function kiSelectAll(kid,mode){
 function karigarIssue(kid,mode){
   const k=(DB.karigars||[]).find(x=>x.id===kid); if(!k)return;
   const give=(mode!=='take');
-  const list=give?kiItemsFree(kid):kiItemsWith(kid);
+  const {types,list}=kiVisibleList(kid,mode);
   const rows=list.map(x=>kiRow(x,kid)).join('')
     || `<p class="hint" style="padding:20px 0;text-align:center">${give?t('ki_none_free'):t('ki_none_with')}</p>`;
+  const typeChips=types.length>1?`<div class="gtags" style="margin:10px 0">${types.map(x=>{
+    const on=_kiTypeFilter.has(x.g.id);
+    return `<span class="gtag ${on?'on-tag':''}" style="cursor:pointer" onclick="kiTypeToggle('${kid}','${give?'give':'take'}','${x.g.id}')">${x.g.ico} ${esc(x.g.n)} (${x.n})</span>`;}).join('')}</div>`:'';
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:2px">${give?'📤 '+t('ki_give'):'📥 '+t('ki_take')}</h2>
     <p class="hint" style="margin-bottom:10px">👷 ${esc(k.name)} · ${give?t('ki_give_sub'):t('ki_take_sub')}</p>
     <div class="field"><label>${t('pay_date')}</label>${dateField('ki_date',todayISO())}</div>
     ${give&&(k.specialties||[]).length?`<label style="display:flex;align-items:center;gap:8px;margin:10px 0;cursor:pointer">
-      <input type="checkbox" ${_kiOnlyHis?'checked':''} onchange="_kiOnlyHis=this.checked;karigarIssue('${kid}','give')" style="width:20px;height:20px">
+      <input type="checkbox" ${_kiOnlyHis?'checked':''} onchange="_kiOnlyHis=this.checked;_kiTypeFilter=null;karigarIssue('${kid}','give')" style="width:20px;height:20px">
       <span class="hint">${t('ki_only_his')}</span></label>`:''}
+    ${typeChips}
     <div class="kv" style="margin:10px 0">
       <button class="btn sm ghost" onclick="kiSelectAll('${kid}','${give?'give':'take'}')">${t('ki_toggle_all')}</button>
       <span class="hint">${t('ki_selected')}: <b id="kiCount">${_kiSel.size}</b></span></div>
     ${rows}
     <div class="save-dock">
-      <button class="btn ghost" onclick="_kiSel.clear();karigarLedger('${kid}')">${t('back')}</button>
+      <button class="btn ghost" onclick="_kiSel.clear();_kiTypeFilter=null;karigarLedger('${kid}')">${t('back')}</button>
       <button class="btn primary" style="flex:2" onclick="kiApply('${kid}','${give?'give':'take'}')">
         ${give?'📤 '+t('ki_do_give'):'📥 '+t('ki_do_take')}</button></div>
     <div class="fab-pad"></div>`;
@@ -10310,21 +10687,48 @@ function karigarIssue(kid,mode){
 function kiApply(kid,mode){
   if(!_kiSel.size){toast(t('ki_pick_some'),'bad');return;}
   const d=($('#ki_date')||{}).value||todayISO();
-  let n=0;
+  let n=0; const givenEntries=[];
   _kiSel.forEach(key=>{
     const [oid,gid]=key.split('~');
     const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
     if(mode==='give'){
       o.assign=o.assign||{}; o.assign[gid]=kid;
       o.issued=o.issued||{}; o.issued[gid]=d;
+      givenEntries.push({oid,gid});
     }else{
       o.recv=o.recv||{}; o.recv[gid]=d;
     }
     n++;
   });
-  _kiSel.clear(); save();
+  _kiSel.clear(); _kiTypeFilter=null; save();
   toast(mode==='give'?t('ki_gave',{n}):t('ki_took',{n}),'ok');
+  if(mode==='give'&&givenEntries.length)kiGiveNotify(kid,givenEntries,d);
   karigarLedger(kid);
+}
+/* WhatsApp the master everything about what he was just given — order, customer, delivery date,
+   full measurements per garment, design notes, and item photos in one go where the browser allows it */
+async function kiGiveNotify(kid,entries,date){
+  const k=(DB.karigars||[]).find(x=>x.id===kid); if(!k)return;
+  const byOrder={};
+  entries.forEach(({oid,gid})=>{ (byOrder[oid]=byOrder[oid]||[]).push(gid); });
+  const oids=Object.keys(byOrder);
+  let text='PARAMPARA\n👷 '+(k.name||'')+' — '+t('ki_give')+' · '+fmtDate(date)+'\n';
+  const files=[];
+  for(const oid of oids){
+    const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)continue;
+    text+='\n'+buildMasterText(o,byOrder[oid]).replace(/^PARAMPARA\n/,'');
+    for(const gid of byOrder[oid]){
+      for(const pid of ((o.itemPhotos&&o.itemPhotos[gid])||[])){
+        const b=await mGet(pid); if(b)files.push(new File([b],'photo-'+pid+'.jpg',{type:b.type||'image/jpeg'}));
+      }
+    }
+  }
+  try{
+    if(files.length&&navigator.canShare&&navigator.canShare({files})){
+      await navigator.share({files,title:t('ki_give'),text}); return;
+    }
+  }catch(e){ if(e&&e.name==='AbortError')return; }
+  waSend(k.phone||'',text);
 }
 /* the master's statement — which order, which piece, what it earned */
 function karStatementText(kid){
@@ -10350,71 +10754,203 @@ function karStatementSend(kid){
   waSend(k.phone||'', karStatementText(kid));
 }
 
-/* ---- all masters, with what each is owed ---- */
+/* ============ KARIGAR HUB — every master at a glance ============
+   One screen answers the two questions he actually has: who is holding my
+   pieces, and who do I owe. Give / Take back are reachable in one tap. */
 function karigarBook(){
   const ks=DB.karigars||[];
   const rows=ks.map(k=>{
-    const bal=karBalance(k.id), pend=(DB.orders||[]).reduce((n,o)=>n+(o.items||[])
-      .filter(gid=>((o.assign&&o.assign[gid])||'')===k.id && !karRecvDate(o,gid)).length,0);
-    return `<div class="card" style="margin-bottom:8px" onclick="karigarLedger('${k.id}')">
-      <div class="kv"><div style="min-width:0">
-        <b>👷 ${esc(k.name)}</b>
-        <div class="hint">${pend?`${t('kb_with_him',{n:pend})}`:t('kb_nothing_out')}</div>
-      </div><div style="text-align:right">${balArrow(-bal)}<div class="hint">${t('kb_payable')}</div></div></div></div>`;
+    const bal=karBalance(k.id), pend=karOutCount(k.id);
+    const spec=(k.specialties||[]).map(id=>{const g=G(id);return g?(g.ico||'')+' '+g.n:'';}).filter(Boolean);
+    return `<div class="card fu-open" style="margin-bottom:8px;padding:12px 14px" onclick="karigarLedger('${k.id}')">
+      <div class="kv" style="align-items:flex-start">
+        <div style="min-width:0;flex:1">
+          <b style="font-size:16px">👷 ${esc(k.name)}</b>
+          <div class="hint" style="margin-top:2px">${pend?t('kb_with_him',{n:pend}):t('kb_nothing_out')}</div>
+          ${spec.length?`<div class="gtags" style="margin-top:6px">${spec.slice(0,4).map(s=>`<span class="gtag">${esc(s)}</span>`).join('')}${spec.length>4?`<span class="gtag">+${spec.length-4}</span>`:''}</div>`:''}
+        </div>
+        <div style="text-align:right;flex:0 0 auto">${balArrow(-bal)}
+          <div class="hint">${t('kb_payable')}</div></div></div></div>`;
   }).join('') || `<p class="hint" style="padding:20px 0;text-align:center">${t('no_karigars')}</p>`;
   const total=r2(ks.reduce((s,k)=>s+karBalance(k.id),0));
+  const outAll=ks.reduce((s,k)=>s+karOutCount(k.id),0);
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">👷 ${t('kb_title')}</h2>
     <p class="hint" style="margin-bottom:12px">${t('kb_sub')}</p>
     <div class="card pos-total" style="margin-bottom:12px;padding:12px 14px">
-      <div class="il" style="border-bottom:0"><span>${t('kb_total_payable')}</span><b>${balArrow(-total)}</b></div></div>
+      <div class="il"><span>${t('kb_total_payable')}</span><b>${balArrow(-total)}</b></div>
+      <div class="il" style="border-bottom:0"><span>${t('kb_out_now')}</span><b>${t('kb_total_pieces',{n:outAll})}</b></div></div>
+    ${ks.length?`<div class="row" style="gap:8px;margin-bottom:12px">
+      <button class="btn primary" style="flex:1" onclick="karPickMaster('give')">📤 ${t('ki_give')}</button>
+      <button class="btn primary" style="flex:1" onclick="karPickMaster('take')">📥 ${t('ki_take')}</button></div>`:''}
     ${rows}
+    ${ks.length?`<button class="btn ghost block" style="margin-top:10px" onclick="karigarReport()">📊 ${t('kb_report')}</button>`:''}
     <button class="btn ghost block" style="margin-top:8px" onclick="closeSheet();karigarMaster()">⚙️ ${t('karigar_master')}</button>
     <div class="modal-actions"><button class="btn ghost block" onclick="closeSheet()">${t('close')}</button></div>
     <div class="fab-pad"></div>`;
   showSheet();
 }
-/* ---- one master: what he handed back, what he was paid, what is left ---- */
-function karigarLedger(kid){
+/* one master, or straight through when there is only one */
+function karPickMaster(mode){
+  const ks=DB.karigars||[]; if(!ks.length)return;
+  const go=kid=>{_kiSel.clear();_kiTypeFilter=null;karigarIssue(kid,mode);};
+  if(ks.length===1){go(ks[0].id);return;}
+  modal((mode==='give'?'📤 ':'📥 ')+t('kb_pick_master'),
+    ks.map(k=>{const n=mode==='give'?kiItemsFree(k.id).length:karOutCount(k.id);
+      return `<div class="cust-result fu-open" onclick="karPickGo('${k.id}','${mode}')">
+        <div style="min-width:0"><b>👷 ${esc(k.name)}</b><div class="hint">${n} ${t('kb_pcs')}</div></div>
+        <span style="color:var(--saffron2)">›</span></div>`;}).join(''),
+    [{label:t('close'),cls:'ghost',fn:()=>karigarBook()}]);
+}
+function karPickGo(kid,mode){_kiSel.clear();_kiTypeFilter=null;karigarIssue(kid,mode);}
+
+/* ---- period picker, shared by ledger + report ---- */
+function krRangeChips(reRender){
+  const opt=[['month','kb_range_month'],['lmonth','kb_range_lmonth'],['all','kb_range_all'],['custom','kb_range_custom']];
+  return `<div class="gtags" style="margin-bottom:10px">${opt.map(([k,lbl])=>
+    `<span class="gtag ${_krRange.key===k?'on-tag':''}" style="cursor:pointer" onclick="krSetRange('${k}','${reRender}')">${t(lbl)}</span>`).join('')}</div>
+    ${_krRange.key==='custom'?`<div class="row" style="gap:8px;margin-bottom:10px">
+      <div class="field" style="margin:0">${dateField('kr_from',_krRange.from||'')}</div>
+      <div class="field" style="margin:0">${dateField('kr_to',_krRange.to||'')}</div>
+      <button class="btn sm primary" onclick="krApplyCustom('${reRender}')">${t('rp_apply')}</button></div>`:''}`;
+}
+function krSetRange(k,reRender){
+  _krRange.key=k;
+  if(k!=='custom'){ _krRange.from=''; _krRange.to=''; }
+  krReRender(reRender);
+}
+function krApplyCustom(reRender){
+  _krRange.from=($('#kr_from')||{}).value||'';
+  _krRange.to  =($('#kr_to')  ||{}).value||'';
+  krReRender(reRender);
+}
+function krReRender(spec){
+  if(!spec)return;
+  const [fn,arg]=String(spec).split(':');
+  if(fn==='ledger')karigarLedger(arg,_krTab);
+  else karigarReport();
+}
+
+/* ============ ONE MASTER — tabbed so nothing is a long scroll ============ */
+let _krTab='hisab';
+function karigarLedger(kid,tab){
   const k=(DB.karigars||[]).find(x=>x.id===kid); if(!k)return;
-  const jobs=karJobs(kid), pays=karPays(kid);
+  _krTab=tab||_krTab||'hisab';
   const earned=karEarned(kid), paid=karPaid(kid), bal=r2(earned-paid);
-  const out=[];
+  const pays=karPays(kid), outN=karOutCount(kid), allJobs=karJobs(kid);
+  const st=karPieceStats(kid);
+
+  /* --- pieces still with him --- */
+  const outRows=[];
   (DB.orders||[]).forEach(o=>(o.items||[]).forEach(gid=>{
     if(((o.assign&&o.assign[gid])||'')!==kid)return;
     if(karRecvDate(o,gid))return;
-    const g=G(gid);
-    const iss=(o.issued&&o.issued[gid])||'';
-    out.push(`<div class="hint fu-open" onclick="closeSheet();openDetail('${o.id}')">• #${esc(o.orderNo||'—')} ${esc((g&&g.n)||'')} — ${esc(o.customerName||'')}${iss?` · ${t('ki_given_on')} ${fmtDate(iss)}`:''} <span style="color:var(--saffron2)">›</span></div>`);
+    const g=G(gid), iss=(o.issued&&o.issued[gid])||'';
+    const dl=o.deliveryDate?daysLeft(o.deliveryDate):null;
+    const late=dl!==null&&dl<0;
+    const age=iss?(-daysLeft(iss)):null;
+    outRows.push(`<div class="cust-result fu-open" style="margin-bottom:6px" onclick="closeSheet();openDetail('${o.id}')">
+      <div style="min-width:0"><b>${(g&&g.ico)||'▪'} ${esc((g&&g.n)||'')}</b>
+        <div class="hint">#${esc(o.orderNo||'—')} · ${esc(o.customerName||'')}</div>
+        <div class="hint" style="${late?'color:var(--bad)':''}">📅 ${fmtDate(o.deliveryDate)}${late?' · '+Math.abs(dl)+'d '+t('late'):''}</div>
+        ${age!==null?`<div class="hint" style="${age>=AB_STUCK?'color:var(--saffron2)':''}">${t('ab_days_with',{n:age})}</div>`:''}
+      </div><span style="color:var(--saffron2)">›</span></div>`);
   }));
-  $('#sheet').innerHTML=`<div class="grip"></div>
-    <h2 style="margin-bottom:2px">👷 ${esc(k.name)}</h2>
-    <p class="hint" style="margin-bottom:12px">${esc(k.phone||'')}</p>
-    <div class="card pos-total" style="margin-bottom:12px;padding:12px 14px">
-      <div class="il"><span>${t('kb_earned')}</span><b>${money(earned)}</b></div>
-      <div class="il"><span>${t('kb_paid')}</span><b>${money(paid)}</b></div>
-      <div class="il" style="border-bottom:0"><span><b>${t('kb_balance')}</b></span><b style="font-size:17px">${balArrow(-bal)}</b></div>
-    </div>
-    <div class="row" style="gap:8px;margin-bottom:8px">
-      <button class="btn primary" style="flex:1" onclick="_kiSel.clear();karigarIssue('${kid}','give')">📤 ${t('ki_give')}</button>
-      <button class="btn primary" style="flex:1" onclick="_kiSel.clear();karigarIssue('${kid}','take')">📥 ${t('ki_take')}</button></div>
-    <div class="row" style="gap:8px;margin-bottom:12px">
-      <button class="btn ghost" style="flex:1" onclick="karPayEntry('${kid}')">💰 ${t('kb_pay')}</button>
-      <button class="btn ghost" style="flex:1" onclick="karStatementSend('${kid}')">💬 ${t('ki_send_hisab')}</button></div>
-    ${out.length?`<div class="section-h">${t('kb_out_now')} (${out.length})</div>${out.join('')}`:''}
-    <div class="section-h">${t('kb_submitted')} (${jobs.length})</div>
-    ${jobs.slice(0,40).map(j=>`<div class="cust-result" style="margin-bottom:6px">
+
+  /* --- item-wise pieces made in the chosen period (his main ask) --- */
+  const hisab=`${krRangeChips('ledger:'+kid)}
+    <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
+      <div class="il"><span>${t('kb_pieces_made')}</span><b style="font-size:18px">${st.totalN} ${t('kb_pcs')}</b></div>
+      <div class="il"><span>${t('kb_earned')}</span><b>${money(st.totalAmt)}</b></div>
+      <div class="il" style="border-bottom:0"><span>${t('kb_avg_rate')}</span>
+        <b>${st.totalN?money(r2(st.totalAmt/st.totalN)):'—'}</b></div></div>
+    ${st.rows.length?`<div class="section-h" style="margin-top:0">${t('kb_by_item')}</div>
+    <div class="card" style="padding:0">${st.rows.map(r=>`<div class="krow">
+      <span class="kpc">${r.n}</span>
+      <span class="kn">${r.ico} ${esc(r.nm)}</span>
+      <b>${money(r.amt)}</b></div>`).join('')}</div>`
+    :`<p class="hint" style="padding:14px 0;text-align:center">${t('kb_no_pieces')}</p>`}`;
+
+  const made=`${allJobs.length?allJobs.slice(0,60).map(j=>`<div class="cust-result" style="margin-bottom:6px">
       <div style="min-width:0"><b>${esc(j.label)}</b><div class="hint">${esc(j.who)} · ${fmtDate(j.date)}</div></div>
-      <b>${money(j.amt)}</b></div>`).join('')||`<p class="hint">${t('kb_none_sub')}</p>`}
-    <div class="section-h">${t('kb_payments')} (${pays.length})</div>
-    ${pays.map(p=>`<div class="cust-result" style="margin-bottom:6px">
+      <b>${money(j.amt)}</b></div>`).join('')
+    :`<p class="hint" style="padding:14px 0;text-align:center">${t('kb_none_sub')}</p>`}`;
+
+  const payList=`${pays.length?pays.map(p=>`<div class="cust-result" style="margin-bottom:6px">
       <div style="min-width:0"><b>${money(p.amt)}${p.settled>0?` <span class="hint">+ ${money(p.settled)} ${t('kb_settled')}</span>`:''}</b>
         <div class="hint">${fmtDate(p.date)}${p.note?' · '+esc(p.note):''}</div></div>
-      <button class="btn sm danger" onclick="karPayDel('${p.id}')">✕</button></div>`).join('')||`<p class="hint">${t('kb_none_pay')}</p>`}
+      <button class="btn sm danger" onclick="karPayDel('${p.id}')">✕</button></div>`).join('')
+    :`<p class="hint" style="padding:14px 0;text-align:center">${t('kb_none_pay')}</p>`}`;
+
+  const body = _krTab==='out'  ? (outRows.join('')||`<p class="hint" style="padding:14px 0;text-align:center">${t('kb_nothing_out')}</p>`)
+             : _krTab==='made' ? made
+             : _krTab==='pays' ? payList
+             : hisab;
+
+  const tabs=[['hisab','kb_tab_hisab',''],['out','kb_tab_out',outN?' ('+outN+')':''],
+              ['made','kb_tab_made',allJobs.length?' ('+allJobs.length+')':''],
+              ['pays','kb_tab_pays',pays.length?' ('+pays.length+')':'']];
+
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:2px">
+      <h2 style="margin:0">👷 ${esc(k.name)}</h2>
+      ${k.phone?`<button class="btn sm ghost" onclick="callNum('${esc(k.phone)}')">📞</button>`:''}</div>
+    <p class="hint">${esc(k.phone||'')}</p>
+    <div class="card pos-total" style="margin:10px 0 0;padding:12px 14px">
+      <div class="il"><span>${t('kb_earned')}</span><b>${money(earned)}</b></div>
+      <div class="il"><span>${t('kb_paid')}</span><b>${money(paid)}</b></div>
+      <div class="il" style="border-bottom:0"><span><b>${t('kb_balance')}</b></span>
+        <b style="font-size:17px">${balArrow(-bal)}</b></div></div>
+    <div class="row" style="gap:8px;margin-top:10px">
+      <button class="btn primary" style="flex:1" onclick="_kiSel.clear();_kiTypeFilter=null;karigarIssue('${kid}','give')">📤 ${t('ki_give')}</button>
+      <button class="btn primary" style="flex:1" onclick="_kiSel.clear();_kiTypeFilter=null;karigarIssue('${kid}','take')">📥 ${t('ki_take')}</button></div>
+    <div class="row" style="gap:8px;margin-top:8px">
+      <button class="btn ghost" style="flex:1" onclick="karPayEntry('${kid}')">💰 ${t('kb_pay')}</button>
+      <button class="btn ghost" style="flex:1" onclick="karStatementSend('${kid}')">💬 ${t('ki_send_hisab')}</button></div>
+    <div class="ktabs">${tabs.map(([id,lbl,sfx])=>
+      `<div class="ktab ${_krTab===id?'on':''}" onclick="karigarLedger('${kid}','${id}')">${t(lbl)}${sfx}</div>`).join('')}</div>
+    ${body}
     <div class="modal-actions"><button class="btn ghost block" onclick="karigarBook()">${t('back')}</button></div>
     <div class="fab-pad"></div>`;
   showSheet();
 }
+
+/* ============ ALL MASTERS, ITEM-WISE — one report ============ */
+function karigarReport(){
+  const ks=DB.karigars||[];
+  const per=ks.map(k=>({k,st:karPieceStats(k.id)}))
+    .sort((a,b)=>b.st.totalN-a.st.totalN||b.st.totalAmt-a.st.totalAmt);
+  const grand={n:0,amt:0}, byItem={};
+  per.forEach(({st})=>{ grand.n+=st.totalN; grand.amt+=st.totalAmt;
+    st.rows.forEach(r=>{ byItem[r.id]=byItem[r.id]||{...r,n:0,amt:0};
+      byItem[r.id].n+=r.n; byItem[r.id].amt+=r.amt; }); });
+  const itemRows=Object.values(byItem).sort((a,b)=>b.n-a.n);
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin-bottom:4px">📊 ${t('kb_report')}</h2>
+    <p class="hint" style="margin-bottom:10px">${t('kb_report_sub')}</p>
+    ${krRangeChips('report')}
+    <p class="hint" style="margin:-4px 0 10px">${t('kb_period')}: <b>${krRangeLabel()}</b></p>
+    <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
+      <div class="il"><span>${t('kb_pieces_made')}</span><b style="font-size:18px">${grand.n} ${t('kb_pcs')}</b></div>
+      <div class="il" style="border-bottom:0"><span>${t('kb_earned')}</span><b>${money(r2(grand.amt))}</b></div></div>
+    ${itemRows.length?`<div class="section-h" style="margin-top:0">${t('kb_by_item')}</div>
+    <div class="card" style="padding:0;margin-bottom:12px">${itemRows.map(r=>`<div class="krow">
+      <span class="kpc">${r.n}</span><span class="kn">${r.ico} ${esc(r.nm)}</span>
+      <b>${money(r2(r.amt))}</b></div>`).join('')}</div>`:''}
+    <div class="section-h">👷 ${t('karigar_master')}</div>
+    ${per.map(({k,st})=>`<div class="card fu-open" style="margin-bottom:8px;padding:12px 14px" onclick="karigarLedger('${k.id}','hisab')">
+      <div class="kv"><div style="min-width:0;flex:1">
+        <b>👷 ${esc(k.name)}</b>
+        <div class="hint" style="margin-top:2px">${st.rows.length?st.rows.map(r=>`${r.ico} ${esc(r.nm)} ${r.n}`).join(' · '):t('kb_no_pieces')}</div>
+      </div><div style="text-align:right;flex:0 0 auto">
+        <b style="font-size:17px;color:var(--saffron2)">${st.totalN}</b>
+        <div class="hint">${t('kb_pcs')} · ${money(st.totalAmt)}</div></div></div></div>`).join('')
+      ||`<p class="hint">${t('no_karigars')}</p>`}
+    <div class="modal-actions"><button class="btn ghost block" onclick="karigarBook()">${t('back')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+
 /* ---- Saturday settlement ---- */
 function karPayEntry(kid){
   const bal=karBalance(kid);
