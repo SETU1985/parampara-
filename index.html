@@ -414,7 +414,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v96</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v98</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -544,7 +544,7 @@ const T={
   add_type:'Add type',
   type_ph:'Type body type (e.g. Slim)',
   gc_more:'More', gc_less:'Less',
-  it_extras:'Voice note · Photo', ord_extras:'Order notes · Voice · Photo', hide_x:'Hide',
+  it_extras:'Voice note · Photo', ord_extras:'Notes · Source · Voice · Photo', hide_x:'Hide',
   bp_title:'Body photos', bp_front:'Front', bp_side:'Side', bp_back:'Back',
   bp_hint:'Capture front / side / back once — the body shape then appears on every order.',
   add_meas:'Add measurement',
@@ -1113,6 +1113,12 @@ const T={
   su_need_name:'Please enter your shop name',
   mod_off:'That section is switched off in Settings',
   kb_title:'Karigar Ledger',
+  qc_label:'Quality check', qc_mark:'Mark as checked', qc_done:'Checked', qc_undone:'quality check removed',
+  ab_qc:'Ready — quality check pending', ab_qc_sub:'These pieces are ready but have not been checked yet.',
+  src_title:'How did they hear about us?', src_add:'Add source', src_ph:'e.g. Exhibition, Facebook',
+  src_who:'Referred by (name)', src_who_ph:'Name of the person who referred them',
+  src_report:'Where the business came from', src_report_hint:'Orders and value by enquiry source.',
+  src_unknown:'Not recorded',
   ql_title:'Lengths', ql_editing:'open below', it_nav_prev:'Previous item', it_nav_next:'Next item',
   dsp_title:'Delivery', dsp_shop:'Collect from shop', dsp_courier:'Courier',
   dsp_city:'City / town', dsp_city_ph:'Patna, Siliguri, Kathmandu…',
@@ -2177,6 +2183,12 @@ const T={
   su_need_name:'दुकान का नाम भरें',
   mod_off:'यह हिस्सा सेटिंग्स में बंद है',
   kb_title:'कारीगर हिसाब',
+  qc_label:'क्वालिटी चेक', qc_mark:'चेक हुआ मार्क करें', qc_done:'चेक हो गया', qc_undone:'क्वालिटी चेक हटाया',
+  ab_qc:'तैयार — क्वालिटी चेक बाकी', ab_qc_sub:'ये पीस तैयार हैं पर अभी चेक नहीं हुए।',
+  src_title:'हमारे बारे में कैसे पता चला?', src_add:'ज़रिया जोड़ें', src_ph:'जैसे एग्ज़ीबिशन, फेसबुक',
+  src_who:'किसने भेजा (नाम)', src_who_ph:'जिसने रेफर किया उसका नाम',
+  src_report:'बिज़नेस कहाँ से आया', src_report_hint:'ज़रिये के हिसाब से ऑर्डर और क़ीमत।',
+  src_unknown:'दर्ज नहीं',
   ql_title:'लंबाई', ql_editing:'नीचे खुला है', it_nav_prev:'पिछला आइटम', it_nav_next:'अगला आइटम',
   dsp_title:'डिलीवरी', dsp_shop:'दुकान से लेंगे', dsp_courier:'कूरियर',
   dsp_city:'शहर', dsp_city_ph:'पटना, सिलीगुड़ी, काठमांडू…',
@@ -2634,6 +2646,7 @@ const GARMENTS=[
   {id:'shirt',n:'Shirt',cat:'upper',ico:'👔'},{id:'jacket',n:'Jacket',cat:'upper',ico:'🧥',skip:['SL','Bi']},
   {id:'indo',n:'Indo-Western',cat:'upper',ico:'🪔'},{id:'sherwani',n:'Sherwani',cat:'upper',ico:'👑'},
   {id:'kurta',n:'Kurta',cat:'upper',ico:'🕴️'},
+  {id:'jodhpuri',n:'Jodhpuri',cat:'upper',ico:'🏇'},{id:'bandi',n:'Bandi',cat:'upper',ico:'🦺',skip:['SL','Bi']},
   {id:'pant',n:'Pant',cat:'lower',ico:'👖'},{id:'pyjama',n:'Pyjama',cat:'lower',ico:'🩳'},{id:'churidar',n:'Churidar',cat:'lower',ico:'🦵'}
 ];
 function allItems(){return GARMENTS.concat(DB.customItems||[]);}
@@ -2725,8 +2738,30 @@ function load(raw){ try{const r=(raw!==undefined&&raw!==null)?raw:localStorage.g
   else if(DB.shopInfo.terms==='Thanks for doing business with us!'){DB.shopInfo.terms='1. Fitting/measurement issues must be pointed out at the trial stage; once stitching is finalised and the garment is delivered, it is considered accepted — fit-related returns or exchanges will not be entertained.\n2. Goods must be collected within 30 days of the confirmed delivery date. We are not responsible for goods not collected within this period.\n3. Once goods leave the shop, we are not responsible for any damage, loss, or discrepancy.\n4. Full and final payment is required before delivery of goods.\n5. Kindly call and confirm your appointment before visiting for delivery. Delivery may not be given without prior confirmation.\n6. For any queries, please contact our salesman (number mentioned above).\n7. Subject to Kolkata jurisdiction only.';}
   if(DB.customItems===undefined) DB.customItems=[
     {id:'ci_safa',n:'Safa',ico:'👳',cat:'custom',fields:[{k:'f_head',n:'Head',type:'number',options:[]}]},
-    {id:'ci_juti',n:'Juti',ico:'👞',cat:'custom',fields:[{k:'f_type',n:'Type',type:'select',options:['Nagra','Loafer','Mojari']},{k:'f_size',n:'Size',type:'number',options:[]}]}
+    {id:'ci_juti',n:'Juti',ico:'👞',cat:'custom',fields:[{k:'f_type',n:'Type',type:'select',options:['Nagra','Loafer','Mojari']},{k:'f_size',n:'Size',type:'number',options:[]}]},
+    {id:'ci_dupatta',n:'Dupatta',ico:'🧣',cat:'custom',fields:[{k:'f_len',n:'Length',type:'number',options:[]}]},
+    {id:'ci_gotjoda',n:'Gotjoda',ico:'🪢',cat:'custom',fields:[]},
+    {id:'ci_kamarbandh',n:'Kamarbandh',ico:'🎗️',cat:'custom',fields:[{k:'f_waist',n:'Waist',type:'number',options:[]}]},
+    {id:'ci_mala',n:'Mala',ico:'📿',cat:'custom',fields:[]},
+    {id:'ci_brooch',n:'Brooch',ico:'📌',cat:'custom',fields:[]}
   ];
+  // accessories that ship with the app: add any that a shop's list is missing, without
+  // touching what they have renamed, re-iconed or added themselves
+  const DEFAULT_ACC=[
+    {id:'ci_dupatta',n:'Dupatta',ico:'🧣',cat:'custom',fields:[{k:'f_len',n:'Length',type:'number',options:[]}]},
+    {id:'ci_gotjoda',n:'Gotjoda',ico:'🪢',cat:'custom',fields:[]},
+    {id:'ci_kamarbandh',n:'Kamarbandh',ico:'🎗️',cat:'custom',fields:[{k:'f_waist',n:'Waist',type:'number',options:[]}]},
+    {id:'ci_mala',n:'Mala',ico:'📿',cat:'custom',fields:[]},
+    {id:'ci_brooch',n:'Brooch',ico:'📌',cat:'custom',fields:[]}
+  ];
+  DB.customItems=DB.customItems||[];
+  DEFAULT_ACC.forEach(d=>{
+    const have=DB.customItems.some(x=>x.id===d.id) ||
+      DB.customItems.some(x=>String(x.n||'').trim().toLowerCase()===d.n.toLowerCase());
+    if(!have)DB.customItems.push(JSON.parse(JSON.stringify(d)));
+  });
+  // every item must carry an icon — a blank one looks unfinished next to the rest
+  DB.customItems.forEach(x=>{ if(!x.ico)x.ico='✨'; });
   (DB.orders||[]).forEach(migratePayments);
   (DB.alterations||[]).forEach(migratePayments);
   (DB.sales||[]).forEach(migratePayments);
@@ -5024,6 +5059,12 @@ function orderReports(){
   const prods=Object.entries(prod).sort((a,b)=>b[1].n-a[1].n);
   const totPieces=prods.reduce((s,[,v])=>s+v.n,0);
 
+  // where the business came from
+  const src={};
+  all.forEach(o=>{const k=(o.source||'').trim()||t('src_unknown');
+    src[k]=src[k]||{n:0,v:0}; src[k].n++; src[k].v=r2(src[k].v+orderTotal(o));});
+  const srcs=Object.entries(src).sort((a,b)=>b[1].n-a[1].n);
+
   // month by month
   const months={};
   all.forEach(o=>{const d=(o.orderDate||(o.created||'').slice(0,10)).slice(0,7);
@@ -5071,6 +5112,16 @@ function orderReports(){
         <div class="gr-bar" style="margin-top:5px"><div class="gr-fill" style="width:${Math.round(v.n/prods[0][1].n*100)}%"></div></div>
         <div class="kv" style="margin-top:3px"><span class="hint">${t('or_ready')}: ${v.done}</span>
           <span class="hint">${t('or_left')}: ${v.n-v.done}</span></div></div>`).join('')}
+    </div>`:`<p class="hint" style="margin-bottom:14px">${t('stat_none')}</p>`}
+
+    <div class="section-h">📣 ${t('src_report')}</div>
+    <p class="hint" style="margin:0 0 8px">${t('src_report_hint')}</p>
+    ${srcs.length?`<div class="card" style="margin-bottom:14px">
+      ${srcs.map(([n,v])=>`<div style="padding:9px 0;border-bottom:1px solid var(--line)">
+        <div class="kv"><b>${esc(n)}</b><b style="color:var(--saffron2)">${v.n}</b></div>
+        <div class="gr-bar" style="margin-top:5px"><div class="gr-fill" style="width:${Math.round(v.n/srcs[0][1].n*100)}%"></div></div>
+        <div class="kv" style="margin-top:3px"><span class="hint">${t('or_value')}</span>
+          <span class="hint">${money(v.v)}</span></div></div>`).join('')}
     </div>`:`<p class="hint" style="margin-bottom:14px">${t('stat_none')}</p>`}
 
     <div class="section-h">📅 ${t('or_month')}</div>
@@ -5806,10 +5857,11 @@ function abBuckets(){
   const noKar  =p.filter(x=>notReady(x)&&!x.kid);
   const stuck  =p.filter(x=>!x.recv&&x.kid&&x.issued&&daysLeft(x.issued)!==null&&(-daysLeft(x.issued))>=AB_STUCK);
   const payable=r2((DB.karigars||[]).reduce((s,k)=>s+karBalance(k.id),0));
+  const qcDue=p.filter(x=>x.st==='ready' && !((x.o.qc||{})[x.gid]));
   const courier=(DB.orders||[]).filter(o=>isCourier(o)&&!courierSent(o)&&!orderDelivered(o)&&orderAllReady(o))
     .map(o=>({o,gid:(o.items||[])[0],g:G((o.items||[])[0]),st:'ready',kid:'',issued:'',recv:'',
       dl:o.deliveryDate?daysLeft(o.deliveryDate):null}));
-  return {late,soon,noKar,stuck,payable,courier,
+  return {late,soon,noKar,stuck,payable,courier,qcDue,
     sort:a=>a.slice().sort((x,y)=>String(x.o.deliveryDate||'9999').localeCompare(String(y.o.deliveryDate||'9999')))};
 }
 function abRowHTML(x,showAge){
@@ -5833,6 +5885,7 @@ function actionBoardHTML(){
     + row('🟠',t('ab_soon',{n:AB_SOON}),b.soon.length,'soon','var(--saffron2)')
     + row('⚠️',t('ab_nokar'),b.noKar.length,'nokar','')
     + row('⏳',t('ab_stuck',{n:AB_STUCK}),b.stuck.length,'stuck','')
+    + row('🔍',t('ab_qc'),b.qcDue.length,'qc','')
     + (b.courier.length?`<div class="krow fu-open" onclick="courierHub()">
         <span class="kpc">${b.courier.length}</span>
         <span class="kn">📦 ${t('ab_courier')}</span><span style="color:var(--saffron2)">›</span></div>`:'')
@@ -5851,7 +5904,8 @@ function actionList(kind){
   const map={late:['🔴',t('ab_late'),b.late,false],
              soon:['🟠',t('ab_soon',{n:AB_SOON}),b.soon,false],
              nokar:['⚠️',t('ab_nokar'),b.noKar,false],
-             stuck:['⏳',t('ab_stuck',{n:AB_STUCK}),b.stuck,true]};
+             stuck:['⏳',t('ab_stuck',{n:AB_STUCK}),b.stuck,true],
+             qc:['🔍',t('ab_qc'),b.qcDue,false]};
   const [ico,title,list,age]=map[kind]||map.late;
   const rows=b.sort(list).map(x=>abRowHTML(x,age)).join('')
     ||`<p class="hint" style="padding:20px 0;text-align:center">${t('ab_none')}</p>`;
@@ -5958,6 +6012,34 @@ function custStatusSend(cid){
    goes back by courier. In season nobody can remember whose parcel is still sitting in
    the shop, so courier is marked on the order itself and then worked from one screen:
    what is still to send, what has gone, with the tracking number kept on the order. */
+/* Where the customer came from. His own order sheet already carried this in the
+   remarks column — BNI, a referrer's name, "repeat" — which is the most useful
+   marketing information the shop produces, so it gets a real field and a real report. */
+const SRC_DEFAULTS=['Walk-in','Repeat customer','Referral','BNI','Instagram','Google'];
+function srcOptions(){
+  const used=(DB.orders||[]).map(o=>o.source).filter(Boolean);
+  return [...new Set(SRC_DEFAULTS.concat(DB.sources||[]).concat(used))];
+}
+function setSource(v){
+  _sheetScroll=$('#sheet')?$('#sheet').scrollTop:0;
+  captureForm();
+  form.source=(form.source===v)?'':v;
+  _ordX=true;                       // it lives inside the extras fold — keep that open
+  renderForm();
+}
+function addSource(){
+  _sheetScroll=$('#sheet')?$('#sheet').scrollTop:0;
+  captureForm();
+  const list=(DB.sources||[]);
+  modal('📣 '+t('src_add')+' / '+t('ml_manage'),
+    `<input id="srcNew" placeholder="${t('src_ph')}" autocomplete="off">`
+    + (list.length?list.map((x,i)=>`<div class="kv"><span>${esc(x)}</span><span onclick="delSource(${i})" style="color:#d9534f;cursor:pointer">🗑️</span></div>`).join(''):''),
+    [{label:t('cancel'),cls:'ghost',fn:()=>renderForm()},
+     {label:t('add'),cls:'primary',fn:()=>{const v=($('#srcNew')||{}).value.trim(); if(!v){renderForm();return;}
+       DB.sources=DB.sources||[]; if(!DB.sources.includes(v))DB.sources.push(v);
+       form.source=v; _ordX=true; save(); renderForm();}}]);
+}
+function delSource(i){ if(DB.sources){DB.sources.splice(i,1);save();} addSource(); }
 function setDispatch(mode){
   _sheetScroll=$('#sheet')?$('#sheet').scrollTop:0;
   captureForm();
@@ -6708,10 +6790,11 @@ function openOrderForm(editId){
       notes:o.notes||'',total:o.total,advance:o.advance,photos:[...(o.photos||[])],voiceNotes:JSON.parse(JSON.stringify(o.voiceNotes||[])),
       itemPhotos:JSON.parse(JSON.stringify(o.itemPhotos||{})),itemVoice:JSON.parse(JSON.stringify(o.itemVoice||{})),bodyType:Array.isArray(o.bodyType)?[...o.bodyType]:(o.bodyType?[o.bodyType]:[]),
       dispatch:o.dispatch?JSON.parse(JSON.stringify(o.dispatch)):null,
+      source:o.source||'', sourceRef:o.sourceRef||'',
       members:JSON.parse(JSON.stringify(o.members||[]))};
   }else{
     form={editId:null,orderNo:nextOrderNo(),customerId:null,customerName:'',phone:'',salesmanId:'',
-      orderDate:new Date().toISOString().slice(0,10),deliveryDate:'',items:[],m:{},design:{},variant:{},notes:'',total:'',advance:'',photos:[],voiceNotes:[],itemPhotos:{},itemVoice:{},bodyType:[],members:[],dispatch:null};
+      orderDate:new Date().toISOString().slice(0,10),deliveryDate:'',items:[],m:{},design:{},variant:{},notes:'',total:'',advance:'',photos:[],voiceNotes:[],itemPhotos:{},itemVoice:{},bodyType:[],members:[],dispatch:null,source:'',sourceRef:''};
   }
   form._did = form._did || ('d'+uid());
   _gcMore={}; _xOpen={}; _ordX=false;
@@ -7026,7 +7109,13 @@ function renderForm(){
       </div></div>
     ${(()=>{const nn=(f.notes||'').trim()?1:0, vc=(f.voiceNotes||[]).length, pc=(f.photos||[]).length;
       if(!_ordX)return `<button class="btn ghost block" style="margin-top:4px" onclick="ordXToggle()">📎 ${t('ord_extras')}${nn?' · 📝 ✓':''}${vc?` · 🎙️ ${vc}`:''}${pc?` · 📷 ${pc}`:''} ▾</button>`;
-      return `<div class="field"><label>${t('order_notes')} ${micBtn('#f_notes')}</label><textarea id="f_notes" placeholder="${t('notes_ph')}">${esc(f.notes)}</textarea></div>
+      return `<div class="section-h" style="margin-top:0">📣 ${t('src_title')}</div>
+    <div class="gtags" style="margin-bottom:8px">${srcOptions().map(o=>
+      `<span class="gtag ${(f.source||'')===o?'on-tag':''}" style="cursor:pointer" onclick="setSource('${esc(o)}')">${esc(o)}</span>`).join('')}
+      <span class="gtag" style="cursor:pointer;border-style:dashed" onclick="addSource()">➕ ${t('src_add')}</span></div>
+    ${f.source?`<div class="field"><label>${t('src_who')}</label>
+      <input id="f_srcRef" value="${esc(f.sourceRef||'')}" placeholder="${t('src_who_ph')}"></div>`:''}
+    <div class="field"><label>${t('order_notes')} ${micBtn('#f_notes')}</label><textarea id="f_notes" placeholder="${t('notes_ph')}">${esc(f.notes)}</textarea></div>
     <div class="section-h">${t('voice_notes')}</div>${voiceSection('vn')}
     <div class="field"><label>${t('photo_label')}</label><div id="f_photos" style="display:flex;gap:8px;flex-wrap:wrap"></div>
       <div class="row" style="margin-top:8px"><button class="btn sm ghost" onclick="pickPhoto('cam')">📷 ${t('camera')}</button><button class="btn sm ghost" onclick="pickPhoto('lib')">🖼️ ${t('gallery')}</button></div></div>
@@ -7135,6 +7224,7 @@ function captureForm(){const f=form;
   if($('#f_ono'))f.orderNo=$('#f_ono').value.trim(); if($('#f_ddate'))f.deliveryDate=$('#f_ddate').value;
   if($('#f_sm'))f.salesmanId=$('#f_sm').value;
   if($('#f_notes'))f.notes=$('#f_notes').value;
+  if($('#f_srcRef'))f.sourceRef=$('#f_srcRef').value.trim();
   if(f.dispatch&&f.dispatch.mode==='courier'){
     if($('#f_dspCity'))f.dispatch.city=$('#f_dspCity').value.trim();
     if($('#f_dspAddr'))f.dispatch.addr=$('#f_dspAddr').value.trim();
@@ -7376,11 +7466,11 @@ function saveOrder(){
   f.items.forEach(key=>{const gid=garmentOf(key);const toks=(f.design[key]||'').split('/').map(s=>s.trim()).filter(Boolean);
     if(toks.length){DB.designLib[gid]=DB.designLib[gid]||[];toks.forEach(tk=>{if(!DB.designLib[gid].includes(tk))DB.designLib[gid].push(tk);});if(DB.designLib[gid].length>24)DB.designLib[gid]=DB.designLib[gid].slice(-24);}});
   if(f.editId){const o=DB.orders.find(x=>x.id===f.editId);
-    Object.assign(o,{orderNo:f.orderNo,customerId:c.id,customerName:c.name,phone:c.phone,salesmanId:f.salesmanId||'',orderDate:f.orderDate,deliveryDate:f.deliveryDate,items:f.items,m:f.m,design:f.design,variant:f.variant||{},notes:f.notes,total:f.total,advance:f.advance,photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,bodyType:f.bodyType,dispatch:f.dispatch||null,members:(f.members||[]).filter(m=>m.id!=='' )});
+    Object.assign(o,{orderNo:f.orderNo,customerId:c.id,customerName:c.name,phone:c.phone,salesmanId:f.salesmanId||'',orderDate:f.orderDate,deliveryDate:f.deliveryDate,items:f.items,m:f.m,design:f.design,variant:f.variant||{},notes:f.notes,total:f.total,advance:f.advance,photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,bodyType:f.bodyType,dispatch:f.dispatch||null,source:f.source||'',sourceRef:f.sourceRef||'',members:(f.members||[]).filter(m=>m.id!=='' )});
     clearDraft();save(o.id);closeSheet();toast(t('t_updated'),'ok');openDetail(o.id);
   }else{const o={id:uid(),created:new Date().toISOString(),orderNo:f.orderNo,customerId:c.id,customerName:c.name,phone:c.phone,salesmanId:f.salesmanId||'',
       members:(f.members||[]).filter(m=>m.id!==''),
-      orderDate:f.orderDate,deliveryDate:f.deliveryDate,items:f.items,m:f.m,design:f.design,variant:f.variant||{},notes:f.notes,total:f.total,advance:f.advance,payments:(+f.advance>0?[{amt:+f.advance,date:f.orderDate||new Date().toISOString().slice(0,10)}]:[]),photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,bodyType:f.bodyType,dispatch:f.dispatch||null,
+      orderDate:f.orderDate,deliveryDate:f.deliveryDate,items:f.items,m:f.m,design:f.design,variant:f.variant||{},notes:f.notes,total:f.total,advance:f.advance,payments:(+f.advance>0?[{amt:+f.advance,date:f.orderDate||new Date().toISOString().slice(0,10)}]:[]),photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,bodyType:f.bodyType,dispatch:f.dispatch||null,source:f.source||'',sourceRef:f.sourceRef||'',
       status:'new',itemStatus:(function(){const o={};f.items.forEach(g=>o[g]='new');return o;})(),log:[{id:uid(),ts:new Date().toISOString(),text:t('t_status',{s:sLabel('new')}),voiceId:null}]};
     DB.orders.push(o);clearDraft();save(o.id);closeSheet();toast(t('t_created',{n:o.orderNo}),'ok');
     go('orders');
@@ -7498,6 +7588,12 @@ async function openDetail(id,focusGid){
     const ist=itemStatusOf(o,gid);
     const selStyle='flex:1;background:var(--bg2);border:1px solid var(--line);color:var(--txt);padding:9px 10px;border-radius:var(--r2);font-size:15px';
     const sStat=`<div class="row" style="margin-top:8px;align-items:center;gap:8px"><span class="hint">📍 ${t('status')}</span><select id="stsel_${cssId(gid)}" onchange="setItemStatus('${o.id}','${gid}',this.value)" style="${selStyle}">${STATUS.map(s=>`<option value="${s}" ${s===ist?'selected':''}>${sLabel(s)}</option>`).join('')}</select></div>`;
+    const qcOn=!!((o.qc||{})[gid]);
+    const sQc=(ist==='ready'||ist==='delivered')?`<div class="row" style="margin-top:8px;align-items:center;gap:8px">
+      <span class="hint">🔍 ${t('qc_label')}</span>
+      <span style="flex:1">${qcOn
+        ? `<b style="color:var(--ok)">${t('qc_done')}</b> <button class="btn sm ghost" style="margin-left:8px" onclick="setItemQC('${o.id}','${gid}',false)">✕</button>`
+        : `<button class="btn sm primary" onclick="setItemQC('${o.id}','${gid}',true)">${t('qc_mark')}</button>`}</span></div>`:'';
     const kid=(o.assign&&o.assign[gid])||'';
     const kopts=`<option value="">${t('karigar_none')}</option>`+(DB.karigars||[]).map(k=>`<option value="${k.id}" ${k.id===kid?'selected':''}>${esc(k.name)}</option>`).join('');
     const rdate=karRecvDate(o,gid), ramt=karRateFor(o,gid);
@@ -7514,6 +7610,7 @@ async function openDetail(id,focusGid){
     return `<div class="mcard"><div class="mh"><b>${g.ico} ${esc(itemTitle(o,gid))}${_who?` <span class="who-tag">${esc(_who)}</span>`:''}</b><span class="pill st-${ist}" id="pill_${cssId(gid)}">${sLabel(ist)}</span></div><div class="mb">
       <div class="gtags">${cells||'<span class="hint">—</span>'}</div>${dn}
       ${sStat}
+      ${sQc}
       ${ksel}
       <div class="media-row" id="dip_${gid}" style="margin-top:8px"></div>
       <div id="div_${gid}" style="margin-top:4px"></div>
@@ -10556,6 +10653,17 @@ function focusItem(oid,gid){openDetail(oid,gid);}
 function waReady(id){const o=DB.orders.find(x=>x.id===id);if(!o)return;
   const txt=`Namaste ${o.customerName} ji 🙏\n\nWe are pleased to inform you that your order (#${o.orderNo}) is ready.\n\nPARAMPARA`;
   waSend(o.phone,txt);}
+/* Quality check is a step AFTER the piece is ready — his own order sheet tracks
+   READY and QC PENDING as two different things, and a ready piece can still fail. */
+function setItemQC(oid,gid,on){
+  const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
+  o.qc=o.qc||{};
+  if(on)o.qc[gid]=todayISO(); else delete o.qc[gid];
+  o.log=o.log||[]; const g=G(gid);
+  o.log.push({id:uid(),ts:new Date().toISOString(),
+    text:(g?g.n+': ':'')+(on?t('qc_done'):t('qc_undone')),voiceId:null});
+  save(o.id); openDetail(oid);
+}
 function setItemStatus(oid,gid,s){const o=DB.orders.find(x=>x.id===oid);if(!o)return;  o.itemStatus=o.itemStatus||{}; if(o.itemStatus[gid]===s)return; o.itemStatus[gid]=s;
   const _wasCut = (s==='cut') && !((o.cost&&o.cost[gid]&&(o.cost[gid].cuts||[]).length));
   const g=G(gid); o.log=o.log||[];
