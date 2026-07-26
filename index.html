@@ -403,7 +403,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v88</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v92</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -412,7 +412,7 @@
   </div>
   <div class="searchbar" id="searchWrap">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg>
-    <input id="search" oninput="renderOrders()">
+    <input id="search" oninput="pageReset('orders');renderOrders()">
   </div>
 </header>
 
@@ -1102,6 +1102,13 @@ const T={
   su_need_name:'Please enter your shop name',
   mod_off:'That section is switched off in Settings',
   kb_title:'Karigar Ledger',
+  sf_title:'Data safety', sf_evict_yes:'Storage is protected — the browser will not clear it',
+  sf_evict_no:'The browser may clear this data — keep taking backups',
+  sf_snaps:'{n} automatic restore points on this device',
+  sf_last:'Last backup {n} days ago', sf_never:'No backup taken yet',
+  sf_note:'Restore points live on this device only. A backup file kept somewhere else is what protects you if the device is lost.',
+  rec_used:'The latest copy could not be read — restored from the {src} copy. Please check your recent entries.',
+  pg_more:'Show {n} more', pg_left:'{n} left',
   bk_stored:'Data stored', bk_files:'files', bk_progress:'{a} of {b} files', bk_cancelled:'Backup cancelled',
   t_backup_ok:'Backup saved',
   rb_title:'Readymade — Bulk Entry',
@@ -2142,6 +2149,13 @@ const T={
   su_need_name:'दुकान का नाम भरें',
   mod_off:'यह हिस्सा सेटिंग्स में बंद है',
   kb_title:'कारीगर हिसाब',
+  sf_title:'डेटा सुरक्षा', sf_evict_yes:'स्टोरेज सुरक्षित है — ब्राउज़र इसे मिटाएगा नहीं',
+  sf_evict_no:'ब्राउज़र यह डेटा मिटा सकता है — बैकअप लेते रहें',
+  sf_snaps:'इस डिवाइस पर {n} अपने-आप बने रिस्टोर पॉइंट',
+  sf_last:'पिछला बैकअप {n} दिन पहले', sf_never:'अभी तक कोई बैकअप नहीं',
+  sf_note:'रिस्टोर पॉइंट सिर्फ़ इसी डिवाइस पर हैं। डिवाइस खो जाए तो बाहर रखी बैकअप फ़ाइल ही बचाती है।',
+  rec_used:'नई कॉपी पढ़ी नहीं जा सकी — {src} कॉपी से डेटा वापस लिया गया। कृपया हाल की एंट्री जाँच लें।',
+  pg_more:'{n} और दिखाएँ', pg_left:'{n} बाकी',
   bk_stored:'सेव डेटा', bk_files:'फ़ाइलें', bk_progress:'{b} में से {a} फ़ाइलें', bk_cancelled:'बैकअप रद्द हुआ',
   t_backup_ok:'बैकअप सेव हो गया',
   rb_title:'रेडीमेड — एक साथ कई',
@@ -2637,7 +2651,7 @@ const commonFor=c=>c==='lower'?LOWER_COMMON:(c==='upper'?UPPER_COMMON:[]);
 /* ---- state ---- */
 let DB={orders:[],customers:[]}, form=null, detailId=null, altForm=null, altDetailId=null, invForm=null;
 
-function load(){ try{const r=localStorage.getItem('pb_ob_v1'); if(r)DB=JSON.parse(r);}catch(e){}
+function load(raw){ try{const r=(raw!==undefined&&raw!==null)?raw:localStorage.getItem('pb_ob_v1'); if(r)DB=JSON.parse(r);}catch(e){}
   if(!DB.orders)DB.orders=[]; if(!DB.customers)DB.customers=[]; if(!DB.designLib)DB.designLib={}; if(!DB.karigars)DB.karigars=[]; if(!DB.bodyTypes)DB.bodyTypes=[]; if(!DB.measLib)DB.measLib={}; if(!DB.alterations)DB.alterations=[]; if(!DB.salesmen)DB.salesmen=[]; if(!DB.sales)DB.sales=[]; if(!DB.purchases)DB.purchases=[]; if(!DB.salesReturns)DB.salesReturns=[]; if(!DB.purchaseReturns)DB.purchaseReturns=[]; if(!DB.estimates)DB.estimates=[]; if(!DB.purchaseOrders)DB.purchaseOrders=[];
   if(!DB.itemMaster)DB.itemMaster=[];
   if(!DB.measHide)DB.measHide={};
@@ -2672,7 +2686,114 @@ function load(){ try{const r=localStorage.getItem('pb_ob_v1'); if(r)DB=JSON.pars
   (DB.alterations||[]).forEach(migratePayments);
   (DB.sales||[]).forEach(migratePayments);
 }
-function save(){ try{localStorage.setItem('pb_ob_v1',JSON.stringify(DB)); updateHeadStat(); autoSnapshot();}catch(e){toast(t('t_storage'),'bad');} }
+/* ================= PERSISTENCE =================
+   localStorage is SYNCHRONOUS and capped near 5 MB in Safari, and the old save()
+   re-stringified the whole database and wrote it on EVERY action — which is what
+   made the iPad crawl once the shop had real data in it. Now: save() only marks the
+   database dirty and returns immediately; the actual write is debounced and goes to
+   IndexedDB (async, uncapped). localStorage is still written as a fallback copy when
+   the data is small enough to fit, so nothing breaks on a device without IndexedDB. */
+/* ================= STORAGE v2 =================
+   Orders are the only collection that grows without limit, so from v92 each order is
+   its own IndexedDB record and a save writes ONLY the orders that actually changed —
+   which is why save time stops growing with the shop's history. Everything else
+   (stock, customers, karigars, settings, ledger) stays exactly where it was, in one
+   small 'core' record, so none of that data is touched by this change.
+
+   In memory DB keeps its identical shape, so every other part of the app is unchanged. */
+const ORD_KEY=id=>'rec_o_'+id;
+let _dirtyOrd=new Set(), _coreDirty=true, _knownOrdIds=null, _lastReconcile=0, _ordFp={};
+function touchOrder(id){ if(id)_dirtyOrd.add(id); }
+function touchAllOrders(){ (DB.orders||[]).forEach(o=>_dirtyOrd.add(o.id)); }
+function coreOf(){ const c={}; for(const k in DB){ if(k!=='orders')c[k]=DB[k]; } return c; }
+
+let _dbDirty=false, _dbTimer=null, _dbWriting=false, _dbLastOK=0, _dbFailStreak=0;
+function save(oid){
+  if(oid)touchOrder(oid);
+  _coreDirty=true; _dbDirty=true;
+  updateHeadStat();                      // cheap, keep it instant
+  clearTimeout(_dbTimer);
+  _dbTimer=setTimeout(flushDB,400);
+}
+function dbSerialize(){ return JSON.stringify(DB); }
+/* Catch anything a caller forgot to flag. Serialising every order is the old, slow
+   path, so it only runs when the user is leaving the screen or after a long gap —
+   never while he is typing. Guarantees no edit can be silently lost. */
+async function reconcileOrders(force){
+  if(!idb)return;
+  if(!force && Date.now()-_lastReconcile < 300000)return;
+  _lastReconcile=Date.now();
+  const ids=new Set();
+  for(const o of (DB.orders||[])){
+    ids.add(o.id);
+    const s=JSON.stringify(o);
+    if(_ordFp[o.id]!==s){ _ordFp[o.id]=s; _dirtyOrd.add(o.id); }
+  }
+  if(_knownOrdIds){ for(const id of _knownOrdIds){ if(!ids.has(id)){ try{ await mDel(ORD_KEY(id)); }catch(e){} delete _ordFp[id]; } } }
+  _knownOrdIds=ids;
+}
+async function writeStoreV2(){
+  if(!idb)return false;
+  try{
+    for(const id of Array.from(_dirtyOrd)){
+      const o=(DB.orders||[]).find(x=>x.id===id);
+      if(o){ const s=JSON.stringify(o); await mPut(ORD_KEY(id),s); _ordFp[id]=s; }
+      else { try{ await mDel(ORD_KEY(id)); }catch(e){} delete _ordFp[id]; }
+      _dirtyOrd.delete(id);
+    }
+    if(_coreDirty){
+      await mPut('__core', JSON.stringify(coreOf()));
+      _coreDirty=false;
+    }
+    await mPut('__meta', JSON.stringify({v:2, ids:(DB.orders||[]).map(o=>o.id), ts:Date.now()}));
+    return true;
+  }catch(e){ return false; }
+}
+/* ---------- SAFE WRITE ----------
+   A shop's measurements cannot be allowed to vanish, so a write is never a single
+   overwrite. The previous good copy is kept under '__db_prev', the new copy is written
+   and then READ BACK and parsed before it is trusted. If anything fails the older copy
+   is still intact and boot will pick it up. */
+async function writeDB(s){
+  if(!idb)return false;
+  try{
+    const prev=await mGet('__db');
+    if(typeof prev==='string' && prev.length>2){ try{ await mPut('__db_prev',prev); }catch(e){} }
+    await mPut('__db',s);
+    const back=await mGet('__db');                 // verify it really landed
+    if(typeof back!=='string' || back.length!==s.length) return false;
+    JSON.parse(back);                              // and that it is readable
+    return true;
+  }catch(e){ return false; }
+}
+async function flushDB(){
+  if(!_dbDirty||_dbWriting)return;
+  _dbWriting=true; _dbDirty=false;
+  let stored=false;
+  if(idb){ stored=await writeStoreV2(); }
+  // devices without IndexedDB keep the old single-blob behaviour
+  if(!idb){
+    try{ const s=dbSerialize(); if(s.length<4200000){ localStorage.setItem('pb_ob_v1',s); stored=true; } }catch(e){}
+  }
+  if(stored){ _dbLastOK=Date.now(); _dbFailStreak=0; }
+  else{
+    _dbFailStreak++;
+    if(_dbFailStreak>=2){ toast(t('t_storage'),'bad'); }
+    _dbDirty=true;
+  }
+  try{ if(Date.now()-(+(localStorage.getItem('pb_ob_lastsnap_ts')||0)) >= SNAP_GAP_H*3600000) autoSnapshot(dbSerialize()); }catch(e){}
+  _dbWriting=false;
+  if(_dbDirty){ clearTimeout(_dbTimer); _dbTimer=setTimeout(flushDB,600); }
+}
+/* the app may be closed or backgrounded at any moment — never leave a change unwritten */
+function flushDBNow(){
+  clearTimeout(_dbTimer);
+  reconcileOrders(true).then(()=>{ _dbDirty=true; flushDB(); }).catch(()=>{});
+  try{ const s=dbSerialize(); if(s.length<4200000)localStorage.setItem('pb_ob_v1',s); }catch(e){}
+}
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden')flushDBNow(); });
+window.addEventListener('pagehide',flushDBNow);
+setInterval(()=>{ if(document.visibilityState==='visible')reconcileOrders(false).then(()=>{ if(_dirtyOrd.size){_dbDirty=true;flushDB();} }).catch(()=>{}); },300000);
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
 /* ---- IndexedDB media ---- */
@@ -2683,12 +2804,20 @@ function mPut(id,b){return new Promise((res,rej)=>{const tx=idb.transaction('m',
 function mGet(id){return new Promise(res=>{const tx=idb.transaction('m','readonly');const q=tx.objectStore('m').get(id);q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null);});}
 function mDel(id){return new Promise(res=>{const tx=idb.transaction('m','readwrite');tx.objectStore('m').delete(id);tx.oncomplete=()=>res();tx.onerror=()=>res();});}
 function mKeys(){return new Promise(res=>{if(!idb)return res([]);const tx=idb.transaction('m','readonly');const q=tx.objectStore('m').getAllKeys();q.onsuccess=()=>res(q.result||[]);q.onerror=()=>res([]);});}
-function autoSnapshot(){ if(!idb)return; try{
-  const today=new Date().toISOString().slice(0,10);
-  if(localStorage.getItem('pb_ob_lastsnap')===today)return;
-  localStorage.setItem('pb_ob_lastsnap',today);
-  mPut('snap_'+today,JSON.stringify(DB));
-  const old=new Date();old.setDate(old.getDate()-7);mDel('snap_'+old.toISOString().slice(0,10));
+/* Rolling restore points. Once a day was too thin — a shop that loses today's work
+   loses a whole day of measurements. Now one every few hours of actual use, keeping
+   the last dozen, which covers several days back. */
+const SNAP_GAP_H=3, SNAP_KEEP=12;
+function autoSnapshot(s){ if(!idb)return; try{
+  const last=+(localStorage.getItem('pb_ob_lastsnap_ts')||0);
+  if(Date.now()-last < SNAP_GAP_H*3600000)return;
+  localStorage.setItem('pb_ob_lastsnap_ts',String(Date.now()));
+  const stamp=new Date().toISOString().slice(0,16).replace('T','_').replace(':','-');
+  mPut('snap_'+stamp, s||JSON.stringify(DB));
+  mKeys().then(keys=>{
+    const snaps=keys.filter(k=>String(k).indexOf('snap_')===0).sort();
+    while(snaps.length>SNAP_KEEP){ mDel(snaps.shift()); }
+  }).catch(()=>{});
 }catch(e){} }
 const urlCache={};
 async function mURL(id){ if(urlCache[id])return urlCache[id]; const b=await mGet(id); if(!b)return null; const u=URL.createObjectURL(b); urlCache[id]=u; return u; }
@@ -2963,8 +3092,33 @@ function deliveryList(){
   return list;
 }
 function delLabel(){return delFilter==='date'?(delDate?fmtDate(delDate):t('f_date')):t('f_'+delFilter);}
-function setDelFilter(f){delFilter=f;if(f!=='date')delDate='';renderOrders();}
-function setDelDate(v){delDate=v;delFilter='date';renderOrders();}
+function setDelFilter(f){delFilter=f;if(f!=='date')delDate='';pageReset('orders');renderOrders();}
+function setDelDate(v){delDate=v;delFilter='date';pageReset('orders');renderOrders();}
+/* ================= PAGINATION =================
+   Long lists used to be written into the DOM in one go. At a few hundred orders that
+   is already a heavy paint on an iPad, and at a few thousand it locks the screen up.
+   Every long list now draws one page and grows on demand. */
+const PAGE_N=50;
+let _page={};
+function pageReset(key){ _page[key]=PAGE_N; }
+function pageOf(key){ return _page[key]||PAGE_N; }
+function pageSlice(key,list){ return list.slice(0,pageOf(key)); }
+function pageMoreBtn(key,total){
+  const shown=pageOf(key); if(total<=shown)return '';
+  const left=total-shown;
+  return `<button class="btn ghost block" style="margin:10px 0" onclick="pageMore('${key}')">
+    ▾ ${t('pg_more',{n:Math.min(PAGE_N,left)})} <span class="hint">(${t('pg_left',{n:left})})</span></button>`;
+}
+function pageMore(key){
+  _page[key]=pageOf(key)+PAGE_N;
+  const k=String(key);
+  if(k==='orders')renderOrders();
+  else if(k==='cust')renderCustomers();
+  else if(k==='of')orderFilter();
+  else if(k==='fab')stockHome('fabric');
+  else if(k==='rdy')stockHome('ready');
+  else if(k.indexOf('ki:')===0){ const p=k.split(':'); karigarIssue(p[1],p[2]); }
+}
 
 /* ====================== HOME DASHBOARD ====================== */
 /* ============ tap a home stat -> see exactly what's behind the number ============ */
@@ -3065,7 +3219,7 @@ function stockHome(tab){ if(!modOn('stock')){toast(t('mod_off'),'bad');return;}
 
 /* ======================= FABRIC ======================= */
 let _fabQ='', _fabCat='', _fabHideEmpty=true;
-function setFabQ(v){_fabQ=v;fabricBody(true);}
+function setFabQ(v){_fabQ=v;pageReset('fab');fabricBody(true);}
 async function loadStockThumbs(){
   for(const img of document.querySelectorAll('img.stk-thumb[data-pid]')){
     const url=await mURL(img.dataset.pid);
@@ -3098,18 +3252,18 @@ function fabricBody(keepFocus){
     <div class="field" style="margin-bottom:10px">
       <input id="fabSearch" value="${esc(_fabQ)}" placeholder="🔍 ${t('stk_fab_search')}" oninput="setFabQ(this.value)"></div>
     ${cats.length?`<div class="gtags" style="margin-bottom:10px">
-      <span class="gtag ${_fabCat?'':'on-tag'}" style="cursor:pointer" onclick="_fabCat='';fabricBody()">${t('all')}</span>
-      ${cats.map(c=>`<span class="gtag ${_fabCat===c?'on-tag':''}" style="cursor:pointer" onclick="_fabCat='${esc(c)}';fabricBody()">${esc(c)}</span>`).join('')}
+      <span class="gtag ${_fabCat?'':'on-tag'}" style="cursor:pointer" onclick="_fabCat='';pageReset('fab');fabricBody()">${t('all')}</span>
+      ${cats.map(c=>`<span class="gtag ${_fabCat===c?'on-tag':''}" style="cursor:pointer" onclick="_fabCat='${esc(c)}';pageReset('fab');fabricBody()">${esc(c)}</span>`).join('')}
     </div>`:''}
     <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:12.5px;color:var(--txt2)">
-      <input type="checkbox" ${_fabHideEmpty?'checked':''} onchange="_fabHideEmpty=this.checked;fabricBody()" style="width:17px;height:17px">
+      <input type="checkbox" ${_fabHideEmpty?'checked':''} onchange="_fabHideEmpty=this.checked;pageReset('fab');fabricBody()" style="width:17px;height:17px">
       ${t('stk_hide_empty')}</label>
     <div class="row" style="margin-bottom:10px;gap:6px">
       <button class="btn primary" style="flex:1" onclick="thaanEdit()">➕ ${t('stk_add_thaan')}</button>
       <button class="btn ghost" style="flex:0 0 auto;padding:0 12px" onclick="bulkFabOpen()">📋 ${t('stk_bulk')}</button>
       ${(DB.fabItems||[]).length?`<button class="btn ghost" style="flex:0 0 auto;padding:0 14px" onclick="manageFabItems()">⚙️</button>`:''}</div>
     <div class="hint" style="margin-bottom:8px">${t('stk_n_thaans',{n:list.length})}</div>
-    ${list.map(th=>{
+    ${pageSlice('fab',list).map(th=>{
       const f=FI(th.fabId)||{}; const bal=thaanBal(th);
       const low=bal<=3&&bal>0;
       const dead=monthsSince(lastMoveTs(m=>m.thaanId===th.id&&m.dir===MV_OUT)||th.created)>=(DB.stkCfg.deadMonths||6);
@@ -3130,7 +3284,7 @@ function fabricBody(keepFocus){
             <div class="hint">${t('stk_of')} ${+th.mtr||0} m</div>
             ${th.rate?`<div class="hint" style="color:var(--saffron2)">@ ${money(th.rate)}/m = ${money(thaanValue(th))}</div>`:''}
             ${(th.sell||f.sell)?`<div class="hint" style="color:#1a9d5a;font-weight:700">🏷️ ${money(th.sell||f.sell)}/m</div>`:''}
-          </div></div></div>`;}).join('')
+          </div></div></div>`;}).join('')+pageMoreBtn('fab',list.length)
       || `<div class="empty" style="padding:26px 10px"><p>${t('stk_no_thaan')}</p></div>`}`;
   if(keepFocus){const e=$('#fabSearch');if(e){const v=e.value;e.focus();e.setSelectionRange(v.length,v.length);}}
   loadStockThumbs();
@@ -3497,7 +3651,7 @@ function issPick(el){
 
 /* ======================= READYMADE (item + size) ======================= */
 let _rdyQ='';
-function setRdyQ(v){_rdyQ=v;readyBody(true);}
+function setRdyQ(v){_rdyQ=v;pageReset('rdy');readyBody(true);}
 function readyBody(keepFocus){
   const el=$('#stkBody'); if(!el)return;
   const q=(_rdyQ||'').trim().toLowerCase();
@@ -3511,7 +3665,7 @@ function readyBody(keepFocus){
     <div class="row" style="margin-bottom:10px;gap:6px">
       <button class="btn ghost" style="flex:1" onclick="sizeCfg()">📐 ${t('stk_sizes')}</button>
       <button class="btn ghost" style="flex:0 0 auto;padding:0 14px" onclick="manageSizes()">⚙️</button></div>
-    ${list.map(m=>{
+    ${pageSlice('rdy',list).map(m=>{
       const tot=readyTotal(m);
       const chips=sizes.filter(sz=>readyQty(m,sz)>0)
         .map(sz=>`<span class="gtag" style="font-size:11px">${esc(sz)}: <b>${readyQty(m,sz)}</b></span>`).join('');
@@ -3525,7 +3679,7 @@ function readyBody(keepFocus){
             <div style="font-size:20px;font-weight:900;color:${tot?'var(--txt)':'var(--bad)'}">${tot}</div>
             <div class="hint">${t('stk_pieces')}</div>
             ${(+m.cost||0)?`<div class="hint" style="color:var(--saffron2)">${money(r2(tot*(+m.cost||0)))}</div>`:''}
-          </div></div></div>`;}).join('')
+          </div></div></div>`;}).join('')+pageMoreBtn('rdy',list.length)
       ||`<div class="empty" style="padding:26px 10px"><p>${t('stk_no_ready')}</p></div>`}`;
   if(keepFocus){const e=$('#rdySearch');if(e){const v=e.value;e.focus();e.setSelectionRange(v.length,v.length);}}
   loadStockThumbs();
@@ -4478,7 +4632,7 @@ function settleParty(dir,party,partyId,amt,date,acc,mode){
     if(left<=0)return;
     const take=r2(Math.min(left,d.due));
     d.rec.payments=d.rec.payments||[];
-    d.rec.payments.push({amt:take,date,acc,mode:mode||''});
+    d.rec.payments.push({amt:take,date,acc,mode:mode||''}); if(d.kind==='order')touchOrder(d.rec.id);
     left=r2(left-take);
     touched.push(d.label+' '+money(take));
   });
@@ -4731,11 +4885,11 @@ function ofMatches(){
     return true;
   }).sort((a,b)=>String(ofDateOf(a)).localeCompare(String(ofDateOf(b))));
 }
-function ofSet(k,v){ if(k==='basis')_ofBasis=v; else if(k==='status')_ofStatus=v;
+function ofSet(k,v){ pageReset('of'); if(k==='basis')_ofBasis=v; else if(k==='status')_ofStatus=v;
   else if(k==='kar')_ofKar=v; else if(k==='sm')_ofSm=v; else if(k==='item')_ofItem=v; else if(k==='q')_ofQ=v;
   orderFilter(); }
 function ofRange(from,to){ _ofFrom=from; _ofTo=to; orderFilter(); }
-function ofClear(){ _ofBasis='delivery';_ofFrom='';_ofTo='';_ofStatus='';_ofKar='';_ofSm='';_ofItem='';_ofQ=''; orderFilter(); }
+function ofClear(){ pageReset('of'); _ofBasis='delivery';_ofFrom='';_ofTo='';_ofStatus='';_ofKar='';_ofSm='';_ofItem='';_ofQ=''; orderFilter(); }
 function orderFilter(){
   const list=ofMatches();
   let pieces=0, value=0, recv=0, due=0;
@@ -4747,7 +4901,7 @@ function orderFilter(){
       <option value="">${esc(ph)}</option>
       ${opts.map(o=>`<option value="${esc(o[0])}" ${cur===o[0]?'selected':''}>${esc(o[1])}</option>`).join('')}</select>`;
   const active=[_ofStatus,_ofKar,_ofSm,_ofItem,_ofQ,_ofFrom].filter(Boolean).length;
-  const rows=list.map(o=>{
+  const rows=pageSlice('of',list).map(o=>{
     const dl=daysLeft(o.deliveryDate);
     const lateCol = orderDelivered(o)?'' : dl<0?'color:var(--bad)' : dl===0?'color:var(--saffron2)':'';
     const b=orderBaaki(o);
@@ -4800,7 +4954,7 @@ function orderFilter(){
       <div class="il"><span>${t('received')}</span><b>${money(recv)}</b></div>
       <div class="il" style="border-bottom:0"><span>${t('total_due')}</span><b>${balArrow(due)}</b></div>
     </div>
-    ${rows}
+    ${rows}${pageMoreBtn('of',list.length)}
     <div class="modal-actions"><button class="btn ghost block" onclick="closeSheet()">${t('close')}</button></div>
     <div class="fab-pad"></div>`;
   showSheet();
@@ -5960,7 +6114,8 @@ function renderOrders(){
   const remind=backupNagHTML();
   const dcard=draftCardHTML();
   if(!list.length){el.innerHTML=remind+bar+banner+dcard+`<div class="empty"><div class="big">📋</div><p><b>${q?t('nothing'):(delFilter==='all'?t('no_orders'):t('no_deliveries'))}</b></p><p style="font-size:13px">${q?t('try_other'):(delFilter==='all'?t('no_orders_sub'):'')}</p></div>`;return;}
-  el.innerHTML=remind+bar+banner+dcard+list.map(o=>{
+  const _pg=pageSlice('orders',list);
+  el.innerHTML=remind+bar+banner+dcard+_pg.map(o=>{
     const dl=daysLeft(o.deliveryDate),baaki=orderBaaki(o),st=orderSummaryStatus(o);
     let dcls='',dtxt=fmtDate(o.deliveryDate);
     if(st!=='delivered'&&dl!==null&&dl<0){dcls='soon';dtxt=Math.abs(dl)+'d '+t('late');}
@@ -5968,7 +6123,7 @@ function renderOrders(){
     const _mm=activeMembers(o).length>1;
     const tags=sortItems(o.items).map(gid=>{const g=G(gid);const s=itemStatusOf(o,gid);const dot=(s==='ready'||s==='delivered')?'✅':'';
       const who=_mm?(memberName(o,memberOf(gid))||''):'';
-      return g?`<span class="gtag" style="cursor:pointer" onclick="event.stopPropagation();focusItem('${o.id}','${esc(gid)}')">${g.ico} ${who?esc(who)+' · ':''}${esc(itemTitle(o,gid))} ${dot}</span>`:'';}).join('');
+      return g?`<span class="gtag" style="cursor:pointer" onclick="event.stopPropagation();focusItem('${o.id}','${esc(gid)}')">${g.ico} ${who?esc(who)+' · ':''}${esc(itemTitle(o,gid))} ${dot}</span>`:'';}).join('')+pageMoreBtn('orders',list.length);
     const rc=readyCount(o),tot=(o.items||[]).length;
     const ready=st==='ready';
     const altN=altsForOrder(o.id).length;
@@ -6120,11 +6275,14 @@ function renderCustomers(){
   if(bar)bar.innerHTML=`<button class="btn primary block" style="margin-bottom:8px" onclick="newCustomer()">➕ ${t('cust_new')}</button>`
     +(list.length?`<button class="btn ghost block" style="margin-bottom:10px" onclick="openCampaign()">📣 ${t('camp_title')}</button>`:'');
   if(!list.length){el.innerHTML=`<div class="empty"><div class="big">👥</div><p><b>${t('no_cust')}</b></p><p style="font-size:13px">${t('no_cust_sub')}</p></div>`;return;}
-  el.innerHTML=list.map(c=>{const cnt=DB.orders.filter(o=>o.customerId===c.id).length,saved=Object.keys(c.m||{}).length;
+  // one pass over the orders instead of a full scan per customer — that inner filter
+  // was customers x orders work and would crawl on a shop with real history
+  const cnts={}; (DB.orders||[]).forEach(o=>{ if(o.customerId)cnts[o.customerId]=(cnts[o.customerId]||0)+1; });
+  el.innerHTML=pageSlice('cust',list).map(c=>{const cnt=cnts[c.id]||0,saved=Object.keys(c.m||{}).length;
     return `<div class="card" onclick="openCustomer('${c.id}')"><div style="display:flex;justify-content:space-between;align-items:center">
       <div><b style="font-size:16px">${esc(c.name)}</b><div style="font-size:12px;color:var(--txt2)">📞 ${esc(c.phone||'—')}</div></div>
       <div style="text-align:right;font-size:11px;color:var(--mut)">${cnt} ${t('orders_n')}${cnt!==1?'s':''}<br>${saved} ${t('saved_meas')}</div></div></div>`;
-  }).join('');
+  }).join('')+pageMoreBtn('cust',list.length);
 }
 function openCustomer(id){
   const c=custById(id); if(!c)return;
@@ -6963,12 +7121,12 @@ function saveOrder(){
     if(toks.length){DB.designLib[gid]=DB.designLib[gid]||[];toks.forEach(tk=>{if(!DB.designLib[gid].includes(tk))DB.designLib[gid].push(tk);});if(DB.designLib[gid].length>24)DB.designLib[gid]=DB.designLib[gid].slice(-24);}});
   if(f.editId){const o=DB.orders.find(x=>x.id===f.editId);
     Object.assign(o,{orderNo:f.orderNo,customerId:c.id,customerName:c.name,phone:c.phone,salesmanId:f.salesmanId||'',orderDate:f.orderDate,deliveryDate:f.deliveryDate,items:f.items,m:f.m,design:f.design,variant:f.variant||{},notes:f.notes,total:f.total,advance:f.advance,photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,bodyType:f.bodyType,members:(f.members||[]).filter(m=>m.id!=='' )});
-    clearDraft();save();closeSheet();toast(t('t_updated'),'ok');openDetail(o.id);
+    clearDraft();save(o.id);closeSheet();toast(t('t_updated'),'ok');openDetail(o.id);
   }else{const o={id:uid(),created:new Date().toISOString(),orderNo:f.orderNo,customerId:c.id,customerName:c.name,phone:c.phone,salesmanId:f.salesmanId||'',
       members:(f.members||[]).filter(m=>m.id!==''),
       orderDate:f.orderDate,deliveryDate:f.deliveryDate,items:f.items,m:f.m,design:f.design,variant:f.variant||{},notes:f.notes,total:f.total,advance:f.advance,payments:(+f.advance>0?[{amt:+f.advance,date:f.orderDate||new Date().toISOString().slice(0,10)}]:[]),photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,bodyType:f.bodyType,
       status:'new',itemStatus:(function(){const o={};f.items.forEach(g=>o[g]='new');return o;})(),log:[{id:uid(),ts:new Date().toISOString(),text:t('t_status',{s:sLabel('new')}),voiceId:null}]};
-    DB.orders.push(o);clearDraft();save();closeSheet();toast(t('t_created',{n:o.orderNo}),'ok');
+    DB.orders.push(o);clearDraft();save(o.id);closeSheet();toast(t('t_created',{n:o.orderNo}),'ok');
     go('orders');
     // customer is still standing there — bill it now, but only on an install that HAS billing
     if(modOn('billing'))openInvoiceForm('order',o.id);
@@ -7012,10 +7170,10 @@ function openPayment(id){ const o=DB.orders.find(x=>x.id===id); if(!o)return; co
 function savePayment(id){ const o=DB.orders.find(x=>x.id===id); if(!o)return; migratePayments(o);
   const amt=+(($('#p_amt')&&$('#p_amt').value)||0); const date=($('#p_date')&&$('#p_date').value)||todayISO();
   if(!amt||amt<=0){toast(t('pay_amount'),'bad');return;}
-  o.payments.push({amt,date}); o.payments.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
-  save();closeSheet();openDetail(id);toast('✔️','ok'); }
+  o.payments.push({amt,date}); o.payments.sort((a,b)=>String(a.date).localeCompare(String(b.date))); touchOrder(o.id);
+  save(id);closeSheet();openDetail(id);toast('✔️','ok'); }
 function delPayment(id,i){ const o=DB.orders.find(x=>x.id===id); if(!o||!o.payments)return;
-  confirmModal(t('del_pay'),'',()=>{o.payments.splice(i,1);save();closeSheet();openDetail(id);}); }
+  confirmModal(t('del_pay'),'',()=>{o.payments.splice(i,1);save(id);closeSheet();openDetail(id);}); }
 
 /* ====================== PHOTOS ====================== */
 let photoTarget={type:'order'};
@@ -8541,7 +8699,7 @@ function saveInvoice(){
     // remove the temporary sale stub this form was sitting on
     DB.sales=(DB.sales||[]).filter(x=>x.id!==f.id);
     f.kind='order'; f.id=o.id; f.saleType=null;
-    save();
+    save(o.id);
   }
 
   const rec=invRecOf(f.kind,f.id); if(!rec)return;
@@ -8622,6 +8780,7 @@ function saveInvoice(){
     f._stockDone=true;
     rec.invoice._stockDone=true;
   }
+  if(f.kind==='order')touchOrder(f.id);
   save();closeSheet();toast(t('t_invoice_saved'),'ok');
   invQ=''; invSort='new';
   go('invoices');                       // the new bill is right there when you close the preview
@@ -10145,7 +10304,7 @@ function setItemStatus(oid,gid,s){const o=DB.orders.find(x=>x.id===oid);if(!o)re
   const _wasCut = (s==='cut') && !((o.cost&&o.cost[gid]&&(o.cost[gid].cuts||[]).length));
   const g=G(gid); o.log=o.log||[];
   o.log.push({id:uid(),ts:new Date().toISOString(),text:(g?g.n+': ':'')+sLabel(s),voiceId:null});
-  save();
+  save(o.id);
   const pill=document.getElementById('pill_'+cssId(gid)); if(pill){pill.className='pill st-'+s; pill.textContent=sLabel(s);}
   const sel=document.getElementById('stsel_'+cssId(gid)); if(sel)sel.value=s;
   if(document.getElementById('timeline'))renderTimeline(o);
@@ -10241,7 +10400,7 @@ function delOrder(id){confirmModal(t('confirm_del'),t('confirm_del_msg'),async()
   for(const k in(o.itemPhotos||{}))for(const p of o.itemPhotos[k])await mDel(p);
   for(const k in(o.itemVoice||{}))for(const v of o.itemVoice[k])if(v.voiceId)await mDel(v.voiceId);
   revertStockByRef(id);                       // put cut fabric / billed stock back
-  DB.orders=DB.orders.filter(x=>x.id!==id);save();closeSheet();go('orders');toast(t('t_deleted'));});}
+  DB.orders=DB.orders.filter(x=>x.id!==id);touchOrder(id);save();closeSheet();go('orders');toast(t('t_deleted'));});}
 function waLink(phone,text){const p=(phone||'').replace(/\D/g,'');const full=p.length===10?'91'+p:p;return `https://wa.me/${full}?text=${encodeURIComponent(text)}`;}
 /* Open WhatsApp DIRECTLY. window.open(...,'_blank') is treated as a pop-up by most
    in-app browsers, which is what raises the "Open external link — Cancel/Open" box.
@@ -10332,7 +10491,7 @@ async function shareMaster(o,gids,phone){
 function setItemRecv(oid,gid,d){
   const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
   o.recv=o.recv||{};
-  if(d)o.recv[gid]=d; else delete o.recv[gid];
+  if(d)o.recv[gid]=d; else delete o.recv[gid]; touchOrder(o.id);
   save(); openDetail(oid);
   if(d)toast(t('kb_recv_ok'),'ok');
 }
@@ -10343,7 +10502,7 @@ function setItemKarAmt(oid,gid,v){
   save();
 }
 function setItemKarigar(oid,gid,kid){const o=DB.orders.find(x=>x.id===oid);if(!o)return;o.assign=o.assign||{};
-  if(kid)o.assign[gid]=kid; else delete o.assign[gid];
+  if(kid)o.assign[gid]=kid; else delete o.assign[gid]; touchOrder(o.id);
   o.log=o.log||[];const g=G(gid);o.log.push({id:uid(),ts:new Date().toISOString(),text:(g?g.n+' → ':'')+(kid?('👷 '+karigarName(kid)):t('karigar_none')),voiceId:null});
   if(kid){ o.itemStatus=o.itemStatus||{}; const cur=itemStatusOf(o,gid);
     if(STATUS.indexOf(cur)<STATUS.indexOf('stitching')){ o.itemStatus[gid]='stitching';
@@ -10626,6 +10785,7 @@ function kiVisibleList(kid,mode){
   return {raw,types,list};
 }
 function kiTypeToggle(kid,mode,gid){
+  pageReset('ki:'+kid+':'+(mode==='take'?'take':'give'));
   if(!_kiTypeFilter)_kiTypeFilter=new Set();
   if(_kiTypeFilter.has(gid))_kiTypeFilter.delete(gid); else _kiTypeFilter.add(gid);
   karigarIssue(kid,mode);
@@ -10678,7 +10838,8 @@ function karigarIssue(kid,mode){
   const k=(DB.karigars||[]).find(x=>x.id===kid); if(!k)return;
   const give=(mode!=='take');
   const {types,list}=kiVisibleList(kid,mode);
-  const rows=list.map(x=>kiRow(x,kid)).join('')
+  const _kiKey='ki:'+kid+':'+(give?'give':'take');
+  const rows=(pageSlice(_kiKey,list).map(x=>kiRow(x,kid)).join('')+pageMoreBtn(_kiKey,list.length))
     || `<p class="hint" style="padding:20px 0;text-align:center">${give?t('ki_none_free'):t('ki_none_with')}</p>`;
   const typeChips=types.length>1?`<div class="gtags" style="margin:10px 0">${types.map(x=>{
     const on=_kiTypeFilter.has(x.g.id);
@@ -10688,7 +10849,7 @@ function karigarIssue(kid,mode){
     <p class="hint" style="margin-bottom:10px">👷 ${esc(k.name)} · ${give?t('ki_give_sub'):t('ki_take_sub')}</p>
     <div class="field"><label>${t('pay_date')}</label>${dateField('ki_date',todayISO())}</div>
     ${give&&(k.specialties||[]).length?`<label style="display:flex;align-items:center;gap:8px;margin:10px 0;cursor:pointer">
-      <input type="checkbox" ${_kiOnlyHis?'checked':''} onchange="_kiOnlyHis=this.checked;_kiTypeFilter=null;karigarIssue('${kid}','give')" style="width:20px;height:20px">
+      <input type="checkbox" ${_kiOnlyHis?'checked':''} onchange="_kiOnlyHis=this.checked;_kiTypeFilter=null;pageReset('ki:${kid}:give');karigarIssue('${kid}','give')" style="width:20px;height:20px">
       <span class="hint">${t('ki_only_his')}</span></label>`:''}
     ${typeChips}
     <div class="kv" style="margin:10px 0">
@@ -10710,11 +10871,11 @@ function kiApply(kid,mode){
     const [oid,gid]=key.split('~');
     const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
     if(mode==='give'){
-      o.assign=o.assign||{}; o.assign[gid]=kid;
+      o.assign=o.assign||{}; o.assign[gid]=kid; touchOrder(o.id);
       o.issued=o.issued||{}; o.issued[gid]=d;
       givenEntries.push({oid,gid});
     }else{
-      o.recv=o.recv||{}; o.recv[gid]=d;
+      o.recv=o.recv||{}; o.recv[gid]=d; touchOrder(o.id);
     }
     n++;
   });
@@ -11290,6 +11451,7 @@ function backupMenu(){modal(t('backup_title'),`<p style="color:var(--txt2);font-
   <p class="hint" style="margin-top:8px">${t('backup_note')}</p>
   <div class="card" style="padding:10px 12px;margin-top:10px">
     <div class="kv"><span class="hint">${t('bk_stored')}</span><b id="bkSize">…</b></div></div>
+  <div id="bkSafety"></div>
   <div class="modal-actions" style="flex-direction:column">
   <button class="btn primary block" onclick="shareBackup()">📤 ${t('send_backup')}</button>
   <p class="hint" style="margin:2px 0 4px">${t('send_backup_hint')}</p>
@@ -11297,13 +11459,30 @@ function backupMenu(){modal(t('backup_title'),`<p style="color:var(--txt2);font-
   <button class="btn ghost block" onclick="doImport()">⬆️ ${t('restore_backup')}</button>
   <button class="btn ghost block" onclick="restoreSnapshotMenu()">🕑 ${t('restore_auto')}</button></div>`,
   [{label:t('close'),cls:'ghost',fn:closeSheet}]);
-  bkShowSize();
+  bkShowSize(); bkSafety();
+}
+/* Plain answers to "is my data actually safe on this device?" */
+async function bkSafety(){
+  const el=$('#bkSafety'); if(!el)return;
+  let persisted=null;
+  try{ if(navigator.storage&&navigator.storage.persisted)persisted=await navigator.storage.persisted(); }catch(e){}
+  let snaps=0; try{ snaps=(await mKeys()).filter(k=>String(k).indexOf('snap_')===0).length; }catch(e){}
+  const d=daysSinceBackup();
+  const line=(ok,txt)=>`<div class="krow"><span style="width:22px">${ok?'✅':'⚠️'}</span><span class="kn">${txt}</span></div>`;
+  const el2=$('#bkSafety'); if(!el2)return;
+  el2.innerHTML=`<div class="card" style="padding:0;margin-top:8px;overflow:hidden">
+    <div style="padding:9px 12px;background:var(--bg2);font-weight:700">🛡️ ${t('sf_title')}</div>
+    ${line(persisted!==false, persisted===false?t('sf_evict_no'):t('sf_evict_yes'))}
+    ${line(snaps>0, t('sf_snaps',{n:snaps}))}
+    ${line(d!==null&&d<=2, d===null?t('sf_never'):t('sf_last',{n:d}))}
+  </div>
+  <p class="hint" style="margin:6px 0 0">${t('sf_note')}</p>`;
 }
 async function bkShowSize(){
   const el=$('#bkSize'); if(!el)return;
   let dbKB=0, n=0, mediaKB=0;
   try{ dbKB=Math.round((localStorage.getItem('pb_ob_v1')||'').length/1024); }catch(e){}
-  try{ const keys=(await mKeys()).filter(k=>String(k).indexOf('snap_')!==0); n=keys.length;
+  try{ const keys=(await mKeys()).filter(k=>String(k).indexOf('snap_')!==0&&String(k)!=='__db'); n=keys.length;
     for(const k of keys){ const b=await mGet(k); if(b&&b.size)mediaKB+=b.size/1024; }
   }catch(e){}
   const el2=$('#bkSize'); if(!el2)return;
@@ -11333,7 +11512,7 @@ async function buildBackupBlob(){
   const parts=['{"__v":2,"db":', JSON.stringify(DB), ',"media":{'];
   let n=0, wrote=0;
   try{
-    const keys=(await mKeys()).filter(k=>String(k).indexOf('snap_')!==0);
+    const keys=(await mKeys()).filter(k=>String(k).indexOf('snap_')!==0&&String(k)!=='__db');
     n=keys.length; bkProgress(0,n);
     for(let i=0;i<keys.length;i++){
       if(_bkCancel)return null;
@@ -11356,7 +11535,7 @@ async function buildBackupBlob(){
 async function buildBackup(){
   const out={__v:2, db:DB, media:{}};
   try{
-    const keys=(await mKeys()).filter(k=>String(k).indexOf('snap_')!==0);
+    const keys=(await mKeys()).filter(k=>String(k).indexOf('snap_')!==0&&String(k)!=='__db');
     for(const k of keys){ const b=await mGet(k); if(b && b.size!==undefined){ const d=await blobToB64(b); if(d)out.media[k]=d; } }
   }catch(e){}
   return out;
@@ -11387,16 +11566,20 @@ async function shareBackup(){
   bkBusyModal();
   const res=await buildBackupBlob();
   if(!res){ toast(t('bk_cancelled'),'bad'); return; }
-  const file=new File([res.blob],'parampara-backup-'+new Date().toISOString().slice(0,10)+'.json',{type:'application/json'});
+  // iOS WhatsApp refuses application/json outright — the share sheet either hides it
+  // or the send fails. A .txt / text-plain document goes through normally, and restore
+  // reads the file as text anyway, so nothing about the format changes.
+  const txt=new Blob([res.blob],{type:'text/plain'});
+  const file=new File([txt],'parampara-backup-'+new Date().toISOString().slice(0,10)+'.txt',{type:'text/plain'});
   markBackup();renderOrders();
   try{ if(navigator.canShare&&navigator.canShare({files:[file]})){ closeSheet(); await navigator.share({files:[file],title:'PARAMPARA Backup'}); return; } }
   catch(e){ if(e&&e.name==='AbortError'){closeSheet();return;} }
-  const u=URL.createObjectURL(res.blob);
-  const a=document.createElement('a');a.href=u;a.download='parampara-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();
+  const u=URL.createObjectURL(txt);
+  const a=document.createElement('a');a.href=u;a.download='parampara-backup-'+new Date().toISOString().slice(0,10)+'.txt';a.click();
   setTimeout(()=>URL.revokeObjectURL(u),1000);closeSheet();
   toast(t('bk_done',{n:res.count}),'ok');
 }
-function doImport(){const inp=document.createElement('input');inp.type='file';inp.accept='.json,application/json';
+function doImport(){const inp=document.createElement('input');inp.type='file';inp.accept='.json,.txt,application/json,text/plain';
   inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
     r.onload=()=>{try{const raw=JSON.parse(r.result);
       const pack = (raw && raw.db && raw.__v) ? raw : {db:raw, media:{}};
@@ -11404,7 +11587,7 @@ function doImport(){const inp=document.createElement('input');inp.type='file';in
       const nMedia=mediaCount(pack);
       confirmModal(t('restore_title'),t('restore_msg')+(nMedia?(' '+t('bk_with_media',{n:nMedia})):''),async ()=>{
         DB=d;if(!DB.customers)DB.customers=[];if(!DB.designLib)DB.designLib={};if(!DB.karigars)DB.karigars=[];
-        save();
+        save(); flushDBNow();
         if(nMedia){ toast(t('bk_restoring'),'ok'); await restoreMedia(pack.media); }
         closeSheet();go('orders');toast(t('t_restored'),'ok');
       });
@@ -11417,7 +11600,7 @@ async function restoreSnapshotMenu(){
 async function restoreSnapshot(key){
   let data=await mGet(key); if(!data){toast(t('t_wrong'),'bad');return;}
   if(data instanceof Blob)data=await data.text();
-  confirmModal(t('restore_title'),t('restore_msg'),()=>{try{const d=JSON.parse(data);if(!d.orders)throw 0;DB=d;if(!DB.customers)DB.customers=[];if(!DB.designLib)DB.designLib={};if(!DB.karigars)DB.karigars=[];save();closeSheet();go('orders');toast(t('t_restored'),'ok');}catch(e){toast(t('t_wrong'),'bad');}});
+  confirmModal(t('restore_title'),t('restore_msg'),()=>{try{const d=JSON.parse(data);if(!d.orders)throw 0;DB=d;if(!DB.customers)DB.customers=[];if(!DB.designLib)DB.designLib={};if(!DB.karigars)DB.karigars=[];save();flushDBNow();closeSheet();go('orders');toast(t('t_restored'),'ok');}catch(e){toast(t('t_wrong'),'bad');}});
 }
 
 /* ====================== MODAL / TOAST ====================== */
@@ -11462,7 +11645,91 @@ function toast(msg,kind){const el=$('#toast');el.textContent=msg;el.className='t
 /* ====================== INIT ====================== */
 function updateHeadStat(){const due=DB.orders.reduce((s,o)=>s+orderBaaki(o),0);
   const hs=$('#headStat');if(hs)hs.innerHTML=`<b>${DB.orders.length}</b> ${t('orders_word')} · <b>${money(due)}</b> ${t('due')}<br><span onclick="backupMenu()" style="text-decoration:underline;cursor:pointer">💾 ${t('backup')}</span>`;}
-async function init(){load();syncShopNameKey();applyModules();try{await openIDB();}catch(e){}applyLang();document.body.classList.toggle('simple-mode',localStorage.getItem('pb_ob_simple')==='1');renderHome();_curTab='home';pushGuard();}
+/* Boot must never come up EMPTY while readable data still exists somewhere.
+   Each candidate is parsed before it is accepted; the first one that is both readable
+   and actually contains records wins. Order: live copy, previous good copy, newest
+   snapshot, then the old localStorage copy. */
+function dbLooksReal(o){ return !!(o && typeof o==='object' &&
+  ((o.orders&&o.orders.length)||(o.customers&&o.customers.length)||o.shopInfo)); }
+async function pickBootData(){
+  const tried=[];
+  const cand=[];
+  if(idb){
+    cand.push(['live', async()=>await mGet('__db')]);
+    cand.push(['prev', async()=>await mGet('__db_prev')]);
+    cand.push(['snapshot', async()=>{
+      const keys=(await mKeys()).filter(k=>String(k).indexOf('snap_')===0).sort();
+      if(!keys.length)return null;
+      let v=await mGet(keys[keys.length-1]);
+      if(v instanceof Blob)v=await v.text();
+      return v;
+    }]);
+  }
+  cand.push(['legacy', async()=>{ try{ return localStorage.getItem('pb_ob_v1'); }catch(e){ return null; } }]);
+  for(const [name,get] of cand){
+    let raw=null; try{ raw=await get(); }catch(e){}
+    if(typeof raw!=='string'||raw.length<2){ tried.push(name); continue; }
+    try{ const o=JSON.parse(raw); if(dbLooksReal(o))return {raw,from:name,tried}; }
+    catch(e){}
+    tried.push(name);
+  }
+  return {raw:null,from:'empty',tried};
+}
+/* Read the v2 store: core + one record per order. Returns null if it is not there
+   or does not add up, so boot can fall back to the old copies untouched. */
+async function readStoreV2(){
+  if(!idb)return null;
+  let meta=null;
+  try{ const m=await mGet('__meta'); if(typeof m==='string')meta=JSON.parse(m); }catch(e){}
+  if(!meta||meta.v!==2||!Array.isArray(meta.ids))return null;
+  let core=null;
+  try{ const c=await mGet('__core'); if(typeof c==='string')core=JSON.parse(c); }catch(e){}
+  if(!core)return null;
+  const orders=[];
+  for(const id of meta.ids){
+    try{ const r=await mGet(ORD_KEY(id)); if(typeof r==='string'){ orders.push(JSON.parse(r)); } }catch(e){}
+  }
+  if(orders.length!==meta.ids.length)return null;      // incomplete — do not trust it
+  core.orders=orders;
+  return core;
+}
+/* One-time move from the single blob to per-record storage. Nothing is deleted:
+   the old '__db' blob stays exactly where it is, so if anything at all goes wrong the
+   recovery chain still finds the shop's data. */
+async function migrateToV2(obj){
+  if(!idb||!obj)return false;
+  try{
+    const orders=obj.orders||[];
+    for(const o of orders){ const s=JSON.stringify(o); await mPut(ORD_KEY(o.id),s); _ordFp[o.id]=s; }
+    const core={}; for(const k in obj){ if(k!=='orders')core[k]=obj[k]; }
+    await mPut('__core', JSON.stringify(core));
+    await mPut('__meta', JSON.stringify({v:2, ids:orders.map(o=>o.id), ts:Date.now()}));
+    const check=await readStoreV2();                    // read it all back before trusting it
+    if(!check || (check.orders||[]).length!==orders.length){ try{ await mDel('__meta'); }catch(e){} return false; }
+    return true;
+  }catch(e){ try{ await mDel('__meta'); }catch(e2){} return false; }
+}
+async function init(){
+  try{ await openIDB(); }catch(e){}
+  try{ if(navigator.storage&&navigator.storage.persist)await navigator.storage.persist(); }catch(e){}
+  let usedV2=false, boot=null;
+  const v2=await readStoreV2();
+  if(v2 && dbLooksReal(v2)){ DB=v2; usedV2=true; }
+  else{
+    boot=await pickBootData();
+    load(boot.raw);
+    if(idb && boot.raw){ const ok=await migrateToV2(DB); if(!ok && boot.from!=='live'){ try{ await mPut('__db', boot.raw); }catch(e){} } }
+  }
+  _knownOrdIds=new Set((DB.orders||[]).map(o=>o.id));
+  if(usedV2){ (DB.orders||[]).forEach(o=>{ _ordFp[o.id]=JSON.stringify(o); }); }
+  _coreDirty=false; _dirtyOrd.clear(); _dbDirty=false;
+  syncShopNameKey();applyModules();applyLang();
+  document.body.classList.toggle('simple-mode',localStorage.getItem('pb_ob_simple')==='1');
+  renderHome();_curTab='home';pushGuard();
+  if(boot && boot.raw && boot.from!=='live' && boot.from!=='legacy'){
+    setTimeout(()=>toast(t('rec_used',{src:boot.from}),'bad'),900);
+  }
+}
 init();
 </script>
 </body>
