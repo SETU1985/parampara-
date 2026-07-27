@@ -414,7 +414,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v99</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v103</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1113,6 +1113,20 @@ const T={
   su_need_name:'Please enter your shop name',
   mod_off:'That section is switched off in Settings',
   kb_title:'Karigar Ledger',
+  ki_after:'after {n}',
+  jw_title:'Job Work', jw_sub:'Every karigar, what he is holding, and what is waiting to go out.',
+  jw_holding:'holding {n} pieces',
+  stk_cut_items:'Which pieces is this cloth for?', stk_cut_items_hint:'Tick every piece cut from this roll — one cut covers all of them.',
+  stk_cut_pick:'Tick at least one piece', cu_used_title:'Cloth used', cu_used_none:'No cloth issued against this order yet.',
+  au_title:'Stock check & recovery', au_sub:'What is actually stored on this device, and what is missing.',
+  au_rolls:'Fabric rolls stored', au_rolls_short:'rolls', au_range:'Serial range', au_missing:'Serials missing in that range',
+  au_gaps:'Missing serial numbers', au_scan:'Check restore points', au_scanning:'Checking…',
+  au_scan_hint:'If rolls are missing, an earlier restore point may still have them.',
+  au_found:'Restore points on this device', au_none:'No restore points found on this device.',
+  au_upto:'serials up to', au_merge:'Bring back the missing rolls',
+  au_merge_hint:'Only rolls this device does not have are added. Nothing already entered is changed or removed.',
+  au_merge_confirm:'{n} rolls will be added back. Nothing already entered will be changed. Continue?',
+  au_merged:'{n} rolls restored', au_nothing_new:'That restore point has nothing this device is missing.',
   stk_cut_search_ph:'Serial no., fabric name or rack',
   qc_label:'Quality check', qc_mark:'Mark as checked', qc_done:'Checked', qc_undone:'quality check removed',
   ab_qc:'Ready — quality check pending', ab_qc_sub:'These pieces are ready but have not been checked yet.',
@@ -2184,6 +2198,20 @@ const T={
   su_need_name:'दुकान का नाम भरें',
   mod_off:'यह हिस्सा सेटिंग्स में बंद है',
   kb_title:'कारीगर हिसाब',
+  ki_after:'{n} के बाद',
+  jw_title:'जॉब वर्क', jw_sub:'हर कारीगर, उसके पास क्या है, और क्या भेजना बाकी है।',
+  jw_holding:'{n} पीस उसके पास',
+  stk_cut_items:'यह कपड़ा किन पीस के लिए है?', stk_cut_items_hint:'इस थान से जो-जो पीस कटे, सब टिक करें — एक ही कटाई सब पर लगेगी।',
+  stk_cut_pick:'कम से कम एक पीस टिक करें', cu_used_title:'लगा कपड़ा', cu_used_none:'इस ऑर्डर पर अभी कोई कपड़ा नहीं निकला।',
+  au_title:'स्टॉक जाँच और रिकवरी', au_sub:'इस डिवाइस में असल में क्या सेव है, और क्या ग़ायब है।',
+  au_rolls:'सेव थान', au_rolls_short:'थान', au_range:'सीरियल रेंज', au_missing:'रेंज में ग़ायब सीरियल',
+  au_gaps:'ग़ायब सीरियल नंबर', au_scan:'रिस्टोर पॉइंट जाँचें', au_scanning:'जाँच हो रही है…',
+  au_scan_hint:'अगर थान ग़ायब हैं तो किसी पुराने रिस्टोर पॉइंट में मिल सकते हैं।',
+  au_found:'इस डिवाइस के रिस्टोर पॉइंट', au_none:'इस डिवाइस पर कोई रिस्टोर पॉइंट नहीं मिला।',
+  au_upto:'सीरियल यहाँ तक', au_merge:'ग़ायब थान वापस लाएँ',
+  au_merge_hint:'सिर्फ़ वही थान जुड़ेंगे जो इस डिवाइस में नहीं हैं। पहले से भरा कुछ नहीं बदलेगा।',
+  au_merge_confirm:'{n} थान वापस जुड़ेंगे। पहले से भरा कुछ नहीं बदलेगा। जारी रखें?',
+  au_merged:'{n} थान वापस आ गए', au_nothing_new:'उस रिस्टोर पॉइंट में ऐसा कुछ नहीं जो इस डिवाइस में न हो।',
   stk_cut_search_ph:'सीरियल नं., कपड़े का नाम या रैक',
   qc_label:'क्वालिटी चेक', qc_mark:'चेक हुआ मार्क करें', qc_done:'चेक हो गया', qc_undone:'क्वालिटी चेक हटाया',
   ab_qc:'तैयार — क्वालिटी चेक बाकी', ab_qc_sub:'ये पीस तैयार हैं पर अभी चेक नहीं हुए।',
@@ -3216,10 +3244,7 @@ function pageMore(key){
    ================================================================== */
 const MV_IN='in', MV_OUT='out';
 
-function nextThaanSerial(){
-  const c=DB.stkCfg; const n=c.nextSerial||1;
-  return String(n).padStart(3,'0');
-}
+function nextThaanSerial(){ return nextSerial()||'001'; }
 function bumpSerial(){ DB.stkCfg.nextSerial=(DB.stkCfg.nextSerial||1)+1; }
 function serialTaken(sr){ return (DB.thaans||[]).some(x=>String(x.serial)===String(sr)); }
 
@@ -3375,7 +3400,8 @@ function fabricBody(keepFocus){
 }
 
 /* ---- add / edit a thaan (bulk entry supported) ---- */
-let _th=null;
+let _th=null, _thMore=false;
+function thaanMore(){ thaanCapture(); _thMore=true; thaanRender(); setTimeout(()=>{const e=$('#th_rack');if(e)e.focus();},60); }
 function thaanEdit(id){
   const ex=id?TH(id):null;
   _th = ex ? {id:ex.id,serial:ex.serial,fabId:ex.fabId,name:(FI(ex.fabId)||{}).name||'',
@@ -3383,6 +3409,7 @@ function thaanEdit(id){
       mtr:ex.mtr, used:ex.used||0, rate:ex.rate||'', sell:ex.sell||(FI(ex.fabId)||{}).sell||'', rack:ex.rack||'', count:1, notes:ex.notes||'',
       photos:[...(ex.photos||[])]}
     : {id:null,serial:nextThaanSerial(),fabId:'',name:'',category:'',party:'',mtr:'',used:0,rate:'',sell:'',rack:'',count:1,notes:'',photos:[]};
+  _thMore=false;
   thaanRender();
 }
 function thaanRender(){
@@ -3419,8 +3446,9 @@ function thaanRender(){
       <div class="field"><label>🏷️ ${t('stk_sell')}</label>
         <input id="th_sell" type="number" inputmode="numeric" value="${esc(d.sell)}" placeholder="1200"></div></div>
     <p class="hint" style="margin:-4px 0 10px">${t('stk_sell_hint')}</p>
-    <div class="field"><label>📍 ${t('stk_rack')}</label>
-      <input id="th_rack" list="fabRacks" value="${esc(d.rack)}" placeholder="A-3"></div>
+    ${_thMore||d.rack?`<div class="field"><label>📍 ${t('stk_rack')}</label>
+      <input id="th_rack" list="fabRacks" value="${esc(d.rack)}" placeholder="A-3"></div>`
+      :`<button class="btn sm ghost block" style="margin-bottom:12px" onclick="thaanMore()">📍 ${t('stk_rack')} ▾</button>`}
 
     ${!d.id?`<div class="field"><label>${t('stk_count')}</label>
       <input id="th_count" type="number" inputmode="numeric" min="1" value="${esc(d.count)}">
@@ -3475,7 +3503,7 @@ function thaanSave(){
   const mtr=+$('#th_mtr').value||0;
   const rate=+$('#th_rate').value||0;
   const sell=+($('#th_sell')||{}).value||0;
-  const rack=($('#th_rack').value||'').trim();
+  const rack=$('#th_rack')?($('#th_rack').value||'').trim():((_th&&_th.rack)||'');
   const notes=($('#th_notes').value||'').trim();
   const count=d.id?1:Math.max(1,+($('#th_count')||{}).value||1);
   if(!serial){toast(t('stk_need_serial'),'bad');return;}
@@ -3573,7 +3601,8 @@ function bulkDelAdded(id){
 function nextSerial(){
   const all=(DB.thaans||[]).map(t=>String(t.serial||'')).filter(Boolean);
   if(!all.length)return '001';
-  const last=all[all.length-1];
+  // highest serial, compared numerically — the last-ADDED roll is not always the highest
+  const last=all.slice().sort((x,y)=>String(x).localeCompare(String(y),undefined,{numeric:true}))[all.length-1];
   const m=String(last).match(/^(.*?)(\d+)\s*$/);
   if(!m)return '';
   const pre=m[1], num=m[2];
@@ -3691,13 +3720,27 @@ function thaanIssue(id,orderId,gid){
   const bal=thaanBal(th);
   const reasons=[['sample','🧪 '+t('stk_r_sample')],['sale','🛍️ '+t('stk_r_sale')],
     ['cut','✂️ '+t('stk_r_cut')],['waste','🗑️ '+t('stk_r_waste')]];
+  /* One roll usually covers SEVERAL pieces of the same order — a Suit 4pc takes the
+     same cloth for coat, pant and waistcoat and only the shirt differs. Cutting them
+     one at a time meant repeating this whole screen three times, so the pieces are
+     tickable here and a single cut covers all of them. */
+  const o=orderId?(DB.orders||[]).find(x=>x.id===orderId):null;
+  const pieces=o?sortItems(o.items||[]).filter(k=>{
+    const st=itemStatusOf(o,k); return st!=='ready'&&st!=='delivered';
+  }):[];
+  const preset=new Set(gid?[gid]:[]);
+  const itemBox=pieces.length?`<div class="field"><label>${t('stk_cut_items')}</label>
+    <div class="gtags" id="cutItems">${pieces.map(k=>{const g=G(k);
+      return `<span class="gtag ${preset.has(k)?'on-tag':''}" data-ci="${esc(k)}" onclick="cutPickItem(this)" style="cursor:pointer">${g?g.ico+' '+esc(g.n):esc(k)}</span>`;}).join('')}</div>
+    <p class="hint" style="margin-top:4px">${t('stk_cut_items_hint')}</p></div>`:'';
   modal('✂️ '+t('stk_issue')+' — #'+esc(th.serial),
     `<p class="hint" style="margin-bottom:10px">${t('stk_balance')}: <b>${bal} m</b></p>
+     ${itemBox}
      <div class="field"><label>${t('stk_mtr_out')} *</label>
        <input id="iss_m" type="number" inputmode="decimal" step="0.25" max="${bal}" placeholder="3.5"></div>
      <div class="field"><label>${t('stk_reason')}</label>
        <div class="gtags" id="issReasons">
-         ${reasons.map((r,i)=>`<span class="gtag ${i===0?'on-tag':''}" data-r="${r[0]}" onclick="issPick(this)" style="cursor:pointer">${r[1]}</span>`).join('')}
+         ${reasons.map((r,i)=>`<span class="gtag ${(orderId?r[0]==='cut':i===0)?'on-tag':''}" data-r="${r[0]}" onclick="issPick(this)" style="cursor:pointer">${r[1]}</span>`).join('')}
        </div></div>
      ${orderId?`<div class="field"><label>🧵 ${t('stk_karigar_cost')}</label>
        <input id="iss_kar" type="number" inputmode="numeric" placeholder="0">
@@ -3708,26 +3751,37 @@ function thaanIssue(id,orderId,gid){
         const m=+$('#iss_m').value||0;
         if(m<=0){toast(t('stk_need_mtr'),'bad');return;}
         if(m>bal+0.01){toast(t('stk_not_enough',{n:bal}),'bad');return;}
+        const picked=[...document.querySelectorAll('#cutItems .gtag.on-tag')].map(x=>x.dataset.ci);
+        if(orderId&&pieces.length&&!picked.length){toast(t('stk_cut_pick'),'bad');return;}
         const sel=document.querySelector('#issReasons .on-tag');
         const reason=sel?sel.dataset.r:'sample';
         const note=($('#iss_note').value||'').trim();
         th.used=r2((+th.used||0)+m);
+        const names=picked.map(k=>{const g=G(k);return g?g.n:'';}).filter(Boolean).join(', ');
         move({dir:MV_OUT,target:'fab',thaanId:th.id,qty:m,rate:th.rate||0,reason,
-          ref:orderId?('Order #'+((DB.orders.find(o=>o.id===orderId)||{}).orderNo||'')):t('stk_r_'+reason),
+          ref:orderId?('Order #'+((DB.orders.find(x=>x.id===orderId)||{}).orderNo||'')+(names?' — '+names:'')):t('stk_r_'+reason),
           refId:orderId||'',note});
-        if(orderId&&gid){
-          const o=DB.orders.find(x=>x.id===orderId);
-          if(o){o.cost=o.cost||{}; o.cost[gid]=o.cost[gid]||{fabric:0,karigar:0,cuts:[]};
-            o.cost[gid].fabric=r2((o.cost[gid].fabric||0)+m*(+th.rate||0));
-            const kar=+(($('#iss_kar')||{}).value)||0;
-            if(kar)o.cost[gid].karigar=r2((o.cost[gid].karigar||0)+kar);
-            o.cost[gid].cuts.push({thaanId:th.id,serial:th.serial,mtr:m,rate:+th.rate||0});}
+        if(o&&picked.length){
+          const share=r2(m/picked.length), cost=r2(share*(+th.rate||0));
+          const kar=+(($('#iss_kar')||{}).value)||0, karShare=kar?r2(kar/picked.length):0;
+          o.cost=o.cost||{};
+          picked.forEach(k=>{
+            o.cost[k]=o.cost[k]||{fabric:0,karigar:0,cuts:[]};
+            o.cost[k].cuts=o.cost[k].cuts||[];
+            o.cost[k].fabric=r2((o.cost[k].fabric||0)+cost);
+            if(karShare)o.cost[k].karigar=r2((o.cost[k].karigar||0)+karShare);
+            o.cost[k].cuts.push({thaanId:th.id,serial:th.serial,mtr:share,rate:+th.rate||0,shared:picked.length>1});
+            o.itemStatus=o.itemStatus||{};
+            if(reason==='cut'&&itemStatusOf(o,k)==='new')o.itemStatus[k]='cut';
+          });
+          touchOrder(o.id);
         }
         save(); toast(t('stk_issued',{n:m}),'ok');
         if(orderId){closeSheet(); if(typeof openDetail==='function')openDetail(orderId);}
         else thaanDetail(id);
      }}]);
 }
+function cutPickItem(el){ el.classList.toggle('on-tag'); }
 function issPick(el){
   document.querySelectorAll('#issReasons .gtag').forEach(x=>x.classList.remove('on-tag'));
   el.classList.add('on-tag');
@@ -6315,7 +6369,7 @@ function renderHome(){
     <div class="home-sec-title">📋 ${t('home_tailoring')}</div>
     <div class="home-grid">
       ${tile('📋',t('nav_orders'),"go('orders')")}
-      ${tile('👷',t('kb_title'),"karigarBook()")}
+      ${tile('🧵',t('jw_title'),"jobWork()")}
       ${tile('📞',t('se_title'),"statusEnquiry('')")}
       ${tile('📦',t('cu_title'),"courierHub()")}
       ${tile('🔎',t('of_title'),"orderFilter()")}
@@ -7610,6 +7664,8 @@ async function openDetail(id,focusGid){
     const ist=itemStatusOf(o,gid);
     const selStyle='flex:1;background:var(--bg2);border:1px solid var(--line);color:var(--txt);padding:9px 10px;border-radius:var(--r2);font-size:15px';
     const sStat=`<div class="row" style="margin-top:8px;align-items:center;gap:8px"><span class="hint">📍 ${t('status')}</span><select id="stsel_${cssId(gid)}" onchange="setItemStatus('${o.id}','${gid}',this.value)" style="${selStyle}">${STATUS.map(s=>`<option value="${s}" ${s===ist?'selected':''}>${sLabel(s)}</option>`).join('')}</select></div>`;
+    const legs=((o.jobs&&o.jobs[gid])||[]);
+    const legLine=legs.length?`<div class="hint" style="margin-top:4px">🧵 ${legs.map(l=>esc(karigarName(l.kid))+' ✓').join(' → ')}</div>`:'';
     const qcOn=!!((o.qc||{})[gid]);
     const sQc=(ist==='ready'||ist==='delivered')?`<div class="row" style="margin-top:8px;align-items:center;gap:8px">
       <span class="hint">🔍 ${t('qc_label')}</span>
@@ -7632,6 +7688,7 @@ async function openDetail(id,focusGid){
     return `<div class="mcard"><div class="mh"><b>${g.ico} ${esc(itemTitle(o,gid))}${_who?` <span class="who-tag">${esc(_who)}</span>`:''}</b><span class="pill st-${ist}" id="pill_${cssId(gid)}">${sLabel(ist)}</span></div><div class="mb">
       <div class="gtags">${cells||'<span class="hint">—</span>'}</div>${dn}
       ${sStat}
+      ${legLine}
       ${sQc}
       ${ksel}
       <div class="media-row" id="dip_${gid}" style="margin-top:8px"></div>
@@ -7658,6 +7715,21 @@ async function openDetail(id,focusGid){
       ${paymentHistoryHTML(o)}
     </div>
 
+    <div class="section-h">🧵 ${t('cu_used_title')}</div>
+    ${(()=>{const rows=[];
+      Object.keys(o.cost||{}).forEach(gid=>{
+        ((o.cost[gid]||{}).cuts||[]).forEach(c=>{const g=G(gid);
+          rows.push({item:g?g.ico+' '+g.n:gid, serial:c.serial, mtr:c.mtr, shared:!!c.shared});});});
+      if(!rows.length)return `<p class="hint" style="margin-bottom:12px">${t('cu_used_none')}</p>`;
+      const byRoll={};
+      rows.forEach(r=>{byRoll[r.serial]=byRoll[r.serial]||{mtr:0,items:[]};
+        byRoll[r.serial].mtr=r2(byRoll[r.serial].mtr+(+r.mtr||0));
+        byRoll[r.serial].items.push(r.item);});
+      return `<div class="card" style="padding:0;margin-bottom:12px;overflow:hidden">`
+        + Object.entries(byRoll).map(([ser,v])=>`<div class="krow">
+            <span class="kn">🧵 #${esc(ser)}<div class="hint">${v.items.map(esc).join(' · ')}</div></span>
+            <b>${v.mtr} m</b></div>`).join('')
+        + `</div>`;})()}
     <div class="section-h">${t('timeline')}</div>
     <div class="card" id="addUpdateBox">
       <div style="display:flex;gap:10px;align-items:center">
@@ -10896,17 +10968,6 @@ function setItemKarigar(oid,gid,kid){const o=DB.orders.find(x=>x.id===oid);if(!o
       const pill=document.getElementById('pill_'+cssId(gid)); if(pill){pill.className='pill st-stitching';pill.textContent=sLabel('stitching');}
       const sel=document.getElementById('stsel_'+cssId(gid)); if(sel)sel.value='stitching'; } }
   save();if(document.getElementById('timeline'))renderTimeline(o);toast(t('t_saved'),'ok');}
-function karigarSlipMenu(oid){const o=DB.orders.find(x=>x.id===oid);if(!o)return;
-  const map={}; (o.items||[]).forEach(gid=>{const kid=(o.assign&&o.assign[gid])||'';(map[kid]=map[kid]||[]).push(gid);});
-  const kids=Object.keys(map).filter(k=>k); const unassigned=map['']||[];
-  if(!kids.length){toast(t('no_assign'),'bad');closeSheet();setTimeout(()=>openDetail(oid),50);return;}
-  let body=`<p class="hint" style="margin-bottom:10px">${t('karigar_slips_desc')}</p>`;
-  kids.forEach(kid=>{const its=map[kid].map(g=>{const G_=G(g);return G_?G_.n:'';}).filter(Boolean).join(', ');
-    body+=`<div class="cust-result"><div><b>👷 ${esc(karigarName(kid))}</b><div class="hint">${esc(its)}</div></div>
-      <div style="display:flex;gap:6px"><button class="btn sm primary" onclick="sendKarigarWA('${oid}','${kid}')">💬</button><button class="btn sm ghost" onclick="printKarigar('${oid}','${kid}')">🖨️</button></div></div>`;});
-  if(unassigned.length)body+=`<p class="hint" style="margin-top:10px">⚠️ ${t('unassigned')}: ${esc(unassigned.map(g=>{const G_=G(g);return G_?G_.n:'';}).filter(Boolean).join(', '))}</p>`;
-  modal(t('karigar_slips'),body,[{label:t('close'),cls:'ghost',fn:closeSheet}]);
-}
 function sendKarigarWA(oid,kid){const o=DB.orders.find(x=>x.id===oid);if(!o)return;
   const gids=(o.items||[]).filter(g=>(o.assign&&o.assign[g])===kid);
   const k=(DB.karigars||[]).find(x=>x.id===kid);
@@ -10923,6 +10984,8 @@ function sendMenu(oid){const o=DB.orders.find(x=>x.id===oid);if(!o)return;
     kids.forEach(kid=>{const its=map[kid].map(g=>{const G_=G(g);return G_?G_.n:'';}).filter(Boolean).join(', ');
       body+=`<div class="cust-result"><div><b>${esc(karigarName(kid))}</b><div class="hint">${esc(its)}</div></div>
         <div style="display:flex;gap:6px"><button class="btn sm primary" onclick="sendKarigarWA('${oid}','${kid}')">💬</button><button class="btn sm ghost" onclick="printKarigar('${oid}','${kid}')">🖨️</button></div></div>`;});}
+  const unassigned=(map['']||[]).map(g=>{const G_=G(g);return G_?G_.n:'';}).filter(Boolean);
+  if(unassigned.length)body+=`<p class="hint" style="margin-top:8px;color:var(--saffron2)">⚠️ ${t('unassigned')}: ${esc(unassigned.join(', '))}</p>`;
   body+=`<p class="hint" style="margin:14px 0 6px">📋 ${t('send_choose')}</p>`+sortItems(o.items).map(gid=>{const g=G(gid);return `<label style="display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line)"><input type="checkbox" class="msel" value="${gid}" checked style="width:20px;height:20px"> ${g.ico} ${esc(g.n)}</label>`;}).join('');
   modal(t('send_meas'),body,[
     {label:'💬 '+t('whatsapp'),cls:'primary',fn:()=>{const sel=msel();if(!sel.length){toast(t('master_none'),'bad');return;}closeSheet();shareMaster(o,sel,'');}},
@@ -11093,9 +11156,16 @@ function karRecvDate(o,gid){ return (o.recv&&o.recv[gid])||''; }
 function karJobs(kid){
   const out=[];
   (DB.orders||[]).forEach(o=>(o.items||[]).forEach(gid=>{
+    const g=G(gid);
+    // earlier COMPLETED legs of the same piece — hand-embroidery then stitching means two
+    // different masters each earn on the same garment, so history must be paid too
+    ((o.jobs&&o.jobs[gid])||[]).forEach(leg=>{
+      if((leg.kid||'')!==kid || !leg.recv)return;
+      out.push({kind:'order',id:o.id,gid,date:leg.recv,
+        label:`#${o.orderNo||'—'} · ${(g&&g.n)||''}`,who:o.customerName||'',amt:+leg.amt||0});
+    });
     if(((o.assign&&o.assign[gid])||'')!==kid)return;
     const d=karRecvDate(o,gid); if(!d)return;                 // not handed back yet
-    const g=G(gid);
     out.push({kind:'order',id:o.id,gid,date:d,
       label:`#${o.orderNo||'—'} · ${(g&&g.n)||''}`,who:o.customerName||'',amt:karRateFor(o,gid)});
   }));
@@ -11181,11 +11251,16 @@ function kiItemsFree(kid){                    // nothing assigned yet, still to 
   const spec=new Set(k.specialties||[]);
   const out=[];
   (DB.orders||[]).forEach(o=>(o.items||[]).forEach(gid=>{
-    if((o.assign&&o.assign[gid])||'')return;
+    const cur=(o.assign&&o.assign[gid])||'';
+    // free = never given out, OR given and already handed back but still not finished
+    // (his hand-embroidery pieces come back and then go to a stitching master)
+    const back=!!(cur && karRecvDate(o,gid));
+    if(cur && !back)return;
     const st=itemStatusOf(o,gid); if(st==='ready'||st==='delivered')return;
     const g=G(gid); if(!g)return;
     if(_kiOnlyHis && spec.size && !spec.has(g.id))return;
-    out.push({o,gid,g});
+    if(back && cur===kid)return;                 // do not offer him back his own finished leg
+    out.push({o,gid,g,prev:back?cur:''});
   }));
   return out.sort((a,b)=>String(a.o.deliveryDate||'').localeCompare(String(b.o.deliveryDate||'')));
 }
@@ -11199,6 +11274,11 @@ function kiItemsWith(kid){                    // given to him, not yet handed ba
   }));
   return out.sort((a,b)=>String(a.o.deliveryDate||'').localeCompare(String(b.o.deliveryDate||'')));
 }
+function kiPrevTag(x){
+  if(!x.prev)return '';
+  const n=((DB.karigars||[]).find(k=>k.id===x.prev)||{}).name||'';
+  return n?` <span class="pill st-alteration" style="font-size:10px">${t('ki_after',{n:esc(n)})}</span>`:'';
+}
 function kiRow(x,kid){
   const key=x.o.id+'~'+x.gid, on=_kiSel.has(key);
   const dl=x.o.deliveryDate?daysLeft(x.o.deliveryDate):null;
@@ -11206,7 +11286,7 @@ function kiRow(x,kid){
   return `<label class="cust-result" style="margin-bottom:6px;cursor:pointer;${on?'border-color:var(--saffron)':''}">
     <input type="checkbox" ${on?'checked':''} onchange="kiToggle('${esc(key)}')" style="width:22px;height:22px;flex:0 0 auto">
     <div style="flex:1;min-width:0">
-      <b>${x.g.ico} ${esc(x.g.n)}</b>
+      <b>${x.g.ico} ${esc(x.g.n)}</b>${kiPrevTag(x)}
       <div class="hint">#${esc(x.o.orderNo||'—')} · ${esc(x.o.customerName||'—')}</div>
       <div class="hint" style="${col}">📅 ${fmtDate(x.o.deliveryDate)}</div>
     </div></label>`;
@@ -11257,6 +11337,14 @@ function kiApply(kid,mode){
     const [oid,gid]=key.split('~');
     const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
     if(mode==='give'){
+      const prev=(o.assign&&o.assign[gid])||'';
+      const prevRecv=karRecvDate(o,gid);
+      if(prev && prevRecv){                       // close the finished leg before reassigning
+        o.jobs=o.jobs||{}; o.jobs[gid]=o.jobs[gid]||[];
+        o.jobs[gid].push({kid:prev,issued:(o.issued&&o.issued[gid])||'',recv:prevRecv,amt:karRateFor(o,gid)});
+        if(o.recv)delete o.recv[gid];
+        if(o.karAmt)delete o.karAmt[gid];
+      }
       o.assign=o.assign||{}; o.assign[gid]=kid; touchOrder(o.id);
       o.issued=o.issued||{}; o.issued[gid]=d;
       givenEntries.push({oid,gid});
@@ -11322,6 +11410,44 @@ function karStatementSend(kid){
 /* ============ KARIGAR HUB — every master at a glance ============
    One screen answers the two questions he actually has: who is holding my
    pieces, and who do I owe. Give / Take back are reachable in one tap. */
+/* ================= JOB WORK HUB =================
+   His note: giving items to a karigar and receiving them back needs ONE dedicated
+   place where all job work is managed — doing it from inside each order is the hard
+   way. This is that place: every master, what he is holding, what is waiting to go
+   out, and both actions one tap away. */
+function jobWork(){
+  const ks=DB.karigars||[];
+  const b=abBuckets();
+  const unassigned=b.noKar.length;
+  const rows=ks.map(k=>{
+    const out=karOutCount(k.id), free=kiItemsFree(k.id).length, bal=karBalance(k.id);
+    const spec=(k.specialties||[]).map(id=>{const g=G(id);return g?(g.ico||''):'';}).filter(Boolean).join(' ');
+    return `<div class="card" style="padding:12px 14px;margin-bottom:8px">
+      <div class="kv" style="align-items:flex-start">
+        <div style="min-width:0;flex:1" onclick="karigarLedger('${k.id}')">
+          <b style="font-size:16px">👷 ${esc(k.name)}</b>${spec?` <span class="hint">${spec}</span>`:''}
+          <div class="hint" style="margin-top:2px">${out?t('jw_holding',{n:out}):t('kb_nothing_out')}</div>
+        </div>
+        <div style="text-align:right;flex:0 0 auto">${balArrow(-bal)}</div></div>
+      <div class="row" style="gap:6px;margin-top:8px">
+        <button class="btn sm primary" style="flex:1" onclick="karPickGo('${k.id}','give')">📤 ${t('ki_give')}${free?' ('+free+')':''}</button>
+        <button class="btn sm ${out?'primary':'ghost'}" style="flex:1" onclick="karPickGo('${k.id}','take')">📥 ${t('ki_take')}${out?' ('+out+')':''}</button>
+        <button class="btn sm ghost" onclick="karigarLedger('${k.id}')">📊</button></div></div>`;
+  }).join('') || `<p class="hint" style="padding:20px 0;text-align:center">${t('no_karigars')}</p>`;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin-bottom:4px">🧵 ${t('jw_title')}</h2>
+    <p class="hint" style="margin-bottom:12px">${t('jw_sub')}</p>
+    ${unassigned?`<div class="card fu-open" style="padding:12px 14px;margin-bottom:12px;border-color:var(--saffron)" onclick="actionList('nokar')">
+      <div class="kv"><span>⚠️ ${t('ab_nokar')}</span><b style="color:var(--saffron2)">${unassigned}</b></div></div>`:''}
+    ${b.stuck.length?`<div class="card fu-open" style="padding:12px 14px;margin-bottom:12px" onclick="actionList('stuck')">
+      <div class="kv"><span>⏳ ${t('ab_stuck',{n:AB_STUCK})}</span><b>${b.stuck.length}</b></div></div>`:''}
+    ${rows}
+    ${ks.length?`<button class="btn ghost block" style="margin-top:8px" onclick="karigarReport()">📊 ${t('kb_report')}</button>`:''}
+    <button class="btn ghost block" style="margin-top:8px" onclick="closeSheet();karigarMaster()">⚙️ ${t('karigar_master')}</button>
+    <div class="modal-actions"><button class="btn ghost block" onclick="closeSheet()">${t('close')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
 function karigarBook(){
   const ks=DB.karigars||[];
   const rows=ks.map(k=>{
@@ -11843,7 +11969,8 @@ function backupMenu(){modal(t('backup_title'),`<p style="color:var(--txt2);font-
   <p class="hint" style="margin:2px 0 4px">${t('send_backup_hint')}</p>
   <button class="btn ghost block" onclick="doExport()">⬇️ ${t('download_backup')}</button>
   <button class="btn ghost block" onclick="doImport()">⬆️ ${t('restore_backup')}</button>
-  <button class="btn ghost block" onclick="restoreSnapshotMenu()">🕑 ${t('restore_auto')}</button></div>`,
+  <button class="btn ghost block" onclick="restoreSnapshotMenu()">🕑 ${t('restore_auto')}</button>
+  <button class="btn ghost block" onclick="stockAudit()">🩺 ${t('au_title')}</button></div>`,
   [{label:t('close'),cls:'ghost',fn:closeSheet}]);
   bkShowSize(); bkSafety();
 }
@@ -11978,6 +12105,95 @@ function doImport(){const inp=document.createElement('input');inp.type='file';in
         closeSheet();go('orders');toast(t('t_restored'),'ok');
       });
     }catch(_){toast(t('t_wrong'),'bad');}};r.readAsText(f);};inp.click();}
+/* ================= STOCK AUDIT / ROLL RECOVERY =================
+   His salesmen entered opening stock up to serial 445 but the app's next serial came
+   back 344, which means roughly a hundred rolls are not in this device's data. That is
+   a data question, not a numbering one, so this screen shows exactly what IS stored,
+   where the gaps are, and what every restore point and backup file contains — and it
+   can pull missing rolls back WITHOUT discarding anything entered since. */
+function serialNum(x){ const m=String(x||'').match(/(\d+)\s*$/); return m?+m[1]:null; }
+function rollStats(thaans){
+  const nums=(thaans||[]).map(t=>serialNum(t.serial)).filter(n=>n!==null).sort((a,b)=>a-b);
+  if(!nums.length)return {count:(thaans||[]).length,min:null,max:null,gaps:[],missing:0};
+  const min=nums[0], max=nums[nums.length-1];
+  const have=new Set(nums), gaps=[];
+  for(let i=min;i<=max;i++){ if(!have.has(i)){ 
+    if(gaps.length && gaps[gaps.length-1].to===i-1) gaps[gaps.length-1].to=i;
+    else gaps.push({from:i,to:i}); } }
+  return {count:(thaans||[]).length,min,max,gaps,missing:gaps.reduce((a,g)=>a+(g.to-g.from+1),0)};
+}
+let _auditSrc=[];
+async function stockAudit(){
+  const now=rollStats(DB.thaans||[]);
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin-bottom:4px">🩺 ${t('au_title')}</h2>
+    <p class="hint" style="margin-bottom:12px">${t('au_sub')}</p>
+    <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
+      <div class="il"><span>${t('au_rolls')}</span><b style="font-size:18px">${now.count}</b></div>
+      <div class="il"><span>${t('au_range')}</span><b>${now.min!==null?now.min+' – '+now.max:'—'}</b></div>
+      <div class="il" style="border-bottom:0"><span>${t('au_missing')}</span>
+        <b style="${now.missing?'color:var(--bad)':''}">${now.missing}</b></div></div>
+    ${now.gaps.length?`<div class="section-h" style="margin-top:0">${t('au_gaps')}</div>
+      <div class="card" style="padding:10px 12px;margin-bottom:12px">
+        ${now.gaps.slice(0,30).map(g=>`<span class="gtag" style="margin:2px">${g.from===g.to?g.from:g.from+'–'+g.to}</span>`).join('')}
+        ${now.gaps.length>30?`<div class="hint" style="margin-top:6px">+${now.gaps.length-30}</div>`:''}</div>`:''}
+    <p class="hint" style="margin-bottom:8px">${t('au_scan_hint')}</p>
+    <button class="btn primary block" onclick="auditScan()">🔍 ${t('au_scan')}</button>
+    <div id="auOut" style="margin-top:12px"></div>
+    <div class="modal-actions"><button class="btn ghost block" onclick="closeSheet()">${t('close')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+async function auditScan(){
+  const out=$('#auOut'); if(out)out.innerHTML=`<p class="hint">${t('au_scanning')}</p>`;
+  _auditSrc=[];
+  const nowMax=rollStats(DB.thaans||[]).max;
+  try{
+    const keys=(await mKeys()).filter(k=>String(k).indexOf('snap_')===0).sort().reverse();
+    for(const k of keys){
+      let raw=await mGet(k);
+      if(raw instanceof Blob)raw=await raw.text();
+      if(typeof raw!=='string')continue;
+      try{ const d=JSON.parse(raw); const st=rollStats(d.thaans||[]);
+        _auditSrc.push({key:k,label:String(k).replace('snap_','').replace('_',' '),st,
+          thaans:d.thaans||[], fabItems:d.fabItems||[]});
+      }catch(e){}
+    }
+  }catch(e){}
+  const el=$('#auOut'); if(!el)return;
+  if(!_auditSrc.length){ el.innerHTML=`<p class="hint">${t('au_none')}</p>`; return; }
+  el.innerHTML=`<div class="section-h" style="margin-top:0">${t('au_found')}</div>`
+    + _auditSrc.map((s,i)=>{
+        const better=s.st.max!==null && (nowMax===null || s.st.max>nowMax);
+        return `<div class="card" style="padding:11px 13px;margin-bottom:8px;${better?'border-color:var(--ok)':''}">
+          <div class="kv"><b>🕑 ${esc(s.label)}</b><b style="${better?'color:var(--ok)':''}">${s.st.count} ${t('au_rolls_short')}</b></div>
+          <div class="hint">${t('au_upto')} ${s.st.max!==null?s.st.max:'—'}</div>
+          ${better?`<button class="btn sm primary block" style="margin-top:8px" onclick="auditMerge(${i})">➕ ${t('au_merge')}</button>`:''}
+        </div>`;}).join('')
+    + `<p class="hint">${t('au_merge_hint')}</p>`;
+}
+/* Adds only the rolls this device does not have. Nothing existing is touched or removed. */
+function auditMerge(i){
+  const src=_auditSrc[i]; if(!src)return;
+  const have=new Set((DB.thaans||[]).map(t=>String(t.serial||'').trim().toLowerCase()));
+  const haveIds=new Set((DB.thaans||[]).map(t=>t.id));
+  const add=(src.thaans||[]).filter(t=>{
+    const k=String(t.serial||'').trim().toLowerCase();
+    return k && !have.has(k) && !haveIds.has(t.id);
+  });
+  if(!add.length){ toast(t('au_nothing_new'),'bad'); return; }
+  confirmModal(t('au_merge'), t('au_merge_confirm',{n:add.length}), ()=>{
+    DB.thaans=(DB.thaans||[]).concat(JSON.parse(JSON.stringify(add)));
+    // bring across the fabric design records those rolls point at, or their names show blank
+    const haveFab=new Set((DB.fabItems||[]).map(f=>f.id));
+    const wantFab=new Set(add.map(t=>t.fabId).filter(Boolean));
+    const bring=(src.fabItems||[]).filter(f=>wantFab.has(f.id)&&!haveFab.has(f.id));
+    if(bring.length)DB.fabItems=(DB.fabItems||[]).concat(JSON.parse(JSON.stringify(bring)));
+    save(); flushDBNow();
+    toast(t('au_merged',{n:add.length}),'ok');
+    stockAudit();
+  });
+}
 async function restoreSnapshotMenu(){
   const keys=(await mKeys()).filter(k=>String(k).indexOf('snap_')===0).sort().reverse();
   if(!keys.length){toast(t('no_snapshots'),'bad');return;}
