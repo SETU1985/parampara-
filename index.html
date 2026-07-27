@@ -337,7 +337,15 @@
 
   #fracbar{position:fixed; left:0; right:0; bottom:0; z-index:120; display:none;
     background:#2a2218; border-top:1px solid var(--line2); padding:8px calc(8px + var(--safe-b)) calc(8px + var(--safe-b)); gap:6px; justify-content:center}
-  #fracbar.show{display:flex}
+  #fracbar.show{display:flex; flex-direction:column; gap:6px}
+  .fb-row{display:flex; gap:6px; justify-content:center}
+  .fb-nav{max-width:56px !important; color:var(--saffron2)}
+  .fb-pad{display:none; grid-template-columns:repeat(3,1fr); gap:6px; max-width:420px; margin:0 auto; width:100%}
+  #fracbar.pad .fb-pad{display:grid}
+  .fb-pad button{padding:14px 0; border-radius:10px; background:var(--card2); border:1px solid var(--line2);
+    font-size:22px; font-weight:800; color:var(--txt)}
+  .fb-pad .fb-go{background:linear-gradient(135deg,var(--saffron),#d98a12); color:#1a1206; border-color:var(--saffron)}
+  .fb-toggle{align-self:center; background:none; border:0; color:var(--txt2); font-size:12px; font-weight:700; padding:2px 10px}
   .mcard.collapsed .mb{display:none}
   .mh-tap{cursor:pointer}
   .mcard.collapsed .mh{border-bottom:none}
@@ -408,13 +416,61 @@
   .home-monthbox b{color:var(--txt);font-size:16px}
   body.simple-mode .ht-ico{font-size:34px}
   body.simple-mode .ht-lbl{font-size:16px}
+
+  /* ===================== WIDE SCREEN (laptop / desktop) =====================
+     Everything below only applies above 1024px, so the iPad and phone he works on
+     every day are untouched. On a laptop the app stops being a narrow phone column:
+     navigation moves to a left sidebar, the content column widens, and detail sheets
+     become a right-hand PANEL beside the list instead of covering it — the list stays
+     visible and usable, which is the whole point of the big screen. */
+  @media (min-width:1024px){
+    header{padding-left:230px}
+    header .hrow, header .searchbar{max-width:1400px; margin-left:auto; margin-right:auto}
+    main{max-width:1400px; padding:18px 24px 40px 254px}
+
+    nav{top:0; bottom:0; right:auto; left:0; width:230px; flex-direction:column;
+      justify-content:flex-start; gap:4px; padding:78px 12px 18px; border-top:0;
+      border-right:1px solid var(--line); z-index:60}
+    nav button{flex:0 0 auto; flex-direction:row; justify-content:flex-start; gap:12px;
+      width:100%; padding:12px 14px; border-radius:var(--r2); font-size:14px}
+    nav button:hover{background:var(--bg2)}
+    nav button.on{background:rgba(224,138,26,.12)}
+    nav .nico{font-size:20px; width:26px; text-align:center}
+    nav .add{order:-1; margin-bottom:10px}
+    nav .add .nico{width:100%; height:44px; border-radius:var(--r2); margin-top:0; font-size:24px}
+
+    /* detail sheets sit beside the list, not on top of it */
+    .scrim{background:transparent; justify-content:flex-end; align-items:stretch; pointer-events:none}
+    .scrim .sheet{pointer-events:auto; width:560px; max-width:560px; max-height:100vh; height:100vh;
+      border-radius:0; border-top:0; border-right:0; border-left:1px solid var(--line);
+      box-shadow:-18px 0 44px rgba(0,0,0,.5); animation:slidein .18s ease; padding-bottom:28px}
+    @keyframes slidein{from{transform:translateX(100%)} to{transform:none}}
+    .scrim .sheet .grip{display:none}
+    /* the confirm/pick modal stays centred — it is a decision, not a workspace */
+    .mscrim{background:rgba(0,0,0,.6); align-items:center; justify-content:center; pointer-events:auto}
+    .mscrim .sheet{width:640px; max-width:640px; height:auto; max-height:86vh;
+      border-radius:20px; border:1px solid var(--line); box-shadow:0 24px 60px rgba(0,0,0,.55);
+      animation:none}
+    .mscrim .sheet .grip{display:block}
+
+    /* wider screen, so show more per row instead of stretching two columns */
+    .home-grid{grid-template-columns:repeat(4,1fr)}
+    .home-stats{max-width:none}
+    .chip-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+    .save-dock{max-width:none}
+    .fab-pad{height:8px}
+  }
+  @media (min-width:1500px){
+    main{max-width:1600px}
+    .home-grid{grid-template-columns:repeat(5,1fr)}
+  }
 </style>
 </head>
 <body>
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v104</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v107</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -448,11 +504,30 @@
 </nav>
 
 <div id="fracbar">
-  <button onmousedown="insFrac(event,'½')" ontouchstart="insFrac(event,'½')">½</button>
-  <button onmousedown="insFrac(event,'¼')" ontouchstart="insFrac(event,'¼')">¼</button>
-  <button onmousedown="insFrac(event,'¾')" ontouchstart="insFrac(event,'¾')">¾</button>
-  <button onmousedown="insFrac(event,'⅛')" ontouchstart="insFrac(event,'⅛')">⅛</button>
-  <button onmousedown="insFrac(event,'CLR')" ontouchstart="insFrac(event,'CLR')">⌫</button>
+  <div class="fb-row fb-top">
+    <button class="fb-nav" onmousedown="measStep(event,-1)" ontouchstart="measStep(event,-1)">‹</button>
+    <button onmousedown="insFrac(event,'½')" ontouchstart="insFrac(event,'½')">½</button>
+    <button onmousedown="insFrac(event,'¼')" ontouchstart="insFrac(event,'¼')">¼</button>
+    <button onmousedown="insFrac(event,'¾')" ontouchstart="insFrac(event,'¾')">¾</button>
+    <button onmousedown="insFrac(event,'⅛')" ontouchstart="insFrac(event,'⅛')">⅛</button>
+    <button onmousedown="insFrac(event,'CLR')" ontouchstart="insFrac(event,'CLR')">⌫</button>
+    <button class="fb-nav" onmousedown="measStep(event,1)" ontouchstart="measStep(event,1)">›</button>
+  </div>
+  <div class="fb-pad" id="fbPad">
+    <button onmousedown="padKey(event,'1')" ontouchstart="padKey(event,'1')">1</button>
+    <button onmousedown="padKey(event,'2')" ontouchstart="padKey(event,'2')">2</button>
+    <button onmousedown="padKey(event,'3')" ontouchstart="padKey(event,'3')">3</button>
+    <button onmousedown="padKey(event,'4')" ontouchstart="padKey(event,'4')">4</button>
+    <button onmousedown="padKey(event,'5')" ontouchstart="padKey(event,'5')">5</button>
+    <button onmousedown="padKey(event,'6')" ontouchstart="padKey(event,'6')">6</button>
+    <button onmousedown="padKey(event,'7')" ontouchstart="padKey(event,'7')">7</button>
+    <button onmousedown="padKey(event,'8')" ontouchstart="padKey(event,'8')">8</button>
+    <button onmousedown="padKey(event,'9')" ontouchstart="padKey(event,'9')">9</button>
+    <button onmousedown="padKey(event,'.')" ontouchstart="padKey(event,'.')">.</button>
+    <button onmousedown="padKey(event,'0')" ontouchstart="padKey(event,'0')">0</button>
+    <button class="fb-go" onmousedown="measStep(event,1)" ontouchstart="measStep(event,1)">→|</button>
+  </div>
+  <button class="fb-toggle" id="fbToggle" onmousedown="padToggle(event)" ontouchstart="padToggle(event)"></button>
 </div>
 
 <div class="scrim" id="scrim"><div class="sheet" id="sheet"></div></div>
@@ -1113,6 +1188,12 @@ const T={
   su_need_name:'Please enter your shop name',
   mod_off:'That section is switched off in Settings',
   kb_title:'Karigar Ledger',
+  bk_link_title:'Keep one backup file', bk_link_desc:'Choose a file once. Every backup then writes over that same file, so you always have exactly one, always the latest.',
+  bk_link_btn:'Choose the backup file', bk_linked:'Backup file linked', bk_linked_to:'Backup file',
+  bk_overwrite_note:'Backups overwrite this file, and it updates once a day on its own.',
+  bk_now:'Back up now', bk_perm:'Permission for that file was refused', bk_write_fail:'Could not write to that file',
+  bk_link_unsupported:'This browser cannot keep a linked file. Use a laptop with Chrome or Edge for one-file backups; here each backup saves a fresh copy.',
+  pad_show:'⌨ Number pad', pad_hide:'⌨ Hide number pad',
   ki_search_ph:'Order no., customer name or mobile', ki_no_match:'Nothing matches that search.',
   ki_by_order:'Grouped by order', ki_by_item:'Flat list', ki_pick_order:'tap to take all',
   ki_after:'after {n}',
@@ -2200,6 +2281,12 @@ const T={
   su_need_name:'दुकान का नाम भरें',
   mod_off:'यह हिस्सा सेटिंग्स में बंद है',
   kb_title:'कारीगर हिसाब',
+  bk_link_title:'एक ही बैकअप फ़ाइल रखें', bk_link_desc:'एक बार फ़ाइल चुन लें। फिर हर बैकअप उसी फ़ाइल पर लिखेगा — हमेशा एक ही, हमेशा नई।',
+  bk_link_btn:'बैकअप फ़ाइल चुनें', bk_linked:'बैकअप फ़ाइल जुड़ गई', bk_linked_to:'बैकअप फ़ाइल',
+  bk_overwrite_note:'बैकअप इसी फ़ाइल पर लिखते हैं, और यह दिन में एक बार अपने आप अपडेट होती है।',
+  bk_now:'अभी बैकअप लें', bk_perm:'उस फ़ाइल की अनुमति नहीं मिली', bk_write_fail:'उस फ़ाइल पर नहीं लिख सके',
+  bk_link_unsupported:'यह ब्राउज़र फ़ाइल जोड़कर नहीं रख सकता। एक-फ़ाइल बैकअप के लिए लैपटॉप पर Chrome या Edge इस्तेमाल करें; यहाँ हर बैकअप नई कॉपी बनाएगा।',
+  pad_show:'⌨ नंबर पैड', pad_hide:'⌨ नंबर पैड छिपाएँ',
   ki_search_ph:'ऑर्डर नं., ग्राहक का नाम या मोबाइल', ki_no_match:'इस खोज से कुछ नहीं मिला।',
   ki_by_order:'ऑर्डर के हिसाब से', ki_by_item:'सीधी सूची', ki_pick_order:'पूरा लेने के लिए दबाएँ',
   ki_after:'{n} के बाद',
@@ -7496,7 +7583,7 @@ let _mfocus=null;
 function bindMeasInputs(){
   document.querySelectorAll('.mInput').forEach(inp=>{
     if(inp.tagName==='SELECT') return;
-    inp.addEventListener('focus',()=>{_mfocus=inp;$('#fracbar').classList.add('show');});
+    inp.addEventListener('focus',()=>{_mfocus=inp;$('#fracbar').classList.add('show');padApply();});
     inp.addEventListener('blur',()=>{setTimeout(()=>{const a=document.activeElement;if(a&&a.classList&&a.classList.contains('mInput')&&a.tagName!=='SELECT')return;$('#fracbar').classList.remove('show');},150);});
     if(inp.inputMode==='text' || (inp.dataset.k&&inp.dataset.k.indexOf('x_')===0)){ inp.addEventListener('input',()=>{inp.dataset.auto='';inp.classList.toggle('filled',!!inp.value.trim());}); return; }
     inp.addEventListener('input',()=>{const sv=sanitizeMeas(inp.value);if(sv!==inp.value)inp.value=sv;inp.dataset.auto='';inp.classList.toggle('filled',!!inp.value.trim());propagate(inp);});
@@ -7517,9 +7604,42 @@ function propagate(inp){
   });
 }
 function insFrac(e,val){e.preventDefault();if(!_mfocus)return;
-  if(val==='CLR')_mfocus.value=''; else _mfocus.value=(_mfocus.value||'')+val;
+  if(val==='CLR')_mfocus.value=(_mfocus.value||'').slice(0,-1); else _mfocus.value=(_mfocus.value||'')+val;
   _mfocus.dataset.auto='';
   _mfocus.classList.toggle('filled',!!_mfocus.value.trim());propagate(_mfocus);_mfocus.focus();}
+/* ---- the app's own number pad ----------------------------------------------
+   iPadOS decides its own keyboard: a web page can ask with inputmode, but the iPad
+   still shows the full QWERTY with no numeric keypad and no next-field key, while the
+   same page on Android gets both. Rather than fight the platform, the app carries its
+   own pad — identical on iPad, Android and a laptop, with big keys an unskilled hand
+   can hit and a →| that moves to the next measurement. */
+function padKey(e,ch){ e.preventDefault(); if(!_mfocus)return;
+  const v=(_mfocus.value||'');
+  if(ch==='.' && v.indexOf('.')>=0)return;                 // one decimal point only
+  _mfocus.value=v+ch;
+  const sv=sanitizeMeas(_mfocus.value); if(sv!==_mfocus.value)_mfocus.value=sv;
+  _mfocus.dataset.auto='';
+  _mfocus.classList.toggle('filled',!!_mfocus.value.trim());
+  propagate(_mfocus); _mfocus.focus();
+}
+/* move to the next / previous measurement box on screen, in visual order */
+function measStep(e,dir){ e.preventDefault();
+  const all=[...document.querySelectorAll('.mInput')].filter(x=>x.tagName!=='SELECT'&&x.offsetParent!==null);
+  if(!all.length)return;
+  const i=_mfocus?all.indexOf(_mfocus):-1;
+  const nxt=all[(i<0?0:(i+dir+all.length)%all.length)];
+  if(nxt){ nxt.focus(); if(nxt.select)try{nxt.select();}catch(_){} }
+}
+function padOn(){ return localStorage.getItem('pb_ob_pad')==='1'; }
+function padToggle(e){ if(e)e.preventDefault();
+  localStorage.setItem('pb_ob_pad', padOn()?'0':'1');
+  padApply(); if(_mfocus)_mfocus.focus();
+}
+function padApply(){
+  const bar=$('#fracbar'); if(!bar)return;
+  bar.classList.toggle('pad',padOn());
+  const b=$('#fbToggle'); if(b)b.textContent=padOn()?t('pad_hide'):t('pad_show');
+}
 function liveBaaki(){/* money now lives on the bill, not the order */}
 
 function saveOrder(){
@@ -12007,11 +12127,109 @@ function backupNagHTML(){
         <button class="btn sm ghost" onclick="backupDismissed=true;renderHome();renderOrders()">✕</button></div>
     </div></div>`;
 }
+/* ================= ONE BACKUP FILE, OVERWRITTEN =================
+   A new file every time means a folder full of dated copies and no way to tell which
+   one is current. Where the browser allows it (Chrome/Edge on Windows, Chrome on
+   Android) the app remembers ONE file he picks and writes over it every time — same
+   file, always the latest. The handle is kept in IndexedDB so it survives a restart.
+   iPadOS Safari has no such API; there the file name is at least kept constant. */
+let _bkHandle=null;
+async function bkGetHandle(){
+  if(_bkHandle)return _bkHandle;
+  try{ const h=await mGet('__bkfile'); if(h&&h.kind==='file'){_bkHandle=h;return h;} }catch(e){}
+  return null;
+}
+async function bkPerm(h,ask){
+  if(!h||!h.queryPermission)return true;
+  try{
+    let p=await h.queryPermission({mode:'readwrite'});
+    if(p==='granted')return true;
+    if(ask && h.requestPermission){ p=await h.requestPermission({mode:'readwrite'}); return p==='granted'; }
+  }catch(e){}
+  return false;
+}
+function bkSupported(){ return typeof window.showSaveFilePicker==='function'; }
+async function linkBackupFile(){
+  if(!bkSupported()){ toast(t('bk_link_unsupported'),'bad'); return; }
+  try{
+    const h=await window.showSaveFilePicker({
+      suggestedName:'PARAMPARA-backup.txt',
+      types:[{description:'PARAMPARA backup',accept:{'text/plain':['.txt','.json']}}]
+    });
+    _bkHandle=h; await mPut('__bkfile',h);
+    localStorage.setItem('pb_ob_bkname',h.name||'PARAMPARA-backup.txt');
+    toast(t('bk_linked'),'ok');
+    await backupToFile(true);
+  }catch(e){ /* he cancelled the picker */ }
+}
+async function unlinkBackupFile(){
+  _bkHandle=null; try{ await mDel('__bkfile'); }catch(e){}
+  localStorage.removeItem('pb_ob_bkname');
+  backupMenu();
+}
+/* write over the linked file, then READ IT BACK before trusting it — the same rule the
+   database itself follows, because a single overwritten file must never be half-written */
+async function backupToFile(silent){
+  const h=await bkGetHandle();
+  if(!h){ if(!silent)linkBackupFile(); return false; }
+  if(!(await bkPerm(h,!silent))){ if(!silent)toast(t('bk_perm'),'bad'); return false; }
+  if(!silent)bkBusyModal();
+  const res=await buildBackupBlob();
+  if(!res){ if(!silent)toast(t('bk_cancelled'),'bad'); return false; }
+  try{
+    const w=await h.createWritable();
+    await w.write(res.blob);
+    await w.close();
+    const back=await h.getFile();                       // verify it really landed
+    if(back.size!==res.blob.size)throw new Error('size mismatch');
+    markBackup(); localStorage.setItem('pb_ob_bkauto',todayISO());
+    renderOrders();
+    if(!silent){ closeSheet(); toast(t('bk_done',{n:res.count}),'ok'); }
+    return true;
+  }catch(e){
+    if(!silent){ closeSheet(); toast(t('bk_write_fail'),'bad'); }
+    return false;
+  }
+}
+/* once a file is linked, back up by itself once a day — the nag exists because he forgets */
+async function autoFileBackup(){
+  try{
+    if(!bkSupported())return;
+    const h=await bkGetHandle(); if(!h)return;
+    if(localStorage.getItem('pb_ob_bkauto')===todayISO())return;
+    if(!(await bkPerm(h,false)))return;                 // never prompt in the background
+    if(!hasAnyData())return;
+    await backupToFile(true);
+  }catch(e){}
+}
+/* the linked-file panel at the top of the backup menu */
+async function bkFileBox(){
+  const el=$('#bkFile'); if(!el)return;
+  const name=localStorage.getItem('pb_ob_bkname')||'';
+  const h=await bkGetHandle();
+  const el2=$('#bkFile'); if(!el2)return;
+  if(h&&name){
+    el2.innerHTML=`<div class="card" style="padding:11px 13px;margin-top:10px;border-color:var(--ok)">
+      <div class="kv"><span>🔗 ${t('bk_linked_to')}</span><b style="color:var(--ok)">${esc(name)}</b></div>
+      <p class="hint" style="margin:6px 0 0">${t('bk_overwrite_note')}</p>
+      <div class="row" style="gap:6px;margin-top:8px">
+        <button class="btn sm primary" style="flex:2" onclick="backupToFile()">💾 ${t('bk_now')}</button>
+        <button class="btn sm ghost" onclick="unlinkBackupFile()">✕</button></div></div>`;
+  }else if(bkSupported()){
+    el2.innerHTML=`<div class="card" style="padding:11px 13px;margin-top:10px">
+      <b>🔗 ${t('bk_link_title')}</b>
+      <p class="hint" style="margin:4px 0 8px">${t('bk_link_desc')}</p>
+      <button class="btn sm primary block" onclick="linkBackupFile()">${t('bk_link_btn')}</button></div>`;
+  }else{
+    el2.innerHTML=`<p class="hint" style="margin-top:10px">${t('bk_link_unsupported')}</p>`;
+  }
+}
 function backupMenu(){modal(t('backup_title'),`<p style="color:var(--txt2);font-size:14px;line-height:1.6">${t('backup_desc')}</p>
   <p class="hint" style="margin-top:8px">${t('backup_note')}</p>
   <div class="card" style="padding:10px 12px;margin-top:10px">
     <div class="kv"><span class="hint">${t('bk_stored')}</span><b id="bkSize">…</b></div></div>
   <div id="bkSafety"></div>
+  <div id="bkFile"></div>
   <div class="modal-actions" style="flex-direction:column">
   <button class="btn primary block" onclick="shareBackup()">📤 ${t('send_backup')}</button>
   <p class="hint" style="margin:2px 0 4px">${t('send_backup_hint')}</p>
@@ -12020,7 +12238,7 @@ function backupMenu(){modal(t('backup_title'),`<p style="color:var(--txt2);font-
   <button class="btn ghost block" onclick="restoreSnapshotMenu()">🕑 ${t('restore_auto')}</button>
   <button class="btn ghost block" onclick="stockAudit()">🩺 ${t('au_title')}</button></div>`,
   [{label:t('close'),cls:'ghost',fn:closeSheet}]);
-  bkShowSize(); bkSafety();
+  bkShowSize(); bkSafety(); bkFileBox();
 }
 /* Plain answers to "is my data actually safe on this device?" */
 async function bkSafety(){
@@ -12043,7 +12261,7 @@ async function bkShowSize(){
   const el=$('#bkSize'); if(!el)return;
   let dbKB=0, n=0, mediaKB=0;
   try{ dbKB=Math.round((localStorage.getItem('pb_ob_v1')||'').length/1024); }catch(e){}
-  try{ const keys=(await mKeys()).filter(k=>String(k).indexOf('snap_')!==0&&String(k)!=='__db'); n=keys.length;
+  try{ const keys=(await mKeys()).filter(k=>String(k).indexOf('snap_')!==0&&String(k).indexOf('rec_o_')!==0&&['__db','__core','__meta','__db_prev','__bkfile'].indexOf(String(k))<0); n=keys.length;
     for(const k of keys){ const b=await mGet(k); if(b&&b.size)mediaKB+=b.size/1024; }
   }catch(e){}
   const el2=$('#bkSize'); if(!el2)return;
@@ -12073,7 +12291,7 @@ async function buildBackupBlob(){
   const parts=['{"__v":2,"db":', JSON.stringify(DB), ',"media":{'];
   let n=0, wrote=0;
   try{
-    const keys=(await mKeys()).filter(k=>String(k).indexOf('snap_')!==0&&String(k)!=='__db');
+    const keys=(await mKeys()).filter(k=>String(k).indexOf('snap_')!==0&&String(k).indexOf('rec_o_')!==0&&['__db','__core','__meta','__db_prev','__bkfile'].indexOf(String(k))<0);
     n=keys.length; bkProgress(0,n);
     for(let i=0;i<keys.length;i++){
       if(_bkCancel)return null;
@@ -12096,7 +12314,7 @@ async function buildBackupBlob(){
 async function buildBackup(){
   const out={__v:2, db:DB, media:{}};
   try{
-    const keys=(await mKeys()).filter(k=>String(k).indexOf('snap_')!==0&&String(k)!=='__db');
+    const keys=(await mKeys()).filter(k=>String(k).indexOf('snap_')!==0&&String(k).indexOf('rec_o_')!==0&&['__db','__core','__meta','__db_prev','__bkfile'].indexOf(String(k))<0);
     for(const k of keys){ const b=await mGet(k); if(b && b.size!==undefined){ const d=await blobToB64(b); if(d)out.media[k]=d; } }
   }catch(e){}
   return out;
@@ -12112,14 +12330,14 @@ async function restoreMedia(media){
 }
 function mediaCount(o){return Object.keys((o&&o.media)||{}).length;}
 function doExportLegacy(){const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});const u=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=u;a.download='parampara-orderbook-'+new Date().toISOString().slice(0,10)+'.json';a.click();
+  const a=document.createElement('a');a.href=u;a.download='PARAMPARA-backup.json';a.click();
   setTimeout(()=>URL.revokeObjectURL(u),1000);markBackup();renderOrders();closeSheet();toast(t('t_backup_ok'),'ok');}
 async function doExport(){
   bkBusyModal();
   const res=await buildBackupBlob();
   if(!res){ toast(t('bk_cancelled'),'bad'); return; }
   const u=URL.createObjectURL(res.blob);
-  const a=document.createElement('a');a.href=u;a.download='parampara-orderbook-'+new Date().toISOString().slice(0,10)+'.json';a.click();
+  const a=document.createElement('a');a.href=u;a.download='PARAMPARA-backup.json';a.click();
   setTimeout(()=>URL.revokeObjectURL(u),1000);markBackup();renderOrders();closeSheet();
   toast(t('bk_done',{n:res.count}),'ok');
 }
@@ -12131,12 +12349,12 @@ async function shareBackup(){
   // or the send fails. A .txt / text-plain document goes through normally, and restore
   // reads the file as text anyway, so nothing about the format changes.
   const txt=new Blob([res.blob],{type:'text/plain'});
-  const file=new File([txt],'parampara-backup-'+new Date().toISOString().slice(0,10)+'.txt',{type:'text/plain'});
+  const file=new File([txt],'PARAMPARA-backup.txt',{type:'text/plain'});
   markBackup();renderOrders();
   try{ if(navigator.canShare&&navigator.canShare({files:[file]})){ closeSheet(); await navigator.share({files:[file],title:'PARAMPARA Backup'}); return; } }
   catch(e){ if(e&&e.name==='AbortError'){closeSheet();return;} }
   const u=URL.createObjectURL(txt);
-  const a=document.createElement('a');a.href=u;a.download='parampara-backup-'+new Date().toISOString().slice(0,10)+'.txt';a.click();
+  const a=document.createElement('a');a.href=u;a.download='PARAMPARA-backup.txt';a.click();
   setTimeout(()=>URL.revokeObjectURL(u),1000);closeSheet();
   toast(t('bk_done',{n:res.count}),'ok');
 }
@@ -12376,6 +12594,7 @@ async function init(){
   syncShopNameKey();applyModules();applyLang();
   document.body.classList.toggle('simple-mode',localStorage.getItem('pb_ob_simple')==='1');
   renderHome();_curTab='home';pushGuard();
+  setTimeout(autoFileBackup,4000);
   if(boot && boot.raw && boot.from!=='live' && boot.from!=='legacy'){
     setTimeout(()=>toast(t('rec_used',{src:boot.from}),'bad'),900);
   }
