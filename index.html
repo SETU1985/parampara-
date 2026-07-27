@@ -414,7 +414,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v103</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v104</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1113,6 +1113,8 @@ const T={
   su_need_name:'Please enter your shop name',
   mod_off:'That section is switched off in Settings',
   kb_title:'Karigar Ledger',
+  ki_search_ph:'Order no., customer name or mobile', ki_no_match:'Nothing matches that search.',
+  ki_by_order:'Grouped by order', ki_by_item:'Flat list', ki_pick_order:'tap to take all',
   ki_after:'after {n}',
   jw_title:'Job Work', jw_sub:'Every karigar, what he is holding, and what is waiting to go out.',
   jw_holding:'holding {n} pieces',
@@ -2198,6 +2200,8 @@ const T={
   su_need_name:'दुकान का नाम भरें',
   mod_off:'यह हिस्सा सेटिंग्स में बंद है',
   kb_title:'कारीगर हिसाब',
+  ki_search_ph:'ऑर्डर नं., ग्राहक का नाम या मोबाइल', ki_no_match:'इस खोज से कुछ नहीं मिला।',
+  ki_by_order:'ऑर्डर के हिसाब से', ki_by_item:'सीधी सूची', ki_pick_order:'पूरा लेने के लिए दबाएँ',
   ki_after:'{n} के बाद',
   jw_title:'जॉब वर्क', jw_sub:'हर कारीगर, उसके पास क्या है, और क्या भेजना बाकी है।',
   jw_holding:'{n} पीस उसके पास',
@@ -11230,14 +11234,27 @@ function karPieceStats(kid){
    pieces he takes. Going into each order one by one is not workable, and the same
    is true when he returns a bundle from several orders. So both directions are done
    from one screen: tick many items across many orders, one date, one action. */
-let _kiSel=new Set(), _kiOnlyHis=true, _kiTypeFilter=null;
+let _kiSel=new Set(), _kiOnlyHis=true, _kiTypeFilter=null, _kiQ='', _kiGroup=true;
+function setKiQ(kid,mode,v){ _kiQ=v; pageReset('ki:'+kid+':'+mode); karigarIssue(kid,mode,true); }
+function kiGroupToggle(kid,mode){ _kiGroup=!_kiGroup; pageReset('ki:'+kid+':'+mode); karigarIssue(kid,mode); }
+/* tick every piece of one order in a single tap — a wedding order is 5–20 pieces */
+function kiPickOrder(oid,kid,mode){
+  const {list}=kiVisibleList(kid,mode);
+  const keys=list.filter(x=>x.o.id===oid).map(x=>x.o.id+'~'+x.gid);
+  const allOn=keys.every(k=>_kiSel.has(k));
+  keys.forEach(k=>{ if(allOn)_kiSel.delete(k); else _kiSel.add(k); });
+  karigarIssue(kid,mode);
+}
 function kiVisibleList(kid,mode){
   const give=mode!=='take';
   const raw=give?kiItemsFree(kid):kiItemsWith(kid);
   const typeMap={}; raw.forEach(x=>{typeMap[x.g.id]=typeMap[x.g.id]||{g:x.g,n:0};typeMap[x.g.id].n++;});
   const types=Object.values(typeMap);
   if(!_kiTypeFilter)_kiTypeFilter=new Set(types.map(x=>x.g.id));
-  const list=raw.filter(x=>_kiTypeFilter.has(x.g.id));
+  let list=raw.filter(x=>_kiTypeFilter.has(x.g.id));
+  const q=(_kiQ||'').trim().toLowerCase();
+  if(q)list=list.filter(x=>(String(x.o.orderNo||'')+' '+String(x.o.customerName||'')+' '+
+    String(x.o.phone||'')).toLowerCase().includes(q));
   return {raw,types,list};
 }
 function kiTypeToggle(kid,mode,gid){
@@ -11279,16 +11296,20 @@ function kiPrevTag(x){
   const n=((DB.karigars||[]).find(k=>k.id===x.prev)||{}).name||'';
   return n?` <span class="pill st-alteration" style="font-size:10px">${t('ki_after',{n:esc(n)})}</span>`:'';
 }
-function kiRow(x,kid){
+function kiRow(x,kid,inGroup){
   const key=x.o.id+'~'+x.gid, on=_kiSel.has(key);
   const dl=x.o.deliveryDate?daysLeft(x.o.deliveryDate):null;
-  const col = dl===null?'' : dl<0?'color:var(--bad)' : dl===0?'color:var(--saffron2)':'';
+  const late=dl!==null&&dl<0;
+  const col = dl===null?'' : late?'color:var(--bad)' : dl===0?'color:var(--saffron2)':'';
+  if(inGroup)return `<label style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-top:1px solid var(--line);cursor:pointer">
+    <input type="checkbox" ${on?'checked':''} onchange="kiToggle('${esc(key)}')" style="width:22px;height:22px;flex:0 0 auto">
+    <span style="flex:1;min-width:0"><b>${x.g.ico} ${esc(x.g.n)}</b>${kiPrevTag(x)}</span></label>`;
   return `<label class="cust-result" style="margin-bottom:6px;cursor:pointer;${on?'border-color:var(--saffron)':''}">
     <input type="checkbox" ${on?'checked':''} onchange="kiToggle('${esc(key)}')" style="width:22px;height:22px;flex:0 0 auto">
     <div style="flex:1;min-width:0">
       <b>${x.g.ico} ${esc(x.g.n)}</b>${kiPrevTag(x)}
       <div class="hint">#${esc(x.o.orderNo||'—')} · ${esc(x.o.customerName||'—')}</div>
-      <div class="hint" style="${col}">📅 ${fmtDate(x.o.deliveryDate)}</div>
+      <div class="hint" style="${col}">📅 ${fmtDate(x.o.deliveryDate)}${late?' · '+Math.abs(dl)+'d '+t('late'):''}</div>
     </div></label>`;
 }
 function kiToggle(key){ if(_kiSel.has(key))_kiSel.delete(key); else _kiSel.add(key);
@@ -11300,13 +11321,36 @@ function kiSelectAll(kid,mode){
   karigarIssue(kid,mode);
 }
 /* mode 'give' = hand work out, mode 'take' = receive it back */
-function karigarIssue(kid,mode){
+function karigarIssue(kid,mode,keepFocus){
   const k=(DB.karigars||[]).find(x=>x.id===kid); if(!k)return;
   const give=(mode!=='take');
   const {types,list}=kiVisibleList(kid,mode);
   const _kiKey='ki:'+kid+':'+(give?'give':'take');
-  const rows=(pageSlice(_kiKey,list).map(x=>kiRow(x,kid)).join('')+pageMoreBtn(_kiKey,list.length))
-    || `<p class="hint" style="padding:20px 0;text-align:center">${give?t('ki_none_free'):t('ki_none_with')}</p>`;
+  const md=give?'give':'take';
+  /* Two ways of working, because the shop uses both: normally he hands out by GARMENT
+     ("all pending coats"), but for a wedding order he wants that whole order out at
+     once. Grouped view gives each order a header with its own tick-all. */
+  let rows;
+  if(_kiGroup){
+    const page=pageSlice(_kiKey,list);
+    const groups=[];
+    page.forEach(x=>{ let g=groups.find(y=>y.oid===x.o.id);
+      if(!g){g={oid:x.o.id,o:x.o,items:[]};groups.push(g);} g.items.push(x); });
+    rows=groups.map(g=>{
+      const dl=g.o.deliveryDate?daysLeft(g.o.deliveryDate):null, late=dl!==null&&dl<0;
+      const keys=g.items.map(x=>x.o.id+'~'+x.gid);
+      const n=keys.filter(kk=>_kiSel.has(kk)).length;
+      return `<div class="card" style="padding:0;margin-bottom:10px;overflow:hidden;${late?'border-color:var(--bad)':''}">
+        <div class="fu-open" style="padding:10px 12px;background:var(--bg2)" onclick="kiPickOrder('${g.o.id}','${kid}','${md}')">
+          <div class="kv"><b>#${esc(g.o.orderNo||'—')} · ${esc(g.o.customerName||'')}</b>
+            <span class="hint">${n?n+'/'+g.items.length+' ✓':t('ki_pick_order')}</span></div>
+          <div class="hint" style="${late?'color:var(--bad)':''}">📅 ${fmtDate(g.o.deliveryDate)}${dl!==null?(late?' · '+Math.abs(dl)+'d '+t('late'):' · '+dl+'d'):''}</div></div>
+        ${g.items.map(x=>kiRow(x,kid,true)).join('')}</div>`;}).join('')
+      + pageMoreBtn(_kiKey,list.length);
+  }else{
+    rows=pageSlice(_kiKey,list).map(x=>kiRow(x,kid)).join('')+pageMoreBtn(_kiKey,list.length);
+  }
+  rows=rows||`<p class="hint" style="padding:20px 0;text-align:center">${_kiQ?t('ki_no_match'):(give?t('ki_none_free'):t('ki_none_with'))}</p>`;
   const typeChips=types.length>1?`<div class="gtags" style="margin:10px 0">${types.map(x=>{
     const on=_kiTypeFilter.has(x.g.id);
     return `<span class="gtag ${on?'on-tag':''}" style="cursor:pointer" onclick="kiTypeToggle('${kid}','${give?'give':'take'}','${x.g.id}')">${x.g.ico} ${esc(x.g.n)} (${x.n})</span>`;}).join('')}</div>`:'';
@@ -11318,16 +11362,20 @@ function karigarIssue(kid,mode){
       <input type="checkbox" ${_kiOnlyHis?'checked':''} onchange="_kiOnlyHis=this.checked;_kiTypeFilter=null;pageReset('ki:${kid}:give');karigarIssue('${kid}','give')" style="width:20px;height:20px">
       <span class="hint">${t('ki_only_his')}</span></label>`:''}
     ${typeChips}
+    <div class="field" style="margin-bottom:8px"><input id="kiQ" value="${esc(_kiQ)}"
+      placeholder="🔍 ${t('ki_search_ph')}" autocomplete="off" oninput="setKiQ('${kid}','${md}',this.value)"></div>
     <div class="kv" style="margin:10px 0">
-      <button class="btn sm ghost" onclick="kiSelectAll('${kid}','${give?'give':'take'}')">${t('ki_toggle_all')}</button>
-      <span class="hint">${t('ki_selected')}: <b id="kiCount">${_kiSel.size}</b></span></div>
+      <button class="btn sm ghost" onclick="kiSelectAll('${kid}','${md}')">${t('ki_toggle_all')}</button>
+      <span><button class="btn sm ghost" onclick="kiGroupToggle('${kid}','${md}')">${_kiGroup?'📋 '+t('ki_by_order'):'🧵 '+t('ki_by_item')}</button>
+      <span class="hint" style="margin-left:8px">${t('ki_selected')}: <b id="kiCount">${_kiSel.size}</b></span></span></div>
     ${rows}
     <div class="save-dock">
       <button class="btn ghost" onclick="_kiSel.clear();_kiTypeFilter=null;karigarLedger('${kid}')">${t('back')}</button>
-      <button class="btn primary" style="flex:2" onclick="kiApply('${kid}','${give?'give':'take'}')">
+      <button class="btn primary" style="flex:2" onclick="kiApply('${kid}','${md}')">
         ${give?'📤 '+t('ki_do_give'):'📥 '+t('ki_do_take')}</button></div>
     <div class="fab-pad"></div>`;
   showSheet();
+  if(keepFocus){const el=$('#kiQ'); if(el){el.focus(); el.setSelectionRange(el.value.length,el.value.length);}}
 }
 function kiApply(kid,mode){
   if(!_kiSel.size){toast(t('ki_pick_some'),'bad');return;}
@@ -11493,7 +11541,7 @@ function karPickMaster(mode){
         <span style="color:var(--saffron2)">›</span></div>`;}).join(''),
     [{label:t('close'),cls:'ghost',fn:()=>karigarBook()}]);
 }
-function karPickGo(kid,mode){_kiSel.clear();_kiTypeFilter=null;karigarIssue(kid,mode);}
+function karPickGo(kid,mode){_kiSel.clear();_kiTypeFilter=null;_kiQ='';pageReset('ki:'+kid+':'+mode);karigarIssue(kid,mode);}
 
 /* ---- period picker, shared by ledger + report ---- */
 function krRangeChips(reRender){
@@ -11593,8 +11641,8 @@ function karigarLedger(kid,tab){
       <div class="il" style="border-bottom:0"><span><b>${t('kb_balance')}</b></span>
         <b style="font-size:17px">${balArrow(-bal)}</b></div></div>
     <div class="row" style="gap:8px;margin-top:10px">
-      <button class="btn primary" style="flex:1" onclick="_kiSel.clear();_kiTypeFilter=null;karigarIssue('${kid}','give')">📤 ${t('ki_give')}</button>
-      <button class="btn primary" style="flex:1" onclick="_kiSel.clear();_kiTypeFilter=null;karigarIssue('${kid}','take')">📥 ${t('ki_take')}</button></div>
+      <button class="btn primary" style="flex:1" onclick="_kiSel.clear();_kiTypeFilter=null;_kiQ='';karigarIssue('${kid}','give')">📤 ${t('ki_give')}</button>
+      <button class="btn primary" style="flex:1" onclick="_kiSel.clear();_kiTypeFilter=null;_kiQ='';karigarIssue('${kid}','take')">📥 ${t('ki_take')}</button></div>
     <div class="row" style="gap:8px;margin-top:8px">
       <button class="btn ghost" style="flex:1" onclick="karPayEntry('${kid}')">💰 ${t('kb_pay')}</button>
       <button class="btn ghost" style="flex:1" onclick="karStatementSend('${kid}')">💬 ${t('ki_send_hisab')}</button></div>
