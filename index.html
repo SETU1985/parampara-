@@ -414,7 +414,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v98</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v99</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1113,6 +1113,7 @@ const T={
   su_need_name:'Please enter your shop name',
   mod_off:'That section is switched off in Settings',
   kb_title:'Karigar Ledger',
+  stk_cut_search_ph:'Serial no., fabric name or rack',
   qc_label:'Quality check', qc_mark:'Mark as checked', qc_done:'Checked', qc_undone:'quality check removed',
   ab_qc:'Ready — quality check pending', ab_qc_sub:'These pieces are ready but have not been checked yet.',
   src_title:'How did they hear about us?', src_add:'Add source', src_ph:'e.g. Exhibition, Facebook',
@@ -2183,6 +2184,7 @@ const T={
   su_need_name:'दुकान का नाम भरें',
   mod_off:'यह हिस्सा सेटिंग्स में बंद है',
   kb_title:'कारीगर हिसाब',
+  stk_cut_search_ph:'सीरियल नं., कपड़े का नाम या रैक',
   qc_label:'क्वालिटी चेक', qc_mark:'चेक हुआ मार्क करें', qc_done:'चेक हो गया', qc_undone:'क्वालिटी चेक हटाया',
   ab_qc:'तैयार — क्वालिटी चेक बाकी', ab_qc_sub:'ये पीस तैयार हैं पर अभी चेक नहीं हुए।',
   src_title:'हमारे बारे में कैसे पता चला?', src_add:'ज़रिया जोड़ें', src_ph:'जैसे एग्ज़ीबिशन, फेसबुक',
@@ -3197,6 +3199,8 @@ function pageMore(key){
   else if(k==='of')orderFilter();
   else if(k==='fab')stockHome('fabric');
   else if(k==='rdy')stockHome('ready');
+  else if(k==='cutf')cutPromptRender();
+  else if(k==='cu')courierHub();
   else if(k.indexOf('ki:')===0){ const p=k.split(':'); karigarIssue(p[1],p[2]); }
 }
 
@@ -3949,20 +3953,38 @@ function sizeCfg(){
 }
 
 /* ======================= CUTTING: fabric leaves stock when status → Cut ======= */
-function cutPrompt(orderId,gid){
-  const o=DB.orders.find(x=>x.id===orderId); if(!o)return;
-  const g=G(gid);
-  const avail=(DB.thaans||[]).filter(t=>thaanBal(t)>0.05)
+/* His stock runs to hundreds of serials, so the picker needs what the stock page
+   already has: search by serial or name, the roll's photo for the ones that have
+   neither written properly, a page at a time, and a way OUT at the top. */
+let _cutCtx=null, _cutQ='';
+function cutPrompt(orderId,gid){ _cutCtx={orderId,gid}; _cutQ=''; pageReset('cutf'); cutPromptRender(); }
+function setCutQ(v){ _cutQ=v; pageReset('cutf'); cutPromptRender(true); }
+function cutPromptRender(keep){
+  const {orderId,gid}=_cutCtx||{}; const g=G(gid);
+  let avail=(DB.thaans||[]).filter(t=>thaanBal(t)>0.05)
     .sort((a,b)=>String(a.serial).localeCompare(String(b.serial),undefined,{numeric:true}));
   if(!avail.length){toast(t('stk_no_fabric'),'bad');return;}
-  const rows=avail.map(th=>{const f=FI(th.fabId)||{};
-    return `<div class="cust-result" style="margin-bottom:8px" onclick="closeSheet();thaanIssue('${th.id}','${orderId}','${gid}')">
-      <div><b>#${esc(th.serial)}</b> — ${esc(f.name||'')}
+  const q=(_cutQ||'').trim().toLowerCase();
+  if(q)avail=avail.filter(th=>{const f=FI(th.fabId)||{};
+    return (String(th.serial||'')+' '+String(f.name||'')+' '+String(f.category||'')+' '+String(th.rack||'')).toLowerCase().includes(q);});
+  const rows=pageSlice('cutf',avail).map(th=>{const f=FI(th.fabId)||{};
+    return `<div class="cust-result" style="margin-bottom:8px;align-items:center" onclick="closeSheet();thaanIssue('${th.id}','${orderId||''}','${gid||''}')">
+      ${(th.photos||[]).length?`<img class="stk-thumb" data-pid="${th.photos[0]}" style="margin-right:10px">`:''}
+      <div style="min-width:0;flex:1"><b>#${esc(th.serial)}</b>${f.name?' — '+esc(f.name):''}
         <div class="hint">${thaanBal(th)} m ${t('stk_left')}${th.rack?' · 📍 '+esc(th.rack):''}</div></div>
-      <span class="btn sm primary">${t('select')}</span></div>`;}).join('');
-  modal('✂️ '+t('stk_cut_for')+' '+(g?g.n:''),
-    `<p class="hint" style="margin-bottom:10px">${t('stk_cut_hint')}</p>${rows}`,
-    [{label:t('stk_skip'),cls:'ghost',fn:closeSheet}]);
+      <span class="btn sm primary">${t('select')}</span></div>`;}).join('')
+    + pageMoreBtn('cutf',avail.length)
+    || `<p class="hint" style="padding:14px 0;text-align:center">${t('nothing')}</p>`;
+  modal('',
+    `<div class="kv" style="margin-bottom:6px"><h3 style="margin:0">✂️ ${t('stk_cut_for')} ${g?g.n:''}</h3>
+       <button class="btn sm ghost" onclick="closeModal()">✕</button></div>
+     <p class="hint" style="margin-bottom:8px">${t('stk_cut_hint')}</p>
+     <div class="field" style="margin-bottom:10px">
+       <input id="cutQ" value="${esc(_cutQ)}" placeholder="🔍 ${t('stk_cut_search_ph')}" autocomplete="off" oninput="setCutQ(this.value)"></div>
+     ${rows}`,
+    [{label:t('stk_skip'),cls:'ghost',fn:closeModal}]);
+  loadStockThumbs();
+  if(keep){ const el=$('#cutQ'); if(el){ el.focus(); el.setSelectionRange(el.value.length,el.value.length); } }
 }
 function itemCostOf(o,gid){
   const c=(o.cost&&o.cost[gid])||{fabric:0,karigar:0};
