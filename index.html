@@ -56,6 +56,10 @@
     font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center}
   .mem-name{flex:2;min-width:0;background:var(--card);border:1px solid var(--line2);color:var(--txt);
     border-radius:9px;padding:9px 10px;font-size:14px;font-weight:700;outline:none}
+  .mem-ono{flex:0 0 96px; min-width:0; text-align:center; background:var(--card);
+    border:1px solid var(--line2); color:var(--txt); border-radius:9px; padding:9px 6px;
+    font-size:13px; font-weight:800; outline:none}
+  .mem-ono:focus{border-color:var(--saffron)}
   .mem-rel{flex:1;min-width:0;background:var(--card);border:1px solid var(--line2);color:var(--saffron2);
     border-radius:9px;padding:9px 10px;font-size:13px;font-weight:700;outline:none}
   .mem-name:focus,.mem-rel:focus{border-color:var(--saffron)}
@@ -227,6 +231,18 @@
   .ql-in.filled{border-color:var(--saffron); color:var(--saffron2)}
   .ql-open{width:78px; flex:0 0 auto; text-align:center; font-size:15px; font-weight:800; color:var(--saffron2)}
   .ql-go{flex:0 0 auto; width:26px; text-align:center; color:var(--saffron2); font-size:18px; cursor:pointer}
+  .cat-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+  .cat-card{background:var(--card); border:1px solid var(--line); border-radius:var(--r2);
+    overflow:hidden; cursor:pointer}
+  .cat-card:active{opacity:.75}
+  .cat-img{width:100%; aspect-ratio:3/4; object-fit:cover; display:block; background:var(--bg2)}
+  .cat-meta{padding:8px 10px 10px; font-size:13px}
+  .cat-card{position:relative}
+  .cat-card.on{border-color:var(--saffron); box-shadow:0 0 0 2px rgba(224,138,26,.35)}
+  .cat-tick{position:absolute; top:6px; left:6px; font-size:20px; line-height:1;
+    background:rgba(0,0,0,.45); border-radius:6px; padding:2px 4px}
+  @media (min-width:640px){ .cat-grid{grid-template-columns:repeat(3,1fr)} }
+  @media (min-width:1024px){ .cat-grid{grid-template-columns:repeat(4,1fr)} }
   .tabpane{display:none} .tabpane.active{display:block; animation:fade .2s ease}
   .ktabs{display:flex; gap:6px; background:var(--bg2); border:1px solid var(--line); border-radius:var(--r2);
     padding:4px; margin:12px 0 14px; overflow-x:auto; -webkit-overflow-scrolling:touch}
@@ -373,7 +389,9 @@
   .sheet{background:var(--card); border:1px solid var(--line); border-top-left-radius:20px; border-top-right-radius:20px;
     width:100%; max-width:760px; max-height:90vh; overflow-y:auto; padding:18px 18px calc(18px + var(--safe-b)); animation:slideup .22s ease}
   @keyframes slideup{from{transform:translateY(100%)} to{transform:none}}
-  .grip{width:38px; height:4px; border-radius:4px; background:var(--line2); margin:0 auto 14px}
+  .grip{width:56px; height:5px; border-radius:5px; background:var(--line2); margin:0 auto 14px;
+    cursor:grab; touch-action:none; position:relative}
+  .grip::after{content:''; position:absolute; left:-40px; right:-40px; top:-14px; bottom:-14px}
   .modal-actions{display:flex; gap:10px; margin-top:18px} .modal-actions .btn{flex:1}
   /* inputs default to a ~20ch intrinsic width and blow their row apart on a phone */
   .row>*,.head-grid>*,.bf-l1>*,.bf-l2>*{min-width:0}
@@ -470,7 +488,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v110</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v119</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1188,6 +1206,27 @@ const T={
   su_need_name:'Please enter your shop name',
   mod_off:'That section is switched off in Settings',
   kb_title:'Karigar Ledger',
+  mem_ono_ph:'Order no.',
+  cat_title:'Catalogue', cat_sub:'Your own folders — open one and show the customer just those designs.',
+  cat_new_folder:'New folder', cat_folder_name:'Folder name', cat_folder_ph:'Sherwani, Suits, Indo-Western…',
+  cat_folder_ico:'Icon (optional)', cat_folder_need:'Give the folder a name',
+  cat_folder_del:'This folder will be removed. The {n} photos stay in stock and in their orders — only the folder goes.',
+  cat_no_folder:'No folders yet. Make one for Sherwani, one for Suits, and put your best designs in each.',
+  cat_folder_empty:'This folder is empty — add photos.', cat_photos:'photos', cat_design:'Design',
+  cat_add_photos:'Add photos', cat_add_n:'Add {n}', cat_added:'{n} photos added',
+  cat_browse_all:'Browse everything', cat_browse_hint:'Every photo the shop already has.',
+  cat_pick_hint:'Tap the photos you want in this folder.',
+  cat_made:'Our work', cat_search:'Fabric, design or category', cat_designs:'designs',
+  cat_none:'Nothing with a photo here yet. Photos added to stock and to order items show up automatically.',
+  cat_use:'Start an order with this',
+  stk_by_length:'By length left — tap to see only those pieces', stk_n_rolls:'rolls',
+  bk_data_only:'Send data-only backup (no photos)',
+  bk_data_only_hint:'A small file — orders, measurements, stock and karigar accounts. Sends on WhatsApp even when the full backup will not.',
+  bk_done_data:'Data-only backup ready',
+  stk_serial_far_title:'Serial is out of sequence',
+  stk_serial_far:'{s} is far outside your numbering — the next one in sequence is {n}. Save it anyway?',
+  stk_bulk_shared_btn:'Category · Supplier · Sale rate',
+  au_highest:'Highest serial numbers', au_highest_hint:'The next serial is built from the highest one here — including rolls already finished, which the stock list hides. A stray high number here is why a new roll gets an unexpected serial. Open it to correct or delete it.',
   stk_sort_name:'By name',
   stk_sort_new:'Newest first', stk_sort_serial:'Serial order',
   jw_ready_to_give:'ready to give', jw_with_him:'with him',
@@ -2284,6 +2323,27 @@ const T={
   su_need_name:'दुकान का नाम भरें',
   mod_off:'यह हिस्सा सेटिंग्स में बंद है',
   kb_title:'कारीगर हिसाब',
+  mem_ono_ph:'ऑर्डर नं.',
+  cat_title:'कैटलॉग', cat_sub:'आपके अपने फ़ोल्डर — एक खोलें और ग्राहक को बस वही डिज़ाइन दिखाएँ।',
+  cat_new_folder:'नया फ़ोल्डर', cat_folder_name:'फ़ोल्डर का नाम', cat_folder_ph:'शेरवानी, सूट, इंडो-वेस्टर्न…',
+  cat_folder_ico:'आइकन (वैकल्पिक)', cat_folder_need:'फ़ोल्डर का नाम दें',
+  cat_folder_del:'यह फ़ोल्डर हट जाएगा। {n} फोटो स्टॉक और ऑर्डर में बनी रहेंगी — सिर्फ़ फ़ोल्डर हटेगा।',
+  cat_no_folder:'अभी कोई फ़ोल्डर नहीं। शेरवानी का एक, सूट का एक बनाएँ और अपने बेहतरीन डिज़ाइन डालें।',
+  cat_folder_empty:'यह फ़ोल्डर खाली है — फोटो जोड़ें।', cat_photos:'फोटो', cat_design:'डिज़ाइन',
+  cat_add_photos:'फोटो जोड़ें', cat_add_n:'{n} जोड़ें', cat_added:'{n} फोटो जुड़ीं',
+  cat_browse_all:'सब कुछ देखें', cat_browse_hint:'दुकान की सारी मौजूदा फोटो।',
+  cat_pick_hint:'जो फोटो इस फ़ोल्डर में चाहिए, उन पर टैप करें।',
+  cat_made:'हमारा काम', cat_search:'कपड़ा, डिज़ाइन या श्रेणी', cat_designs:'डिज़ाइन',
+  cat_none:'यहाँ अभी फोटो वाला कुछ नहीं। स्टॉक और ऑर्डर आइटम में जोड़ी फोटो अपने आप दिखेंगी।',
+  cat_use:'इससे ऑर्डर शुरू करें',
+  stk_by_length:'बची लंबाई से — सिर्फ़ वही टुकड़े देखने के लिए दबाएँ', stk_n_rolls:'थान',
+  bk_data_only:'सिर्फ़ डेटा भेजें (फोटो नहीं)',
+  bk_data_only_hint:'छोटी फ़ाइल — ऑर्डर, नाप, स्टॉक और कारीगर हिसाब। पूरा बैकअप न जाए तब भी यह WhatsApp पर चला जाता है।',
+  bk_done_data:'सिर्फ़-डेटा बैकअप तैयार',
+  stk_serial_far_title:'सीरियल क्रम से बाहर है',
+  stk_serial_far:'{s} आपकी गिनती से बहुत दूर है — क्रम में अगला {n} है। फिर भी सेव करें?',
+  stk_bulk_shared_btn:'कैटेगरी · सप्लायर · बिक्री दाम',
+  au_highest:'सबसे बड़े सीरियल नंबर', au_highest_hint:'अगला सीरियल इन्हीं में से सबसे बड़े से बनता है — उन थानों समेत जो ख़त्म हो चुके हैं और सूची में नहीं दिखते। यहाँ कोई ग़लत बड़ा नंबर हो तो नए थान का सीरियल उसी वजह से अलग आता है। सुधारने या हटाने के लिए खोलें।',
   stk_sort_name:'नाम से',
   stk_sort_new:'नए पहले', stk_sort_serial:'सीरियल क्रम',
   jw_ready_to_give:'देने को तैयार', jw_with_him:'उसके पास',
@@ -3324,6 +3384,7 @@ function pageMore(key){
   else if(k==='of')orderFilter();
   else if(k==='fab')stockHome('fabric');
   else if(k==='rdy')stockHome('ready');
+  else if(k==='cat')catRepaint();
   else if(k==='cutf')cutPromptRender();
   else if(k==='cu')courierHub();
   else if(k.indexOf('ki:')===0){ const p=k.split(':'); karigarIssue(p[1],p[2]); }
@@ -3405,7 +3466,8 @@ function stockHome(tab){ if(!modOn('stock')){toast(t('mod_off'),'bad');return;}
   const rdyVal=r2(readyItems().reduce((s,m)=>s+readyTotal(m)*(+m.cost||+m.rate||0),0));
 
   $('#sheet').innerHTML=`<div class="grip"></div>
-    <h2 style="margin-bottom:10px">📦 ${t('stk_title')}</h2>
+    <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">📦 ${t('stk_title')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     <div class="home-stats" style="margin-bottom:12px">
       <div class="home-stat"><div class="hs-val">${fabMtr} m</div><div class="hs-lbl">${t('stk_fabric')}</div></div>
       <div class="home-stat"><div class="hs-val">${rdyPcs}</div><div class="hs-lbl">${t('stk_pieces')}</div></div>
@@ -3424,7 +3486,10 @@ function stockHome(tab){ if(!modOn('stock')){toast(t('mod_off'),'bad');return;}
 }
 
 /* ======================= FABRIC ======================= */
-let _fabQ='', _fabCat='', _fabHideEmpty=true, _fabSort='new';
+let _fabQ='', _fabCat='', _fabHideEmpty=true, _fabSort='new', _fabBand='';
+const FAB_BANDS=[['le1','≤ 1 m',0,1],['1to2','1 – 2 m',1,2],['2to5','2 – 5 m',2,5],['ge5','5 m +',5,1e9]];
+function setFabBand(v){ _fabBand=(_fabBand===v?'':v); pageReset('fab'); fabricBody(); }
+function fabBandOf(bal){ const b=FAB_BANDS.find(x=>bal>x[2]&&bal<=x[3]); return b?b[0]:''; }
 function setFabQ(v){_fabQ=v;pageReset('fab');fabricBody(true);}
 function setFabSort(v){_fabSort=v;pageReset('fab');fabricBody();}
 async function loadStockThumbs(){
@@ -3448,6 +3513,8 @@ function fabricBody(keepFocus){
   let list=(DB.thaans||[]).slice();
   if(_fabHideEmpty)list=list.filter(t=>thaanBal(t)>0.05);
   if(_fabCat)list=list.filter(t=>{const f=FI(t.fabId);return f&&f.category===_fabCat;});
+  if(_fabBand){const bd=FAB_BANDS.find(x=>x[0]===_fabBand);
+    if(bd)list=list.filter(t=>{const b=thaanBal(t);return b>bd[2]&&b<=bd[3];});}
   if(q)list=list.filter(t=>{
     const f=FI(t.fabId)||{};
     return String(t.serial).toLowerCase().includes(q)
@@ -3466,6 +3533,26 @@ function fabricBody(keepFocus){
       <span class="gtag ${_fabCat?'':'on-tag'}" style="cursor:pointer" onclick="_fabCat='';pageReset('fab');fabricBody()">${t('all')}</span>
       ${cats.map(c=>`<span class="gtag ${_fabCat===c?'on-tag':''}" style="cursor:pointer" onclick="_fabCat='${esc(c)}';pageReset('fab');fabricBody()">${esc(c)}</span>`).join('')}
     </div>`:''}
+    <div class="hint" style="margin:0 0 5px">${t('stk_by_length')}</div>
+    <div class="gtags" style="margin-bottom:10px">
+      ${FAB_BANDS.map(bd=>{
+        const n=(DB.thaans||[]).filter(th=>{const b=thaanBal(th);
+          if(!(b>bd[2]&&b<=bd[3]))return false;
+          if(_fabCat){const f=FI(th.fabId); if(!f||f.category!==_fabCat)return false;}
+          return true;}).length;
+        const m=r2((DB.thaans||[]).filter(th=>{const b=thaanBal(th);
+          if(!(b>bd[2]&&b<=bd[3]))return false;
+          if(_fabCat){const f=FI(th.fabId); if(!f||f.category!==_fabCat)return false;}
+          return true;}).reduce((a2,th)=>a2+thaanBal(th),0));
+        return `<span class="gtag ${_fabBand===bd[0]?'on-tag':''}" style="cursor:pointer" onclick="setFabBand('${bd[0]}')">${bd[1]} · ${n}</span>`;}).join('')}
+      ${_fabBand?`<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="setFabBand('${_fabBand}')">✕ ${t('all')}</span>`:''}
+    </div>
+    ${_fabBand?(()=>{const bd=FAB_BANDS.find(x=>x[0]===_fabBand);
+      const sel=list; const mt=r2(sel.reduce((a2,th)=>a2+thaanBal(th),0));
+      const val=r2(sel.reduce((a2,th)=>a2+thaanBal(th)*(+th.rate||0),0));
+      return `<div class="card pos-total" style="padding:10px 12px;margin-bottom:10px">
+        <div class="il" style="border-bottom:0"><span>${bd[1]} · ${sel.length} ${t('stk_n_rolls')}</span>
+          <b>${mt} m${val?' · '+money(val):''}</b></div></div>`;})():''}
     <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:12.5px;color:var(--txt2)">
       <input type="checkbox" ${_fabHideEmpty?'checked':''} onchange="_fabHideEmpty=this.checked;pageReset('fab');fabricBody()" style="width:17px;height:17px">
       ${t('stk_hide_empty')}</label>
@@ -3525,7 +3612,7 @@ function thaanRender(){
   const parties=[...new Set((DB.thaans||[]).map(t=>t.party).filter(Boolean).concat((DB.purchases||[]).map(p=>p.supplier).filter(Boolean)))];
   const racks=[...new Set((DB.thaans||[]).map(t=>t.rack).filter(Boolean))];
   $('#sheet').innerHTML=`<div class="grip"></div>
-    <h2 style="margin-bottom:4px">🧵 ${d.id?t('stk_edit_thaan'):t('stk_add_thaan')}</h2>
+    <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">🧵 ${d.id?t('stk_edit_thaan'):t('stk_add_thaan')}</h2><button class="btn sm ghost" onclick="stockHome('fabric')">✕</button></div>
     <p class="hint" style="margin-bottom:12px">${d.id?'':t('stk_thaan_hint')}</p>
     <datalist id="fabNames">${names.map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
     <datalist id="fabCats">${cats.map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
@@ -3600,6 +3687,7 @@ function readyCapture(){
   if($('#rd_hsn'))d.hsn=$('#rd_hsn').value.trim();
   szSync();
 }
+let _serOK='';
 function thaanSave(){
   const d=_th;
   let name=($('#th_name').value||'').trim();
@@ -3615,6 +3703,12 @@ function thaanSave(){
   if(!serial){toast(t('stk_need_serial'),'bad');return;}
   if(!name)name=cat||('Fabric '+serial);
   if(mtr<=0){toast(t('stk_need_mtr'),'bad');return;}
+  // a serial well outside the run is nearly always a typo — ask before it goes in
+  if(!d.id && serialOutOfRun(serial) && _serOK!==serial){
+    confirmModal(t('stk_serial_far_title'), t('stk_serial_far',{s:esc(serial),n:nextSerial()}),
+      ()=>{ _serOK=serial; thaanSave(); });
+    return;
+  }
 
   // fabric quality (item) — created on the fly, reused if it already exists
   let f=(DB.fabItems||[]).find(x=>String(x.name).toLowerCase()===name.toLowerCase());
@@ -3658,9 +3752,10 @@ function thaanSave(){
   _th={id:null,serial:nextThaanSerial(),fabId:'',name:'',category:cat,party,mtr:'',used:0,rate:'',rack,count:1,notes:'',photos:[]};
   thaanRender();
 }
-let _bulk=null;
+let _bulk=null, _bulkMore=false;
 function bulkFabOpen(){ _bulk={cat:'',party:'',rack:'',entry:{serial:'',mtr:'',rate:'',name:''},entryPhotos:[],added:[]}; bulkFabRender(); setTimeout(()=>{const el=$('#bfSerial');if(el)el.focus();},80); }
 function bulkShared(f,v){ if(_bulk)_bulk[f]=v; }
+function bulkMore(){ _bulkMore=!_bulkMore; bulkFabRender(); }
 function bulkEntry(f,v){ if(_bulk)_bulk.entry[f]=v; }
 function pickPurItemPhoto(src){ photoTarget={type:'puritem'}; const inp=src==='cam'?$('#filePickCam'):$('#filePick'); inp.value=''; inp.click(); }
 function purItemPhotoBadge(){ const els=document.querySelectorAll('#puDraft .btn.sm.ghost');
@@ -3674,6 +3769,11 @@ function bulkAddOne(){
   const rate=+(gv('#bfRate')||0);
   let name=(gv('#bfName')||'').trim();
   if(!serial||!(mtr>0)){toast(t('stk_bulk_none'),'bad');const se=$('#bfSerial');if(se)se.focus();return;}
+  // a serial far outside the run is almost always a typo — this is how 1011 got in
+  if(serialOutOfRun(serial) && _serOK!==serial){
+    confirmModal(t('stk_serial_far_title'), t('stk_serial_far',{s:esc(serial),n:nextSerial()}),
+      ()=>{ _serOK=serial; bulkAddOne(); });
+    return; }
   DB.stkCfg=DB.stkCfg||{}; DB.fabItems=DB.fabItems||[]; DB.thaans=DB.thaans||[];
   // read the shared fields live so a datalist pick or fast typing is never lost
   if($('#bf_cat'))_bulk.cat=$('#bf_cat').value;
@@ -3704,18 +3804,47 @@ function bulkDelAdded(id){
 }
 /* Next serial = carry the last one forward, keeping its prefix and zero padding.
    "001"->"002", "MFS937"->"MFS938". Falls back to 001 on a fresh shop. */
+function serialParts(x){ const m=String(x||'').match(/^(.*?)(\d+)\s*$/); return m?{pre:m[1],num:+m[2],pad:m[2].length}:null; }
+/* The next serial must continue the SEQUENCE, not merely beat the highest number.
+   One roll mistyped as 1011 used to drag every future serial to 1012+, which is not how
+   a numbered run should behave. So: group the serials into runs, ignore a lone stray
+   sitting far above everything, and continue the real run. If he deliberately starts a
+   new block, three rolls in it make it the real run and it takes over by itself. */
+function serialRunTop(list){
+  const nums=list.map(serialParts).filter(Boolean);
+  if(!nums.length)return null;
+  const byPre={};
+  nums.forEach(n=>{ (byPre[n.pre]=byPre[n.pre]||[]).push(n); });
+  const pre=Object.keys(byPre).sort((a,b)=>byPre[b].length-byPre[a].length)[0];
+  const arr=byPre[pre].slice().sort((a,b)=>a.num-b.num);
+  const GAP=50;
+  const runs=[[arr[0]]];
+  for(let i=1;i<arr.length;i++){
+    const cur=runs[runs.length-1];
+    if(arr[i].num - cur[cur.length-1].num > GAP) runs.push([arr[i]]);
+    else cur.push(arr[i]);
+  }
+  const real=runs.filter(r=>r.length>=3);
+  const pick=(real.length?real:runs).reduce((a,b)=> b[b.length-1].num > a[a.length-1].num ? b : a);
+  const top=pick[pick.length-1];
+  return {pre, num:top.num, pad:top.pad};
+}
 function nextSerial(){
   const all=(DB.thaans||[]).map(t=>String(t.serial||'')).filter(Boolean);
   if(!all.length)return '001';
-  // highest serial, compared numerically — the last-ADDED roll is not always the highest
-  const last=all.slice().sort((x,y)=>String(x).localeCompare(String(y),undefined,{numeric:true}))[all.length-1];
-  const m=String(last).match(/^(.*?)(\d+)\s*$/);
-  if(!m)return '';
-  const pre=m[1], num=m[2];
-  const nxt=String(+num+1).padStart(num.length,'0');
-  let cand=pre+nxt, guard=0;
-  while(all.indexOf(cand)>=0 && guard++<9999){ cand=pre+String(+cand.replace(pre,'')+1).padStart(num.length,'0'); }
+  const top=serialRunTop(all);
+  if(!top)return '';
+  const have=new Set(all);
+  let n=top.num+1, guard=0, cand;
+  do{ cand=top.pre+String(n).padStart(top.pad,'0'); n++; }while(have.has(cand)&&guard++<9999);
   return cand;
+}
+/* warn when a hand-typed serial jumps far out of the run — this is how 1011 got in */
+function serialOutOfRun(sr){
+  const all=(DB.thaans||[]).map(t=>String(t.serial||'')).filter(Boolean);
+  const top=serialRunTop(all); const p=serialParts(sr);
+  if(!top||!p||p.pre!==top.pre)return false;
+  return p.num > top.num + 50;
 }
 function bulkEntryCardHTML(){
   return `<div class="bf-l1">
@@ -3752,16 +3881,18 @@ function bulkFabRender(){
      <div style="min-width:0"><b>#${esc(a.serial)} · ${esc(a.name)}</b><div class="hint">${a.mtr} mtr${a.rate?` · ₹${esc(a.rate)}/mtr`:''}</div></div>
      <button class="btn sm danger" style="flex:0 0 auto" onclick="bulkDelAdded('${a.id}')">✕</button></div>`).join('');
   $('#sheet').innerHTML=`<div class="grip"></div>
-    <h2 style="margin-bottom:4px">📋 ${t('stk_bulk_title')}</h2>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">📋 ${t('stk_bulk_title')}</h2><button class="btn sm ghost" onclick="closeSheet();stockHome('fabric')">✕</button></div>
     <p class="hint" style="margin-bottom:12px">${t('stk_bulk_desc')}</p>
-    <div class="head-grid" style="grid-template-columns:1fr 1fr">
+    <datalist id="fabCats">${[...new Set((DB.fabItems||[]).map(x=>x.category).filter(Boolean))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
+    <datalist id="fabRacks">${[...new Set((DB.thaans||[]).map(x=>x.rack).filter(Boolean))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
+    ${_bulkMore?`<div class="head-grid" style="grid-template-columns:1fr 1fr">
       <div class="field" style="margin:0"><label>${t('stk_category')}</label><input id="bf_cat" list="fabCats" value="${esc(_bulk.cat)}" oninput="bulkShared('cat',this.value)"></div>
       <div class="field" style="margin:0"><label>${t('supplier')}</label><input id="bf_party" value="${esc(_bulk.party)}" oninput="bulkShared('party',this.value)"></div>
       <div class="field" style="margin:0"><label>🏷️ ${t('stk_sell')}</label><input id="bf_sell" type="number" inputmode="numeric" value="${esc(_bulk.sell||'')}" placeholder="1200" oninput="bulkShared('sell',this.value)"></div>
     </div>
-    <datalist id="fabCats">${[...new Set((DB.fabItems||[]).map(x=>x.category).filter(Boolean))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
-    <datalist id="fabRacks">${[...new Set((DB.thaans||[]).map(x=>x.rack).filter(Boolean))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
-    <p class="hint" style="margin:2px 0 10px">${t('stk_bulk_shared')}</p>
+    <p class="hint" style="margin:2px 0 6px">${t('stk_bulk_shared')}</p>
+    <button class="btn sm ghost block" style="margin-bottom:10px" onclick="bulkMore()">${t('hide_x')}</button>`
+    :`<button class="btn sm ghost block" style="margin-bottom:12px" onclick="bulkMore()">⚙️ ${t('stk_bulk_shared_btn')}${(_bulk.cat||_bulk.party||_bulk.sell)?' ✓':''} ▾</button>`}
     <div class="card" id="bfEntryCard" style="padding:10px;border-color:var(--saffron);margin-bottom:14px">
       <div class="bf-l1">
         <input id="bfSerial" value="${esc(_bulk.entry.serial||nextSerial())}" placeholder="Serial *" oninput="bulkEntry('serial',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();var m=$('#bfMtr');if(m)m.focus();}">
@@ -3994,7 +4125,7 @@ function readyBulkRender(){
      <button class="btn sm danger" style="flex:0 0 auto" onclick="readyBulkDelAdded(${idx})">✕</button></div>`).join('');
   const e=_rbulk.entry;
   $('#sheet').innerHTML=`<div class="grip"></div>
-    <h2 style="margin-bottom:4px">👔 ${t('rb_title')}</h2>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">👔 ${t('rb_title')}</h2><button class="btn sm ghost" onclick="closeSheet();stockHome('ready')">✕</button></div>
     <p class="hint" style="margin-bottom:12px">${t('rb_sub')}</p>
     <div class="field"><label>${t('rb_cat')}</label><input id="rb_cat" list="rdyCats" value="${esc(_rbulk.cat)}" oninput="rbShared(this.value)" placeholder="Suit / Kurta / Sherwani"></div>
     <datalist id="rdyCats">${[...new Set((DB.itemMaster||[]).filter(x=>x.kind==='ready'&&x.category).map(x=>x.category))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
@@ -4036,7 +4167,7 @@ function readyRender(){
       </div></div>`).join('');
   const tot=sizes.reduce((s,sz)=>s+(+d.stk[sz]||0),0);
   $('#sheet').innerHTML=`<div class="grip"></div>
-    <h2 style="margin-bottom:4px">👔 ${d.id?t('edit'):t('stk_add_ready')}</h2>
+    <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">👔 ${d.id?t('edit'):t('stk_add_ready')}</h2><button class="btn sm ghost" onclick="stockHome('ready')">✕</button></div>
     <p class="hint" style="margin-bottom:12px">${t('stk_ready_hint')}</p>
     <div class="field"><label>${t('im_name')} *</label>
       <input id="rd_name" value="${esc(d.name)}" placeholder="${t('stk_ready_ph')}"></div>
@@ -4993,7 +5124,7 @@ function expRender(){
   const chips=(DB.expCats||[]).map(c=>`<span class="gtag ${d.cat===c?'on-tag':''}" style="cursor:pointer"
       onclick="expPickCat('${esc(c).replace(/'/g,"\\'")}')">${esc(c)}</span>`).join('');
   $('#sheet').innerHTML=`<div class="grip"></div>
-    <h2 style="margin-bottom:12px">💸 ${d.id?t('edit'):t('exp_add')}</h2>
+    <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">💸 ${d.id?t('edit'):t('exp_add')}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     <div class="field"><label>${t('pay_date')}</label>${dateField("ex_date",d.date)}</div>
     <div class="field" style="margin-top:10px"><label>${t('exp_cat')} *</label>
       <input id="ex_cat" value="${esc(d.cat)}" placeholder="${t('exp_cat_ph')}">
@@ -5145,7 +5276,7 @@ function ofMatches(){
     if(_ofSm && (o.salesmanId||'')!==_ofSm) return false;
     if(q){
       const hay=[o.customerName,o.phone,o.orderNo].join(' ').toLowerCase();
-      if(hay.indexOf(q)<0) return false;
+      if(hay.indexOf(q)<0 && !(o.members||[]).some(m=>String(m.ono||'').toLowerCase().includes(q)||String(m.name||'').toLowerCase().includes(q))) return false;
     }
     const items=(o.items||[]);
     if(_ofKar||_ofItem||_ofStatus){
@@ -6358,6 +6489,224 @@ function courierWA(oid){
   waSend(o.phone||'', L.join('\n'));
 }
 
+/* ================= CATALOGUE =================
+   Nothing new has to be photographed: the shop already has pictures on its fabric
+   rolls, its readymade pieces, and on the garments it has already made. This is a
+   customer-facing WINDOW onto that, so the one hard rule is that it shows SELLING
+   price only — a purchase rate must never be on a screen a customer is looking at. */
+/* ================= CATALOGUE =================
+   How he actually shows a customer: "sherwani dikhani hai" → open the Sherwani folder.
+   So FOLDERS he builds himself are the front door, and the stock-derived tabs are the
+   place he picks photos FROM. One hard rule: this screen faces the customer, so it
+   shows SELLING price only — never a purchase rate. */
+let _catTab='fabric', _catQ='', _catG='', _catFolder=null, _catPick=new Set();
+function catFolders(){ DB.catFolders=DB.catFolders||[]; return DB.catFolders; }
+function catFolderById(id){ return catFolders().find(f=>f.id===id)||null; }
+function setCatQ(v){ _catQ=v; pageReset('cat'); catSource(true); }
+function catSetTab(v){ _catTab=v; _catQ=''; _catG=''; pageReset('cat'); catSource(); }
+function catSetG(v){ _catG=(_catG===v?'':v); pageReset('cat'); catSource(); }
+
+/* every photo the shop already owns, with enough label to recognise it */
+function catItems(){
+  const q=(_catQ||'').trim().toLowerCase();
+  const out=[];
+  if(_catTab==='fabric'){
+    (DB.thaans||[]).forEach(th=>{
+      if(!(th.photos||[]).length)return;
+      if(thaanBal(th)<=0.05)return;
+      const f=FI(th.fabId)||{};
+      out.push({pid:th.photos[0], title:f.name||('#'+th.serial), sub:'#'+th.serial,
+        note:thaanBal(th)+' m '+t('stk_left'), price:+th.sell||+f.sell||0,
+        cat:f.category||'', gid:''});
+    });
+  }else if(_catTab==='ready'){
+    readyItems().forEach(m=>{
+      if(!(m.photos||[]).length)return;
+      const tot=readyTotal(m); if(tot<=0)return;
+      const sizes=(DB.stkCfg.sizes||[]).filter(sz=>readyQty(m,sz)>0);
+      out.push({pid:m.photos[0], title:m.name||'—', sub:sizes.length?sizes.join(' · '):'',
+        note:tot+' '+t('stk_pieces'), price:+m.sell||0, cat:'', gid:''});
+    });
+  }else{
+    (DB.orders||[]).forEach(o=>{
+      Object.keys(o.itemPhotos||{}).forEach(gid=>{
+        (o.itemPhotos[gid]||[]).forEach(pid=>{
+          const g=G(gid); if(!g)return;
+          out.push({pid, title:g.n, sub:(g.ico||''), note:fmtDate(o.deliveryDate||o.date||''),
+            price:0, cat:g.id, gid:g.id});
+        });
+      });
+    });
+    out.reverse();
+  }
+  if(_catG)return out.filter(x=>x.cat===_catG);
+  if(q)return out.filter(x=>(x.title+' '+x.sub+' '+x.cat).toLowerCase().includes(q));
+  return out;
+}
+function catItemsAll(){ const g=_catG,q=_catQ; _catG='';_catQ=''; const l=catItems(); _catG=g;_catQ=q; return l; }
+/* look a photo up wherever it lives, so a folder entry can show its real details */
+function catLookup(pid){
+  for(const tab of ['fabric','ready','made']){
+    const keep=_catTab; _catTab=tab; const l=catItemsAll(); _catTab=keep;
+    const hit=l.find(x=>x.pid===pid); if(hit)return hit;
+  }
+  return {pid, title:'', sub:'', note:'', price:0, cat:'', gid:''};
+}
+
+/* ---------- the front door: his own folders ---------- */
+function catalogue(){
+  _catFolder=null; _catPickMode=false;
+  const fs=catFolders();
+  const cards=fs.map(f=>`
+    <div class="cat-card" onclick="catOpenFolder('${f.id}')">
+      ${f.pids&&f.pids.length?`<img class="cat-img" data-pid="${esc(f.pids[0])}" alt="">`
+        :`<div class="cat-img" style="display:flex;align-items:center;justify-content:center;font-size:38px">${f.ico||'📁'}</div>`}
+      <div class="cat-meta"><b>${f.ico||'📁'} ${esc(f.name)}</b>
+        <div class="hint">${(f.pids||[]).length} ${t('cat_photos')}</div></div></div>`).join('');
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">📖 ${t('cat_title')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
+    <p class="hint" style="margin-bottom:12px">${t('cat_sub')}</p>
+    <button class="btn primary block" style="margin-bottom:12px" onclick="catFolderEdit()">➕ ${t('cat_new_folder')}</button>
+    ${fs.length?`<div class="cat-grid">${cards}</div>`:`<p class="hint" style="padding:20px 0;text-align:center">${t('cat_no_folder')}</p>`}
+    <button class="btn ghost block" style="margin-top:12px" onclick="catSource()">🗂️ ${t('cat_browse_all')}</button>
+    <div class="fab-pad"></div>`;
+  showSheet(); catLoadImgs();
+}
+function catFolderEdit(id){
+  const f=id?catFolderById(id):null;
+  modal((f?'✏️ ':'➕ ')+t('cat_new_folder'),
+    `<div class="field"><label>${t('cat_folder_name')}</label>
+       <input id="cf_name" value="${esc(f?f.name:'')}" placeholder="${t('cat_folder_ph')}"></div>
+     <div class="field"><label>${t('cat_folder_ico')}</label>
+       <input id="cf_ico" value="${esc(f?(f.ico||''):'')}" placeholder="👘" maxlength="3"></div>`,
+    [{label:t('cancel'),cls:'ghost',fn:()=>f?catOpenFolder(id):catalogue()},
+     ...(f?[{label:t('remove'),cls:'danger',fn:()=>catFolderDel(id)}]:[]),
+     {label:t('save'),cls:'primary',fn:()=>{
+        const n=($('#cf_name')||{}).value.trim(); if(!n){toast(t('cat_folder_need'),'bad');return;}
+        const ico=(($('#cf_ico')||{}).value||'').trim();
+        if(f){ f.name=n; f.ico=ico; save(); catOpenFolder(id); }
+        else{ const nf={id:uid(),name:n,ico:ico,pids:[]}; catFolders().push(nf); save(); catOpenFolder(nf.id); }
+     }}]);
+}
+function catFolderDel(id){
+  const f=catFolderById(id); if(!f)return;
+  confirmModal('🗑️ '+esc(f.name), t('cat_folder_del',{n:(f.pids||[]).length}), ()=>{
+    DB.catFolders=catFolders().filter(x=>x.id!==id); save(); catalogue();
+  });
+}
+function catOpenFolder(id){
+  const f=catFolderById(id); if(!f){catalogue();return;}
+  _catFolder=id; _catPickMode=false; pageReset('cat');
+  const items=(f.pids||[]).map(catLookup);
+  _catView=items;
+  const cards=pageSlice('cat',items).map((x,i)=>`
+    <div class="cat-card">
+      <img class="cat-img" data-pid="${esc(x.pid)}" alt="" onclick="catOpen(${i})">
+      <div class="cat-meta">
+        <div class="kv"><b>${esc(x.title||t('cat_design'))}</b>
+          <span onclick="catRemoveFromFolder('${id}','${esc(x.pid)}')" style="color:#d9534f;cursor:pointer">✕</span></div>
+        ${x.note?`<div class="hint">${esc(x.note)}</div>`:''}
+        ${x.price?`<div class="hint" style="color:var(--saffron2)">${money(x.price)}</div>`:''}
+      </div></div>`).join('')
+    || `<p class="hint" style="padding:20px 0;text-align:center">${t('cat_folder_empty')}</p>`;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">${f.ico||'📁'} ${esc(f.name)}</h2>
+      <span><button class="btn sm ghost" onclick="catFolderEdit('${id}')">✏️</button>
+      <button class="btn sm ghost" onclick="catalogue()">✕</button></span></div>
+    <p class="hint" style="margin-bottom:10px">${(f.pids||[]).length} ${t('cat_photos')}</p>
+    <button class="btn primary block" style="margin-bottom:12px" onclick="catPickOpen('${id}')">➕ ${t('cat_add_photos')}</button>
+    <div class="cat-grid">${cards}</div>
+    ${pageMoreBtn('cat',items.length)}
+    <div class="modal-actions"><button class="btn ghost block" onclick="catalogue()">${t('back')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet(); catLoadImgs();
+}
+function catRemoveFromFolder(fid,pid){
+  const f=catFolderById(fid); if(!f)return;
+  f.pids=(f.pids||[]).filter(p=>p!==pid); save(); catOpenFolder(fid);
+}
+
+/* ---------- picking photos into a folder ---------- */
+let _catPickMode=false;
+function catRepaint(){ if(_catPickMode)catSource(); else if(_catFolder)catOpenFolder(_catFolder); else catalogue(); }
+function catPickOpen(fid){ _catFolder=fid; _catPickMode=true; _catPick=new Set(); _catTab='made'; _catQ=''; _catG=''; pageReset('cat'); catSource(); }
+function catPickCancel(){ const f=_catFolder; _catPickMode=false; _catPick=new Set(); if(f)catOpenFolder(f); else catalogue(); }
+function catPickToggle(pid){ if(_catPick.has(pid))_catPick.delete(pid); else _catPick.add(pid); catSource(); }
+function catPickSave(){
+  const f=catFolderById(_catFolder); if(!f){catalogue();return;}
+  f.pids=f.pids||[];
+  let n=0; _catPick.forEach(p=>{ if(!f.pids.includes(p)){f.pids.push(p);n++;} });
+  _catPick=new Set(); _catPickMode=false; save();
+  toast(t('cat_added',{n}),'ok'); catOpenFolder(f.id);
+}
+/* the stock-derived browser — also used on its own as "browse everything" */
+function catSource(keepFocus){
+  const picking=_catPickMode;
+  const list=catItems();
+  _catView=list;
+  const tabs=[['fabric','🧵 '+t('stk_fabric')],['ready','👔 '+t('stk_ready')],['made','✨ '+t('cat_made')]];
+  let chips='';
+  if(_catTab==='made'){
+    const seen={}; catItemsAll().forEach(x=>{ if(x.cat)seen[x.cat]=(seen[x.cat]||0)+1; });
+    chips=`<div class="gtags" style="margin-bottom:10px">${Object.keys(seen).map(id=>{const g=G(id);
+      return g?`<span class="gtag ${_catG===id?'on-tag':''}" style="cursor:pointer" onclick="catSetG('${id}')">${g.ico} ${esc(g.n)} · ${seen[id]}</span>`:'';}).join('')}</div>`;
+  }
+  const cards=pageSlice('cat',list).map((x,i)=>{
+    const on=_catPick.has(x.pid);
+    return `<div class="cat-card ${on?'on':''}" onclick="${picking?`catPickToggle('${esc(x.pid)}')`:`catOpen(${i})`}">
+      <img class="cat-img" data-pid="${esc(x.pid)}" alt="">
+      ${picking?`<div class="cat-tick">${on?'✅':'⬜'}</div>`:''}
+      <div class="cat-meta"><b>${esc(x.title)}</b>
+        ${x.sub?`<div class="hint">${esc(x.sub)}</div>`:''}
+        <div class="kv" style="margin-top:2px"><span class="hint">${esc(x.note||'')}</span>
+          ${x.price?`<b style="color:var(--saffron2)">${money(x.price)}</b>`:''}</div></div></div>`;}).join('')
+    || `<p class="hint" style="padding:24px 0;text-align:center">${t('cat_none')}</p>`;
+  const f=picking?catFolderById(_catFolder):null;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">${picking?('➕ '+esc(f?f.name:'')):('🗂️ '+t('cat_browse_all'))}</h2>
+      <button class="btn sm ghost" onclick="${picking?`catPickCancel()`:'catalogue()'}">✕</button></div>
+    <p class="hint" style="margin-bottom:10px">${picking?t('cat_pick_hint'):t('cat_browse_hint')}</p>
+    <div class="ktabs">${tabs.map(([k,l])=>
+      `<div class="ktab ${_catTab===k?'on':''}" onclick="catSetTab('${k}')">${l}</div>`).join('')}</div>
+    ${_catTab!=='made'?`<div class="field" style="margin-bottom:8px">
+      <input id="catQ" value="${esc(_catQ)}" placeholder="🔍 ${t('cat_search')}" oninput="setCatQ(this.value)"></div>`:''}
+    ${chips}
+    <p class="hint" style="margin:0 0 8px">${list.length} ${t('cat_designs')}</p>
+    <div class="cat-grid">${cards}</div>
+    ${pageMoreBtn('cat',list.length)}
+    ${picking?`<div class="save-dock">
+      <button class="btn ghost" onclick="catPickCancel()">${t('cancel')}</button>
+      <button class="btn primary" style="flex:2" onclick="catPickSave()">✓ ${t('cat_add_n',{n:_catPick.size})}</button></div>`:''}
+    <div class="fab-pad"></div>`;
+  showSheet(); catLoadImgs();
+  if(keepFocus){const el=$('#catQ'); if(el){el.focus(); el.setSelectionRange(el.value.length,el.value.length);}}
+}
+let _catView=[];
+async function catLoadImgs(){
+  for(const img of document.querySelectorAll('img.cat-img[data-pid]')){
+    const url=await mURL(img.dataset.pid);
+    if(url)img.src=url;
+  }
+}
+async function catOpen(i){
+  const x=_catView[i]; if(!x)return;
+  const url=await mURL(x.pid);
+  modal('',`<img src="${url||''}" style="width:100%;border-radius:12px">
+    <div style="margin-top:10px"><b style="font-size:17px">${esc(x.title||t('cat_design'))}</b>
+      ${x.sub?`<div class="hint">${esc(x.sub)}</div>`:''}
+      <div class="kv" style="margin-top:6px"><span class="hint">${esc(x.note||'')}</span>
+        ${x.price?`<b style="color:var(--saffron2);font-size:17px">${money(x.price)}</b>`:''}</div></div>`,
+    [{label:t('close'),cls:'ghost',fn:closeModal},
+     {label:t('cat_use'),cls:'primary',fn:()=>catUse(i)}]);
+}
+function catUse(i){
+  const x=_catView[i]; if(!x)return;
+  closeModal(); closeSheet();
+  _catSeed={pid:x.pid, gid:x.gid||''};
+  openOrderForm();
+}
+let _catSeed=null;
 function statDetail(mode){
   const tag=(arr,k)=>(arr||[]).map(x=>{x._kind=k;return x;});
   let list=[], title='', sub='', total=0;
@@ -6486,6 +6835,7 @@ function renderHome(){
       ${tile('🧵',t('jw_title'),"jobWork()")}
       ${tile('📞',t('se_title'),"statusEnquiry('')")}
       ${tile('📦',t('cu_title'),"courierHub()")}
+      ${tile('📖',t('cat_title'),"catalogue()",'mod-stock')}
       ${tile('🔎',t('of_title'),"orderFilter()")}
       ${tile('📊',t('or_title'),"orderReports()")}
       ${tile('🔧',t('home_alterations'),"go('alterations')")}
@@ -6558,7 +6908,10 @@ function discardDraft(id){
 function renderOrders(){
   const q=($('#search').value||'').toLowerCase().trim();
   let list=deliveryList();
-  if(q)list=list.filter(o=>(o.customerName||'').toLowerCase().includes(q)||(o.phone||'').includes(q)||String(o.orderNo).toLowerCase().includes(q));
+  if(q)list=list.filter(o=>(o.customerName||'').toLowerCase().includes(q)||(o.phone||'').includes(q)
+    ||String(o.orderNo).toLowerCase().includes(q)
+    ||(o.members||[]).some(m=>String(m.ono||'').toLowerCase().includes(q))
+    ||(o.members||[]).some(m=>String(m.name||'').toLowerCase().includes(q)));
   const chips=[['all','f_all'],['pending','f_pending'],['today','f_today'],['tomorrow','f_tomorrow'],['week','f_week']]
     .map(([f,k])=>`<button class="stp ${delFilter===f?'cur':''}" onclick="setDelFilter('${f}')">${t(k)}</button>`).join('')
     +`<button class="stp ${delFilter==='date'?'cur':''}" onclick="document.getElementById('delDateInp').showPicker?document.getElementById('delDateInp').showPicker():document.getElementById('delDateInp').click()">📅 ${delFilter==='date'&&delDate?fmtDate(delDate):t('f_date')}</button>`;
@@ -6798,7 +7151,7 @@ function delCustomer(id){
   });
 }
 function editCustomer(id,isNew){const c=custById(id); _custPhotoId=id;
-  $('#sheet').innerHTML=`<div class="grip"></div><h3 style="margin-bottom:14px">${t('cust_edit')}</h3>
+  $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h3 style="margin:0">${t('cust_edit')}</h3><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     <div class="field"><label>${t('customer')}</label><input id="ec_name" value="${esc(c.name)}"></div>
     <div class="field"><label>${t('phone')}</label><input id="ec_phone" type="tel" value="${esc(c.phone)}"></div>
     <div class="section-h">🧍 ${t('bp_title')}</div>
@@ -6987,6 +7340,13 @@ function openOrderForm(editId){
       orderDate:new Date().toISOString().slice(0,10),deliveryDate:'',items:[],m:{},design:{},variant:{},notes:'',total:'',advance:'',photos:[],voiceNotes:[],itemPhotos:{},itemVoice:{},bodyType:[],members:[],dispatch:null,source:'',sourceRef:''};
   }
   form._did = form._did || ('d'+uid());
+  if(_catSeed){                                  // came in from the catalogue
+    const seed=_catSeed; _catSeed=null;
+    const mid=(form.members&&form.members[0]&&form.members[0].id)||'m1';
+    if(seed.gid){ const k=itemKey(mid,seed.gid); if(!(form.items||[]).includes(k)){form.items=form.items||[];form.items.push(k);} 
+      if(seed.pid){ form.itemPhotos=form.itemPhotos||{}; form.itemPhotos[k]=[seed.pid]; } }
+    else if(seed.pid){ form.photos=form.photos||[]; form.photos.push(seed.pid); }
+  }
   _gcMore={}; _xOpen={}; _ordX=false;
   renderForm();
 }
@@ -7006,6 +7366,21 @@ function ensureFormMembers(f){
     f.members=[{id: bare?'':'m1', name:'', rel:''}];
   }
 }
+/* His register gives every person in a family order their OWN order number, so the app
+   does too: each member carries an ono, auto-filled with the next number in the run.
+   The order stays ONE record — one delivery date, one payment — but every slip, message
+   and search uses that person's own number, so book and app finally agree. */
+function nextOrderNoAfter(base,used){
+  const m=String(base||'').match(/^(.*?)(\d+)\s*$/);
+  if(!m)return '';
+  let n=+m[2]+1, pad=m[2].length, cand;
+  do{ cand=m[1]+String(n).padStart(pad,'0'); n++; }while(used.has(cand));
+  return cand;
+}
+function memberOno(o,mid){
+  const m=((o.members||[]).find(x=>x.id===mid)||{});
+  return m.ono || o.orderNo || '';
+}
 function addMember(){
   captureForm();
   ensureFormMembers(form);
@@ -7020,7 +7395,14 @@ function addMember(){
     if(!form.members[0].name)form.members[0].name=form.customerName||'';
   }
   const n=form.members.length+1;
-  form.members.push({id:'m'+n+'_'+Math.random().toString(36).slice(2,6), name:'', rel:''});
+  // give the new person the next order number, exactly as the register would
+  const used=new Set((DB.orders||[]).map(o=>String(o.orderNo||''))
+    .concat([].concat(...(DB.orders||[]).map(o=>(o.members||[]).map(m=>String(m.ono||''))))).filter(Boolean));
+  (form.members||[]).forEach(m=>{ if(m.ono)used.add(String(m.ono)); });
+  const base=(form.members||[]).map(m=>m.ono).filter(Boolean).pop() || form.orderNo;
+  if(form.members[0] && !form.members[0].ono)form.members[0].ono=form.orderNo||'';
+  form.members.push({id:'m'+n+'_'+Math.random().toString(36).slice(2,6), name:'', rel:'',
+    ono:nextOrderNoAfter(base,used)});
   renderForm();
   setTimeout(()=>{const els=document.querySelectorAll('.mem-name');const last=els[els.length-1];if(last)last.focus();},80);
 }
@@ -7212,10 +7594,11 @@ function memberBlockHTML(f,mem,idx,multi){
   const nm=mem.name||'', rel=mem.rel||'';
   return `<div class="mem-block" ${multi?'':'style="border:none;padding:0;background:transparent"'}>
     ${multi?`<div class="mem-head">
-      <div class="mem-num">${idx+1}</div>
-      <div style="flex:1;display:flex;gap:6px">
+      <div class="mem-num">${mem.ono?esc(mem.ono):(idx+1)}</div>
+      <div style="flex:1;display:flex;gap:6px;flex-wrap:wrap">
         <input class="mem-name" data-mname="${mem.id}" value="${esc(nm)}" placeholder="${t('mem_name_ph')}">
         <input class="mem-rel" data-mrel="${mem.id}" list="relList" value="${esc(rel)}" placeholder="${t('mem_rel_ph')}">
+        <input class="mem-ono" data-mono="${mem.id}" value="${esc(mem.ono||'')}" placeholder="${t('mem_ono_ph')}" inputmode="numeric">
       </div>
       <button class="btn sm ghost" onclick="manageRels()" title="${t('ml_manage')}">⚙️</button>
       <button class="btn sm danger" onclick="delMember('${mem.id}')">✕</button>
@@ -7430,6 +7813,7 @@ function captureForm(){const f=form;
     } else delete f.variant[k];
   });
   document.querySelectorAll('[data-mname]').forEach(inp=>{const m=(f.members||[]).find(x=>x.id===inp.dataset.mname);if(m)m.name=inp.value.trim();});
+  document.querySelectorAll('[data-mono]').forEach(inp=>{const m=(f.members||[]).find(x=>x.id===inp.dataset.mono);if(m)m.ono=inp.value.trim();});
   document.querySelectorAll('[data-mrel]').forEach(inp=>{const m=(f.members||[]).find(x=>x.id===inp.dataset.mrel);if(m){m.rel=inp.value.trim();
     if(m.rel&&!(DB.relLib||[]).includes(m.rel)){DB.relLib=DB.relLib||[];DB.relLib.push(m.rel);}}});
   if($('#f_cname')&&!f.customerId)f.customerName=$('#f_cname').value.trim();
@@ -8014,7 +8398,7 @@ function renderAltForm(){
   const f=altForm;
   const origO=f.origOrderId?DB.orders.find(x=>x.id===f.origOrderId):null;
   const kopts=`<option value="">${t('karigar_none')}</option>`+(DB.karigars||[]).map(k=>`<option value="${k.id}" ${k.id===f.karigarId?'selected':''}>${esc(k.name)}</option>`).join('');
-  $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:14px">${f.editId?t('edit_alteration'):t('new_alteration')}</h2>
+  $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${f.editId?t('edit_alteration'):t('new_alteration')}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     <div class="row"><div class="field"><label>${t('alt_no')}</label><input id="a_no" value="${esc(f.altNo)}"></div>
       <div class="field"><label>${t('alt_received_date')}</label>${dateField("a_rdate",f.receivedDate)}</div></div>
     ${origO?`<div class="field"><label>${t('alt_orig_order')}</label><div class="cust-result"><div><b>#${esc(origO.orderNo)}</b><div class="hint">${esc(origO.customerName)}</div></div><button class="btn sm ghost" onclick="unlinkAltOrder()">${t('unlink')}</button></div></div>`:`<p class="hint" style="margin:0 0 12px">${t('no_orig_link')}</p>`}
@@ -10399,7 +10783,7 @@ function renderPurchaseForm(){
     ? `<div class="card" style="padding:10px 12px;margin-bottom:10px;border:1px solid var(--saffron);background:rgba(246,166,35,.08);display:flex;justify-content:space-between;align-items:center;gap:8px">
          <span class="hint" style="margin:0">↩️ ${t('draft_restored')}</span>
          <button class="btn sm ghost" style="flex:0 0 auto" onclick="discardPurDraft()">🗑️ ${t('draft_discard')}</button></div>` : '';
-  $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:12px">📦 ${f.editId?t('edit_purchase'):t('new_purchase')}</h2>${restored}
+  $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h2 style="margin:0">📦 ${f.editId?t('edit_purchase'):t('new_purchase')}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>${restored}
     <div class="card" style="padding:12px 14px;margin-bottom:10px">
       <div class="kv" style="align-items:baseline;margin-bottom:4px">
         <label style="margin:0">${t('supplier')} *</label>
@@ -11075,9 +11459,11 @@ function buildMasterText(o,gids){
   const _bt=Array.isArray(o.bodyType)?o.bodyType.join(', '):(o.bodyType||''); if(_bt)s+='🧍 '+_bt+'\n';
     const _multi=activeMembers(o).length>1;
   sortItems(gids).forEach(gid=>{const g=G(gid);if(!g)return;const cols=mcols(g),v=o.m[gid]||{};
-    const _who=_multi?memberLabel(o,memberOf(gid)):'';
+    const _mid=memberOf(gid);
+    const _who=_multi?memberLabel(o,_mid):'';
+    const _mono=_multi?memberOno(o,_mid):'';
     const vals=cols.filter(c=>v[c.k]).map(c=>c.n+' '+v[c.k]);
-    s+='\n'+(g.ico||'▪')+' '+itemTitle(o,gid).toUpperCase()+(_who?('   [ '+_who+' ]'):'')+'\n'+(vals.join('  ·  ')||'-')+'\n';
+    s+='\n'+(g.ico||'▪')+' '+itemTitle(o,gid).toUpperCase()+(_who?('   [ '+_who+(_mono&&_mono!==o.orderNo?(' · #'+_mono):'')+' ]'):'')+'\n'+(vals.join('  ·  ')||'-')+'\n';
     if(o.design&&o.design[gid])s+='Design: '+o.design[gid]+'\n';});
   if(o.notes)s+='\nNote: '+o.notes+'\n';
   return s;
@@ -11402,7 +11788,8 @@ function kiVisibleList(kid,mode){
   let list=raw.filter(x=>_kiTypeFilter.has(x.g.id));
   const q=(_kiQ||'').trim().toLowerCase();
   if(q)list=list.filter(x=>(String(x.o.orderNo||'')+' '+String(x.o.customerName||'')+' '+
-    String(x.o.phone||'')).toLowerCase().includes(q));
+    String(x.o.phone||'')+' '+(x.o.members||[]).map(m=>(m.ono||'')+' '+(m.name||'')).join(' ')
+    ).toLowerCase().includes(q));
   return {raw,types,list};
 }
 function kiTypeToggle(kid,mode,gid){
@@ -11945,7 +12332,7 @@ function karigarEdit(id){const ex=id?(DB.karigars||[]).find(x=>x.id===id):null;
       <span class="kr-name">${g.ico} ${esc(g.n)}</span>
       <div class="rate-in" style="flex:0 0 118px;max-width:118px"><span>₹</span><input data-krate="${g.id}" type="number" inputmode="numeric" value="${rates[g.id]?esc(rates[g.id]):''}" placeholder="${t('karigar_rate')}"></div>
     </div>`;}).join('');
-  $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:12px">${ex?t('edit'):t('add_karigar')}</h2>
+  $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${ex?t('edit'):t('add_karigar')}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     <div class="field"><label>${t('karigar_name')}</label><input id="kName" value="${ex?esc(ex.name):''}" placeholder="${t('karigar_name')}"></div>
     <div class="field" style="margin-top:10px"><label>${t('phone')}</label><input id="kPhone" type="tel" inputmode="numeric" value="${ex?esc(ex.phone||''):''}" placeholder="${t('phone')}"></div>
     ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost" style="margin-top:10px" onclick="pickKarigarContact()">📇 ${t('from_contacts')}</button>`:''}
@@ -11996,7 +12383,7 @@ function imRender(){
   const d=_imDraft;
   const chips=(DB.inclLib||[]).map(p=>{const on=d.incl.includes(p);
     return `<span class="gtag" onclick="imTogglePart('${esc(p).replace(/'/g,"\\'")}')" style="cursor:pointer;${on?'background:var(--saffron);color:#1a1206;border-color:var(--saffron)':''}">${on?'✓ ':''}${esc(p)}</span>`;}).join('');
-  $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:12px">${d.id?t('edit'):t('add_item_master')}</h2>
+  $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${d.id?t('edit'):t('add_item_master')}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     <div class="field"><label>${t('im_name')} *</label><input id="im_name" value="${esc(d.name)}" placeholder="${t('im_name_ph')}"></div>
     <div class="row"><div class="field"><label>${t('im_hsn')}</label><input id="im_hsn" value="${esc(d.hsn)}" placeholder="6203"></div>
       <div class="field"><label>${t('im_rate')}</label><input id="im_rate" type="number" inputmode="numeric" value="${esc(d.rate)}" placeholder="0"></div></div>
@@ -12064,7 +12451,7 @@ function salesmanMaster(){
   showSheet();
 }
 function salesmanEdit(id){const ex=id?(DB.salesmen||[]).find(x=>x.id===id):null;
-  $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:12px">${ex?t('edit'):t('add_salesman')}</h2>
+  $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${ex?t('edit'):t('add_salesman')}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     <div class="field"><label>${t('salesman_name')}</label><input id="smName" value="${ex?esc(ex.name):''}" placeholder="${t('salesman_name')}"></div>
     <div class="field" style="margin-top:10px"><label>${t('phone')}</label><input id="smPhone" type="tel" value="${ex?esc(ex.phone||''):''}" placeholder="${t('phone')}"></div>
     <div class="modal-actions"><button class="btn ghost" onclick="salesmanMaster()">${t('cancel')}</button><button class="btn primary" onclick="salesmanSave('${id||''}')">${t('save')}</button></div>`;
@@ -12117,7 +12504,7 @@ function renderItemEdit(){const d=itemDraft;
         <option value="select" ${f.type==='select'?'selected':''}>${t('ft_choice')}</option></select></div></div>
     <div class="field" style="margin:8px 0 0;${f.type==='select'?'':'display:none'}"><label>${t('field_options')}</label><input data-fopt="${i}" value="${esc((f.options||[]).join(', '))}" placeholder="Nagra, Loafer, Mojari"></div>
     <button class="btn sm danger" style="margin-top:8px" onclick="itemDraftDelField(${i})">${t('remove')}</button></div>`).join('');
-  $('#sheet').innerHTML=`<div class="grip"></div><h3 style="margin-bottom:14px">${d.n?esc(d.n):t('add_item')}</h3>
+  $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h3 style="margin:0">${d.n?esc(d.n):t('add_item')}</h3><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     <div class="row"><div class="field" style="flex:0 0 64px"><label>${t('icon')}</label><input id="id_ico" value="${esc(d.ico)}" maxlength="2" style="text-align:center;font-size:20px"></div>
       <div class="field"><label>${t('item_name')}</label><input id="id_name" value="${esc(d.n)}" placeholder="Safa, Juti…"></div></div>
     <div class="section-h">${t('fields')}</div>${rows||'<p class="hint">'+t('no_fields')+'</p>'}
@@ -12292,6 +12679,8 @@ function backupMenu(){modal(t('backup_title'),`<p style="color:var(--txt2);font-
   <div class="modal-actions" style="flex-direction:column">
   <button class="btn primary block" onclick="shareBackup()">📤 ${t('send_backup')}</button>
   <p class="hint" style="margin:2px 0 4px">${t('send_backup_hint')}</p>
+  <button class="btn ghost block" onclick="shareBackup(true)">📨 ${t('bk_data_only')}</button>
+  <p class="hint" style="margin:2px 0 4px">${t('bk_data_only_hint')}</p>
   <button class="btn ghost block" onclick="doExport()">⬇️ ${t('download_backup')}</button>
   <button class="btn ghost block" onclick="doImport()">⬆️ ${t('restore_backup')}</button>
   <button class="btn ghost block" onclick="restoreSnapshotMenu()">🕑 ${t('restore_auto')}</button>
@@ -12345,10 +12734,14 @@ function blobToB64(b){return new Promise(res=>{const r=new FileReader();r.onload
    so the iPad held the media three or four times over and froze. Now the file is
    assembled as Blob PARTS: each photo is converted, appended as its own string and
    dropped immediately, the UI gets a turn between files, and it can be cancelled. */
-async function buildBackupBlob(){
+async function buildBackupBlob(dataOnly){
   _bkCancel=false;
   const parts=['{"__v":2,"db":', JSON.stringify(DB), ',"media":{'];
   let n=0, wrote=0;
+  /* Photos are what make a backup huge, and a huge file is exactly what iPad WhatsApp
+     refuses to send. Orders, measurements, stock and karigar accounts are the data that
+     cannot be recreated — photos can be retaken. So a data-only backup stays small. */
+  if(dataOnly){ parts.push('}}'); return {blob:new Blob(parts,{type:'application/json'}), count:0, dataOnly:true}; }
   try{
     const keys=(await mKeys()).filter(k=>String(k).indexOf('snap_')!==0&&String(k).indexOf('rec_o_')!==0&&['__db','__core','__meta','__db_prev','__bkfile'].indexOf(String(k))<0);
     n=keys.length; bkProgress(0,n);
@@ -12400,22 +12793,22 @@ async function doExport(){
   setTimeout(()=>URL.revokeObjectURL(u),1000);markBackup();renderOrders();closeSheet();
   toast(t('bk_done',{n:res.count}),'ok');
 }
-async function shareBackup(){
-  bkBusyModal();
-  const res=await buildBackupBlob();
+async function shareBackup(dataOnly){
+  if(!dataOnly)bkBusyModal();
+  const res=await buildBackupBlob(dataOnly);
   if(!res){ toast(t('bk_cancelled'),'bad'); return; }
   // iOS WhatsApp refuses application/json outright — the share sheet either hides it
   // or the send fails. A .txt / text-plain document goes through normally, and restore
   // reads the file as text anyway, so nothing about the format changes.
   const txt=new Blob([res.blob],{type:'text/plain'});
-  const file=new File([txt],'PARAMPARA-backup.txt',{type:'text/plain'});
+  const file=new File([txt],(dataOnly?'PARAMPARA-data-only.txt':'PARAMPARA-backup.txt'),{type:'text/plain'});
   markBackup();renderOrders();
   try{ if(navigator.canShare&&navigator.canShare({files:[file]})){ closeSheet(); await navigator.share({files:[file],title:'PARAMPARA Backup'}); return; } }
   catch(e){ if(e&&e.name==='AbortError'){closeSheet();return;} }
   const u=URL.createObjectURL(txt);
-  const a=document.createElement('a');a.href=u;a.download='PARAMPARA-backup.txt';a.click();
+  const a=document.createElement('a');a.href=u;a.download=(dataOnly?'PARAMPARA-data-only.txt':'PARAMPARA-backup.txt');a.click();
   setTimeout(()=>URL.revokeObjectURL(u),1000);closeSheet();
-  toast(t('bk_done',{n:res.count}),'ok');
+  toast(dataOnly?t('bk_done_data'):t('bk_done',{n:res.count}),'ok');
 }
 function doImport(){const inp=document.createElement('input');inp.type='file';inp.accept='.json,.txt,application/json,text/plain';
   inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
@@ -12458,6 +12851,17 @@ async function stockAudit(){
       <div class="il"><span>${t('au_range')}</span><b>${now.min!==null?now.min+' – '+now.max:'—'}</b></div>
       <div class="il" style="border-bottom:0"><span>${t('au_missing')}</span>
         <b style="${now.missing?'color:var(--bad)':''}">${now.missing}</b></div></div>
+    ${(()=>{const top=(DB.thaans||[]).slice()
+        .sort((x,y)=>String(y.serial).localeCompare(String(x.serial),undefined,{numeric:true})).slice(0,6);
+      if(!top.length)return '';
+      return `<div class="section-h" style="margin-top:0">${t('au_highest')}</div>
+        <p class="hint" style="margin:0 0 8px">${t('au_highest_hint')}</p>
+        <div class="card" style="padding:0;margin-bottom:12px;overflow:hidden">
+        ${top.map(th=>{const f=FI(th.fabId)||{};
+          return `<div class="krow fu-open" onclick="closeSheet();stockHome('fabric');setTimeout(()=>thaanDetail('${th.id}'),120)">
+            <span class="kn">#${esc(th.serial)}${f.name?' · '+esc(f.name):''}
+              <div class="hint">${thaanBal(th)} m ${t('stk_left')} · ${th.mtr||0} m</div></span>
+            <span style="color:var(--saffron2)">›</span></div>`;}).join('')}</div>`;})()}
     ${now.gaps.length?`<div class="section-h" style="margin-top:0">${t('au_gaps')}</div>
       <div class="card" style="padding:10px 12px;margin-bottom:12px">
         ${now.gaps.slice(0,30).map(g=>`<span class="gtag" style="margin:2px">${g.from===g.to?g.from:g.from+'–'+g.to}</span>`).join('')}
@@ -12534,7 +12938,30 @@ async function restoreSnapshot(key){
 let _sheetOn=false, _popping=false, _curTab='home', _exitArm=0;
 function sheetIsOpen(){return $('#scrim').classList.contains('show');}
 function pushGuard(){try{history.pushState({pbGuard:Date.now()},'');}catch(e){}}
-function showSheet(){closeModal();$('#scrim').classList.add('show');_sheetOn=true;}
+function showSheet(){ bindSheetSwipe();closeModal();$('#scrim').classList.add('show');_sheetOn=true;}
+/* The grip at the top of every sheet is now a real handle — drag it down to close.
+   Only the grip listens, so scrolling inside the sheet is completely unaffected. */
+function bindSheetSwipe(){
+  const sh=$('#sheet'); if(!sh||sh.dataset.swipe)return; sh.dataset.swipe='1';
+  let y0=null, on=false;
+  const start=e=>{ const g=e.target.closest && e.target.closest('.grip'); if(!g)return;
+    on=true; y0=(e.touches?e.touches[0].clientY:e.clientY); sh.style.transition='none'; };
+  const move=e=>{ if(!on)return; const y=(e.touches?e.touches[0].clientY:e.clientY);
+    const d=Math.max(0,y-y0); sh.style.transform='translateY('+d+'px)'; if(d>4)e.preventDefault(); };
+  const end=()=>{ if(!on)return; on=false;
+    const d=parseFloat((sh.style.transform.match(/([\d.]+)px/)||[0,0])[1])||0;
+    sh.style.transition='transform .18s ease';
+    if(d>90){ sh.style.transform=''; closeSheet(); }
+    else sh.style.transform='';
+  };
+  sh.addEventListener('touchstart',start,{passive:true});
+  sh.addEventListener('touchmove',move,{passive:false});
+  sh.addEventListener('touchend',end);
+  sh.addEventListener('touchcancel',end);
+  sh.addEventListener('mousedown',start);
+  window.addEventListener('mousemove',move);
+  window.addEventListener('mouseup',end);
+}
 function closeSheet(){
   if(modalIsOpen()){ closeModal(); return; }      // a modal on top closes first — the form stays
   $('#scrim').classList.remove('show');$('#fracbar').classList.remove('show');
