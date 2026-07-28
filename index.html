@@ -470,7 +470,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v107</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v110</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1188,6 +1188,9 @@ const T={
   su_need_name:'Please enter your shop name',
   mod_off:'That section is switched off in Settings',
   kb_title:'Karigar Ledger',
+  stk_sort_name:'By name',
+  stk_sort_new:'Newest first', stk_sort_serial:'Serial order',
+  jw_ready_to_give:'ready to give', jw_with_him:'with him',
   bk_link_title:'Keep one backup file', bk_link_desc:'Choose a file once. Every backup then writes over that same file, so you always have exactly one, always the latest.',
   bk_link_btn:'Choose the backup file', bk_linked:'Backup file linked', bk_linked_to:'Backup file',
   bk_overwrite_note:'Backups overwrite this file, and it updates once a day on its own.',
@@ -2281,6 +2284,9 @@ const T={
   su_need_name:'दुकान का नाम भरें',
   mod_off:'यह हिस्सा सेटिंग्स में बंद है',
   kb_title:'कारीगर हिसाब',
+  stk_sort_name:'नाम से',
+  stk_sort_new:'नए पहले', stk_sort_serial:'सीरियल क्रम',
+  jw_ready_to_give:'देने को तैयार', jw_with_him:'उसके पास',
   bk_link_title:'एक ही बैकअप फ़ाइल रखें', bk_link_desc:'एक बार फ़ाइल चुन लें। फिर हर बैकअप उसी फ़ाइल पर लिखेगा — हमेशा एक ही, हमेशा नई।',
   bk_link_btn:'बैकअप फ़ाइल चुनें', bk_linked:'बैकअप फ़ाइल जुड़ गई', bk_linked_to:'बैकअप फ़ाइल',
   bk_overwrite_note:'बैकअप इसी फ़ाइल पर लिखते हैं, और यह दिन में एक बार अपने आप अपडेट होती है।',
@@ -3418,8 +3424,9 @@ function stockHome(tab){ if(!modOn('stock')){toast(t('mod_off'),'bad');return;}
 }
 
 /* ======================= FABRIC ======================= */
-let _fabQ='', _fabCat='', _fabHideEmpty=true;
+let _fabQ='', _fabCat='', _fabHideEmpty=true, _fabSort='new';
 function setFabQ(v){_fabQ=v;pageReset('fab');fabricBody(true);}
+function setFabSort(v){_fabSort=v;pageReset('fab');fabricBody();}
 async function loadStockThumbs(){
   for(const img of document.querySelectorAll('img.stk-thumb[data-pid]')){
     const url=await mURL(img.dataset.pid);
@@ -3446,7 +3453,11 @@ function fabricBody(keepFocus){
     return String(t.serial).toLowerCase().includes(q)
       || String(f.name||'').toLowerCase().includes(q)
       || String(f.party||t.party||'').toLowerCase().includes(q);});
-  list.sort((a,b)=>String(a.serial).localeCompare(String(b.serial),undefined,{numeric:true}));
+  /* Newest first by default: when he is taking stock he is looking at what he JUST
+     entered, and serial order buried that at the bottom of hundreds of rolls. */
+  if(_fabSort==='serial')list.sort((a,b)=>String(a.serial).localeCompare(String(b.serial),undefined,{numeric:true}));
+  else list.sort((a,b)=>String(b.created||'').localeCompare(String(a.created||''))
+    || String(b.serial).localeCompare(String(a.serial),undefined,{numeric:true}));
 
   el.innerHTML=`
     <div class="field" style="margin-bottom:10px">
@@ -3462,7 +3473,11 @@ function fabricBody(keepFocus){
       <button class="btn primary" style="flex:1" onclick="thaanEdit()">➕ ${t('stk_add_thaan')}</button>
       <button class="btn ghost" style="flex:0 0 auto;padding:0 12px" onclick="bulkFabOpen()">📋 ${t('stk_bulk')}</button>
       ${(DB.fabItems||[]).length?`<button class="btn ghost" style="flex:0 0 auto;padding:0 14px" onclick="manageFabItems()">⚙️</button>`:''}</div>
-    <div class="hint" style="margin-bottom:8px">${t('stk_n_thaans',{n:list.length})}</div>
+    <div class="kv" style="margin-bottom:8px">
+      <span class="hint">${t('stk_n_thaans',{n:list.length})}</span>
+      <span class="gtags">
+        <span class="gtag ${_fabSort==='new'?'on-tag':''}" style="cursor:pointer" onclick="setFabSort('new')">${t('stk_sort_new')}</span>
+        <span class="gtag ${_fabSort==='serial'?'on-tag':''}" style="cursor:pointer" onclick="setFabSort('serial')">${t('stk_sort_serial')}</span></span></div>
     ${pageSlice('fab',list).map(th=>{
       const f=FI(th.fabId)||{}; const bal=thaanBal(th);
       const low=bal<=3&&bal>0;
@@ -3879,13 +3894,17 @@ function issPick(el){
 }
 
 /* ======================= READYMADE (item + size) ======================= */
-let _rdyQ='';
+let _rdyQ='', _rdySort='new';
 function setRdyQ(v){_rdyQ=v;pageReset('rdy');readyBody(true);}
+function setRdySort(v){_rdySort=v;pageReset('rdy');readyBody();}
 function readyBody(keepFocus){
   const el=$('#stkBody'); if(!el)return;
   const q=(_rdyQ||'').trim().toLowerCase();
   let list=readyItems();
   if(q)list=list.filter(m=>String(m.name).toLowerCase().includes(q));
+  // newest entered first, for the same reason as the fabric list
+  if(_rdySort==='name')list.sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
+  else list.sort((a,b)=>String(b.created||b.id||'').localeCompare(String(a.created||a.id||'')));
   const sizes=DB.stkCfg.sizes||[];
   el.innerHTML=`
     <div class="field" style="margin-bottom:10px">
@@ -3894,6 +3913,10 @@ function readyBody(keepFocus){
     <div class="row" style="margin-bottom:10px;gap:6px">
       <button class="btn ghost" style="flex:1" onclick="sizeCfg()">📐 ${t('stk_sizes')}</button>
       <button class="btn ghost" style="flex:0 0 auto;padding:0 14px" onclick="manageSizes()">⚙️</button></div>
+    <div class="kv" style="margin-bottom:8px"><span class="hint">${list.length}</span>
+      <span class="gtags">
+        <span class="gtag ${_rdySort==='new'?'on-tag':''}" style="cursor:pointer" onclick="setRdySort('new')">${t('stk_sort_new')}</span>
+        <span class="gtag ${_rdySort==='name'?'on-tag':''}" style="cursor:pointer" onclick="setRdySort('name')">${t('stk_sort_name')}</span></span></div>
     ${pageSlice('rdy',list).map(m=>{
       const tot=readyTotal(m);
       const chips=sizes.filter(sz=>readyQty(m,sz)>0)
@@ -7797,7 +7820,8 @@ async function openDetail(id,focusGid){
         ? `<b style="color:var(--ok)">${t('qc_done')}</b> <button class="btn sm ghost" style="margin-left:8px" onclick="setItemQC('${o.id}','${gid}',false)">✕</button>`
         : `<button class="btn sm primary" onclick="setItemQC('${o.id}','${gid}',true)">${t('qc_mark')}</button>`}</span></div>`:'';
     const kid=(o.assign&&o.assign[gid])||'';
-    const kopts=`<option value="">${t('karigar_none')}</option>`+(DB.karigars||[]).map(k=>`<option value="${k.id}" ${k.id===kid?'selected':''}>${esc(k.name)}</option>`).join('');
+    const kopts=`<option value="">${t('karigar_none')}</option>`+(DB.karigars||[]).map(k=>`<option value="${k.id}" ${k.id===kid?'selected':''}>${esc(k.name)}</option>`).join('')
+      +`<option value="__new__">➕ ${t('add_karigar')}</option>`;
     const rdate=karRecvDate(o,gid), ramt=karRateFor(o,gid);
     const ksel=`<div class="row" style="margin-top:8px;align-items:center;gap:8px"><span class="hint">👷 ${t('karigar')}</span><select onchange="setItemKarigar('${o.id}','${gid}',this.value)" style="${selStyle}">${kopts}</select></div>`
       + (kid?`<div class="row" style="margin-top:8px;align-items:center;gap:8px">
@@ -11083,7 +11107,9 @@ function setItemKarAmt(oid,gid,v){
   if(String(v).trim()==='')delete o.karAmt[gid]; else o.karAmt[gid]=+v||0;
   save();
 }
-function setItemKarigar(oid,gid,kid){const o=DB.orders.find(x=>x.id===oid);if(!o)return;o.assign=o.assign||{};
+function setItemKarigar(oid,gid,kid){const o=DB.orders.find(x=>x.id===oid);if(!o)return;
+  if(kid==='__new__'){ _karAfterAdd={oid,gid}; karigarEdit(); return; }
+  o.assign=o.assign||{};
   if(kid)o.assign[gid]=kid; else delete o.assign[gid]; touchOrder(o.id);
   o.log=o.log||[];const g=G(gid);o.log.push({id:uid(),ts:new Date().toISOString(),text:(g?g.n+' → ':'')+(kid?('👷 '+karigarName(kid)):t('karigar_none')),voiceId:null});
   if(kid){ o.itemStatus=o.itemStatus||{}; const cur=itemStatusOf(o,gid);
@@ -11091,7 +11117,9 @@ function setItemKarigar(oid,gid,kid){const o=DB.orders.find(x=>x.id===oid);if(!o
       o.log.push({id:uid(),ts:new Date().toISOString(),text:(g?g.n+': ':'')+sLabel('stitching'),voiceId:null});
       const pill=document.getElementById('pill_'+cssId(gid)); if(pill){pill.className='pill st-stitching';pill.textContent=sLabel('stitching');}
       const sel=document.getElementById('stsel_'+cssId(gid)); if(sel)sel.value='stitching'; } }
-  save();if(document.getElementById('timeline'))renderTimeline(o);toast(t('t_saved'),'ok');}
+  save();
+  if(document.getElementById('timeline'))renderTimeline(o); else openDetail(oid);
+  toast(t('t_saved'),'ok');}
 function sendKarigarWA(oid,kid){const o=DB.orders.find(x=>x.id===oid);if(!o)return;
   const gids=(o.items||[]).filter(g=>(o.assign&&o.assign[g])===kid);
   const k=(DB.karigars||[]).find(x=>x.id===kid);
@@ -11490,7 +11518,7 @@ function karigarIssue(kid,mode,keepFocus){
       <span class="hint" style="margin-left:8px">${t('ki_selected')}: <b id="kiCount">${_kiSel.size}</b></span></span></div>
     ${rows}
     <div class="save-dock">
-      <button class="btn ghost" onclick="_kiSel.clear();_kiTypeFilter=null;karigarLedger('${kid}')">${t('back')}</button>
+      <button class="btn ghost" onclick="_kiSel.clear();_kiTypeFilter=null;_kiQ='';karMaster('${kid}')">${t('back')}</button>
       <button class="btn primary" style="flex:2" onclick="kiApply('${kid}','${md}')">
         ${give?'📤 '+t('ki_do_give'):'📥 '+t('ki_do_take')}</button></div>
     <div class="fab-pad"></div>`;
@@ -11524,7 +11552,7 @@ function kiApply(kid,mode){
   _kiSel.clear(); _kiTypeFilter=null; save();
   toast(mode==='give'?t('ki_gave',{n}):t('ki_took',{n}),'ok');
   if(mode==='give'&&givenEntries.length)kiGiveNotify(kid,givenEntries,d);
-  karigarLedger(kid);
+  karMaster(kid);
 }
 /* WhatsApp the master everything about what he was just given — order, customer, delivery date,
    full measurements per garment, design notes, and item photos in one go where the browser allows it */
@@ -11583,6 +11611,34 @@ function karStatementSend(kid){
    place where all job work is managed — doing it from inside each order is the hard
    way. This is that place: every master, what he is holding, what is waiting to go
    out, and both actions one tap away. */
+/* Tapping a master opens HIS WORK, not his money — which is what he expects:
+   pick the master, pick the pieces, give them; later pick him again, tick what he
+   brought back, date, done. The hisab is one tap further in, where it belongs. */
+function karMaster(kid){
+  const k=(DB.karigars||[]).find(x=>x.id===kid); if(!k)return;
+  const out=karOutCount(kid), free=kiItemsFree(kid).length, bal=karBalance(kid);
+  const spec=(k.specialties||[]).map(id=>{const g=G(id);return g?(g.ico||'')+' '+g.n:'';}).filter(Boolean);
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:2px"><h2 style="margin:0">👷 ${esc(k.name)}</h2>
+      ${k.phone?`<button class="btn sm ghost" onclick="callNum('${esc(k.phone)}')">📞</button>`:''}</div>
+    <p class="hint">${esc(k.phone||'')}</p>
+    ${spec.length?`<div class="gtags" style="margin-top:8px">${spec.map(x=>`<span class="gtag">${esc(x)}</span>`).join('')}</div>`:''}
+
+    <button class="btn primary block" style="margin-top:14px;padding:18px" onclick="karPickGo('${kid}','give')">
+      📤 ${t('ki_give')}${free?` · ${free} ${t('jw_ready_to_give')}`:''}</button>
+    <button class="btn ${out?'primary':'ghost'} block" style="margin-top:10px;padding:18px" onclick="karPickGo('${kid}','take')">
+      📥 ${t('ki_take')}${out?` · ${out} ${t('jw_with_him')}`:''}</button>
+
+    <div class="card pos-total" style="margin-top:16px;padding:12px 14px">
+      <div class="il" style="border-bottom:0"><span>${t('kb_balance')}</span><b style="font-size:17px">${balArrow(-bal)}</b></div></div>
+    <div class="row" style="gap:8px;margin-top:10px">
+      <button class="btn ghost" style="flex:1" onclick="karPayEntry('${kid}')">💰 ${t('kb_pay')}</button>
+      <button class="btn ghost" style="flex:1" onclick="karigarLedger('${kid}')">📊 ${t('kb_title')}</button></div>
+    <button class="btn ghost block" style="margin-top:8px" onclick="karigarEdit('${kid}')">✏️ ${t('edit')}</button>
+    <div class="modal-actions"><button class="btn ghost block" onclick="jobWork()">${t('back')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
 function jobWork(){
   const ks=DB.karigars||[];
   const b=abBuckets();
@@ -11592,7 +11648,7 @@ function jobWork(){
     const spec=(k.specialties||[]).map(id=>{const g=G(id);return g?(g.ico||''):'';}).filter(Boolean).join(' ');
     return `<div class="card" style="padding:12px 14px;margin-bottom:8px">
       <div class="kv" style="align-items:flex-start">
-        <div style="min-width:0;flex:1" onclick="karigarLedger('${k.id}')">
+        <div style="min-width:0;flex:1" onclick="karMaster('${k.id}')">
           <b style="font-size:16px">👷 ${esc(k.name)}</b>${spec?` <span class="hint">${spec}</span>`:''}
           <div class="hint" style="margin-top:2px">${out?t('jw_holding',{n:out}):t('kb_nothing_out')}</div>
         </div>
@@ -11600,7 +11656,7 @@ function jobWork(){
       <div class="row" style="gap:6px;margin-top:8px">
         <button class="btn sm primary" style="flex:1" onclick="karPickGo('${k.id}','give')">📤 ${t('ki_give')}${free?' ('+free+')':''}</button>
         <button class="btn sm ${out?'primary':'ghost'}" style="flex:1" onclick="karPickGo('${k.id}','take')">📥 ${t('ki_take')}${out?' ('+out+')':''}</button>
-        <button class="btn sm ghost" onclick="karigarLedger('${k.id}')">📊</button></div></div>`;
+        <button class="btn sm ghost" onclick="karMaster('${k.id}')">›</button></div></div>`;
   }).join('') || `<p class="hint" style="padding:20px 0;text-align:center">${t('no_karigars')}</p>`;
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">🧵 ${t('jw_title')}</h2>
@@ -11610,8 +11666,10 @@ function jobWork(){
     ${b.stuck.length?`<div class="card fu-open" style="padding:12px 14px;margin-bottom:12px" onclick="actionList('stuck')">
       <div class="kv"><span>⏳ ${t('ab_stuck',{n:AB_STUCK})}</span><b>${b.stuck.length}</b></div></div>`:''}
     ${rows}
-    ${ks.length?`<button class="btn ghost block" style="margin-top:8px" onclick="karigarReport()">📊 ${t('kb_report')}</button>`:''}
-    <button class="btn ghost block" style="margin-top:8px" onclick="closeSheet();karigarMaster()">⚙️ ${t('karigar_master')}</button>
+    <div class="row" style="gap:8px;margin-top:10px">
+      <button class="btn primary" style="flex:2" onclick="karigarEdit()">➕ ${t('add_karigar')}</button>
+      ${ks.length?`<button class="btn ghost" style="flex:1" onclick="karigarReport()">📊</button>`:''}
+      <button class="btn ghost" onclick="closeSheet();karigarMaster()">⚙️</button></div>
     <div class="modal-actions"><button class="btn ghost block" onclick="closeSheet()">${t('close')}</button></div>
     <div class="fab-pad"></div>`;
   showSheet();
@@ -11652,8 +11710,7 @@ function karigarBook(){
 /* one master, or straight through when there is only one */
 function karPickMaster(mode){
   const ks=DB.karigars||[]; if(!ks.length)return;
-  const go=kid=>{_kiSel.clear();_kiTypeFilter=null;karigarIssue(kid,mode);};
-  if(ks.length===1){go(ks[0].id);return;}
+  const go=kid=>{_kiSel.clear();_kiTypeFilter=null;_kiQ='';karigarIssue(kid,mode);};
   modal((mode==='give'?'📤 ':'📥 ')+t('kb_pick_master'),
     ks.map(k=>{const n=mode==='give'?kiItemsFree(k.id).length:karOutCount(k.id);
       return `<div class="cust-result fu-open" onclick="karPickGo('${k.id}','${mode}')">
@@ -11878,7 +11935,7 @@ function karigarMaster(){
     <div class="modal-actions"><button class="btn ghost block" onclick="closeSheet()">${t('close')}</button></div>`;
   showSheet();
 }
-let _krSpec=new Set();
+let _krSpec=new Set(), _karAfterAdd=null;
 function karigarEdit(id){const ex=id?(DB.karigars||[]).find(x=>x.id===id):null;
   _krSpec=new Set((ex&&ex.specialties)||[]);
   const rates=(ex&&ex.rates)||{};
@@ -11906,7 +11963,9 @@ function karigarSave(id){const name=($('#kName').value||'').trim();if(!name){toa
   const specialties=[..._krSpec];
   DB.karigars=DB.karigars||[];
   if(id){const k=DB.karigars.find(x=>x.id===id);if(k){k.name=name;k.phone=phone;k.rates=rates;k.specialties=specialties;}}
-  else{DB.karigars.push({id:uid(),name,phone,rates,specialties});}
+  else{const nk={id:uid(),name,phone,rates,specialties}; DB.karigars.push(nk);
+    if(_karAfterAdd){ const c=_karAfterAdd; _karAfterAdd=null; save();
+      setItemKarigar(c.oid,c.gid,nk.id); return; } }
   save();karigarMaster();toast(t('t_saved'),'ok');}
 function karigarDelete(id){confirmModal(t('confirm_del'),t('confirm_del_msg'),()=>{DB.karigars=(DB.karigars||[]).filter(x=>x.id!==id);
   DB.orders.forEach(o=>{if(o.assign)for(const g in o.assign)if(o.assign[g]===id)delete o.assign[g];});
