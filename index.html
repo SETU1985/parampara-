@@ -238,6 +238,15 @@
     overflow:hidden; cursor:pointer}
   .cat-card:active{opacity:.75}
   .cat-img{width:100%; aspect-ratio:3/4; object-fit:cover; display:block; background:var(--bg2)}
+  .stage-row{display:flex; align-items:center; gap:2px; margin-top:10px; overflow-x:auto;
+    -webkit-overflow-scrolling:touch; padding-bottom:2px; scrollbar-width:none}
+  .stage-row::-webkit-scrollbar{display:none}
+  .stage{flex:0 0 auto; padding:7px 11px; border-radius:999px; font-size:12.5px; font-weight:800;
+    background:var(--bg2); color:var(--txt2); border:1px solid var(--line); cursor:pointer; white-space:nowrap}
+  .stage.done{color:var(--ok); border-color:transparent; background:transparent; padding:7px 6px}
+  .stage.now{background:var(--saffron); color:#1a1206; border-color:var(--saffron)}
+  .stage-arw{flex:0 0 auto; color:var(--line2); font-size:14px}
+  .od-x{display:none} .od-x.on{display:block}
   .ic-btn{flex:0 0 auto; min-width:52px; padding:9px 10px; font-size:15px}
   .ic-btn.has{border-color:var(--saffron); color:var(--saffron2)}
   .cat-meta{padding:8px 10px 10px; font-size:13px}
@@ -492,7 +501,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v129</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v134</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1207,6 +1216,10 @@ const T={
   su_need_name:'Please enter your shop name',
   mod_off:'That section is switched off in Settings',
   kb_title:'Karigar Ledger',
+  wa_no_number:'No mobile number saved — add it first, then the message goes straight to him.',
+  meas:'measurements',
+  od_more:'Payments · Cloth · Log · Voice',
+  cust_new_hint:'New customer — enter the mobile number below. He is saved together with the order.',
   ord_more:'Delivery · Body type · Salesman · Notes · Photo',
   ph_missing_title:'No mobile number', ph_missing_msg:'This customer has no mobile number. Names repeat, so he will be hard to find next time, and no status or delivery message can reach him. Save the order without a mobile number?',
   ph_add_now:'Add number', ph_save_anyway:'Save without number',
@@ -2330,6 +2343,10 @@ const T={
   su_need_name:'दुकान का नाम भरें',
   mod_off:'यह हिस्सा सेटिंग्स में बंद है',
   kb_title:'कारीगर हिसाब',
+  wa_no_number:'मोबाइल नंबर सेव नहीं है — पहले नंबर जोड़ें, फिर मैसेज सीधे उसी पर जाएगा।',
+  meas:'नाप',
+  od_more:'पेमेंट · कपड़ा · लॉग · वॉइस',
+  cust_new_hint:'नया ग्राहक — नीचे मोबाइल नंबर डालें। ऑर्डर सेव होते ही वह भी सेव हो जाएगा।',
   ord_more:'डिलीवरी · बॉडी टाइप · सेल्समैन · नोट · फोटो',
   ph_missing_title:'मोबाइल नंबर नहीं है', ph_missing_msg:'इस ग्राहक का मोबाइल नंबर नहीं है। नाम एक जैसे होते हैं, इसलिए अगली बार ढूँढ़ना मुश्किल होगा, और कोई स्टेटस या डिलीवरी मैसेज भी नहीं पहुँचेगा। बिना मोबाइल नंबर के ऑर्डर सेव करें?',
   ph_add_now:'नंबर जोड़ें', ph_save_anyway:'बिना नंबर सेव करें',
@@ -5926,7 +5943,7 @@ async function sendQRToCustomer(amount,note,phone,who){
   // fallback: open WhatsApp chat to the number with the message; image saved for manual attach
   if(blob){const a2=document.createElement('a');a2.href=URL.createObjectURL(blob);a2.download='PaymentQR.png';a2.click();}
   const p=ph10(phone||'');
-  waSend(p||'',txt);
+  waSend(p||'',txt,!p);
 }
 async function qrShare(){
   const amt=+_qrAmt||0;
@@ -6991,7 +7008,7 @@ function deliveriesText(){
     s+='\n';});
   return s;
 }
-function waDeliveries(){waSend('',deliveriesText());}
+function waDeliveries(){waSend('',deliveriesText(),true);}
 function printDeliveries(){
   const list=deliveryList();
   const rows=list.map(o=>{const rc=readyCount(o),tot=(o.items||[]).length;
@@ -7480,7 +7497,7 @@ function delMember(mid){
 /* ONE item open at a time. With four garments on one person the old form was four
    full measurement sheets stacked — endless scrolling, and things get missed.
    A filled item now folds into a single summary line. */
-let _openItem=null;
+let _openItem=null, _odX=false, _odItem=null;
 function measFilledCount(f,key){
   const g=G(key); if(!g)return {done:0,total:0,len:''};
   const cols=vcols(g), vals=f.m[key]||{};
@@ -7996,7 +8013,7 @@ function orderNewCustomer(){
   captureForm();
   const nm=($('#f_cname')&&$('#f_cname').value.trim())||'';
   form.customerId=null; form.customerName=nm;
-  const box=$('#custResults'); if(box)box.innerHTML='';
+  const box=$('#custResults'); if(box)box.innerHTML=`<p class="hint" style="padding:6px 0">${t('cust_new_hint')}</p>`;
   const ph=$('#f_cphone'); if(ph)ph.focus();}
 function pickCustomer(id){captureForm();const c=custById(id);form.customerId=id;form.customerName=c.name;form.phone=c.phone;
   const before=JSON.stringify(form.m||{});
@@ -8360,7 +8377,9 @@ async function renderFormPhotos(){const el=$('#f_photos');if(!el)return;el.inner
 function viewPhoto(url){if(!url)return;modal('',`<img src="${url}" style="width:100%;border-radius:12px">`,[{label:t('close'),cls:'ghost',fn:closeSheet}]);}
 
 /* ====================== ORDER DETAIL ====================== */
+let _curDetailId=null;
 async function openDetail(id,focusGid){
+  _curDetailId=id;
   detailId=id;const o=DB.orders.find(x=>x.id===id);if(!o){go('orders');return;}
   if(!o.log)o.log=[]; if(!o.status)o.status='new'; if(!o.voiceNotes)o.voiceNotes=[]; migrateItemStatus(o);
   go('detail');$('#searchWrap').style.display='none';
@@ -8375,7 +8394,12 @@ async function openDetail(id,focusGid){
     const dn=(o.design&&o.design[gid])?`<div class="hint" style="margin-top:6px">✎ ${esc(o.design[gid])}</div>`:'';
     const ist=itemStatusOf(o,gid);
     const selStyle='flex:1;background:var(--bg2);border:1px solid var(--line);color:var(--txt);padding:9px 10px;border-radius:var(--r2);font-size:15px';
-    const sStat=`<div class="row" style="margin-top:8px;align-items:center;gap:8px"><span class="hint">📍 ${t('status')}</span><select id="stsel_${cssId(gid)}" onchange="setItemStatus('${o.id}','${gid}',this.value)" style="${selStyle}">${STATUS.map(s=>`<option value="${s}" ${s===ist?'selected':''}>${sLabel(s)}</option>`).join('')}</select></div>`;
+    const _si=STATUS.indexOf(ist);
+    const sStat=`<div class="stage-row" id="stg_${cssId(gid)}">${STATUS.map((s,i)=>{
+      const done=i<_si, now=i===_si;
+      return `<span class="stage ${now?'now':(done?'done':'')}" onclick="setItemStatus('${o.id}','${gid}','${s}')">${done?'✓ ':''}${sLabel(s)}</span>`
+        + (i<STATUS.length-1?`<span class="stage-arw">›</span>`:'');
+    }).join('')}</div>`;
     const legs=((o.jobs&&o.jobs[gid])||[]);
     const legLine=legs.length?`<div class="hint" style="margin-top:4px">🧵 ${legs.map(l=>esc(karigarName(l.kid))+' ✓').join(' → ')}</div>`:'';
     const qcOn=!!((o.qc||{})[gid]);
@@ -8398,8 +8422,12 @@ async function openDetail(id,focusGid){
           <span class="hint">💰 ${t('kb_his_rate')}</span>
           <input type="number" inputmode="numeric" value="${esc(ramt||'')}" placeholder="0"
             onchange="setItemKarAmt('${o.id}','${gid}',this.value)" style="width:110px;text-align:right;margin:0"></div>`:''}`:'');
-    return `<div class="mcard"><div class="mh"><b>${g.ico} ${esc(itemTitle(o,gid))}${_who?` <span class="who-tag">${esc(_who)}</span>`:''}</b><span class="pill st-${ist}" id="pill_${cssId(gid)}">${sLabel(ist)}</span></div><div class="mb">
-      <div class="gtags">${cells||'<span class="hint">—</span>'}</div>${dn}
+    const _open=(_odItem===gid);
+    const _nm=cols.filter(col=>v[col.k]).length;
+    return `<div class="mcard"><div class="mh mh-tap" onclick="odItemToggle('${gid}')">
+        <b>${g.ico} ${esc(itemTitle(o,gid))}${_who?` <span class="who-tag">${esc(_who)}</span>`:''}</b>
+        <span class="hint">${v.L?('L '+esc(v.L)+' · '):''}${_nm} ${t('meas')} ${_open?'▴':'▾'}</span></div><div class="mb">
+      ${_open?`<div class="gtags">${cells||'<span class="hint">—</span>'}</div>${dn}`:''}
       ${sStat}
       ${legLine}
       ${sQc}
@@ -8422,6 +8450,11 @@ async function openDetail(id,focusGid){
       <div class="kv"><span>${t('baaki')}</span><b style="color:var(--saffron2);font-size:16px">${money(baaki)}</b></div>
     </div>
 
+    ${(()=>{const np=(o.payments||[]).length, nl=(o.log||[]).length, nv=(o.voiceNotes||[]).length;
+      const cloth=Object.keys(o.cost||{}).some(k=>((o.cost[k]||{}).cuts||[]).length);
+      const marks=[np?('💰 '+np):'', cloth?'🧵':'', nl?('📝 '+nl):'', nv?('🎙️ '+nv):''].filter(Boolean).join(' · ');
+      return `<button class="btn ghost block" style="margin:10px 0" onclick="odXToggle()">⚙️ ${t('od_more')}${marks?` <span class="hint">${marks}</span>`:''} ${_odX?'▴':'▾'}</button>`;})()}
+    <div class="od-x${_odX?' on':''}">
     <div class="card simple-hide">
       <div class="section-h" style="margin-top:0;display:flex;justify-content:space-between;align-items:center">💰 ${t('payments')}
         <button class="btn sm primary" style="padding:5px 12px" onclick="openPayment('${o.id}')">+ ${t('add_payment')}</button></div>
@@ -8455,6 +8488,7 @@ async function openDetail(id,focusGid){
 
     <div class="section-h">${t('voice_notes')}</div>${voiceSection('dvn')}
 
+    </div>
     ${o.notes?`<div class="card"><div class="section-h" style="margin-top:0">${t('order_notes')}</div>${esc(o.notes)}</div>`:''}
     <div class="section-h" style="display:flex;justify-content:space-between;align-items:center">${t('items')} ${(focusGid&&o.items.includes(focusGid))?`<button class="btn sm ghost" style="padding:4px 10px" onclick="openDetail('${o.id}')">↩ ${t('show_all')}</button>`:''}</div>${measHTML}
     <div id="d_photos" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"></div>
@@ -11486,16 +11520,37 @@ function setItemQC(oid,gid,on){
   o.log=o.log||[]; const g=G(gid);
   o.log.push({id:uid(),ts:new Date().toISOString(),
     text:(g?g.n+': ':'')+(on?t('qc_done'):t('qc_undone')),voiceId:null});
-  save(o.id); openDetail(oid);
+  save(o.id); refreshDetail(oid);
+}
+/* one item's measurements open at a time — tap the header to read them */
+function odItemToggle(gid){ _odItem=(_odItem===gid)?null:gid; if(_curDetailId)openDetail(_curDetailId); }
+function odXToggle(){ _odX=!_odX; const el=document.querySelector('.od-x'); if(el)el.classList.toggle('on',_odX);
+  const b=el&&el.previousElementSibling; if(b)b.innerHTML=b.innerHTML.replace(_odX?'▾':'▴', _odX?'▴':'▾'); }
+/* move a piece FORWARD to a stage, never backwards, and write it into the order log so
+   the timeline reads the same as the stage strip */
+function advanceStatus(o,gid,to){
+  o.itemStatus=o.itemStatus||{};
+  const cur=itemStatusOf(o,gid);
+  if(STATUS.indexOf(cur)>=STATUS.indexOf(to))return false;   // already at or past it
+  o.itemStatus[gid]=to;
+  const g=G(gid); o.log=o.log||[];
+  o.log.push({id:uid(),ts:new Date().toISOString(),text:(g?g.n+': ':'')+sLabel(to),voiceId:null});
+  return true;
+}
+/* Redraw the WHOLE order screen after any change, keeping the scroll where it was.
+   Patching one part of the page and leaving the rest describing an older state is what
+   made controls behave as if they had stopped working. Correctness over cleverness. */
+function refreshDetail(oid){
+  const sh=$('#sheet'); const y=sh?sh.scrollTop:0;
+  openDetail(oid);
+  setTimeout(()=>{ const s2=$('#sheet'); if(s2)s2.scrollTop=y; },40);
 }
 function setItemStatus(oid,gid,s){const o=DB.orders.find(x=>x.id===oid);if(!o)return;  o.itemStatus=o.itemStatus||{}; if(o.itemStatus[gid]===s)return; o.itemStatus[gid]=s;
   const _wasCut = (s==='cut') && !((o.cost&&o.cost[gid]&&(o.cost[gid].cuts||[]).length));
   const g=G(gid); o.log=o.log||[];
   o.log.push({id:uid(),ts:new Date().toISOString(),text:(g?g.n+': ':'')+sLabel(s),voiceId:null});
   save(o.id);
-  const pill=document.getElementById('pill_'+cssId(gid)); if(pill){pill.className='pill st-'+s; pill.textContent=sLabel(s);}
-  const sel=document.getElementById('stsel_'+cssId(gid)); if(sel)sel.value=s;
-  if(document.getElementById('timeline'))renderTimeline(o);
+  refreshDetail(oid);
   if(_wasCut && (DB.thaans||[]).length) setTimeout(()=>cutPrompt(oid,gid),250);
   toast((g?g.n+' — ':'')+sLabel(s),'ok');}
 
@@ -11589,7 +11644,22 @@ function delOrder(id){confirmModal(t('confirm_del'),t('confirm_del_msg'),async()
   for(const k in(o.itemVoice||{}))for(const v of o.itemVoice[k])if(v.voiceId)await mDel(v.voiceId);
   revertStockByRef(id);                       // put cut fabric / billed stock back
   DB.orders=DB.orders.filter(x=>x.id!==id);touchOrder(id);save();closeSheet();go('orders');toast(t('t_deleted'));});}
-function waLink(phone,text){const p=(phone||'').replace(/\D/g,'');const full=p.length===10?'91'+p:p;return `https://wa.me/${full}?text=${encodeURIComponent(text)}`;}
+/* His customers' numbers live in the APP, not in the phone's contacts, so the wa.me link
+   has to carry the number itself. Indian numbers arrive in every shape — 9830881939,
+   09830881939, +91 98308-81939, 919830881939 — and anything the old rule did not
+   recognise was passed through as-is, which opens WhatsApp with NO recipient. */
+function waNum(phone){
+  let p=String(phone||'').replace(/\D/g,'');
+  if(!p)return '';
+  if(p.length>10 && p.slice(0,2)==='91' && p.length>=12) p=p.slice(2);   // 91 + number
+  if(p.length===11 && p[0]==='0') p=p.slice(1);                          // leading 0
+  if(p.length>10) p=p.slice(-10);                                        // any other prefix
+  return p.length===10 ? ('91'+p) : '';
+}
+function waLink(phone,text){
+  const full=waNum(phone);
+  return `https://wa.me/${full}?text=${encodeURIComponent(text)}`;
+}
 /* Open WhatsApp DIRECTLY. window.open(...,'_blank') is treated as a pop-up by most
    in-app browsers, which is what raises the "Open external link — Cancel/Open" box.
    A real <a> click inside the tap gesture counts as normal navigation instead. */
@@ -11605,7 +11675,11 @@ function callNum(phone){
   }catch(e){}
   try{ location.href=url; }catch(e){}
 }
-function waSend(phone,text){
+function waSend(phone,text,allowNoNumber){
+  // opening WhatsApp with no recipient looks like it worked and reaches nobody — the
+  // exact failure he described. Say it plainly instead. (Lists meant for a group he
+  // picks himself pass allowNoNumber.)
+  if(!allowNoNumber && !waNum(phone)){ toast(t('wa_no_number'),'bad'); return; }
   const url=waLink(phone,text);
   try{
     const a=document.createElement('a');
@@ -11682,7 +11756,8 @@ function setItemRecv(oid,gid,d){
   const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
   o.recv=o.recv||{};
   if(d)o.recv[gid]=d; else delete o.recv[gid]; touchOrder(o.id);
-  save(); openDetail(oid);
+  if(d)advanceStatus(o,gid,'checking');     // came back from the master — next is the check
+  save(o.id); refreshDetail(oid);
   if(d)toast(t('kb_recv_ok'),'ok');
 }
 function setItemKarAmt(oid,gid,v){
@@ -11696,14 +11771,9 @@ function setItemKarigar(oid,gid,kid){const o=DB.orders.find(x=>x.id===oid);if(!o
   o.assign=o.assign||{};
   if(kid)o.assign[gid]=kid; else delete o.assign[gid]; touchOrder(o.id);
   o.log=o.log||[];const g=G(gid);o.log.push({id:uid(),ts:new Date().toISOString(),text:(g?g.n+' → ':'')+(kid?('👷 '+karigarName(kid)):t('karigar_none')),voiceId:null});
-  if(kid){ o.itemStatus=o.itemStatus||{}; const cur=itemStatusOf(o,gid);
-    if(STATUS.indexOf(cur)<STATUS.indexOf('stitching')){ o.itemStatus[gid]='stitching';
-      o.log.push({id:uid(),ts:new Date().toISOString(),text:(g?g.n+': ':'')+sLabel('stitching'),voiceId:null});
-      const pill=document.getElementById('pill_'+cssId(gid)); if(pill){pill.className='pill st-stitching';pill.textContent=sLabel('stitching');}
-      const sel=document.getElementById('stsel_'+cssId(gid)); if(sel)sel.value='stitching'; } }
-  save();
-  if(document.getElementById('timeline'))renderTimeline(o); else openDetail(oid);
-  toast(t('t_saved'),'ok');}
+  // same helper as the bulk path, so the two can never drift apart
+  if(kid) advanceStatus(o,gid,'stitching');
+  save(o.id); refreshDetail(oid); toast(t('t_saved'),'ok');}
 function sendKarigarWA(oid,kid){const o=DB.orders.find(x=>x.id===oid);if(!o)return;
   const gids=(o.items||[]).filter(g=>(o.assign&&o.assign[g])===kid);
   const k=(DB.karigars||[]).find(x=>x.id===kid);
@@ -11776,7 +11846,7 @@ async function itemWA(oid,gid){const o=DB.orders.find(x=>x.id===oid);if(!o)retur
     if(navigator.canShare&&files.length&&navigator.canShare({files})){ await navigator.share({files,title:'Order #'+o.orderNo,text}); return; }
     if(navigator.canShare&&files[0]&&navigator.canShare({files:[files[0]]})){ await navigator.share({files:[files[0]],title:'Order #'+o.orderNo,text}); return; }
   }catch(e){ if(e&&e.name==='AbortError')return; }
-  waSend('',text);
+  waSend('',text,true);
 }
 function buildPrintHTML(o,itemId){
   const items=itemId?[itemId]:sortItems(o.items);
@@ -12041,8 +12111,8 @@ function kiRow(x,kid,inGroup){
     <input type="checkbox" ${on?'checked':''} onchange="kiToggle('${esc(key)}')" style="width:22px;height:22px;flex:0 0 auto">
     <div style="flex:1;min-width:0">
       <b>${x.g.ico} ${esc(x.g.n)}</b>${kiPrevTag(x)}
-      <div class="hint">#${esc(x.o.orderNo||'—')} · ${esc(x.o.customerName||'—')}</div>
-      <div class="hint" style="${col}">📅 ${fmtDate(x.o.deliveryDate)}${late?' · '+Math.abs(dl)+'d '+t('late'):''}</div>
+      <div class="hint">#${esc(memberOno(x.o,memberOf(x.gid))||x.o.orderNo||'—')}
+        · <span style="${col}">${fmtDate(x.o.deliveryDate)}${late?' · '+Math.abs(dl)+'d '+t('late'):''}</span></div>
     </div></label>`;
 }
 function kiToggle(key){ if(_kiSel.has(key))_kiSel.delete(key); else _kiSel.add(key);
@@ -12129,9 +12199,14 @@ function kiApply(kid,mode){
       }
       o.assign=o.assign||{}; o.assign[gid]=kid; touchOrder(o.id);
       o.issued=o.issued||{}; o.issued[gid]=d;
+      // the piece is now WITH a master, so the order page must say so — the same rule the
+      // one-by-one assign already used. Only ever move FORWARD; never drag a piece back.
+      advanceStatus(o,gid,'stitching');
       givenEntries.push({oid,gid});
     }else{
       o.recv=o.recv||{}; o.recv[gid]=d; touchOrder(o.id);
+      // it has come back from the master — next step is the quality check
+      advanceStatus(o,gid,'checking');
     }
     n++;
   });
@@ -12237,8 +12312,7 @@ function jobWork(){
         <div style="min-width:0;flex:1" onclick="karMaster('${k.id}')">
           <b style="font-size:16px">👷 ${esc(k.name)}</b>${spec?` <span class="hint">${spec}</span>`:''}
           <div class="hint" style="margin-top:2px">${out?t('jw_holding',{n:out}):t('kb_nothing_out')}</div>
-        </div>
-        <div style="text-align:right;flex:0 0 auto">${balArrow(-bal)}</div></div>
+        </div></div>
       <div class="row" style="gap:6px;margin-top:8px">
         <button class="btn sm primary" style="flex:1" onclick="karPickGo('${k.id}','give')">📤 ${t('ki_give')}${free?' ('+free+')':''}</button>
         <button class="btn sm ${out?'primary':'ghost'}" style="flex:1" onclick="karPickGo('${k.id}','take')">📥 ${t('ki_take')}${out?' ('+out+')':''}</button>
