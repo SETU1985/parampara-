@@ -230,6 +230,8 @@
     border:1px solid var(--line2); border-radius:10px; background:var(--card); color:var(--txt)}
   .ql-in.filled{border-color:var(--saffron); color:var(--saffron2)}
   .ql-open{width:78px; flex:0 0 auto; text-align:center; font-size:15px; font-weight:800; color:var(--saffron2)}
+  .ql-add{flex:0 0 auto; width:30px; text-align:center; color:var(--txt2); font-size:20px; cursor:pointer}
+  .ql-add:active{color:var(--saffron2)}
   .ql-go{flex:0 0 auto; width:26px; text-align:center; color:var(--saffron2); font-size:18px; cursor:pointer}
   .cat-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
   .cat-card{background:var(--card); border:1px solid var(--line); border-radius:var(--r2);
@@ -490,7 +492,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v127</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v129</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -690,8 +692,6 @@ const T={
   pur_billed:'Billed items',
   pur_total_qty:'Total qty',
   pur_subtotal:'Subtotal',
-  draft_discard:'Discard',
-  draft_discarded:'Draft cleared',
   draft_saving:'Saving…',
   draft_never:'Auto-save on — nothing will be lost',
   draft_found_title:'Unfinished order found',
@@ -1106,7 +1106,6 @@ const T={
   stk_r_waste:'Wastage',
   stk_not_enough:'Only {n} m left',
   stk_issued:'{n} m issued',
-  stk_left:'left',
   stk_rdy_search:'Search readymade item...',
   stk_add_ready:'Add readymade item',
   stk_sizes:'Size list',
@@ -1816,8 +1815,6 @@ const T={
   pur_billed:'बिल के आइटम',
   pur_total_qty:'कुल मात्रा',
   pur_subtotal:'सबटोटल',
-  draft_discard:'हटाएँ',
-  draft_discarded:'ड्राफ़्ट हटा दिया',
   draft_saving:'सहेजा जा रहा है…',
   draft_never:'ऑटो-सेव चालू — कुछ नहीं खोएगा',
   draft_found_title:'अधूरा ऑर्डर मिला',
@@ -2232,7 +2229,6 @@ const T={
   stk_r_waste:'बर्बाद',
   stk_not_enough:'सिर्फ़ {n} मी बचा है',
   stk_issued:'{n} मी निकल गया',
-  stk_left:'बचा',
   stk_rdy_search:'रेडीमेड आइटम खोजें…',
   stk_add_ready:'रेडीमेड आइटम जोड़ें',
   stk_sizes:'साइज़ सूची',
@@ -6653,7 +6649,7 @@ function catRemoveFromFolder(fid,pid){
 /* ---------- picking photos into a folder ---------- */
 let _catPickMode=false;
 function catRepaint(){ if(_catPickMode)catSource(); else if(_catFolder)catOpenFolder(_catFolder); else catalogue(); }
-function catPickOpen(fid){ _catFolder=fid; _catPickMode=true; _catPick=new Set(); _catTab='made'; _catQ=''; _catG=''; pageReset('cat'); catSource(); }
+function catPickOpen(fid){ _catFolder=fid; _catPickMode=true; if(!modOn('stock'))_catTab='made'; _catPick=new Set(); _catTab='made'; _catQ=''; _catG=''; pageReset('cat'); catSource(); }
 function catPickCancel(){ const f=_catFolder; _catPickMode=false; _catPick=new Set(); if(f)catOpenFolder(f); else catalogue(); }
 function catPickToggle(pid){ if(_catPick.has(pid))_catPick.delete(pid); else _catPick.add(pid); catSource(); }
 function catPickSave(){
@@ -6665,10 +6661,13 @@ function catPickSave(){
 }
 /* the stock-derived browser — also used on its own as "browse everything" */
 function catSource(keepFocus){
+  if(!modOn('stock')&&_catTab!=='made')_catTab='made';
   const picking=_catPickMode;
   const list=catItems();
   _catView=list;
-  const tabs=[['fabric','🧵 '+t('stk_fabric')],['ready','👔 '+t('stk_ready')],['made','✨ '+t('cat_made')]];
+  const tabs=modOn('stock')
+    ? [['fabric','🧵 '+t('stk_fabric')],['ready','👔 '+t('stk_ready')],['made','✨ '+t('cat_made')]]
+    : [['made','✨ '+t('cat_made')]];          // order-only build: his own work is the catalogue
   let chips='';
   if(_catTab==='made'){
     const seen={}; catItemsAll().forEach(x=>{ if(x.cat)seen[x.cat]=(seen[x.cat]||0)+1; });
@@ -6846,8 +6845,12 @@ function renderHome(){
 
     <div class="home-stats">
       ${stat(t('home_pending_orders'),pendingCount,'',"statDetail('pending')")}
-      ${stat(t('home_to_collect'),money(toCollect),toCollect>0?'var(--saffron2)':'',"followUps()")}
-      ${stat(t('creditors_report'),money(payables),payables>0?'var(--bad)':'',"creditors()")}
+      ${modOn('billing')
+        ? stat(t('home_to_collect'),money(toCollect),toCollect>0?'var(--saffron2)':'',"followUps()")
+        : stat(t('kb_total_payable'),money(r2((DB.karigars||[]).reduce((s,k)=>s+karBalance(k.id),0))),'',"jobWork()")}
+      ${modOn('billing')
+        ? stat(t('creditors_report'),money(payables),payables>0?'var(--bad)':'',"creditors()")
+        : stat(t('cu_pending'),courierLists().toSend.length,'',"courierHub()")}
     </div>
 
     ${actionBoardHTML()}
@@ -6858,7 +6861,7 @@ function renderHome(){
       ${tile('🧵',t('jw_title'),"jobWork()")}
       ${tile('📞',t('se_title'),"statusEnquiry('')")}
       ${tile('📦',t('cu_title'),"courierHub()")}
-      ${tile('📖',t('cat_title'),"catalogue()",'mod-stock')}
+      ${tile('📖',t('cat_title'),"catalogue()")}
       ${tile('🔎',t('of_title'),"orderFilter()")}
       ${tile('📊',t('or_title'),"orderReports()")}
       ${tile('🔧',t('home_alterations'),"go('alterations')")}
@@ -6872,24 +6875,26 @@ function renderHome(){
       ${tile('🚚',t('hub_purchase'),"purchaseHub()")}
     </div>
 
+    ${(modOn('accounts')||modOn('billing')||modOn('stock'))?`
     <div class="home-sec-title">💰 ${t('home_accounts')}</div>
     <div class="home-grid">
       ${tile('📒',t('db_title'),"dayBook()",'mod-accounts')}
       ${tile('🏦',t('cb_title'),"cashBank()",'mod-accounts')}
       ${tile('💸',t('exp_title'),"expenses()",'mod-accounts')}
-      ${tile('🔔',t('debtors_report'),"followUps()")}
+      ${tile('🔔',t('debtors_report'),"followUps()",'mod-billing')}
       ${tile('📤',t('creditors_report'),"creditors()",'mod-billing')}
       ${tile('📦',t('stk_title'),"stockHome()",'mod-stock')}
       ${tile('📊',t('reports'),"go('reports')",'mod-billing')}
       ${tile('📈',t('gr_title'),"growthReport()",'mod-billing')}
-    </div>
+    </div>`:''}
 
+    ${(modOn('accounts')||modOn('billing'))?`
     <div class="card" style="margin-top:12px">
       <div class="kv"><span class="hint">💵 ${t('cb_total')}</span>
         <b style="color:var(--saffron2)">${money(totalCashBank())}</b></div>
       <div class="kv" style="margin-top:6px"><span class="hint">📈 ${t('home_month_sales')}</span>
         <b>${money(monthSale)}</b></div>
-    </div>
+    </div>`:''}
     </div>`}
     <div class="fab-pad"></div>`;
 }
@@ -7544,6 +7549,7 @@ function quickLenHTML(f,mine){
       <span class="ql-st">${st.len?'✅':'⬜'}</span>
       <span class="ql-nm">${g.ico} ${esc(g.n)}${instOf(k)>1?' <span class="inst-tag">'+instOf(k)+'</span>':''}</span>
       ${cell}
+      <span class="ql-add" onclick="addAnother('${esc(k)}')" title="${t('add_another',{g:esc(g.n)})}">＋</span>
       <span class="ql-go" onclick="itemOpen('${esc(k)}')">${open?'▴':'›'}</span></div>`;
   }).join('');
   return `<div class="ql-wrap">
@@ -7640,9 +7646,12 @@ function addAnother(key){
   const nk=itemKey(mid,gid,n);
   form.items.push(nk);
   prefillGarment(nk);
-  _openItem=nk;
   renderForm();
-  setTimeout(()=>{const el=document.querySelector('.vInput[data-v="'+nk+'"]');if(el)el.focus();},80);
+  setTimeout(()=>{
+    const q=$('#ql_'+cssId(nk));
+    if(q){ q.scrollIntoView({block:'center',behavior:'smooth'}); q.focus(); return; }
+    const el=document.querySelector('.vInput[data-v="'+nk+'"]'); if(el)el.focus();
+  },80);
 }
 function cssId(key){ return String(key).replace(/[^a-zA-Z0-9]/g,'_'); }
 
@@ -7663,9 +7672,9 @@ function memberBlockHTML(f,mem,idx,multi){
      a › to open it, so rendering a collapsed card for each one as well listed the whole
      order twice — a six-piece order became twelve rows. Below the list we now show ONLY
      the piece being worked on. */
-  const cards=(mine.length>1)
-    ? (_openItem && mine.indexOf(_openItem)>=0 ? measCardHTML(f,_openItem) : '')
-    : sortItems(mine).map(k=>measCardHTML(f,k)).join('');
+  // the lengths list is the index of the order, shown from the first piece onwards;
+  // below it, only the piece he is actually working on
+  const cards=(_openItem && mine.indexOf(_openItem)>=0) ? measCardHTML(f,_openItem) : '';
   const nm=mem.name||'', rel=mem.rel||'';
   return `<div class="mem-block" ${multi?'':'style="border:none;padding:0;background:transparent"'}>
     ${multi?`<div class="mem-head">
@@ -7680,7 +7689,7 @@ function memberBlockHTML(f,mem,idx,multi){
     </div>`:''}
     <div class="chip-grid">${chips}</div>
     ${mine.length?`<p class="prefilled-note">${t('prefill_note')}</p>`:''}
-    ${mine.length>1?quickLenHTML(f,mine):(mine.length?(()=>{const done=mine.filter(k=>measFilledCount(f,k).len).length;
+    ${mine.length?quickLenHTML(f,mine):(mine.length?(()=>{const done=mine.filter(k=>measFilledCount(f,k).len).length;
       return `<div class="billed-bar" style="margin-top:10px"><span>✂️ ${t('it_items')}</span>
         <span class="hint" style="color:inherit">${done}/${mine.length} ${t('it_filled')}</span></div>`;})():'')}
     <div style="margin-top:10px">${cards}</div>
@@ -8056,12 +8065,9 @@ function removeItem(key){
 function toggleItem(key){_sheetScroll=$('#sheet')?$('#sheet').scrollTop:0;captureForm();const i=form.items.indexOf(key);
   if(i>=0){ _openItem=key; }                       // already there — just go to it
   else{
-    const mid=memberOf(key);
-    const had=(form.items||[]).some(k=>memberOf(k)===mid);
+    // picking is picking. He selects everything the customer wants FIRST and only then
+    // starts measuring, so no card is allowed to open and take the screen while he picks.
     form.items.push(key); prefillGarment(key);
-    // first piece opens so he can start; after that, picking chips is pure selection —
-    // he chooses everything the customer wants first, then does the measurements
-    if(!had)_openItem=key;
   }
   renderForm();
   if(_openItem)setTimeout(()=>{const c=document.querySelector('.mcard[data-key="'+cssId(_openItem)+'"]');if(c)c.scrollIntoView({block:'nearest'});},60);}
@@ -8913,6 +8919,7 @@ function invNormItems(items){
   return items;
 }
 function openInvoiceForm(kind,id){
+  if(!modOn('billing')){ toast(t('mod_off'),'bad'); return; }
   const rec=invRecOf(kind,id); if(!rec)return;
   if(rec.invoice){ invForm=JSON.parse(JSON.stringify(rec.invoice)); invForm.kind=kind; invForm.id=id;
     invNormItems(invForm.items);
