@@ -507,7 +507,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v136</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v137</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1222,6 +1222,11 @@ const T={
   su_need_name:'Please enter your shop name',
   mod_off:'That section is switched off in Settings',
   kb_title:'Karigar Ledger',
+  pb_title:'Photos backup', pb_hint:'Photos go out in parts, so a large collection never crashes the app.',
+  pb_sub:'{n} photos and voice notes, in {p} parts. Save one part at a time.',
+  pb_part:'Part {n} of {of}', pb_files:'files {a} – {b}', pb_again:'Save again',
+  pb_none:'No photos or voice notes yet.', pb_busy:'One part is still being prepared.',
+  pb_saved:'{n} files saved', pb_note:'Keep the parts together — a restore needs all of them. The data backup above already holds your orders, measurements and accounts.',
   ks_sub:'His account line by line — correct any rate here and the total follows.',
   ks_lines:'{n} pieces in this period', ks_no_lines:'No pieces in this period.',
   ks_period_total:'This period', ks_older:'Earlier ({n} pieces)', ks_net:'Net to pay',
@@ -2358,6 +2363,11 @@ const T={
   su_need_name:'दुकान का नाम भरें',
   mod_off:'यह हिस्सा सेटिंग्स में बंद है',
   kb_title:'कारीगर हिसाब',
+  pb_title:'फोटो बैकअप', pb_hint:'फोटो हिस्सों में जाती हैं, इसलिए बड़ा कलेक्शन ऐप को नहीं गिराता।',
+  pb_sub:'{n} फोटो और वॉइस नोट, {p} हिस्सों में। एक बार में एक हिस्सा सेव करें।',
+  pb_part:'हिस्सा {n} / {of}', pb_files:'फ़ाइल {a} – {b}', pb_again:'दोबारा सेव करें',
+  pb_none:'अभी कोई फोटो या वॉइस नोट नहीं।', pb_busy:'एक हिस्सा अभी तैयार हो रहा है।',
+  pb_saved:'{n} फ़ाइलें सेव हुईं', pb_note:'सभी हिस्से साथ रखें — रिस्टोर के लिए सब चाहिए। ऊपर वाला डेटा बैकअप आपके ऑर्डर, नाप और हिसाब पहले से रखता है।',
   ks_sub:'उसका हिसाब एक-एक लाइन में — रेट यहीं सुधारें, टोटल अपने आप बदलेगा।',
   ks_lines:'इस अवधि में {n} पीस', ks_no_lines:'इस अवधि में कोई पीस नहीं।',
   ks_period_total:'इस अवधि का', ks_older:'पहले का ({n} पीस)', ks_net:'कुल देना',
@@ -3116,7 +3126,9 @@ async function flushDB(){
 function flushDBNow(){
   clearTimeout(_dbTimer);
   reconcileOrders(true).then(()=>{ _dbDirty=true; flushDB(); }).catch(()=>{});
-  try{ const s=dbSerialize(); if(s.length<4200000)localStorage.setItem('pb_ob_v1',s); }catch(e){}
+  // Only mirror into localStorage when IndexedDB is unavailable. Serialising the whole
+  // database on every app switch was costing him seconds on the iPad for no benefit.
+  if(!idb){ try{ const s=dbSerialize(); if(s.length<4200000)localStorage.setItem('pb_ob_v1',s); }catch(e){} }
 }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden')flushDBNow(); });
 window.addEventListener('pagehide',flushDBNow);
@@ -13124,10 +13136,10 @@ function backupMenu(){modal(t('backup_title'),`<p style="color:var(--txt2);font-
   <div id="bkSafety"></div>
   <div id="bkFile"></div>
   <div class="modal-actions" style="flex-direction:column">
-  <button class="btn primary block" onclick="shareBackup()">📤 ${t('send_backup')}</button>
-  <p class="hint" style="margin:2px 0 4px">${t('send_backup_hint')}</p>
-  <button class="btn ghost block" onclick="shareBackup(true)">📨 ${t('bk_data_only')}</button>
-  <p class="hint" style="margin:2px 0 4px">${t('bk_data_only_hint')}</p>
+  <button class="btn primary block" onclick="shareBackup(true)">📨 ${t('bk_data_only')}</button>
+  <p class="hint" style="margin:2px 0 8px">${t('bk_data_only_hint')}</p>
+  <button class="btn ghost block" onclick="photoBackup()">🖼️ ${t('pb_title')}</button>
+  <p class="hint" style="margin:2px 0 4px">${t('pb_hint')}</p>
   <button class="btn ghost block" onclick="doExport()">⬇️ ${t('download_backup')}</button>
   <button class="btn ghost block" onclick="doImport()">⬆️ ${t('restore_backup')}</button>
   <button class="btn ghost block" onclick="restoreSnapshotMenu()">🕑 ${t('restore_auto')}</button>
@@ -13181,6 +13193,85 @@ function blobToB64(b){return new Promise(res=>{const r=new FileReader();r.onload
    so the iPad held the media three or four times over and froze. Now the file is
    assembled as Blob PARTS: each photo is converted, appended as its own string and
    dropped immediately, the UI gets a turn between files, and it can be cancelled. */
+/* ================= PHOTO BACKUP IN PARTS =================
+   The full backup used to base64 every photo into a single in-memory file. With ~600
+   photos that is well over a gigabyte of strings held at once, and iPad Safari kills the
+   tab — the white screen. Photos now go out in PARTS: each part is built only when he
+   taps Save, handed over, and released before the next one. Peak memory is one part. */
+const PB_PER_PART=40;
+let _pbKeys=null, _pbBusy=false;
+async function photoBackupKeys(){
+  if(_pbKeys)return _pbKeys;
+  const keys=(await mKeys()).filter(k=>String(k).indexOf('snap_')!==0&&String(k).indexOf('rec_o_')!==0
+    &&['__db','__core','__meta','__db_prev','__bkfile'].indexOf(String(k))<0);
+  _pbKeys=keys.sort();
+  return _pbKeys;
+}
+async function photoBackup(){
+  const keys=await photoBackupKeys();
+  const parts=Math.ceil(keys.length/PB_PER_PART);
+  const done=JSON.parse(localStorage.getItem('pb_ob_pbdone')||'[]');
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">🖼️ ${t('pb_title')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
+    <p class="hint" style="margin-bottom:12px">${t('pb_sub',{n:keys.length,p:parts})}</p>
+    ${parts?Array.from({length:parts},(_,i)=>{
+      const a=i*PB_PER_PART+1, b=Math.min(keys.length,(i+1)*PB_PER_PART);
+      const ok=done.indexOf(i)>=0;
+      return `<div class="card" style="padding:11px 13px;margin-bottom:8px;${ok?'border-color:var(--ok)':''}">
+        <div class="kv"><span><b>${t('pb_part',{n:i+1,of:parts})}</b>
+          <div class="hint">${t('pb_files',{a:a,b:b})}</div></span>
+          <button class="btn sm ${ok?'ghost':'primary'}" onclick="photoBackupPart(${i})">${ok?'✓ '+t('pb_again'):t('save')}</button></div></div>`;
+    }).join(''):`<p class="hint">${t('pb_none')}</p>`}
+    <p class="hint" style="margin-top:10px">${t('pb_note')}</p>
+    <div class="modal-actions"><button class="btn ghost block" onclick="backupMenu()">${t('back')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+async function photoBackupPart(i){
+  if(_pbBusy){ toast(t('pb_busy'),'bad'); return; }
+  _pbBusy=true;
+  try{
+    const keys=await photoBackupKeys();
+    const slice=keys.slice(i*PB_PER_PART,(i+1)*PB_PER_PART);
+    bkBusyModal();
+    let parts=['{"__v":2,"photosOnly":true,"part":'+(i+1)+',"media":{'];
+    let wrote=0;
+    for(let j=0;j<slice.length;j++){
+      if(_bkCancel)break;
+      try{
+        const b=await mGet(slice[j]);
+        if(b && b.size!==undefined){
+          const d=await blobToB64(b);
+          if(d){ parts.push((wrote?',':'')+JSON.stringify(String(slice[j]))+':'+JSON.stringify(d)); wrote++; }
+        }
+      }catch(e){}
+      bkProgress(j+1,slice.length);
+      await bkYield();
+    }
+    if(_bkCancel){ closeSheet(); toast(t('bk_cancelled'),'bad'); return; }
+    parts.push('}}');
+    const blob=new Blob(parts,{type:'application/json'});
+    parts=null;                                  // release before sharing
+    const name='PARAMPARA-photos-part'+(i+1)+'.txt';
+    let shared=false;
+    try{
+      const file=new File([blob],name,{type:'text/plain'});
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        await navigator.share({files:[file],title:name}); shared=true;
+      }
+    }catch(e){ if(e&&e.name==='AbortError'){ closeSheet(); return; } }
+    if(!shared){
+      const u=URL.createObjectURL(blob);
+      const a=document.createElement('a'); a.href=u; a.download=name; a.click();
+      setTimeout(()=>URL.revokeObjectURL(u),1500);
+    }
+    const done=JSON.parse(localStorage.getItem('pb_ob_pbdone')||'[]');
+    if(done.indexOf(i)<0){ done.push(i); localStorage.setItem('pb_ob_pbdone',JSON.stringify(done)); }
+    closeSheet(); toast(t('pb_saved',{n:wrote}),'ok');
+    photoBackup();
+  }finally{ _pbBusy=false; }
+}
 async function buildBackupBlob(dataOnly){
   _bkCancel=false;
   const parts=['{"__v":2,"db":', JSON.stringify(DB), ',"media":{'];
