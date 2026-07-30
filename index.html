@@ -247,6 +247,12 @@
   .stage.now{background:var(--saffron); color:#1a1206; border-color:var(--saffron)}
   .stage-arw{flex:0 0 auto; color:var(--line2); font-size:14px}
   .od-x{display:none} .od-x.on{display:block}
+  .ks-row{display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--line)}
+  .ks-row:last-child{border-bottom:0}
+  .ks-lbl{flex:1; min-width:0; font-size:13.5px}
+  .ks-rate{flex:0 0 92px; text-align:right; background:var(--card2); border:1px solid var(--line2);
+    color:var(--txt); border-radius:9px; padding:9px 10px; font-size:15px; font-weight:800; outline:none}
+  .ks-rate:focus{border-color:var(--saffron)}
   .ic-btn{flex:0 0 auto; min-width:52px; padding:9px 10px; font-size:15px}
   .ic-btn.has{border-color:var(--saffron); color:var(--saffron2)}
   .cat-meta{padding:8px 10px 10px; font-size:13px}
@@ -501,7 +507,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v134</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v136</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1216,6 +1222,15 @@ const T={
   su_need_name:'Please enter your shop name',
   mod_off:'That section is switched off in Settings',
   kb_title:'Karigar Ledger',
+  ks_sub:'His account line by line — correct any rate here and the total follows.',
+  ks_lines:'{n} pieces in this period', ks_no_lines:'No pieces in this period.',
+  ks_period_total:'This period', ks_older:'Earlier ({n} pieces)', ks_net:'Net to pay',
+  ks_all_unpaid:'Everything', ks_send:'Send this account',
+  ks_note:'Designer work is often paid above the card rate — type the agreed amount on that line. A blank rate means none was ever entered.',
+  stl_title:'Settlement day', stl_sub:'Every master, what he is owed, paid from one screen.',
+  stl_this_week:'This week', stl_last_week:'Last week', stl_total_owed:'Total to pay',
+  stl_did:'{n} pieces in this period', stl_none:'Nothing outstanding.',
+  stl_note:'The amount shown is his full outstanding balance, including anything left over from earlier weeks — not only this period.',
   wa_no_number:'No mobile number saved — add it first, then the message goes straight to him.',
   meas:'measurements',
   od_more:'Payments · Cloth · Log · Voice',
@@ -2343,6 +2358,15 @@ const T={
   su_need_name:'दुकान का नाम भरें',
   mod_off:'यह हिस्सा सेटिंग्स में बंद है',
   kb_title:'कारीगर हिसाब',
+  ks_sub:'उसका हिसाब एक-एक लाइन में — रेट यहीं सुधारें, टोटल अपने आप बदलेगा।',
+  ks_lines:'इस अवधि में {n} पीस', ks_no_lines:'इस अवधि में कोई पीस नहीं।',
+  ks_period_total:'इस अवधि का', ks_older:'पहले का ({n} पीस)', ks_net:'कुल देना',
+  ks_all_unpaid:'सब कुछ', ks_send:'यह हिसाब भेजें',
+  ks_note:'डिज़ाइनर काम का रेट अक्सर कार्ड रेट से ज़्यादा होता है — तय हुई रकम उसी लाइन पर डालें। खाली रेट का मतलब कभी डाला ही नहीं गया।',
+  stl_title:'हिसाब का दिन', stl_sub:'हर कारीगर, कितना देना है, एक ही स्क्रीन से।',
+  stl_this_week:'इस हफ़्ते', stl_last_week:'पिछले हफ़्ते', stl_total_owed:'कुल देना',
+  stl_did:'इस अवधि में {n} पीस', stl_none:'कुछ बाकी नहीं।',
+  stl_note:'दिखाई गई रकम उसका पूरा बकाया है, पिछले हफ़्तों का बचा हुआ भी शामिल — सिर्फ़ इस अवधि का नहीं।',
   wa_no_number:'मोबाइल नंबर सेव नहीं है — पहले नंबर जोड़ें, फिर मैसेज सीधे उसी पर जाएगा।',
   meas:'नाप',
   od_more:'पेमेंट · कपड़ा · लॉग · वॉइस',
@@ -11967,19 +11991,23 @@ function karJobs(kid){
     // different masters each earn on the same garment, so history must be paid too
     ((o.jobs&&o.jobs[gid])||[]).forEach(leg=>{
       if((leg.kid||'')!==kid || !leg.recv)return;
-      out.push({kind:'order',id:o.id,gid,date:leg.recv,
-        label:`#${o.orderNo||'—'} · ${(g&&g.n)||''}`,who:o.customerName||'',amt:+leg.amt||0});
+      out.push({kind:'order',id:o.id,gid,date:leg.recv,leg:(o.jobs[gid]||[]).indexOf(leg),
+        ono:memberOno(o,memberOf(gid))||o.orderNo||'',
+        label:`#${memberOno(o,memberOf(gid))||o.orderNo||'—'} · ${(g&&g.n)||''}`,
+        who:o.customerName||'',amt:+leg.amt||0});
     });
     if(((o.assign&&o.assign[gid])||'')!==kid)return;
     const d=karRecvDate(o,gid); if(!d)return;                 // not handed back yet
-    out.push({kind:'order',id:o.id,gid,date:d,
-      label:`#${o.orderNo||'—'} · ${(g&&g.n)||''}`,who:o.customerName||'',amt:karRateFor(o,gid)});
+    out.push({kind:'order',id:o.id,gid,date:d,leg:-1,
+      ono:memberOno(o,memberOf(gid))||o.orderNo||'',
+      label:`#${memberOno(o,memberOf(gid))||o.orderNo||'—'} · ${(g&&g.n)||''}`,
+      who:o.customerName||'',amt:karRateFor(o,gid)});
   }));
   (DB.alterations||[]).forEach(a=>{
     if((a.karigarId||'')!==kid)return;
     if(a.noKarigarPay)return;                                  // his own rework — free
     if(!a.recvDate)return;
-    out.push({kind:'alt',id:a.id,gid:'',date:a.recvDate,
+    out.push({kind:'alt',id:a.id,gid:'',date:a.recvDate,leg:-1,ono:a.altNo||'',
       label:`🔧 #${a.altNo||'—'} · ${a.itemDesc||''}`,who:a.customerName||'',amt:+a.karAmt||0});
   });
   return out.sort((x,y)=>String(y.date).localeCompare(String(x.date)));
@@ -12300,6 +12328,151 @@ function karMaster(kid){
     <div class="fab-pad"></div>`;
   showSheet();
 }
+/* ================= SETTLEMENT DAY =================
+   His masters are paid on a fixed day (Saturday). Opening each one in turn to work out
+   who is owed what is the wrong shape for that job — this is the one screen for it.
+   IMPORTANT: the number he pays is the OUTSTANDING BALANCE, not the week's earnings.
+   Paying only this week while an older balance sits unpaid would quietly short the man. */
+let _stlFrom='', _stlTo='';
+function weekStart(d){ const x=new Date(d||todayISO()); const g=x.getDay();
+  x.setDate(x.getDate()-((g+6)%7)); return x.toISOString().slice(0,10); }   // Monday
+/* ================= MATCHING THE MASTER'S OWN ACCOUNT =================
+   The master arrives with his own paper: these order numbers, at these rates. So this
+   screen is the SAME statement, line by line, with the rate editable in place — because
+   designer work is paid more than the card rate, and some pieces never had a rate typed
+   at all. Old due is shown separately, so the two papers can be matched and agreed. */
+let _ksFrom='', _ksTo='';
+function karSettle(kid,from,to){
+  const k=(DB.karigars||[]).find(x=>x.id===kid); if(!k)return;
+  if(from!==undefined)_ksFrom=from; if(to!==undefined)_ksTo=to;
+  const jobs=karJobs(kid);
+  const F=_ksFrom||'', T=_ksTo||'';
+  const inP=j=>(!F||j.date>=F)&&(!T||j.date<=T);
+  const now=jobs.filter(inP).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+  const older=jobs.filter(j=>!inP(j));
+  const sum=l=>r2(l.reduce((a,j)=>a+(+j.amt||0),0));
+  const paid=karPaid(kid);
+  const earnedAll=sum(jobs);
+  const due=r2(earnedAll-paid);
+  const line=(j,i)=>`<div class="ks-row">
+      <span class="ks-lbl"><b>${esc(j.label)}</b>
+        <div class="hint">${fmtDate(j.date)}${j.who?' · '+esc(j.who):''}</div></span>
+      <input class="ks-rate" inputmode="numeric" value="${j.amt||''}" placeholder="0"
+        onchange="karRateSet('${kid}','${j.kind}','${j.id}','${esc(j.gid)}',${j.leg},this.value)"></div>`;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">🧾 ${esc(k.name)}</h2>
+      <button class="btn sm ghost" onclick="settleDay()">✕</button></div>
+    <p class="hint" style="margin-bottom:10px">${t('ks_sub')}</p>
+    <div class="row" style="gap:8px;margin-bottom:8px">
+      <div class="field" style="flex:1;margin:0"><label>${t('rp_from')}</label>${dateField('ks_f',F)}</div>
+      <div class="field" style="flex:1;margin:0"><label>${t('rp_to')}</label>${dateField('ks_t',T)}</div></div>
+    <div class="gtags" style="margin-bottom:12px">
+      <span class="gtag" style="cursor:pointer" onclick="karSettle('${kid}','','')">${t('ks_all_unpaid')}</span>
+      <span class="gtag" style="cursor:pointer" onclick="ksApply('${kid}')">${t('rp_apply')}</span></div>
+
+    <div class="section-h" style="margin-top:0">${t('ks_lines',{n:now.length})}</div>
+    ${now.length?`<div class="card" style="padding:4px 12px;margin-bottom:10px">${now.map(line).join('')}</div>`
+      :`<p class="hint" style="margin-bottom:10px">${t('ks_no_lines')}</p>`}
+    <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
+      <div class="il"><span>${t('ks_period_total')}</span><b>${money(sum(now))}</b></div>
+      ${older.length?`<div class="il"><span>${t('ks_older',{n:older.length})}</span><b>${money(sum(older))}</b></div>`:''}
+      <div class="il"><span>${t('kb_earned')}</span><b>${money(earnedAll)}</b></div>
+      <div class="il"><span>${t('kb_paid')}</span><b style="color:var(--ok)">− ${money(paid)}</b></div>
+      <div class="il" style="border-bottom:0"><span><b>${t('ks_net')}</b></span>
+        <b style="font-size:20px;color:${due>0.5?'var(--bad)':'var(--ok)'}">${money(Math.max(0,due))}</b></div></div>
+    ${due>0.5?`<button class="btn primary block" onclick="karPayEntry('${kid}')">💰 ${t('kb_pay')} ${money(due)}</button>`:''}
+    <button class="btn ghost block" style="margin-top:8px" onclick="waSend('${esc(k.phone||'')}',karSettleText('${kid}'))">💬 ${t('ks_send')}</button>
+    <p class="hint" style="margin-top:10px">${t('ks_note')}</p>
+    <div class="modal-actions"><button class="btn ghost block" onclick="settleDay()">${t('back')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function ksApply(kid){ const f=$('#ks_f'), t2=$('#ks_t'); karSettle(kid, f?f.value:'', t2?t2.value:''); }
+/* write a corrected rate back to the RIGHT place: an archived leg, the live leg's
+   per-item override, or the alteration's own amount */
+function karRateSet(kid,kind,id,gid,leg,v){
+  const amt=Math.max(0,+v||0);
+  if(kind==='alt'){
+    const a=(DB.alterations||[]).find(x=>x.id===id); if(!a)return;
+    a.karAmt=amt;
+  }else{
+    const o=(DB.orders||[]).find(x=>x.id===id); if(!o)return;
+    if(leg>=0){ const L=((o.jobs||{})[gid]||[])[leg]; if(!L)return; L.amt=amt; }
+    else{ o.karAmt=o.karAmt||{}; o.karAmt[gid]=amt; }
+    touchOrder(o.id);
+  }
+  save(); karSettle(kid);
+}
+function karSettleText(kid){
+  const k=(DB.karigars||[]).find(x=>x.id===kid)||{};
+  const jobs=karJobs(kid);
+  const F=_ksFrom||'', T=_ksTo||'';
+  const inP=j=>(!F||j.date>=F)&&(!T||j.date<=T);
+  const now=jobs.filter(inP).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+  const sum=l=>r2(l.reduce((a,j)=>a+(+j.amt||0),0));
+  const older=jobs.filter(j=>!inP(j));
+  const L=[((DB.shopInfo||{}).name||'').toUpperCase(),'',k.name||'',''];
+  now.forEach(j=>L.push(j.label+' — '+money(j.amt||0)));
+  L.push('');
+  L.push(t('ks_period_total')+': '+money(sum(now)));
+  if(older.length)L.push(t('ks_older',{n:older.length})+': '+money(sum(older)));
+  L.push(t('kb_paid')+': '+money(karPaid(kid)));
+  L.push(t('ks_net')+': '+money(Math.max(0,karBalance(kid))));
+  return L.join('\n');
+}
+function settleDay(){
+  const to=_stlTo||todayISO();
+  const from=_stlFrom||weekStart(to);
+  const rows=(DB.karigars||[]).map(k=>{
+    const jobs=karJobs(k.id).filter(j=>j.date>=from&&j.date<=to);
+    return {k, pcs:jobs.length, period:r2(jobs.reduce((a,j)=>a+(+j.amt||0),0)),
+      bal:karBalance(k.id), out:karOutCount(k.id)};
+  }).sort((a,b)=>b.bal-a.bal);
+  const owed=r2(rows.reduce((a,r)=>a+Math.max(0,r.bal),0));
+  const body=rows.filter(r=>r.bal>0.5||r.pcs).map(r=>`
+    <div class="card" style="padding:12px 14px;margin-bottom:8px">
+      <div class="kv" style="align-items:flex-start">
+        <div style="min-width:0;flex:1" onclick="karSettle('${r.k.id}','${from}','${to}')">
+          <b style="font-size:16px">👷 ${esc(r.k.name)}</b>
+          <div class="hint">${t('stl_did',{n:r.pcs})}${r.period?' · '+money(r.period):''}${r.out?' · '+t('jw_holding',{n:r.out}):''}</div>
+        </div>
+        <b style="font-size:18px;color:${r.bal>0.5?'var(--bad)':'var(--ok)'}">${money(Math.max(0,r.bal))}</b></div>
+      ${r.bal>0.5?`<button class="btn sm primary block" style="margin-top:8px" onclick="karPayEntry('${r.k.id}')">💰 ${t('kb_pay')} ${money(r.bal)}</button>`
+        :`<div class="hint" style="margin-top:6px">✓ ${t('kb_settled')}</div>`}</div>`).join('')
+    || `<p class="hint" style="padding:20px 0;text-align:center">${t('stl_none')}</p>`;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">📆 ${t('stl_title')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
+    <p class="hint" style="margin-bottom:10px">${t('stl_sub')}</p>
+    <div class="row" style="gap:8px;margin-bottom:10px">
+      <div class="field" style="flex:1;margin:0"><label>${t('rp_from')}</label>${dateField('stl_f',from)}</div>
+      <div class="field" style="flex:1;margin:0"><label>${t('rp_to')}</label>${dateField('stl_t',to)}</div></div>
+    <div class="gtags" style="margin-bottom:12px">
+      <span class="gtag" style="cursor:pointer" onclick="stlSet('week')">${t('stl_this_week')}</span>
+      <span class="gtag" style="cursor:pointer" onclick="stlSet('last')">${t('stl_last_week')}</span>
+      <span class="gtag" style="cursor:pointer" onclick="stlApply()">${t('rp_apply')}</span></div>
+    <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
+      <div class="il" style="border-bottom:0"><span>${t('stl_total_owed')}</span>
+        <b style="font-size:19px;color:var(--bad)">${money(owed)}</b></div></div>
+    ${body}
+    <p class="hint" style="margin-top:10px">${t('stl_note')}</p>
+    <div class="modal-actions"><button class="btn ghost block" onclick="jobWork()">${t('back')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function stlSet(which){
+  const t0=todayISO();
+  if(which==='week'){ _stlFrom=weekStart(t0); _stlTo=t0; }
+  else{ const ws=weekStart(t0); const d=new Date(ws); d.setDate(d.getDate()-7);
+    _stlFrom=d.toISOString().slice(0,10);
+    const e=new Date(ws); e.setDate(e.getDate()-1); _stlTo=e.toISOString().slice(0,10); }
+  settleDay();
+}
+function stlApply(){
+  const f=$('#stl_f'), t2=$('#stl_t');
+  if(f)_stlFrom=f.value; if(t2)_stlTo=t2.value;
+  settleDay();
+}
 function jobWork(){
   const ks=DB.karigars||[];
   const b=abBuckets();
@@ -12326,8 +12499,9 @@ function jobWork(){
     ${b.stuck.length?`<div class="card fu-open" style="padding:12px 14px;margin-bottom:12px" onclick="actionList('stuck')">
       <div class="kv"><span>⏳ ${t('ab_stuck',{n:AB_STUCK})}</span><b>${b.stuck.length}</b></div></div>`:''}
     ${rows}
+    ${ks.length?`<button class="btn primary block" style="margin-top:12px" onclick="settleDay()">📆 ${t('stl_title')}</button>`:''}
     <div class="row" style="gap:8px;margin-top:10px">
-      <button class="btn primary" style="flex:2" onclick="karigarEdit()">➕ ${t('add_karigar')}</button>
+      <button class="btn ${ks.length?'ghost':'primary'}" style="flex:2" onclick="karigarEdit()">➕ ${t('add_karigar')}</button>
       ${ks.length?`<button class="btn ghost" style="flex:1" onclick="karigarReport()">📊</button>`:''}
       <button class="btn ghost" onclick="closeSheet();karigarMaster()">⚙️</button></div>
     <div class="modal-actions"><button class="btn ghost block" onclick="closeSheet()">${t('close')}</button></div>
