@@ -25,6 +25,20 @@
   h1,h2,h3{margin:0; font-weight:700}
   button{font-family:inherit; cursor:pointer; border:none; background:none; color:inherit}
   input,select,textarea{font-family:inherit; font-size:16px}
+  /* Base skin for every field. Any input outside .field fell through to the browser
+     default and rendered as a WHITE box on iOS — seen on the invoice screen (Received Now,
+     Into account). :where() keeps this at ZERO specificity, so every existing class rule
+     (.pl-name, .qty-in, .ql-in, .mem-*, .ks-rate ...) still wins and keeps its own look. */
+  :where(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=color]), select, textarea){
+    background:var(--bg2); border:1px solid var(--line); color:var(--txt);
+    border-radius:10px; padding:9px 11px; -webkit-appearance:none; appearance:none}
+  :where(select){background-image:linear-gradient(45deg,transparent 50%,var(--txt2) 50%),linear-gradient(135deg,var(--txt2) 50%,transparent 50%);
+    background-position:calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size:5px 5px,5px 5px;
+    background-repeat:no-repeat; padding-right:30px}
+  input:not([type=checkbox]):not([type=radio]):focus, select:focus, textarea:focus{
+    border-color:var(--saffron); outline:none}
+  :where(input,textarea)::placeholder{color:var(--mut)}
+  input[type=date], input[type=month], input[type=time]{min-width:0}
   a{color:var(--saffron2); text-decoration:none}
 
   header{position:sticky; top:0; z-index:40; background:linear-gradient(180deg,#1c1810,#16130f);
@@ -253,6 +267,9 @@
   .ks-rate{flex:0 0 92px; text-align:right; background:var(--card2); border:1px solid var(--line2);
     color:var(--txt); border-radius:9px; padding:9px 10px; font-size:15px; font-weight:800; outline:none}
   .ks-rate:focus{border-color:var(--saffron)}
+  .mcard-urg{border-color:var(--bad)}
+  .urg-tag{background:rgba(217,83,79,.18); color:var(--bad); font-size:10.5px; font-weight:900;
+    padding:2px 7px; border-radius:20px; vertical-align:middle}
   .ic-btn{flex:0 0 auto; min-width:52px; padding:9px 10px; font-size:15px}
   .ic-btn.has{border-color:var(--saffron); color:var(--saffron2)}
   .cat-meta{padding:8px 10px 10px; font-size:13px}
@@ -408,6 +425,19 @@
   .sheet{background:var(--card); border:1px solid var(--line); border-top-left-radius:20px; border-top-right-radius:20px;
     width:100%; max-width:760px; max-height:90vh; overflow-y:auto; padding:18px 18px calc(18px + var(--safe-b)); animation:slideup .22s ease}
   @keyframes slideup{from{transform:translateY(100%)} to{transform:none}}
+  /* One close button for EVERY sheet. It lives outside #sheet, so no render can wipe it. */
+  /* Give-work detail: measurements in a tight grid so a full set fits without scrolling. */
+  .ki-det{padding:10px 12px 12px;border-top:1px dashed var(--line);background:var(--bg2);border-radius:0 0 var(--r2) var(--r2)}
+  .ki-mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px}
+  .ki-m label{display:block;font-size:10.5px;color:var(--txt2);font-weight:700;margin-bottom:2px;letter-spacing:.3px}
+  .ki-m input{width:100%;margin:0;padding:7px 8px;font-size:15px;font-weight:600;text-align:center}
+  .sheet-x{position:sticky; top:0; float:right; z-index:8; width:36px; height:36px; border-radius:50%;
+    background:var(--bg2); border:1px solid var(--line2); color:var(--txt); font-size:15px;
+    display:flex; align-items:center; justify-content:center; margin:-6px -6px 0 0;
+    box-shadow:0 3px 10px rgba(0,0,0,.35); flex:0 0 auto}
+  .sheet-x:active{background:var(--saffron); color:#1a1206}
+  body.sheet-open{overflow:hidden}
+  .sheet{overscroll-behavior:contain}
   .grip{width:56px; height:5px; border-radius:5px; background:var(--line2); margin:0 auto 14px;
     cursor:grab; touch-action:none; position:relative}
   .grip::after{content:''; position:absolute; left:-40px; right:-40px; top:-14px; bottom:-14px}
@@ -424,6 +454,7 @@
     font-size:13px; font-weight:600; z-index:130; opacity:0; transition:.25s; pointer-events:none; max-width:90%}
   .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
   .toast.ok{border-color:var(--ok)} .toast.bad{border-color:var(--bad)}
+  #railToggle{display:none}
   .fab-pad{height:10px}
   body.simple-mode{font-size:17px}
   body.simple-mode .btn{padding:14px 16px; font-size:16px}
@@ -460,12 +491,20 @@
      navigation moves to a left sidebar, the content column widens, and detail sheets
      become a right-hand PANEL beside the list instead of covering it — the list stays
      visible and usable, which is the whole point of the big screen. */
-  @media (min-width:1024px){
-    header{padding-left:230px}
+  @media (min-width:1200px) and (pointer:fine){
+    header{padding-left:var(--railw,230px)}
     header .hrow, header .searchbar{max-width:1400px; margin-left:auto; margin-right:auto}
-    main{max-width:1400px; padding:18px 24px 40px 254px}
+    main{max-width:1400px; padding:18px 24px 40px calc(var(--railw) + 24px)}
 
-    nav{top:0; bottom:0; right:auto; left:0; width:230px; flex-direction:column;
+    :root{--railw:230px}
+    body.rail-min{--railw:64px}
+    body.rail-min nav button span:not(.nico){display:none}
+    body.rail-min nav button{justify-content:center; padding:12px 0}
+    body.rail-min #railToggle{transform:rotate(180deg)}
+    #railToggle{display:flex; align-items:center; justify-content:center; position:fixed;
+      left:calc(var(--railw) - 15px); top:26px; width:30px; height:30px; border-radius:50%;
+      background:var(--card); border:1px solid var(--line2); color:var(--txt2); font-size:13px; z-index:70}
+    nav{top:0; bottom:0; right:auto; left:0; width:var(--railw); flex-direction:column;
       justify-content:flex-start; gap:4px; padding:78px 12px 18px; border-top:0;
       border-right:1px solid var(--line); z-index:60}
     nav button{flex:0 0 auto; flex-direction:row; justify-content:flex-start; gap:12px;
@@ -483,6 +522,7 @@
       box-shadow:-18px 0 44px rgba(0,0,0,.5); animation:slidein .18s ease; padding-bottom:28px}
     @keyframes slidein{from{transform:translateX(100%)} to{transform:none}}
     .scrim .sheet .grip{display:none}
+
     /* the confirm/pick modal stays centred — it is a decision, not a workspace */
     .mscrim{background:rgba(0,0,0,.6); align-items:center; justify-content:center; pointer-events:auto}
     .mscrim .sheet{width:640px; max-width:640px; height:auto; max-height:86vh;
@@ -507,7 +547,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v137</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v145</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -539,6 +579,7 @@
   <button id="nav-invoices" onclick="navQuick('invoices')" class="simple-hide mod-billing"><span class="nico">🧾</span><span data-t="nav_sale"></span></button>
   <button id="nav-purchases" onclick="navQuick('purchases')" class="simple-hide mod-billing"><span class="nico">📦</span><span data-t="nav_purchases"></span></button>
 </nav>
+<button id="railToggle" onclick="toggleRail()" title="Show / hide the sidebar">‹</button>
 
 <div id="fracbar">
   <div class="fb-row fb-top">
@@ -663,7 +704,12 @@ const T={
   meas_ph:'Measurement name (e.g. Kali)',
   voice_dl:'Voice note downloaded — attach it in WhatsApp',
   order_notes:'Order Notes',
-  notes_ph:'Any general note…',
+  ki_no_meas:'No measurements on this piece yet',
+  del_title:'Delete?',
+  del_salesman_q:'Delete {n} from the salesman list? Past orders keep his name.',
+  del_voice_q:'Delete this voice note? It cannot be recovered.',
+  del_log_q:'Delete this entry from the update log?',
+  notes:'Notes', notes_ph:'Any general note…',
   photo_label:'Fabric / Reference Photo',
   add_photo:'Add photo',
   cancel:'Cancel',
@@ -913,7 +959,7 @@ const T={
   im_name_ph:'e.g. Suit 3 Pc',
   im_hsn:'HSN code',
   im_rate:'Default rate ₹ (optional)',
-  stk_sell:'Sale rate ₹/mtr',
+  stk_sell:'Sale rate ₹/mtr', stk_cost_ph:'Cost ₹/mtr',
   stk_sell_hint:'Purchase rate is your cost. Sale rate is what goes on the customer bill — leave it blank and the bill asks you to type the rate.',
   pos_no_sell:'sale rate not set',
   im_incl:'What does it include?',
@@ -1222,9 +1268,11 @@ const T={
   su_need_name:'Please enter your shop name',
   mod_off:'That section is switched off in Settings',
   kb_title:'Karigar Ledger',
+  urgent:'Urgent', urgent_on:'Urgent — tap to clear', urgent_off:'Mark urgent',
+  urgent_marked:'marked Urgent', urgent_cleared:'Urgent cleared', ab_urgent:'Marked urgent',
   pb_title:'Photos backup', pb_hint:'Photos go out in parts, so a large collection never crashes the app.',
   pb_sub:'{n} photos and voice notes, in {p} parts. Save one part at a time.',
-  pb_part:'Part {n} of {of}', pb_files:'files {a} – {b}', pb_again:'Save again',
+  pb_part:'Part {n} of {of}', pb_files:'files {a} – {b}', pb_files_n:'{n} files', pb_again:'Save again', pb_planning:'Checking file sizes…',
   pb_none:'No photos or voice notes yet.', pb_busy:'One part is still being prepared.',
   pb_saved:'{n} files saved', pb_note:'Keep the parts together — a restore needs all of them. The data backup above already holds your orders, measurements and accounts.',
   ks_sub:'His account line by line — correct any rate here and the total follows.',
@@ -1269,6 +1317,7 @@ const T={
   stk_serial_far_title:'Serial is out of sequence',
   stk_serial_far:'{s} is far outside your numbering — the next one in sequence is {n}. Save it anyway?',
   stk_bulk_shared_btn:'Category · Supplier · Sale rate',
+  stk_bulk_rate_note:'The ₹/mtr box on each line is your COST. The Sale rate above is what the customer bill uses.',
   au_highest:'Highest serial numbers', au_highest_hint:'The next serial is built from the highest one here — including rolls already finished, which the stock list hides. A stray high number here is why a new roll gets an unexpected serial. Open it to correct or delete it.',
   stk_sort_name:'By name',
   stk_sort_new:'Newest first', stk_sort_serial:'Serial order',
@@ -1804,7 +1853,12 @@ const T={
   meas_ph:'नाप का नाम (जैसे कली)',
   voice_dl:'वॉइस नोट डाउनलोड हुआ — WhatsApp में भेजें',
   order_notes:'ऑर्डर नोट',
-  notes_ph:'कोई भी नोट…',
+  ki_no_meas:'इस पीस के नाप अभी नहीं हैं',
+  del_title:'हटाएँ?',
+  del_salesman_q:'{n} को सेल्समैन लिस्ट से हटाएँ? पुराने ऑर्डर में नाम रहेगा।',
+  del_voice_q:'यह वॉइस नोट मिटाएँ? वापस नहीं आएगा।',
+  del_log_q:'अपडेट लॉग से यह एंट्री मिटाएँ?',
+  notes:'नोट', notes_ph:'कोई भी नोट…',
   photo_label:'कपड़ा / रेफरेंस फ़ोटो',
   add_photo:'फ़ोटो जोड़ें',
   cancel:'रद्द करें',
@@ -2054,7 +2108,7 @@ const T={
   im_name_ph:'जैसे सूट 3 पीस',
   im_hsn:'HSN कोड',
   im_rate:'डिफ़ॉल्ट रेट ₹ (वैकल्पिक)',
-  stk_sell:'बिक्री रेट ₹/मीटर',
+  stk_sell:'बिक्री रेट ₹/मीटर', stk_cost_ph:'लागत ₹/मी',
   stk_sell_hint:'खरीद रेट आपकी लागत है। बिक्री रेट वही है जो ग्राहक के बिल पर जाएगा — खाली छोड़ेंगे तो बिल में रेट पूछा जाएगा।',
   pos_no_sell:'बिक्री रेट सेट नहीं',
   im_incl:'इसमें क्या-क्या आता है?',
@@ -2363,9 +2417,11 @@ const T={
   su_need_name:'दुकान का नाम भरें',
   mod_off:'यह हिस्सा सेटिंग्स में बंद है',
   kb_title:'कारीगर हिसाब',
+  urgent:'ज़रूरी', urgent_on:'ज़रूरी — हटाने के लिए दबाएँ', urgent_off:'ज़रूरी मार्क करें',
+  urgent_marked:'ज़रूरी मार्क किया', urgent_cleared:'ज़रूरी हटाया', ab_urgent:'ज़रूरी मार्क किए हुए',
   pb_title:'फोटो बैकअप', pb_hint:'फोटो हिस्सों में जाती हैं, इसलिए बड़ा कलेक्शन ऐप को नहीं गिराता।',
   pb_sub:'{n} फोटो और वॉइस नोट, {p} हिस्सों में। एक बार में एक हिस्सा सेव करें।',
-  pb_part:'हिस्सा {n} / {of}', pb_files:'फ़ाइल {a} – {b}', pb_again:'दोबारा सेव करें',
+  pb_part:'हिस्सा {n} / {of}', pb_files:'फ़ाइल {a} – {b}', pb_files_n:'{n} फ़ाइलें', pb_again:'दोबारा सेव करें', pb_planning:'फ़ाइल साइज़ जाँची जा रही है…',
   pb_none:'अभी कोई फोटो या वॉइस नोट नहीं।', pb_busy:'एक हिस्सा अभी तैयार हो रहा है।',
   pb_saved:'{n} फ़ाइलें सेव हुईं', pb_note:'सभी हिस्से साथ रखें — रिस्टोर के लिए सब चाहिए। ऊपर वाला डेटा बैकअप आपके ऑर्डर, नाप और हिसाब पहले से रखता है।',
   ks_sub:'उसका हिसाब एक-एक लाइन में — रेट यहीं सुधारें, टोटल अपने आप बदलेगा।',
@@ -2410,6 +2466,7 @@ const T={
   stk_serial_far_title:'सीरियल क्रम से बाहर है',
   stk_serial_far:'{s} आपकी गिनती से बहुत दूर है — क्रम में अगला {n} है। फिर भी सेव करें?',
   stk_bulk_shared_btn:'कैटेगरी · सप्लायर · बिक्री दाम',
+  stk_bulk_rate_note:'हर लाइन का ₹/मी बॉक्स आपकी लागत है। ऊपर वाला बिक्री दाम ग्राहक के बिल में जाता है।',
   au_highest:'सबसे बड़े सीरियल नंबर', au_highest_hint:'अगला सीरियल इन्हीं में से सबसे बड़े से बनता है — उन थानों समेत जो ख़त्म हो चुके हैं और सूची में नहीं दिखते। यहाँ कोई ग़लत बड़ा नंबर हो तो नए थान का सीरियल उसी वजह से अलग आता है। सुधारने या हटाने के लिए खोलें।',
   stk_sort_name:'नाम से',
   stk_sort_new:'नए पहले', stk_sort_serial:'सीरियल क्रम',
@@ -3922,7 +3979,7 @@ function bulkEntryCardHTML(){
   return `<div class="bf-l1">
         <input id="bfSerial" value="${esc(_bulk.entry.serial||nextSerial())}" placeholder="Serial *" oninput="bulkEntry('serial',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();var m=$('#bfMtr');if(m)m.focus();}">
         <input id="bfMtr" type="number" inputmode="decimal" value="${esc(_bulk.entry.mtr)}" placeholder="Mtr *" oninput="bulkEntry('mtr',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();var r=$('#bfRate');if(r)r.focus();}">
-        <input id="bfRate" type="number" inputmode="numeric" value="${esc(_bulk.entry.rate)}" placeholder="₹/mtr" oninput="bulkEntry('rate',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();bulkAddOne();}">
+        <input id="bfRate" type="number" inputmode="numeric" value="${esc(_bulk.entry.rate)}" placeholder="${t('stk_cost_ph')}" oninput="bulkEntry('rate',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();bulkAddOne();}">
       </div>
       <div class="bf-l2" style="margin-top:8px">
         <input id="bfName" value="${esc(_bulk.entry.name)}" placeholder="Name (optional)" oninput="bulkEntry('name',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();bulkAddOne();}">
@@ -3933,9 +3990,9 @@ function bulkEntryCardHTML(){
 }
 function bulkAddedHTML(){
   const added=_bulk.added||[];
-  const totalMtr=added.reduce((s,a)=>s+(+a.mtr||0),0);
+  const totalMtr=r2(added.reduce((s,a)=>s+(+a.mtr||0),0));
   const rows=added.map(a=>`<div class="pur-collapsed">
-     <div style="min-width:0"><b>#${esc(a.serial)} · ${esc(a.name)}</b><div class="hint">${a.mtr} mtr${a.rate?` · ₹${esc(a.rate)}/mtr`:''}</div></div>
+     <div style="min-width:0"><b>#${esc(a.serial)} · ${esc(a.name)}</b><div class="hint">${r2(a.mtr)} mtr${a.rate?` · ₹${esc(a.rate)}/mtr`:''}</div></div>
      <button class="btn sm danger" style="flex:0 0 auto" onclick="bulkDelAdded('${a.id}')">✕</button></div>`).join('');
   return added.length?`<div class="hint" style="margin:2px 0 8px">✅ ${added.length} added · ${totalMtr} mtr total</div>${rows}`:`<p class="hint" style="text-align:center;padding:8px 0">Add your first thaan above ↑</p>`;
 }
@@ -3948,7 +4005,7 @@ function bulkFabRefresh(){
 }
 function bulkFabRender(){
   const added=_bulk.added||[];
-  const totalMtr=added.reduce((s,a)=>s+(+a.mtr||0),0);
+  const totalMtr=r2(added.reduce((s,a)=>s+(+a.mtr||0),0));
   const addedHTML=added.map(a=>`<div class="pur-collapsed">
      <div style="min-width:0"><b>#${esc(a.serial)} · ${esc(a.name)}</b><div class="hint">${a.mtr} mtr${a.rate?` · ₹${esc(a.rate)}/mtr`:''}</div></div>
      <button class="btn sm danger" style="flex:0 0 auto" onclick="bulkDelAdded('${a.id}')">✕</button></div>`).join('');
@@ -3965,11 +4022,12 @@ function bulkFabRender(){
     <p class="hint" style="margin:2px 0 6px">${t('stk_bulk_shared')}</p>
     <button class="btn sm ghost block" style="margin-bottom:10px" onclick="bulkMore()">${t('hide_x')}</button>`
     :`<button class="btn sm ghost block" style="margin-bottom:12px" onclick="bulkMore()">⚙️ ${t('stk_bulk_shared_btn')}${(_bulk.cat||_bulk.party||_bulk.sell)?' ✓':''} ▾</button>`}
+    <p class="hint" style="margin:-6px 0 10px">💡 ${t('stk_bulk_rate_note')}</p>
     <div class="card" id="bfEntryCard" style="padding:10px;border-color:var(--saffron);margin-bottom:14px">
       <div class="bf-l1">
         <input id="bfSerial" value="${esc(_bulk.entry.serial||nextSerial())}" placeholder="Serial *" oninput="bulkEntry('serial',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();var m=$('#bfMtr');if(m)m.focus();}">
         <input id="bfMtr" type="number" inputmode="decimal" value="${esc(_bulk.entry.mtr)}" placeholder="Mtr *" oninput="bulkEntry('mtr',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();var r=$('#bfRate');if(r)r.focus();}">
-        <input id="bfRate" type="number" inputmode="numeric" value="${esc(_bulk.entry.rate)}" placeholder="₹/mtr" oninput="bulkEntry('rate',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();bulkAddOne();}">
+        <input id="bfRate" type="number" inputmode="numeric" value="${esc(_bulk.entry.rate)}" placeholder="${t('stk_cost_ph')}" oninput="bulkEntry('rate',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();bulkAddOne();}">
       </div>
       <div class="bf-l2" style="margin-top:8px">
         <input id="bfName" value="${esc(_bulk.entry.name)}" placeholder="Name (optional)" oninput="bulkEntry('name',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();bulkAddOne();}">
@@ -3998,7 +4056,7 @@ function thaanDetail(id){
     <p class="hint" style="margin-bottom:12px">${esc(f.name||'')}${f.category?' · '+esc(f.category):''}</p>
     <div class="card pos-total" style="margin-bottom:12px">
       <div class="sum-row"><span>${t('stk_purchased')}</span><b>${+th.mtr||0} m</b></div>
-      <div class="sum-row"><span>${t('stk_used')}</span><b class="neg">− ${+th.used||0} m</b></div>
+      <div class="sum-row"><span>${t('stk_used')}</span><b class="neg">− ${r2(th.used)} m</b></div>
       <div class="sum-row grand"><span>${t('stk_balance')}</span><b>${thaanBal(th)} m</b></div>
       ${th.rate?`<div class="sum-row due" style="border-top:1px dashed var(--saffron)">
         <span>${t('stk_value')} @ ${money(th.rate)}/m</span><b>${money(thaanValue(th))}</b></div>`:''}
@@ -6251,10 +6309,11 @@ function abBuckets(){
   const stuck  =p.filter(x=>!x.recv&&x.kid&&x.issued&&daysLeft(x.issued)!==null&&(-daysLeft(x.issued))>=AB_STUCK);
   const payable=r2((DB.karigars||[]).reduce((s,k)=>s+karBalance(k.id),0));
   const qcDue=p.filter(x=>x.st==='ready' && !((x.o.qc||{})[x.gid]));
+  const urgent=p.filter(x=>notReady(x) && !!((x.o.urgent||{})[x.gid]));
   const courier=(DB.orders||[]).filter(o=>isCourier(o)&&!courierSent(o)&&!orderDelivered(o)&&orderAllReady(o))
     .map(o=>({o,gid:(o.items||[])[0],g:G((o.items||[])[0]),st:'ready',kid:'',issued:'',recv:'',
       dl:o.deliveryDate?daysLeft(o.deliveryDate):null}));
-  return {late,soon,noKar,stuck,payable,courier,qcDue,
+  return {late,soon,noKar,stuck,payable,courier,qcDue,urgent,
     sort:a=>a.slice().sort((x,y)=>String(x.o.deliveryDate||'9999').localeCompare(String(y.o.deliveryDate||'9999')))};
 }
 function abRowHTML(x,showAge){
@@ -6274,7 +6333,8 @@ function actionBoardHTML(){
   const row=(ico,lbl,n,kind,col)=>n?`<div class="krow fu-open" onclick="actionList('${kind}')">
     <span class="kpc" style="${col?'color:'+col:''}">${n}</span>
     <span class="kn">${ico} ${lbl}</span><span style="color:var(--saffron2)">›</span></div>`:'';
-  const inner=row('🔴',t('ab_late'),b.late.length,'late','var(--bad)')
+  const inner=row('🔴',t('ab_urgent'),b.urgent.length,'urgent','var(--bad)')
+    + row('🔴',t('ab_late'),b.late.length,'late','var(--bad)')
     + row('🟠',t('ab_soon',{n:AB_SOON}),b.soon.length,'soon','var(--saffron2)')
     + row('⚠️',t('ab_nokar'),b.noKar.length,'nokar','')
     + row('⏳',t('ab_stuck',{n:AB_STUCK}),b.stuck.length,'stuck','')
@@ -6294,7 +6354,8 @@ function actionBoardHTML(){
 }
 function actionList(kind){
   const b=abBuckets();
-  const map={late:['🔴',t('ab_late'),b.late,false],
+  const map={urgent:['🔴',t('ab_urgent'),b.urgent,false],
+             late:['🔴',t('ab_late'),b.late,false],
              soon:['🟠',t('ab_soon',{n:AB_SOON}),b.soon,false],
              nokar:['⚠️',t('ab_nokar'),b.noKar,false],
              stuck:['⏳',t('ab_stuck',{n:AB_STUCK}),b.stuck,true],
@@ -7271,10 +7332,20 @@ async function renderCustBody(){const el=$('#cu_body');if(!el)return;
     const pid=(c2.bodyPhotos||{})[s]; if(pid)await mDel(pid); if(c2.bodyPhotos)delete c2.bodyPhotos[s]; save(); renderCustBody();});}
 /* ---- manage salesmen straight from the order form ---- */
 function ordManageSalesman(){captureForm();const list=DB.salesmen||[];
-  const html=list.length?list.map(k=>`<div class="kv"><span>🧑‍💼 ${esc(k.name)}${k.phone?` <span class="hint">${esc(k.phone)}</span>`:''}</span><span onclick="ordDelSalesman('${k.id}')" style="color:#d9534f;cursor:pointer">🗑️</span></div>`).join(''):`<p class="hint">${t('sm_none_yet')}</p>`;
+  const html=(list.length?list.map(k=>`<div class="kv" style="padding:6px 0"><span>🧑‍💼 ${esc(k.name)}${k.phone?` <span class="hint">${esc(k.phone)}</span>`:''}</span>
+      <span style="display:flex;gap:8px"><span onclick="ordEditSalesman('${k.id}')" style="cursor:pointer">✏️</span>
+      <span onclick="ordDelSalesman('${k.id}')" style="color:#d9534f;cursor:pointer">🗑️</span></span></div>`).join(''):`<p class="hint">${t('sm_none_yet')}</p>`)
+    +`<button class="btn ghost block" style="margin-top:10px" onclick="ordEditSalesman('')">+ ${t('add_salesman')}</button>`;
   modal('🧑‍💼 '+t('ml_manage'),html,[{label:t('close'),cls:'ghost',fn:()=>renderForm()}]);}
-function ordDelSalesman(id){DB.salesmen=(DB.salesmen||[]).filter(x=>x.id!==id);
-  if(window.form&&form.salesmanId===id)form.salesmanId=''; save(); ordManageSalesman();}
+/* Same editor as the master screen; _smBack just remembers where to come back to. */
+let _smBack=null;
+function ordEditSalesman(id){ _smBack='order'; closeModal(); salesmanEdit(id||''); }
+function ordDelSalesman(id){
+  const s=(DB.salesmen||[]).find(x=>x.id===id);
+  confirmModal(t('del_title'),t('del_salesman_q',{n:esc((s||{}).name||'')}),()=>{
+    DB.salesmen=(DB.salesmen||[]).filter(x=>x.id!==id);
+    if(window.form&&form.salesmanId===id)form.salesmanId=''; save(); ordManageSalesman();
+  });}
 let _custPhotoId=null;
 function pickCustPhoto(id,src){ _custPhotoId=id; photoTarget={type:'cust'};
   const inp=src==='cam'?$('#filePickCam'):$('#filePick'); inp.value=''; inp.click(); }
@@ -7533,7 +7604,7 @@ function delMember(mid){
 /* ONE item open at a time. With four garments on one person the old form was four
    full measurement sheets stacked — endless scrolling, and things get missed.
    A filled item now folds into a single summary line. */
-let _openItem=null, _odX=false, _odItem=null;
+let _openItem=null, _odX=false, _odItem=null, _odInfo=false;
 function measFilledCount(f,key){
   const g=G(key); if(!g)return {done:0,total:0,len:''};
   const cols=vcols(g), vals=f.m[key]||{};
@@ -7636,7 +7707,8 @@ function measCardHTML(f,key){
     if(col.type==='select'){const opts=['<option value="">—</option>'].concat((col.options||[]).map(o=>`<option value="${esc(o)}" ${val===o?'selected':''}>${esc(o)}</option>`)).join('');
       return `<div class="mfield"><label>${esc(col.n)}</label><select class="mInput" data-g="${dkey}" data-k="${col.k}" style="width:100%;background:transparent;border:none;color:var(--txt);font-size:15px;font-weight:600;outline:none">${opts}</select></div>`;}
     return `<div class="mfield ${isLen?'lenhl':''}"><label>${esc(col.n)}${isLen?' ★':''}</label>
-      <input class="mInput ${val?'filled':''}" inputmode="${col.type==='text'?'text':'decimal'}" data-g="${dkey}" data-k="${col.k}" value="${esc(val)}" placeholder="—"></div>`;}).join('');
+      <input class="mInput ${val?'filled':''}" inputmode="${col.type==='text'?'text':'decimal'}" data-g="${dkey}" data-k="${col.k}" value="${esc(val)}" placeholder="—"
+        onkeydown="if(event.key==='Enter'){measStep(event,1)}"></div>`;}).join('');
 
   const vlist=(DB.variantLib&&DB.variantLib[gid])||[];
   const vcur=(f.variant&&f.variant[key])||'';
@@ -7678,7 +7750,7 @@ function measCardHTML(f,key){
         // small icon buttons, like the camera in bulk stock entry — a full-width bar for
         // something used occasionally was eating the screen on every single item
         if(!_xOpen[key])return `<div class="row" style="margin-top:12px;gap:8px">
-          <button class="btn sm ghost ic-btn ${pc?'has':''}" onclick="pickItemPhoto('cam','${dkey}')">📷${pc?' '+pc:''}</button>
+          <button class="btn sm ghost ic-btn ${pc?'has':''}" onclick="pickItemPhotoQuick('${dkey}')">📷${pc?' '+pc:''}</button>
           <button class="btn sm ghost ic-btn ${vc?'has':''}" onclick="xToggle('${dkey}')">🎙️${vc?' '+vc:''}</button>
           <button class="btn primary" style="flex:1" onclick="itemDone('${dkey}')">✓ ${t('it_done')}</button></div>`;
         return `<div style="margin-top:14px"><div class="hint" style="margin-bottom:4px">🎙️ ${t('voice_notes')}</div>${voiceSection('iv_'+cid)}</div>
@@ -8365,6 +8437,13 @@ function delPayment(id,i){ const o=DB.orders.find(x=>x.id===id); if(!o||!o.payme
 /* ====================== PHOTOS ====================== */
 let photoTarget={type:'order'};
 function pickPhoto(src){captureForm();photoTarget={type:'order'};const inp=src==='cam'?$('#filePickCam'):$('#filePick');inp.value='';inp.click();}
+/* the compact icon button offers BOTH sources — a bare camera icon with no way to
+   reach the gallery was the bug he found */
+function pickItemPhotoQuick(gid){
+  modal('📷 '+t('photo_label'),'',
+    [{label:'📷 '+t('camera'),cls:'ghost',fn:()=>pickItemPhoto('cam',gid)},
+     {label:'🖼️ '+t('gallery'),cls:'primary',fn:()=>pickItemPhoto('lib',gid)}]);
+}
 function pickItemPhoto(src,gid){captureForm();photoTarget={type:'item',gid};const inp=src==='cam'?$('#filePickCam'):$('#filePick');inp.value='';inp.click();}
 function pickThaanPhoto(src){thaanCapture();photoTarget={type:'fab'};const inp=src==='cam'?$('#filePickCam'):$('#filePick');inp.value='';inp.click();}
 function pickReadyPhoto(src){readyCapture();photoTarget={type:'rdy'};const inp=src==='cam'?$('#filePickCam'):$('#filePick');inp.value='';inp.click();}
@@ -8460,31 +8539,35 @@ async function openDetail(id,focusGid){
             onchange="setItemKarAmt('${o.id}','${gid}',this.value)" style="width:110px;text-align:right;margin:0"></div>`:''}`:'');
     const _open=(_odItem===gid);
     const _nm=cols.filter(col=>v[col.k]).length;
-    return `<div class="mcard"><div class="mh mh-tap" onclick="odItemToggle('${gid}')">
-        <b>${g.ico} ${esc(itemTitle(o,gid))}${_who?` <span class="who-tag">${esc(_who)}</span>`:''}</b>
+    const urg=!!((o.urgent||{})[gid]);
+    return `<div class="mcard${urg?' mcard-urg':''}"><div class="mh mh-tap" onclick="odItemToggle('${gid}')">
+        <b>${g.ico} ${esc(itemTitle(o,gid))}${_who?` <span class="who-tag">${esc(_who)}</span>`:''}${urg?` <span class="urg-tag">🔴 ${t('urgent')}</span>`:''}</b>
         <span class="hint">${v.L?('L '+esc(v.L)+' · '):''}${_nm} ${t('meas')} ${_open?'▴':'▾'}</span></div><div class="mb">
       ${_open?`<div class="gtags">${cells||'<span class="hint">—</span>'}</div>${dn}`:''}
       ${sStat}
+      <button class="btn sm ${urg?'danger':'ghost'} block" style="margin-top:8px" onclick="toggleUrgent('${o.id}','${gid}')">${urg?'🔴 '+t('urgent_on'):'⚪ '+t('urgent_off')}</button>
       ${legLine}
       ${sQc}
       ${ksel}
       <div class="media-row" id="dip_${gid}" style="margin-top:8px"></div>
       <div id="div_${gid}" style="margin-top:4px"></div>
-      <div class="row" style="margin-top:10px;gap:6px"><button class="btn sm ghost" onclick="itemWA('${o.id}','${gid}')">💬 ${t('whatsapp')}</button><button class="btn sm ghost" onclick="itemPrint('${o.id}','${gid}')">🖨️ ${t('print')}</button></div></div></div>`;}).join('');
+      <div class="row" style="margin-top:10px;gap:6px"><button class="btn sm ghost ic-btn" title="${t('whatsapp')}" onclick="itemWA('${o.id}','${gid}')">💬</button><button class="btn sm ghost ic-btn" title="${t('print')}" onclick="itemPrint('${o.id}','${gid}')">🖨️</button></div></div></div>`;}).join('');
 
   $('#detailPane').innerHTML=`
     <div class="detail-hd"><button class="back" onclick="go('orders')">←</button>
-      <div style="flex:1"><div style="color:var(--saffron);font-size:11px;font-weight:700">#${esc(o.orderNo)}</div><h2>${esc(o.customerName)}</h2></div>
+      <div style="flex:1"><div style="color:var(--saffron);font-size:11px;font-weight:700">#${esc(o.orderNo)} <span onclick="event.stopPropagation();odEditNo('${o.id}')" style="cursor:pointer;opacity:.7">✏️</span></div><h2>${esc(o.customerName)}</h2></div>
       <button class="btn sm ghost" onclick="orderMenu('${o.id}')">⋯</button></div>
 
-    <div class="card">
+    <button class="btn ghost block od-info-btn" style="margin-bottom:8px" onclick="odInfoToggle()">
+      📞 ${esc(o.phone||'—')} ${dl!==null&&st!=='delivered'?('· '+(dl<0?Math.abs(dl)+'d '+t('late'):dl+'d')):''} ${baaki>0.5?('· '+t('baaki')+' '+money(baaki)):''} ${_odInfo?'▴':'▾'}</button>
+    <div class="od-x${_odInfo?' on':''}"><div class="card">
       <div class="kv"><span>${t('phone')}</span><b><a onclick="callNum('${esc(o.phone)}')" style="cursor:pointer;text-decoration:underline">${esc(o.phone||'—')}</a></b></div>
       ${o.salesmanId?`<div class="kv"><span>🧑‍💼 ${t('salesman')}</span><b>${esc(salesmanName(o.salesmanId))}</b></div>`:''}
       <div class="kv"><span>${t('order_date')} / ${t('delivery')}</span><b>${fmtDate(o.orderDate)} → ${fmtDate(o.deliveryDate)} ${dl!==null&&st!=='delivered'?`<span class="deliv ${dl<0?'soon':dl<=4?'soon':''}" style="margin-left:4px">${dl<0?Math.abs(dl)+'d '+t('late'):dl+'d'}</span>`:''}</b></div>
       <div class="kv"><span>${t('total')}</span><b>${money(o.total)}</b></div>
       <div class="kv"><span>${t('received')}</span><b>${money(orderReceived(o))}</b></div>
       <div class="kv"><span>${t('baaki')}</span><b style="color:var(--saffron2);font-size:16px">${money(baaki)}</b></div>
-    </div>
+    </div></div>
 
     ${(()=>{const np=(o.payments||[]).length, nl=(o.log||[]).length, nv=(o.voiceNotes||[]).length;
       const cloth=Object.keys(o.cost||{}).some(k=>((o.cost[k]||{}).cuts||[]).length);
@@ -8820,8 +8903,10 @@ function delAltPayment(id,i){const a=altById(id);if(!a||!a.payments)return;
 function addAltUpdate(id){const a=altById(id);const txt=$('#upTextA').value.trim();if(!txt)return;
   a.log=a.log||[];a.log.push({id:uid(),ts:new Date().toISOString(),text:txt,voiceId:null});
   $('#upTextA').value='';save();renderAltTimeline(a);toast(t('t_update_added'),'ok');}
-function delAltUpdate(id,eid){const a=altById(id);const e=(a.log||[]).find(x=>x.id===eid);
-  if(e&&e.voiceId)mDel(e.voiceId);a.log=a.log.filter(x=>x.id!==eid);save();renderAltTimeline(a);}
+function delAltUpdate(id,eid){const a=altById(id);if(!a)return;
+  confirmModal(t('del_title'),t('del_log_q'),()=>{
+    const e=(a.log||[]).find(x=>x.id===eid);
+    if(e&&e.voiceId)mDel(e.voiceId);a.log=a.log.filter(x=>x.id!==eid);save();renderAltTimeline(a);});}
 async function renderAltTimeline(a){const el=$('#altTimeline');if(!el)return;
   const log=(a.log||[]).slice().reverse();
   if(!log.length){el.innerHTML='';return;}
@@ -9234,7 +9319,7 @@ function renderInvoiceForm(){
     </details>
 
     <div class="modal-actions"><button class="btn ghost" onclick="closeSheet()">${t('cancel')}</button>
-      <button class="btn ghost" onclick="previewInvoice()">👁️</button>
+      <button class="btn ghost" onclick="previewInvoice()">👁️ ${t('preview')}</button>
       <button class="btn primary" style="flex:2" onclick="saveInvoice()">💾 ${t('save_generate')}</button></div>
     <div class="fab-pad"></div>`;
   posRefresh();
@@ -9474,6 +9559,18 @@ function posPushItem(o){
   invForm.items=(invForm.items||[]).filter(it=>it.label||+it.rate);
   invForm.items.push(Object.assign({masterId:'',label:'',hsn:'',qty:1,unit:'Pcs',rate:'',price:'',disc:0,incl:[],includes:''},o));
   posRefresh();
+  posFocusLine(invForm.items.length-1);
+}
+/* Put the caret where the next keystroke belongs on the line just added. */
+function posFocusLine(i){
+  setTimeout(()=>{
+    const it=(invForm&&invForm.items||[])[i]; if(!it)return;
+    const sel=(it.label&&!it.rate)?'[data-irate="'+i+'"]':(it.label?'[data-irate="'+i+'"]':'[data-iin="'+i+'"]');
+    const el=document.querySelector('#posLines '+sel); if(!el)return;
+    const card=document.getElementById('posLine'+i);
+    if(card&&card.scrollIntoView)try{card.scrollIntoView({block:'center'});}catch(e){}
+    try{ el.focus({preventScroll:true}); if(el.select)el.select(); }catch(e){}
+  },0);
 }
 function posSearchNote(name){ const el=$('#posSearchAdded'); if(el)el.textContent='✓ '+t('added')+': '+name; const q=$('#posSearchQ'); if(q){q.value='';q.focus();} posSearchRun(''); }
 function posAddTyped(){ const inp=$('#posSearchQ'); if(!inp)return; const v=(inp.value||'').trim(); if(!v)return; posPushItem({label:v}); posSearchNote(v); }
@@ -10910,7 +11007,7 @@ function sugFacts(o){
   else if(v.masterId){ const m=(DB.itemMaster||[]).find(x=>x.id===v.masterId);
     if(m){ const q=readyTotal(m); bits.push(q>0?(q+' '+t('stk_in')):t('stk_none')); if(m.cost)bits.push('₹'+m.cost); } }
   else if(v.fabId){ const rolls=(DB.thaans||[]).filter(x=>x.fabId===v.fabId);
-    const bal=rolls.reduce((s,x)=>s+thaanBal(x),0);
+    const bal=r2(rolls.reduce((s,x)=>s+thaanBal(x),0));
     bits.push(bal>0?(r2(bal)+' m '+t('stk_in')):t('stk_none'));
     const last=rolls.filter(x=>x.rate).pop(); if(last)bits.push('₹'+last.rate+'/m'); }
   if(v.rate&&!bits.length)bits.push('₹'+v.rate);
@@ -11560,6 +11657,22 @@ function setItemQC(oid,gid,on){
 }
 /* one item's measurements open at a time — tap the header to read them */
 function odItemToggle(gid){ _odItem=(_odItem===gid)?null:gid; if(_curDetailId)openDetail(_curDetailId); }
+/* Editing the order number from where he actually sees it — the detail header —
+   instead of making him open the full Edit form just to fix a typo'd number. */
+function odEditNo(oid){
+  const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
+  modal('✏️ '+t('order_no'),
+    `<div class="field"><input id="odNoIn" value="${esc(o.orderNo)}" placeholder="2481"></div>`,
+    [{label:t('cancel'),cls:'ghost',fn:closeSheet},
+     {label:t('save'),cls:'primary',fn:()=>{
+        const v=(($('#odNoIn')||{}).value||'').trim();
+        if(!v){toast(t('t_no_ono'),'bad');return;}
+        const dup=(DB.orders||[]).some(x=>x.id!==o.id&&String(x.orderNo||'').trim()===v);
+        if(dup){toast(t('t_dup'),'bad');return;}
+        o.orderNo=v; touchOrder(o.id); save(o.id); closeSheet(); refreshDetail(oid);
+     }}]);
+}
+function odInfoToggle(){ _odInfo=!_odInfo; if(_curDetailId)openDetail(_curDetailId); }
 function odXToggle(){ _odX=!_odX; const el=document.querySelector('.od-x'); if(el)el.classList.toggle('on',_odX);
   const b=el&&el.previousElementSibling; if(b)b.innerHTML=b.innerHTML.replace(_odX?'▾':'▴', _odX?'▴':'▾'); }
 /* move a piece FORWARD to a stage, never backwards, and write it into the order log so
@@ -11576,6 +11689,18 @@ function advanceStatus(o,gid,to){
 /* Redraw the WHOLE order screen after any change, keeping the scroll where it was.
    Patching one part of the page and leaving the rest describing an older state is what
    made controls behave as if they had stopped working. Correctness over cleverness. */
+/* His actual words: "master ko urgent likh kar bata dete hain, design samjha dete hain" —
+   this is that mark. It rides on the piece itself, so it travels wherever the piece is
+   shown: the order, the give-work list, priority actions. */
+function toggleUrgent(oid,gid){
+  const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
+  o.urgent=o.urgent||{};
+  const on=!o.urgent[gid];
+  if(on)o.urgent[gid]=true; else delete o.urgent[gid];
+  const g=G(gid); o.log=o.log||[];
+  o.log.push({id:uid(),ts:new Date().toISOString(),text:(g?g.n+': ':'')+(on?t('urgent_marked'):t('urgent_cleared')),voiceId:null});
+  touchOrder(o.id); save(o.id); refreshDetail(oid);
+}
 function refreshDetail(oid){
   const sh=$('#sheet'); const y=sh?sh.scrollTop:0;
   openDetail(oid);
@@ -11600,8 +11725,10 @@ async function renderTimeline(o){
     </div><button class="btn sm danger" style="padding:4px 8px" onclick="delUpdate('${o.id}','${e.id}')">✕</button></div>`).join('')}</div>`;
   for(const a of el.querySelectorAll('audio[data-aud]')){const url=await mURL(a.dataset.aud);if(url)a.src=url;}
 }
-function delUpdate(id,eid){const o=DB.orders.find(x=>x.id===id);const e=(o.log||[]).find(x=>x.id===eid);
-  if(e&&e.voiceId)mDel(e.voiceId);o.log=o.log.filter(x=>x.id!==eid);save();renderTimeline(o);}
+function delUpdate(id,eid){const o=DB.orders.find(x=>x.id===id);if(!o)return;
+  confirmModal(t('del_title'),t('del_log_q'),()=>{
+    const e=(o.log||[]).find(x=>x.id===eid);
+    if(e&&e.voiceId)mDel(e.voiceId);o.log=o.log.filter(x=>x.id!==eid);save();renderTimeline(o);});}
 function addUpdate(id){const o=DB.orders.find(x=>x.id===id);const txt=$('#upText').value.trim();
   if(!txt)return;
   o.log=o.log||[];o.log.push({id:uid(),ts:new Date().toISOString(),text:txt,voiceId:null});
@@ -11640,7 +11767,11 @@ async function shareVoice(voiceId){
   try{ const url=URL.createObjectURL(b); const a=document.createElement('a'); a.href=url; a.download='voice-note.'+ext; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),4000); toast(t('voice_dl'),'ok'); }
   catch(e){ toast(t('voice_share_na'),'bad'); }
 }
-function delVoice(prefix,vid){const ctx=voiceCtx[prefix];if(!ctx)return;const list=ctx.getList();const v=list.find(x=>x.id===vid);  if(v&&v.voiceId)mDel(v.voiceId);const i=list.indexOf(v);if(i>=0)list.splice(i,1);ctx.persist&&ctx.persist();renderVoiceList(prefix);toast(t('t_voice_del'));}
+function delVoice(prefix,vid){const ctx=voiceCtx[prefix];if(!ctx)return;
+  confirmModal(t('del_title'),t('del_voice_q'),()=>{
+    const list=ctx.getList();const v=list.find(x=>x.id===vid);
+    if(v&&v.voiceId)mDel(v.voiceId);const i=list.indexOf(v);if(i>=0)list.splice(i,1);
+    ctx.persist&&ctx.persist();renderVoiceList(prefix);toast(t('t_voice_del'));});}
 async function recToggle(btn,lbl,onDone){
   if(recorder&&recorder.state==='recording'){recorder.stop();return;}
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){micHelp();return;}
@@ -12122,7 +12253,11 @@ function kiItemsFree(kid){                    // nothing assigned yet, still to 
     if(back && cur===kid)return;                 // do not offer him back his own finished leg
     out.push({o,gid,g,prev:back?cur:''});
   }));
-  return out.sort((a,b)=>String(a.o.deliveryDate||'').localeCompare(String(b.o.deliveryDate||'')));
+  return out.sort((a,b)=>{
+    const ua=!!((a.o.urgent||{})[a.gid]), ub=!!((b.o.urgent||{})[b.gid]);
+    if(ua!==ub)return ua?-1:1;                                    // urgent first, always
+    return String(a.o.deliveryDate||'').localeCompare(String(b.o.deliveryDate||''));
+  });
 }
 function kiItemsWith(kid){                    // given to him, not yet handed back
   const out=[];
@@ -12132,28 +12267,96 @@ function kiItemsWith(kid){                    // given to him, not yet handed ba
     const g=G(gid); if(!g)return;
     out.push({o,gid,g});
   }));
-  return out.sort((a,b)=>String(a.o.deliveryDate||'').localeCompare(String(b.o.deliveryDate||'')));
+  return out.sort((a,b)=>{
+    const ua=!!((a.o.urgent||{})[a.gid]), ub=!!((b.o.urgent||{})[b.gid]);
+    if(ua!==ub)return ua?-1:1;
+    return String(a.o.deliveryDate||'').localeCompare(String(b.o.deliveryDate||''));
+  });
+}
+function kiUrgTag(x){
+  return ((x.o.urgent||{})[x.gid]) ? ` <span class="urg-tag">🔴 ${t('urgent')}</span>` : '';
 }
 function kiPrevTag(x){
   if(!x.prev)return '';
   const n=((DB.karigars||[]).find(k=>k.id===x.prev)||{}).name||'';
   return n?` <span class="pill st-alteration" style="font-size:10px">${t('ki_after',{n:esc(n)})}</span>`:'';
 }
-function kiRow(x,kid,inGroup){
+let _kiOpen=null;
+function kiItemToggle(key,kid,mode){ _kiOpen=(_kiOpen===key)?null:key; karigarIssue(kid,mode); }
+/* Everything the master needs, and nothing else — no customer name, no phone, no money owed. */
+function kiDetailHTML(x,kid,mode){
+  const o=x.o, gid=x.gid, g=x.g;
+  const cols=mcols(g), v=(o.m&&o.m[gid])||{};
+  const meas=cols.map(col=>`<div class="ki-m"><label>${esc(col.n)}</label>
+      <input value="${esc(v[col.k]||'')}" placeholder="—" inputmode="${col.type==='text'?'text':'decimal'}"
+        class="mInput" data-g="${esc(gid)}" data-k="${esc(col.k)}"
+        onchange="kiMeasSet('${o.id}','${esc(gid)}','${esc(col.k)}',this.value)"
+        onkeydown="if(event.key==='Enter'){measStep(event,1)}"></div>`).join('');
+  const dn=(o.design&&o.design[gid])?`<div class="hint" style="margin-top:8px">✎ ${esc(o.design[gid])}</div>`:'';
+  const rate=karRateFor(o,gid);
+  const nPh=(o.photos||[]).length, nV=(o.voiceNotes||[]).length;
+  return `<div class="ki-det">
+    <div class="ki-mgrid">${meas||`<span class="hint">${t('ki_no_meas')}</span>`}</div>${dn}
+    <div class="row" style="margin-top:10px;gap:8px;align-items:center">
+      <span class="hint" style="flex:1">💰 ${t('kb_his_rate')}</span>
+      <input type="number" inputmode="numeric" value="${esc(rate||'')}" placeholder="0"
+        onchange="setItemKarAmt('${o.id}','${esc(gid)}',this.value)" style="width:110px;text-align:right;margin:0"></div>
+    <div class="row" style="margin-top:8px;gap:8px;align-items:center">
+      <span class="hint" style="flex:1">📅 ${t('inv_delivery')}</span>
+      <input type="date" value="${esc(o.deliveryDate||'')}"
+        onchange="kiDateSet('${o.id}',this.value,'${kid}','${mode}')" style="width:170px;margin:0"></div>
+    ${(nPh||nV)?`<div class="row" style="margin-top:10px;gap:6px">
+      ${nPh?`<button class="btn sm ghost" onclick="kiShowPhotos('${o.id}')">📷 ${nPh}</button>`:''}
+      ${nV?`<button class="btn sm ghost" onclick="kiPlayVoice('${o.id}')">🎙️ ${nV}</button>`:''}
+    </div>`:''}
+  </div>`;
+}
+function kiMeasSet(oid,gid,k,val){
+  const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
+  o.m=o.m||{}; o.m[gid]=o.m[gid]||{};
+  const v=String(val).trim(); if(v)o.m[gid][k]=v; else delete o.m[gid][k];
+  touchOrder(o.id); save(o.id);
+}
+function kiDateSet(oid,val,kid,mode){
+  const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
+  o.deliveryDate=val||''; touchOrder(o.id); save(o.id);
+  karigarIssue(kid,mode); toast(t('t_saved'),'ok');
+}
+async function kiShowPhotos(oid){
+  const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
+  const ids=o.photos||[]; if(!ids.length)return;
+  const url=await mURL(ids[0]); if(url)viewPhoto(url);
+}
+async function kiPlayVoice(oid){
+  const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
+  const vs=o.voiceNotes||[]; if(!vs.length)return;
+  const b=await mGet(vs[0].voiceId); if(!b){toast(t('voice_share_na'),'bad');return;}
+  const u=URL.createObjectURL(b); const a=new Audio(u);
+  a.onended=()=>URL.revokeObjectURL(u); a.play();
+}
+function kiRow(x,kid,inGroup,mode){
   const key=x.o.id+'~'+x.gid, on=_kiSel.has(key);
+  const _op=(_kiOpen===key);
   const dl=x.o.deliveryDate?daysLeft(x.o.deliveryDate):null;
   const late=dl!==null&&dl<0;
   const col = dl===null?'' : late?'color:var(--bad)' : dl===0?'color:var(--saffron2)':'';
-  if(inGroup)return `<label style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-top:1px solid var(--line);cursor:pointer">
-    <input type="checkbox" ${on?'checked':''} onchange="kiToggle('${esc(key)}')" style="width:22px;height:22px;flex:0 0 auto">
-    <span style="flex:1;min-width:0"><b>${x.g.ico} ${esc(x.g.n)}</b>${kiPrevTag(x)}</span></label>`;
-  return `<label class="cust-result" style="margin-bottom:6px;cursor:pointer;${on?'border-color:var(--saffron)':''}">
-    <input type="checkbox" ${on?'checked':''} onchange="kiToggle('${esc(key)}')" style="width:22px;height:22px;flex:0 0 auto">
-    <div style="flex:1;min-width:0">
-      <b>${x.g.ico} ${esc(x.g.n)}</b>${kiPrevTag(x)}
-      <div class="hint">#${esc(memberOno(x.o,memberOf(x.gid))||x.o.orderNo||'—')}
-        · <span style="${col}">${fmtDate(x.o.deliveryDate)}${late?' · '+Math.abs(dl)+'d '+t('late'):''}</span></div>
-    </div></label>`;
+  if(inGroup)return `<div style="border-top:1px solid var(--line)">
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 12px">
+      <input type="checkbox" ${on?'checked':''} onchange="kiToggle('${esc(key)}')" style="width:22px;height:22px;flex:0 0 auto">
+      <span style="flex:1;min-width:0" onclick="kiToggle('${esc(key)}');this.parentElement.querySelector('input').checked=_kiSel.has('${esc(key)}')">
+        <b>${x.g.ico} ${esc(x.g.n)}</b>${kiUrgTag(x)}${kiPrevTag(x)}</span>
+      <button class="btn sm ghost ic-btn" onclick="kiItemToggle('${esc(key)}','${kid}','${mode||'give'}')">${_op?'▴':'▾'}</button></div>
+    ${_op?kiDetailHTML(x,kid,mode||'give'):''}</div>`;
+  return `<div class="cust-result" style="margin-bottom:6px;flex-direction:column;align-items:stretch;${on?'border-color:var(--saffron)':''}">
+    <div style="display:flex;align-items:center;gap:10px">
+      <input type="checkbox" ${on?'checked':''} onchange="kiToggle('${esc(key)}')" style="width:22px;height:22px;flex:0 0 auto">
+      <div style="flex:1;min-width:0" onclick="kiToggle('${esc(key)}');this.parentElement.querySelector('input').checked=_kiSel.has('${esc(key)}')">
+        <b>${x.g.ico} ${esc(x.g.n)}</b>${kiUrgTag(x)}${kiPrevTag(x)}
+        <div class="hint">#${esc(memberOno(x.o,memberOf(x.gid))||x.o.orderNo||'—')}
+          · <span style="${col}">${fmtDate(x.o.deliveryDate)}${late?' · '+Math.abs(dl)+'d '+t('late'):''}</span></div>
+      </div>
+      <button class="btn sm ghost ic-btn" onclick="kiItemToggle('${esc(key)}','${kid}','${mode||'give'}')">${_op?'▴':'▾'}</button></div>
+    ${_op?kiDetailHTML(x,kid,mode||'give'):''}</div>`;
 }
 function kiToggle(key){ if(_kiSel.has(key))_kiSel.delete(key); else _kiSel.add(key);
   const n=$('#kiCount'); if(n)n.textContent=_kiSel.size; }
@@ -12188,10 +12391,10 @@ function karigarIssue(kid,mode,keepFocus){
           <div class="kv"><b>#${esc(g.o.orderNo||'—')} · ${esc(g.o.customerName||'')}</b>
             <span class="hint">${n?n+'/'+g.items.length+' ✓':t('ki_pick_order')}</span></div>
           <div class="hint" style="${late?'color:var(--bad)':''}">📅 ${fmtDate(g.o.deliveryDate)}${dl!==null?(late?' · '+Math.abs(dl)+'d '+t('late'):' · '+dl+'d'):''}</div></div>
-        ${g.items.map(x=>kiRow(x,kid,true)).join('')}</div>`;}).join('')
+        ${g.items.map(x=>kiRow(x,kid,true,md)).join('')}</div>`;}).join('')
       + pageMoreBtn(_kiKey,list.length);
   }else{
-    rows=pageSlice(_kiKey,list).map(x=>kiRow(x,kid)).join('')+pageMoreBtn(_kiKey,list.length);
+    rows=pageSlice(_kiKey,list).map(x=>kiRow(x,kid,false,md)).join('')+pageMoreBtn(_kiKey,list.length);
   }
   rows=rows||`<p class="hint" style="padding:20px 0;text-align:center">${_kiQ?t('ki_no_match'):(give?t('ki_none_free'):t('ki_none_with'))}</p>`;
   const typeChips=types.length>1?`<div class="gtags" style="margin:10px 0">${types.map(x=>{
@@ -12641,7 +12844,9 @@ function karigarLedger(kid,tab){
   const payList=`${pays.length?pays.map(p=>`<div class="cust-result" style="margin-bottom:6px">
       <div style="min-width:0"><b>${money(p.amt)}${p.settled>0?` <span class="hint">+ ${money(p.settled)} ${t('kb_settled')}</span>`:''}</b>
         <div class="hint">${fmtDate(p.date)}${p.note?' · '+esc(p.note):''}</div></div>
-      <button class="btn sm danger" onclick="karPayDel('${p.id}')">✕</button></div>`).join('')
+      <span style="display:flex;gap:6px;flex:0 0 auto">
+        <button class="btn sm ghost" onclick="karPayEdit('${p.id}')">✏️</button>
+        <button class="btn sm danger" onclick="karPayDel('${p.id}')">✕</button></span></div>`).join('')
     :`<p class="hint" style="padding:14px 0;text-align:center">${t('kb_none_pay')}</p>`}`;
 
   const body = _krTab==='out'  ? (outRows.join('')||`<p class="hint" style="padding:14px 0;text-align:center">${t('kb_nothing_out')}</p>`)
@@ -12714,14 +12919,20 @@ function karigarReport(){
 }
 
 /* ---- Saturday settlement ---- */
-function karPayEntry(kid){
-  const bal=karBalance(kid);
+let _kpEdit=null;
+function karPayEdit(pid){
+  const p=(DB.karigarPays||[]).find(x=>x.id===pid); if(!p)return;
+  _kpEdit=pid; karPayEntry(p.karigarId, p);
+}
+function karPayEntry(kid,ex){
+  _kpEdit = ex ? _kpEdit : null;                 // opening a fresh entry clears any edit
+  const bal=r2(karBalance(kid)+(ex?(+ex.amt||0)+(+ex.settled||0):0));
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">💰 ${t('kb_pay')}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     <p class="hint" style="margin-bottom:12px">${t('kb_pay_sub',{a:money(bal)})}</p>
-    <div class="field"><label>${t('pay_date')}</label>${dateField('kp_date',todayISO())}</div>
+    <div class="field"><label>${t('pay_date')}</label>${dateField('kp_date',(ex&&ex.date)||todayISO())}</div>
     <div class="field" style="margin-top:10px"><label>${t('amount')} ₹</label>
-      <input id="kp_amt" type="number" inputmode="numeric" placeholder="0" value="">
+      <input id="kp_amt" type="number" inputmode="numeric" placeholder="0" value="${ex?esc(ex.amt||''):''}">
       <div class="gtags" style="margin-top:8px">
         <span class="gtag" style="cursor:pointer" onclick="$('#kp_amt').value=${bal>0?bal:0};karPayCalc(${bal})">${t('kb_full')} ${money(bal)}</span>
         <span class="gtag" style="cursor:pointer" onclick="$('#kp_amt').focus()">${t('kb_part')}</span></div></div>
@@ -12732,7 +12943,7 @@ function karPayEntry(kid){
         <input type="checkbox" id="kp_settle" style="width:20px;height:20px;margin-top:2px">
         <span><b style="font-size:14px">${t('kb_settle')}</b><br><span class="hint" style="font-size:12px">${t('kb_settle_hint')}</span></span></label>
     </div>
-    <div class="field" style="margin-top:10px"><label>${t('stk_note')}</label><input id="kp_note" placeholder="${t('kb_note_ph')}"></div>
+    <div class="field" style="margin-top:10px"><label>${t('stk_note')}</label><input id="kp_note" value="${ex?esc(ex.note||''):''}" placeholder="${t('kb_note_ph')}"></div>
     <div class="modal-actions">
       <button class="btn ghost" onclick="karigarLedger('${kid}')">${t('back')}</button>
       <button class="btn primary" onclick="karPaySave('${kid}',${bal})">${t('save')}</button></div>
@@ -12752,6 +12963,14 @@ function karPaySave(kid,bal){
   const settle=!!($('#kp_settle')||{}).checked;
   const short=r2(Math.max(0,bal-amt));
   DB.karigarPays=DB.karigarPays||[];
+  if(_kpEdit){                                   // correcting an existing payment
+    const old=(DB.karigarPays||[]).find(x=>x.id===_kpEdit);
+    if(old){
+      DB.karigarPays=DB.karigarPays.filter(x=>x.id!==_kpEdit);
+      DB.ledger=(DB.ledger||[]).filter(l=>!(l.refKind==='karigar_pay'&&l.date===old.date&&r2(l.amt)===r2(old.amt)));
+    }
+    _kpEdit=null;
+  }
   DB.karigarPays.push({id:uid(),karigarId:kid,date,amt:r2(amt),
     settled: settle?short:0,                     // negotiated off — closes the balance honestly
     acc,note:(($('#kp_note')||{}).value||'').trim()});
@@ -12913,14 +13132,17 @@ function salesmanEdit(id){const ex=id?(DB.salesmen||[]).find(x=>x.id===id):null;
   $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${ex?t('edit'):t('add_salesman')}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     <div class="field"><label>${t('salesman_name')}</label><input id="smName" value="${ex?esc(ex.name):''}" placeholder="${t('salesman_name')}"></div>
     <div class="field" style="margin-top:10px"><label>${t('phone')}</label><input id="smPhone" type="tel" value="${ex?esc(ex.phone||''):''}" placeholder="${t('phone')}"></div>
-    <div class="modal-actions"><button class="btn ghost" onclick="salesmanMaster()">${t('cancel')}</button><button class="btn primary" onclick="salesmanSave('${id||''}')">${t('save')}</button></div>`;
+    <div class="modal-actions"><button class="btn ghost" onclick="salesmanBack()">${t('cancel')}</button><button class="btn primary" onclick="salesmanSave('${id||''}')">${t('save')}</button></div>`;
   showSheet();
 }
+function salesmanBack(){ if(_smBack==='order'){ _smBack=null; renderForm(); ordManageSalesman(); } else salesmanMaster(); }
 function salesmanSave(id){const name=($('#smName').value||'').trim();if(!name){toast(t('salesman_name'),'bad');return;}
   const phone=($('#smPhone')?$('#smPhone').value:'').trim();
   DB.salesmen=DB.salesmen||[];
   if(id){const k=DB.salesmen.find(x=>x.id===id);if(k){k.name=name;k.phone=phone;}}else{DB.salesmen.push({id:uid(),name,phone});}
-  save();salesmanMaster();toast(t('t_saved'),'ok');}
+  save(); if(_smBack==='order'){ _smBack=null; renderForm(); ordManageSalesman(); }
+  else salesmanMaster();
+  toast(t('t_saved'),'ok');}
 function salesmanDelete(id){confirmModal(t('confirm_del'),t('confirm_del_msg'),()=>{DB.salesmen=(DB.salesmen||[]).filter(x=>x.id!==id);
   DB.orders.forEach(o=>{if(o.salesmanId===id)o.salesmanId='';});
   save();salesmanMaster();toast(t('t_deleted'));});}
@@ -13198,8 +13420,8 @@ function blobToB64(b){return new Promise(res=>{const r=new FileReader();r.onload
    photos that is well over a gigabyte of strings held at once, and iPad Safari kills the
    tab — the white screen. Photos now go out in PARTS: each part is built only when he
    taps Save, handed over, and released before the next one. Peak memory is one part. */
-const PB_PER_PART=40;
-let _pbKeys=null, _pbBusy=false;
+const PB_BUDGET_MB=6;                          // per-part RAW byte budget — small on purpose
+let _pbKeys=null, _pbBusy=false, _pbParts=null;
 async function photoBackupKeys(){
   if(_pbKeys)return _pbKeys;
   const keys=(await mKeys()).filter(k=>String(k).indexOf('snap_')!==0&&String(k).indexOf('rec_o_')!==0
@@ -13207,33 +13429,64 @@ async function photoBackupKeys(){
   _pbKeys=keys.sort();
   return _pbKeys;
 }
+/* Group files into parts by their ACTUAL size, not a flat count — one oversized photo
+   or a long voice note must not be allowed to blow a part's memory budget. */
+function bkPlanProgress(i,n){ const s=$('#pbSub'); if(s)s.textContent=t('pb_planning')+' '+i+'/'+n; }
+async function photoBackupPlan(){
+  if(_pbParts)return _pbParts;
+  const keys=await photoBackupKeys();
+  const budget=PB_BUDGET_MB*1024*1024;
+  const parts=[]; let cur=[], curSize=0;
+  /* Sizes are cached: planning walks every file in IndexedDB, and on his iPad that is ~600
+     reads. Doing them back-to-back with no yield froze the tab long enough for Safari to
+     kill it. Now we yield every few files and remember the sizes, so the second visit is
+     instant and the first one never blocks the screen. */
+  let szCache={}; try{ szCache=JSON.parse(localStorage.getItem('pb_ob_szcache')||'{}'); }catch(e){}
+  const fresh={};
+  for(let i=0;i<keys.length;i++){
+    const k=keys[i];
+    let sz=szCache[k];
+    if(sz==null){ try{ const b=await mGet(k); sz=(b&&b.size)||0; }catch(e){ sz=0; } }
+    fresh[k]=sz;
+    if(cur.length && curSize+sz>budget){ parts.push(cur); cur=[]; curSize=0; }
+    cur.push(k); curSize+=sz;
+    if(cur.length>=15){ parts.push(cur); cur=[]; curSize=0; }   // also cap file count per part
+    if(i%5===0){ bkPlanProgress(i+1,keys.length); await bkYield(); }
+  }
+  try{ localStorage.setItem('pb_ob_szcache',JSON.stringify(fresh)); }catch(e){}
+  if(cur.length)parts.push(cur);
+  _pbParts=parts;
+  return parts;
+}
 async function photoBackup(){
   const keys=await photoBackupKeys();
-  const parts=Math.ceil(keys.length/PB_PER_PART);
-  const done=JSON.parse(localStorage.getItem('pb_ob_pbdone')||'[]');
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">🖼️ ${t('pb_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
-    <p class="hint" style="margin-bottom:12px">${t('pb_sub',{n:keys.length,p:parts})}</p>
-    ${parts?Array.from({length:parts},(_,i)=>{
-      const a=i*PB_PER_PART+1, b=Math.min(keys.length,(i+1)*PB_PER_PART);
-      const ok=done.indexOf(i)>=0;
-      return `<div class="card" style="padding:11px 13px;margin-bottom:8px;${ok?'border-color:var(--ok)':''}">
-        <div class="kv"><span><b>${t('pb_part',{n:i+1,of:parts})}</b>
-          <div class="hint">${t('pb_files',{a:a,b:b})}</div></span>
-          <button class="btn sm ${ok?'ghost':'primary'}" onclick="photoBackupPart(${i})">${ok?'✓ '+t('pb_again'):t('save')}</button></div></div>`;
-    }).join(''):`<p class="hint">${t('pb_none')}</p>`}
+    <p class="hint" id="pbSub" style="margin-bottom:12px">${t('pb_planning')}</p>
+    <div id="pbList"><p class="hint" style="padding:16px 0;text-align:center">${t('pb_planning')}</p></div>
     <p class="hint" style="margin-top:10px">${t('pb_note')}</p>
     <div class="modal-actions"><button class="btn ghost block" onclick="backupMenu()">${t('back')}</button></div>
     <div class="fab-pad"></div>`;
   showSheet();
+  const parts=await photoBackupPlan();
+  const done=JSON.parse(localStorage.getItem('pb_ob_pbdone')||'[]');
+  const sub=$('#pbSub'); if(sub)sub.textContent=t('pb_sub',{n:keys.length,p:parts.length});
+  const list=$('#pbList'); if(!list)return;
+  list.innerHTML=parts.length?parts.map((grp,i)=>{
+    const ok=done.indexOf(i)>=0;
+    return `<div class="card" style="padding:11px 13px;margin-bottom:8px;${ok?'border-color:var(--ok)':''}">
+      <div class="kv"><span><b>${t('pb_part',{n:i+1,of:parts.length})}</b>
+        <div class="hint">${t('pb_files_n',{n:grp.length})}</div></span>
+        <button class="btn sm ${ok?'ghost':'primary'}" onclick="photoBackupPart(${i})">${ok?'✓ '+t('pb_again'):t('save')}</button></div></div>`;
+  }).join(''):`<p class="hint" style="padding:16px 0;text-align:center">${t('pb_none')}</p>`;
 }
 async function photoBackupPart(i){
   if(_pbBusy){ toast(t('pb_busy'),'bad'); return; }
   _pbBusy=true;
   try{
-    const keys=await photoBackupKeys();
-    const slice=keys.slice(i*PB_PER_PART,(i+1)*PB_PER_PART);
+    const parts0=await photoBackupPlan();
+    const slice=parts0[i]||[];
     bkBusyModal();
     let parts=['{"__v":2,"photosOnly":true,"part":'+(i+1)+',"media":{'];
     let wrote=0;
@@ -13269,7 +13522,7 @@ async function photoBackupPart(i){
     const done=JSON.parse(localStorage.getItem('pb_ob_pbdone')||'[]');
     if(done.indexOf(i)<0){ done.push(i); localStorage.setItem('pb_ob_pbdone',JSON.stringify(done)); }
     closeSheet(); toast(t('pb_saved',{n:wrote}),'ok');
-    photoBackup();
+    _pbParts=null; photoBackup();
   }finally{ _pbBusy=false; }
 }
 async function buildBackupBlob(dataOnly){
@@ -13476,7 +13729,68 @@ async function restoreSnapshot(key){
 let _sheetOn=false, _popping=false, _curTab='home', _exitArm=0;
 function sheetIsOpen(){return $('#scrim').classList.contains('show');}
 function pushGuard(){try{history.pushState({pbGuard:Date.now()},'');}catch(e){}}
-function showSheet(){ bindSheetSwipe();closeModal();$('#scrim').classList.add('show');_sheetOn=true;}
+let _place=null;
+function _fieldDesc(el){
+  if(!el||!/^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName))return null;
+  const d=el.dataset||{};
+  return {id:el.id||'', g:d.g||'', k:d.k||'', i:d.i||'', sz:d.sz||'', v:d.v||'',
+          sel:(el.selectionStart!=null&&el.type!=='number')?el.selectionStart:null};
+}
+function _findField(f){
+  if(!f)return null;
+  if(f.id){const e=document.getElementById(f.id); if(e)return e;}
+  const sel=[];
+  if(f.g)sel.push('[data-g="'+CSS.escape(f.g)+'"]'+(f.k?'[data-k="'+CSS.escape(f.k)+'"]':''));
+  if(f.sz)sel.push('[data-sz="'+CSS.escape(f.sz)+'"]');
+  if(f.v)sel.push('[data-v="'+CSS.escape(f.v)+'"]');
+  for(const s of sel){ const e=document.querySelector('#sheet '+s); if(e)return e; }
+  return null;
+}
+function _sheetSig(){ const sh=$('#sheet'); if(!sh)return '';
+  const hd=sh.querySelector('h2'); return (hd?hd.textContent:'').trim().slice(0,60); }
+function keepPlace(){
+  const sh=$('#sheet'); if(!sh)return;
+  _place={top:sh.scrollTop, f:_fieldDesc(document.activeElement), sig:_sheetSig()};
+}
+function restorePlace(){
+  const sh=$('#sheet'); if(!sh||!_place)return;
+  const el=_findField(_place.f);
+  const same=_place.sig && _place.sig===_sheetSig();
+  if(!el && !same)return;              // a different screen — start at the top, as expected
+  if(_place.top)sh.scrollTop=_place.top;
+  if(!el)return;                       // same screen, nothing was being typed in
+  try{ el.focus({preventScroll:true});
+       if(_place.f.sel!=null&&el.setSelectionRange)el.setSelectionRange(_place.f.sel,_place.f.sel);
+  }catch(e){}
+}
+/* Capture phase, so the snapshot is taken BEFORE the handler that rebuilds the sheet. */
+try{
+  const sh0=$('#sheet');
+  if(sh0){ sh0.addEventListener('pointerdown',keepPlace,true);
+           sh0.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key==='Tab')keepPlace(); },true); }
+}catch(e){}
+function showSheet(){ bindSheetSwipe();closeModal();$('#scrim').classList.add('show');_sheetOn=true;
+  /* ONE close button for every sheet. 31 of the 67 sheets had no visible way out — only the
+     grip-swipe or the back gesture, neither of which is discoverable. showSheet() runs after
+     every innerHTML write, so injecting here covers all of them from a single place. */
+  try{ const sh=$('#sheet');
+    if(sh && !sh.querySelector(':scope > .sheet-x')){
+      const b=document.createElement('button');
+      b.className='sheet-x'; b.type='button'; b.textContent='✕';
+      b.setAttribute('aria-label','Close'); b.onclick=closeSheet;
+      sh.insertBefore(b, sh.firstChild);
+    }
+  }catch(e){}
+  restorePlace();
+  /* Lock the page behind the sheet. Without this the list underneath scrolls with the
+     same finger drag and two things move at once — reported on the iPad, Aug 2. */
+  try{ _bodyY=window.scrollY||0; document.body.classList.add('sheet-open'); }catch(e){}
+}
+let _bodyY=0;
+/* Sidebar collapse (wide screen only) — his ask: a control next to Home that tucks the rail away. */
+function toggleRail(){ const on=document.body.classList.toggle('rail-min');
+  try{ localStorage.setItem('pb_ob_railmin',on?'1':'0'); }catch(e){} }
+try{ if(localStorage.getItem('pb_ob_railmin')==='1') document.body.classList.add('rail-min'); }catch(e){}
 /* The grip at the top of every sheet is now a real handle — drag it down to close.
    Only the grip listens, so scrolling inside the sheet is completely unaffected. */
 function bindSheetSwipe(){
@@ -13503,6 +13817,8 @@ function bindSheetSwipe(){
 function closeSheet(){
   if(modalIsOpen()){ closeModal(); return; }      // a modal on top closes first — the form stays
   $('#scrim').classList.remove('show');$('#fracbar').classList.remove('show');
+  _place=null;                                    // don't restore a place into a later visit
+  try{ document.body.classList.remove('sheet-open'); window.scrollTo(0,_bodyY||0); }catch(e){}
   _sheetOn=false;   // history guard stays put; back press is handled in popstate
   try{ clearInterval(_draftTick); clearTimeout(_draftT); }catch(e){}
 }
