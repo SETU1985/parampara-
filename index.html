@@ -392,12 +392,6 @@
   #fracbar.show{display:flex; flex-direction:column; gap:6px}
   .fb-row{display:flex; gap:6px; justify-content:center}
   .fb-nav{max-width:56px !important; color:var(--saffron2)}
-  .fb-pad{display:none; grid-template-columns:repeat(3,1fr); gap:6px; max-width:420px; margin:0 auto; width:100%}
-  #fracbar.pad .fb-pad{display:grid}
-  .fb-pad button{padding:14px 0; border-radius:10px; background:var(--card2); border:1px solid var(--line2);
-    font-size:22px; font-weight:800; color:var(--txt)}
-  .fb-pad .fb-go{background:linear-gradient(135deg,var(--saffron),#d98a12); color:#1a1206; border-color:var(--saffron)}
-  .fb-toggle{align-self:center; background:none; border:0; color:var(--txt2); font-size:12px; font-weight:700; padding:2px 10px}
   .mcard.collapsed .mb{display:none}
   .mh-tap{cursor:pointer}
   .mcard.collapsed .mh{border-bottom:none}
@@ -547,7 +541,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v145</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v146</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -591,27 +585,12 @@
     <button onmousedown="insFrac(event,'CLR')" ontouchstart="insFrac(event,'CLR')">⌫</button>
     <button class="fb-nav" onmousedown="measStep(event,1)" ontouchstart="measStep(event,1)">›</button>
   </div>
-  <div class="fb-pad" id="fbPad">
-    <button onmousedown="padKey(event,'1')" ontouchstart="padKey(event,'1')">1</button>
-    <button onmousedown="padKey(event,'2')" ontouchstart="padKey(event,'2')">2</button>
-    <button onmousedown="padKey(event,'3')" ontouchstart="padKey(event,'3')">3</button>
-    <button onmousedown="padKey(event,'4')" ontouchstart="padKey(event,'4')">4</button>
-    <button onmousedown="padKey(event,'5')" ontouchstart="padKey(event,'5')">5</button>
-    <button onmousedown="padKey(event,'6')" ontouchstart="padKey(event,'6')">6</button>
-    <button onmousedown="padKey(event,'7')" ontouchstart="padKey(event,'7')">7</button>
-    <button onmousedown="padKey(event,'8')" ontouchstart="padKey(event,'8')">8</button>
-    <button onmousedown="padKey(event,'9')" ontouchstart="padKey(event,'9')">9</button>
-    <button onmousedown="padKey(event,'.')" ontouchstart="padKey(event,'.')">.</button>
-    <button onmousedown="padKey(event,'0')" ontouchstart="padKey(event,'0')">0</button>
-    <button class="fb-go" onmousedown="measStep(event,1)" ontouchstart="measStep(event,1)">→|</button>
-  </div>
-  <button class="fb-toggle" id="fbToggle" onmousedown="padToggle(event)" ontouchstart="padToggle(event)"></button>
 </div>
 
 <div class="scrim" id="scrim"><div class="sheet" id="sheet"></div></div>
 <div class="scrim mscrim" id="mscrim"><div class="sheet" id="msheet"></div></div>
 <div class="toast" id="toast"></div>
-<input type="file" id="filePick" accept="image/*" style="display:none">
+<input type="file" id="filePick" accept="image/*" multiple style="display:none">
 <input type="file" id="filePickCam" accept="image/*" capture="environment" style="display:none">
 
 <script>
@@ -712,6 +691,9 @@ const T={
   notes:'Notes', notes_ph:'Any general note…',
   photo_label:'Fabric / Reference Photo',
   add_photo:'Add photo',
+  t_photos_n:'{n} photos added', del_photo_q:'Remove this photo?',
+  edit_items:'Items / customer',
+  od_edit_hint:'Measurements, notes, photos and the delivery date are edited right here. Use this only to add or remove a piece, or to change the customer.',
   cancel:'Cancel',
   save_order:'Save Order',
   update:'Update',
@@ -1327,7 +1309,6 @@ const T={
   bk_overwrite_note:'Backups overwrite this file, and it updates once a day on its own.',
   bk_now:'Back up now', bk_perm:'Permission for that file was refused', bk_write_fail:'Could not write to that file',
   bk_link_unsupported:'This browser cannot keep a linked file. Use a laptop with Chrome or Edge for one-file backups; here each backup saves a fresh copy.',
-  pad_show:'⌨ Number pad', pad_hide:'⌨ Hide number pad',
   ki_search_ph:'Order no., customer name or mobile', ki_no_match:'Nothing matches that search.',
   ki_by_order:'Grouped by order', ki_by_item:'Flat list', ki_pick_order:'tap to take all',
   ki_after:'after {n}',
@@ -1861,6 +1842,9 @@ const T={
   notes:'नोट', notes_ph:'कोई भी नोट…',
   photo_label:'कपड़ा / रेफरेंस फ़ोटो',
   add_photo:'फ़ोटो जोड़ें',
+  t_photos_n:'{n} फोटो जुड़ीं', del_photo_q:'ये फोटो हटाएं?',
+  edit_items:'आइटम / ग्राहक',
+  od_edit_hint:'नाप, नोट, फोटो और डेलिवरी डेट यहीं बदल जाते हैं। नया आइटम जोड़ना/हटाना या ग्राहक बदलना हो तभी यह खोलें।',
   cancel:'रद्द करें',
   save_order:'ऑर्डर सहेजें',
   update:'अपडेट',
@@ -2476,7 +2460,6 @@ const T={
   bk_overwrite_note:'बैकअप इसी फ़ाइल पर लिखते हैं, और यह दिन में एक बार अपने आप अपडेट होती है।',
   bk_now:'अभी बैकअप लें', bk_perm:'उस फ़ाइल की अनुमति नहीं मिली', bk_write_fail:'उस फ़ाइल पर नहीं लिख सके',
   bk_link_unsupported:'यह ब्राउज़र फ़ाइल जोड़कर नहीं रख सकता। एक-फ़ाइल बैकअप के लिए लैपटॉप पर Chrome या Edge इस्तेमाल करें; यहाँ हर बैकअप नई कॉपी बनाएगा।',
-  pad_show:'⌨ नंबर पैड', pad_hide:'⌨ नंबर पैड छिपाएँ',
   ki_search_ph:'ऑर्डर नं., ग्राहक का नाम या मोबाइल', ki_no_match:'इस खोज से कुछ नहीं मिला।',
   ki_by_order:'ऑर्डर के हिसाब से', ki_by_item:'सीधी सूची', ki_pick_order:'पूरा लेने के लिए दबाएँ',
   ki_after:'{n} के बाद',
@@ -7755,7 +7738,7 @@ function measCardHTML(f,key){
           <button class="btn primary" style="flex:1" onclick="itemDone('${dkey}')">✓ ${t('it_done')}</button></div>`;
         return `<div style="margin-top:14px"><div class="hint" style="margin-bottom:4px">🎙️ ${t('voice_notes')}</div>${voiceSection('iv_'+cid)}</div>
       <div style="margin-top:12px"><div class="hint" style="margin-bottom:4px">📷 ${t('photo_label')}</div><div class="media-row" id="ip_${cid}"></div>
-        <div class="row" style="margin-top:6px;gap:6px"><button class="btn sm ghost" onclick="pickItemPhoto('cam','${dkey}')">📷 ${t('camera')}</button><button class="btn sm ghost" onclick="pickItemPhoto('lib','${dkey}')">🖼️ ${t('gallery')}</button></div></div>
+        <div class="row" style="margin-top:6px;gap:6px"><button class="btn sm ghost block" onclick="pickItemPhoto('lib','${dkey}')">📷 ${t('add_photo')}</button></div></div>
       <button class="btn sm ghost block" style="margin-top:10px" onclick="xToggle('${dkey}')">${t('hide_x')}</button>`;})()}
 
       ${_xOpen[key]?`<button class="btn primary block" style="margin-top:14px" onclick="itemDone('${dkey}')">✓ ${t('it_done')}</button>`:''}
@@ -8238,7 +8221,7 @@ let _mfocus=null;
 function bindMeasInputs(){
   document.querySelectorAll('.mInput').forEach(inp=>{
     if(inp.tagName==='SELECT') return;
-    inp.addEventListener('focus',()=>{_mfocus=inp;$('#fracbar').classList.add('show');padApply();});
+    inp.addEventListener('focus',()=>{_mfocus=inp;$('#fracbar').classList.add('show');});
     inp.addEventListener('blur',()=>{setTimeout(()=>{const a=document.activeElement;if(a&&a.classList&&a.classList.contains('mInput')&&a.tagName!=='SELECT')return;$('#fracbar').classList.remove('show');},150);});
     if(inp.inputMode==='text' || (inp.dataset.k&&inp.dataset.k.indexOf('x_')===0)){ inp.addEventListener('input',()=>{inp.dataset.auto='';inp.classList.toggle('filled',!!inp.value.trim());}); return; }
     inp.addEventListener('input',()=>{const sv=sanitizeMeas(inp.value);if(sv!==inp.value)inp.value=sv;
@@ -8262,6 +8245,10 @@ function propagate(inp){
   const isGlobal=GLOBAL_MEAS.includes(k);
   if(!isGlobal && !commonFor(g.cat).includes(k))return; // only BODY columns flow, never Length
   if((MEAS_DERIVE[g.id]||{})[k]!=null)return;            // derived field — manual, don't push back
+  /* the same measurement boxes now appear on the ORDER screen and the give-work screen,
+     where `form` is a leftover from whatever order was edited last. Auto-propagation
+     belongs to the order FORM only — anywhere else it would write into a dead object. */
+  if(!formIsOpen())return;
   const f=form; if(!f)return;
   const mid=memberOf(key);
   f.mAuto=f.mAuto||{};
@@ -8292,22 +8279,11 @@ function propagate(inp){
 function insFrac(e,val){e.preventDefault();if(!_mfocus)return;
   if(val==='CLR')_mfocus.value=(_mfocus.value||'').slice(0,-1); else _mfocus.value=(_mfocus.value||'')+val;
   _mfocus.dataset.auto='';
-  _mfocus.classList.toggle('filled',!!_mfocus.value.trim());propagate(_mfocus);_mfocus.focus();}
-/* ---- the app's own number pad ----------------------------------------------
-   iPadOS decides its own keyboard: a web page can ask with inputmode, but the iPad
-   still shows the full QWERTY with no numeric keypad and no next-field key, while the
-   same page on Android gets both. Rather than fight the platform, the app carries its
-   own pad — identical on iPad, Android and a laptop, with big keys an unskilled hand
-   can hit and a →| that moves to the next measurement. */
-function padKey(e,ch){ e.preventDefault(); if(!_mfocus)return;
-  const v=(_mfocus.value||'');
-  if(ch==='.' && v.indexOf('.')>=0)return;                 // one decimal point only
-  _mfocus.value=v+ch;
-  const sv=sanitizeMeas(_mfocus.value); if(sv!==_mfocus.value)_mfocus.value=sv;
-  _mfocus.dataset.auto='';
-  _mfocus.classList.toggle('filled',!!_mfocus.value.trim());
-  propagate(_mfocus); _mfocus.focus();
-}
+  _mfocus.classList.toggle('filled',!!_mfocus.value.trim());propagate(_mfocus);
+  /* a value written by code does not set the dirty flag, so 'change' would never fire and
+     an in-place editor (order screen, give-work) would not save what the bar typed */
+  _mfocus.dispatchEvent(new Event('change',{bubbles:true}));
+  _mfocus.focus();}
 /* move to the next / previous measurement box on screen, in visual order */
 function measStep(e,dir){ e.preventDefault();
   const all=[...document.querySelectorAll('.mInput')].filter(x=>x.tagName!=='SELECT'&&x.offsetParent!==null);
@@ -8315,16 +8291,6 @@ function measStep(e,dir){ e.preventDefault();
   const i=_mfocus?all.indexOf(_mfocus):-1;
   const nxt=all[(i<0?0:(i+dir+all.length)%all.length)];
   if(nxt){ nxt.focus(); if(nxt.select)try{nxt.select();}catch(_){} }
-}
-function padOn(){ return localStorage.getItem('pb_ob_pad')==='1'; }
-function padToggle(e){ if(e)e.preventDefault();
-  localStorage.setItem('pb_ob_pad', padOn()?'0':'1');
-  padApply(); if(_mfocus)_mfocus.focus();
-}
-function padApply(){
-  const bar=$('#fracbar'); if(!bar)return;
-  bar.classList.toggle('pad',padOn());
-  const b=$('#fbToggle'); if(b)b.textContent=padOn()?t('pad_hide'):t('pad_show');
 }
 function liveBaaki(){/* money now lives on the bill, not the order */}
 
@@ -8437,13 +8403,12 @@ function delPayment(id,i){ const o=DB.orders.find(x=>x.id===id); if(!o||!o.payme
 /* ====================== PHOTOS ====================== */
 let photoTarget={type:'order'};
 function pickPhoto(src){captureForm();photoTarget={type:'order'};const inp=src==='cam'?$('#filePickCam'):$('#filePick');inp.value='';inp.click();}
-/* the compact icon button offers BOTH sources — a bare camera icon with no way to
-   reach the gallery was the bug he found */
-function pickItemPhotoQuick(gid){
-  modal('📷 '+t('photo_label'),'',
-    [{label:'📷 '+t('camera'),cls:'ghost',fn:()=>pickItemPhoto('cam',gid)},
-     {label:'🖼️ '+t('gallery'),cls:'primary',fn:()=>pickItemPhoto('lib',gid)}]);
-}
+/* ONE TAP to a photo. iOS and Android already put "Take Photo or Video" and "Photo
+   Library" in their OWN sheet the moment a file input opens, so the app's extra
+   Camera/Gallery chooser was a tap that bought nothing and hid the gallery behind a
+   modal. The plain picker (no capture attribute) gives both, and takes MANY photos
+   at once — a design shown from four angles is now one trip, not four. */
+function pickItemPhotoQuick(gid){ pickItemPhoto('lib',gid); }
 function pickItemPhoto(src,gid){captureForm();photoTarget={type:'item',gid};const inp=src==='cam'?$('#filePickCam'):$('#filePick');inp.value='';inp.click();}
 function pickThaanPhoto(src){thaanCapture();photoTarget={type:'fab'};const inp=src==='cam'?$('#filePickCam'):$('#filePick');inp.value='';inp.click();}
 function pickReadyPhoto(src){readyCapture();photoTarget={type:'rdy'};const inp=src==='cam'?$('#filePickCam'):$('#filePick');inp.value='';inp.click();}
@@ -8459,7 +8424,12 @@ async function renderReadyPhotos(){const el=$('#rd_photos');if(!el)return;el.inn
     w.querySelector('.thumb').onclick=()=>viewPhoto(url);
     w.querySelector('.thumb-x').onclick=async()=>{await mDel(id);_rd.photos=(_rd.photos||[]).filter(x=>x!==id);renderReadyPhotos();};
     el.appendChild(w);}}
-async function processPhoto(e){const file=e.target.files[0];if(!file)return;
+/* he can pick several photos in one go now, so this walks the whole selection */
+async function processPhoto(e){const files=[...(e.target.files||[])];if(!files.length)return;
+  for(const f of files){ await storePhoto(f); if(photoTarget.type==='cbody')break; }  // one body slot = one photo
+  e.target.value='';
+  toast(files.length>1?t('t_photos_n',{n:files.length}):t('t_photo'));}
+async function storePhoto(file){
   const blob=await downscale(file);const id='img_'+uid();await mPut(id,blob);
   if(photoTarget.type==='item'){const gid=photoTarget.gid;form.itemPhotos=form.itemPhotos||{};form.itemPhotos[gid]=form.itemPhotos[gid]||[];form.itemPhotos[gid].push(id);renderItemPhotos(gid);}
   else if(photoTarget.type==='alt'){altForm.photos=altForm.photos||[];altForm.photos.push(id);renderAltFormPhotos();}
@@ -8475,8 +8445,12 @@ async function processPhoto(e){const file=e.target.files[0];if(!file)return;
     c.bodyPhotos[_cbodySlot]=id; save(); renderCustBody(); renderBodySlots(_custPhotoId,'btPhotos',true); renderBodySlots(_custPhotoId,'cv_body',false); } }
   else if(photoTarget.type==='puritem'){ _purD.photos=_purD.photos||[]; _purD.photos.push(id); purItemPhotoBadge(); }
   else if(photoTarget.type==='imaster'){ if(_imDraft){_imDraft.photos=_imDraft.photos||[];_imDraft.photos.push(id);imRender();} }
-  else {form.photos.push(id);renderFormPhotos();}
-  toast(t('t_photo'));}
+  else if(photoTarget.type==='oditem'){ const o=(DB.orders||[]).find(x=>x.id===photoTarget.oid);
+    if(o){o.itemPhotos=o.itemPhotos||{}; o.itemPhotos[photoTarget.gid]=o.itemPhotos[photoTarget.gid]||[];
+      o.itemPhotos[photoTarget.gid].push(id); touchOrder(o.id); save(o.id); refreshDetail(o.id);} }
+  else if(photoTarget.type==='odorder'){ const o=(DB.orders||[]).find(x=>x.id===photoTarget.oid);
+    if(o){o.photos=o.photos||[]; o.photos.push(id); touchOrder(o.id); save(o.id); refreshDetail(o.id);} }
+  else {form.photos.push(id);renderFormPhotos();}}
 $('#filePick').addEventListener('change',processPhoto);
 $('#filePickCam').addEventListener('change',processPhoto);
 function downscale(file){return new Promise(res=>{const img=new Image(),rd=new FileReader();
@@ -8505,8 +8479,25 @@ async function openDetail(id,focusGid){
   const _multi=activeMembers(o).length>1;
   const measHTML=showIds.map(gid=>{const g=G(gid);if(!g)return '';const cols=mcols(g),v=o.m[gid]||{};
     const _who=_multi?memberLabel(o,memberOf(gid)):'';
-    const cells=cols.filter(col=>v[col.k]).map(col=>`<span class="gtag">${col.n}: <b>${esc(v[col.k])}</b></span>`).join('');
-    const dn=(o.design&&o.design[gid])?`<div class="hint" style="margin-top:6px">✎ ${esc(o.design[gid])}</div>`:'';
+    /* EDIT IN PLACE — his biggest complaint in this batch. To correct one measurement he
+       had to leave this screen, reopen the whole order form at the top, hunt for the piece,
+       fix it, scroll down and save: eight taps, and he lost his place on the way back.
+       The order screen is where he LOOKS at an order, so it is where he must be able to
+       CORRECT it. The full form now exists only for structural changes — adding or removing
+       a piece, changing the customer. Every box here writes straight to the order. */
+    const _cid=cssId(gid);
+    const cells=vcols(g).map(col=>{const val=v[col.k]||'';
+      if(col.type==='select'){const opts=['<option value="">—</option>'].concat((col.options||[]).map(op=>`<option value="${esc(op)}" ${val===op?'selected':''}>${esc(op)}</option>`)).join('');
+        return `<div class="ki-m"><label>${esc(col.n)}</label><select class="mInput" data-g="${esc(gid)}" data-k="${esc(col.k)}"
+          onchange="odMeasSet('${o.id}','${esc(gid)}','${esc(col.k)}',this.value)">${opts}</select></div>`;}
+      return `<div class="ki-m"><label>${esc(col.n)}${col.k==='L'?' ★':''}</label>
+        <input class="mInput ${val?'filled':''}" inputmode="${col.type==='text'?'text':'decimal'}"
+          data-g="${esc(gid)}" data-k="${esc(col.k)}" value="${esc(val)}" placeholder="—"
+          onchange="odMeasSet('${o.id}','${esc(gid)}','${esc(col.k)}',this.value)"
+          onkeydown="if(event.key==='Enter'){measStep(event,1)}"></div>`;}).join('');
+    const dn=`<div class="field" style="margin:10px 0 0"><label>📝 ${t('item_notes')}</label>
+      <input value="${esc((o.design&&o.design[gid])||'')}" placeholder="${t('item_notes_ph')}"
+        onchange="odDesignSet('${o.id}','${esc(gid)}',this.value)"></div>`;
     const ist=itemStatusOf(o,gid);
     const selStyle='flex:1;background:var(--bg2);border:1px solid var(--line);color:var(--txt);padding:9px 10px;border-radius:var(--r2);font-size:15px';
     const _si=STATUS.indexOf(ist);
@@ -8543,14 +8534,16 @@ async function openDetail(id,focusGid){
     return `<div class="mcard${urg?' mcard-urg':''}"><div class="mh mh-tap" onclick="odItemToggle('${gid}')">
         <b>${g.ico} ${esc(itemTitle(o,gid))}${_who?` <span class="who-tag">${esc(_who)}</span>`:''}${urg?` <span class="urg-tag">🔴 ${t('urgent')}</span>`:''}</b>
         <span class="hint">${v.L?('L '+esc(v.L)+' · '):''}${_nm} ${t('meas')} ${_open?'▴':'▾'}</span></div><div class="mb">
-      ${_open?`<div class="gtags">${cells||'<span class="hint">—</span>'}</div>${dn}`:''}
+      ${_open?`<div class="ki-mgrid">${cells||`<span class="hint">—</span>`}</div>${dn}`:''}
       ${sStat}
       <button class="btn sm ${urg?'danger':'ghost'} block" style="margin-top:8px" onclick="toggleUrgent('${o.id}','${gid}')">${urg?'🔴 '+t('urgent_on'):'⚪ '+t('urgent_off')}</button>
       ${legLine}
       ${sQc}
       ${ksel}
-      <div class="media-row" id="dip_${gid}" style="margin-top:8px"></div>
-      <div id="div_${gid}" style="margin-top:4px"></div>
+      <div class="row" style="margin-top:10px;gap:8px;align-items:center">
+        <div class="media-row" id="dip_${_cid}" style="flex:1;display:flex;gap:8px;flex-wrap:wrap"></div>
+        <button class="btn sm ghost ic-btn" title="${t('add_photo')}" onclick="odAddItemPhoto('${o.id}','${esc(gid)}')">📷</button></div>
+      <div id="div_${_cid}" style="margin-top:4px"></div>
       <div class="row" style="margin-top:10px;gap:6px"><button class="btn sm ghost ic-btn" title="${t('whatsapp')}" onclick="itemWA('${o.id}','${gid}')">💬</button><button class="btn sm ghost ic-btn" title="${t('print')}" onclick="itemPrint('${o.id}','${gid}')">🖨️</button></div></div></div>`;}).join('');
 
   $('#detailPane').innerHTML=`
@@ -8563,7 +8556,11 @@ async function openDetail(id,focusGid){
     <div class="od-x${_odInfo?' on':''}"><div class="card">
       <div class="kv"><span>${t('phone')}</span><b><a onclick="callNum('${esc(o.phone)}')" style="cursor:pointer;text-decoration:underline">${esc(o.phone||'—')}</a></b></div>
       ${o.salesmanId?`<div class="kv"><span>🧑‍💼 ${t('salesman')}</span><b>${esc(salesmanName(o.salesmanId))}</b></div>`:''}
-      <div class="kv"><span>${t('order_date')} / ${t('delivery')}</span><b>${fmtDate(o.orderDate)} → ${fmtDate(o.deliveryDate)} ${dl!==null&&st!=='delivered'?`<span class="deliv ${dl<0?'soon':dl<=4?'soon':''}" style="margin-left:4px">${dl<0?Math.abs(dl)+'d '+t('late'):dl+'d'}</span>`:''}</b></div>
+      <div class="kv"><span>📅 ${t('delivery')}</span>
+        <b><input type="date" value="${esc(o.deliveryDate||'')}" onchange="odDateSet('${o.id}',this.value)"
+          style="width:160px;margin:0;text-align:right">
+        ${dl!==null&&st!=='delivered'?`<span class="deliv ${dl<0?'soon':dl<=4?'soon':''}" style="margin-left:4px">${dl<0?Math.abs(dl)+'d '+t('late'):dl+'d'}</span>`:''}</b></div>
+      <div class="kv"><span>${t('order_date')}</span><b>${fmtDate(o.orderDate)}</b></div>
       <div class="kv"><span>${t('total')}</span><b>${money(o.total)}</b></div>
       <div class="kv"><span>${t('received')}</span><b>${money(orderReceived(o))}</b></div>
       <div class="kv"><span>${t('baaki')}</span><b style="color:var(--saffron2);font-size:16px">${money(baaki)}</b></div>
@@ -8610,19 +8607,82 @@ async function openDetail(id,focusGid){
     </div>
     ${o.notes?`<div class="card"><div class="section-h" style="margin-top:0">${t('order_notes')}</div>${esc(o.notes)}</div>`:''}
     <div class="section-h" style="display:flex;justify-content:space-between;align-items:center">${t('items')} ${(focusGid&&o.items.includes(focusGid))?`<button class="btn sm ghost" style="padding:4px 10px" onclick="openDetail('${o.id}')">↩ ${t('show_all')}</button>`:''}</div>${measHTML}
-    <div id="d_photos" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"></div>
-    <div class="row" style="margin-top:14px;gap:6px"><button class="btn ghost" onclick="openOrderForm('${o.id}')">✏️ ${t('edit')}</button><button class="btn primary" onclick="sendMenu('${o.id}')">📤 ${t('send_meas')}</button><button class="btn ghost" onclick="waOrder('${o.id}')">💬 ${t('customer')}</button></div>
+    <div class="row" style="margin-top:10px;gap:8px;align-items:center">
+      <div id="d_photos" style="flex:1;display:flex;gap:8px;flex-wrap:wrap"></div>
+      <button class="btn sm ghost ic-btn" title="${t('add_photo')}" onclick="odAddOrderPhoto('${o.id}')">📷</button></div>
+    <p class="hint" style="margin:14px 0 4px">${t('od_edit_hint')}</p>
+    <div class="row" style="gap:6px"><button class="btn ghost" onclick="openOrderForm('${o.id}')">✏️ ${t('edit_items')}</button><button class="btn primary" onclick="sendMenu('${o.id}')">📤 ${t('send_meas')}</button><button class="btn ghost" onclick="waOrder('${o.id}')">💬 ${t('customer')}</button></div>
     <div class="fab-pad"></div>`;
 
   renderTimeline(o);
   bindVoice('dvn',()=>o.voiceNotes,()=>save());
-  const pe=$('#d_photos'); for(const pid of(o.photos||[])){const url=await mURL(pid);const im=document.createElement('img');im.className='thumb';im.src=url||'';im.onclick=()=>viewPhoto(url);pe.appendChild(im);}
+  const pe=$('#d_photos'); if(pe){pe.innerHTML='';
+    for(const pid of(o.photos||[])){const url=await mURL(pid);
+      const w=document.createElement('div');w.className='thumb-wrap';
+      w.innerHTML=`<img class="thumb" src="${url||''}"><div class="thumb-x">✕</div>`;
+      w.querySelector('.thumb').onclick=()=>viewPhoto(url);
+      w.querySelector('.thumb-x').onclick=()=>odDelOrderPhoto(o.id,pid);
+      pe.appendChild(w);}}
+  bindMeasInputs();   // the measurement boxes on this screen get the fraction bar too
   for(const gid of showIds){
-    const pel=$('#dip_'+gid);
-    if(pel){for(const pid of((o.itemPhotos&&o.itemPhotos[gid])||[])){const url=await mURL(pid);const im=document.createElement('img');im.className='thumb';im.src=url||'';im.onclick=()=>viewPhoto(url);pel.appendChild(im);}}
-    const vel=$('#div_'+gid);
+    /* A REAL BUG, and most of "photos dalne me dikkat": an item key is m1~sherwani, and
+       '~' (and '#' on a second instance) are CSS combinators — querySelector on the RAW key
+       threw a SyntaxError, so on this screen NO item photo and NO item voice note ever
+       appeared, and the throw killed the rest of the render. cssId() exists for exactly
+       this and the whole app already uses it; only this screen did not. */
+    const pel=$('#dip_'+cssId(gid));
+    if(pel){pel.innerHTML='';
+      for(const pid of((o.itemPhotos&&o.itemPhotos[gid])||[])){const url=await mURL(pid);
+        const w=document.createElement('div');w.className='thumb-wrap';
+        w.innerHTML=`<img class="thumb" src="${url||''}"><div class="thumb-x">✕</div>`;
+        w.querySelector('.thumb').onclick=()=>viewPhoto(url);
+        w.querySelector('.thumb-x').onclick=()=>odDelItemPhoto(o.id,gid,pid);
+        pel.appendChild(w);}}
+    const vel=$('#div_'+cssId(gid));
     if(vel){for(const v of((o.itemVoice&&o.itemVoice[gid])||[])){const url=await mURL(v.voiceId);if(url){const a=document.createElement('audio');a.controls=true;a.src=url;vel.appendChild(a);}}}
   }
+}
+
+/* ---- editing an order WITHOUT leaving the order screen ----------------------
+   Each of these writes one field straight to the record. None of them re-renders,
+   so the caret stays exactly where he put it and the screen never jumps. */
+function odMeasSet(oid,gid,k,val){
+  const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
+  o.m=o.m||{}; o.m[gid]=o.m[gid]||{};
+  const v=String(val==null?'':val).trim();
+  if(v)o.m[gid][k]=v; else delete o.m[gid][k];
+  touchOrder(o.id); save(o.id);
+}
+function odDesignSet(oid,gid,val){
+  const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
+  o.design=o.design||{};
+  const v=String(val==null?'':val).trim();
+  if(v)o.design[gid]=v; else delete o.design[gid];
+  touchOrder(o.id); save(o.id);
+}
+function odDateSet(oid,val){
+  const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
+  if(!val){toast(t('t_no_deliv'),'bad'); refreshDetail(oid); return;}   // never leave an order dateless
+  o.deliveryDate=val; touchOrder(o.id); save(o.id);
+  o.log=o.log||[]; o.log.push({id:uid(),ts:new Date().toISOString(),text:t('delivery')+': '+fmtDate(val),voiceId:null});
+  refreshDetail(oid); toast(t('t_saved'),'ok');
+}
+function odAddItemPhoto(oid,gid){ photoTarget={type:'oditem',oid,gid};
+  const inp=$('#filePick'); inp.value=''; inp.click(); }
+function odAddOrderPhoto(oid){ photoTarget={type:'odorder',oid};
+  const inp=$('#filePick'); inp.value=''; inp.click(); }
+function odDelItemPhoto(oid,gid,pid){
+  confirmModal(t('del_title'),t('del_photo_q'),async()=>{
+    const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
+    await mDel(pid);
+    if(o.itemPhotos&&o.itemPhotos[gid])o.itemPhotos[gid]=o.itemPhotos[gid].filter(x=>x!==pid);
+    touchOrder(o.id); save(o.id); refreshDetail(oid);});
+}
+function odDelOrderPhoto(oid,pid){
+  confirmModal(t('del_title'),t('del_photo_q'),async()=>{
+    const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
+    await mDel(pid); o.photos=(o.photos||[]).filter(x=>x!==pid);
+    touchOrder(o.id); save(o.id); refreshDetail(oid);});
 }
 
 /* ====================== ALTERATIONS (separate lightweight order type) ====================== */
@@ -12421,7 +12481,7 @@ function karigarIssue(kid,mode,keepFocus){
       <button class="btn primary" style="flex:2" onclick="kiApply('${kid}','${md}')">
         ${give?'📤 '+t('ki_do_give'):'📥 '+t('ki_do_take')}</button></div>
     <div class="fab-pad"></div>`;
-  showSheet();
+  showSheet(); bindMeasInputs();   // the give-work naap boxes get the fraction bar too
   if(keepFocus){const el=$('#kiQ'); if(el){el.focus(); el.setSelectionRange(el.value.length,el.value.length);}}
 }
 function kiApply(kid,mode){
