@@ -541,7 +541,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v146</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v148</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -650,6 +650,9 @@ const T={
   design_ph:'e.g. flower work, dori, print…',
   prefill_note:'Body measurements auto-filled — enter the Length for each',
   saved_meas:'saved',
+  cu_meas_add:'Add measurements', cu_meas_pick:'Which piece are these measurements for?',
+  cu_meas_del:'Delete these measurements', cu_meas_del_q:'Delete the saved {g} measurements for this customer? Past orders keep their own copy.',
+  cu_meas_none:'No measurements saved yet. Tap "+ Add measurements" to enter an old customer\u2019s naap without creating an order.',
   bill:'Payment',
   total:'Total',
   advance:'Advance',
@@ -1801,6 +1804,9 @@ const T={
   design_ph:'जैसे फूल वर्क, डोरी, प्रिंट…',
   prefill_note:'✓ शरीर के नाप अपने-आप भर गए — बस लंबाई डालें',
   saved_meas:'सहेजा',
+  cu_meas_add:'नाप जोड़ें', cu_meas_pick:'ये नाप किस आइटम का है?',
+  cu_meas_del:'ये नाप हटाएं', cu_meas_del_q:'इस ग्राहक का {g} का सहेजा नाप हटाएं? पुराने ऑर्डर में अपनी कॉपी बनी रहेगी।',
+  cu_meas_none:'अभी कोई नाप सहेजा नहीं। "+ नाप जोड़ें" दबाकर बिना ऑर्डर बनाए पुराने ग्राहक का नाप डालें।',
   bill:'भुगतान',
   total:'कुल',
   advance:'एडवांस',
@@ -3724,7 +3730,7 @@ function thaanRender(){
   const parties=[...new Set((DB.thaans||[]).map(t=>t.party).filter(Boolean).concat((DB.purchases||[]).map(p=>p.supplier).filter(Boolean)))];
   const racks=[...new Set((DB.thaans||[]).map(t=>t.rack).filter(Boolean))];
   $('#sheet').innerHTML=`<div class="grip"></div>
-    <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">🧵 ${d.id?t('stk_edit_thaan'):t('stk_add_thaan')}</h2><button class="btn sm ghost" onclick="stockHome('fabric')">✕</button></div>
+    <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">🧵 ${d.id?t('stk_edit_thaan'):t('stk_add_thaan')}</h2><button class="btn sm ghost" onclick="stockHome('fabric')" title="Back">←</button></div>
     <p class="hint" style="margin-bottom:12px">${d.id?'':t('stk_thaan_hint')}</p>
     <datalist id="fabNames">${names.map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
     <datalist id="fabCats">${cats.map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
@@ -3993,7 +3999,7 @@ function bulkFabRender(){
      <div style="min-width:0"><b>#${esc(a.serial)} · ${esc(a.name)}</b><div class="hint">${a.mtr} mtr${a.rate?` · ₹${esc(a.rate)}/mtr`:''}</div></div>
      <button class="btn sm danger" style="flex:0 0 auto" onclick="bulkDelAdded('${a.id}')">✕</button></div>`).join('');
   $('#sheet').innerHTML=`<div class="grip"></div>
-    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">📋 ${t('stk_bulk_title')}</h2><button class="btn sm ghost" onclick="closeSheet();stockHome('fabric')">✕</button></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">📋 ${t('stk_bulk_title')}</h2><button class="btn sm ghost" onclick="closeSheet();stockHome('fabric')" title="Back">←</button></div>
     <p class="hint" style="margin-bottom:12px">${t('stk_bulk_desc')}</p>
     <datalist id="fabCats">${[...new Set((DB.fabItems||[]).map(x=>x.category).filter(Boolean))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
     <datalist id="fabRacks">${[...new Set((DB.thaans||[]).map(x=>x.rack).filter(Boolean))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
@@ -4238,7 +4244,7 @@ function readyBulkRender(){
      <button class="btn sm danger" style="flex:0 0 auto" onclick="readyBulkDelAdded(${idx})">✕</button></div>`).join('');
   const e=_rbulk.entry;
   $('#sheet').innerHTML=`<div class="grip"></div>
-    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">👔 ${t('rb_title')}</h2><button class="btn sm ghost" onclick="closeSheet();stockHome('ready')">✕</button></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">👔 ${t('rb_title')}</h2><button class="btn sm ghost" onclick="closeSheet();stockHome('ready')" title="Back">←</button></div>
     <p class="hint" style="margin-bottom:12px">${t('rb_sub')}</p>
     <div class="field"><label>${t('rb_cat')}</label><input id="rb_cat" list="rdyCats" value="${esc(_rbulk.cat)}" oninput="rbShared(this.value)" placeholder="Suit / Kurta / Sherwani"></div>
     <datalist id="rdyCats">${[...new Set((DB.itemMaster||[]).filter(x=>x.kind==='ready'&&x.category).map(x=>x.category))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
@@ -4280,7 +4286,7 @@ function readyRender(){
       </div></div>`).join('');
   const tot=sizes.reduce((s,sz)=>s+(+d.stk[sz]||0),0);
   $('#sheet').innerHTML=`<div class="grip"></div>
-    <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">👔 ${d.id?t('edit'):t('stk_add_ready')}</h2><button class="btn sm ghost" onclick="stockHome('ready')">✕</button></div>
+    <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">👔 ${d.id?t('edit'):t('stk_add_ready')}</h2><button class="btn sm ghost" onclick="stockHome('ready')" title="Back">←</button></div>
     <p class="hint" style="margin-bottom:12px">${t('stk_ready_hint')}</p>
     <div class="field"><label>${t('im_name')} *</label>
       <input id="rd_name" value="${esc(d.name)}" placeholder="${t('stk_ready_ph')}"></div>
@@ -5077,7 +5083,7 @@ function accDetail(id){
         <span class="hint">${money(bal)}</span></div></div>`;}).join('')
     ||`<p class="hint">${t('cb_no_moves')}</p>`;
   $('#sheet').innerHTML=`<div class="grip"></div>
-    <div class="kv" style="margin-bottom:6px"><h2 style="margin:0">${a.type==='cash'?'💵':'🏦'} ${esc(a.name)}</h2><button class="btn sm ghost" onclick="cashBank()">✕</button></div>
+    <div class="kv" style="margin-bottom:6px"><h2 style="margin:0">${a.type==='cash'?'💵':'🏦'} ${esc(a.name)}</h2><button class="btn sm ghost" onclick="cashBank()" title="Back">←</button></div>
     <p class="hint" style="margin-bottom:12px">${a.bankName?esc(a.bankName):''}${a.accNo?' · '+esc(a.accNo):''}</p>
     <div class="card pos-total" style="margin-bottom:12px">
       <div class="sum-row"><span>${t('cb_opening')} (${fmtDate(a.openingDate)})</span><b>${money(a.opening||0)}</b></div>
@@ -6729,7 +6735,7 @@ function catOpenFolder(id){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">${f.ico||'📁'} ${esc(f.name)}</h2>
       <span><button class="btn sm ghost" onclick="catFolderEdit('${id}')">✏️</button>
-      <button class="btn sm ghost" onclick="catalogue()">✕</button></span></div>
+      <button class="btn sm ghost" onclick="catalogue()" title="Back">←</button></span></div>
     <p class="hint" style="margin-bottom:10px">${(f.pids||[]).length} ${t('cat_photos')}</p>
     <button class="btn primary block" style="margin-bottom:12px" onclick="catPickOpen('${id}')">➕ ${t('cat_add_photos')}</button>
     <div class="cat-grid">${cards}</div>
@@ -6784,7 +6790,7 @@ function catSource(keepFocus){
   const f=picking?catFolderById(_catFolder):null;
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">${picking?('➕ '+esc(f?f.name:'')):('🗂️ '+t('cat_browse_all'))}</h2>
-      <button class="btn sm ghost" onclick="${picking?`catPickCancel()`:'catalogue()'}">✕</button></div>
+      <button class="btn sm ghost" onclick="${picking?`catPickCancel()`:'catalogue()'}" title="Back">←</button></div>
     <p class="hint" style="margin-bottom:10px">${picking?t('cat_pick_hint'):t('cat_browse_hint')}</p>
     <div class="ktabs">${tabs.map(([k,l])=>
       `<div class="ktab ${_catTab===k?'on':''}" onclick="catSetTab('${k}')">${l}</div>`).join('')}</div>
@@ -7230,9 +7236,30 @@ function openCustomer(id){
   const bills=(DB.sales||[]).filter(x=>x.customerId===id).sort(byNew);
   const alts=(DB.alterations||[]).filter(a=>a.customerId===id).sort(byNew);
   const sm=custSummary(id);
-  const blocks=Object.keys(c.m||{}).map(gid=>{const g=G(gid);if(!g)return '';const cols=mcols(g),v=c.m[gid];
-    const cells=cols.filter(col=>v[col.k]).map(col=>`<span class="gtag">${col.n}: <b>${esc(v[col.k])}</b></span>`).join('');
-    return `<div style="margin-bottom:10px"><div style="font-weight:700;margin-bottom:5px">${g.ico} ${g.n}</div><div class="gtags">${cells||'<span class="hint">—</span>'}</div></div>`;}).join('');
+  /* Measurements used to arrive here ONLY as a side effect of saving an order, so an old
+     customer whose naap he already has in the register could not be entered without
+     burning an order number on a fake order. They are now entered and corrected straight
+     on the customer, exactly like on the order screen — no order, no number touched.
+     The order form already prefills from c.m[gid], so this feeds it directly. */
+  const blocks=Object.keys(c.m||{}).map(gid=>{const g=G(gid);if(!g)return '';
+    const v=c.m[gid]||{}, _gc=cssId(gid), _op=(_cuOpen===gid);
+    const _n=mcols(g).filter(col=>v[col.k]).length;
+    const grid=vcols(g).map(col=>{const val=v[col.k]||'';
+      if(col.type==='select'){const opts=['<option value="">—</option>'].concat((col.options||[]).map(op=>`<option value="${esc(op)}" ${val===op?'selected':''}>${esc(op)}</option>`)).join('');
+        return `<div class="ki-m"><label>${esc(col.n)}</label><select class="mInput" data-g="${esc(gid)}" data-k="${esc(col.k)}"
+          onchange="cuMeasSet('${id}','${esc(gid)}','${esc(col.k)}',this.value)">${opts}</select></div>`;}
+      return `<div class="ki-m"><label>${esc(col.n)}${col.k==='L'?' ★':''}</label>
+        <input class="mInput ${val?'filled':''}" inputmode="${col.type==='text'?'text':'decimal'}"
+          data-g="${esc(gid)}" data-k="${esc(col.k)}" value="${esc(val)}" placeholder="—"
+          onchange="cuMeasSet('${id}','${esc(gid)}','${esc(col.k)}',this.value)"
+          onkeydown="if(event.key==='Enter'){measStep(event,1)}"></div>`;}).join('');
+    return `<div class="mcard${_op?'':' collapsed'}" data-key="${_gc}">
+      <div class="mh mh-tap" onclick="cuItemToggle('${id}','${esc(gid)}')">
+        <b>${g.ico} ${esc(g.n)}</b>
+        <span class="hint" style="margin-left:auto">${v.L?('L '+esc(v.L)+' · '):''}${_n} ${t('meas')} ${_op?'▴':'▾'}</span></div>
+      ${_op?`<div class="mb"><div class="ki-mgrid">${grid}</div>
+        <button class="btn sm danger block" style="margin-top:10px" onclick="cuDelGarment('${id}','${esc(gid)}')">🗑️ ${t('cu_meas_del')}</button></div>`:''}
+    </div>`;}).join('');
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${esc(c.name)}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div><div style="display:flex;gap:6px"><button class="btn sm ghost" onclick="editCustomer('${id}')">✏️ ${t('edit')}</button>
       <button class="btn sm danger" onclick="delCustomer('${id}')">🗑️</button></div></div>
@@ -7246,7 +7273,9 @@ function openCustomer(id){
       ${sm.last?`<div class="il"><span>${t('cust_lastvisit')}</span><b>${fmtDate(sm.last)}</b></div>`:''}
     </div>
     ${(c.bodyPhotos&&(c.bodyPhotos.front||c.bodyPhotos.side||c.bodyPhotos.back))?`<div class="section-h">🧍 ${t('bp_title')}</div><div class="media-row" id="cv_body" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start"></div>`:''}
-    <div class="section-h">${t('meas_title')}</div>${blocks||'<p class="hint">'+t('no_meas')+'</p>'}
+    <div class="section-h" style="display:flex;justify-content:space-between;align-items:center">${t('meas_title')}
+      <button class="btn sm primary" style="padding:5px 12px" onclick="cuAddGarment('${id}')">+ ${t('cu_meas_add')}</button></div>
+    ${blocks||`<p class="hint">${t('cu_meas_none')}</p>`}
     <div class="section-h">${t('cust_orders')} (${orders.length})</div>
     ${orders.map(o=>`<div class="cust-result" onclick="closeSheet();openDetail('${o.id}')"><div><b>#${esc(o.orderNo)}</b> <span class="hint">${fmtDate(o.created)}</span></div><div class="hint">${money(o.total)}${orderBaaki(o)>0?` · <span style="color:var(--saffron2)">${t('baaki')} ${money(orderBaaki(o))}</span>`:''}</div></div>`).join('')||'<p class="hint">—</p>'}
     ${bills.length?`<div class="section-h">${t('cust_bills')} (${bills.length})</div>
@@ -7254,7 +7283,38 @@ function openCustomer(id){
     ${alts.length?`<div class="section-h">${t('cust_alts')} (${alts.length})</div>
       ${alts.map(a=>`<div class="cust-result" onclick="closeSheet();openAltDetail('${a.id}')"><div><b>#${esc(a.altNo||'—')}</b> <span class="hint">${fmtDate(a.created||a.date)}</span></div><div class="hint">${money(a.total)}${orderBaaki(a)>0?` · <span style="color:var(--saffron2)">${t('baaki')} ${money(orderBaaki(a))}</span>`:''} <span style="color:var(--saffron2)">›</span></div></div>`).join('')}`:''}
     <div class="modal-actions"><button class="btn ghost block" onclick="closeSheet()">${t('close')}</button></div>`;
-  showSheet(); renderBodySlots(id,'cv_body',false);
+  showSheet(); bindMeasInputs(); renderBodySlots(id,'cv_body',false);
+}
+/* ---- measurements ON the customer, with no order involved ---- */
+let _cuOpen=null;
+function cuItemToggle(cid,gid){ _cuOpen=(_cuOpen===gid)?null:gid; openCustomer(cid); }
+function cuMeasSet(cid,gid,k,val){
+  const c=custById(cid); if(!c)return;
+  c.m=c.m||{}; c.m[gid]=c.m[gid]||{};
+  const v=String(val==null?'':val).trim();
+  if(v)c.m[gid][k]=v; else delete c.m[gid][k];      // blanking clears that one measurement
+  save();                                            // no re-render: the caret stays put
+}
+function cuAddGarment(cid){
+  const c=custById(cid); if(!c)return;
+  const have=Object.keys(c.m||{});
+  const chips=allItems().map(g=>`<div class="chip ${have.includes(g.id)?'on':''}" onclick="cuPickGarment('${cid}','${g.id}')">
+    <span class="ico">${g.ico}</span>${esc(g.n)}${have.includes(g.id)?'<span class="badge">✓</span>':''}</div>`).join('');
+  modal('📏 '+t('cu_meas_add'),`<p class="hint" style="margin-bottom:10px">${t('cu_meas_pick')}</p>
+    <div class="chip-grid">${chips}</div>`,[{label:t('cancel'),cls:'ghost',fn:closeModal}]);
+}
+function cuPickGarment(cid,gid){
+  const c=custById(cid); if(!c)return;
+  c.m=c.m||{}; if(!c.m[gid])c.m[gid]={};
+  save(); closeModal(); _cuOpen=gid; openCustomer(cid);
+}
+function cuDelGarment(cid,gid){
+  const g=G(gid);
+  confirmModal(t('del_title'),t('cu_meas_del_q',{g:(g?g.n:'')}),()=>{
+    const c=custById(cid); if(!c)return;
+    if(c.m)delete c.m[gid];
+    save(); if(_cuOpen===gid)_cuOpen=null; openCustomer(cid); toast(t('t_deleted'));
+  });
 }
 function newCustomer(){
   const c={id:uid(),name:'',phone:'',created:new Date().toISOString(),m:{}};
@@ -12462,7 +12522,7 @@ function karigarIssue(kid,mode,keepFocus){
     return `<span class="gtag ${on?'on-tag':''}" style="cursor:pointer" onclick="kiTypeToggle('${kid}','${give?'give':'take'}','${x.g.id}')">${x.g.ico} ${esc(x.g.n)} (${x.n})</span>`;}).join('')}</div>`:'';
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:2px"><h2 style="margin:0">${give?'📤 '+t('ki_give'):'📥 '+t('ki_take')}</h2>
-      <button class="btn sm ghost" onclick="_kiSel.clear();_kiTypeFilter=null;_kiQ='';karMaster('${kid}')">✕</button></div>
+      <button class="btn sm ghost" onclick="_kiSel.clear();_kiTypeFilter=null;_kiQ='';karMaster('${kid}')" title="Back">←</button></div>
     <p class="hint" style="margin-bottom:10px">👷 ${esc(k.name)} · ${give?t('ki_give_sub'):t('ki_take_sub')}</p>
     <div class="field"><label>${t('pay_date')}</label>${dateField('ki_date',todayISO())}</div>
     ${give&&(k.specialties||[]).length?`<label style="display:flex;align-items:center;gap:8px;margin:10px 0;cursor:pointer">
@@ -12636,7 +12696,7 @@ function karSettle(kid,from,to){
         onchange="karRateSet('${kid}','${j.kind}','${j.id}','${esc(j.gid)}',${j.leg},this.value)"></div>`;
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">🧾 ${esc(k.name)}</h2>
-      <button class="btn sm ghost" onclick="settleDay()">✕</button></div>
+      <button class="btn sm ghost" onclick="settleDay()" title="Back">←</button></div>
     <p class="hint" style="margin-bottom:10px">${t('ks_sub')}</p>
     <div class="row" style="gap:8px;margin-bottom:8px">
       <div class="field" style="flex:1;margin:0"><label>${t('rp_from')}</label>${dateField('ks_f',F)}</div>
@@ -13829,16 +13889,37 @@ try{
   if(sh0){ sh0.addEventListener('pointerdown',keepPlace,true);
            sh0.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key==='Tab')keepPlace(); },true); }
 }catch(e){}
+/* The one way out of a sheet. Two forms must NOT be closed with a bare closeSheet():
+   the order form parks half-typed work as a draft and says so, and the invoice form asks
+   before throwing away priced lines. The injected cross called closeSheet directly, so
+   pressing it on either screen killed the draft timer and lost the work in silence. */
+function sheetClose(){
+  const sh=$('#sheet');
+  if(sh){
+    if(sh.querySelector('#f_ono'))    return cancelOrderForm();   // parks it as a draft
+    if(sh.querySelector('#inv_cname'))return invClose();          // confirms before discarding
+  }
+  closeSheet();
+}
 function showSheet(){ bindSheetSwipe();closeModal();$('#scrim').classList.add('show');_sheetOn=true;
   /* ONE close button for every sheet. 31 of the 67 sheets had no visible way out — only the
      grip-swipe or the back gesture, neither of which is discoverable. showSheet() runs after
      every innerHTML write, so injecting here covers all of them from a single place. */
   try{ const sh=$('#sheet');
-    if(sh && !sh.querySelector(':scope > .sheet-x')){
-      const b=document.createElement('button');
-      b.className='sheet-x'; b.type='button'; b.textContent='✕';
-      b.setAttribute('aria-label','Close'); b.onclick=closeSheet;
-      sh.insertBefore(b, sh.firstChild);
+    if(sh){
+      /* 21 screens written before that button still drew their OWN cross in the header, so
+         he saw two identical crosses side by side (his screenshot, Aug 3). The sticky one is
+         the keeper — it stays put as he scrolls, the in-header twin scrolls away. Only an
+         exact closeSheet() whose label IS a cross is dropped: a cross that navigates
+         somewhere, and any worded Close/Cancel button, is left alone. */
+      sh.querySelectorAll('button[onclick="closeSheet()"]').forEach(b=>{
+        if((b.textContent||'').trim()==='✕')b.remove(); });
+      if(!sh.querySelector(':scope > .sheet-x')){
+        const b=document.createElement('button');
+        b.className='sheet-x'; b.type='button'; b.textContent='✕';
+        b.setAttribute('aria-label','Close'); b.onclick=sheetClose;
+        sh.insertBefore(b, sh.firstChild);
+      }
     }
   }catch(e){}
   restorePlace();
