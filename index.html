@@ -456,6 +456,8 @@
     font-size:13px; font-weight:600; z-index:130; opacity:0; transition:.25s; pointer-events:none; max-width:90%}
   .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
   .toast.ok{border-color:var(--ok)} .toast.bad{border-color:var(--bad)}
+  .toast .tundo{margin-left:12px; background:var(--saffron); color:#1a1206; border:0;
+    border-radius:8px; padding:6px 14px; font-weight:800; font-size:14px}
   #railToggle{display:none}
   .fab-pad{height:10px}
   body.simple-mode{font-size:17px}
@@ -549,7 +551,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v157</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v161</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -704,11 +706,17 @@ const T={
   notes:'Notes', notes_ph:'Any general note…',
   photo_label:'Fabric / Reference Photo',
   add_photo:'Add photo',
+  undo:'Undo', undo_done:'Brought back', undo_fail:'Could not bring it back', t_removed:'Removed',
   t_nomedia:'Photos and voice notes cannot be saved on this device. Orders and measurements are safe.',
   su_items_head:'What do you make here?', su_lang:'Language',
   su_items_sub:'Tap the pieces your shop actually takes orders for. The rest stay out of your way.',
   su_items_note:'You can change this any time from Item setup, and add your own pieces too.',
+  bk_big_title:'This backup will be very large',
+  bk_big_q:'Photos here add up to about {mb} MB. One file that size often fails to send or save on a tablet. Saving in parts is slower but it always works.',
+  bk_big_parts:'Save in parts', bk_big_one:'One file anyway',
+  bk_auto_dataonly:'Saved without photos — the photo library is too large for one file. Use Photo backup for those.',
   it_setup:'Item setup', it_on_front:'On the front row', it_in_more:'Under “More”',
+  it_del_used:'This piece is used on an order, so it cannot be deleted. Use 🚫 to take it out of the picker instead.',
   it_hide:'Never used here', it_hidden:'Not used in this shop', it_restore:'Bring back',
   it_hide_q:'Take “{n}” out of the picker? Orders that already use it are not affected.',
   it_setup_desc:'★ puts a piece on the front row. ▲▼ set the order, and the same order is used for lengths and measurements. 🚫 is for pieces this shop never sells.',
@@ -1872,11 +1880,17 @@ const T={
   notes:'नोट', notes_ph:'कोई भी नोट…',
   photo_label:'कपड़ा / रेफरेंस फ़ोटो',
   add_photo:'फ़ोटो जोड़ें',
+  undo:'वापस लाएँ', undo_done:'वापस आ गया', undo_fail:'वापस नहीं ला सके', t_removed:'हटा दिया',
   t_nomedia:'इस डिवाइस में फ़ोटो और वॉइस नोट सेव नहीं हो पा रहे। ऑर्डर और नाप सुरक्षित हैं।',
   su_items_head:'यहाँ क्या-क्या बनता है?', su_lang:'भाषा',
   su_items_sub:'जो आइटम आपकी दुकान में सच में बनते हैं वो चुनें। बाकी सामने नहीं आएँगे।',
   su_items_note:'यह कभी भी आइटम सेटअप से बदल सकते हैं, और अपने आइटम भी जोड़ सकते हैं।',
+  bk_big_title:'ये बैकअप बहुत बड़ा होगा',
+  bk_big_q:'यहाँ की फोटो मिलाकर करीब {mb} MB हैं। इतनी बड़ी एक फ़ाइल टैबलेट पर अक्सर भेजी या सेव नहीं हो पाती। टुकड़ों में सेव करना धीमा है पर हमेशा चलता है।',
+  bk_big_parts:'टुकड़ों में सेव करें', bk_big_one:'फिर भी एक फ़ाइल',
+  bk_auto_dataonly:'फोटो के बिना सेव हुआ — फोटो एक फ़ाइल के लिए बहुत ज़्यादा हैं। उनके लिए फोटो बैकअप लीजिए।',
   it_setup:'आइटम सेटअप', it_on_front:'सामने वाली लाइन में', it_in_more:'“और” के अंदर',
+  it_del_used:'ये आइटम किसी ऑर्डर में लगा है, इसलिए मिट नहीं सकता। 🚫 से सूची से हटा दीजिए।',
   it_hide:'यहाँ नहीं चलता', it_hidden:'इस दुकान में नहीं', it_restore:'वापस लाएँ',
   it_hide_q:'“{n}” को सूची से हटाएँ? जिन ऑर्डर में ये लगा है वह वैसे ही रहेंगे।',
   it_setup_desc:'★ दबाने से आइटम सामने आ जाता है। ▲▼ से क्रम बनाएँ — वही क्रम लंबाई और नाप में भी चलेगा। 🚫 उन आइटम के लिए जो यहाँ बनते ही नहीं।',
@@ -7484,8 +7498,12 @@ function delCustomer(id){
         +(DB.sales||[]).filter(x=>x.customerId===id).length
         +(DB.alterations||[]).filter(a=>a.customerId===id).length;
   confirmModal(t('cust_del'), n?t('cust_del_busy',{n:n}):t('cust_del_msg'), ()=>{
-    DB.customers=(DB.customers||[]).filter(x=>x.id!==id);
-    save(); closeSheet(); renderCustomers(); toast(t('t_deleted'));
+    const i=(DB.customers||[]).findIndex(x=>x.id===id); if(i<0)return;
+    const rec=DB.customers[i];                       // his saved naap lives on this record
+    DB.customers.splice(i,1);
+    save(); closeSheet(); renderCustomers();
+    undoOffer(t('t_deleted'), ()=>{
+      DB.customers.splice(Math.min(i,DB.customers.length),0,rec); save(); renderCustomers(); });
   });
 }
 function editCustomer(id,isNew){const c=custById(id); _custPhotoId=id;
@@ -8451,12 +8469,32 @@ function removeItem(key){
   const g=G(key), filled=Object.keys((form.m||{})[key]||{}).length;
   const kill=()=>{
     const i=form.items.indexOf(key); if(i>=0)form.items.splice(i,1);
+    /* keep everything this piece owned, so taking it back is exact and not "the piece
+       is here again but the naap is gone" */
+    const snap={ i, m:(form.m||{})[key], design:(form.design||{})[key],
+      photos:(form.itemPhotos||{})[key], voice:(form.itemVoice||{})[key],
+      notes:(form.itemNotes||{})[key], variant:(form.variant||{})[key],
+      auto:(form.mAuto||{})[key] };
     delete form.m[key]; delete form.design[key];
     if(form.itemPhotos)delete form.itemPhotos[key];
     if(form.itemVoice)delete form.itemVoice[key];
     if(form.itemNotes)delete form.itemNotes[key];
+    if(form.variant)delete form.variant[key];
+    if(form.mAuto)delete form.mAuto[key];
     if(_openItem===key)_openItem=null;
     renderForm();
+    undoOffer(t('t_removed'), ()=>{
+      if(!form)return;
+      form.items.splice(Math.min(snap.i,form.items.length),0,key);
+      if(snap.m){form.m=form.m||{};form.m[key]=snap.m;}
+      if(snap.design){form.design=form.design||{};form.design[key]=snap.design;}
+      if(snap.photos){form.itemPhotos=form.itemPhotos||{};form.itemPhotos[key]=snap.photos;}
+      if(snap.voice){form.itemVoice=form.itemVoice||{};form.itemVoice[key]=snap.voice;}
+      if(snap.notes){form.itemNotes=form.itemNotes||{};form.itemNotes[key]=snap.notes;}
+      if(snap.variant){form.variant=form.variant||{};form.variant[key]=snap.variant;}
+      if(snap.auto){form.mAuto=form.mAuto||{};form.mAuto[key]=snap.auto;}
+      renderForm();
+    });
   };
   if(filled)confirmModal((g?g.ico+' '+g.n:'')||t('remove'), t('it_remove_confirm',{n:filled}), kill);
   else kill();
@@ -8696,7 +8734,11 @@ function savePayment(id){ const o=DB.orders.find(x=>x.id===id); if(!o)return; mi
   o.payments.push({amt,date}); o.payments.sort((a,b)=>String(a.date).localeCompare(String(b.date))); touchOrder(o.id);
   save(id);closeSheet();openDetail(id);toast('✔️','ok'); }
 function delPayment(id,i){ const o=DB.orders.find(x=>x.id===id); if(!o||!o.payments)return;
-  confirmModal(t('del_pay'),'',()=>{o.payments.splice(i,1);save(id);closeSheet();openDetail(id);}); }
+  confirmModal(t('del_pay'),'',()=>{
+    const rec=o.payments[i]; if(!rec)return;
+    o.payments.splice(i,1); save(id); closeSheet(); openDetail(id);
+    undoOffer(t('t_deleted'), ()=>{ o.payments.splice(Math.min(i,o.payments.length),0,rec); save(id); openDetail(id); });
+  }); }
 
 /* ====================== PHOTOS ====================== */
 let photoTarget={type:'order'};
@@ -12169,13 +12211,22 @@ function orderMenu(id){const o=DB.orders.find(x=>x.id===id);const canAlt=o&&orde
     ${canAlt?`<button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();openAltForm(null,'${id}')">${t('start_alteration')}</button>`:''}
     <button class="btn ghost block simple-hide" style="margin-bottom:8px" onclick="backupMenu()">💾 ${t('backup')}</button>
     <button class="btn danger block simple-hide" onclick="delOrder('${id}')">🗑️ ${t('delete_order')}</button>`,[]);}
-function delOrder(id){confirmModal(t('confirm_del'),t('confirm_del_msg'),async()=>{const o=DB.orders.find(x=>x.id===id);
-  for(const p of(o.photos||[]))await mDel(p);for(const e of(o.log||[]))if(e.voiceId)await mDel(e.voiceId);
-  for(const v of(o.voiceNotes||[]))if(v.voiceId)await mDel(v.voiceId);
-  for(const k in(o.itemPhotos||{}))for(const p of o.itemPhotos[k])await mDel(p);
-  for(const k in(o.itemVoice||{}))for(const v of o.itemVoice[k])if(v.voiceId)await mDel(v.voiceId);
+function delOrder(id){confirmModal(t('confirm_del'),t('confirm_del_msg'),async()=>{
+  const i=DB.orders.findIndex(x=>x.id===id); if(i<0)return;
+  const o=DB.orders[i];
+  /* The photos and voice notes are NOT destroyed here any more. They used to go first,
+     so an undo would have brought back an order with every image missing. They are
+     wiped only once the undo window has closed. */
+  const media=[].concat(o.photos||[], (o.log||[]).map(e=>e.voiceId), (o.voiceNotes||[]).map(v=>v.voiceId),
+    ...Object.values(o.itemPhotos||{}), ...Object.values(o.itemVoice||{}).map(a=>a.map(v=>v.voiceId))).filter(Boolean);
   revertStockByRef(id);                       // put cut fabric / billed stock back
-  DB.orders=DB.orders.filter(x=>x.id!==id);touchOrder(id);save();closeSheet();go('orders');toast(t('t_deleted'));});}
+  DB.orders.splice(i,1); touchOrder(id); save(); closeSheet(); go('orders');
+  undoOffer(t('t_deleted'), ()=>{
+    DB.orders.splice(Math.min(i,DB.orders.length),0,o); touchOrder(id); save(); go('orders'); openDetail(id);
+  });
+  setTimeout(async()=>{ if(DB.orders.some(x=>x.id===id))return;   // he took it back
+    for(const m of media)await mDel(m); }, 8000);
+});}
 /* His customers' numbers live in the APP, not in the phone's contacts, so the wa.me link
    has to carry the number itself. Indian numbers arrive in every shape — 9830881939,
    09830881939, +91 98308-81939, 919830881939 — and anything the old rule did not
@@ -13547,6 +13598,8 @@ function itemShortcuts(){
       <div style="display:flex;gap:6px">
         <button class="btn sm ${on?'primary':'ghost'}" onclick="itemFavToggle('${g.id}')">${on?'★':'☆'}</button>
         <button class="btn sm ghost" title="${t('it_hide')}" onclick="itemHideToggle('${g.id}')">🚫</button>
+        ${(DB.customItems||[]).some(x=>x.id===g.id)
+          ? `<button class="btn sm ghost" title="${t('delete')}" onclick="itemDeleteFromSetup('${g.id}')">🗑️</button>` : ''}
       </div></div>`;}).join('');
   const hid=hidden.length?`<div class="section-h">${t('it_hidden')}</div>`
     +hidden.map(g=>`<div class="cust-result" style="align-items:center">
@@ -13577,6 +13630,20 @@ function itemFavToggle(id){
     c.fav.sort((a,b)=>live.indexOf(a)-live.indexOf(b));
   }
   save(); itemShortcuts();
+}
+/* Only an item the shop CREATED can be deleted — a built-in is hidden instead, because
+   old orders still point at it by id and would lose their name. He made one by mistake
+   this morning and had no way to remove it. */
+function itemDeleteFromSetup(id){
+  const g=G(id); if(!g)return;
+  const used=(DB.orders||[]).some(o=>(o.items||[]).some(k=>garmentOf(k)===id));
+  if(used){ toast(t('it_del_used'),'bad'); return; }
+  confirmModal(t('confirm_item_del'),t('confirm_item_del_msg'),()=>{
+    DB.customItems=(DB.customItems||[]).filter(x=>x.id!==id);
+    const c=itemCfg();
+    c.fav=c.fav.filter(x=>x!==id); c.hide=c.hide.filter(x=>x!==id); c.order=c.order.filter(x=>x!==id);
+    save(); itemShortcuts(); toast(t('t_deleted'));
+  });
 }
 function itemHideToggle(id){
   const c=itemCfg(), i=c.hide.indexOf(id);
@@ -13726,6 +13793,17 @@ async function backupToFile(silent){
   const h=await bkGetHandle();
   if(!h){ if(!silent)linkBackupFile(); return false; }
   if(!(await bkPerm(h,!silent))){ if(!silent)toast(t('bk_perm'),'bad'); return false; }
+  /* the daily automatic write also packs every photo; on a big library that is a
+     200 MB write for no benefit, so it falls back to data-only */
+  if(await mediaTotalMB()>ONEFILE_MAX_MB){
+    if(!silent)bkBusyModal();
+    const res0=await buildBackupBlob(true);
+    if(!res0)return false;
+    try{ const w0=await h.createWritable(); await w0.write(res0.blob); await w0.close();
+      localStorage.setItem('pb_ob_bkauto',todayISO()); markBackup();
+      if(!silent){closeSheet();toast(t('bk_auto_dataonly'),'ok');}
+      return true; }catch(e){ if(!silent)closeSheet(); return false; }
+  }
   if(!silent)bkBusyModal();
   const res=await buildBackupBlob();
   if(!res){ if(!silent)toast(t('bk_cancelled'),'bad'); return false; }
@@ -13951,9 +14029,11 @@ async function photoBackupPart(i){
     _pbParts=null; photoBackup();
   }finally{ _pbBusy=false; }
 }
+const FLUSH_BYTES=8*1024*1024;      // how much base64 may sit in JS memory at one time
 async function buildBackupBlob(dataOnly){
   _bkCancel=false;
-  const parts=['{"__v":2,"db":', JSON.stringify(DB), ',"media":{'];
+  let parts=['{"__v":2,"db":', JSON.stringify(DB), ',"media":{'];
+  let acc=null, pend=0;               // everything already folded away into a Blob
   let n=0, wrote=0;
   /* Photos are what make a backup huge, and a huge file is exactly what iPad WhatsApp
      refuses to send. Orders, measurements, stock and karigar accounts are the data that
@@ -13972,12 +14052,23 @@ async function buildBackupBlob(dataOnly){
           if(d){ parts.push((wrote?',':'')+JSON.stringify(String(k))+':'+JSON.stringify(d)); wrote++; }
         }
       }catch(e){}
+      /* THE CRASH. The parts ARRAY was streamed, but nothing ever emptied it — every
+         photo's base64 string stayed in JS memory until the final new Blob(parts). With
+         a few hundred photos that is the whole media library, inflated a third by
+         base64, held at once, and iPad Safari kills the tab. Folding the array into a
+         Blob as we go fixes it: a Blob can be backed by disk, so peak JS memory is one
+         flush window instead of the entire backup. The file that comes out is byte for
+         byte the same, so old restores keep working. */
+      pend+=(parts[parts.length-1]||'').length;
+      if(pend>FLUSH_BYTES){ acc=acc?new Blob([acc,...parts]):new Blob(parts); parts=[]; pend=0; }
       if(i%3===0){ bkProgress(i+1,n); await bkYield(); }   // let the screen breathe
     }
   }catch(e){}
   if(_bkCancel)return null;
   parts.push('}}');
-  return {blob:new Blob(parts,{type:'application/json'}), count:wrote};
+  const blob=acc?new Blob([acc,...parts],{type:'application/json'}):new Blob(parts,{type:'application/json'});
+  acc=null; parts=null;
+  return {blob, count:wrote};
 }
 /* kept for older callers / very small shops */
 async function buildBackup(){
@@ -14001,7 +14092,38 @@ function mediaCount(o){return Object.keys((o&&o.media)||{}).length;}
 function doExportLegacy(){const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});const u=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=u;a.download='PARAMPARA-backup.json';a.click();
   setTimeout(()=>URL.revokeObjectURL(u),1000);markBackup();renderOrders();closeSheet();toast(t('t_backup_ok'),'ok');}
+/* THE ONE GATE. A one-file backup with every photo is fine for a small shop and a bad
+   idea for a big one: even with the memory fixed, iPad Safari will not hand a
+   multi-hundred-MB file to WhatsApp or Files. Every path that packs photos asks this
+   first, so he is steered instead of discovering it by white-screening. Resolves false
+   when he chose the parts route, true when he wants one file anyway. */
+function bkOneFileOk(){
+  return mediaTotalMB().then(mb=>{
+    if(mb<=ONEFILE_MAX_MB)return true;
+    return new Promise(res=>{
+      closeSheet();
+      confirmModal(t('bk_big_title'), t('bk_big_q',{mb:(mb===Infinity?'?':Math.round(mb))}),
+        ()=>{ res(false); photoBackup(); },
+        ()=>{ res(true); },
+        {yes:t('bk_big_parts'), no:t('bk_big_one'), cls:'primary'});
+    });
+  });
+}
 async function doExport(){
+  if(!(await bkOneFileOk()))return;
+  return doExportAnyway();
+}
+const ONEFILE_MAX_MB=60;
+async function mediaTotalMB(){
+  let total=0;
+  try{
+    let cache={}; try{ cache=JSON.parse(localStorage.getItem('pb_ob_szcache')||'{}'); }catch(e){}
+    const keys=await photoBackupKeys();
+    for(const k of keys){ const sz=cache[k]; if(sz!=null)total+=sz; else return Infinity; }
+  }catch(e){ return 0; }
+  return total/1048576;
+}
+async function doExportAnyway(){
   bkBusyModal();
   const res=await buildBackupBlob();
   if(!res){ toast(t('bk_cancelled'),'bad'); return; }
@@ -14011,14 +14133,17 @@ async function doExport(){
   toast(t('bk_done',{n:res.count}),'ok');
 }
 async function shareBackup(dataOnly){
+  if(!dataOnly && !(await bkOneFileOk()))return;
   if(!dataOnly)bkBusyModal();
   const res=await buildBackupBlob(dataOnly);
   if(!res){ toast(t('bk_cancelled'),'bad'); return; }
   // iOS WhatsApp refuses application/json outright — the share sheet either hides it
   // or the send fails. A .txt / text-plain document goes through normally, and restore
   // reads the file as text anyway, so nothing about the format changes.
-  const txt=new Blob([res.blob],{type:'text/plain'});
-  const file=new File([txt],(dataOnly?'PARAMPARA-data-only.txt':'PARAMPARA-backup.txt'),{type:'text/plain'});
+  /* File() can retype the blob directly; wrapping it in another Blob first made a
+     second copy of the whole backup for no reason. */
+  const file=new File([res.blob],(dataOnly?'PARAMPARA-data-only.txt':'PARAMPARA-backup.txt'),{type:'text/plain'});
+  const txt=file;
   markBackup();renderOrders();
   try{ if(navigator.canShare&&navigator.canShare({files:[file]})){ closeSheet(); await navigator.share({files:[file],title:'PARAMPARA Backup'}); return; } }
   catch(e){ if(e&&e.name==='AbortError'){closeSheet();return;} }
@@ -14282,13 +14407,31 @@ window.addEventListener('popstate',()=>{
   } finally { _popping=false; }
 });
 $('#scrim').addEventListener('click',e=>{if(e.target===$('#scrim'))closeSheet();});
+/* the main sheet has closed on an outside tap since the beginning; the modal never did */
+$('#mscrim').addEventListener('click',e=>{if(e.target===$('#mscrim'))closeModal();});
 /* A modal lives on its own layer. It must NEVER wipe the sheet underneath —
    that used to destroy a half-filled order form (and everything typed into it). */
 function modalIsOpen(){ const e=$('#mscrim'); return !!e && e.classList.contains('show'); }
+/* A DEAD END. v147 gave every SHEET a sticky cross and left modals alone, on the
+   reasoning that a modal always carries its own buttons. It does not: `orderMenu`
+   passes an EMPTY actions array, so "Order options" opened with no Cancel, no cross,
+   and — unlike the main sheet — no tap-outside-to-close either. The only way out was
+   the device's back gesture. Same mistake as the sheets, one layer up. */
 function modal(title,html,actions){
   const acts=(actions||[]).map((a,i)=>`<button class="btn ${a.cls||'ghost'}" data-mi="${i}">${a.label}</button>`).join('');
   $('#msheet').innerHTML=`<div class="grip"></div>${title?`<h3 style="margin-bottom:14px">${title}</h3>`:''}${html}${actions&&actions.length?`<div class="modal-actions">${acts}</div>`:''}`;
   (actions||[]).forEach((a,i)=>{const b=$('#msheet').querySelector(`[data-mi="${i}"]`);if(b)b.onclick=a.fn;});
+  try{ const ms=$('#msheet');
+    /* an older screen that drew its own cross would otherwise make two */
+    ms.querySelectorAll('button[onclick="closeModal()"]').forEach(b=>{
+      if((b.textContent||'').trim()==='✕')b.remove(); });
+    if(!ms.querySelector(':scope > .sheet-x')){
+      const b=document.createElement('button');
+      b.className='sheet-x'; b.type='button'; b.textContent='✕';
+      b.setAttribute('aria-label','Close'); b.onclick=closeModal;
+      ms.insertBefore(b, ms.firstChild);
+    }
+  }catch(e){}
   $('#mscrim').classList.add('show');
   $('#msheet').scrollTop=0;
 }
@@ -14300,6 +14443,35 @@ function confirmModal(ti,m,onYes,onNo,labels){
      {label:L.yes||t('yes'),cls:L.cls||'danger',fn:()=>{closeSheet();onYes();}}]);}
 let toastT=null;
 function toast(msg,kind){const el=$('#toast');el.textContent=msg;el.className='toast show '+(kind||'');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2400);}
+
+/* UNDO. Until now a confirm dialog was the only thing between him and a permanent
+   deletion, and a dialog only protects the tap you EXPECTED to be dangerous. The real
+   cases are the wrong row, the fat finger, the interruption mid-thought. So the
+   destructive actions that cannot be typed back in — an order, a customer, a piece and
+   its measurements, a person on a family order, a payment — now hand back a way out
+   for a few seconds. Nothing here is a general undo stack: one action, one chance,
+   deliberately small so it can be trusted. */
+let _undo=null, _undoT=null;
+function undoOffer(msg, restore){
+  _undo=restore; clearTimeout(_undoT);
+  const el=$('#toast');
+  el.innerHTML='';
+  el.appendChild(document.createTextNode(msg));
+  const b=document.createElement('button');
+  b.className='tundo'; b.type='button'; b.textContent=t('undo');
+  b.onclick=()=>doUndo();
+  el.appendChild(b);
+  el.className='toast show';
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>{el.classList.remove('show');},7000);
+  _undoT=setTimeout(()=>{_undo=null;},7200);      // the offer expires with the toast
+}
+function doUndo(){
+  const r=_undo; _undo=null; clearTimeout(_undoT);
+  const el=$('#toast'); el.classList.remove('show');
+  if(!r)return;
+  try{ r(); toast(t('undo_done'),'ok'); }catch(e){ toast(t('undo_fail'),'bad'); }
+}
 
 /* ====================== INIT ====================== */
 function updateHeadStat(){const due=DB.orders.reduce((s,o)=>s+orderBaaki(o),0);
