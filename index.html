@@ -356,6 +356,14 @@
   .mfield label{font-size:10px; color:var(--mut); display:block; margin-bottom:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
   .mfield input{width:100%; background:transparent; border:none; color:var(--txt); outline:none; font-size:17px; font-weight:600; padding:2px 0}
   .mfield input.filled{color:var(--saffron2)}
+  /* A value the app copied from another piece must not look like one he measured.
+     Mori now flows, so a churidar can quietly inherit a pant's 16 — this is what makes
+     that visible at a glance instead of arriving on the cutting table. */
+  .mfield input[data-auto="1"]{color:var(--txt2); border-bottom:1px dashed var(--line2)}
+  .mfield input[data-auto="1"]:focus{color:var(--saffron2); border-bottom-color:transparent}
+  .mfield.auto-f label:after{content:' \00b7 auto'; color:var(--mut); font-weight:600}
+  .ql-in[data-auto="1"]{color:var(--txt2); border-bottom:1px dashed var(--line2)}
+  .ql-in[data-auto="1"]:focus{color:var(--saffron2); border-bottom-color:transparent}
   .prefilled-note{font-size:11px; color:var(--ok); margin:4px 0 0}
 
   .pur-collapsed{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r2);background:var(--card2);margin-bottom:8px;cursor:pointer}
@@ -541,7 +549,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v148</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v153</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -694,6 +702,9 @@ const T={
   notes:'Notes', notes_ph:'Any general note…',
   photo_label:'Fabric / Reference Photo',
   add_photo:'Add photo',
+  ms_more:'+ {n} more measurements', ms_less:'– Show fewer',
+  del_opt_q:'Remove “{n}” from the saved list? Orders that already use it keep it.',
+  body_upper:'Body — upper', body_lower:'Body — lower',
   t_photos_n:'{n} photos added', del_photo_q:'Remove this photo?',
   edit_items:'Items / customer',
   od_edit_hint:'Measurements, notes, photos and the delivery date are edited right here. Use this only to add or remove a piece, or to change the customer.',
@@ -735,6 +746,7 @@ const T={
   draft_saved:'Draft saved',
   draft_auto:'This bill saves itself — leave and come back anytime',
   draft_restored:'Restored your unfinished bill',
+  dft_back:'↩️ Back where you left off',
   pur_billed:'Billed items',
   pur_total_qty:'Total qty',
   pur_subtotal:'Subtotal',
@@ -1848,6 +1860,9 @@ const T={
   notes:'नोट', notes_ph:'कोई भी नोट…',
   photo_label:'कपड़ा / रेफरेंस फ़ोटो',
   add_photo:'फ़ोटो जोड़ें',
+  ms_more:'+ {n} और नाप', ms_less:'– कम दिखाएँ',
+  del_opt_q:'“{n}” को सूची से हटाएँ? जिन ऑर्डर में ये लगा है वहाँ बना रहेगा।',
+  body_upper:'नाप — ऊपर का', body_lower:'नाप — नीचे का',
   t_photos_n:'{n} फोटो जुड़ीं', del_photo_q:'ये फोटो हटाएं?',
   edit_items:'आइटम / ग्राहक',
   od_edit_hint:'नाप, नोट, फोटो और डेलिवरी डेट यहीं बदल जाते हैं। नया आइटम जोड़ना/हटाना या ग्राहक बदलना हो तभी यह खोलें।',
@@ -1889,6 +1904,7 @@ const T={
   draft_saved:'ड्राफ़्ट सहेजा गया',
   draft_auto:'यह बिल अपने-आप सेव होता रहता है — कभी भी बाहर जाकर वापस आएँ',
   draft_restored:'आपका अधूरा बिल वापस आ गया',
+  dft_back:'↩️ जहाँ छोड़ा था वहीं से',
   pur_billed:'बिल के आइटम',
   pur_total_qty:'कुल मात्रा',
   pur_subtotal:'सबटोटल',
@@ -2938,7 +2954,19 @@ const aLabel=s=>t('as_'+s);
 const UPPER_COLS=[{k:'L',n:'Length'},{k:'C',n:'Chest'},{k:'B',n:'Belly'},{k:'UB',n:'Upper Belly'},{k:'H',n:'Hip'},{k:'S',n:'Shoulder'},{k:'SL',n:'Sleeve'},{k:'N',n:'Neck'},{k:'Bi',n:'Bicep'}];
 const LOWER_COLS=[{k:'W',n:'Waist'},{k:'L',n:'Length'},{k:'H',n:'Hip'},{k:'TH',n:'Thigh'},{k:'AF',n:'Crotch (F)'},{k:'HF',n:'Crotch (H)'},{k:'P',n:'Pindli'},{k:'M',n:'Mori'}];
 const UPPER_COMMON=['C','B','UB','H','S','SL','N','Bi'];   // body cols reused across upper garments
-const LOWER_COMMON=['W','H','TH','AF','HF','P'];           // body cols reused across lower garments
+const LOWER_COMMON=['W','H','TH','AF','HF','P','M','L'];   // body cols reused across lower garments
+/* LENGTH IS SPLIT ON PURPOSE, because he works two different ways.
+   Lower: "length pant me common hi rahta hai" — one length serves the pants, so it flows.
+   Upper: a short kurta and a normal kurta in the same order need TWO lengths, and a
+   sherwani is longer again — so an upper length is never copied anywhere. */
+/* Mori is on this list because he takes ONE mori on almost every order. When there are
+   two pant styles — "bellbot ka 18, narrow fit ka 14" — he states each, and typing a
+   value by hand marks it manual so the shared one never overwrites it. Length is NOT
+   here and never will be: pant, pyjama and churidar lengths are genuinely different. */
+/* Taken now and then, and Upper Belly and Bicep mostly so the customer can see the naap
+   being done properly. They stay available, just not in the way — a filled one always
+   shows itself, so nothing can hide behind the fold. */
+const MEAS_SECONDARY=['UB','Bi','P'];
 const GLOBAL_MEAS=['H'];                                    // Hip is one body measurement shared upper<->lower
 const MEAS_DERIVE={waistcoat:{S:-0.5}};                     // Bandi/Waist Coat shoulder = upper shoulder − 0.5
 const GARMENTS=[
@@ -3021,7 +3049,8 @@ function load(raw){ try{const r=(raw!==undefined&&raw!==null)?raw:localStorage.g
   if(!DB.ledger)DB.ledger=[];
   if(!DB.expCats)DB.expCats=['किराया / Rent','बिजली / Electricity','वेतन / Salary','कारीगर / Tailor',
     'चाय-नाश्ता / Tea','ट्रांसपोर्ट / Transport','पैकिंग / Packing','मरम्मत / Repair','अन्य / Other'];
-  if(!DB.variantLib)DB.variantLib={kurta:['सामान्य / Normal','शेरवानी के अंदर','जैकेट सेट का','शॉर्ट कुर्ता']};
+  if(!DB.variantLib)DB.variantLib={kurta:['सामान्य / Normal','शेरवानी के अंदर','जैकेट सेट का','शॉर्ट कुर्ता'],
+    pant:['Narrow fit','Bellbottom','सामान्य / Normal']};   // he names these two aloud when an order has both
     if(!DB.relLib)DB.relLib=['Dulha','Bhai','Papa','Jija','Mama','Chacha','Dost','Beta'];
     if(!DB.numCfg)DB.numCfg={invPrefix:'INV',invMode:'fy',invStart:0,ordPrefix:'',ordStart:0};
   if(!DB.fabItems)DB.fabItems=[];      // fabric qualities
@@ -3505,6 +3534,9 @@ function pageMore(key){
   else if(k==='cat')catRepaint();
   else if(k==='cutf')cutPromptRender();
   else if(k==='cu')courierHub();
+  else if(k==='inv')renderInvoices();
+  else if(k==='pur')renderPurchases();
+  else if(k==='alt')renderAlterations();
   else if(k.indexOf('ki:')===0){ const p=k.split(':'); karigarIssue(p[1],p[2]); }
 }
 
@@ -6482,7 +6514,9 @@ function addSource(){
        DB.sources=DB.sources||[]; if(!DB.sources.includes(v))DB.sources.push(v);
        form.source=v; _ordX=true; save(); renderForm();}}]);
 }
-function delSource(i){ if(DB.sources){DB.sources.splice(i,1);save();} addSource(); }
+function delSource(i){ const n=(DB.sources||[])[i]||'';
+  confirmModal(t('del_title'),t('del_opt_q',{n:esc(n)}),()=>{
+    if(DB.sources){DB.sources.splice(i,1);save();} addSource(); }); }
 function setDispatch(mode){
   _sheetScroll=$('#sheet')?$('#sheet').scrollTop:0;
   captureForm();
@@ -7025,10 +7059,25 @@ function draftCardHTML(){
         <span class="btn sm primary">${t('draft_continue')}</span></div>
     </div>`;}).join('');
 }
+/* Put him back exactly where the call interrupted him. Silent on purpose — a dialog
+   here would just be one more tap between him and the measurement he was taking. */
+function reopenForm(){
+  let mk=null;
+  try{ mk=JSON.parse(localStorage.getItem(OPEN_KEY)||'null'); }catch(e){}
+  if(!mk||!mk.did)return;
+  if(Date.now()-(mk.ts||0) > 6*60*60*1000){ clearFormOpen(); return; }   // stale, not an interruption
+  const d=getDrafts()[mk.did];
+  if(!d||!d.form){ clearFormOpen(); return; }
+  form=d.form; form._did=mk.did;
+  _openItem=(mk.item && (form.items||[]).includes(mk.item)) ? mk.item : null;
+  renderForm();
+  toast(t('dft_back'),'ok');
+}
 function resumeDraft(id){
   const m=getDrafts(); const d=m[id];
   if(!d){renderOrders();return;}
   form=d.form; form._did=id;
+  markFormOpen(id);
   renderForm();
 }
 function discardDraft(id){
@@ -7457,14 +7506,25 @@ function formIsOpen(){
   return sheetIsOpen() && !!document.getElementById('f_ono');
 }
 
+/* A phone call while he is measuring takes the iPad away, and iOS drops the page out of
+   memory. The work was already safe — the draft is written on visibilitychange, pagehide
+   and blur — but coming back he landed on Home and had to go hunt for the draft. So we
+   also remember that the form WAS open, and which piece he had open inside it, and boot
+   puts him straight back there. */
+const OPEN_KEY='pb_ob_openform';
+function markFormOpen(did){
+  try{ localStorage.setItem(OPEN_KEY, JSON.stringify({did, item:_openItem||'', ts:Date.now()})); }catch(e){}
+}
+function clearFormOpen(){ try{ localStorage.removeItem(OPEN_KEY); }catch(e){} }
 function saveDraft(){
   if(_draftOff)return;
   if(!formIsOpen())return;
   try{
     captureForm();
     if(!form._did)form._did='d'+uid();
-    if(!formHasContent(form)){ dropDraft(form._did); return; }
+    if(!formHasContent(form)){ dropDraft(form._did); clearFormOpen(); return; }
     putDraft(form._did, form);
+    markFormOpen(form._did);
     const h=document.getElementById('draftHint');
     if(h){ h.innerHTML='✅ '+t('draft_saved')+' · '+new Date().toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'}); h.classList.add('dh-on'); }
   }catch(e){}
@@ -7474,6 +7534,7 @@ function clearDraft(){
   _draftOff=true;
   try{clearInterval(_draftTick);clearTimeout(_draftT);}catch(e){}
   unbindDraftAutosave();
+  clearFormOpen();
   if(form&&form._did)dropDraft(form._did);
 }
 function draftAge(ts){
@@ -7513,7 +7574,7 @@ function cancelOrderForm(){
   captureForm();
   if(formHasContent(form)){
     // don't destroy work — park it as a draft, it stays visible on the Orders page
-    saveDraft();
+    saveDraft(); clearFormOpen();      // he chose to leave — do not reopen it on boot
     closeSheet(); go('orders');
     toast(t('dft_parked'),'ok');
   }else{ clearDraft(); closeSheet(); }
@@ -7555,12 +7616,14 @@ function openOrderForm(editId){
       if(seed.pid){ form.itemPhotos=form.itemPhotos||{}; form.itemPhotos[k]=[seed.pid]; } }
     else if(seed.pid){ form.photos=form.photos||[]; form.photos.push(seed.pid); }
   }
-  _gcMore={}; _xOpen={}; _ordX=false;
+  _gcMore={}; _xOpen={}; _ordX=false; _msMore={};
   renderForm();
 }
 let _sheetScroll=0;
 /* ---- fold state: garment chips / item extras / order extras ---- */
 let _gcMore={}, _xOpen={}, _ordX=false;
+let _msMore={};
+function msMoreToggle(key){_sheetScroll=$('#sheet')?$('#sheet').scrollTop:0;captureForm();_msMore[key]=!_msMore[key];renderForm();}
 function gcToggle(mid){_sheetScroll=$('#sheet')?$('#sheet').scrollTop:0;captureForm();_gcMore[mid]=!_gcMore[mid];renderForm();}
 function xToggle(key){_sheetScroll=$('#sheet')?$('#sheet').scrollTop:0;captureForm();_xOpen[key]=!_xOpen[key];renderForm();}
 function ordXToggle(){_sheetScroll=$('#sheet')?$('#sheet').scrollTop:0;captureForm();_ordX=!_ordX;renderForm();}
@@ -7697,20 +7760,22 @@ function itemDone(key){
    open a full measurement card just to type one number is what made a four-item
    order feel like work. This puts every Length on one short panel: type, Enter,
    next. The full card is still one tap away for anything else. */
-function quickLenHTML(f,mine){
-  const list=sortItems(mine);
+function quickLenHTML(f,mine,only){
+  const list=sortItems(only?mine.filter(only):mine);
+  if(!list.length)return '';
   const done=list.filter(k=>measFilledCount(f,k).len).length;
   const rows=list.map((k,i)=>{
     const g=G(k); if(!g)return '';
     const open=(_openItem===k);
     const val=((f.m||{})[k]||{}).L||'';
+    const isAuto=!!(val && (((f.mAuto||{})[k])||{}).L);
     const st=measFilledCount(f,k);
     // never render a second input for the item whose card is open, or capture would
     // read the same field twice and the empty one could win
     const cell=open
       ? `<span class="ql-open">${val?esc(val):'—'} <span class="hint">${t('ql_editing')}</span></span>`
       : `<input class="mInput ql-in ${val?'filled':''}" inputmode="decimal" data-g="${esc(k)}" data-k="L"
-           value="${esc(val)}" placeholder="—" id="ql_${cssId(k)}"
+           value="${esc(val)}" placeholder="—" id="ql_${cssId(k)}" ${isAuto?'data-auto="1"':''}
            onkeydown="if(event.key==='Enter'){event.preventDefault();qlNext('${esc(k)}')}">`;
     return `<div class="ql-row">
       <span class="ql-st">${st.len?'✅':'⬜'}</span>
@@ -7746,12 +7811,18 @@ function measCardHTML(f,key){
   const g=G(key); if(!g)return '';
   const cols=vcols(g), vals=f.m[key]||{};
   const gid=g.id, dkey=esc(key), cid=cssId(key);
-  const fields=cols.map(col=>{const isLen=col.k==='L';const val=vals[col.k]||'';
+  const autoM=((f.mAuto||{})[key])||{};
+  const _more=!!_msMore[key];
+  const _isSec=c=>MEAS_SECONDARY.includes(c.k)&&!(vals[c.k]||'').toString().trim();
+  const _hid=cols.filter(_isSec).length;
+  const shown=(_more||!_hid)?cols:cols.filter(c=>!_isSec(c));
+  const fields=shown.map(col=>{const isLen=col.k==='L';const val=vals[col.k]||'';
+    const isAuto=!!(val&&autoM[col.k]);
     if(col.type==='select'){const opts=['<option value="">—</option>'].concat((col.options||[]).map(o=>`<option value="${esc(o)}" ${val===o?'selected':''}>${esc(o)}</option>`)).join('');
       return `<div class="mfield"><label>${esc(col.n)}</label><select class="mInput" data-g="${dkey}" data-k="${col.k}" style="width:100%;background:transparent;border:none;color:var(--txt);font-size:15px;font-weight:600;outline:none">${opts}</select></div>`;}
-    return `<div class="mfield ${isLen?'lenhl':''}"><label>${esc(col.n)}${isLen?' ★':''}</label>
+    return `<div class="mfield ${isLen?'lenhl':''} ${isAuto?'auto-f':''}"><label>${esc(col.n)}${isLen?' ★':''}</label>
       <input class="mInput ${val?'filled':''}" inputmode="${col.type==='text'?'text':'decimal'}" data-g="${dkey}" data-k="${col.k}" value="${esc(val)}" placeholder="—"
-        onkeydown="if(event.key==='Enter'){measStep(event,1)}"></div>`;}).join('');
+        ${isAuto?'data-auto="1"':''} onkeydown="if(event.key==='Enter'){measStep(event,1)}"></div>`;}).join('');
 
   const vlist=(DB.variantLib&&DB.variantLib[gid])||[];
   const vcur=(f.variant&&f.variant[key])||'';
@@ -7778,6 +7849,7 @@ function measCardHTML(f,key){
         <button class="btn sm danger" onclick="removeItem('${dkey}')">${t('remove')}</button></span></div>
     <div class="mb">
       <div class="mgrid">${fields}</div>
+      ${_hid?`<button class="btn sm ghost block" style="margin-top:6px" onclick="msMoreToggle('${dkey}')">${_more?t('ms_less'):t('ms_more',{n:_hid})}</button>`:''}
       <div class="gtags" style="margin-top:6px">
         <span class="gtag" onclick="addMeas('${gid}')" style="cursor:pointer;border-style:dashed">📏 ${t('add_meas')}</span>
         <span class="gtag" onclick="manageMeas('${gid}')" style="cursor:pointer;border-style:dashed">⚙️ ${t('manage_meas')}</span></div>
@@ -7824,6 +7896,53 @@ function addAnother(key){
 function cssId(key){ return String(key).replace(/[^a-zA-Z0-9]/g,'_'); }
 
 /* ---------- the whole block for ONE member ---------- */
+/* BODY NAAP, ONCE PER PERSON — his own working order, told to me on Aug 3:
+   items chosen → UPPER body naap → the LENGTHS of each upper piece → LOWER body naap,
+   and the pant length sits inside that lower block because for him it is one length.
+   Before this the same body naap was typed inside one garment's card and flowed
+   invisibly to the rest, which is why it never felt like "the body is measured once".
+   The DATA always worked this way; only the screen disagreed. */
+function bodyColsFor(cat){
+  const cols=(cat==='lower'?LOWER_COLS:UPPER_COLS)
+    .filter(c=>cat==='lower' ? true : c.k!=='L');   // an upper length is per piece, never shared
+  return cols;
+}
+/* Which piece the body boxes actually write into. The value flows to every sibling, so
+   any of them will do — but never the one whose card is open, or the same field would be
+   on screen twice and captureForm would read the empty one last. */
+function bodyAnchor(f,mine,cat){
+  const of=mine.filter(k=>{const g=G(k);return g&&g.cat===cat;});
+  if(!of.length)return null;
+  return of.find(k=>k!==_openItem) || of[0];
+}
+function bodyBlockHTML(f,mine,cat,mid){
+  const anchor=bodyAnchor(f,mine,cat); if(!anchor)return '';
+  const g=G(anchor); if(!g)return '';
+  const hidden=measHidden(g.id);
+  const vals=f.m[anchor]||{}, autoM=((f.mAuto||{})[anchor])||{};
+  const openHere=(anchor===_openItem);
+  const more=!!_msMore['body~'+cat+'~'+mid];
+  const cols=bodyColsFor(cat).filter(c=>!hidden.includes(c.k));
+  const isSec=c=>MEAS_SECONDARY.includes(c.k)&&!String(vals[c.k]||'').trim();
+  const nHid=cols.filter(isSec).length;
+  const shown=(more||!nHid)?cols:cols.filter(c=>!isSec(c));
+  const boxes=shown.map(col=>{const val=vals[col.k]||'';
+    const isAuto=!!(val&&autoM[col.k]);
+    if(openHere)return `<div class="mfield"><label>${esc(col.n)}</label>
+      <div class="ql-open" style="font-size:15px">${val?esc(val):'\u2014'}</div></div>`;
+    return `<div class="mfield ${isAuto?'auto-f':''}"><label>${esc(col.n)}</label>
+      <input class="mInput ${val?'filled':''}" inputmode="decimal" data-g="${esc(anchor)}" data-k="${col.k}"
+        value="${esc(val)}" placeholder="\u2014" ${isAuto?'data-auto="1"':''}
+        onkeydown="if(event.key==='Enter'){measStep(event,1)}"></div>`;}).join('');
+  const lbl=cat==='lower'?t('body_lower'):t('body_upper');
+  return `<div class="ql-wrap" style="margin-top:10px">
+    <div class="ql-head"><span>${cat==='lower'?'\ud83d\udc56':'\ud83d\udc55'} ${lbl}</span>
+      <span class="hint" style="color:inherit">${openHere?t('ql_editing'):''}</span></div>
+    <div class="mgrid" style="padding:10px 12px 12px">${boxes}</div>
+    ${nHid?`<div style="padding:0 12px 10px"><button class="btn sm ghost block"
+      onclick="msMoreToggle('body~${cat}~${mid}')">${more?t('ms_less'):t('ms_more',{n:nHid})}</button></div>`:''}
+  </div>`;
+}
 function memberBlockHTML(f,mem,idx,multi){
   const mine=itemsOfMember(f,mem.id);
   const _all=allItems(), GC_N=6, _folds=_all.length>GC_N, _exp=!!_gcMore[mem.id];
@@ -7857,9 +7976,9 @@ function memberBlockHTML(f,mem,idx,multi){
     </div>`:''}
     <div class="chip-grid">${chips}</div>
     ${mine.length?`<p class="prefilled-note">${t('prefill_note')}</p>`:''}
-    ${mine.length?quickLenHTML(f,mine):(mine.length?(()=>{const done=mine.filter(k=>measFilledCount(f,k).len).length;
-      return `<div class="billed-bar" style="margin-top:10px"><span>✂️ ${t('it_items')}</span>
-        <span class="hint" style="color:inherit">${done}/${mine.length} ${t('it_filled')}</span></div>`;})():'')}
+    ${bodyBlockHTML(f,mine,'upper',mem.id)}
+    ${quickLenHTML(f,mine,k=>{const g=G(k);return g&&g.cat!=='lower';})}
+    ${bodyBlockHTML(f,mine,'lower',mem.id)}
     <div style="margin-top:10px">${cards}</div>
   </div>`;
 }
@@ -7975,7 +8094,9 @@ function addDesignOption(gid,key){_sheetScroll=$('#sheet')?$('#sheet').scrollTop
       DB.designLib[gid]=DB.designLib[gid]||[];if(!DB.designLib[gid].includes(v))DB.designLib[gid].push(v);
       const parts=form.design[key]?form.design[key].split('/').map(s=>s.trim()).filter(Boolean):[];if(!parts.includes(v))parts.push(v);form.design[key]=parts.join(' / ');
       save();renderForm();}}]);}
-function delDesignOption(gid,i){if(DB.designLib[gid]){DB.designLib[gid].splice(i,1);save();}addDesignOption(gid);}
+function delDesignOption(gid,i){const n=((DB.designLib||{})[gid]||[])[i]||'';
+  confirmModal(t('del_title'),t('del_opt_q',{n:esc(n)}),()=>{
+    if(DB.designLib[gid]){DB.designLib[gid].splice(i,1);save();}addDesignOption(gid);});}
 function setBodyType(bt){_sheetScroll=$('#sheet')?$('#sheet').scrollTop:0;captureForm();form.bodyType=form.bodyType||[];const i=form.bodyType.indexOf(bt);if(i>=0)form.bodyType.splice(i,1);else form.bodyType.push(bt);renderForm();}
 function addBodyType(){_sheetScroll=$('#sheet')?$('#sheet').scrollTop:0;captureForm();const list=(DB.bodyTypes||[]);
   const listHTML=list.length?`<div class="hint" style="margin:12px 0 4px">${t('saved_options')}</div>`+list.map((o,i)=>`<div class="kv"><span>${esc(o)}</span><span onclick="delBodyType(${i})" style="color:#d9534f;cursor:pointer">🗑️</span></div>`).join(''):'';
@@ -7983,7 +8104,9 @@ function addBodyType(){_sheetScroll=$('#sheet')?$('#sheet').scrollTop:0;captureF
    [{label:t('close'),cls:'ghost',fn:()=>renderForm()},
     {label:t('add'),cls:'primary',fn:()=>{const v=(($('#newbt')&&$('#newbt').value)||'').trim();if(!v){renderForm();return;}
       DB.bodyTypes=DB.bodyTypes||[];if(!DB.bodyTypes.includes(v))DB.bodyTypes.push(v);form.bodyType=form.bodyType||[];if(!form.bodyType.includes(v))form.bodyType.push(v);save();renderForm();}}]);}
-function delBodyType(i){if(DB.bodyTypes){DB.bodyTypes.splice(i,1);save();}addBodyType();}
+function delBodyType(i){const n=(DB.bodyTypes||[])[i]||'';
+  confirmModal(t('del_title'),t('del_opt_q',{n:esc(n)}),()=>{
+    if(DB.bodyTypes){DB.bodyTypes.splice(i,1);save();}addBodyType();});}
 function mcols(g){return itemCols(g).concat(((DB.measLib&&DB.measLib[g.id])||[]).map(l=>({k:'x_'+l,n:l})));}
 function measHidden(gid){return (DB.measHide&&DB.measHide[gid])||[];}
 function vcols(g){const h=measHidden(g.id);return mcols(g).filter(c=>!h.includes(c.k));}
@@ -8286,6 +8409,7 @@ function bindMeasInputs(){
     if(inp.inputMode==='text' || (inp.dataset.k&&inp.dataset.k.indexOf('x_')===0)){ inp.addEventListener('input',()=>{inp.dataset.auto='';inp.classList.toggle('filled',!!inp.value.trim());}); return; }
     inp.addEventListener('input',()=>{const sv=sanitizeMeas(inp.value);if(sv!==inp.value)inp.value=sv;
       inp.dataset.auto=''; markManual(inp);
+      const mf=inp.closest&&inp.closest('.mfield'); if(mf)mf.classList.remove('auto-f');
       inp.classList.toggle('filled',!!inp.value.trim());propagate(inp);});
   });
 }
@@ -8333,7 +8457,8 @@ function propagate(inp){
     if(!(isGlobal || og.cat===g.cat))return;
     if(other.value.trim() && other.dataset.auto!=='1')return;
     const dv=deriveMeasVal(og.id,k,v);
-    other.value=dv; other.dataset.auto='1'; other.classList.toggle('filled',!!dv);
+    other.value=dv; other.dataset.auto=dv?'1':''; other.classList.toggle('filled',!!dv);
+    const of2=other.closest&&other.closest('.mfield'); if(of2)of2.classList.toggle('auto-f',!!dv);
   });
 }
 function insFrac(e,val){e.preventDefault();if(!_mfocus)return;
@@ -8777,6 +8902,7 @@ function renderPurchases(keepFocus){
   if(!list.length){el.innerHTML=addBtn+searchBox+`<div class="empty"><p>${t('inv_none_match')}</p></div>`;
     if(keepFocus)focusPurSearch(); return;}
 
+  const _pgAll=list; list=pageSlice('pur',list);
   el.innerHTML=addBtn+searchBox+title+list.map(p=>{
     const baaki=orderBaaki(p);
     return `<div class="card ocard" onclick="purchMenu('${p.id}')">
@@ -8786,7 +8912,7 @@ function renderPurchases(keepFocus){
         <div class="deliv">${fmtDate(p.date)}</div></div>
       <div class="botrow"><span style="font-weight:800">${money(p.total)}</span>${baaki>0?`<span style="font-size:12px;color:var(--bad);font-weight:700">${t('baaki')}: ${money(baaki)}</span>`:`<span class="pill st-delivered">✓ ${t('inv_paid')}</span>`}</div>
     </div>`;
-  }).join('');
+  }).join('')+pageMoreBtn('pur',_pgAll.length);
   if(keepFocus)focusPurSearch();
 }
 function focusPurSearch(){const el=$('#purSearch');if(el){const v=el.value;el.focus();el.setSelectionRange(v.length,v.length);}}
@@ -8796,6 +8922,7 @@ function renderAlterations(){
   const list=(DB.alterations||[]).slice().sort((a,b)=>new Date(b.created)-new Date(a.created));
   const addBtn=`<button class="btn primary block" style="margin-bottom:12px" onclick="openAltForm()">+ ${t('new_alteration')}</button>`;
   if(!list.length){el.innerHTML=addBtn+`<div class="empty"><div class="big">🔧</div><p><b>${t('no_alterations')}</b></p><p style="font-size:13px">${t('no_alterations_sub')}</p></div>`;return;}
+  const _pgAll=list; list=pageSlice('alt',list);
   el.innerHTML=addBtn+list.map(a=>{
     const dl=daysLeft(a.deliveryDate),baaki=orderBaaki(a),st=a.status||'received';
     let dcls='',dtxt=a.deliveryDate?fmtDate(a.deliveryDate):'—';
@@ -8810,7 +8937,7 @@ function renderAlterations(){
       <div class="gtags">${a.itemDesc?`<span class="gtag">${esc(a.itemDesc)}</span>`:''}${origO?`<span class="gtag">↩ #${esc(origO.orderNo)}</span>`:''}${kname?`<span class="gtag">👷 ${esc(kname)}</span>`:''}</div>
       <div class="botrow"><span class="pill ${ASTATUS_CLASS[st]}">${aLabel(st)}</span><span style="font-size:12px;color:var(--txt2)">${baaki>0?`<span style="color:var(--saffron2);font-weight:700">${money(baaki)}</span>`:''}</span></div>
     </div>`;
-  }).join('');
+  }).join('')+pageMoreBtn('alt',_pgAll.length);
 }
 
 function openAltForm(editId,origOrderId){
@@ -10830,7 +10957,10 @@ function renderInvoices(keepFocus){
   const amtOf=x=>invCompute(x.inv).total;
   if(invSort==='hi'||invSort==='lo'){
     const flat=applySort(list,invSort,x=>x.inv.date,amtOf);
-    el.innerHTML=head+searchBox+title+flat.map(x=>invCardHTML(x)).join('');
+    /* Orders and customers were paginated long ago; these three were missed, so a shop
+       with a few thousand bills paints the whole list in one go and the iPad locks. */
+    el.innerHTML=head+searchBox+title+pageSlice('inv',flat).map(x=>invCardHTML(x)).join('')
+      +pageMoreBtn('inv',flat.length);
     if(keepFocus)focusInvSearch();
     return;
   }
@@ -14079,6 +14209,7 @@ async function init(){
   syncShopNameKey();applyModules();applyLang();
   document.body.classList.toggle('simple-mode',localStorage.getItem('pb_ob_simple')==='1');
   renderHome();_curTab='home';pushGuard();
+  reopenForm();                        // interrupted mid-order? put him back in it
   setTimeout(autoFileBackup,4000);
   if(boot && boot.raw && boot.from!=='live' && boot.from!=='legacy'){
     setTimeout(()=>toast(t('rec_used',{src:boot.from}),'bad'),900);
