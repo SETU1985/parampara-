@@ -549,7 +549,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v153</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v157</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -631,6 +631,8 @@ const T={
   home_new_sale:'New Invoice',
   home_settings:'Settings',
   home_pending_orders:'Pending',
+  home_ready_deliver:'Ready to give',
+  stat_ready_sub:'Everything on these orders is finished — call the customer.',
   home_due_today:'Due Today',
   home_to_collect:'Receivables',
   home_month_sales:'This Month Sale',
@@ -702,6 +704,14 @@ const T={
   notes:'Notes', notes_ph:'Any general note…',
   photo_label:'Fabric / Reference Photo',
   add_photo:'Add photo',
+  t_nomedia:'Photos and voice notes cannot be saved on this device. Orders and measurements are safe.',
+  su_items_head:'What do you make here?', su_lang:'Language',
+  su_items_sub:'Tap the pieces your shop actually takes orders for. The rest stay out of your way.',
+  su_items_note:'You can change this any time from Item setup, and add your own pieces too.',
+  it_setup:'Item setup', it_on_front:'On the front row', it_in_more:'Under “More”',
+  it_hide:'Never used here', it_hidden:'Not used in this shop', it_restore:'Bring back',
+  it_hide_q:'Take “{n}” out of the picker? Orders that already use it are not affected.',
+  it_setup_desc:'★ puts a piece on the front row. ▲▼ set the order, and the same order is used for lengths and measurements. 🚫 is for pieces this shop never sells.',
   ms_more:'+ {n} more measurements', ms_less:'– Show fewer',
   del_opt_q:'Remove “{n}” from the saved list? Orders that already use it keep it.',
   body_upper:'Body — upper', body_lower:'Body — lower',
@@ -1255,7 +1265,7 @@ const T={
   si_bank_head:'Bank details for bills & reminders',
   su_title:'Set up your shop',
   su_sub:'This name and address go on every bill you make. You can change it any time from Settings.',
-  su_shop:'Shop name',
+  su_shop:'Shop name', your_shop:'Your shop',
   su_shop_ph:'Your shop name',
   su_owner:'Owner name',
   su_addr:'Address',
@@ -1789,6 +1799,8 @@ const T={
   home_new_sale:'नया इनवॉइस',
   home_settings:'सेटिंग',
   home_pending_orders:'बाकी ऑर्डर',
+  home_ready_deliver:'देने को तैयार',
+  stat_ready_sub:'इन ऑर्डर का सब काम हो गया — ग्राहक को फ़ोन करें।',
   home_due_today:'आज डिलीवरी',
   home_to_collect:'वसूली बाकी',
   home_month_sales:'इस महीने की बिक्री',
@@ -1860,6 +1872,14 @@ const T={
   notes:'नोट', notes_ph:'कोई भी नोट…',
   photo_label:'कपड़ा / रेफरेंस फ़ोटो',
   add_photo:'फ़ोटो जोड़ें',
+  t_nomedia:'इस डिवाइस में फ़ोटो और वॉइस नोट सेव नहीं हो पा रहे। ऑर्डर और नाप सुरक्षित हैं।',
+  su_items_head:'यहाँ क्या-क्या बनता है?', su_lang:'भाषा',
+  su_items_sub:'जो आइटम आपकी दुकान में सच में बनते हैं वो चुनें। बाकी सामने नहीं आएँगे।',
+  su_items_note:'यह कभी भी आइटम सेटअप से बदल सकते हैं, और अपने आइटम भी जोड़ सकते हैं।',
+  it_setup:'आइटम सेटअप', it_on_front:'सामने वाली लाइन में', it_in_more:'“और” के अंदर',
+  it_hide:'यहाँ नहीं चलता', it_hidden:'इस दुकान में नहीं', it_restore:'वापस लाएँ',
+  it_hide_q:'“{n}” को सूची से हटाएँ? जिन ऑर्डर में ये लगा है वह वैसे ही रहेंगे।',
+  it_setup_desc:'★ दबाने से आइटम सामने आ जाता है। ▲▼ से क्रम बनाएँ — वही क्रम लंबाई और नाप में भी चलेगा। 🚫 उन आइटम के लिए जो यहाँ बनते ही नहीं।',
   ms_more:'+ {n} और नाप', ms_less:'– कम दिखाएँ',
   del_opt_q:'“{n}” को सूची से हटाएँ? जिन ऑर्डर में ये लगा है वहाँ बना रहेगा।',
   body_upper:'नाप — ऊपर का', body_lower:'नाप — नीचे का',
@@ -2413,7 +2433,7 @@ const T={
   si_bank_head:'बिल और रिमाइंडर के लिए बैंक विवरण',
   su_title:'अपनी दुकान सेट करें',
   su_sub:'यही नाम और पता हर बिल पर जाएगा। सेटिंग्स से कभी भी बदल सकते हैं।',
-  su_shop:'दुकान का नाम',
+  su_shop:'दुकान का नाम', your_shop:'आपकी दुकान',
   su_shop_ph:'आपकी दुकान का नाम',
   su_owner:'मालिक का नाम',
   su_addr:'पता',
@@ -2978,7 +2998,28 @@ const GARMENTS=[
   {id:'pant',n:'Pant',cat:'lower',ico:'👖'},{id:'pyjama',n:'Pyjama',cat:'lower',ico:'🩳'},{id:'churidar',n:'Churidar',cat:'lower',ico:'🦵'}
 ];
 function allItems(){return GARMENTS.concat(DB.customItems||[]);}
-function sortItems(ids){const rank={};allItems().forEach((g,i)=>rank[g.id]=i);
+
+/* THE SHOP DECIDES ITS OWN ITEMS, not the code. Which pieces sit up front, in what
+   order, and which it never sells at all. PARAMPARA wants Coat, Waist Coat, Shirt,
+   Pant, Bandi, Kurta, Indo-Western, Sherwani; a ladies boutique wants none of those.
+   Everything reads through here, so the order he sets is also the order the Lengths
+   list and the measurement sequence follow. */
+function itemCfg(){ DB.itemCfg=DB.itemCfg||{}; const c=DB.itemCfg;
+  if(!Array.isArray(c.order))c.order=[];
+  if(!Array.isArray(c.fav))c.fav=allItems().slice(0,6).map(g=>g.id);   // today's behaviour
+  if(!Array.isArray(c.hide))c.hide=[];
+  return c; }
+/* every item the shop still uses, in the shop's order */
+function orderedItems(){ const c=itemCfg(), all=allItems();
+  const pos={}; c.order.forEach((id,i)=>pos[id]=i);
+  return all.filter(g=>!c.hide.includes(g.id))
+    .map((g,i)=>({g,r:(pos[g.id]!=null?pos[g.id]:1000+i)}))
+    .sort((a,b)=>a.r-b.r).map(x=>x.g); }
+/* the pieces on the front row, in the order he put them */
+function favItems(){ const c=itemCfg(), live=orderedItems();
+  const byId={}; live.forEach(g=>byId[g.id]=g);
+  return c.fav.map(id=>byId[id]).filter(Boolean); }
+function sortItems(ids){const rank={};orderedItems().forEach((g,i)=>rank[g.id]=i);
   const rk=k=>{const r=rank[garmentOf(k)];return r==null?999:r;};
   return (ids||[]).slice().sort((a,b)=>rk(a)-rk(b));}
 /* ---- ITEM KEYS ----
@@ -3214,9 +3255,26 @@ const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 let idb=null;
 function openIDB(){return new Promise((res,rej)=>{const r=indexedDB.open('pb_ob_media',1);
   r.onupgradeneeded=()=>r.result.createObjectStore('m'); r.onsuccess=()=>{idb=r.result;res()}; r.onerror=()=>rej(r.error);});}
-function mPut(id,b){return new Promise((res,rej)=>{const tx=idb.transaction('m','readwrite');tx.objectStore('m').put(b,id);tx.oncomplete=()=>res(id);tx.onerror=()=>rej(tx.error);});}
-function mGet(id){return new Promise(res=>{const tx=idb.transaction('m','readonly');const q=tx.objectStore('m').get(id);q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null);});}
-function mDel(id){return new Promise(res=>{const tx=idb.transaction('m','readwrite');tx.objectStore('m').delete(id);tx.oncomplete=()=>res();tx.onerror=()=>res();});}
+/* boot does `try{ await openIDB(); }catch(e){}` and carries on, so on a device where
+   IndexedDB will not open — private browsing, corrupt store, no quota — `idb` stays
+   null. These three then threw synchronously on `idb.transaction`, the promise
+   rejected, and whatever render was awaiting it DIED HALFWAY: photos gone, voice notes
+   gone, the rest of the screen never drawn. Exactly the failure the order screen had
+   with raw item keys, from a different direction. They now fail quietly and, where it
+   matters, say so out loud. */
+function mediaReady(){ return !!idb; }
+function mPut(id,b){return new Promise((res,rej)=>{
+  if(!idb)return rej(new Error('no-media-store'));
+  try{const tx=idb.transaction('m','readwrite');tx.objectStore('m').put(b,id);
+    tx.oncomplete=()=>res(id);tx.onerror=()=>rej(tx.error);}catch(e){rej(e);}});}
+function mGet(id){return new Promise(res=>{
+  if(!idb)return res(null);
+  try{const tx=idb.transaction('m','readonly');const q=tx.objectStore('m').get(id);
+    q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null);}catch(e){res(null);}});}
+function mDel(id){return new Promise(res=>{
+  if(!idb)return res();
+  try{const tx=idb.transaction('m','readwrite');tx.objectStore('m').delete(id);
+    tx.oncomplete=()=>res();tx.onerror=()=>res();}catch(e){res();}});}
 function mKeys(){return new Promise(res=>{if(!idb)return res([]);const tx=idb.transaction('m','readonly');const q=tx.objectStore('m').getAllKeys();q.onsuccess=()=>res(q.result||[]);q.onerror=()=>res([]);});}
 /* Rolling restore points. Once a day was too thin — a shop that loses today's work
    loses a whole day of measurements. Now one every few hours of actual use, keeping
@@ -3449,6 +3507,8 @@ function applyLang(){
   $('#langTog').innerHTML = lang==='en' ? 'EN · <b>हिं</b>' : 'हिं · <b>EN</b>';
   updateHeadStat();
 }
+/* the setup screen needs to SET a language, not flip it */
+function setLang(l){ if(l!==lang)toggleLang(); }
 function toggleLang(){ lang=lang==='en'?'hi':'en'; localStorage.setItem('pb_ob_lang',lang); applyLang();
   const act=document.querySelector('.tabpane.active'); if(act&&act.id==='tab-detail'&&detailId) openDetail(detailId);
   else if(act&&act.id==='tab-altdetail'&&altDetailId) openAltDetail(altDetailId);
@@ -5967,7 +6027,7 @@ function upiUri(amount,note){
   const shop=DB.shopInfo||{};
   if(!shop.upi)return null;
   let u='upi://pay?pa='+encodeURIComponent(shop.upi)
-    +'&pn='+encodeURIComponent((shop.name||'PARAMPARA').slice(0,40))
+    +'&pn='+encodeURIComponent((shop.name||t('your_shop')).slice(0,40))
     +'&cu=INR';
   const a=+amount||0;
   if(a>0)u+='&am='+a.toFixed(2);
@@ -6004,7 +6064,7 @@ function qrRender(){
     <p class="hint" style="margin-bottom:12px">${t('qr_sub')}</p>
     <div class="qr-card">
       ${url?`<img src="${url}" alt="UPI QR" class="qr-img">`:`<p class="hint">${t('t_wrong')}</p>`}
-      <div class="qr-name">${esc(shop.name||'PARAMPARA')}</div>
+      <div class="qr-name">${esc(shop.name||t('your_shop'))}</div>
       <div class="qr-upi">${esc(shop.upi)}</div>
       ${amt>0?`<div class="qr-amt">${money(amt)}</div>`:`<div class="hint">${t('qr_any_amt')}</div>`}
       ${_qrWho?`<div class="hint" style="margin-top:4px">${esc(_qrWho)}</div>`:''}
@@ -6041,7 +6101,7 @@ async function sendQRToCustomer(amount,note,phone,who){
   if(!cv){toast(t('t_wrong'),'bad');return;}
   const W=680,H=880,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
   x.fillStyle='#fff';x.fillRect(0,0,W,H);x.textAlign='center';
-  x.fillStyle='#c97e10';x.font='bold 38px sans-serif';x.fillText((shop.name||'PARAMPARA').toUpperCase(),W/2,80);
+  x.fillStyle='#c97e10';x.font='bold 38px sans-serif';x.fillText((shop.name||t('your_shop')).toUpperCase(),W/2,80);
   x.fillStyle='#444';x.font='20px sans-serif';x.fillText(t('qr_scan_pay'),W/2,120);
   const s=520;x.drawImage(cv,(W-s)/2,150,s,s);
   x.fillStyle='#111';x.font='bold 24px sans-serif';x.fillText(shop.upi||'',W/2,715);
@@ -6072,7 +6132,7 @@ async function qrShare(){
   x.fillStyle='#a8590a';x.font='bold 26px sans-serif';x.textAlign='center';
   if(shop.blessing)x.fillText(shop.blessing,W/2,50);
   x.fillStyle='#c97e10';x.font='bold 38px sans-serif';
-  x.fillText((shop.name||'PARAMPARA').toUpperCase(),W/2,105);
+  x.fillText((shop.name||t('your_shop')).toUpperCase(),W/2,105);
   x.fillStyle='#444';x.font='20px sans-serif';
   x.fillText(t('qr_scan_pay'),W/2,145);
   const s=520;x.drawImage(cv,(W-s)/2,175,s,s);
@@ -6105,7 +6165,7 @@ function qrPrint(){
     .a{font-size:30px;color:#a8590a;font-weight:bold;margin-top:8px}
   </style></head><body>
     ${shop.blessing?`<div class="b">${esc(shop.blessing)}</div>`:''}
-    <h1>${esc((shop.name||'PARAMPARA').toUpperCase())}</h1>
+    <h1>${esc((shop.name||t('your_shop')).toUpperCase())}</h1>
     <div class="s">${t('qr_scan_pay')}</div>
     <img src="${url}">
     <div class="u">${esc(shop.upi||'')}</div>
@@ -6165,7 +6225,7 @@ function statementText(g){
   const shop=DB.shopInfo||{};
   const L=[];
   if(shop.blessing)L.push(shop.blessing);
-  L.push((shop.name||'PARAMPARA').toUpperCase());
+  L.push((shop.name||t('your_shop')).toUpperCase());
   L.push('');
   L.push(t('fu_greet',{name:g.name}));
   L.push('');
@@ -6183,7 +6243,7 @@ function statementText(g){
   payDetailsText().forEach(x=>L.push(x));
   L.push('');
   L.push(t('fu_thanks'));
-  L.push(shop.name||'PARAMPARA');
+  L.push(shop.name||t('your_shop'));
   if(shop.phone)L.push('📞 '+shop.phone);
   return L.join('\n');
 }
@@ -6875,6 +6935,11 @@ function statDetail(mode){
       .sort((a,b)=>String(a.deliveryDate||'9999').localeCompare(String(b.deliveryDate||'9999')));
     title='📋 '+t('home_pending_orders'); sub=t('stat_pending_sub');
   }
+  else if(mode==='ready'){
+    list=tag((DB.orders||[]).filter(o=>!orderDelivered(o)&&orderAllReady(o)),'order')
+      .sort((a,b)=>String(a.deliveryDate||'9999').localeCompare(String(b.deliveryDate||'9999')));
+    title='✅ '+t('home_ready_deliver'); sub=t('stat_ready_sub');
+  }
   else if(mode==='duetoday'){
     list=tag((DB.orders||[]).filter(o=>!orderDelivered(o)&&daysLeft(o.deliveryDate)===0),'order');
     title='⏰ '+t('home_due_today'); sub=t('stat_duetoday_sub');
@@ -6906,8 +6971,16 @@ function statDetail(mode){
    the setup screen — nothing else can be reached, so nobody can raise a bill
    carrying a blank (or somebody else's) shop name. */
 function setupNeeded(){ return !String((DB.shopInfo&&DB.shopInfo.name)||'').trim(); }
+/* Which pieces the shop actually sells is the single thing that turns this from
+   "somebody else's app" into theirs, and it is the one question a boutique can answer
+   in ten seconds. It runs off the same DB.itemCfg the Item setup screen uses, so
+   nothing here is a second source of truth. */
+let suPick=null;
+function suItemToggle(id){ const i=suPick.indexOf(id); if(i>=0)suPick.splice(i,1); else suPick.push(id); renderSetup(); }
 function renderSetup(){
   const s=DB.shopInfo||{};
+  if(!suPick){ const c=itemCfg();
+    suPick=allItems().filter(g=>!c.hide.includes(g.id)).map(g=>g.id); }
   $('#homePane').innerHTML=`
     <div class="card" style="margin-bottom:12px">
       <h2 style="margin:0 0 4px">${t('su_title')}</h2>
@@ -6924,7 +6997,22 @@ function renderSetup(){
         <textarea id="su_addr" rows="2">${esc(s.address||'')}</textarea></div>
       <div class="field" style="margin-top:10px"><label>${t('su_gstin')}</label>
         <input id="su_gstin" value="${esc(s.gstin||'')}" autocomplete="off"></div>
+      <div class="field" style="margin-top:10px"><label>${t('su_lang')}</label>
+        <div class="row" style="gap:8px">
+          <button class="btn ${lang==='en'?'primary':'ghost'} block" onclick="setLang('en')">English</button>
+          <button class="btn ${lang==='hi'?'primary':'ghost'} block" onclick="setLang('hi')">हिंदी</button>
+        </div></div>
     </div>
+    <div class="card" style="margin-top:12px">
+      <b style="font-size:14px">👔 ${t('su_items_head')}</b>
+      <p class="hint" style="margin:4px 0 10px">${t('su_items_sub')}</p>
+      <div class="chip-grid">${allItems().map(g=>{
+        const on=itemCfg().fav.includes(g.id)||(!itemCfg().hide.includes(g.id)&&itemCfg().fav.length===0);
+        return `<div class="chip ${suPick.includes(g.id)?'on':''}" id="sui_${g.id}" onclick="suItemToggle('${g.id}')">
+          <span class="ico">${g.ico}</span>${esc(g.n)}${suPick.includes(g.id)?'<span class="badge">✓</span>':''}</div>`;}).join('')}</div>
+      <p class="hint" style="margin:10px 0 0">${t('su_items_note')}</p>
+    </div>
+
     <div class="card" style="margin-top:12px">
       <b style="font-size:14px">${t('su_mod_head')}</b>
       <p class="hint" style="margin:4px 0 10px">${t('su_mod_sub')}</p>
@@ -6952,6 +7040,11 @@ function setupSave(){
   DB.modules={billing:!!($('#su_mod_billing')||{}).checked,
               stock:!!($('#su_mod_stock')||{}).checked,
               accounts:!!($('#su_mod_accounts')||{}).checked};
+  if(suPick&&suPick.length){
+    const c=itemCfg(), order=allItems().map(g=>g.id);
+    c.hide=order.filter(id=>!suPick.includes(id));          // not sold here — out of the picker
+    c.fav=order.filter(id=>suPick.includes(id)).slice(0,8); // the rest sit under "More"
+  }
   save(); syncShopNameKey(); applyModules(); toast(t('su_done',{n:nm}),'ok'); renderHome();
 }
 function renderHome(){
@@ -6975,19 +7068,30 @@ function renderHome(){
   el.innerHTML=`
     ${backupNagHTML()}
     <div class="home-hd">
-      <div><div class="home-shop">${esc((DB.shopInfo&&DB.shopInfo.name)||'PARAMPARA')}</div>
+      <div><div class="home-shop">${esc((DB.shopInfo&&DB.shopInfo.name)||t('your_shop'))}</div>
       <div class="home-sub">${new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'short'})}</div></div>
       <button class="btn sm ghost" onclick="settingsMenu()">⚙️</button>
     </div>
 
     <div class="home-stats">
       ${stat(t('home_pending_orders'),pendingCount,'',"statDetail('pending')")}
-      ${modOn('billing')
-        ? stat(t('home_to_collect'),money(toCollect),toCollect>0?'var(--saffron2)':'',"followUps()")
-        : stat(t('kb_total_payable'),money(r2((DB.karigars||[]).reduce((s,k)=>s+karBalance(k.id),0))),'',"jobWork()")}
-      ${modOn('billing')
-        ? stat(t('creditors_report'),money(payables),payables>0?'var(--bad)':'',"creditors()")
-        : stat(t('cu_pending'),courierLists().toSend.length,'',"courierHub()")}
+      ${(()=>{
+        /* HOME ANSWERS ONE QUESTION: what do I have to do now.
+           On the order-only shop these two tiles used to be "Total Payable" and
+           "Still to send". Both were already on their OWN screens (karigarBook and
+           courierHub) AND already in the Priority Actions card below — which has the
+           discipline these tiles lacked: it hides a row when the number is zero. So a
+           third of the dashboard repeated something twice, usually to say ₹0 and 0.
+           What he pays a master is a settlement-day question; it belongs where he pays
+           them, not where he starts his day. The billing-on dashboard is untouched. */
+        if(modOn('billing'))
+          return stat(t('home_to_collect'),money(toCollect),toCollect>0?'var(--saffron2)':'',"statDetail('collect')")
+               + stat(t('creditors_report'),money(payables),payables>0?'var(--bad)':'',"creditors()");
+        const _ready=(DB.orders||[]).filter(o=>!orderDelivered(o)&&orderAllReady(o)).length;
+        const _today=(DB.orders||[]).filter(o=>!orderDelivered(o)&&o.deliveryDate&&daysLeft(o.deliveryDate)===0).length;
+        return stat(t('home_ready_deliver'),_ready,_ready>0?'var(--ok)':'',"statDetail('ready')")
+             + stat(t('home_due_today'),_today,_today>0?'var(--saffron2)':'',"statDetail('duetoday')");
+      })()}
     </div>
 
     ${actionBoardHTML()}
@@ -7945,15 +8049,24 @@ function bodyBlockHTML(f,mine,cat,mid){
 }
 function memberBlockHTML(f,mem,idx,multi){
   const mine=itemsOfMember(f,mem.id);
-  const _all=allItems(), GC_N=6, _folds=_all.length>GC_N, _exp=!!_gcMore[mem.id];
-  const _vis=(!_folds||_exp)?_all:_all.filter((g,i)=>i<GC_N||(f.items||[]).some(k=>memberOf(k)===mem.id&&garmentOf(k)===g.id));
-  const _hid=_all.length-_vis.length;
+  const _all=orderedItems();
+  const _fav=favItems(), _favIds=_fav.map(g=>g.id);
+  /* a piece already ON this order must always show, even if he later un-starred or
+     hid it — otherwise there would be no way to take it off the order */
+  const _onOrder=g=>(f.items||[]).some(k=>memberOf(k)===mem.id&&garmentOf(k)===g.id);
+  const _extraOn=allItems().filter(g=>_onOrder(g)&&!_all.some(x=>x.id===g.id));
+  const _rest=_all.filter(g=>!_favIds.includes(g.id)).concat(_extraOn);
+  const _exp=!!_gcMore[mem.id];
+  const _vis=_exp?_fav.concat(_rest):_fav.concat(_rest.filter(_onOrder));
+  const _hid=_rest.filter(g=>!_onOrder(g)).length;
+  const _folds=_hid>0;
   const chips=_vis.map(g=>{
     const key=itemKey(mem.id,g.id);
     const n=(f.items||[]).filter(k=>memberOf(k)===mem.id&&garmentOf(k)===g.id).length;
     const on=n>0;
     return `<div class="chip ${on?'on':''}" onclick="toggleItem('${esc(key)}')"><span class="ico">${g.ico}</span>${g.n}${on?`<span class="badge">${n>1?n:'✓'}</span>`:''}</div>`;}).join('')
-    + ((!_folds||_exp)?`<div class="chip chip-add" onclick="garmentMaster()"><span class="ico">➕</span>${t('new_garment')}</div>`:'')
+    + ((!_folds||_exp)?`<div class="chip chip-add" onclick="itemShortcuts()"><span class="ico">⚙️</span>${t('it_setup')}</div>`
+        +`<div class="chip chip-add" onclick="garmentMaster()"><span class="ico">➕</span>${t('new_garment')}</div>`:'')
     + (_folds?`<div class="chip chip-add" onclick="gcToggle('${mem.id}')"><span class="ico">${_exp?'▴':'▾'}</span>${_exp?t('gc_less'):t('gc_more')+' ('+_hid+')'}</div>`:'');
   /* With 2+ pieces the Quick Lengths list already shows every item with its status and
      a › to open it, so rendering a collapsed card for each one as well listed the whole
@@ -8615,7 +8728,9 @@ async function processPhoto(e){const files=[...(e.target.files||[])];if(!files.l
   e.target.value='';
   toast(files.length>1?t('t_photos_n',{n:files.length}):t('t_photo'));}
 async function storePhoto(file){
-  const blob=await downscale(file);const id='img_'+uid();await mPut(id,blob);
+  if(!mediaReady()){ toast(t('t_nomedia'),'bad'); return; }
+  const blob=await downscale(file);const id='img_'+uid();
+  try{ await mPut(id,blob); }catch(e){ toast(t('t_nomedia'),'bad'); return; }
   if(photoTarget.type==='item'){const gid=photoTarget.gid;form.itemPhotos=form.itemPhotos||{};form.itemPhotos[gid]=form.itemPhotos[gid]||[];form.itemPhotos[gid].push(id);renderItemPhotos(gid);}
   else if(photoTarget.type==='alt'){altForm.photos=altForm.photos||[];altForm.photos.push(id);renderAltFormPhotos();}
   else if(photoTarget.type==='purch'){purchForm.photos=purchForm.photos||[];purchForm.photos.push(id);renderPurchPhotos();}
@@ -10545,7 +10660,7 @@ function buildInvoiceText(rec,inv){
   const comp=invCompute(inv);
   const prevBal=customerOutstanding(rec.customerId,rec.orderNo?'order':(rec.altNo?'alt':'sale'),rec.id);
   const currBal=r2(prevBal+orderBaaki(rec));
-  let s=`${(DB.shopInfo&&DB.shopInfo.name)||'PARAMPARA'}\n${(DB.shopInfo&&DB.shopInfo.showGst&&DB.shopInfo.gstin)?('GSTIN: '+DB.shopInfo.gstin+'\n'):''}\nInvoice No: ${inv.no}\nDate: ${fmtDate(inv.date)}\n`;
+  let s=`${(DB.shopInfo&&DB.shopInfo.name)||t('your_shop')}\n${(DB.shopInfo&&DB.shopInfo.showGst&&DB.shopInfo.gstin)?('GSTIN: '+DB.shopInfo.gstin+'\n'):''}\nInvoice No: ${inv.no}\nDate: ${fmtDate(inv.date)}\n`;
   if(rec.orderNo)s+=`Order #${rec.orderNo}\n`; else if(rec.altNo)s+=`Alteration #${rec.altNo}\n`;
   if(rec.deliveryDate)s+=`📅 Delivery Date: ${fmtDate(rec.deliveryDate)}\n`;
   const sm=rec.salesmanId?(DB.salesmen||[]).find(x=>x.id===rec.salesmanId):null;
@@ -10646,9 +10761,9 @@ function buildInvoiceHTML(rec,inv){
   <div class="doc">
     ${shop.blessing?`<div class="bless">${esc(shop.blessing)}</div>`:''}
     <div class="top">
-      <div class="mono">${esc((shop.name||'PARAMPARA').slice(0,1).toUpperCase())}</div>
+      <div class="mono">${esc((shop.name||t('your_shop')).slice(0,1).toUpperCase())}</div>
       <div class="brand">
-        <div class="nm">${esc(shop.name||'PARAMPARA')}</div>
+        <div class="nm">${esc(shop.name||t('your_shop'))}</div>
         ${shop.tagline?`<div class="tg">${esc(shop.tagline)}</div>`:''}
         ${shop.address?`<div class="ln">${esc(shop.address)}</div>`:''}
         ${contact?`<div class="ln">${contact}</div>`:''}
@@ -10708,7 +10823,7 @@ function buildInvoiceHTML(rec,inv){
           return q?`<div class="qr"><img src="${q}"><div style="font-size:11px;color:#666;margin-top:3px">${_qa>0?'Scan to pay '+money(_qa):'Scan to pay'}${shop.upi?' &middot; '+esc(shop.upi):''}</div></div>`:'';})()}
       </div>
       <div class="rgt">
-        <div class="muted">For <b style="color:#7a1e2b">${esc(shop.name||'PARAMPARA')}</b></div>
+        <div class="muted">For <b style="color:#7a1e2b">${esc(shop.name||t('your_shop'))}</b></div>
         <div class="sign">${esc(shop.proprietor||'')}</div>
         <div class="muted" style="margin-top:2px">Authorised Signatory</div>
       </div>
@@ -10726,7 +10841,7 @@ function printInvoice(kind,id){const rec=invRecOf(kind,id);if(!rec||!rec.invoice
   setTimeout(()=>{try{ifr.contentWindow.focus();ifr.contentWindow.print();}catch(e){}setTimeout(()=>ifr.remove(),2000);},400);
 }
 function invoiceGreetingText(rec,inv){
-  const shop=(DB.shopInfo&&DB.shopInfo.name)||'PARAMPARA';
+  const shop=(DB.shopInfo&&DB.shopInfo.name)||t('your_shop');
   const comp=invCompute(inv);const baaki=orderBaaki(rec);
   let g=`Namaste ${rec.customerName||''} ji 🙏\n\nThank you for shopping with ${shop}! Please find your invoice attached.\n\nInvoice No: ${inv.no}\nGrand Total: ${money(comp.total)}`;
   g+= baaki>0?`\nBalance Due: ${money(baaki)}`:`\nPayment Received in Full ✅`;
@@ -10747,7 +10862,7 @@ function buildInvoiceCanvas(rec,inv){
   const meas=document.createElement('canvas').getContext('2d');
   const L=[];
   if(shop.blessing)L.push({t:shop.blessing,s:19,b:1,c:'#a8590a'});
-  L.push({t:shop.name||'PARAMPARA',s:34,b:1,c:'#c97e10'});
+  L.push({t:shop.name||t('your_shop'),s:34,b:1,c:'#c97e10'});
   if(shop.tagline)L.push({t:shop.tagline,s:16,c:'#2e7d32',b:1});
   if(shop.address)L.push({t:shop.address,s:16,c:'#444'});
   L.push({t:'GSTIN: '+(shop.gstin||''),s:15,c:'#444'});
@@ -12115,7 +12230,7 @@ function payDetailsText(){
   if(b&&(b.bankName||b.accNo||b.ifsc)){
     L.push('');
     L.push('🏦 '+t('fu_bank_head'));
-    L.push(t('fu_bank_ac_name')+': '+((shop.name||'PARAMPARA')));
+    L.push(t('fu_bank_ac_name')+': '+((shop.name||t('your_shop'))));
     if(b.bankName)L.push(t('cb_bank_name')+': '+b.bankName);
     if(b.accNo)L.push(t('cb_accno')+': '+b.accNo);
     if(b.ifsc)L.push('IFSC: '+b.ifsc);
@@ -13412,6 +13527,67 @@ async function pickKarigarContact(){
   }catch(e){}
 }
 
+/* ITEM SETUP — one screen for which pieces the shop sells, in which order, and which
+   sit on the front row. Nothing here deletes data: hiding a piece only takes it out of
+   the picker, and any order that already uses it keeps it. */
+function itemShortcuts(){
+  const c=itemCfg(), all=allItems();
+  const live=orderedItems();
+  const hidden=all.filter(g=>c.hide.includes(g.id));
+  const favIds=c.fav.filter(id=>live.some(g=>g.id===id));
+  const rows=live.map((g,i)=>{
+    const on=favIds.includes(g.id);
+    return `<div class="cust-result" style="align-items:center">
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <button class="btn sm ghost" style="padding:2px 8px" ${i===0?'disabled':''} onclick="itemMove('${g.id}',-1)">▲</button>
+        <button class="btn sm ghost" style="padding:2px 8px" ${i===live.length-1?'disabled':''} onclick="itemMove('${g.id}',1)">▼</button>
+      </div>
+      <div style="flex:1;margin-left:10px"><b>${g.ico} ${esc(g.n)}</b>
+        <div class="hint">${on?t('it_on_front'):t('it_in_more')}</div></div>
+      <div style="display:flex;gap:6px">
+        <button class="btn sm ${on?'primary':'ghost'}" onclick="itemFavToggle('${g.id}')">${on?'★':'☆'}</button>
+        <button class="btn sm ghost" title="${t('it_hide')}" onclick="itemHideToggle('${g.id}')">🚫</button>
+      </div></div>`;}).join('');
+  const hid=hidden.length?`<div class="section-h">${t('it_hidden')}</div>`
+    +hidden.map(g=>`<div class="cust-result" style="align-items:center">
+      <div style="flex:1"><b style="opacity:.6">${g.ico} ${esc(g.n)}</b></div>
+      <button class="btn sm ghost" onclick="itemHideToggle('${g.id}')">${t('it_restore')}</button></div>`).join(''):'';
+  $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:6px">⚙️ ${t('it_setup')}</h2>
+    <p class="hint" style="margin-bottom:12px">${t('it_setup_desc')}</p>
+    ${rows}${hid}
+    <button class="btn ghost block" style="margin-top:10px" onclick="garmentMaster()">➕ ${t('new_garment')}</button>
+    <div class="modal-actions"><button class="btn primary block" onclick="closeSheet();if(formIsOpenSoft())renderForm();">${t('close')}</button></div>`;
+  showSheet();
+}
+function formIsOpenSoft(){ return !!form; }
+function itemMove(id,d){
+  const c=itemCfg(), live=orderedItems().map(g=>g.id);
+  const i=live.indexOf(id), j=i+d;
+  if(i<0||j<0||j>=live.length)return;
+  live.splice(j,0,live.splice(i,1)[0]);
+  c.order=live.concat(allItems().map(g=>g.id).filter(x=>!live.includes(x)));
+  save(); itemShortcuts();
+}
+function itemFavToggle(id){
+  const c=itemCfg(), i=c.fav.indexOf(id);
+  if(i>=0)c.fav.splice(i,1);
+  else{ /* the front row keeps the same order he arranged the list in */
+    const live=orderedItems().map(g=>g.id);
+    c.fav.push(id);
+    c.fav.sort((a,b)=>live.indexOf(a)-live.indexOf(b));
+  }
+  save(); itemShortcuts();
+}
+function itemHideToggle(id){
+  const c=itemCfg(), i=c.hide.indexOf(id);
+  if(i>=0){ c.hide.splice(i,1); save(); itemShortcuts(); return; }
+  const g=G(id);
+  confirmModal(t('it_hide'),t('it_hide_q',{n:g?g.n:''}),()=>{
+    c.hide.push(id);
+    const f2=c.fav.indexOf(id); if(f2>=0)c.fav.splice(f2,1);
+    save(); itemShortcuts();
+  });
+}
 function garmentMaster(){
   const items=DB.customItems||[];
   $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:6px">${t('item_master')}</h2>
@@ -14194,6 +14370,10 @@ async function migrateToV2(obj){
 }
 async function init(){
   try{ await openIDB(); }catch(e){}
+  /* Photos and voice notes live in IndexedDB. If it will not open, the app still runs
+     for orders and measurements — but he must be told, once, instead of discovering
+     months later that no photo was ever saved. */
+  if(!idb) setTimeout(()=>toast(t('t_nomedia'),'bad'), 1200);
   try{ if(navigator.storage&&navigator.storage.persist)await navigator.storage.persist(); }catch(e){}
   let usedV2=false, boot=null;
   const v2=await readStoreV2();
