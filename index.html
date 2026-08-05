@@ -551,7 +551,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v161</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v163</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -724,6 +724,7 @@ const T={
   del_opt_q:'Remove “{n}” from the saved list? Orders that already use it keep it.',
   body_upper:'Body — upper', body_lower:'Body — lower',
   t_photos_n:'{n} photos added', del_photo_q:'Remove this photo?',
+  od_production:'Production — stage, karigar, urgent, print',
   edit_items:'Items / customer',
   od_edit_hint:'Measurements, notes, photos and the delivery date are edited right here. Use this only to add or remove a piece, or to change the customer.',
   cancel:'Cancel',
@@ -1898,6 +1899,7 @@ const T={
   del_opt_q:'“{n}” को सूची से हटाएँ? जिन ऑर्डर में ये लगा है वहाँ बना रहेगा।',
   body_upper:'नाप — ऊपर का', body_lower:'नाप — नीचे का',
   t_photos_n:'{n} फोटो जुड़ीं', del_photo_q:'ये फोटो हटाएं?',
+  od_production:'काम — स्टेज, मास्टर, ज़रूरी, प्रिंट',
   edit_items:'आइटम / ग्राहक',
   od_edit_hint:'नाप, नोट, फोटो और डेलिवरी डेट यहीं बदल जाते हैं। नया आइटम जोड़ना/हटाना या ग्राहक बदलना हो तभी यह खोलें।',
   cancel:'रद्द करें',
@@ -7070,8 +7072,6 @@ function renderHome(){
   const pendingCount=activeOrders.length;
   const dueToday=activeOrders.filter(o=>daysLeft(o.deliveryDate)===0).length;
   // accounts stats
-  const toCollect=r2((DB.orders||[]).concat(DB.alterations||[],DB.sales||[]).reduce((s,r)=>s+orderBaaki(r),0));
-  const payables=totalPayables();
   const today=new Date();const mFrom=today.toISOString().slice(0,7);
   let monthSale=0;allInvoices().forEach(x=>{if(String(x.inv.date||'').slice(0,7)===mFrom){monthSale+=invCompute(x.inv).total;}});
   (DB.sales||[]).forEach(s=>{}); // sales already have invoices
@@ -7098,9 +7098,13 @@ function renderHome(){
            third of the dashboard repeated something twice, usually to say ₹0 and 0.
            What he pays a master is a settlement-day question; it belongs where he pays
            them, not where he starts his day. The billing-on dashboard is untouched. */
-        if(modOn('billing'))
-          return stat(t('home_to_collect'),money(toCollect),toCollect>0?'var(--saffron2)':'',"statDetail('collect')")
-               + stat(t('creditors_report'),money(payables),payables>0?'var(--bad)':'',"creditors()");
+        /* v154 replaced these two tiles for the ORDER-ONLY shop and left the billing
+           shop alone — which is the shop he actually runs, so on his screen nothing
+           changed and "Payables ₹0" was still sitting there. Worse, "Receivables"
+           repeated the figure already in the header two inches above it. So two of his
+           three tiles were dead. The money has three homes of its own already — the
+           header total, the Priority Actions card when it matters, and the Receivables
+           and Payables screens in the menu. Home keeps only what he must ACT on. */
         const _ready=(DB.orders||[]).filter(o=>!orderDelivered(o)&&orderAllReady(o)).length;
         const _today=(DB.orders||[]).filter(o=>!orderDelivered(o)&&o.deliveryDate&&daysLeft(o.deliveryDate)===0).length;
         return stat(t('home_ready_deliver'),_ready,_ready>0?'var(--ok)':'',"statDetail('ready')")
@@ -7694,6 +7698,11 @@ window.addEventListener('blur',saveDraft);
 
 function cancelOrderForm(){
   captureForm();
+  /* Parking as a draft is right for a NEW order — the work would otherwise be lost.
+     For an EXISTING order it is wrong: the order is already saved, so cancelling an
+     edit produced a second, ghost copy on the Orders page every single time. He opened
+     an order, changed nothing, tapped Cancel, and got a new draft. */
+  if(form && form.editId){ clearDraft(); clearFormOpen(); closeSheet(); openDetail(form.editId); return; }
   if(formHasContent(form)){
     // don't destroy work — park it as a draft, it stays visible on the Orders page
     saveDraft(); clearFormOpen();      // he chose to leave — do not reopen it on boot
@@ -8828,6 +8837,10 @@ async function openDetail(id,focusGid){
        CORRECT it. The full form now exists only for structural changes — adding or removing
        a piece, changing the customer. Every box here writes straight to the order. */
     const _cid=cssId(gid);
+    /* A fold must never hide a fact. If a karigar is on this piece, or it is urgent, or
+       QC is done, the closed line says so. */
+    const _kn=(DB.karigars||[]).find(k=>k.id===((o.karigar||{})[gid]));
+    const _prodMark=[urg?('🔴 '+t('urgent')):'', _kn?('👷 '+esc(_kn.name)):''].filter(Boolean).join(' · ');
     const cells=vcols(g).map(col=>{const val=v[col.k]||'';
       if(col.type==='select'){const opts=['<option value="">—</option>'].concat((col.options||[]).map(op=>`<option value="${esc(op)}" ${val===op?'selected':''}>${esc(op)}</option>`)).join('');
         return `<div class="ki-m"><label>${esc(col.n)}</label><select class="mInput" data-g="${esc(gid)}" data-k="${esc(col.k)}"
@@ -8875,18 +8888,20 @@ async function openDetail(id,focusGid){
     const urg=!!((o.urgent||{})[gid]);
     return `<div class="mcard${urg?' mcard-urg':''}"><div class="mh mh-tap" onclick="odItemToggle('${gid}')">
         <b>${g.ico} ${esc(itemTitle(o,gid))}${_who?` <span class="who-tag">${esc(_who)}</span>`:''}${urg?` <span class="urg-tag">🔴 ${t('urgent')}</span>`:''}</b>
-        <span class="hint">${v.L?('L '+esc(v.L)+' · '):''}${_nm} ${t('meas')} ${_open?'▴':'▾'}</span></div><div class="mb">
-      ${_open?`<div class="ki-mgrid">${cells||`<span class="hint">—</span>`}</div>${dn}`:''}
-      ${sStat}
-      <button class="btn sm ${urg?'danger':'ghost'} block" style="margin-top:8px" onclick="toggleUrgent('${o.id}','${gid}')">${urg?'🔴 '+t('urgent_on'):'⚪ '+t('urgent_off')}</button>
-      ${legLine}
-      ${sQc}
-      ${ksel}
+        <span class="hint">${v.L?('L '+esc(v.L)+' · '):''}${_nm} ${t('meas')} · ${sLabel(itemStatusOf(o,gid))} ${_open?'▴':'▾'}</span></div><div class="mb">
+      ${_open?`
+      <div class="ki-mgrid">${cells||`<span class="hint">—</span>`}</div>${dn}
       <div class="row" style="margin-top:10px;gap:8px;align-items:center">
         <div class="media-row" id="dip_${_cid}" style="flex:1;display:flex;gap:8px;flex-wrap:wrap"></div>
         <button class="btn sm ghost ic-btn" title="${t('add_photo')}" onclick="odAddItemPhoto('${o.id}','${esc(gid)}')">📷</button></div>
       <div id="div_${_cid}" style="margin-top:4px"></div>
-      <div class="row" style="margin-top:10px;gap:6px"><button class="btn sm ghost ic-btn" title="${t('whatsapp')}" onclick="itemWA('${o.id}','${gid}')">💬</button><button class="btn sm ghost ic-btn" title="${t('print')}" onclick="itemPrint('${o.id}','${gid}')">🖨️</button></div></div></div>`;}).join('');
+      ${sStat}
+      <button class="btn sm ghost block" style="margin-top:10px;text-align:left" onclick="odProdToggle('${esc(gid)}')">⚙️ ${t('od_production')}${_prodMark?` · ${_prodMark}`:''} ${_odProd[gid]?'▴':'▾'}</button>
+      ${_odProd[gid]?`
+        <button class="btn sm ${urg?'danger':'ghost'} block" style="margin-top:8px" onclick="toggleUrgent('${o.id}','${gid}')">${urg?'🔴 '+t('urgent_on'):'⚪ '+t('urgent_off')}</button>
+        ${legLine}${sQc}${ksel}
+        <div class="row" style="margin-top:10px;gap:6px"><button class="btn sm ghost ic-btn" title="${t('whatsapp')}" onclick="itemWA('${o.id}','${gid}')">💬</button><button class="btn sm ghost ic-btn" title="${t('print')}" onclick="itemPrint('${o.id}','${gid}')">🖨️</button></div>`:''}
+      `:''}</div></div>`;}).join('');
 
   $('#detailPane').innerHTML=`
     <div class="detail-hd"><button class="back" onclick="go('orders')">←</button>
@@ -12063,6 +12078,8 @@ function setItemQC(oid,gid,on){
   save(o.id); refreshDetail(oid);
 }
 /* one item's measurements open at a time — tap the header to read them */
+let _odProd={};
+function odProdToggle(gid){ _odProd[gid]=!_odProd[gid]; refreshDetail(detailId); }
 function odItemToggle(gid){ _odItem=(_odItem===gid)?null:gid; if(_curDetailId)openDetail(_curDetailId); }
 /* Editing the order number from where he actually sees it — the detail header —
    instead of making him open the full Edit form just to fix a typo'd number. */
@@ -14475,7 +14492,7 @@ function doUndo(){
 
 /* ====================== INIT ====================== */
 function updateHeadStat(){const due=DB.orders.reduce((s,o)=>s+orderBaaki(o),0);
-  const hs=$('#headStat');if(hs)hs.innerHTML=`<b>${DB.orders.length}</b> ${t('orders_word')} · <b>${money(due)}</b> ${t('due')}<br><span onclick="backupMenu()" style="text-decoration:underline;cursor:pointer">💾 ${t('backup')}</span>`;}
+  const hs=$('#headStat');if(hs)hs.innerHTML=`<b>${DB.orders.length}</b> ${t('orders_word')} · <b onclick="statDetail('collect')" style="cursor:pointer;text-decoration:underline dotted">${money(due)}</b> ${t('due')}<br><span onclick="backupMenu()" style="text-decoration:underline;cursor:pointer">💾 ${t('backup')}</span>`;}
 /* Boot must never come up EMPTY while readable data still exists somewhere.
    Each candidate is parsed before it is accepted; the first one that is both readable
    and actually contains records wins. Order: live copy, previous good copy, newest
