@@ -591,7 +591,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v170</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v171</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -3396,7 +3396,7 @@ function applyLang(){
   updateHeadStat();
 }
 /* the setup screen needs to SET a language, not flip it */
-function setLang(l){ if(l!==lang)toggleLang(); }
+function setLang(l){ if(l===lang)return; if($('#su_name'))suCapture(); toggleLang(); }
 function toggleLang(){ lang=lang==='en'?'hi':'en'; localStorage.setItem('pb_ob_lang',lang); applyLang();
   const act=document.querySelector('.tabpane.active'); if(act&&act.id==='tab-detail'&&detailId) openDetail(detailId);
   else if(act&&act.id==='tab-altdetail'&&altDetailId) openAltDetail(altDetailId);
@@ -6848,9 +6848,37 @@ function setupNeeded(){ return !String((DB.shopInfo&&DB.shopInfo.name)||'').trim
    in ten seconds. It runs off the same DB.itemCfg the Item setup screen uses, so
    nothing here is a second source of truth. */
 let suPick=null;
-function suItemToggle(id){ const i=suPick.indexOf(id); if(i>=0)suPick.splice(i,1); else suPick.push(id); renderSetup(); }
+/* HIS BUG, Aug 6: "profile me details daal kar save kiya to fir se wahi screen aa gayi;
+   dubara details daalne par profile ban gayi."
+   Cause: renderSetup() rebuilt every box from DB.shopInfo, which is EMPTY on first run —
+   so tapping ANY item chip or the language button wiped everything he had typed. He then
+   pressed Start with a blank name, setupSave() bailed out with a toast he did not catch,
+   and the same screen stayed. The second time he happened to type and press Start without
+   touching a chip, so it worked. Three fixes below: keep what he typed, keep the module
+   ticks, and stop stealing the cursor. */
+let suDraft={};
+function suCapture(){
+  const g=id=>{const e=$('#'+id);return e?e.value:undefined;};
+  ['name:su_name','proprietor:su_prop','phone:su_phone','address:su_addr','gstin:su_gstin']
+    .forEach(pair=>{const [k,id]=pair.split(':'); const v=g(id); if(v!==undefined)suDraft[k]=v;});
+  ['billing','stock','accounts'].forEach(m=>{const e=$('#su_mod_'+m); if(e)suDraft['mod_'+m]=!!e.checked;});
+  return suDraft;
+}
+/* A chip tap must NOT redraw the form — it only needs to change that one chip. This is
+   what actually kills the data loss, and it is 22 chips of rendering saved per tap. */
+function suItemToggle(id){
+  const i=suPick.indexOf(id); const on=i<0;
+  if(on)suPick.push(id); else suPick.splice(i,1);
+  const el=$('#sui_'+id); if(!el){ suCapture(); renderSetup(); return; }
+  el.classList.toggle('on',on);
+  const b=el.querySelector('.badge');
+  if(on&&!b){ const sp=document.createElement('span'); sp.className='badge'; sp.textContent='✓'; el.appendChild(sp); }
+  else if(!on&&b){ b.remove(); }
+}
 function renderSetup(){
-  const s=DB.shopInfo||{};
+  const s=Object.assign({}, DB.shopInfo||{}, suDraft);
+  const modOnSU=m=>(suDraft['mod_'+m]!==undefined?suDraft['mod_'+m]:!!((DB.modules||{})[m]));
+  const firstDraw=!$('#su_name');
   if(!suPick){ const c=itemCfg();
     suPick=allItems().filter(g=>!c.hide.includes(g.id)).map(g=>g.id); }
   $('#homePane').innerHTML=`
@@ -6891,18 +6919,25 @@ function renderSetup(){
       <div class="kv" style="padding:8px 0"><span>📋 ${t('su_mod_orders')}</span><b style="color:var(--ok)">${t('su_mod_always')}</b></div>
       ${[['billing','🧾',t('su_mod_billing')],['stock','📦',t('su_mod_stock')],['accounts','💰',t('su_mod_accounts')]]
         .map(m=>`<label style="display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);cursor:pointer">
-          <input type="checkbox" id="su_mod_${m[0]}" style="width:20px;height:20px">
+          <input type="checkbox" id="su_mod_${m[0]}" ${modOnSU(m[0])?'checked':''} style="width:20px;height:20px">
           <span>${m[1]} ${esc(m[2])}</span></label>`).join('')}
       <p class="hint" style="margin:10px 0 0">${t('su_mod_note')}</p>
       <button class="btn primary block" style="margin-top:14px" onclick="setupSave()">${t('su_start')}</button>
       <p class="hint" style="margin:10px 0 0">${t('su_later')}</p>
     </div>
     <div class="fab-pad"></div>`;
-  setTimeout(()=>{const e=$('#su_name');if(e)e.focus();},80);
+  /* focus the name ONLY the first time this screen is drawn — re-focusing on every
+     redraw yanked the cursor (and the iPad keyboard) out of whatever box he was in */
+  if(firstDraw) setTimeout(()=>{const e=$('#su_name');if(e)e.focus();},80);
 }
 function setupSave(){
+  suCapture();
   const nm=($('#su_name').value||'').trim();
-  if(!nm){ toast(t('su_need_name'),'bad'); const e=$('#su_name'); if(e)e.focus(); return; }
+  if(!nm){ toast(t('su_need_name'),'bad');
+    const e=$('#su_name');
+    if(e){ e.style.borderColor='var(--bad)'; e.scrollIntoView({block:'center',behavior:'smooth'}); e.focus();
+           e.addEventListener('input',()=>{e.style.borderColor='';},{once:true}); }
+    return; }
   DB.shopInfo=Object.assign(DB.shopInfo||{},{
     name:nm,
     proprietor:($('#su_prop').value||'').trim(),
@@ -6917,6 +6952,7 @@ function setupSave(){
     c.hide=order.filter(id=>!suPick.includes(id));          // not sold here — out of the picker
     c.fav=order.filter(id=>suPick.includes(id)).slice(0,8); // the rest sit under "More"
   }
+  suDraft={};
   save(); syncShopNameKey(); applyModules(); toast(t('su_done',{n:nm}),'ok'); renderHome();
 }
 /* The day's work, one tap each, at the very top of Home — his ask. Order and Karigar are
