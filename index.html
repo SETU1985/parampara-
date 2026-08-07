@@ -496,10 +496,19 @@
      a duplicate — and it only ever shows the shortcuts whose module is switched on, so an
      order-only pilot shop sees three buttons, not six for features it does not have. */
   .qrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(66px,1fr));gap:8px;margin:0 0 18px}
+  /* HIS POINT, Aug 7: "saare button ek jaise lag rahe hain, shortcuts ko alag colour me
+     kar sakte hain ki turant nazar jaye." He is right — the quick row and the tile grid
+     below were the same dark card with the same border, so the eye had nothing to catch.
+     NOT five colours though: five highlights means nothing is highlighted. One warm block
+     on Home, and inside it the single action he does most is the brightest thing.
+     Brightness = how often it is used. */
   .qbtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
-    background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r2);
-    padding:12px 4px;cursor:pointer;color:var(--txt);min-height:70px;transition:.12s}
+    background:rgba(240,165,48,.10);border:1px solid rgba(240,165,48,.42);border-radius:var(--r2);
+    padding:12px 4px;cursor:pointer;color:var(--saffron2);min-height:70px;transition:.12s}
   .qbtn:active{background:var(--saffron);color:#1a1206;border-color:var(--saffron)}
+  .qbtn.qmain{background:var(--saffron);border-color:var(--saffron);color:#1a1206}
+  .qplain .qbtn{background:var(--bg2);border-color:var(--line2);color:var(--txt)}
+  .qbtn.qmain .ql{font-weight:800}
   .qbtn .qi{font-size:22px;line-height:1}
   .qbtn .ql{font-size:10.5px;font-weight:700;letter-spacing:.2px;text-align:center;line-height:1.15}
   /* the live money line on the Day Book */
@@ -591,7 +600,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v171</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v172</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1127,6 +1136,14 @@ const T={
   stk_n_thaans:'{n} fabric rolls',
   stk_no_thaan:'No fabric yet — tap “Add fabric” to start',
   stk_cutpiece:'CUT-PIECE',
+  stk_cat_title:'Fabric categories', stk_setup:'Fabric setup',
+  stk_setup_hint:'Rename, merge or remove the saved names and categories.',
+  ml_cat_hint:'Rename a category to correct a spelling. Rename it to a category that already exists and the two are merged. Removing a category never deletes a roll.',
+  ml_cat_del:'Remove the category "{n}"? {c} fabric name(s) will simply have no category. No roll is deleted.',
+  ml_merge_hint:'Type an existing name here to merge the two together.',
+  ml_merge_title:'Merge together?', ml_dup:'That name is already in the list',
+  ml_merge_msg:'Move everything from "{a}" into "{b}"? {n} entries will move and "{a}" will be gone.',
+  stk_finished:'FINISHED',
   stk_slow:'Slow',
   stk_of:'of',
   stk_edit_thaan:'Edit fabric',
@@ -1500,6 +1517,7 @@ const T={
   mod_saved:'Modules updated',
   bk_never:'No backup taken yet — your data lives only on this device',
   bk_days:'{n} days since your last backup',
+  bk_day_1:'1 day since your last backup',
   su_done:'Welcome, {n}',
   si_bank_hint:'Fill once here — every reminder, bill and payment picks these up automatically.',
   cb_primary:'Primary account',
@@ -2216,6 +2234,14 @@ const T={
   stk_n_thaans:'{n} कपड़े',
   stk_no_thaan:'अभी कोई कपड़ा नहीं — “कपड़ा जोड़ें” दबाएँ',
   stk_cutpiece:'कट-पीस',
+  stk_cat_title:'कपड़े की श्रेणी', stk_setup:'कपड़ा सेटअप',
+  stk_setup_hint:'सेव किए हुए नाम और श्रेणी बदलें, मिलाएँ या हटाएँ।',
+  ml_cat_hint:'स्पेलिंग ठीक करने के लिए श्रेणी का नाम बदलें। पहले से मौजूद किसी श्रेणी का नाम डालेंगे तो दोनों मिल जाएँगी। श्रेणी हटाने से कोई थान नहीं हटता।',
+  ml_cat_del:'श्रेणी "{n}" हटाएँ? {c} कपड़ों की कोई श्रेणी नहीं रहेगी। कोई थान नहीं हटेगा।',
+  ml_merge_hint:'दोनों को मिलाने के लिए यहाँ पहले से मौजूद नाम लिखें।',
+  ml_merge_title:'मिला दें?', ml_dup:'ये नाम पहले से लिस्ट में है',
+  ml_merge_msg:'"{a}" का सब कुछ "{b}" में ले जाएँ? {n} एंट्री जाएँगी और "{a}" ख़त्म हो जाएगी।',
+  stk_finished:'ख़त्म',
   stk_slow:'धीमा',
   stk_of:'में से',
   stk_edit_thaan:'कपड़ा बदलें',
@@ -2589,6 +2615,7 @@ const T={
   mod_saved:'मॉड्यूल अपडेट हुए',
   bk_never:'अभी तक बैकअप नहीं लिया — डेटा सिर्फ़ इसी डिवाइस में है',
   bk_days:'पिछले बैकअप को {n} दिन हो गए',
+  bk_day_1:'पिछले बैकअप को 1 दिन हो गया',
   su_done:'स्वागत है, {n}',
   si_bank_hint:'यहाँ एक बार भर दें — हर रिमाइंडर, बिल और भुगतान में अपने आप आ जाएगा।',
   cb_primary:'मुख्य खाता',
@@ -3571,7 +3598,7 @@ function stockHome(tab){ if(!modOn('stock')){toast(t('mod_off'),'bad');return;}
 }
 
 /* ======================= FABRIC ======================= */
-let _fabQ='', _fabCat='', _fabHideEmpty=true, _fabSort='new', _fabBand='';
+let _fabQ='', _fabCat='', _fabSort='new', _fabBand='';
 const FAB_BANDS=[['le1','≤ 1 m',0,1],['1to2','1 – 2 m',1,2],['2to5','2 – 5 m',2,5],['ge5','5 m +',5,1e9]];
 function setFabBand(v){ _fabBand=(_fabBand===v?'':v); pageReset('fab'); fabricBody(); }
 function setFabQ(v){_fabQ=v;pageReset('fab');fabricBody(true);}
@@ -3595,7 +3622,14 @@ function fabricBody(keepFocus){
   const cats=[...new Set((DB.fabItems||[]).map(f=>f.category).filter(Boolean))];
   const q=(_fabQ||'').trim().toLowerCase();
   let list=(DB.thaans||[]).slice();
-  if(_fabHideEmpty)list=list.filter(t=>thaanBal(t)>0.05);
+  /* HIS POINT, Aug 7: "hide finished rolls ka option ki zaroorat nahi samajh aa raha hai."
+     He was right to question it. A stock screen should show STOCK, and a roll with nothing
+     left on it is not stock — so finished rolls are simply always hidden and the checkbox
+     is gone (one less control on a busy screen).
+     THE ONE EXCEPTION THAT MAKES THIS SAFE: while he is SEARCHING, nothing is hidden. If he
+     types a serial or a party name he is looking for a specific roll, and a finished roll
+     must still be findable — it just says FINISHED next to it. */
+  if(!q)list=list.filter(t=>thaanBal(t)>0.05);
   if(_fabCat)list=list.filter(t=>{const f=FI(t.fabId);return f&&f.category===_fabCat;});
   if(_fabBand){const bd=FAB_BANDS.find(x=>x[0]===_fabBand);
     if(bd)list=list.filter(t=>{const b=thaanBal(t);return b>bd[2]&&b<=bd[3];});}
@@ -3637,13 +3671,10 @@ function fabricBody(keepFocus){
       return `<div class="card pos-total" style="padding:10px 12px;margin-bottom:10px">
         <div class="il" style="border-bottom:0"><span>${bd[1]} · ${sel.length} ${t('stk_n_rolls')}</span>
           <b>${mt} m${val?' · '+money(val):''}</b></div></div>`;})():''}
-    <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:12.5px;color:var(--txt2)">
-      <input type="checkbox" ${_fabHideEmpty?'checked':''} onchange="_fabHideEmpty=this.checked;pageReset('fab');fabricBody()" style="width:17px;height:17px">
-      ${t('stk_hide_empty')}</label>
     <div class="row" style="margin-bottom:10px;gap:6px">
       <button class="btn primary" style="flex:1" onclick="thaanEdit()">➕ ${t('stk_add_thaan')}</button>
       <button class="btn ghost" style="flex:0 0 auto;padding:0 12px" onclick="bulkFabOpen()">📋 ${t('stk_bulk')}</button>
-      ${(DB.fabItems||[]).length?`<button class="btn ghost" style="flex:0 0 auto;padding:0 14px" onclick="manageFabItems()">⚙️</button>`:''}</div>
+      ${(DB.fabItems||[]).length?`<button class="btn ghost" style="flex:0 0 auto;padding:0 14px" onclick="fabSetupMenu()">⚙️</button>`:''}</div>
     <div class="kv" style="margin-bottom:8px">
       <span class="hint">${t('stk_n_thaans',{n:list.length})}</span>
       <span class="gtags">
@@ -3651,7 +3682,7 @@ function fabricBody(keepFocus){
         <span class="gtag ${_fabSort==='serial'?'on-tag':''}" style="cursor:pointer" onclick="setFabSort('serial')">${t('stk_sort_serial')}</span></span></div>
     ${pageSlice('fab',list).map(th=>{
       const f=FI(th.fabId)||{}; const bal=thaanBal(th);
-      const low=bal<=3&&bal>0;
+      const low=bal<=3&&bal>0; const done=bal<=0.05;
       const dead=monthsSince(lastMoveTs(m=>m.thaanId===th.id&&m.dir===MV_OUT)||th.created)>=(DB.stkCfg.deadMonths||6);
       return `<div class="card" style="margin-bottom:8px;${low?'border-color:var(--saffron)':''}" onclick="thaanDetail('${th.id}')">
         <div class="kv" style="align-items:flex-start">
@@ -3660,6 +3691,7 @@ function fabricBody(keepFocus){
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
               <b style="color:var(--saffron2);font-size:15px">#${esc(th.serial)}</b>
               ${low?`<span class="pill st-alteration" style="font-size:10px">${t('stk_cutpiece')}</span>`:''}
+              ${done?`<span class="pill st-delivered" style="font-size:10px">${t('stk_finished')}</span>`:''}
               ${dead?`<span class="pill" style="font-size:10px;background:#5a2b2b;color:#ffd7d7">🐌 ${t('stk_slow')}</span>`:''}
             </div>
             <div style="font-weight:700;margin-top:2px">${esc(f.name||'—')}</div>
@@ -5320,7 +5352,7 @@ function dayBook(){ if(!modOn('accounts')){toast(t('mod_off'),'bad');return;}
     </div>
     ${/* day-to-day entry belongs on the day book — he called it "expenses and for day to
           day entry". These are the same four editors reached from the ⚡ quick-add menu. */''}
-    <div class="qrow" style="margin-bottom:14px">
+    <div class="qrow qplain" style="margin-bottom:14px">
       <button class="qbtn" onclick="expEdit()"><span class="qi">💸</span><span class="ql">${t('exp_add')}</span></button>
       <button class="qbtn" onclick="payEntry('in')"><span class="qi">⬇️</span><span class="ql">${t('pay_in')}</span></button>
       <button class="qbtn" onclick="payEntry('out')"><span class="qi">⬆️</span><span class="ql">${t('pay_out')}</span></button>
@@ -5679,18 +5711,33 @@ function mlRender(){
 function mlDel(i){
   const o=_mlCtx; const v=(o.list()||[])[i]; if(v==null)return;
   const used=o.inUse?o.inUse(v):0;
-  const msg = used ? t('ml_del_used',{n:esc(String(v)),c:used}) : t('ml_del_msg',{n:esc(String(v))});
+  const msg = o.delMsg ? o.delMsg(String(v),used)
+            : (used ? t('ml_del_used',{n:esc(String(v)),c:used}) : t('ml_del_msg',{n:esc(String(v))}));
   confirmModal(t('ml_del_title'),msg,()=>{ o.remove(v); save(); mlRender(); toast(t('t_deleted')); });
 }
 function mlRename(i){
   const o=_mlCtx; const v=(o.list()||[])[i]; if(v==null)return;
   modal(t('ml_rename'),
-    `<div class="field"><label>${t('ml_new_name')}</label><input id="mlNew" value="${esc(v)}"></div>`,
+    `<div class="field"><label>${t('ml_new_name')}</label><input id="mlNew" value="${esc(v)}"></div>
+     ${o.merge?`<p class="hint">${t('ml_merge_hint')}</p>`:''}`,
     [{label:t('cancel'),cls:'ghost',fn:()=>mlRender()},
      {label:t('save'),cls:'primary',fn:()=>{
         const nv=($('#mlNew').value||'').trim();
-        if(nv&&nv!==v){ o.rename(v,nv); save(); toast(t('t_saved'),'ok'); }
-        mlRender();
+        if(!nv||nv===v){ mlRender(); return; }
+        /* RENAMING ONTO A NAME THAT ALREADY EXISTS IS A MERGE (v172). This is the whole
+           point of his ask: "KURTA FABRIC,Dp" and "Shirt fabrc" are a near-duplicate and a
+           typo, and deleting them would orphan their rolls. Typing the correct name joins
+           the two. Where merging is not meaningful (a fabric NAME — two items with one name
+           is just a duplicate) there is no merge handler and the rename is refused. */
+        const exists=(o.list()||[]).some(x=>String(x).toLowerCase()===nv.toLowerCase()&&x!==v);
+        if(exists){
+          if(!o.merge){ toast(t('ml_dup'),'bad'); mlRender(); return; }
+          const cnt=o.inUse?o.inUse(v):0;
+          confirmModal(t('ml_merge_title'),t('ml_merge_msg',{a:esc(String(v)),b:esc(nv),n:cnt}),()=>{
+            o.merge(v,nv); save(); toast(t('t_saved'),'ok'); mlRender(); }, ()=>mlRender());
+          return;
+        }
+        o.rename(v,nv); save(); toast(t('t_saved'),'ok'); mlRender();
      }}]);
   setTimeout(()=>{const e=$('#mlNew');if(e)e.focus();},120);
 }
@@ -5744,6 +5791,32 @@ function manageSizes(){
       readyItems().forEach(m=>{ if(m.stk&&m.stk[o]!=null){m.stk[n]=m.stk[o];delete m.stk[o];} }); },
     back:()=>stockHome('ready')
   });
+}
+/* The chips above the fabric list are f.category, and until v172 there was NO way to fix
+   one — his "KURTA FABRIC,Dp" and "Shirt fabrc" could only be corrected by editing every
+   roll by hand. Categories are DERIVED by scanning fabItems, so renaming means rewriting
+   the string on each one; deleting only CLEARS the category and never removes a roll. */
+function manageFabCats(){
+  const cats=()=>[...new Set((DB.fabItems||[]).map(f=>String(f.category||'').trim()).filter(Boolean))]
+    .sort((a,b)=>a.localeCompare(b));
+  const hit=v=>(DB.fabItems||[]).filter(f=>String(f.category||'').trim()===v);
+  const setCat=(o,n)=>{ hit(o).forEach(f=>f.category=n); };
+  manageLib({
+    title:t('stk_cat_title'), hint:t('ml_cat_hint'),
+    list:cats, inUse:v=>hit(v).length,
+    delMsg:(v,used)=>t('ml_cat_del',{n:esc(v),c:used}),
+    remove:v=>setCat(v,''),
+    rename:setCat, merge:setCat,
+    back:()=>stockHome('fabric')
+  });
+}
+/* ONE ⚙️, two destinations — a second gear on the same row would be exactly the duplicate
+   button he keeps catching. */
+function fabSetupMenu(){
+  modal('⚙️ '+t('stk_setup'),`<p class="hint">${t('stk_setup_hint')}</p>`,[
+    {label:'🏷️ '+t('stk_fab_name'),cls:'ghost',fn:()=>{closeModal();manageFabItems();}},
+    {label:'📂 '+t('stk_cat_title'),cls:'ghost',fn:()=>{closeModal();manageFabCats();}}
+  ]);
 }
 function manageFabItems(){
   manageLib({
@@ -6967,8 +7040,8 @@ function quickRowHTML(){
     b.push(['🚚',t('qr_purchase'),"openPurchaseForm()"]);
   }
   if(modOn('accounts')) b.push(['📒',t('qr_daybook'),"dayBook()"]);
-  return `<div class="qrow">${b.map(([i,l,fn])=>
-    `<button class="qbtn" onclick="${fn}"><span class="qi">${i}</span><span class="ql">${l}</span></button>`).join('')}</div>`;
+  return `<div class="qrow">${b.map(([i,l,fn],ix)=>
+    `<button class="qbtn${ix===0?' qmain':''}" onclick="${fn}"><span class="qi">${i}</span><span class="ql">${l}</span></button>`).join('')}</div>`;
 }
 function renderHome(){
   if(setupNeeded()){ renderSetup(); return; }
@@ -6991,7 +7064,6 @@ function renderHome(){
     <div class="home-hd">
       <div><div class="home-shop">${esc((DB.shopInfo&&DB.shopInfo.name)||t('your_shop'))}</div>
       <div class="home-sub">${new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'short'})}</div></div>
-      <button class="btn sm ghost" onclick="settingsMenu()">⚙️</button>
     </div>
 
     ${quickRowHTML()}
@@ -13704,7 +13776,7 @@ function backupNagHTML(){
   if(n===0)return '';
   const never=(n===null);
   const loud=never||n>=3;
-  const msg=never?t('bk_never'):t('bk_days',{n});
+  const msg=never?t('bk_never'):t(n===1?'bk_day_1':'bk_days',{n});
   return `<div class="card" style="border-color:${loud?'#7a2f28':'#5a4a1a'};background:${loud?'#2a1614':'#241d10'};margin-bottom:10px">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
       <div style="font-size:13px"><b>${loud?'⚠️':'🛟'} ${esc(msg)}</b></div>
