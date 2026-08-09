@@ -600,7 +600,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v172</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v175</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1126,7 +1126,7 @@ const T={
   stk_pieces:'pcs',
   stk_value:'Stock value',
   stk_fab_search:'Search serial, fabric or party...',
-  stk_hide_empty:'Hide finished rolls',
+  stk_fin_hidden:'{n} finished — show',
   stk_add_thaan:'Add fabric',
   stk_bulk:'Bulk',
   stk_bulk_title:'Opening / Bulk Fabric',
@@ -2224,7 +2224,7 @@ const T={
   stk_pieces:'पीस',
   stk_value:'स्टॉक की क़ीमत',
   stk_fab_search:'सीरियल, कपड़ा या पार्टी खोजें…',
-  stk_hide_empty:'ख़त्म कपड़े छिपाएँ',
+  stk_fin_hidden:'{n} ख़त्म — दिखाएँ',
   stk_add_thaan:'कपड़ा जोड़ें',
   stk_bulk:'बल्क',
   stk_bulk_title:'ओपनिंग / बल्क फैब्रिक',
@@ -3676,7 +3676,7 @@ function fabricBody(keepFocus){
       <button class="btn ghost" style="flex:0 0 auto;padding:0 12px" onclick="bulkFabOpen()">📋 ${t('stk_bulk')}</button>
       ${(DB.fabItems||[]).length?`<button class="btn ghost" style="flex:0 0 auto;padding:0 14px" onclick="fabSetupMenu()">⚙️</button>`:''}</div>
     <div class="kv" style="margin-bottom:8px">
-      <span class="hint">${t('stk_n_thaans',{n:list.length})}</span>
+      <span class="hint">${t('stk_n_thaans',{n:list.length})}${finN?` · <a href="javascript:void(0)" onclick="setFabQ(' ')" style="color:var(--saffron2);text-decoration:underline">${t('stk_fin_hidden',{n:finN})}</a>`:''}</span>
       <span class="gtags">
         <span class="gtag ${_fabSort==='new'?'on-tag':''}" style="cursor:pointer" onclick="setFabSort('new')">${t('stk_sort_new')}</span>
         <span class="gtag ${_fabSort==='serial'?'on-tag':''}" style="cursor:pointer" onclick="setFabSort('serial')">${t('stk_sort_serial')}</span></span></div>
@@ -7623,8 +7623,18 @@ function formHasContent(f){
   return false;
 }
 function formIsOpen(){
-  // a modal on top no longer removes the form, so the form is open whenever it is in the DOM
-  return sheetIsOpen() && !!document.getElementById('f_ono');
+  /* THE ROOT CAUSE OF HIS Aug-8 LIST. This asked for #f_ono — the order-number box — as
+     proof that the form was on screen. That was true until v168 split the form into three
+     screens, after which #f_ono exists ONLY on stage 1. So the moment he started measuring
+     (stage 2) the app decided the form was CLOSED, and two things stopped dead:
+       · propagate() returned early  → a measurement typed on one piece never reached the
+         others. That is exactly his "ek item me measurement daalne par baaki item me nahi
+         aa raha hai."
+       · saveDraft() returned early and the 5-second draft timer cleared itself → nothing
+         was being parked while he measured. Silent, and far more dangerous than the first.
+     #ordFormMark is on EVERY stage and exists for precisely this. One line, several
+     symptoms — which is why the app felt riddled with faults. */
+  return sheetIsOpen() && !!document.getElementById('ordFormMark');
 }
 
 /* A phone call while he is measuring takes the iPad away, and iOS drops the page out of
@@ -8189,8 +8199,18 @@ function renderForm(){
       <div class="wk-bar">
         <button class="btn sm ghost" onclick="ordStage(1)">☰ ${t('wk_back')}</button>
         <span class="wk-pos">${t('wk_stage3')}</span></div>
-      <h2 style="margin:0 0 4px">${f.editId?t('edit_order'):t('new_order')} #${esc(f.orderNo||'')}</h2>
-      <p class="hint" style="margin:0 0 12px">${esc(f.customerName||t('wk_no_cust'))}</p>
+      <h2 style="margin:0 0 10px">${f.editId?t('edit_order'):t('new_order')} #${esc(f.orderNo||'')}</h2>
+      ${/* HIS BUG, Aug 8: "naam kahan likhu." Save Order refused with "Enter customer name"
+           while the ONLY customer box lived back on stage 1 — the screen demanded something
+           it gave him no way to type. That is the worst kind of dead end. The last step is
+           where the order is finished, so the customer belongs ON it. */''}
+      <div class="field"><label>${t('customer')}</label>
+        <div id="custPicked">${(f.customerId||f.customerName)?customerPickedHTML():''}</div>
+        <div id="custSearchWrap" style="${f.customerName?'display:none':''}">
+          <input id="f_cname" placeholder="${t('name_ph')}" autocomplete="off" onfocus="custSearch(this.value)" oninput="custSearch(this.value)" value="${esc(f.customerName)}">
+          <div id="custResults"></div>
+          <input id="f_cphone" type="tel" placeholder="${t('phone')}" value="${esc(f.phone)}" style="margin-top:8px">
+          ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost" style="margin-top:8px" onclick="pickContact()">📇 ${t('from_contacts')}</button>`:''}</div></div>
       ${mems.map(m=>quickLenHTML(f,itemsOfMember(f,m.id))).join('')}
       <div class="field dd-field" id="ddWrap" style="margin-top:14px"><label>🚚 ${t('delivery')} *</label>
         ${dateField("f_ddate",f.deliveryDate)}</div>
@@ -8720,13 +8740,19 @@ let _noPhoneOK=false;
 function saveOrder(){
   captureForm();const f=form; f.items=sortItems(f.items);
   if(!f.orderNo){toast(t('t_no_ono'),'bad');return;}
-  if(!f.customerName){toast(t('t_no_name'),'bad');return;}
+  if(!f.customerName){
+    toast(t('t_no_name'),'bad');
+    const el=$('#f_cname');
+    if(el){ el.style.borderColor='var(--bad)'; el.scrollIntoView({block:'center',behavior:'smooth'}); el.focus();
+            el.addEventListener('input',()=>{el.style.borderColor='';},{once:true}); }
+    else ordStage(1);   // last resort — never leave him with a demand and no field
+    return;}
   // a missing mobile is worth one question, never a wall: without it this customer
   // cannot be found again reliably and no WhatsApp update can reach him
   if(!ph10(f.phone) && !_noPhoneOK){
     confirmModal('📞 '+t('ph_missing_title'), t('ph_missing_msg'),
       ()=>{ _noPhoneOK=true; saveOrder(); },
-      ()=>{ const el=$('#f_cphone'); if(el){el.focus(); el.scrollIntoView({block:'center'});} },
+      ()=>{ const el=$('#f_cphone'); if(el){el.focus(); el.scrollIntoView({block:'center'});} else ordStage(1); },
       {no:t('ph_add_now'), yes:t('ph_save_anyway')});
     return;
   }
@@ -10980,7 +11006,14 @@ function buildInvoiceCanvas(rec,inv){
       wrapCanvasText(meas,line,contentW).forEach(w=>L.push({t:w,s:13,c:'#777'}));});
   }
   let h=pad*2;
-  L.forEach(l=>{h+=l.gap?l.gap:0; if(l.t!=='')h+= (l.s?l.s*1.7:24); if(l.rule)h+=6;});
+  /* THE "undefined" ON HIS BILL. Spacer entries are pushed as {gap:10} or {rule:1,gap:16}
+     with NO t at all, so l.t is undefined — which is not '' — and both this height sum and
+     the draw loop below treated them as real lines. The draw loop then did
+     fillText(undefined,…) and literally printed the word "undefined" on the customer's
+     invoice, three times, plus 24px of dead space each. Test for "no text", not for "empty
+     string". */
+  const blank=l=>l.t==null||l.t==='';
+  L.forEach(l=>{h+=l.gap?l.gap:0; if(!blank(l))h+= (l.s?l.s*1.7:24); if(l.rule)h+=6;});
   const qAmt = (DB.shopInfo&&DB.shopInfo.qrOpen) ? 0 : (baaki>0?baaki:comp.total);
   const qUri = (()=>{try{return upiUri(qAmt,'Invoice '+inv.no);}catch(e){return null;}})();
   const QBLOCK = qUri ? 300 : 0;          // room for the UPI QR at the bottom
@@ -10990,7 +11023,7 @@ function buildInvoiceCanvas(rec,inv){
   L.forEach(l=>{
     if(l.gap)y+=l.gap;
     if(l.rule){x.strokeStyle='#ddd';x.beginPath();x.moveTo(pad,y);x.lineTo(W-pad,y);x.stroke();y+=6;return;}
-    if(l.t===''){return;}
+    if(blank(l)){return;}
     if(l.hl){x.fillStyle=l.hl;x.font=(l.b?'bold ':'')+(l.s||16)+'px Arial,sans-serif';const wtxt=x.measureText(l.t).width;x.fillRect(pad-4,y-l.s,wtxt+8,l.s+10);}
     x.fillStyle=l.c||'#111';x.font=(l.italic?'italic ':'')+(l.b?'bold ':'')+(l.s||16)+'px Arial,sans-serif';x.fillText(l.t,pad,y);
     if(l.right){x.font=(l.rightB?'bold ':'')+(l.rightS||16)+'px Arial,sans-serif';const rw=x.measureText(l.right).width;x.fillText(l.right,W-pad-rw,y);}
