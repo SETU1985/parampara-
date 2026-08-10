@@ -357,7 +357,15 @@
      that visible at a glance instead of arriving on the cutting table. */
   .mfield input[data-auto="1"]{color:var(--txt2); border-bottom:1px dashed var(--line2)}
   .mfield input[data-auto="1"]:focus{color:var(--saffron2); border-bottom-color:transparent}
-  .mfield.auto-f label:after{content:' \00b7 auto'; color:var(--mut); font-weight:600}
+  /* HIS #5: "items me auto nahi likha aayega to zyada presentable lagega." Fair — but the
+     POINT of the mark is that a flowed value must look different from one he typed, so a
+     churidar can never silently inherit a pant's mori. The word goes; the dim colour and
+     the dashed underline stay, and that is what actually carries the warning. */
+  .mfield.auto-f label:after{content:' \00b7'; color:var(--mut); font-weight:600}
+  /* spoken values stay amber until he has looked at them — his ear checked it, his eye
+     has not. Tapping the box clears the mark. */
+  .mfield.voice-f{border-color:var(--saffron)}
+  .mfield.voice-f input{color:var(--saffron2)}
   .prefilled-note{font-size:11px; color:var(--ok); margin:4px 0 0}
 
   .pur-collapsed{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r2);background:var(--card2);margin-bottom:8px;cursor:pointer}
@@ -452,6 +460,8 @@
   /* THE FRACTION BAR was covering Save Order — it is fixed to the bottom and the sheet
      knew nothing about it. While it is up, the sheet keeps that much room free. */
   body.fb-on .sheet{padding-bottom:calc(128px + var(--safe-b))}
+  /* on a short window the bar eats most of the height — keep the sheet scrollable under it */
+  @media (max-height:620px){ body.fb-on .sheet{padding-bottom:calc(160px + var(--safe-b))} }
   /* order form stages */
   .wk-bar{display:flex; align-items:center; gap:10px; margin:0 0 12px; padding-bottom:10px;
     border-bottom:1px solid var(--line)}
@@ -472,6 +482,10 @@
     background:#2c2418; border:1px solid var(--line2); color:var(--txt); padding:11px 18px; border-radius:30px;
     font-size:13px; font-weight:600; z-index:130; opacity:0; transition:.25s; pointer-events:none; max-width:90%}
   .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+  /* HIS #7: "Order #2581 created" printed straight across "Make the bill now?". A toast is
+     news; a modal is a question. News never covers the question — it moves to the top. */
+  body.modal-on .toast{bottom:auto; top:calc(14px + var(--safe-t)); transform:translateX(-50%) translateY(-20px)}
+  body.modal-on .toast.show{transform:translateX(-50%) translateY(0)}
   .toast.ok{border-color:var(--ok)} .toast.bad{border-color:var(--bad)}
   .toast .tundo{margin-left:12px; background:var(--saffron); color:#1a1206; border:0;
     border-radius:8px; padding:6px 14px; font-weight:800; font-size:14px}
@@ -519,6 +533,20 @@
   .db-accs{display:flex;gap:6px;flex-wrap:wrap}
   .db-accs span{font-size:12px;font-weight:700;background:var(--card2);border:1px solid var(--line2);
     border-radius:20px;padding:4px 10px;color:var(--txt2)}
+  .smp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .smp-tile{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);overflow:hidden;cursor:pointer}
+  .smp-ph{height:150px;background:var(--card2);display:flex;align-items:center;justify-content:center}
+  .smp-ph img{width:100%;height:100%;object-fit:cover}
+  .smp-noph{font-size:40px;opacity:.35}
+  .smp-b{padding:9px 10px;display:flex;flex-direction:column;gap:3px}
+  .mnu-list{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);overflow:hidden;margin-bottom:14px}
+  .mnu-row{display:flex;align-items:center;gap:12px;width:100%;padding:14px 14px;background:none;
+    border:0;border-bottom:1px solid var(--line);color:var(--txt);cursor:pointer;text-align:left}
+  .mnu-row:last-child{border-bottom:0}
+  .mnu-row:active{background:var(--card2)}
+  .mnu-ico{font-size:21px;width:26px;text-align:center}
+  .mnu-txt{flex:1;display:flex;flex-direction:column;gap:2px;font-size:15px}
+  .mnu-go{color:var(--mut);font-size:19px}
   .home-stats{display:flex;gap:8px;margin-bottom:20px}
   .home-stat{flex:1;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:12px 8px;text-align:center}
   .hs-val{font-size:20px;font-weight:800;color:var(--txt)}
@@ -600,7 +628,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v175</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v185</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -630,7 +658,7 @@
   <button id="nav-orders" onclick="navQuick('orders')"><span class="nico">📋</span><span data-t="nav_orders"></span></button>
   <button class="add" onclick="quickAdd()"><span class="nico">+</span></button>
   <button id="nav-invoices" onclick="navQuick('invoices')" class="simple-hide mod-billing"><span class="nico">🧾</span><span data-t="nav_sale"></span></button>
-  <button id="nav-purchases" onclick="navQuick('purchases')" class="simple-hide mod-billing"><span class="nico">📦</span><span data-t="nav_purchases"></span></button>
+  <button id="nav-menu" onclick="menuHome()"><span class="nico">☰</span><span data-t="menu_all"></span></button>
 </nav>
 <button id="railToggle" onclick="toggleRail()" title="Show / hide the sidebar">‹</button>
 
@@ -768,7 +796,7 @@ const T={
   ms_more:'+ {n} more measurements', ms_less:'– Show fewer',
   del_opt_q:'Remove “{n}” from the saved list? Orders that already use it keep it.',
   t_photos_n:'{n} photos added', del_photo_q:'Remove this photo?',
-  od_production:'Production — stage, karigar, urgent, print',
+  od_production:'Production — stage, tailor, urgent, print',
   edit_items:'Items / customer',
   od_edit_hint:'Measurements, notes, photos and the delivery date are edited right here. Use this only to add or remove a piece, or to change the customer.',
   cancel:'Cancel',
@@ -1126,7 +1154,9 @@ const T={
   stk_pieces:'pcs',
   stk_value:'Stock value',
   stk_fab_search:'Search serial, fabric or party...',
-  stk_fin_hidden:'{n} finished — show',
+  stk_fin_n:'{n} finished',
+  stk_none_yet:'No fabric added yet. Use ➕ Add fabric for one roll, or 📋 Bulk to enter many.',
+  stk_none_match:'Nothing matches this search or filter.',
   stk_add_thaan:'Add fabric',
   stk_bulk:'Bulk',
   stk_bulk_title:'Opening / Bulk Fabric',
@@ -1144,6 +1174,41 @@ const T={
   ml_merge_title:'Merge together?', ml_dup:'That name is already in the list',
   ml_merge_msg:'Move everything from "{a}" into "{b}"? {n} entries will move and "{a}" will be gone.',
   stk_finished:'FINISHED',
+  ph_pick_hint:'Take a new photo, or choose one already on the phone.',
+  smp_title:'Samples', smp_sub:'What the shop made for its own rack — what it cost, and what it brought back.',
+  smp_n:'Samples', smp_spend:'Spent', smp_earned:'Brought in', smp_new:'New sample', smp_edit:'Edit sample',
+  smp_f_all:'All', smp_f_stock:'In stock', smp_f_sold:'Sold', smp_f_none:'No orders yet',
+  smp_none:'No samples yet. Add the first one and every order taken from it will be counted here.',
+  smp_size:'Size', smp_size_hint:'Pick one or more. No body measurements here — a sample is made to a size.',
+  smp_photos:'Photos', smp_photo_hint:'Front, back and a close-up of the work. This is what the customer will point at.',
+  smp_design:'Design note', smp_design_ph:'e.g. self-collar, dori work, 4 button…',
+  smp_cloth:'Cloth', smp_thaan:'Roll', smp_meters:'Meters', smp_labour:'Labour',
+  smp_target:'Ready by', smp_target_hint:'A loose target — nothing is promised to a customer, so this never shows as overdue.',
+  smp_sell:'Selling price', smp_sell_hint:'Can be filled in later, when it goes on the rack.',
+  smp_cost:'Cost', smp_margin:'Margin', smp_need_item:'Pick which garment this is',
+  smp_pieces:'Pieces', smp_st_making:'Being made', smp_st_stock:'On the rack', smp_st_sold:'Sold',
+  smp_to_stock:'Move to stock', smp_sold:'Mark sold', smp_in_stock:'Added to readymade stock',
+  smp_to_stock_q:'Put size {z} on the rack? Its cost of {c} is already known, so the stock value will be right.',
+  smp_orders:'orders', smp_no_order:'No orders yet', smp_no_order_yet:'No order has named this sample yet.',
+  smp_from_this:'Ordered from this sample', smp_del_q:'Delete sample {n}?',
+  smp_del_used:'{n} order(s) point at this sample. Deleting it loses that link.',
+  smp_pick:'Which sample did they pick it from?', smp_pick_none:'Not from a sample',
+  mod_samples:'Samples (shop\u2019s own rack)',
+  vm_title:'Speak the measurements', vm_na:'This phone cannot do speech', 
+  vm_offline:'Speech needs internet — type as usual', vm_err:'Could not hear — try again',
+  vm_ready_say:'Ready. Say the field and the number.', vm_stopped:'Stopped',
+  vm_next:'Next piece', vm_done:'All measurements taken',
+  vm_two:'Two different numbers — say it again', vm_nonum:'No number heard',
+  vm_nofield:'Which measurement? Say the name first', vm_notonthis:'{f} is not on this piece',
+  vm_range:'{v} is outside {a} to {b} — say it again', vm_norel:'Nothing to change yet',
+  vm_bigrel:'That is too big a change — say the full number',
+  vm_noundo:'Nothing to undo', vm_undone:'Undone',
+  crash_title:'This screen could not be drawn', crash_copy:'Copy this message',
+  crash_copied:'Copied — paste it in the chat', crash_sub:'Nothing has been lost. Send this line and the fault can be found exactly.',
+  menu_all:'All screens', menu_find:'Find a screen…',
+  vc_save:'Save to phone', vc_role_cust:'Customer', vc_role_kar:'Tailor', vc_role_sup:'Supplier',
+  vc_done:'Open the file to add the contact', vc_no_phone:'No phone number to save',
+  vc_fail:'Could not create the contact file',
   stk_slow:'Slow',
   stk_of:'of',
   stk_edit_thaan:'Edit fabric',
@@ -1280,7 +1345,7 @@ const T={
   su_later:'Bank details, UPI and terms can be added later from Settings.',
   su_need_name:'Please enter your shop name',
   mod_off:'That section is switched off in Settings',
-  kb_title:'Karigar Ledger',
+  kb_title:'Tailor Ledger',
   urgent:'Urgent', urgent_on:'Urgent — tap to clear', urgent_off:'Mark urgent',
   urgent_marked:'marked Urgent', urgent_cleared:'Urgent cleared', ab_urgent:'Marked urgent',
   pb_title:'Photos backup', pb_hint:'Photos go out in parts, so a large collection never crashes the app.',
@@ -1325,7 +1390,7 @@ const T={
   cat_use:'Start an order with this',
   stk_by_length:'By length left — tap to see only those pieces', stk_n_rolls:'rolls',
   bk_data_only:'Send data-only backup (no photos)',
-  bk_data_only_hint:'A small file — orders, measurements, stock and karigar accounts. Sends on WhatsApp even when the full backup will not.',
+  bk_data_only_hint:'A small file — orders, measurements, stock and tailor accounts. Sends on WhatsApp even when the full backup will not.',
   bk_done_data:'Data-only backup ready',
   stk_serial_far_title:'Serial is out of sequence',
   stk_serial_far:'{s} is far outside your numbering — the next one in sequence is {n}. Save it anyway?',
@@ -1343,7 +1408,7 @@ const T={
   ki_search_ph:'Order no., customer name or mobile', ki_no_match:'Nothing matches that search.',
   ki_by_order:'Grouped by order', ki_by_item:'Flat list', ki_pick_order:'tap to take all',
   ki_after:'after {n}',
-  jw_title:'Job Work', jw_sub:'Every karigar, what he is holding, and what is waiting to go out.',
+  jw_title:'Job Work', jw_sub:'Every tailor, what he is holding, and what is waiting to go out.',
   jw_holding:'holding {n} pieces',
   stk_cut_items:'Which pieces is this cloth for?', stk_cut_items_hint:'Tick every piece cut from this roll — one cut covers all of them.',
   stk_cut_pick:'Tick at least one piece', cu_used_title:'Cloth used', cu_used_none:'No cloth issued against this order yet.',
@@ -1400,13 +1465,14 @@ const T={
   stk_rdy_del_msg:'This readymade item will be removed. Continue?',
   stk_rdy_del_stock:'{n} pieces are in stock. The item and its stock will both be removed. Continue?',
   ab_title:'Priority Actions', ab_all_clear:'All clear', ab_all_clear_sub:'Nothing overdue, nothing stuck with a karigar, no payments due.',
-  ab_late:'Overdue — not ready', ab_soon:'Due within {n} days — not ready', ab_nokar:'Not yet issued to any karigar',
-  ab_stuck:'With a karigar {n}+ days', ab_payable:'Payable to karigars', ab_nobody:'unassigned',
-  ab_days_with:'{n} days with karigar', ab_none:'Nothing pending here.',
+  ab_late:'Overdue — not ready', ab_soon:'Due within {n} days — not ready', ab_nokar:'Not yet given to any tailor',
+  ab_stuck:'With a tailor {n}+ days', ab_payable:'Payable to tailors', ab_nobody:'unassigned',
+  ab_days_with:'{n} days with tailor', ab_none:'Nothing pending here.',
   ab_late_sub:'The delivery date has passed and the piece is still not ready.',
   ab_soon_sub:'These fall due within three days. Clear these first.',
   ab_nokar_sub:'Nobody has been given these yet — issue them before they run late.',
-  ab_stuck_sub:'Issued long ago and still not returned. Follow up with the karigar.',
+  ab_stuck_sub:'Given out long ago and still not returned. Follow up with the tailor.',
+  ab_urgent_sub:'Marked urgent and not ready yet.',
   se_title:'Order Status', se_sub:'Search by name, mobile or order number to see every live garment.',
   se_ph:'Name / mobile / order no.', se_nohit:'No customer found.',
   se_live:'{n} active orders', se_none_live:'No active orders.',
@@ -1416,8 +1482,8 @@ const T={
   kb_pieces_made:'Pieces Completed', kb_by_item:'By Garment', kb_pcs:'pcs',
   kb_range_month:'This month', kb_range_lmonth:'Last month', kb_range_all:'All time', kb_range_custom:'Custom',
   kb_avg_rate:'Average per Piece', kb_no_pieces:'No work completed in this period.',
-  kb_report:'Karigar Report', kb_report_sub:'Every karigar, garment-wise pieces and value.',
-  kb_pick_master:'Select karigar', kb_total_pieces:'{n} pieces in progress',
+  kb_report:'Tailor Report', kb_report_sub:'Every tailor, garment-wise pieces and value.',
+  kb_pick_master:'Select tailor', kb_total_pieces:'{n} pieces in progress',
   kb_spec_none:'No specialty set', kb_period:'Period',
   ki_give:'Issue Work',
   ki_take:'Receive Work',
@@ -1425,7 +1491,7 @@ const T={
   ki_take_sub:'select the pieces received back',
   ki_none_free:'Nothing left to give out',
   ki_none_with:'Nothing is with him right now',
-  ki_only_his:'Only items this karigar makes',
+  ki_only_his:'Only items this tailor makes',
   ki_toggle_all:'Select all / Clear',
   ki_selected:'Selected',
   ki_do_give:'Issue Selected',
@@ -1434,7 +1500,7 @@ const T={
   ki_gave:'{n} pieces given',
   ki_took:'{n} pieces taken back',
   ki_send_hisab:'Send Statement',
-  kb_sub:'What each karigar is holding, what he has delivered, and the balance payable.',
+  kb_sub:'What each tailor is holding, what he has delivered, and the balance payable.',
   kb_total_payable:'Total Payable',
   kb_payable:'payable',
   kb_with_him:'{n} pieces in progress',
@@ -1474,7 +1540,7 @@ const T={
   of_all:'All dates',
   of_apply:'Apply dates',
   of_any_status:'Any status',
-  of_any_karigar:'Any master',
+  of_any_karigar:'Any tailor',
   of_any_item:'Any item',
   of_any_sm:'Any salesman',
   of_item:'Item',
@@ -1491,7 +1557,7 @@ const T={
   naap_start:'Start measuring ({n} pieces)',
   it_next:'Next item opened',
   it_all_done:'All items filled',
-  qr_order:'New order', qr_sale:'Sale', qr_purchase:'Purchase', qr_karigar:'Karigar', qr_daybook:'Day book',
+  qr_order:'New order', qr_sale:'Sale', qr_purchase:'Purchase', qr_karigar:'Tailor', qr_daybook:'Day book',
   db_bal_now:'Cash & bank now',
   t_order_gone:'This order no longer exists — nothing was saved.',
   pur_edit_nostock:'Bill updated. Stock was NOT changed — correct the roll or piece in Stock.',
@@ -2224,7 +2290,9 @@ const T={
   stk_pieces:'पीस',
   stk_value:'स्टॉक की क़ीमत',
   stk_fab_search:'सीरियल, कपड़ा या पार्टी खोजें…',
-  stk_fin_hidden:'{n} ख़त्म — दिखाएँ',
+  stk_fin_n:'{n} ख़त्म',
+  stk_none_yet:'अभी कोई कपड़ा नहीं। एक थान के लिए ➕, बहुत सारे के लिए 📋 Bulk।',
+  stk_none_match:'इस खोज या फ़िल्टर से कुछ नहीं मिला।',
   stk_add_thaan:'कपड़ा जोड़ें',
   stk_bulk:'बल्क',
   stk_bulk_title:'ओपनिंग / बल्क फैब्रिक',
@@ -2242,6 +2310,41 @@ const T={
   ml_merge_title:'मिला दें?', ml_dup:'ये नाम पहले से लिस्ट में है',
   ml_merge_msg:'"{a}" का सब कुछ "{b}" में ले जाएँ? {n} एंट्री जाएँगी और "{a}" ख़त्म हो जाएगी।',
   stk_finished:'ख़त्म',
+  ph_pick_hint:'नई फ़ोटो लें, या फ़ोन में पहले से मौजूद चुनें।',
+  smp_title:'सैंपल', smp_sub:'दुकान ने अपने लिए जो बनवाया — क्या लागत आई, और क्या लौटा कर लाया।',
+  smp_n:'सैंपल', smp_spend:'ख़र्च', smp_earned:'कमाई', smp_new:'नया सैंपल', smp_edit:'सैंपल बदलें',
+  smp_f_all:'सभी', smp_f_stock:'स्टॉक में', smp_f_sold:'बिक गया', smp_f_none:'कोई ऑर्डर नहीं',
+  smp_none:'अभी कोई सैंपल नहीं। पहला जोड़िए — उससे मिला हर ऑर्डर यहीं गिना जाएगा।',
+  smp_size:'साइज़', smp_size_hint:'एक या कई चुनें। यहाँ नाप नहीं — सैंपल साइज़ से बनता है।',
+  smp_photos:'फ़ोटो', smp_photo_hint:'आगे, पीछे और काम का क्लोज़-अप। ग्राहक इसी पर उँगली रखेगा।',
+  smp_design:'डिज़ाइन नोट', smp_design_ph:'जैसे सेल्फ़ कॉलर, दोरी वर्क, 4 बटन…',
+  smp_cloth:'कपड़ा', smp_thaan:'थान', smp_meters:'मीटर', smp_labour:'मजूरी',
+  smp_target:'कब तक', smp_target_hint:'बस एक अंदाज़ा — ग्राहक से वादा नहीं है, इसलिए ये कभी ओवरड्यू नहीं दिखेगा।',
+  smp_sell:'बेचने का दाम', smp_sell_hint:'बाद में भी भर सकते हैं, जब रैक पर जाए।',
+  smp_cost:'लागत', smp_margin:'बचत', smp_need_item:'कौन सा कपड़ा है, ये चुनिए',
+  smp_pieces:'पीस', smp_st_making:'बन रहा है', smp_st_stock:'रैक पर', smp_st_sold:'बिक गया',
+  smp_to_stock:'स्टॉक में डालें', smp_sold:'बिका हुआ मार्क करें', smp_in_stock:'रेडीमेड स्टॉक में जुड़ गया',
+  smp_to_stock_q:'साइज़ {z} रैक पर रखें? इसकी लागत {c} पहले से पता है, इसलिए स्टॉक की क़ीमत सही रहेगी।',
+  smp_orders:'ऑर्डर', smp_no_order:'अभी कोई ऑर्डर नहीं', smp_no_order_yet:'अभी किसी ऑर्डर ने इस सैंपल का नाम नहीं लिया।',
+  smp_from_this:'इस सैंपल से मिले ऑर्डर', smp_del_q:'सैंपल {n} हटाएँ?',
+  smp_del_used:'{n} ऑर्डर इस सैंपल से जुड़े हैं। हटाने पर वो जोड़ टूट जाएगा।',
+  smp_pick:'किस सैंपल से पसंद किया?', smp_pick_none:'सैंपल से नहीं',
+  mod_samples:'सैंपल (दुकान का अपना रैक)',
+  vm_title:'बोलकर नाप लिखें', vm_na:'इस फ़ोन में आवाज़ नहीं चलती',
+  vm_offline:'आवाज़ के लिए इंटरनेट चाहिए — हमेशा की तरह टाइप कीजिए', vm_err:'सुनाई नहीं दिया — फिर बोलिए',
+  vm_ready_say:'तैयार। नाप का नाम और नंबर बोलिए।', vm_stopped:'बंद',
+  vm_next:'अगला आइटम', vm_done:'सारे नाप हो गए',
+  vm_two:'दो अलग नंबर — फिर से बोलिए', vm_nonum:'नंबर नहीं सुनाई दिया',
+  vm_nofield:'कौन सा नाप? पहले नाम बोलिए', vm_notonthis:'{f} इस आइटम में नहीं है',
+  vm_range:'{v} — {a} से {b} के बाहर है, फिर से बोलिए', vm_norel:'अभी बदलने को कुछ नहीं है',
+  vm_bigrel:'ये बदलाव बहुत बड़ा है — पूरा नंबर बोलिए',
+  vm_noundo:'वापस करने को कुछ नहीं', vm_undone:'वापस कर दिया',
+  crash_title:'ये स्क्रीन बन नहीं पाई', crash_copy:'ये मैसेज कॉपी करें',
+  crash_copied:'कॉपी हो गया — चैट में पेस्ट कर दें', crash_sub:'कुछ खोया नहीं है। ये लाइन भेज दीजिए, गड़बड़ी ठीक जगह पर मिल जाएगी।',
+  menu_all:'सारी स्क्रीन', menu_find:'स्क्रीन ढूँढें…',
+  vc_save:'फ़ोन में सेव करें', vc_role_cust:'Customer', vc_role_kar:'Tailor', vc_role_sup:'Supplier',
+  vc_done:'कॉन्टैक्ट जोड़ने के लिए फ़ाइल खोलें', vc_no_phone:'सेव करने के लिए नंबर नहीं है',
+  vc_fail:'कॉन्टैक्ट फ़ाइल नहीं बन पाई',
   stk_slow:'धीमा',
   stk_of:'में से',
   stk_edit_thaan:'कपड़ा बदलें',
@@ -2505,6 +2608,7 @@ const T={
   ab_soon_sub:'ये तीन दिन में देने हैं। पहले इन्हीं के पीछे लगें।',
   ab_nokar_sub:'ये अभी कोई बना नहीं रहा — लेट होने से पहले बाँट दें।',
   ab_stuck_sub:'बहुत दिन पहले दिया था, अभी तक जमा नहीं। मास्टर से पूछें।',
+  ab_urgent_sub:'अर्जेंट लगाया है और अभी तैयार नहीं।',
   se_title:'ऑर्डर स्टेटस', se_sub:'नाम, नंबर या ऑर्डर नंबर लिखें — हर चालू पीस दिखेगा।',
   se_ph:'नाम / मोबाइल / ऑर्डर नं.', se_nohit:'कोई कस्टमर नहीं मिला।',
   se_live:'{n} चालू ऑर्डर', se_none_live:'अभी कोई चालू ऑर्डर नहीं।',
@@ -3030,7 +3134,9 @@ function load(raw){ try{const r=(raw!==undefined&&raw!==null)?raw:localStorage.g
   // Which parts of the app this shop uses. All ON by default (Setu's own install);
   // a fresh install picks during setup. Order + karigar + delivery are ALWAYS on —
   // that is the product, everything else is an add-on.
-  if(!DB.modules)DB.modules={billing:true,stock:true,accounts:true};
+  if(!DB.modules)DB.modules={billing:true,stock:true,accounts:true,samples:true};
+  if(DB.modules.samples===undefined)DB.modules.samples=true;
+  if(!DB.samples)DB.samples=[];
   /* Family / group order: one order carrying several people. He does not work that way —
      in his shop every member gets his OWN order number — so it is off unless a shop
      turns it on. Off only hides the button; any order already holding members still
@@ -3437,6 +3543,54 @@ function toggleLang(){ lang=lang==='en'?'hi':'en'; localStorage.setItem('pb_ob_l
 }
 
 /* ====================== NAV ====================== */
+
+/* ================= NOTHING FAILS SILENTLY ANY MORE =========================
+   His report, Aug 9: "saved order par click karne se blank page hi dikhta hai."
+   The cause of a blank screen is almost always the same shape — one line inside a render
+   throws, the browser stops right there, and the half-written pane is left EMPTY with no
+   message at all. That is how the v146 item-photo bug, the v157 photo-store bug and this
+   one all looked from the outside: identical, and impossible to tell apart.
+   From here the app SAYS what broke. He sends one line, the fault is found in one step,
+   and nobody guesses. This is worth more than any single fix. */
+function crashPanel(where,err){
+  const msg=(err&&(err.message||err))+'';
+  const line=(err&&err.stack?String(err.stack).split('\n')[1]||'':'').trim();
+  return `<div class="card" style="border-color:var(--bad);margin:14px 0">
+    <b style="color:var(--bad)">⚠️ ${esc(t('crash_title'))}</b>
+    <p class="hint" style="margin:8px 0 4px">${esc(t('crash_sub'))}</p>
+    <div style="background:var(--card2);border:1px solid var(--line2);border-radius:10px;padding:10px;
+      font-family:monospace;font-size:11.5px;color:var(--txt2);word-break:break-word">
+      ${esc(where)} — ${esc(msg)}${line?'<br>'+esc(line):''}</div>
+    <button class="btn ghost block" style="margin-top:10px"
+      onclick="crashCopy('${esc(where)} | ${esc(msg)} | ${esc(line)}')">📋 ${esc(t('crash_copy'))}</button>
+  </div>`;
+}
+function crashCopy(txt){
+  try{ navigator.clipboard.writeText(txt); toast(t('crash_copied'),'ok'); }
+  catch(e){ try{ const a=document.createElement('textarea'); a.value=txt; document.body.appendChild(a);
+    a.select(); document.execCommand('copy'); a.remove(); toast(t('crash_copied'),'ok'); }catch(e2){} }
+}
+/* run a render; if it throws, put the reason ON the screen instead of leaving it blank */
+function safeRender(where,fn,targetSel){
+  try{ fn(); }
+  catch(err){
+    console.error(where,err);
+    try{
+      const el=document.querySelector(targetSel||'#tab-'+_curTab)||document.getElementById('sheet');
+      if(el)el.innerHTML=crashPanel(where,err);
+    }catch(e2){}
+  }
+}
+try{
+  window.addEventListener('error',e=>{ try{ if(_crashShown)return; _crashShown=1;
+    toast((t('crash_title')+': '+(e.message||'')).slice(0,110),'bad');
+    setTimeout(()=>{_crashShown=0;},4000); }catch(x){} });
+  window.addEventListener('unhandledrejection',e=>{ try{ if(_crashShown)return; _crashShown=1;
+    toast((t('crash_title')+': '+((e.reason&&e.reason.message)||e.reason||'')).slice(0,110),'bad');
+    setTimeout(()=>{_crashShown=0;},4000); }catch(x){} });
+}catch(e){}
+let _crashShown=0;
+
 function go(tab){
   _curTab=tab;
   document.querySelectorAll('.tabpane').forEach(p=>p.classList.remove('active'));
@@ -3445,7 +3599,7 @@ function go(tab){
   const n=$('#nav-'+tab); if(n)n.classList.add('on');
   $('#searchWrap').style.display=tab==='orders'?'':'none';
   window.scrollTo(0,0);
-  if(tab==='home')renderHome(); if(tab==='orders')renderOrders(); if(tab==='customers')renderCustomers(); if(tab==='alterations')renderAlterations(); if(tab==='invoices')renderInvoices(); if(tab==='reports')renderReports(); if(tab==='purchases')renderPurchases();
+  if(tab==='home')safeRender('Home',renderHome); if(tab==='orders')safeRender('Orders',renderOrders); if(tab==='customers')safeRender('Customers',renderCustomers); if(tab==='alterations')safeRender('Alterations',renderAlterations); if(tab==='invoices')safeRender('Invoices',renderInvoices); if(tab==='reports')safeRender('Reports',renderReports); if(tab==='purchases')safeRender('Purchases',renderPurchases);
 }
 
 /* ====================== ORDERS LIST + DELIVERY PLANNER ====================== */
@@ -3598,7 +3752,8 @@ function stockHome(tab){ if(!modOn('stock')){toast(t('mod_off'),'bad');return;}
 }
 
 /* ======================= FABRIC ======================= */
-let _fabQ='', _fabCat='', _fabSort='new', _fabBand='';
+let _fabQ='', _fabCat='', _fabSort='serial', _fabBand='';
+let _smp=null, _smpF='all';
 const FAB_BANDS=[['le1','≤ 1 m',0,1],['1to2','1 – 2 m',1,2],['2to5','2 – 5 m',2,5],['ge5','5 m +',5,1e9]];
 function setFabBand(v){ _fabBand=(_fabBand===v?'':v); pageReset('fab'); fabricBody(); }
 function setFabQ(v){_fabQ=v;pageReset('fab');fabricBody(true);}
@@ -3629,7 +3784,13 @@ function fabricBody(keepFocus){
      THE ONE EXCEPTION THAT MAKES THIS SAFE: while he is SEARCHING, nothing is hidden. If he
      types a serial or a party name he is looking for a specific roll, and a finished roll
      must still be findable — it just says FINISHED next to it. */
-  if(!q)list=list.filter(t=>thaanBal(t)>0.05);
+  /* HIS INSTRUCTION, Aug 9: "agar stock kisi item ka khatam ho gaya hai to usme 0 balance
+     dikhayega, per serial number serial se hi dikhna chahiye."
+     This REVERSES v172, and he is right for a staff-run shop. Hiding finished rolls left
+     GAPS in the serial run — 478, 476, 473 — and a gap looks like a LOST roll to anyone who
+     does not know the rule. A finished roll is not missing stock; it is a roll with nothing
+     left, and saying so plainly beats making it disappear. It shows with 0 and a FINISHED
+     tag, and the serial run reads unbroken. */
   if(_fabCat)list=list.filter(t=>{const f=FI(t.fabId);return f&&f.category===_fabCat;});
   if(_fabBand){const bd=FAB_BANDS.find(x=>x[0]===_fabBand);
     if(bd)list=list.filter(t=>{const b=thaanBal(t);return b>bd[2]&&b<=bd[3];});}
@@ -3640,7 +3801,8 @@ function fabricBody(keepFocus){
       || String(f.party||t.party||'').toLowerCase().includes(q);});
   /* Newest first by default: when he is taking stock he is looking at what he JUST
      entered, and serial order buried that at the bottom of hundreds of rolls. */
-  if(_fabSort==='serial')list.sort((a,b)=>String(a.serial).localeCompare(String(b.serial),undefined,{numeric:true}));
+  // highest serial first: the run reads unbroken AND the newest roll is still on top
+  if(_fabSort==='serial')list.sort((a,b)=>String(b.serial).localeCompare(String(a.serial),undefined,{numeric:true}));
   else list.sort((a,b)=>String(b.created||'').localeCompare(String(a.created||''))
     || String(b.serial).localeCompare(String(a.serial),undefined,{numeric:true}));
 
@@ -3676,10 +3838,11 @@ function fabricBody(keepFocus){
       <button class="btn ghost" style="flex:0 0 auto;padding:0 12px" onclick="bulkFabOpen()">📋 ${t('stk_bulk')}</button>
       ${(DB.fabItems||[]).length?`<button class="btn ghost" style="flex:0 0 auto;padding:0 14px" onclick="fabSetupMenu()">⚙️</button>`:''}</div>
     <div class="kv" style="margin-bottom:8px">
-      <span class="hint">${t('stk_n_thaans',{n:list.length})}${finN?` · <a href="javascript:void(0)" onclick="setFabQ(' ')" style="color:var(--saffron2);text-decoration:underline">${t('stk_fin_hidden',{n:finN})}</a>`:''}</span>
+      <span class="hint">${t('stk_n_thaans',{n:list.length})}${finN?` · ${t('stk_fin_n',{n:finN})}`:''}</span>
       <span class="gtags">
         <span class="gtag ${_fabSort==='new'?'on-tag':''}" style="cursor:pointer" onclick="setFabSort('new')">${t('stk_sort_new')}</span>
         <span class="gtag ${_fabSort==='serial'?'on-tag':''}" style="cursor:pointer" onclick="setFabSort('serial')">${t('stk_sort_serial')}</span></span></div>
+    ${!list.length?`<p class="hint" style="padding:26px 6px;text-align:center">${(DB.thaans||[]).length?t('stk_none_match'):t('stk_none_yet')}</p>`:''}
     ${pageSlice('fab',list).map(th=>{
       const f=FI(th.fabId)||{}; const bal=thaanBal(th);
       const low=bal<=3&&bal>0; const done=bal<=0.05;
@@ -6383,7 +6546,7 @@ function actionList(kind){
   const map={urgent:['🔴',t('ab_urgent'),b.urgent,false],
              late:['🔴',t('ab_late'),b.late,false],
              soon:['🟠',t('ab_soon',{n:AB_SOON}),b.soon,false],
-             nokar:['⚠️',t('ab_nokar'),b.noKar,false],
+             nokar:['📦',t('ab_nokar'),b.noKar,false],
              stuck:['⏳',t('ab_stuck',{n:AB_STUCK}),b.stuck,true],
              qc:['🔍',t('ab_qc'),b.qcDue,false]};
   const [ico,title,list,age]=map[kind]||map.late;
@@ -7043,6 +7206,59 @@ function quickRowHTML(){
   return `<div class="qrow">${b.map(([i,l,fn],ix)=>
     `<button class="qbtn${ix===0?' qmain':''}" onclick="${fn}"><span class="qi">${i}</span><span class="ql">${l}</span></button>`).join('')}</div>`;
 }
+
+/* ☰ MENU — every screen in the app, one list, nothing hidden and nothing dressed up.
+   This is the half of his Vyapar lesson that matters: Home carries today's work, the Menu
+   carries everything else, and a thing is always in the same place. */
+function menuHome(){
+  const row=(ico,label,fn,sub)=>`<button class="mnu-row" onclick="closeSheet();${fn}">
+    <span class="mnu-ico">${ico}</span>
+    <span class="mnu-txt"><b>${esc(label)}</b>${sub?`<span class="hint">${esc(sub)}</span>`:''}</span>
+    <span class="mnu-go">›</span></button>`;
+  const sec=(title,rows)=>rows.filter(Boolean).length?`<div class="section-h">${title}</div>
+    <div class="mnu-list">${rows.filter(Boolean).join('')}</div>`:'';
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin-bottom:12px">☰ ${t('menu_all')}</h2>
+    <input id="mnuQ" placeholder="🔍 ${t('menu_find')}" oninput="menuFilter(this.value)" style="margin-bottom:12px">
+    <div id="mnuBody">
+    ${sec('📋 '+t('home_tailoring'),[
+      row('📋',t('nav_orders'),"go('orders')"),
+      row('🧵',t('jw_title'),"jobWork()"),
+      row('📞',t('se_title'),"statusEnquiry('')"),
+      row('📦',t('cu_title'),"courierHub()"),
+      row('📖',t('cat_title'),"catalogue()"),
+      modOn('samples')?row('🧥',t('smp_title'),"samplesHome()"):'',
+      row('🔎',t('of_title'),"orderFilter()"),
+      row('📊',t('or_title'),"orderReports()"),
+      row('🔧',t('home_alterations'),"go('alterations')"),
+      row('👥',t('nav_customers'),"go('customers')")])}
+    ${modOn('billing')?sec('🧾 '+t('home_billing'),[
+      row('🧾',t('hub_sale'),"saleHub()"),
+      row('🚚',t('hub_purchase'),"purchaseHub()")]):''}
+    ${sec('💰 '+t('home_accounts'),[
+      modOn('accounts')?row('📒',t('db_title'),"dayBook()"):'',
+      modOn('accounts')?row('🏦',t('cb_title'),"cashBank()"):'',
+      modOn('accounts')?row('💸',t('exp_title'),"expenses()"):'',
+      modOn('billing')?row('🔔',t('debtors_report'),"followUps()"):'',
+      modOn('billing')?row('📤',t('creditors_report'),"creditors()"):'',
+      modOn('stock')?row('📦',t('stk_title'),"stockHome()"):'',
+      modOn('billing')?row('📊',t('reports'),"go('reports')"):'',
+      modOn('billing')?row('📈',t('gr_title'),"growthReport()"):''])}
+    ${sec('⚙️ '+t('settings'),[row('⚙️',t('settings'),"settingsMenu()")])}
+    </div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+/* he should never have to remember WHICH section a screen sits in */
+function menuFilter(q){
+  q=String(q||'').trim().toLowerCase();
+  document.querySelectorAll('#mnuBody .mnu-row').forEach(r=>{
+    r.style.display = !q || r.textContent.toLowerCase().indexOf(q)>=0 ? '' : 'none'; });
+  document.querySelectorAll('#mnuBody .section-h').forEach(h=>{
+    const list=h.nextElementSibling;
+    const any=list&&[...list.querySelectorAll('.mnu-row')].some(r=>r.style.display!=='none');
+    h.style.display=any?'':'none'; if(list)list.style.display=any?'':'none'; });
+}
 function renderHome(){
   if(setupNeeded()){ renderSetup(); return; }
   const el=$('#homePane');
@@ -7095,38 +7311,15 @@ function renderHome(){
 
     ${actionBoardHTML()}
 
-    <div class="home-sec-title">📋 ${t('home_tailoring')}</div>
-    <div class="home-grid">
-      ${tile('📋',t('nav_orders'),"go('orders')")}
-      ${tile('🧵',t('jw_title'),"jobWork()")}
-      ${tile('📞',t('se_title'),"statusEnquiry('')")}
-      ${tile('📦',t('cu_title'),"courierHub()")}
-      ${tile('📖',t('cat_title'),"catalogue()")}
-      ${tile('🔎',t('of_title'),"orderFilter()")}
-      ${tile('📊',t('or_title'),"orderReports()")}
-      ${tile('🔧',t('home_alterations'),"go('alterations')")}
-      ${tile('👥',t('nav_customers'),"go('customers')")}
-    </div>
-
-    ${simple?'':`<div class="simple-hide">
-    <div class="home-sec-title mod-billing">🧾 ${t('home_billing')}</div>
-    <div class="home-grid mod-billing">
-      ${tile('🧾',t('hub_sale'),"saleHub()")}
-      ${tile('🚚',t('hub_purchase'),"purchaseHub()")}
-    </div>
-
-    ${(modOn('accounts')||modOn('billing')||modOn('stock'))?`
-    <div class="home-sec-title">💰 ${t('home_accounts')}</div>
-    <div class="home-grid">
-      ${tile('📒',t('db_title'),"dayBook()",'mod-accounts')}
-      ${tile('🏦',t('cb_title'),"cashBank()",'mod-accounts')}
-      ${tile('💸',t('exp_title'),"expenses()",'mod-accounts')}
-      ${tile('🔔',t('debtors_report'),"followUps()",'mod-billing')}
-      ${tile('📤',t('creditors_report'),"creditors()",'mod-billing')}
-      ${tile('📦',t('stk_title'),"stockHome()",'mod-stock')}
-      ${tile('📊',t('reports'),"go('reports')",'mod-billing')}
-      ${tile('📈',t('gr_title'),"growthReport()",'mod-billing')}
-    </div>`:''}
+    ${/* HIS CALL, Aug 9: do the restructure BEFORE staff start, not after — "staff ko baar
+         baar change hone se shayad kaam karne me acha nahi lage." Right, and the cheapest
+         moment to change a layout is before anyone has learned the old one.
+         SEVENTEEN TILES LEFT THIS SCREEN. Home now answers one question — what has to be
+         done today — and nothing else. Everything else is one tap away in ☰ Menu, which
+         hides nothing: it is the full list, always in the same order, always in the same
+         place. His own count was the argument: ~30 things on opening the app. */''}
+    <button class="btn ghost block" style="margin-top:14px" onclick="menuHome()">
+      ☰ ${t('menu_all')}</button>
 
     ${(modOn('accounts')||modOn('billing'))?`
     <div class="card" style="margin-top:12px">
@@ -7135,7 +7328,6 @@ function renderHome(){
       <div class="kv" style="margin-top:6px"><span class="hint">📈 ${t('home_month_sales')}</span>
         <b>${money(monthSale)}</b></div>
     </div>`:''}
-    </div>`}
     <div class="fab-pad"></div>`;
 }
 
@@ -7421,6 +7613,8 @@ function openCustomer(id){
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${esc(c.name)}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div><div style="display:flex;gap:6px"><button class="btn sm ghost" onclick="editCustomer('${id}')">✏️ ${t('edit')}</button>
       <button class="btn sm danger" onclick="delCustomer('${id}')">🗑️</button></div></div>
     <div class="kv"><span>${t('phone')}</span><b><a onclick="callNum('${esc(c.phone)}')" style="cursor:pointer;text-decoration:underline">${esc(c.phone||'—')}</a></b></div>
+    ${c.phone?`<button class="btn sm ghost block" style="margin-top:8px"
+      onclick="saveToPhone('${esc(c.name||'')}','${esc(c.phone)}',t('vc_role_cust'))">📇 ${t('vc_save')}</button>`:''}
     ${(DB.orders||[]).some(o=>o.customerId===id&&!orderDelivered(o))?`<button class="btn ghost block" style="margin-top:10px" onclick="custStatus('${id}')">📞 ${t('se_title')}</button>`:''}
     <div class="card" style="padding:12px 14px;margin:10px 0">
       <div class="il"><span>${t('cust_business')}</span><b>${money(sm.spent)}</b></div>
@@ -7718,20 +7912,10 @@ function cancelOrderForm(){
 
 /* The delivery gap he actually gives, taken from his own recent orders — so a new order
    opens with a sensible date already in the box instead of an empty required field. */
-function defaultDeliveryDate(){
-  const gaps=(DB.orders||[]).slice(-12).map(o=>{
-    if(!o.deliveryDate||!o.orderDate)return null;
-    const d=Math.round((new Date(o.deliveryDate)-new Date(o.orderDate))/86400000);
-    return (d>0&&d<180)?d:null;
-  }).filter(x=>x!==null).sort((a,b)=>a-b);
-  const gap = gaps.length ? gaps[Math.floor(gaps.length/2)] : 10;   // median, else 10 days
-  const d=new Date(); d.setDate(d.getDate()+gap);
-  return d.toISOString().slice(0,10);
-}
 function openOrderForm(editId){
   if(editId){const o=DB.orders.find(x=>x.id===editId);
     form={editId,orderNo:o.orderNo,customerId:o.customerId,customerName:o.customerName,phone:o.phone,salesmanId:o.salesmanId||'',
-      orderDate:o.orderDate,deliveryDate:o.deliveryDate,items:[...(o.items||[])],
+      orderDate:o.orderDate,deliveryDate:o.deliveryDate,sampleId:o.sampleId||'',items:[...(o.items||[])],
       m:JSON.parse(JSON.stringify(o.m||{})),design:JSON.parse(JSON.stringify(o.design||{})),
       variant:JSON.parse(JSON.stringify(o.variant||{})),
       notes:o.notes||'',total:o.total,advance:o.advance,photos:[...(o.photos||[])],voiceNotes:JSON.parse(JSON.stringify(o.voiceNotes||[])),
@@ -7741,7 +7925,9 @@ function openOrderForm(editId){
       members:JSON.parse(JSON.stringify(o.members||[]))};
   }else{
     form={editId:null,orderNo:nextOrderNo(),customerId:null,customerName:'',phone:'',salesmanId:'',
-      orderDate:new Date().toISOString().slice(0,10),deliveryDate:defaultDeliveryDate(),items:[],m:{},design:{},variant:{},notes:'',total:'',advance:'',photos:[],voiceNotes:[],itemPhotos:{},itemVoice:{},bodyType:[],members:[],dispatch:null,source:'',sourceRef:''};
+      orderDate:new Date().toISOString().slice(0,10),deliveryDate:'',   /* HIS #6: "delivery date important hai, poochhna chahiye." It was
+    quietly pre-filled, so he could save an order having never once looked at the one date
+    the whole production board runs on. Now it starts empty and Save refuses without it. */items:[],m:{},design:{},variant:{},notes:'',total:'',advance:'',photos:[],voiceNotes:[],itemPhotos:{},itemVoice:{},bodyType:[],members:[],dispatch:null,source:'',sourceRef:'',sampleId:''};
   }
   _noPhoneOK=false;
   form._did = form._did || ('d'+uid());
@@ -7882,12 +8068,18 @@ function itemOpen(key){ ordStage(2,key); }
    group it follows the shop's own item order, and a second Coat comes right after the
    first. With a family order, one member is finished before the next begins. */
 function walkOrder(f){
+  /* HIS 9:38 SCREENSHOT: the Lengths list showed SEVEN rows while the button underneath
+     said "Start measuring (6 pieces)" — and he confirms he did not add the piece twice.
+     A row that is not in the walk can never be opened and Done skips straight past it, so
+     a garment could leave the shop unmeasured. Two guards: f.items is de-duplicated here,
+     and quickLenHTML now takes its rows FROM this same function. The list and the button
+     read one source, so they cannot disagree again whatever caused it. */
   const rank={}; orderedItems().forEach((g,i)=>rank[g.id]=i);
   const mems=(f.members||[]).map(m=>m.id);
   const memR=k=>{const i=mems.indexOf(memberOf(k));return i<0?999:i;};
   const catR=k=>{const g=G(k),c=g?g.cat:'';return c==='upper'?0:(c==='lower'?1:2);};
   const itmR=k=>{const r=rank[garmentOf(k)];return r==null?999:r;};
-  return (f.items||[]).slice().sort((a,b)=>
+  return [...new Set(f.items||[])].sort((a,b)=>
     memR(a)-memR(b) || catR(a)-catR(b) || itmR(a)-itmR(b) || instOf(a)-instOf(b));
 }
 /* the piece after this one, or null if this is the last */
@@ -7899,6 +8091,8 @@ function walkNext(f,key){
 function startNaap(){
   const first=walkOrder(form)[0]; if(!first){toast(t('wk_none'),'bad');return;}
   ordStage(2,first);
+  setTimeout(()=>{const el=document.querySelector('.mcard .mfield.lenhl input.mInput');
+    if(el){try{el.scrollIntoView({block:'center'});}catch(e){} el.focus(); try{el.select();}catch(e){}}},120);
 }
 /* Done on a piece saves what is typed and opens the NEXT piece. */
 function itemDone(key){
@@ -7910,6 +8104,11 @@ function itemDone(key){
      back for it. Every piece now gets its own card, every time. */
   if(next){
     ordStage(2,next);
+    /* HIS #3: on the next piece the body naap is already flowed in — the ONLY thing he has
+       to type is the Length. So put the cursor there with the keypad up: length daalo,
+       Done, agla. Nothing else to tap. */
+    setTimeout(()=>{const el=document.querySelector('.mcard .mfield.lenhl input.mInput');
+      if(el){try{el.scrollIntoView({block:'center'});}catch(e){} el.focus(); try{el.select();}catch(e){}}},120);
     toast(t('it_next'),'ok');
     return;
   }
@@ -7937,7 +8136,10 @@ function measSummary(f,key){
   return out.length>5 ? out.slice(0,5).join(' · ')+' +'+(out.length-5) : out.join(' · ');
 }
 function quickLenHTML(f,mine,only){
-  const list=sortItems(only?mine.filter(only):mine);
+  // rows come from the walk, never from a second list — see walkOrder()
+  const set=new Set(walkOrder(f));
+  const src=[...new Set(mine||[])].filter(k=>set.has(k));   // dedupe HERE too, or a repeated key still draws twice
+  const list=sortItems(only?src.filter(only):src);
   if(!list.length)return '';
   const done=list.filter(k=>measFilledCount(f,k).len).length;
   const rows=list.map((k,i)=>{
@@ -8020,9 +8222,10 @@ function measCardHTML(f,key){
   const shown=(_more||!_hid)?cols:cols.filter(c=>!_isSec(c));
   const fields=shown.map(col=>{const isLen=col.k==='L';const val=vals[col.k]||'';
     const isAuto=!!(val&&autoM[col.k]);
+    const isVoice=!!(val&&(((f.mVoice||{})[key])||{})[col.k]);
     if(col.type==='select'){const opts=['<option value="">—</option>'].concat((col.options||[]).map(o=>`<option value="${esc(o)}" ${val===o?'selected':''}>${esc(o)}</option>`)).join('');
       return `<div class="mfield"><label>${esc(col.n)}</label><select class="mInput" data-g="${dkey}" data-k="${col.k}" style="width:100%;background:transparent;border:none;color:var(--txt);font-size:15px;font-weight:600;outline:none">${opts}</select></div>`;}
-    return `<div class="mfield ${isLen?'lenhl':''} ${isAuto?'auto-f':''}"><label>${esc(col.n)}${isLen?' ★':''}</label>
+    return `<div class="mfield ${isLen?'lenhl':''} ${isAuto?'auto-f':''} ${isVoice?'voice-f':''}"><label>${esc(col.n)}${isLen?' ★':''}</label>
       <input class="mInput ${val?'filled':''}" inputmode="${col.type==='text'?'text':'decimal'}" data-g="${dkey}" data-k="${col.k}" value="${esc(val)}" placeholder="—"
         ${isAuto?'data-auto="1"':''} onkeydown="if(event.key==='Enter'){measStep(event,1)}"></div>`;}).join('');
 
@@ -8070,9 +8273,9 @@ function measCardHTML(f,key){
         const vc=((f.itemVoice||{})[key]||[]).length, pc=((f.itemPhotos||{})[key]||[]).length;
         const nt=String(notes||'').trim();
         const big=!!f.editId;
+        /* HIS #4: tapping the mic opened a panel holding voice AND photo. One button, two
+           jobs. The photo half is gone — 📷 already owns photos. */
         if(_xOpen[key]) return `<div style="margin-top:14px"><div class="hint" style="margin-bottom:4px">🎙️ ${t('voice_notes')}</div>${voiceSection('iv_'+cid)}</div>
-      <div style="margin-top:12px"><div class="hint" style="margin-bottom:4px">📷 ${t('photo_label')}</div><div class="media-row" id="ip_${cid}"></div>
-        <div class="row" style="margin-top:6px;gap:6px"><button class="btn sm ghost block" onclick="pickItemPhoto('lib','${dkey}')">📷 ${t('add_photo')}</button></div></div>
       <button class="btn sm ghost block" style="margin-top:10px" onclick="xToggle('${dkey}')">${t('hide_x')}</button>
       <button class="btn primary block" style="margin-top:14px" onclick="itemDone('${dkey}')">✓ ${walkNext(f,key)?t('it_done'):t('it_done_last')}</button>`;
         const trio = big
@@ -8083,6 +8286,8 @@ function measCardHTML(f,key){
           : `<div class="row" style="margin-top:14px;gap:8px">
               <button class="btn sm ghost ic-btn ${pc?'has':''}" onclick="pickItemPhotoQuick('${dkey}')">📷${pc?' '+pc:''}</button>
               <button class="btn sm ghost ic-btn ${vc?'has':''}" onclick="xToggle('${dkey}')">🎙️${vc?' '+vc:''}</button>
+              ${sttSupported()?`<button class="btn sm ghost ic-btn ${(_vmOn&&_vmKey===key)?'has':''}"
+                onclick="vmToggle('${dkey}')" title="${t('vm_title')}">${(_vmOn&&_vmKey===key)?'🔴':'🗣️'}</button>`:''}
               <button class="btn sm ghost ic-btn ${nt?'has':''}" onclick="itemNoteQuick('${dkey}')">📝</button></div>`;
         return trio + `${nt?`<p class="hint" style="margin:8px 0 0">📝 ${esc(nt)}</p>`:''}
           <button class="btn primary block" style="margin-top:12px" onclick="itemDone('${dkey}')">✓ ${walkNext(f,key)?t('it_done'):t('it_done_last')}</button>`;
@@ -8153,7 +8358,11 @@ function memberBlockHTML(f,mem,idx,multi){
     </div>`:''}
     <div class="chip-grid">${chips}</div>
     ${mine.length?`<p class="prefilled-note">${t('prefill_note')}</p>`:''}
-    ${quickLenHTML(f,mine)}
+    ${/* HIS #1: "start measuring se pehle length wale section ka koi matlab hai kya?" On a
+         NEW order every row just says "not measured" — six lines of nothing above a button
+         that is about to measure them. It earns its place only once something IS measured,
+         i.e. when he comes back to review or edit. */
+      mine.some(k=>measSummary(f,k)) ? quickLenHTML(f,mine) : ''}
   </div>`;
 }
 
@@ -8212,6 +8421,7 @@ function renderForm(){
           <input id="f_cphone" type="tel" placeholder="${t('phone')}" value="${esc(f.phone)}" style="margin-top:8px">
           ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost" style="margin-top:8px" onclick="pickContact()">📇 ${t('from_contacts')}</button>`:''}</div></div>
       ${mems.map(m=>quickLenHTML(f,itemsOfMember(f,m.id))).join('')}
+      ${smpPickHTML(f)}
       <div class="field dd-field" id="ddWrap" style="margin-top:14px"><label>🚚 ${t('delivery')} *</label>
         ${dateField("f_ddate",f.deliveryDate)}</div>
       ${ordBillBlockHTML(f)}
@@ -8662,7 +8872,17 @@ let _mfocus=null;
 function bindMeasInputs(){
   document.querySelectorAll('.mInput').forEach(inp=>{
     if(inp.tagName==='SELECT') return;
-    inp.addEventListener('focus',()=>{_mfocus=inp;$('#fracbar').classList.add('show');document.body.classList.add('fb-on');});
+    inp.addEventListener('focus',()=>{_mfocus=inp;
+      try{const g=inp.dataset.g,k=inp.dataset.k;
+        if(form&&form.mVoice&&form.mVoice[g]&&form.mVoice[g][k]){delete form.mVoice[g][k];
+          const fld=inp.closest('.mfield'); if(fld)fld.classList.remove('voice-f');}}catch(e){}$('#fracbar').classList.add('show');document.body.classList.add('fb-on');
+      /* HIS BUG, Aug 9: "measurements likhne ki chip hi chhup gayi hai." The fraction bar
+         is FIXED to the bottom of the screen, and v176 made the Length box focus itself
+         the moment a piece opens — so on a short screen the bar now appears every single
+         time and sits straight on top of the very boxes he is about to fill. Bottom
+         padding (v168) saved the Save button but not a field halfway down. The field he
+         is typing into now scrolls itself clear of the bar and the keyboard. */
+      setTimeout(()=>{try{inp.scrollIntoView({block:'center',behavior:'smooth'});}catch(e){}},90);});
     inp.addEventListener('blur',()=>{setTimeout(()=>{const a=document.activeElement;if(a&&a.classList&&a.classList.contains('mInput')&&a.tagName!=='SELECT')return;$('#fracbar').classList.remove('show');document.body.classList.remove('fb-on');},150);});
     if(inp.inputMode==='text' || (inp.dataset.k&&inp.dataset.k.indexOf('x_')===0)){ inp.addEventListener('input',()=>{inp.dataset.auto='';inp.classList.toggle('filled',!!inp.value.trim());}); return; }
     inp.addEventListener('input',()=>{const sv=sanitizeMeas(inp.value);if(sv!==inp.value)inp.value=sv;
@@ -8793,11 +9013,11 @@ function saveOrder(){
        Object.assign(undefined,…) threw, and because the throw happened mid-save NOTHING
        was written and no message appeared: he tapped Save and the edit vanished. */
     if(!o){ toast(t('t_order_gone'),'bad'); closeSheet(); go('orders'); return; }
-    Object.assign(o,{orderNo:f.orderNo,customerId:c.id,customerName:c.name,phone:c.phone,salesmanId:f.salesmanId||'',orderDate:f.orderDate,deliveryDate:f.deliveryDate,items:f.items,m:f.m,design:f.design,variant:f.variant||{},notes:f.notes,total:f.total,advance:f.advance,photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,bodyType:f.bodyType,dispatch:f.dispatch||null,source:f.source||'',sourceRef:f.sourceRef||'',members:(f.members||[]).filter(m=>m.id!=='' )});
+    Object.assign(o,{orderNo:f.orderNo,customerId:c.id,customerName:c.name,phone:c.phone,salesmanId:f.salesmanId||'',orderDate:f.orderDate,deliveryDate:f.deliveryDate,items:f.items,m:f.m,design:f.design,variant:f.variant||{},notes:f.notes,total:f.total,advance:f.advance,photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,bodyType:f.bodyType,dispatch:f.dispatch||null,source:f.source||'',sourceRef:f.sourceRef||'',sampleId:f.sampleId||'',members:(f.members||[]).filter(m=>m.id!=='' )});
     clearDraft();save(o.id);closeSheet();toast(t('t_updated'),'ok');openDetail(o.id);
   }else{const o={id:uid(),created:new Date().toISOString(),orderNo:f.orderNo,customerId:c.id,customerName:c.name,phone:c.phone,salesmanId:f.salesmanId||'',
       members:(f.members||[]).filter(m=>m.id!==''),
-      orderDate:f.orderDate,deliveryDate:f.deliveryDate,items:f.items,m:f.m,design:f.design,variant:f.variant||{},notes:f.notes,total:f.total,advance:f.advance,payments:(+f.advance>0?[{amt:+f.advance,date:f.orderDate||new Date().toISOString().slice(0,10)}]:[]),photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,bodyType:f.bodyType,dispatch:f.dispatch||null,source:f.source||'',sourceRef:f.sourceRef||'',
+      orderDate:f.orderDate,deliveryDate:f.deliveryDate,items:f.items,m:f.m,design:f.design,variant:f.variant||{},notes:f.notes,total:f.total,advance:f.advance,payments:(+f.advance>0?[{amt:+f.advance,date:f.orderDate||new Date().toISOString().slice(0,10)}]:[]),photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,bodyType:f.bodyType,dispatch:f.dispatch||null,source:f.source||'',sourceRef:f.sourceRef||'',sampleId:f.sampleId||'',
       status:'new',itemStatus:(function(){const o={};f.items.forEach(g=>o[g]='new');return o;})(),log:[{id:uid(),ts:new Date().toISOString(),text:t('t_status',{s:sLabel('new')}),voiceId:null}]};
     DB.orders.push(o);clearDraft();save(o.id);closeSheet();toast(t('t_created',{n:o.orderNo}),'ok');
     go('orders');
@@ -8815,6 +9035,163 @@ function saveOrder(){
 
 /* ====================== VOICE → TEXT (dictation) ====================== */
 let _rec=null,_recBtn=null;
+
+/* ================= VOICE MEASUREMENT ENTRY ==================================
+   His ask, Aug 9: live by Monday, because staff start entering August's orders.
+   IT DOES NOT NEED OUR CLOUD. Browser speech uses the phone's own speech service —
+   no backend, no Firebase, no login. It DOES need internet (the audio is recognised
+   on Google's / Apple's servers), so the shop's WiFi is the only requirement, and if
+   the line is down typing must keep working exactly as before. Speak-back is offline.
+
+   SAFETY IS THE DESIGN, not a feature on top of it. A wrong naap is worse than no
+   naap, and the shop cannot see the mistake until the cloth is cut. So:
+     · nothing is written unless the FIELD is known AND the value sits inside that
+       field's human range — the 14-vs-40 class of error dies here
+     · a relative change ("ek inch kam") is checked too: chest 40 "+20" lands on 60,
+       which IS in range and would otherwise be written silently
+     · every accepted value is SPOKEN BACK, so his ear catches what his eye missed
+     · voice-written values show amber until he has looked at them
+   AND THE ONE RULE HE PROVED HIMSELF: "next" is NEVER a control word. He said "neck"
+   and the app heard "next". Any control word that can collide with a field name is a
+   landmine. Advancing happens by itself when a value is accepted.                */
+const VM_NUM_EN={zero:0,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,
+  eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,sixteen:16,seventeen:17,eighteen:18,
+  nineteen:19,twenty:20,thirty:30,forty:40,fourty:40,fifty:50,sixty:60};
+const VM_NUM_HI={'शून्य':0,'एक':1,'दो':2,'तीन':3,'चार':4,'पाँच':5,'पांच':5,'छह':6,'छे':6,'सात':7,'आठ':8,'नौ':9,
+  'दस':10,'ग्यारह':11,'बारह':12,'तेरह':13,'चौदह':14,'पंद्रह':15,'पन्द्रह':15,'सोलह':16,'सत्रह':17,'अट्ठारह':18,'अठारह':18,
+  'उन्नीस':19,'बीस':20,'इक्कीस':21,'बाईस':22,'तेईस':23,'चौबीस':24,'पच्चीस':25,'छब्बीस':26,'सत्ताईस':27,'अट्ठाईस':28,
+  'उनतीस':29,'तीस':30,'इकतीस':31,'बत्तीस':32,'तैंतीस':33,'चौंतीस':34,'पैंतीस':35,'छत्तीस':36,'सैंतीस':37,'अड़तीस':38,
+  'उनतालीस':39,'चालीस':40,'इकतालीस':41,'बयालीस':42,'तैंतालीस':43,'चवालीस':44,'पैंतालीस':45,'छियालीस':46,
+  'सैंतालीस':47,'अड़तालीस':48,'उनचास':49,'पचास':50,'बावन':52,'चौवन':54,'छप्पन':56,'अट्ठावन':58,'साठ':60};
+/* fractions — his shop speaks in these constantly */
+const VM_FRAC=[[/साढ़े|सादे/,0.5,'pre'],[/सवा/,0.25,'pre'],[/पौने/,-0.25,'pre'],
+  [/three\s*fourth|three\s*quarter|पौन/,0.75,'post'],[/half|आधा|आधे/,0.5,'post'],
+  [/quarter|चौथाई/,0.25,'post'],[/एक\s*चौथाई/,0.25,'post']];
+/* every field a human can say, mapped to the column key. NEVER add a control word here. */
+const VM_FIELD={chest:'C','छाती':'C',chesst:'C',belly:'B','पेट':'B',hip:'H','हिप':'H','कमर':'W',
+  waist:'W',shoulder:'S','कंधा':'S','कन्धा':'S',sleeve:'SL',sleeves:'SL','आस्तीन':'SL',
+  neck:'N','गला':'N','कॉलर':'N',collar:'N',length:'L','लंबाई':'L','लम्बाई':'L',lenth:'L',
+  thigh:'TH','जांघ':'TH',mori:'M','मोरी':'M','crotch':'CR','सीट':'CR',bicep:'BI','बाजू':'BI'};
+/* the gate. Outside these a value is REFUSED out loud — never quietly written. */
+const VM_RANGE={C:[26,60],B:[24,60],H:[26,60],W:[22,54],S:[12,24],SL:[18,30],N:[11,22],
+  L:[12,60],TH:[16,36],M:[10,26],CR:[8,20],BI:[8,22]};
+function vmSpeak(txt){
+  try{ if(!window.speechSynthesis)return;
+    const u=new SpeechSynthesisUtterance(txt); u.lang=sttLang(); u.rate=1.05;
+    window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+/* turn one spoken breath into {k, val} or a reason for refusing */
+function vmParse(raw){
+  let s=' '+String(raw||'').toLowerCase().replace(/[,%]/g,' ').replace(/\s+/g,' ')+' ';
+  // control words. "next" is deliberately absent — he proved it collides with "neck".
+  if(/\b(band|बंद|stop|रोको)\b/.test(s))return {cmd:'stop'};
+  if(/\b(aage|आगे|chhodo|छोड़ो|skip)\b/.test(s))return {cmd:'skip'};
+  if(/\b(nahi|नहीं|galat|ग़लत|गलत|undo)\b/.test(s))return {cmd:'undo'};
+
+  let k=null;
+  for(const w in VM_FIELD){ if(new RegExp('(^|\\s)'+w+'(\\s|$)').test(s)){ k=VM_FIELD[w]; break; } }
+
+  let pre=0, post=0;
+  for(const [re,v,kind] of VM_FRAC){ if(re.test(s)){ if(kind==='pre')pre=v; else post=v; s=s.replace(re,' '); } }
+
+  const nums=[];
+  const digit=s.match(/(\d+(?:\.\d+)?)/g); if(digit)digit.forEach(d=>nums.push(parseFloat(d)));
+  if(!nums.length){
+    /* LONGEST WORD FIRST, and the test is why: "सैंतीस" (37) CONTAINS "तीस" (30), so a
+       plain scan matched 30 and "साढ़े सैंतीस" came out as 30.5 instead of 37.5 — a
+       seven-inch error on a chest, written silently. Hindi number words nest inside each
+       other constantly (सैंतालीस/तालीस, अड़तीस/तीस); never match the short one first. */
+    const hiKeys=Object.keys(VM_NUM_HI).sort((a,b)=>b.length-a.length);
+    for(const w of hiKeys){ if(s.indexOf(w)>=0){ nums.push(VM_NUM_HI[w]); break; } }
+    if(!nums.length)for(const w in VM_NUM_EN){ if(new RegExp('(^|\\s)'+w+'(\\s|$)').test(s)){ nums.push(VM_NUM_EN[w]); break; } }
+  }
+  // he sometimes repeats himself: the SAME number twice is one number; two DIFFERENT
+  // numbers in one breath is ambiguous and must be refused, never guessed.
+  const uniq=[...new Set(nums)];
+  if(uniq.length>1)return {err:'two'};
+  if(!uniq.length)return {err:'nonum'};
+
+  let val=uniq[0]+(pre||0)+(post||0);
+  const rel=/\b(kam|कम|badha|बढ़ा|zyada|ज़्यादा|ज्यादा|more|less)\b/.test(s);
+  return {k, val:r2(val), rel, relDir:/\b(kam|कम|less)\b/.test(s)?-1:1};
+}
+
+/* ---- the listener, tied to ONE open piece on the walk ---- */
+let _vmOn=false, _vmRec=null, _vmKey=null, _vmLast=null;
+function vmToggle(key){
+  if(_vmOn){ vmStop(); return; }
+  if(!sttSupported()){ toast(t('vm_na'),'bad'); return; }
+  if(!navigator.onLine){ toast(t('vm_offline'),'bad'); return; }   // say it plainly, never fail silently
+  _vmKey=key; _vmOn=true; _vmLast=null;
+  const R=window.SpeechRecognition||window.webkitSpeechRecognition; const r=new R(); _vmRec=r;
+  r.lang=sttLang(); r.interimResults=false; r.continuous=true; r.maxAlternatives=1;
+  r.onresult=ev=>{ for(let i=ev.resultIndex;i<ev.results.length;i++){
+      if(ev.results[i].isFinal) vmHandle(ev.results[i][0].transcript); } };
+  r.onerror=e=>{ if(e.error==='no-speech')return; toast(t('vm_err'),'bad'); vmStop(); };
+  r.onend=()=>{ if(_vmOn){ try{ r.start(); }catch(e){ vmStop(); } } };   // keep listening between breaths
+  try{ r.start(); }catch(e){ _vmOn=false; toast(t('vm_err'),'bad'); return; }
+  renderForm(); vmSpeak(t('vm_ready_say'));
+}
+function vmStop(){
+  _vmOn=false;
+  try{ if(_vmRec){ _vmRec.onend=null; _vmRec.stop(); } }catch(e){}
+  _vmRec=null;
+  try{ if(window.speechSynthesis)window.speechSynthesis.cancel(); }catch(e){}
+  if(form)renderForm();
+}
+function vmHandle(txt){
+  const p=vmParse(txt);
+  if(p.cmd==='stop'){ vmSpeak(t('vm_stopped')); vmStop(); return; }
+  if(p.cmd==='skip'){ const n=walkNext(form,_vmKey); if(n){ _vmKey=n; ordStage(2,n); vmSpeak(t('vm_next')); } return; }
+  if(p.cmd==='undo'){ vmUndo(); return; }
+
+  const f=form, key=_vmKey; if(!f||!key)return;
+  if(p.err==='two'){ vmRefuse(t('vm_two')); return; }
+  if(p.err==='nonum'){ vmRefuse(t('vm_nonum')); return; }
+
+  const g=G(key); const cols=vcols(g||{}).map(c=>c.k);
+  let k=p.k;
+  if(!k){ vmRefuse(t('vm_nofield')); return; }              // never guess which field
+  if(cols.indexOf(k)<0){ vmRefuse(t('vm_notonthis',{f:k})); return; }
+
+  f.m=f.m||{}; f.m[key]=f.m[key]||{};
+  const cur=parseFloat(f.m[key][k]||'')||0;
+  let val=p.val;
+  if(p.rel){
+    if(!cur){ vmRefuse(t('vm_norel')); return; }
+    if(Math.abs(p.val)>3){ vmRefuse(t('vm_bigrel')); return; }   // "+20" must never slip through
+    val=r2(cur + p.relDir*Math.abs(p.val));
+  }
+  const rg=VM_RANGE[k];
+  if(rg && (val<rg[0]||val>rg[1])){ vmRefuse(t('vm_range',{v:val,a:rg[0],b:rg[1]})); return; }
+
+  _vmLast={key,k,prev:f.m[key][k]||''};
+  f.m[key][k]=String(val);
+  (f.mAuto=f.mAuto||{})[key]=f.mAuto[key]||{}; delete f.mAuto[key][k];   // spoken = his own value
+  f.mVoice=f.mVoice||{}; f.mVoice[key]=f.mVoice[key]||{}; f.mVoice[key][k]=1;
+  propagate({dataset:{g:key,k}, value:String(val)});
+  save(); saveDraft(); renderForm();
+  vmSpeak(vmFieldName(g,k)+' '+val);      // his ear is the second check
+  if(vmAllFilled(f,key)){ const n=walkNext(f,key);
+    if(n){ _vmKey=n; setTimeout(()=>{ordStage(2,n); vmSpeak(t('vm_next'));},400); }
+    else vmSpeak(t('vm_done')); }
+}
+function vmFieldName(g,k){ const c=vcols(g||{}).find(x=>x.k===k); return c?c.n:k; }
+function vmAllFilled(f,key){
+  const g=G(key); if(!g)return false;
+  return vcols(g).filter(c=>!MEAS_SECONDARY.includes(c.k))
+    .every(c=>String(((f.m||{})[key]||{})[c.k]||'').trim());
+}
+function vmRefuse(msg){ toast('🎙️ '+msg,'bad'); vmSpeak(msg); }
+function vmUndo(){
+  if(!_vmLast){ vmSpeak(t('vm_noundo')); return; }
+  const {key,k,prev}=_vmLast;
+  form.m=form.m||{}; form.m[key]=form.m[key]||{};
+  if(prev)form.m[key][k]=prev; else delete form.m[key][k];
+  _vmLast=null; save(); renderForm(); vmSpeak(t('vm_undone'));
+}
+
 function sttSupported(){return !!(window.SpeechRecognition||window.webkitSpeechRecognition);}
 function sttLang(){return localStorage.getItem('pb_ob_stt')||'en-IN';}
 function sttLangLabel(){return sttLang()==='hi-IN'?'हिंदी':'English';}
@@ -8866,7 +9243,17 @@ function pickPhoto(src){captureForm();photoTarget={type:'order'};const inp=src==
    Camera/Gallery chooser was a tap that bought nothing and hid the gallery behind a
    modal. The plain picker (no capture attribute) gives both, and takes MANY photos
    at once — a design shown from four angles is now one trip, not four. */
-function pickItemPhotoQuick(gid){ pickItemPhoto('lib',gid); }
+/* HIS #2: the 📷 opened the GALLERY. It called pickItemPhoto('lib') — the plain file input —
+   so the camera was never reachable from the card at all. HIS #6: he also wants Camera and
+   Gallery to be ONE button. Both answered by one button that asks which, because the two
+   inputs are genuinely different (#filePickCam carries capture="environment"); relying on
+   the browser to offer both is exactly what failed on his phone. */
+function photoPick(cb){
+  modal('📷 '+t('photo_label'),`<p class="hint">${t('ph_pick_hint')}</p>`,[
+    {label:'📷 '+t('camera'),cls:'primary',fn:()=>{closeModal();cb('cam');}},
+    {label:'🖼️ '+t('gallery'),cls:'ghost',fn:()=>{closeModal();cb('lib');}}]);
+}
+function pickItemPhotoQuick(gid){ photoPick(src=>pickItemPhoto(src,gid)); }
 function pickItemPhoto(src,gid){captureForm();photoTarget={type:'item',gid};const inp=src==='cam'?$('#filePickCam'):$('#filePick');inp.value='';inp.click();}
 function pickThaanPhoto(src){thaanCapture();photoTarget={type:'fab'};const inp=src==='cam'?$('#filePickCam'):$('#filePick');inp.value='';inp.click();}
 function pickReadyPhoto(src){readyCapture();photoTarget={type:'rdy'};const inp=src==='cam'?$('#filePickCam'):$('#filePick');inp.value='';inp.click();}
@@ -8895,6 +9282,7 @@ async function storePhoto(file){
   else if(photoTarget.type==='alt'){altForm.photos=altForm.photos||[];altForm.photos.push(id);renderAltFormPhotos();}
   else if(photoTarget.type==='purch'){purchForm.photos=purchForm.photos||[];purchForm.photos.push(id);renderPurchPhotos();}
   else if(photoTarget.type==='fab'){_th.photos=_th.photos||[];_th.photos.push(id);renderThaanPhotos();}
+  else if(photoTarget.type==='smp'){_smp.photos=_smp.photos||[];_smp.photos.push(id);renderSmpPhotos();}
   else if(photoTarget.type==='exp'){_exp.photos=_exp.photos||[];_exp.photos.push(id);renderExpPhotos();}
   else if(photoTarget.type==='rdy'){_rd.photos=_rd.photos||[];_rd.photos.push(id);renderReadyPhotos();}
   else if(photoTarget.type==='rbulk'){ if(_rbulk){_rbulk.entryPhotos=_rbulk.entryPhotos||[];_rbulk.entryPhotos.push(id);readyBulkPhotoBadge();} }
@@ -8927,7 +9315,16 @@ function viewPhoto(url){if(!url)return;modal('',`<img src="${url}" style="width:
 
 /* ====================== ORDER DETAIL ====================== */
 let _curDetailId=null;
+/* The order screen is a TAB PANE, so one throw inside it leaves the whole page black —
+   his exact report, "saved order par click karne se blank page hi dikhta hai". It now
+   draws the reason on the screen instead of nothing. */
 async function openDetail(id,focusGid){
+  try{ await openDetail__inner(id,focusGid); }
+  catch(err){ console.error('Order screen',err);
+    try{ const el=document.querySelector('#tab-detail'); if(el)el.innerHTML=crashPanel('Order screen',err); }catch(e2){}
+  }
+}
+async function openDetail__inner(id,focusGid){
   _curDetailId=id;
   detailId=id;const o=DB.orders.find(x=>x.id===id);if(!o){go('orders');return;}
   if(!o.log)o.log=[]; if(!o.status)o.status='new'; if(!o.voiceNotes)o.voiceNotes=[]; migrateItemStatus(o);
@@ -8949,6 +9346,15 @@ async function openDetail(id,focusGid){
     /* A fold must never hide a fact. If a karigar is on this piece, or it is urgent, or
        QC is done, the closed line says so. */
     const _kn=(DB.karigars||[]).find(k=>k.id===((o.karigar||{})[gid]));
+    /* THE BLANK ORDER SCREEN, found by the v181 error panel in one step:
+       ReferenceError: Cannot access 'urg' before initialization.
+       `urg` is declared with const about fifty lines BELOW this, and a const cannot be
+       read before its own declaration line — so the very first order piece threw and the
+       whole tab was left black. It is declared here now, once, above every use of it.
+       Worth noting how this was found: no guessing, no rebuilding, no asking him to try
+       things. The app said the line and the fix took one minute. That is what the error
+       panel was for. */
+    const urg=!!((o.urgent||{})[gid]);
     const _prodMark=[urg?('🔴 '+t('urgent')):'', _kn?('👷 '+esc(_kn.name)):''].filter(Boolean).join(' · ');
     const cells=vcols(g).map(col=>{const val=v[col.k]||'';
       if(col.type==='select'){const opts=['<option value="">—</option>'].concat((col.options||[]).map(op=>`<option value="${esc(op)}" ${val===op?'selected':''}>${esc(op)}</option>`)).join('');
@@ -8994,7 +9400,6 @@ async function openDetail(id,focusGid){
             onchange="setItemKarAmt('${o.id}','${gid}',this.value)" style="width:110px;text-align:right;margin:0"></div>`:''}`:'');
     const _open=(_odItem===gid);
     const _nm=cols.filter(col=>v[col.k]).length;
-    const urg=!!((o.urgent||{})[gid]);
     return `<div class="mcard${urg?' mcard-urg':''}"><div class="mh mh-tap" onclick="odItemToggle('${gid}')">
         <b>${g.ico} ${esc(itemTitle(o,gid))}${_who?` <span class="who-tag">${esc(_who)}</span>`:''}${urg?` <span class="urg-tag">🔴 ${t('urgent')}</span>`:''}</b>
         <span class="hint">${v.L?('L '+esc(v.L)+' · '):''}${_nm} ${t('meas')} · ${sLabel(itemStatusOf(o,gid))} ${_open?'▴':'▾'}</span></div><div class="mb">
@@ -11058,6 +11463,346 @@ async function waInvoice(kind,id){const rec=invRecOf(kind,id);if(!rec||!rec.invo
   waSend(rec.phone,text+'\n\n'+buildInvoiceText(rec,rec.invoice));
 }
 
+/* HIS ASK, Aug 8-9: he wants the customer's number in his phone so the WhatsApp share
+   sheet can find them, and because "saare customer ka number mere mobile me hoga".
+   THERE IS NO WEB API TO WRITE A CONTACT — a page may READ contacts (that is how "From
+   Contacts" works) but never write one, on purpose. A vCard is the way round it: the app
+   hands the phone a .vcf and the phone opens its own "Add contact" already filled in. One
+   tap, works on Android and iPhone, offline, and he stays in control of what is saved.
+   ORG is "Customer" — HIS call, and the better one: every contact reading PARAMPARA would
+   tell him nothing, while "Customer" says who is calling before he picks up. The order
+   number he adds himself, deliberately: the app cannot read a phone note back, so it could
+   never keep it up to date after the second order. */
+function vcardFor(name,phone,role){
+  const clean=String(phone||'').replace(/[^\d+]/g,'');
+  const n=String(name||'').trim()||clean;
+  return ['BEGIN:VCARD','VERSION:3.0',
+    'N:'+n.replace(/[;,]/g,' ')+';;;',
+    'FN:'+n.replace(/[;,]/g,' '),
+    clean?('TEL;TYPE=CELL:'+clean):'',
+    role?('ORG:'+role):'',
+    'END:VCARD'].filter(Boolean).join('\r\n');
+}
+function saveToPhone(name,phone,role){
+  const clean=String(phone||'').replace(/[^\d+]/g,'');
+  if(!clean){ toast(t('vc_no_phone'),'bad'); return; }
+  try{
+    const blob=new Blob([vcardFor(name,phone,role||t('vc_role_cust'))],{type:'text/vcard;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=(String(name||clean).replace(/[^\w\s-]/g,'').trim()||'contact')+'.vcf';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),4000);
+    toast(t('vc_done'),'ok');
+  }catch(e){ toast(t('vc_fail'),'bad'); }
+}
+
+/* ================= SAMPLES =================================================
+   His words, Aug 9: "samples ka ek alag tab hi bana sakte hai... samples/readymade
+   stock aur order dono alag hi cheez hai, alag requirement hai."
+   He is right, and the reason is worth writing down: a sample has NO CUSTOMER. Every
+   heavy thing on the order form exists because a customer is waiting — the twelve body
+   measurements, body type, advance, balance, the promised delivery date, the customer's
+   order number, Pending/Overdue. None of that applies to a garment made for the rack.
+   What a sample DOES need is the opposite: a SIZE (not a naap), PHOTOS above all, a
+   design note the master can work from, the cloth it ate, and what it cost.
+   THE ONE FEATURE THAT MAKES THIS WORTH BUILDING: an order can name the sample the
+   customer pointed at. That single tap turns the rack from a cost into a measurable
+   thing — "this sample cost 4,200 and brought 11 orders worth 1,32,000; that one has
+   hung for seven months and brought none." No billing software can answer that.
+   A sample is a DESIGN, not a piece: one design, one labour rate (his answer), and one
+   or many sizes under it. Cost and orders belong to the design; stock and selling belong
+   to the piece.                                                              */
+function smpAll(){ return DB.samples||(DB.samples=[]); }
+function smpById(id){ return smpAll().find(x=>x.id===id)||null; }
+function nextSampleNo(){
+  const n=smpAll().reduce((m,s)=>Math.max(m,parseInt(String(s.no||'').replace(/\D/g,''),10)||0),0);
+  return 'S-'+(n+1);
+}
+/* cloth + labour. Labour is ONE rate for the design however many sizes were cut —
+   his answer, Aug 9: "ek hi majoori hoti hai size ki". */
+function sampleCost(s){
+  if(!s)return 0;
+  const th=(DB.thaans||[]).find(x=>x.id===s.thaanId);
+  const rate=th?(+th.rate||0):0;
+  return r2((+s.meters||0)*rate + (+s.labour||0));
+}
+function sampleOrders(s){
+  if(!s)return [];
+  return (DB.orders||[]).filter(o=>o.sampleId===s.id);
+}
+function sampleEarned(s){ return r2(sampleOrders(s).reduce((a,o)=>a+orderTotal(o),0)); }
+function smpSizes(s){ return (s&&s.sizes&&s.sizes.length)?s.sizes:[(DB.stkCfg.sizes||[])[2]||'L/40']; }
+function smpPieceState(s,sz){ return ((s.pcs||{})[sz]||{}).st||'making'; }
+
+
+/* THE ONE TAP THAT PAYS FOR THE WHOLE SAMPLES MODULE. Without it a sample is only a
+   cost; with it he can finally see which design brought work and which one just hung on
+   the rack. Only shows when samples exist, and only the recent ones — it must never
+   become another thing to scroll past. */
+function smpPickHTML(f){
+  if(!modOn('samples'))return '';
+  const list=smpAll().slice().sort((a,b)=>new Date(b.created||0)-new Date(a.created||0)).slice(0,12);
+  if(!list.length)return '';
+  return `<div class="section-h" style="margin-top:14px">🧥 ${t('smp_pick')}</div>
+    <div class="gtags" style="margin-bottom:8px">
+      <span class="gtag ${!f.sampleId?'on-tag':''}" style="cursor:pointer" onclick="smpPickSet('')">${t('smp_pick_none')}</span>
+      ${list.map(sm=>{const g=G(sm.gid)||{n:'',ico:'👔'};
+        return `<span class="gtag ${f.sampleId===sm.id?'on-tag':''}" style="cursor:pointer" onclick="smpPickSet('${sm.id}')">${g.ico} ${esc(sm.no||'')}</span>`;}).join('')}
+    </div>`;
+}
+function smpPickSet(id){ captureForm(); form.sampleId=id||''; renderForm(); }
+function samplesHome(){
+  if(!modOn('samples')){toast(t('mod_off'),'bad');return;}
+  const list=smpAll().slice().sort((a,b)=>new Date(b.created||0)-new Date(a.created||0));
+  const shown=_smpF==='none' ? list.filter(s=>!sampleOrders(s).length)
+            : _smpF==='stock'? list.filter(s=>smpSizes(s).some(z=>smpPieceState(s,z)==='stock'))
+            : _smpF==='sold' ? list.filter(s=>smpSizes(s).every(z=>smpPieceState(s,z)==='sold'))
+            : list;
+  const spend=list.reduce((a,s)=>a+sampleCost(s),0);
+  const earned=list.reduce((a,s)=>a+sampleEarned(s),0);
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin-bottom:4px">🧥 ${t('smp_title')}</h2>
+    <p class="hint" style="margin-bottom:12px">${t('smp_sub')}</p>
+    <div class="home-stats" style="margin-bottom:12px">
+      <div class="stat"><b>${list.length}</b><span>${t('smp_n')}</span></div>
+      <div class="stat"><b>${money(spend)}</b><span>${t('smp_spend')}</span></div>
+      <div class="stat"><b style="color:var(--saffron2)">${money(earned)}</b><span>${t('smp_earned')}</span></div>
+    </div>
+    <button class="btn primary block" style="margin-bottom:12px" onclick="sampleForm()">➕ ${t('smp_new')}</button>
+    <div class="gtags" style="margin-bottom:10px">
+      ${[['all','smp_f_all'],['stock','smp_f_stock'],['sold','smp_f_sold'],['none','smp_f_none']].map(([k,l])=>
+        `<span class="gtag ${_smpF===k?'on-tag':''}" style="cursor:pointer" onclick="_smpF='${k}';samplesHome()">${t(l)}</span>`).join('')}
+    </div>
+    ${shown.length?`<div class="smp-grid">${shown.map(smpTileHTML).join('')}</div>`
+      :`<p class="hint" style="padding:24px 0;text-align:center">${t('smp_none')}</p>`}
+    <div class="fab-pad"></div>`;
+  showSheet();
+  shown.forEach(s=>smpTilePhoto(s));
+}
+function smpTileHTML(s){
+  const g=G(s.gid)||{n:'—',ico:'👔'};
+  const n=sampleOrders(s).length, earned=sampleEarned(s);
+  return `<div class="smp-tile" onclick="sampleDetail('${s.id}')">
+    <div class="smp-ph" id="sp_${cssId(s.id)}"></div>
+    <div class="smp-b">
+      <b>${g.ico} ${esc(g.n)}</b>
+      <div class="hint">${esc(s.no||'')} · ${smpSizes(s).map(esc).join(', ')}</div>
+      <div class="hint">${t('smp_cost')} ${money(sampleCost(s))}</div>
+      <div style="font-size:12px;font-weight:800;color:${n?'var(--saffron2)':'var(--mut)'}">
+        ${n?`${n} ${t('smp_orders')} · ${money(earned)}`:t('smp_no_order')}</div>
+    </div></div>`;
+}
+async function smpTilePhoto(s){
+  const el=$('#sp_'+cssId(s.id)); if(!el)return;
+  const id=(s.photos||[])[0]; if(!id){el.innerHTML=`<span class="smp-noph">👔</span>`;return;}
+  const url=await mURL(id); if(url&&$('#sp_'+cssId(s.id)))el.innerHTML=`<img src="${url}">`;
+}
+
+/* ---- the form. Everything an order form carries because a CUSTOMER is waiting is
+   deliberately absent here: no name, no phone, no advance, no balance, no bill, no body
+   measurements, no body type, no salesman, no "how did they hear", no promised delivery
+   date, and no customer order number — samples run on their own S-1 series so his
+   register's numbering is never touched. */
+function sampleForm(id){
+  if(!modOn('samples')){toast(t('mod_off'),'bad');return;}
+  const s=id?smpById(id):null;
+  _smp = s ? JSON.parse(JSON.stringify(s))
+           : {id:'', no:nextSampleNo(), gid:(favItems()[0]||orderedItems()[0]||{}).id||'',
+              sizes:[(DB.stkCfg.sizes||[])[2]||'L/40'], photos:[], design:'', voice:[],
+              thaanId:'', meters:'', karigarId:'', labour:'', target:'', sell:'', pcs:{}};
+  sampleFormRender();
+}
+function sampleFormRender(){
+  const d=_smp, sizes=DB.stkCfg.sizes||[];
+  const th=(DB.thaans||[]).filter(x=>thaanBal(x)>0.05);
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">🧥 ${d.id?t('smp_edit'):t('smp_new')} ${esc(d.no)}</h2>
+      <button class="btn sm ghost" onclick="samplesHome()">←</button></div>
+
+    <div class="section-h">${t('items')}</div>
+    <div class="gtags" style="margin-bottom:12px">${orderedItems().map(g=>
+      `<span class="gtag ${d.gid===g.id?'on-tag':''}" style="cursor:pointer" onclick="_smp.gid='${g.id}';sampleFormRender()">${g.ico} ${esc(g.n)}</span>`).join('')}</div>
+
+    <div class="section-h">${t('smp_size')}</div>
+    <p class="hint" style="margin:0 0 6px">${t('smp_size_hint')}</p>
+    <div class="gtags" style="margin-bottom:12px">${sizes.map(z=>
+      `<span class="gtag ${(d.sizes||[]).includes(z)?'on-tag':''}" style="cursor:pointer" onclick="smpSizeTog('${esc(z)}')">${esc(z)}</span>`).join('')}</div>
+
+    <div class="section-h">📷 ${t('smp_photos')}</div>
+    <p class="hint" style="margin:0 0 6px">${t('smp_photo_hint')}</p>
+    <div class="media-row" id="smp_photos" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px"></div>
+    <button class="btn ghost block" style="margin-bottom:14px" onclick="smpAddPhoto()">📷 ${t('add_photo')}</button>
+
+    <div class="field"><label>📝 ${t('smp_design')} ${micBtn('#smp_design')}</label>
+      <textarea id="smp_design" rows="2" placeholder="${t('smp_design_ph')}">${esc(d.design||'')}</textarea></div>
+    <div class="field"><label>🎙️ ${t('voice_notes')}</label>${voiceSection('smpv')}</div>
+
+    <div class="section-h">🧵 ${t('smp_cloth')}</div>
+    <div class="row" style="gap:8px">
+      <div class="field" style="flex:2;margin:0"><label>${t('smp_thaan')}</label>
+        <select id="smp_thaan" onchange="_smp.thaanId=this.value;sampleFormRender()">
+          <option value="">—</option>
+          ${th.map(x=>`<option value="${x.id}" ${d.thaanId===x.id?'selected':''}>#${esc(x.serial||'')} ${esc((FI(x.fabId)||{}).name||'')} · ${thaanBal(x)}m</option>`).join('')}
+        </select></div>
+      <div class="field" style="flex:1;margin:0"><label>${t('smp_meters')}</label>
+        <input id="smp_m" inputmode="decimal" value="${esc(d.meters)}" placeholder="0" oninput="_smp.meters=this.value;smpCostLine()"></div>
+    </div>
+
+    <div class="section-h">👷 ${t('karigar')}</div>
+    <div class="gtags" style="margin-bottom:8px">${(DB.karigars||[]).map(k=>
+      `<span class="gtag ${d.karigarId===k.id?'on-tag':''}" style="cursor:pointer" onclick="_smp.karigarId='${k.id}';sampleFormRender()">${esc(k.name)}</span>`).join('')
+      ||`<span class="hint">${t('no_karigars')}</span>`}</div>
+    <div class="row" style="gap:8px">
+      <div class="field" style="flex:1;margin:0"><label>${t('smp_labour')}</label>
+        <input id="smp_lab" inputmode="decimal" value="${esc(d.labour)}" placeholder="0" oninput="_smp.labour=this.value;smpCostLine()"></div>
+      <div class="field" style="flex:1;margin:0"><label>${t('smp_target')}</label>${dateField('smp_target',d.target||'')}</div>
+    </div>
+    <p class="hint" style="margin:-4px 0 12px">${t('smp_target_hint')}</p>
+
+    <div class="field"><label>${t('smp_sell')}</label>
+      <input id="smp_sell" inputmode="decimal" value="${esc(d.sell)}" placeholder="0" oninput="_smp.sell=this.value">
+      <p class="hint" style="margin-top:4px">${t('smp_sell_hint')}</p></div>
+
+    <div class="card pos-total" id="smpCost" style="margin-bottom:12px">${smpCostHTML()}</div>
+
+    <div class="save-dock">
+      <button class="btn ghost" onclick="samplesHome()">${t('cancel')}</button>
+      <button class="btn primary" style="flex:2" onclick="sampleSave()">💾 ${t('save')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+  renderSmpPhotos();
+  bindVoice('smpv',()=>_smp.voice,null);
+}
+function smpCostHTML(){
+  const c=sampleCost(_smp), sell=+_smp.sell||0;
+  const th=(DB.thaans||[]).find(x=>x.id===_smp.thaanId);
+  const cloth=r2((+_smp.meters||0)*(th?(+th.rate||0):0));
+  return `<div class="sum-row"><span>${t('smp_cloth')}</span><b>${money(cloth)}</b></div>
+    <div class="sum-row"><span>${t('smp_labour')}</span><b>${money(+_smp.labour||0)}</b></div>
+    <div class="sum-row due"><span>${t('smp_cost')}</span><b>${money(c)}</b></div>
+    ${sell>0?`<div class="sum-row"><span>${t('smp_margin')}</span><b style="color:${sell-c>=0?'var(--ok)':'var(--bad)'}">${money(r2(sell-c))}</b></div>`:''}`;
+}
+function smpCostLine(){ const el=$('#smpCost'); if(el)el.innerHTML=smpCostHTML(); }
+function smpSizeTog(z){
+  _smp.sizes=_smp.sizes||[];
+  const i=_smp.sizes.indexOf(z);
+  if(i>=0){ if(_smp.sizes.length>1)_smp.sizes.splice(i,1); }   // never leave it size-less
+  else _smp.sizes.push(z);
+  sampleFormRender();
+}
+function smpAddPhoto(){ smpCapture(); photoPick(src=>{photoTarget={type:'smp'};const inp=src==='cam'?$('#filePickCam'):$('#filePick');inp.value='';inp.click();}); }
+function smpCapture(){
+  if($('#smp_design'))_smp.design=$('#smp_design').value;
+  if($('#smp_m'))_smp.meters=$('#smp_m').value;
+  if($('#smp_lab'))_smp.labour=$('#smp_lab').value;
+  if($('#smp_sell'))_smp.sell=$('#smp_sell').value;
+  if($('#smp_target'))_smp.target=$('#smp_target').value;
+}
+async function renderSmpPhotos(){
+  const el=$('#smp_photos'); if(!el)return; el.innerHTML='';
+  for(const id of(_smp.photos||[])){ const url=await mURL(id);
+    const w=document.createElement('div'); w.className='thumb-wrap';
+    w.innerHTML=`<img class="thumb" src="${url||''}"><div class="thumb-x">✕</div>`;
+    w.querySelector('.thumb').onclick=()=>viewPhoto(url);
+    w.querySelector('.thumb-x').onclick=async()=>{await mDel(id);_smp.photos=(_smp.photos||[]).filter(x=>x!==id);renderSmpPhotos();};
+    el.appendChild(w); }
+}
+function sampleSave(){
+  smpCapture();
+  if(!_smp.gid){toast(t('smp_need_item'),'bad');return;}
+  const d=_smp;
+  if(d.id){ const s=smpById(d.id); if(!s){toast(t('t_order_gone'),'bad');samplesHome();return;}
+    Object.assign(s,{gid:d.gid,sizes:d.sizes,photos:d.photos,design:d.design,voice:d.voice,
+      thaanId:d.thaanId,meters:d.meters,karigarId:d.karigarId,labour:d.labour,target:d.target,sell:d.sell});
+  } else {
+    d.id=uid(); d.created=new Date().toISOString(); d.pcs={};
+    smpSizes(d).forEach(z=>d.pcs[z]={st:'making'});
+    smpAll().push(d);
+  }
+  save(); toast(t('t_saved'),'ok'); samplesHome();
+}
+
+/* ---- the sample's own page. The line he is really paying for sits at the top. ---- */
+function sampleDetail(id){
+  const s=smpById(id); if(!s)return;
+  const g=G(s.gid)||{n:'—',ico:'👔'};
+  const ords=sampleOrders(s), earned=sampleEarned(s), cost=sampleCost(s);
+  const th=(DB.thaans||[]).find(x=>x.id===s.thaanId);
+  const kar=(DB.karigars||[]).find(k=>k.id===s.karigarId);
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:8px"><h2 style="margin:0">${g.ico} ${esc(g.n)} <span class="hint">${esc(s.no||'')}</span></h2>
+      <button class="btn sm ghost" onclick="samplesHome()">←</button></div>
+    <div class="media-row" id="smd_ph" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"></div>
+
+    <div class="card" style="border-color:var(--saffron);margin-bottom:12px">
+      ${ords.length
+        ? `<div class="kv"><span class="hint">${t('smp_from_this')}</span>
+             <b style="color:var(--saffron2);font-size:18px">${ords.length} ${t('smp_orders')} · ${money(earned)}</b></div>
+           <div class="hint" style="margin-top:6px">${ords.slice(0,6).map(o=>'#'+esc(o.orderNo||'')).join(' · ')}${ords.length>6?' …':''}</div>`
+        : `<div class="hint">${t('smp_no_order_yet')}</div>`}
+    </div>
+
+    <div class="section-h">${t('smp_pieces')}</div>
+    ${smpSizes(s).map(z=>{const st=smpPieceState(s,z), p=(s.pcs||{})[z]||{};
+      return `<div class="il"><span><b>${esc(z)}</b> <span class="pill ${st==='sold'?'st-delivered':(st==='stock'?'st-ready':'st-stitching')}">${t('smp_st_'+st)}</span>
+        ${st==='sold'&&p.amt?`<span class="hint"> · ${money(p.amt)}</span>`:''}</span>
+        <span style="display:flex;gap:6px">
+          ${st==='making'?`<button class="btn sm ghost" onclick="smpToStock('${s.id}','${esc(z)}')">📦 ${t('smp_to_stock')}</button>`:''}
+          ${st==='stock'?`<button class="btn sm ghost" onclick="smpMarkSold('${s.id}','${esc(z)}')">✅ ${t('smp_sold')}</button>`:''}
+        </span></div>`;}).join('')}
+
+    <div class="section-h" style="margin-top:14px">${t('smp_cost')}</div>
+    <div class="card pos-total" style="margin-bottom:12px">
+      <div class="sum-row"><span>${t('smp_cloth')}${th?` <span class="hint">#${esc(th.serial||'')} · ${esc(s.meters||0)}m</span>`:''}</span>
+        <b>${money(r2((+s.meters||0)*(th?(+th.rate||0):0)))}</b></div>
+      <div class="sum-row"><span>${t('smp_labour')}${kar?` <span class="hint">${esc(kar.name)}</span>`:''}</span><b>${money(+s.labour||0)}</b></div>
+      <div class="sum-row due"><span>${t('smp_cost')}</span><b>${money(cost)}</b></div>
+      ${+s.sell>0?`<div class="sum-row"><span>${t('smp_sell')}</span><b>${money(+s.sell)}</b></div>`:''}
+    </div>
+    ${(s.design||'').trim()?`<div class="card" style="margin-bottom:10px"><b>📝 ${t('smp_design')}</b><p class="hint" style="margin:6px 0 0">${esc(s.design)}</p></div>`:''}
+    <div class="row" style="gap:8px">
+      <button class="btn ghost" style="flex:1" onclick="sampleForm('${s.id}')">✏️ ${t('edit')}</button>
+      <button class="btn sm danger" onclick="sampleDel('${s.id}')">🗑️</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+  (async()=>{const el=$('#smd_ph'); if(!el)return;
+    for(const pid of(s.photos||[])){const url=await mURL(pid); if(!url)continue;
+      const w=document.createElement('div'); w.className='thumb-wrap';
+      w.innerHTML=`<img class="thumb" style="width:110px;height:110px" src="${url}">`;
+      w.querySelector('.thumb').onclick=()=>viewPhoto(url); el.appendChild(w);}})();
+}
+/* ready → shelf. The cost is already known (cloth + labour), which is exactly what a
+   readymade piece bought from a party never tells him. */
+function smpToStock(id,z){
+  const s=smpById(id); if(!s)return;
+  const g=G(s.gid)||{n:'Sample'};
+  confirmModal('📦 '+t('smp_to_stock'),t('smp_to_stock_q',{z:esc(z),c:money(sampleCost(s))}),()=>{
+    DB.itemMaster=DB.itemMaster||[];
+    let m=DB.itemMaster.find(x=>x.kind==='ready'&&x.name===g.n&&x.smpId===s.id);
+    if(!m){ m={id:uid(),name:g.n,hsn:'',incl:[],kind:'ready',stk:{},photos:[...(s.photos||[])],
+               cost:sampleCost(s),sell:+s.sell||0,smpId:s.id}; DB.itemMaster.push(m); }
+    m.stk=m.stk||{}; m.stk[z]=(+m.stk[z]||0)+1;
+    m.cost=sampleCost(s); if(+s.sell>0)m.sell=+s.sell;
+    s.pcs=s.pcs||{}; s.pcs[z]={st:'stock'};
+    save(); toast(t('smp_in_stock'),'ok'); sampleDetail(id);
+  });
+}
+function smpMarkSold(id,z){
+  const s=smpById(id); if(!s)return;
+  s.pcs=s.pcs||{}; s.pcs[z]={st:'sold',d:todayISO(),amt:+s.sell||0};
+  save(); toast(t('t_saved'),'ok'); sampleDetail(id);
+}
+function sampleDel(id){
+  const s=smpById(id); if(!s)return;
+  const n=sampleOrders(s).length;
+  confirmModal('🗑️ '+t('delete'), n?t('smp_del_used',{n}):t('smp_del_q',{n:esc(s.no||'')}),()=>{
+    const i=smpAll().findIndex(x=>x.id===id); if(i<0)return;
+    const copy=smpAll()[i]; smpAll().splice(i,1); save(); samplesHome();
+    undoOffer(t('t_removed'),()=>{ smpAll().splice(i,0,copy); save(); samplesHome(); });
+  });
+}
+
 function shopInfoEdit(){const s=DB.shopInfo||{};
   $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${t('shop_details')}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     <div class="field"><label>🕉️ ${t('blessing')}</label><input id="si_bless" value="${esc(s.blessing||'')}" placeholder="|| ॐ श्री गणेशाय नमः ||">
@@ -12547,6 +13292,7 @@ function modulesEdit(){
       ${row('stock','📦',t('su_mod_stock'))}
       ${row('accounts','💰',t('su_mod_accounts'))}
       ${row('family','👥',t('su_mod_family'))}
+      ${row('samples','🧥',t('mod_samples'))}
       <p class="hint" style="margin:10px 0 0">${t('su_mod_note')}</p>
     </div>
     <div class="modal-actions">
@@ -12559,7 +13305,8 @@ function modulesSave(){
   DB.modules={billing:!!($('#md_billing')||{}).checked,
               stock:!!($('#md_stock')||{}).checked,
               accounts:!!($('#md_accounts')||{}).checked,
-              family:!!($('#md_family')||{}).checked};
+              family:!!($('#md_family')||{}).checked,
+              samples:!!($('#md_samples')||{}).checked};
   save(); applyModules(); closeSheet(); renderHome(); toast(t('mod_saved'),'ok');
 }
 function settingsMenu(){modal(t('settings'),`
@@ -14491,6 +15238,7 @@ function modalIsOpen(){ const e=$('#mscrim'); return !!e && e.classList.contains
    and — unlike the main sheet — no tap-outside-to-close either. The only way out was
    the device's back gesture. Same mistake as the sheets, one layer up. */
 function modal(title,html,actions){
+  try{document.body.classList.add('modal-on');}catch(e){}
   const acts=(actions||[]).map((a,i)=>`<button class="btn ${a.cls||'ghost'}" data-mi="${i}">${a.label}</button>`).join('');
   $('#msheet').innerHTML=`<div class="grip"></div>${title?`<h3 style="margin-bottom:14px">${title}</h3>`:''}${html}${actions&&actions.length?`<div class="modal-actions">${acts}</div>`:''}`;
   (actions||[]).forEach((a,i)=>{const b=$('#msheet').querySelector(`[data-mi="${i}"]`);if(b)b.onclick=a.fn;});
@@ -14508,7 +15256,8 @@ function modal(title,html,actions){
   $('#mscrim').classList.add('show');
   $('#msheet').scrollTop=0;
 }
-function closeModal(){ const e=$('#mscrim'); if(e)e.classList.remove('show'); }
+function closeModal(){
+  try{document.body.classList.remove('modal-on');}catch(e){} const e=$('#mscrim'); if(e)e.classList.remove('show'); }
 function confirmModal(ti,m,onYes,onNo,labels){
   const L=labels||{};
   modal(ti,`<p style="color:var(--txt2);font-size:14px;line-height:1.6">${m}</p>`,
