@@ -628,7 +628,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v185</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v186</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -3805,6 +3805,12 @@ function fabricBody(keepFocus){
   if(_fabSort==='serial')list.sort((a,b)=>String(b.serial).localeCompare(String(a.serial),undefined,{numeric:true}));
   else list.sort((a,b)=>String(b.created||'').localeCompare(String(a.created||''))
     || String(b.serial).localeCompare(String(a.serial),undefined,{numeric:true}));
+
+  /* v186 FIX: finN was used in the count line below but never defined, which threw
+     "finN is not defined" and blanked the whole Stock sheet. It is the number of rolls
+     in the CURRENT view that have nothing left on them — shown next to the total so the
+     count reads honestly: "142 fabric rolls · 9 finished". */
+  const finN=list.filter(th=>thaanBal(th)<=0.05).length;
 
   el.innerHTML=`
     <div class="field" style="margin-bottom:10px">
