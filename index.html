@@ -129,16 +129,22 @@
   .pl-row{display:flex;align-items:center;gap:8px}
   .qty-step{display:flex;align-items:center;background:var(--card);border:1px solid var(--line2);border-radius:9px;overflow:hidden}
   .qty-step button{background:transparent;border:none;color:var(--saffron2);font-size:18px;font-weight:800;
-    width:32px;height:36px;cursor:pointer;line-height:1}
+    width:29px;height:36px;cursor:pointer;line-height:1}
   .qty-step button:active{background:var(--saffron);color:#1a1206}
-  .qty-in{width:38px;text-align:center;background:transparent;border:none;color:var(--txt);
+  .qty-in{width:32px;text-align:center;background:transparent;border:none;color:var(--txt);
     font-size:15px;font-weight:700;outline:none;-moz-appearance:textfield}
   .qty-in::-webkit-outer-spin-button,.qty-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-  .rate-in{flex:1;display:flex;align-items:center;gap:3px;background:var(--card);border:1px solid var(--line2);
-    border-radius:9px;padding:0 9px;height:38px}
-  .rate-in span{color:var(--mut);font-size:14px}
-  .rate-in input{flex:1;width:100%;background:transparent;border:none;color:var(--txt);font-size:15px;font-weight:700;outline:none}
+  .rate-in{flex:1;min-width:0;display:flex;align-items:center;gap:2px;background:var(--card);border:1px solid var(--line2);
+    border-radius:9px;padding:0 7px;height:38px}
+  .rate-in span{color:var(--mut);font-size:13px;flex:0 0 auto}
+  .rate-in input{flex:1;min-width:0;width:100%;background:transparent;border:none;color:var(--txt);font-size:15px;font-weight:700;outline:none}
+  /* v187: "Amount" was arriving as "Amo". The label is what tells him which box is which,
+     so it must never be cut — the placeholder now sits a size down and un-bolded. */
+  .rate-in input::placeholder{font-size:12.5px;font-weight:600}
   .rate-in:focus-within{border-color:var(--saffron)}
+  .pos-add-small{margin:8px 0 2px;padding:9px 12px;border:1px dashed var(--line2);border-radius:10px;
+    text-align:center;color:var(--saffron2);font-weight:700;font-size:14px;cursor:pointer}
+  .pos-add-small:active{background:var(--card)}
   .cust-result.pos-top{border:1px solid var(--saffron)!important;background:rgba(224,138,26,.10)}
   .sug-head{display:flex;justify-content:space-between;align-items:center;gap:10px;
     margin:8px 0 6px;padding-bottom:6px;border-bottom:1px solid var(--line);
@@ -375,6 +381,9 @@
     border:1px solid var(--line2); border-radius:7px; padding:3px 0}
   .it-ar.off{opacity:.22; pointer-events:none}
   .it-nm{flex:1; min-width:0; font-weight:700; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .it-ico{display:inline-block; min-width:34px; text-align:center; font-size:18px; cursor:pointer;
+    border:1px dashed var(--line2); border-radius:8px; padding:2px 4px}
+  .it-ico:active{background:var(--saffron); }
   .it-fav{flex:0 0 auto; width:30px; text-align:center; font-size:17px; color:var(--mut); cursor:pointer}
   .it-fav.on{color:var(--saffron2)}
   .it-del{flex:0 0 auto; width:28px; text-align:center; font-size:14px; opacity:.5; cursor:pointer}
@@ -628,7 +637,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v186</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v187</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1197,6 +1206,16 @@ const T={
   vm_title:'Speak the measurements', vm_na:'This phone cannot do speech', 
   vm_offline:'Speech needs internet — type as usual', vm_err:'Could not hear — try again',
   vm_ready_say:'Ready. Say the field and the number.', vm_stopped:'Stopped',
+  /* v187 — the mic used to fail with no word said. Now every reason says itself out loud. */
+  vm_insecure:'The mic is blocked because this app was opened from a file. Nothing inside the app can fix this.',
+  vm_denied:'Mic permission was refused. Allow the mic for this page in Chrome, then try again.',
+  vm_nomic:'No mic was found on this phone',
+  dup_ph_title:'This number is already saved',
+  dup_ph_msg:'{n} already uses {p}{o}. Is this the same person?',
+  dup_ph_orders:' · {n} orders',
+  dup_ph_same:'Yes, same person', dup_ph_edit:'No, change number',
+  it_icon:'Change icon', it_icon_pick:'Pick an icon', it_icon_own:'Or type any emoji',
+  pos_f_all:'All', pos_f_mto:'Made to order', pos_f_rdy:'Readymade', pos_f_fab:'Fabric',
   vm_next:'Next piece', vm_done:'All measurements taken',
   vm_two:'Two different numbers — say it again', vm_nonum:'No number heard',
   vm_nofield:'Which measurement? Say the name first', vm_notonthis:'{f} is not on this piece',
@@ -2333,6 +2352,15 @@ const T={
   vm_title:'बोलकर नाप लिखें', vm_na:'इस फ़ोन में आवाज़ नहीं चलती',
   vm_offline:'आवाज़ के लिए इंटरनेट चाहिए — हमेशा की तरह टाइप कीजिए', vm_err:'सुनाई नहीं दिया — फिर बोलिए',
   vm_ready_say:'तैयार। नाप का नाम और नंबर बोलिए।', vm_stopped:'बंद',
+  vm_insecure:'माइक बंद है क्योंकि ऐप फ़ाइल से खुला है। यह ऐप के अंदर से ठीक नहीं हो सकता।',
+  vm_denied:'माइक की इजाज़त नहीं मिली। Chrome में इस पेज के लिए माइक चालू कीजिए, फिर कोशिश कीजिए।',
+  vm_nomic:'इस फ़ोन में माइक नहीं मिला',
+  dup_ph_title:'यह नंबर पहले से सेव है',
+  dup_ph_msg:'{p} पहले से {n} का है{o}। क्या यह वही आदमी है?',
+  dup_ph_orders:' · {n} ऑर्डर',
+  dup_ph_same:'हाँ, वही आदमी', dup_ph_edit:'नहीं, नंबर बदलें',
+  it_icon:'आइकन बदलें', it_icon_pick:'आइकन चुनिए', it_icon_own:'या कोई भी इमोजी लिखिए',
+  pos_f_all:'सब', pos_f_mto:'ऑर्डर पर बनने वाला', pos_f_rdy:'रेडीमेड', pos_f_fab:'कपड़ा',
   vm_next:'अगला आइटम', vm_done:'सारे नाप हो गए',
   vm_two:'दो अलग नंबर — फिर से बोलिए', vm_nonum:'नंबर नहीं सुनाई दिया',
   vm_nofield:'कौन सा नाप? पहले नाम बोलिए', vm_notonthis:'{f} इस आइटम में नहीं है',
@@ -3010,19 +3038,25 @@ const GARMENTS=[
   {id:'indo',n:'Indo-Western',cat:'upper',ico:'🪔'},{id:'sherwani',n:'Sherwani',cat:'upper',ico:'👑'},
   {id:'kurta',n:'Kurta',cat:'upper',ico:'🕴️'},
   {id:'jodhpuri',n:'Jodhpuri',cat:'upper',ico:'🏇'},{id:'bandi',n:'Bandi',cat:'upper',ico:'🦺',skip:['SL','Bi']},
-  {id:'pant',n:'Pant',cat:'lower',ico:'👖'},{id:'pyjama',n:'Pyjama',cat:'lower',ico:'🩳'},{id:'churidar',n:'Churidar',cat:'lower',ico:'🦵'}
+  {id:'pant',n:'Pant',cat:'lower',ico:'👖'},{id:'pyjama',n:'Pyjama',cat:'lower',ico:'🥋'},{id:'churidar',n:'Churidar',cat:'lower',ico:'🦵'}
 ];
 /* One piece, one entry. A shop that adds a custom item with a name a built-in already
    has (a second "Pant") used to get BOTH in every picker, in the lengths list and in
    Item setup, with no way to tell them apart. First one wins. */
 function allItems(){
   const out=[], seen={};
+  /* v187 — HIS #2: "photo to sahi dalo, paijama yani patiyala etc na ki half pant."
+     Rather than argue about emojis one at a time, the shop owns them now. The override
+     lives in itemCfg.ico and is applied HERE, the single door every screen reads items
+     through, so a changed icon shows up on the order form, the walk, Job Work and the
+     slips at once. Shipped icons are untouched — this only shadows them. */
+  const ov=(DB.itemCfg&&DB.itemCfg.ico)||{};
   GARMENTS.concat(DB.customItems||[]).forEach(g=>{
     if(!g||!g.id)return;
     const nk=String(g.n||'').trim().toLowerCase();
     if(seen['i:'+g.id]||(nk&&seen['n:'+nk]))return;
     seen['i:'+g.id]=1; if(nk)seen['n:'+nk]=1;
-    out.push(g);
+    out.push(ov[g.id]?Object.assign({},g,{ico:ov[g.id]}):g);
   });
   return out;
 }
@@ -3036,6 +3070,7 @@ function itemCfg(){ DB.itemCfg=DB.itemCfg||{}; const c=DB.itemCfg;
   if(!Array.isArray(c.order))c.order=[];
   if(!Array.isArray(c.fav))c.fav=allItems().slice(0,6).map(g=>g.id);   // today's behaviour
   if(!Array.isArray(c.hide))c.hide=[];
+  if(!c.ico||typeof c.ico!=='object')c.ico={};   // v187: per-item icon the shop chose
   return c; }
 /* every item the shop still uses, in the shop's order */
 function orderedItems(){ const c=itemCfg(), all=allItems();
@@ -7935,7 +7970,7 @@ function openOrderForm(editId){
     quietly pre-filled, so he could save an order having never once looked at the one date
     the whole production board runs on. Now it starts empty and Save refuses without it. */items:[],m:{},design:{},variant:{},notes:'',total:'',advance:'',photos:[],voiceNotes:[],itemPhotos:{},itemVoice:{},bodyType:[],members:[],dispatch:null,source:'',sourceRef:'',sampleId:''};
   }
-  _noPhoneOK=false;
+  _noPhoneOK=false; _dupPhOK=false;
   form._did = form._did || ('d'+uid());
   if(_catSeed){                                  // came in from the catalogue
     const seed=_catSeed; _catSeed=null;
@@ -8430,6 +8465,11 @@ function renderForm(){
       ${smpPickHTML(f)}
       <div class="field dd-field" id="ddWrap" style="margin-top:14px"><label>🚚 ${t('delivery')} *</label>
         ${dateField("f_ddate",f.deliveryDate)}</div>
+      ${/* v187: both moved off stage 1. They are filled in for him and rarely touched,
+           but they must stay reachable — the number is how the shop finds the garment. */''}
+      <div class="row"><div class="field"><label>${t('order_no')} *</label>
+          <input id="f_ono" value="${esc(f.orderNo)}" placeholder="2481"></div>
+        <div class="field"><label>${t('order_date')}</label>${dateField("f_odate",f.orderDate)}</div></div>
       ${ordBillBlockHTML(f)}
       ${ordExtrasHTML(f)}
       <div class="save-dock">${cancelBtn}
@@ -8452,16 +8492,14 @@ function renderForm(){
     ${memberBlocks}
     ${(modOn('family')||multi)?`<button class="btn ghost block" style="margin-top:10px" onclick="addMember()">👥 ${multi?t('add_member'):t('add_member_first')}</button>`:''}`;
 
-  sh.innerHTML=`${head}<h2 style="margin:0 0 10px">${f.editId?t('edit_order'):t('new_order')}</h2>
+  /* v187 — HIS #9: "order number save karte samay customer name and delivery date chahiye,
+     pehle kuch nahi, sirf order date (auto) and measuring steps."
+     So stage 1 opens straight onto the pieces. The number and the date are taken for him
+     and shown as one quiet line; both are still editable, on the LAST screen, which is
+     where the order is actually finished. Nothing was removed from the record. */
+  sh.innerHTML=`${head}<h2 style="margin:0 0 4px">${f.editId?t('edit_order'):t('new_order')}</h2>
+    <p class="hint" style="margin:0 0 10px">#${esc(f.orderNo||'')} · ${fmtDate(f.orderDate)}</p>
     <div id="draftHint" class="draft-hint">🔒 ${t('draft_never')}</div>
-    <div class="row"><div class="field"><label>${t('order_no')} *</label><input id="f_ono" value="${esc(f.orderNo)}" placeholder="2481"></div>
-      <div class="field"><label>${t('order_date')}</label>${dateField("f_odate",f.orderDate)}</div></div>
-    <div class="field"><label>${t('customer')}</label><div id="custPicked">${(f.customerId||f.customerName)?customerPickedHTML():''}</div>
-      <div id="custSearchWrap" style="${f.customerName?'display:none':''}">
-        <input id="f_cname" placeholder="${t('name_ph')}" autocomplete="off" onfocus="custSearch(this.value)" oninput="custSearch(this.value)" value="${esc(f.customerName)}">
-        <div id="custResults"></div>
-        <input id="f_cphone" type="tel" placeholder="${t('phone')}" value="${esc(f.phone)}" style="margin-top:8px">
-        ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost" style="margin-top:8px" onclick="pickContact()">📇 ${t('from_contacts')}</button>`:''}</div></div>
     ${itemsSection}
     <div class="save-dock">${cancelBtn}
       ${walk.length
@@ -8962,7 +9000,7 @@ function measStep(e,dir){ e.preventDefault();
   if(nxt){ nxt.focus(); if(nxt.select)try{nxt.select();}catch(_){} }
 }
 
-let _noPhoneOK=false;
+let _noPhoneOK=false, _dupPhOK=false;
 function saveOrder(){
   captureForm();const f=form; f.items=sortItems(f.items);
   if(!f.orderNo){toast(t('t_no_ono'),'bad');return;}
@@ -8971,14 +9009,14 @@ function saveOrder(){
     const el=$('#f_cname');
     if(el){ el.style.borderColor='var(--bad)'; el.scrollIntoView({block:'center',behavior:'smooth'}); el.focus();
             el.addEventListener('input',()=>{el.style.borderColor='';},{once:true}); }
-    else ordStage(1);   // last resort — never leave him with a demand and no field
+    else ordStage(3);   // v187: the customer box lives on stage 3 now, never stage 1
     return;}
   // a missing mobile is worth one question, never a wall: without it this customer
   // cannot be found again reliably and no WhatsApp update can reach him
   if(!ph10(f.phone) && !_noPhoneOK){
     confirmModal('📞 '+t('ph_missing_title'), t('ph_missing_msg'),
       ()=>{ _noPhoneOK=true; saveOrder(); },
-      ()=>{ const el=$('#f_cphone'); if(el){el.focus(); el.scrollIntoView({block:'center'});} else ordStage(1); },
+      ()=>{ const el=$('#f_cphone'); if(el){el.focus(); el.scrollIntoView({block:'center'});} else ordStage(3); },
       {no:t('ph_add_now'), yes:t('ph_save_anyway')});
     return;
   }
@@ -8987,6 +9025,24 @@ function saveOrder(){
     return;}
   if(!f.items.length){toast(t('t_no_item'),'bad');return;}
   if(DB.orders.find(o=>String(o.orderNo)===String(f.orderNo)&&o.id!==f.editId)){toast(t('t_dup'),'bad');return;}
+  /* v187 — HIS #1: "mobile number agar same hai to save karne se pehle poochna chahiye."
+     The number was already treated as the identity, but SILENTLY: a salesman typing a
+     fresh name against an old number quietly attached the order to the old customer and
+     nobody was told. Now it asks once, by name, before anything is written. It stays
+     quiet when the name matches too — that is plainly the same person, not a question. */
+  if(!f.customerId && !_dupPhOK){
+    const dq=ph10(f.phone);
+    const ex=dq?DB.customers.find(x=>ph10(x.phone)===dq):null;
+    if(ex && String(ex.name||'').trim().toLowerCase()!==String(f.customerName||'').trim().toLowerCase()){
+      const n=(DB.orders||[]).filter(o=>o.customerId===ex.id).length;
+      confirmModal('📞 '+t('dup_ph_title'),
+        t('dup_ph_msg',{n:esc(ex.name||''),p:esc(f.phone||''),o:n?t('dup_ph_orders',{n}):''}),
+        ()=>{ _dupPhOK=true; form.customerId=ex.id; saveOrder(); },
+        ()=>{ const el=$('#f_cphone'); if(el){el.focus(); el.select&&el.select(); el.scrollIntoView({block:'center'});} else ordStage(3); },
+        {no:t('dup_ph_edit'), yes:t('dup_ph_same'), cls:'primary'});
+      return;
+    }
+  }
   let c=f.customerId?custById(f.customerId):null;
   if(!c){
     // same NUMBER = same person, whatever the name was typed as. Names repeat constantly
@@ -9128,13 +9184,22 @@ let _vmOn=false, _vmRec=null, _vmKey=null, _vmLast=null;
 function vmToggle(key){
   if(_vmOn){ vmStop(); return; }
   if(!sttSupported()){ toast(t('vm_na'),'bad'); return; }
+  /* v187 — HIS #3: "starting me ready... aisa kuch sound aata hai ... per hota kuch bhi
+     nahi." The speaking half is the phone's own voice and always works; the LISTENING
+     half needs the mic, and Chrome refuses the mic to a page opened from a file. That
+     refusal arrived as silence. Every reason now names itself, on screen and out loud. */
+  if(window.isSecureContext===false){ toast('🎙️ '+t('vm_insecure'),'bad'); vmSpeak(t('vm_insecure')); return; }
   if(!navigator.onLine){ toast(t('vm_offline'),'bad'); return; }   // say it plainly, never fail silently
   _vmKey=key; _vmOn=true; _vmLast=null;
   const R=window.SpeechRecognition||window.webkitSpeechRecognition; const r=new R(); _vmRec=r;
   r.lang=sttLang(); r.interimResults=false; r.continuous=true; r.maxAlternatives=1;
   r.onresult=ev=>{ for(let i=ev.resultIndex;i<ev.results.length;i++){
       if(ev.results[i].isFinal) vmHandle(ev.results[i][0].transcript); } };
-  r.onerror=e=>{ if(e.error==='no-speech')return; toast(t('vm_err'),'bad'); vmStop(); };
+  r.onerror=e=>{ if(e.error==='no-speech')return;
+    const why = (e.error==='not-allowed'||e.error==='service-not-allowed') ? t('vm_denied')
+              : (e.error==='audio-capture') ? t('vm_nomic')
+              : (e.error==='network') ? t('vm_offline') : t('vm_err');
+    toast('🎙️ '+why,'bad'); vmSpeak(why); vmStop(); };
   r.onend=()=>{ if(_vmOn){ try{ r.start(); }catch(e){ vmStop(); } } };   // keep listening between breaths
   try{ r.start(); }catch(e){ _vmOn=false; toast(t('vm_err'),'bad'); return; }
   renderForm(); vmSpeak(t('vm_ready_say'));
@@ -10100,16 +10165,25 @@ function renderInvoiceForm(){
         ${dateField("inv_date",f.date)}</div>
     </div>
 
-    <div class="tap-mini" style="display:flex;justify-content:space-between;align-items:center">
-      <span>⚡ ${t('pos_tap_add')} — ${t('pos_shortcut')}</span>
-      <button class="btn sm ghost" style="padding:3px 12px;font-size:12px" onclick="posManageItems()">✏️ ${t('edit')}</button>
+    ${/* v187 — HIS #6 and #7, which are one complaint: "jab items add ho kar bill dikhta hai
+         to upar ke shortcut aur bada sa Add button ka koi use nahi rehta, sirf confusion
+         badhta hai." Right. They are a launcher for an EMPTY bill. The moment a line
+         exists they stop being the job and start being clutter above it — and most bills
+         arrive already filled from an order. So the whole launcher steps aside once the
+         first line lands, and all that is left is a thin add strip where the list ends. */''}
+    <div id="posChrome" style="${(f.items||[]).length?'display:none':''}">
+      <div class="tap-mini" style="display:flex;justify-content:space-between;align-items:center">
+        <span>⚡ ${t('pos_tap_add')} — ${t('pos_shortcut')}</span>
+        <button class="btn sm ghost" style="padding:3px 12px;font-size:12px" onclick="posManageItems()">✏️ ${t('edit')}</button>
+      </div>
+      <div class="pos-tiles">${tiles}<div class="pos-tile add" onclick="posNewItem()"><b>➕ New</b></div></div>
+      <div class="pos-addbar"><button class="btn primary block" onclick="posAddMenu()">➕ ${t('pos_add_item')}</button></div>
     </div>
-    <div class="pos-tiles">${tiles}<div class="pos-tile add" onclick="posNewItem()"><b>➕ New</b></div></div>
-
-    <div class="pos-addbar"><button class="btn primary block" onclick="posAddMenu()">➕ ${t('pos_add_item')}</button></div>
     <div class="billed-bar" style="${(f.items||[]).length?'':'display:none'}" id="posBilledBar"><span>🧾 ${t('pur_billed')}</span>
       <span class="hint" id="posCount" style="color:inherit">${t('inv_items_n',{n:(f.items||[]).length})}</span></div>
     <div id="posLines"></div>
+    <div id="posAddSmall" class="pos-add-small" style="${(f.items||[]).length?'':'display:none'}"
+      onclick="posAddMenu()">➕ ${t('pos_add_item')}</div>
     <div id="posBilledSummary">${posBilledSummary()}</div>
 
     <div class="head-grid" style="margin-top:8px">
@@ -10259,7 +10333,15 @@ function posRefresh(){
   const c=$('#posCount'); if(c)c.textContent=t('inv_items_n',{n:(f.items||[]).length});
   const bb=$('#posBilledBar'); if(bb)bb.style.display=(f.items||[]).length?'':'none';
   const bs=$('#posBilledSummary'); if(bs)bs.innerHTML=posBilledSummary();
+  posChromeSync();
   updateInvTotals();
+}
+/* v187 — posRefresh redraws only the lines, so the launcher above and the add strip below
+   have to be told the count changed too. Emptying the last line brings the launcher back. */
+function posChromeSync(){
+  const n=((invForm&&invForm.items)||[]).length;
+  const ch=$('#posChrome'); if(ch)ch.style.display=n?'none':'';
+  const sm=$('#posAddSmall'); if(sm)sm.style.display=n?'':'none';
 }
 function posLineCalc(i){            // ← no re-render: cursor stays exactly where it is
   const qEl=document.querySelector('[data-iqty="'+i+'"]');
@@ -10358,17 +10440,33 @@ function posNewItem(){captureInvoiceForm();_imDraft=null;imEdit(null,{type:'inv'
 /* ---- one clean "Add item" entry: search stock, custom line, from order, edit/delete ---- */
 function posAddMenu(){ posSearchAdd(); }
 function posSearchAdd(){
+  _posFilter='all';   // a fresh search never inherits the last bill's sieve
+  const fchips=[['all','pos_f_all'],['mto','pos_f_mto'],['rdy','pos_f_rdy'],['fab','pos_f_fab']]
+    .map(([k,lbl])=>`<span class="gtag sm ${k==='all'?'on-tag':''}" data-pf="${k}" style="cursor:pointer" onclick="posSetFilter('${k}')">${t(lbl)}</span>`).join('');
   modal('➕ '+t('pos_add_item'),
-    `<div class="field" style="margin:0 0 8px"><input id="posSearchQ" placeholder="${t('pos_search_ph')}" oninput="posSearchRun(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();posEnter();}" autocomplete="off"></div>
+    `<div class="gtags" style="margin:0 0 8px">${fchips}</div>
+     <div class="field" style="margin:0 0 8px"><input id="posSearchQ" placeholder="${t('pos_search_ph')}" oninput="posSearchRun(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();posEnter();}" autocomplete="off"></div>
      <div id="posSearchRes"></div>
      <div id="posSearchAdded" class="hint" style="margin:8px 0 2px;min-height:16px"></div>
      <div class="row" style="gap:6px;margin-top:6px">
        <button class="btn sm ghost" style="flex:1" onclick="closeModal();invLoadFromOrder()">📋 ${t('pos_from_order')}</button>
      </div>`,
-    [{label:t('done'),cls:'primary',fn:()=>{closeModal();renderInvoiceForm();}}]);
+    [{label:t('done'),cls:'primary',fn:()=>{closeModal();renderInvoiceForm();
+      /* v187: he is standing at the counter — the next thing he types is always the rate,
+         never anything else. Land the caret there with the number pad already up. */
+      posFocusLine(((invForm&&invForm.items)||[]).length-1);}}]);
   setTimeout(()=>{const el=$('#posSearchQ');if(el)el.focus();posSearchRun('');},120);
 }
 let _posItems=[], _posTopFn=null;
+/* v187 — HIS #8: three chips to choose from when billing straight from Sale, BUT "kabhi
+   kabhi ek hi bill me sab mix tarah ke orders and items hote hain". So the chip is NOT a
+   mode for the bill — that would trap a mixed bill on one type and, worse, would decide
+   for him what kind of sale this is. It is a sieve over the search list only. One bill can
+   still carry all three, because the chip resets to All every time the search opens. */
+let _posFilter='all';
+function posSetFilter(k){ _posFilter=k;
+  document.querySelectorAll('[data-pf]').forEach(el=>el.classList.toggle('on-tag',el.dataset.pf===k));
+  const q=$('#posSearchQ'); posSearchRun(q?q.value:''); if(q)q.focus(); }
 function posSearchRun(qraw){
   const box=$('#posSearchRes'); if(!box)return;
   const q=(qraw||'').trim();
@@ -10376,12 +10474,13 @@ function posSearchRun(qraw){
   const key=s=>{const n=norm(s);return /^\d+$/.test(n)?String(parseInt(n,10)||0):n;};   // pure numbers: drop leading zeros (01=1=001)
   const qn=key(q);
   const match=s=>!qn||key(s).includes(qn);
+  const show=k=>_posFilter==='all'||_posFilter===k;
   // Search shows real stock (readymade pieces + fabric rolls) PLUS saved made-to-order presets
   // (Suit 3 PC, Sherwani…) — picking a preset links masterId so Includes + rate auto-fill,
   // which a plain typed line can't do. Presets still never get auto-created from billed names.
-  const ready=(DB.itemMaster||[]).filter(m=>m.kind==='ready'&&match(m.name)).slice(0,12);
-  const presets=(DB.itemMaster||[]).filter(m=>m.kind!=='ready'&&match(m.name)).slice(0,12);
-  const rolls=(DB.thaans||[]).filter(th=>{const fi=(DB.fabItems||[]).find(x=>x.id===th.fabId)||{};return match(th.serial)||match(fi.name)||match(fi.category);}).slice(0,15);
+  const ready=show('rdy')?(DB.itemMaster||[]).filter(m=>m.kind==='ready'&&match(m.name)).slice(0,12):[];
+  const presets=show('mto')?(DB.itemMaster||[]).filter(m=>m.kind!=='ready'&&match(m.name)).slice(0,12):[];
+  const rolls=show('fab')?(DB.thaans||[]).filter(th=>{const fi=(DB.fabItems||[]).find(x=>x.id===th.fabId)||{};return match(th.serial)||match(fi.name)||match(fi.category);}).slice(0,15):[];
   const exact = qn && (ready.some(m=>key(m.name)===qn) || presets.some(m=>key(m.name)===qn) || rolls.some(th=>{const fi=(DB.fabItems||[]).find(x=>x.id===th.fabId)||{};return key(th.serial)===qn||key(fi.name)===qn;}));
   _posItems=[];
   const scoreOf=fields=>{let b=9;for(const f of fields){if(!f)continue;if(f===qn)b=Math.min(b,0);else if(f.indexOf(qn)===0)b=Math.min(b,1);else if(f.includes(qn))b=Math.min(b,2);}return b;};
@@ -14410,7 +14509,7 @@ function itemShortcuts(){
     return `<div class="it-row">
       <span class="it-ar ${i===0?'off':''}" onclick="itemMove('${g.id}',-1)">▲</span>
       <span class="it-ar ${i===live.length-1?'off':''}" onclick="itemMove('${g.id}',1)">▼</span>
-      <span class="it-nm">${g.ico} ${esc(g.n)}</span>
+      <span class="it-nm"><span class="it-ico" title="${t('it_icon')}" onclick="event.stopPropagation();itemIconPick('${g.id}')">${g.ico}</span> ${esc(g.n)}</span>
       <span class="it-fav ${on?'on':''}" title="${on?t('it_on_front'):t('it_in_more')}" onclick="itemFavToggle('${g.id}')">${on?'★':'☆'}</span>
       <span class="it-del" title="${t('it_hide')}" onclick="itemRemove('${g.id}')">🗑️</span>
     </div>`;}).join('');
@@ -14426,6 +14525,29 @@ function itemShortcuts(){
   showSheet();
 }
 function formIsOpenSoft(){ return !!form; }
+/* v187 — tap the icon in Item Setup to change it. The shop's own choice always wins over
+   the one the code shipped with, and it is stored per item id, never on the item itself. */
+const ICO_CHOICES=['🧥','🦺','👔','👕','👖','🥋','🩳','🦵','🪔','👑','🕴️','🏇','👳','👞','🧣','🧦','🥻','👘','🧵','🪡','📿','🎗️','🪢','📌','🧢','👗'];
+function itemIconPick(gid){
+  const g=allItems().find(x=>x.id===gid); if(!g)return;
+  const cur=g.ico||'';
+  const chips=ICO_CHOICES.map(ic=>
+    `<span class="gtag ${ic===cur?'on-tag':''}" style="cursor:pointer;font-size:20px;padding:6px 10px"
+       onclick="itemIconSet('${esc(gid)}','${ic}')">${ic}</span>`).join('');
+  modal(t('it_icon_pick')+' — '+esc(g.n),
+    `<div class="gtags">${chips}</div>
+     <div class="field" style="margin:12px 0 0"><label>${t('it_icon_own')}</label>
+       <input id="icoOwn" value="${esc(cur)}" maxlength="4" style="font-size:22px;text-align:center"></div>`,
+    [{label:t('cancel'),cls:'ghost',fn:()=>itemShortcuts()},
+     {label:t('save'),cls:'primary',fn:()=>{
+       const v=(($('#icoOwn')&&$('#icoOwn').value)||'').trim();
+       itemIconSet(gid,v);}}]);
+}
+function itemIconSet(gid,ico){
+  const c=itemCfg();
+  if(ico) c.ico[gid]=ico; else delete c.ico[gid];
+  save(); closeModal(); itemShortcuts();
+}
 function itemMove(id,d){
   const c=itemCfg(), live=orderedItems().map(g=>g.id);
   const i=live.indexOf(id), j=i+d;
