@@ -451,10 +451,18 @@
   .ki-mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px}
   .ki-m label{display:block;font-size:10.5px;color:var(--txt2);font-weight:700;margin-bottom:2px;letter-spacing:.3px}
   .ki-m input{width:100%;margin:0;padding:7px 8px;font-size:15px;font-weight:600;text-align:center}
-  .sheet-x{position:sticky; top:0; float:right; z-index:8; width:36px; height:36px; border-radius:50%;
-    background:var(--bg2); border:1px solid var(--line2); color:var(--txt); font-size:15px;
-    display:flex; align-items:center; justify-content:center; margin:-6px -6px 0 0;
-    box-shadow:0 3px 10px rgba(0,0,0,.35); flex:0 0 auto}
+  /* v188 — HIS 13 Aug screenshot: an order screen scrolled down with NO way out at all —
+     no cross, no back. The button was there, but `position:sticky` combined with
+     `float:right` does not hold in Safari: once the page scrolls the floated box leaves
+     the flow and the cross goes with it. Anchoring it to the sheet itself instead of to
+     the text flow means it cannot be scrolled away on any screen. A screen must never
+     trap anyone — that is the whole rule. */
+  .sheet{position:relative}
+  .sheet-x{position:absolute; top:10px; right:10px; z-index:20; width:38px; height:38px; border-radius:50%;
+    background:var(--bg2); border:1px solid var(--line2); color:var(--txt); font-size:16px;
+    display:flex; align-items:center; justify-content:center; margin:0;
+    box-shadow:0 3px 10px rgba(0,0,0,.45); flex:0 0 auto}
+  .sheet-x.pinned{position:fixed}
   .sheet-x:active{background:var(--saffron); color:#1a1206}
   body.sheet-open{overflow:hidden}
   .sheet{overscroll-behavior:contain}
@@ -637,7 +645,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v187</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v188</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1206,6 +1214,10 @@ const T={
   vm_title:'Speak the measurements', vm_na:'This phone cannot do speech', 
   vm_offline:'Speech needs internet — type as usual', vm_err:'Could not hear — try again',
   vm_ready_say:'Ready. Say the field and the number.', vm_stopped:'Stopped',
+  bk_take:'Take a backup', bk_more:'More options', bk_less:'Hide',
+  bk_one_file_note:'One file — orders, measurements, stock, tailor accounts and photos together.',
+  bk_file_empty:'This file is empty — it holds no data. Take the backup again and choose "Save to Files".',
+  bk_found:'Found in this file: {o} orders · {c} customers · {r} fabric rolls · {p} photos',
   /* v187 — the mic used to fail with no word said. Now every reason says itself out loud. */
   vm_insecure:'The mic is blocked because this app was opened from a file. Nothing inside the app can fix this.',
   vm_denied:'Mic permission was refused. Allow the mic for this page in Chrome, then try again.',
@@ -2352,6 +2364,10 @@ const T={
   vm_title:'बोलकर नाप लिखें', vm_na:'इस फ़ोन में आवाज़ नहीं चलती',
   vm_offline:'आवाज़ के लिए इंटरनेट चाहिए — हमेशा की तरह टाइप कीजिए', vm_err:'सुनाई नहीं दिया — फिर बोलिए',
   vm_ready_say:'तैयार। नाप का नाम और नंबर बोलिए।', vm_stopped:'बंद',
+  bk_take:'बैकअप लें', bk_more:'और विकल्प', bk_less:'छुपाएँ',
+  bk_one_file_note:'एक ही फ़ाइल — ऑर्डर, नाप, स्टॉक, करीगर हिसाब और फ़ोटो सब साथ।',
+  bk_file_empty:'यह फ़ाइल ख़ाली है — इसमें कोई डेटा नहीं है। दोबारा बैकअप लीजिए और "Save to Files" चुनिए।',
+  bk_found:'इस फ़ाइल में मिला: {o} ऑर्डर · {c} ग्राहक · {r} थान · {p} फ़ोटो',
   vm_insecure:'माइक बंद है क्योंकि ऐप फ़ाइल से खुला है। यह ऐप के अंदर से ठीक नहीं हो सकता।',
   vm_denied:'माइक की इजाज़त नहीं मिली। Chrome में इस पेज के लिए माइक चालू कीजिए, फिर कोशिश कीजिए।',
   vm_nomic:'इस फ़ोन में माइक नहीं मिला',
@@ -3526,13 +3542,19 @@ function isoToDMY(iso){ if(!iso)return ''; const p=String(iso).slice(0,10).split
 /* A date field that always DISPLAYS dd/mm/yyyy, whatever the device locale.
    The native picker is overlaid transparently on top so tapping still opens it;
    the chosen date is mirrored to a visible dd/mm/yyyy text box and an ISO hidden input. */
-function dateField(id,iso,extra){
-  iso=iso||todayISO();
+/* v188 — HIS 13 Aug iPad bug: an order saved with the delivery date set to TODAY without
+   anyone typing it, and that wrong date went out on the customer's invoice. The guard in
+   saveOrder was right all along — it could simply never fire, because this helper filled
+   every empty date with today before the guard ever looked. A delivery date is a promise
+   to a customer; it must be typed, never assumed. Order date is genuinely today, so that
+   one still defaults. */
+function dateField(id,iso,extra,allowEmpty){
+  iso=iso||(allowEmpty?'':todayISO());
   return `<span class="datef" style="position:relative;display:block">
-    <input type="text" id="${id}_show" value="${isoToDMY(iso)}" placeholder="dd/mm/yyyy" readonly
+    <input type="text" id="${id}_show" value="${iso?isoToDMY(iso):''}" placeholder="dd/mm/yyyy" readonly
       style="width:100%;margin:0" ${extra||''}>
     <input type="date" id="${id}" value="${esc(iso)}"
-      onchange="var e=document.getElementById('${id}_show');if(e)e.value=isoToDMY(this.value)"
+      onchange="var e=document.getElementById('${id}_show');if(e)e.value=this.value?isoToDMY(this.value):''"
       style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer">
   </span>`;
 }
@@ -8102,7 +8124,7 @@ function measFilledCount(f,key){
 }
 /* Opening a piece IS entering the walk (v168) — there is nowhere else a card can live.
    It used to toggle: tapping the open piece closed it and left an empty screen. */
-function itemOpen(key){ ordStage(2,key); }
+function itemOpen(key){ kbHold(); ordStage(2,key); setTimeout(focusLenBox,120); }
 /* THE WALK. Five pieces picked means five cards, one after another, in an order that is
    never a surprise: every UPPER piece first, then every LOWER, then accessories — he was
    explicit that a lower piece must not turn up in the middle of the uppers. Inside a
@@ -8128,15 +8150,42 @@ function walkNext(f,key){
   const list=walkOrder(f); const i=list.indexOf(key);
   return (i>=0&&i<list.length-1)?list[i+1]:null;
 }
+/* v188 — HIS 13 Aug, iPad: "length ke chip par cursor aur number pad khula" — the cursor
+   DID land on Length (v176 did that) but the keypad stayed shut, so every single naap
+   cost an extra tap to raise it. Reason: iOS opens the keyboard only when focus happens
+   INSIDE the tap itself. Both callers re-render the card first and focus on a timer, and
+   that timer breaks the chain — the field lights up, the keypad does not.
+   Fix: park focus on a hidden numeric input while the gesture is still live, so iOS keeps
+   the keypad up, then hand focus to the real box once it exists. */
+let _kbKeep=null;
+function kbHold(){
+  if(!_kbKeep){
+    _kbKeep=document.createElement('input');
+    _kbKeep.type='text'; _kbKeep.inputMode='decimal'; _kbKeep.setAttribute('aria-hidden','true');
+    _kbKeep.style.cssText='position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;'+
+      'border:0;padding:0;margin:0;font-size:16px;background:transparent;color:transparent';
+    document.body.appendChild(_kbKeep);
+  }
+  try{_kbKeep.focus({preventScroll:true});}catch(e){try{_kbKeep.focus();}catch(_){}}
+}
+function kbTo(el){
+  if(!el)return;
+  try{el.focus({preventScroll:true});}catch(e){try{el.focus();}catch(_){}}
+  try{if(el.select)el.select();}catch(e){}
+  try{el.scrollIntoView({block:'center'});}catch(e){}
+}
+/* the one place that knows which box the naap starts on */
+function focusLenBox(){ kbTo(document.querySelector('.mcard .mfield.lenhl input.mInput')); }
 /* start the walk: open the first piece of the whole order */
 function startNaap(){
   const first=walkOrder(form)[0]; if(!first){toast(t('wk_none'),'bad');return;}
+  kbHold();                       // must run while the tap is still live
   ordStage(2,first);
-  setTimeout(()=>{const el=document.querySelector('.mcard .mfield.lenhl input.mInput');
-    if(el){try{el.scrollIntoView({block:'center'});}catch(e){} el.focus(); try{el.select();}catch(e){}}},120);
+  setTimeout(focusLenBox,120);
 }
 /* Done on a piece saves what is typed and opens the NEXT piece. */
 function itemDone(key){
+  kbHold();                       // v188: keep the keypad up across the re-render
   captureForm();
   const next=walkNext(form,key);
   /* It used to skip a piece whose body columns had already flowed and drop him on the
@@ -8148,8 +8197,7 @@ function itemDone(key){
     /* HIS #3: on the next piece the body naap is already flowed in — the ONLY thing he has
        to type is the Length. So put the cursor there with the keypad up: length daalo,
        Done, agla. Nothing else to tap. */
-    setTimeout(()=>{const el=document.querySelector('.mcard .mfield.lenhl input.mInput');
-      if(el){try{el.scrollIntoView({block:'center'});}catch(e){} el.focus(); try{el.select();}catch(e){}}},120);
+    setTimeout(focusLenBox,120);
     toast(t('it_next'),'ok');
     return;
   }
@@ -8464,7 +8512,7 @@ function renderForm(){
       ${mems.map(m=>quickLenHTML(f,itemsOfMember(f,m.id))).join('')}
       ${smpPickHTML(f)}
       <div class="field dd-field" id="ddWrap" style="margin-top:14px"><label>🚚 ${t('delivery')} *</label>
-        ${dateField("f_ddate",f.deliveryDate)}</div>
+        ${dateField("f_ddate",f.deliveryDate,'',true)}</div>
       ${/* v187: both moved off stage 1. They are filled in for him and rarely touched,
            but they must stay reachable — the number is how the shop finds the garment. */''}
       <div class="row"><div class="field"><label>${t('order_no')} *</label>
@@ -8841,7 +8889,20 @@ function removeItem(key){
          dropping him back on the first piece of the order is a different screen than
          the one he was in */
       _openItem=nxt&&form.items.includes(nxt)?nxt:null;
-      if(!_openItem&&_ordStage===2)_ordStage=1;
+      /* v188 — HIS 13 Aug: he took the Pant off on its own card (customer changed his
+         mind), and because the Pant was the LAST piece this fell through to stage 1 —
+         the piece-picking screen, whose button says "Start measuring". The Shirt was
+         already measured and there was no way to save the order at all; he had to go
+         back and work around it. Removing a piece must never strand a finished order.
+         So: if a piece still needs its naap, go to that piece; if they are all done,
+         go to the finish screen, which is the one with Save on it. */
+      if(!_openItem&&_ordStage===2){
+        const left=walkOrder(form);
+        const unmeasured=left.find(k=>!measFilledCount(form,k).len);
+        if(!left.length) _ordStage=1;                      // nothing left to save
+        else if(unmeasured){ _openItem=unmeasured; }       // stay on the walk
+        else _ordStage=3;                                  // all measured → Save screen
+      }
     }
     renderForm();
     undoOffer(t('t_removed'), ()=>{
@@ -9758,7 +9819,7 @@ function renderAltForm(){
         <div class="gtags" style="margin-top:6px">
           <span class="gtag" onclick="addMeas('${f.garmentId}','alt')" style="cursor:pointer;border-style:dashed">📏 ${t('add_meas')}</span>
           <span class="gtag" onclick="manageMeas('${f.garmentId}','alt')" style="cursor:pointer;border-style:dashed">⚙️ ${t('manage_meas')}</span></div>`;})():`<p class="hint" style="margin-top:8px">${t('alt_pick_item_hint')}</p>`}
-    <div class="row" style="margin-top:14px"><div class="field"><label>${t('delivery')}</label>${dateField("a_ddate",f.deliveryDate)}</div>
+    <div class="row" style="margin-top:14px"><div class="field"><label>${t('delivery')}</label>${dateField("a_ddate",f.deliveryDate,'',true)}</div>
       <div class="field"><label>${t('alt_charge')}</label><input id="a_charge" type="number" inputmode="numeric" value="${esc(f.charge)}" placeholder="0"></div></div>
     <div class="field"><label>👷 ${t('karigar')}</label><select id="a_karigar" onchange="captureAltForm();renderAltForm()">${kopts}</select></div>
     ${f.karigarId?`<div class="card" style="padding:12px;margin-bottom:10px">
@@ -9768,7 +9829,7 @@ function renderAltForm(){
       ${f.noKarigarPay?'':`<div class="row" style="margin-top:10px">
         <div class="field" style="margin:0"><label>💰 ${t('kb_his_rate')}</label>
           <input id="a_karamt" type="number" inputmode="numeric" value="${esc(f.karAmt||'')}" placeholder="0"></div>
-        <div class="field" style="margin:0"><label>📥 ${t('kb_recv_on')}</label>${dateField('a_recvdate',f.recvDate||'')}</div>
+        <div class="field" style="margin:0"><label>📥 ${t('kb_recv_on')}</label>${dateField('a_recvdate',f.recvDate||'','',true)}</div>
       </div>`}
     </div>`:''}
     <div class="field"><label>${t('order_notes')} ${micBtn('#a_notes')}</label><textarea id="a_notes" placeholder="${t('notes_ph')}">${esc(f.notes||'')}</textarea></div>
@@ -10079,6 +10140,7 @@ function invNormItems(items){
 }
 function openInvoiceForm(kind,id){
   if(!modOn('billing')){ toast(t('mod_off'),'bad'); return; }
+  _place=null;   // v188: a bill opening after an order must never inherit its scroll
   const rec=invRecOf(kind,id); if(!rec)return;
   if(rec.invoice){ invForm=JSON.parse(JSON.stringify(rec.invoice)); invForm.kind=kind; invForm.id=id;
     invNormItems(invForm.items);
@@ -10188,7 +10250,7 @@ function renderInvoiceForm(){
 
     <div class="head-grid" style="margin-top:8px">
       <div class="field" style="margin:0"><label>📅 ${t('inv_delivery')}</label>
-        ${dateField("inv_ddate",f.deliveryDate||'')}</div>
+        ${dateField("inv_ddate",f.deliveryDate||'','',true)}</div>
       ${f.kind==='sale'?`
       <div class="field" style="margin:0"><label>👔 ${t('pos_orderno')}</label>
         <div style="display:flex;gap:6px">
@@ -11761,7 +11823,7 @@ function sampleFormRender(){
     <div class="row" style="gap:8px">
       <div class="field" style="flex:1;margin:0"><label>${t('smp_labour')}</label>
         <input id="smp_lab" inputmode="decimal" value="${esc(d.labour)}" placeholder="0" oninput="_smp.labour=this.value;smpCostLine()"></div>
-      <div class="field" style="flex:1;margin:0"><label>${t('smp_target')}</label>${dateField('smp_target',d.target||'')}</div>
+      <div class="field" style="flex:1;margin:0"><label>${t('smp_target')}</label>${dateField('smp_target',d.target||'','',true)}</div>
     </div>
     <p class="hint" style="margin:-4px 0 12px">${t('smp_target_hint')}</p>
 
@@ -14801,23 +14863,40 @@ async function bkFileBox(){
     el2.innerHTML=`<p class="hint" style="margin-top:10px">${t('bk_link_unsupported')}</p>`;
   }
 }
-function backupMenu(){modal(t('backup_title'),`<p style="color:var(--txt2);font-size:14px;line-height:1.6">${t('backup_desc')}</p>
-  <p class="hint" style="margin-top:8px">${t('backup_note')}</p>
-  <div class="card" style="padding:10px 12px;margin-top:10px">
-    <div class="kv"><span class="hint">${t('bk_stored')}</span><b id="bkSize">…</b></div></div>
-  <div id="bkSafety"></div>
-  <div id="bkFile"></div>
-  <div class="modal-actions" style="flex-direction:column">
-  <button class="btn primary block" onclick="shareBackup(true)">📨 ${t('bk_data_only')}</button>
-  <p class="hint" style="margin:2px 0 8px">${t('bk_data_only_hint')}</p>
-  <button class="btn ghost block" onclick="photoBackup()">🖼️ ${t('pb_title')}</button>
-  <p class="hint" style="margin:2px 0 4px">${t('pb_hint')}</p>
-  <button class="btn ghost block" onclick="doExport()">⬇️ ${t('download_backup')}</button>
-  <button class="btn ghost block" onclick="doImport()">⬆️ ${t('restore_backup')}</button>
-  <button class="btn ghost block" onclick="restoreSnapshotMenu()">🕑 ${t('restore_auto')}</button>
-  <button class="btn ghost block" onclick="stockAudit()">🩺 ${t('au_title')}</button></div>`,
+function backupMenu(){
+  /* v188 — HIS 13 Aug: "backup lete samay itne saare options hain ki staff to le hi nahi
+     paate. Jitne bhi software use kiye hain kisi me bhi itna clumsy nahi hai."
+     He was right — this screen had TEN buttons and the word "backup" on three of them,
+     so nobody could tell which one to press and so nobody pressed any. Backup is one
+     job: press it, it is done. Everything else here is a once-a-year job and now lives
+     behind "More", where it cannot confuse the person doing the daily one. */
+  const d=daysSinceBackup();
+  const when = d===null?t('sf_never'):t('sf_last',{n:d});
+  modal(t('backup_title'),
+   `<button class="btn primary block" style="padding:18px;font-size:17px" onclick="shareBackup(false)">
+      💾 ${t('bk_take')}</button>
+    <p class="hint" style="text-align:center;margin:8px 0 0">${d!==null&&d>2?'⚠️ ':''}${when}</p>
+    <p class="hint" style="text-align:center;margin:4px 0 14px">${t('bk_one_file_note')}</p>
+    <button class="btn ghost block" onclick="doImport()">⬆️ ${t('restore_backup')}</button>
+    <div id="bkMore" style="display:none;margin-top:10px">
+      <div class="card" style="padding:10px 12px"><div class="kv"><span class="hint">${t('bk_stored')}</span><b id="bkSize">…</b></div></div>
+      <div id="bkSafety"></div>
+      <div id="bkFile"></div>
+      <button class="btn ghost block" style="margin-top:8px" onclick="shareBackup(true)">📨 ${t('bk_data_only')}</button>
+      <p class="hint" style="margin:2px 0 8px">${t('bk_data_only_hint')}</p>
+      <button class="btn ghost block" onclick="photoBackup()">🖼️ ${t('pb_title')}</button>
+      <button class="btn ghost block" onclick="doExport()">⬇️ ${t('download_backup')}</button>
+      <button class="btn ghost block" onclick="restoreSnapshotMenu()">🕑 ${t('restore_auto')}</button>
+      <button class="btn ghost block" onclick="stockAudit()">🩺 ${t('au_title')}</button>
+    </div>
+    <button class="btn sm ghost block" style="margin-top:10px" id="bkMoreBtn" onclick="bkMoreToggle()">${t('bk_more')}</button>`,
   [{label:t('close'),cls:'ghost',fn:closeSheet}]);
-  bkShowSize(); bkSafety(); bkFileBox();
+}
+function bkMoreToggle(){
+  const m=$('#bkMore'), b=$('#bkMoreBtn'); if(!m)return;
+  const on=m.style.display==='none';
+  m.style.display=on?'':'none'; if(b)b.textContent=on?t('bk_less'):t('bk_more');
+  if(on){ bkShowSize(); bkSafety(); bkFileBox(); }
 }
 /* Plain answers to "is my data actually safe on this device?" */
 async function bkSafety(){
@@ -15089,11 +15168,21 @@ async function shareBackup(dataOnly){
 }
 function doImport(){const inp=document.createElement('input');inp.type='file';inp.accept='.json,.txt,application/json,text/plain';
   inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
-    r.onload=()=>{try{const raw=JSON.parse(r.result);
+    r.onload=()=>{
+      /* v188 — HIS 10 Aug: an iPad backup with 850 rolls in it restored and changed
+         nothing, because the share sheet had sent the file's NAME as text instead of the
+         file. 19 bytes, no data, and the app said only "wrong file" — so he reasonably
+         believed the restore had worked and the data was gone. A restore must state what
+         it found BEFORE it overwrites anything, and an empty file must be named as empty. */
+      const txt=String(r.result||'');
+      if(txt.trim().length<200){ toast('📄 '+t('bk_file_empty'),'bad'); return; }
+      try{const raw=JSON.parse(txt);
       const pack = (raw && raw.db && raw.__v) ? raw : {db:raw, media:{}};
       const d=pack.db; if(!d||!d.orders)throw 0;
       const nMedia=mediaCount(pack);
-      confirmModal(t('restore_title'),t('restore_msg')+(nMedia?(' '+t('bk_with_media',{n:nMedia})):''),async ()=>{
+      const found=t('bk_found',{o:(d.orders||[]).length, c:(d.customers||[]).length,
+                                r:(d.thaans||[]).length, p:nMedia});
+      confirmModal(t('restore_title'), found+'\n\n'+t('restore_msg'),async ()=>{
         DB=d;if(!DB.customers)DB.customers=[];if(!DB.designLib)DB.designLib={};if(!DB.karigars)DB.karigars=[];
         save(); flushDBNow();
         if(nMedia){ toast(t('bk_restoring'),'ok'); await restoreMedia(pack.media); }
@@ -15240,9 +15329,15 @@ function keepPlace(){
 }
 function restorePlace(){
   const sh=$('#sheet'); if(!sh||!_place)return;
+  /* v188 — HIS 13 Aug, iPad: he saved an order, the invoice opened ALREADY SCROLLED down
+     to the middle, and the boy in front of him could not tell what screen he was on.
+     This is why: the signature is the sheet's h2, and a screen without one produced an
+     empty signature — which then matched the previous screen's empty signature and
+     handed a stale scroll position to a completely different form. A screen we cannot
+     positively name must start at the top, which is what anyone opening it expects. */
   const el=_findField(_place.f);
-  const same=_place.sig && _place.sig===_sheetSig();
-  if(!el && !same)return;              // a different screen — start at the top, as expected
+  const same=!!_place.sig && _place.sig===_sheetSig();
+  if(!same){ _place=null; return; }    // different (or unidentifiable) screen — top
   if(_place.top)sh.scrollTop=_place.top;
   if(!el)return;                       // same screen, nothing was being typed in
   try{ el.focus({preventScroll:true});
@@ -15299,6 +15394,14 @@ function showSheet(){ bindSheetSwipe();closeModal();$('#scrim').classList.add('s
         sh.insertBefore(b, sh.firstChild);
       }
     }
+  }catch(e){}
+  /* v188: the cross is absolute inside the sheet, so it must be nudged down as the sheet
+     scrolls — otherwise it sits at the very top of a long form and scrolls out of reach. */
+  try{ const sh2=$('#sheet'), x2=sh2&&sh2.querySelector(':scope > .sheet-x');
+    if(sh2&&x2&&!sh2._xBound){ sh2._xBound=1;
+      const sync=()=>{ x2.style.top=(sh2.scrollTop+10)+'px'; };
+      sh2.addEventListener('scroll',sync,{passive:true}); sync();
+    } else if(sh2&&x2){ x2.style.top=(sh2.scrollTop+10)+'px'; }
   }catch(e){}
   restorePlace();
   /* Lock the page behind the sheet. Without this the list underneath scrolls with the
