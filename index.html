@@ -355,6 +355,8 @@
   .mgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
   .mfield{background:var(--bg2); border:1px solid var(--line); border-radius:9px; padding:7px 9px}
   .mfield.lenhl{border-color:var(--saffronDim); background:#241d14}
+  /* v190: the box the voice will write into — visible from arm's length while measuring. */
+  .mfield.vm-live{border-color:var(--saffron); background:#2a2011; box-shadow:0 0 0 2px rgba(224,138,26,.35)}
   .mfield label{font-size:10px; color:var(--mut); display:block; margin-bottom:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
   .mfield input{width:100%; background:transparent; border:none; color:var(--txt); outline:none; font-size:17px; font-weight:600; padding:2px 0}
   .mfield input.filled{color:var(--saffron2)}
@@ -480,10 +482,14 @@
   /* on a short window the bar eats most of the height — keep the sheet scrollable under it */
   @media (max-height:620px){ body.fb-on .sheet{padding-bottom:calc(160px + var(--safe-b))} }
   /* order form stages */
+  /* v189: MY regression from v188 — anchoring the close cross to the sheet put it on top
+     of this bar's counter, so "1 / 4" and the ✕ sat one over the other. Every sheet now
+     keeps a lane clear on the right for the cross that showSheet() injects. */
   .wk-bar{display:flex; align-items:center; gap:10px; margin:0 0 12px; padding-bottom:10px;
-    border-bottom:1px solid var(--line)}
+    padding-right:46px; border-bottom:1px solid var(--line)}
   .wk-bar .wk-pos{margin-left:auto; font-size:12px; font-weight:800; color:var(--saffron2);
     background:var(--bg2); border:1px solid var(--line2); border-radius:20px; padding:5px 12px}
+  #sheet > h2:first-of-type{padding-right:46px}
   .grip{width:56px; height:5px; border-radius:5px; background:var(--line2); margin:0 auto 14px;
     cursor:grab; touch-action:none; position:relative}
   .grip::after{content:''; position:absolute; left:-40px; right:-40px; top:-14px; bottom:-14px}
@@ -645,7 +651,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v188</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v190</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1215,6 +1221,7 @@ const T={
   vm_offline:'Speech needs internet — type as usual', vm_err:'Could not hear — try again',
   vm_ready_say:'Ready. Say the field and the number.', vm_stopped:'Stopped',
   bk_take:'Take a backup', bk_more:'More options', bk_less:'Hide',
+  ph_one_more:'One more', ph_more_hint:'Take the next photo without leaving this screen.',
   bk_one_file_note:'One file — orders, measurements, stock, tailor accounts and photos together.',
   bk_file_empty:'This file is empty — it holds no data. Take the backup again and choose "Save to Files".',
   bk_found:'Found in this file: {o} orders · {c} customers · {r} fabric rolls · {p} photos',
@@ -2365,6 +2372,7 @@ const T={
   vm_offline:'आवाज़ के लिए इंटरनेट चाहिए — हमेशा की तरह टाइप कीजिए', vm_err:'सुनाई नहीं दिया — फिर बोलिए',
   vm_ready_say:'तैयार। नाप का नाम और नंबर बोलिए।', vm_stopped:'बंद',
   bk_take:'बैकअप लें', bk_more:'और विकल्प', bk_less:'छुपाएँ',
+  ph_one_more:'एक और', ph_more_hint:'यहीं से अगली फ़ोटो लीजिए, पीछे जाने की ज़रूरत नहीं।',
   bk_one_file_note:'एक ही फ़ाइल — ऑर्डर, नाप, स्टॉक, करीगर हिसाब और फ़ोटो सब साथ।',
   bk_file_empty:'यह फ़ाइल ख़ाली है — इसमें कोई डेटा नहीं है। दोबारा बैकअप लीजिए और "Save to Files" चुनिए।',
   bk_found:'इस फ़ाइल में मिला: {o} ऑर्डर · {c} ग्राहक · {r} थान · {p} फ़ोटो',
@@ -8306,7 +8314,13 @@ function measCardHTML(f,key){
   const gid=g.id, dkey=esc(key), cid=cssId(key);
   const autoM=((f.mAuto||{})[key])||{};
   const _more=!!_msMore[key];
-  const _isSec=c=>MEAS_SECONDARY.includes(c.k)&&!(vals[c.k]||'').toString().trim();
+  /* v189 — HIS 13 Aug: he switched Bicep on in Manage fields and it still did not appear;
+     it sat behind "+1 more measurements". Bicep was on a hardcoded list of columns to
+     hide while empty. Switching a field ON is an explicit instruction from the shop and
+     must beat any default the code shipped with — so a field he added or enabled himself
+     is never folded away. Only untouched shipped columns still hide while blank. */
+  const _shopOn=(k)=>{ try{ return ((DB.measShow||{})[g.id]||[]).indexOf(k)>=0; }catch(e){ return false; } };
+  const _isSec=c=>MEAS_SECONDARY.includes(c.k)&&!_shopOn(c.k)&&!(vals[c.k]||'').toString().trim();
   const _hid=cols.filter(_isSec).length;
   const shown=(_more||!_hid)?cols:cols.filter(c=>!_isSec(c));
   const fields=shown.map(col=>{const isLen=col.k==='L';const val=vals[col.k]||'';
@@ -8487,6 +8501,7 @@ function renderForm(){
       ${measCardHTML(f,_openItem)}
       <div class="fab-pad"></div>`;
     _sheetFull=true; showSheet(); bindMeasInputs(); bindDraftAutosave();
+    if(_vmOn)setTimeout(()=>vmFocus(null),60);   // v190: keep the live box lit across renders
     renderItemPhotos(_openItem); bindVoice('iv_'+cssId(_openItem),()=>itemVoiceList(_openItem),null);
     return;
   }
@@ -8685,6 +8700,15 @@ function toggleMeasField(gid,k,ctx){
   DB.measHide=DB.measHide||{}; DB.measHide[gid]=DB.measHide[gid]||[];
   const i=DB.measHide[gid].indexOf(k);
   if(i>=0)DB.measHide[gid].splice(i,1); else DB.measHide[gid].push(k);
+  /* v189: turning a field ON is remembered as an explicit choice, not just as "absent
+     from the hidden list". Bicep and the other few auto-folded columns look identical
+     to an untouched default otherwise, which is why switching Bicep on appeared to do
+     nothing — the card kept folding it away behind "+1 more". A field the shop turned
+     on now always shows. Nothing is removed; measHide keeps working exactly as before. */
+  DB.measShow=DB.measShow||{}; DB.measShow[gid]=DB.measShow[gid]||[];
+  const j=DB.measShow[gid].indexOf(k);
+  if(i>=0){ if(j<0)DB.measShow[gid].push(k); }   // was hidden, now ON
+  else if(j>=0)DB.measShow[gid].splice(j,1);     // now OFF
   save(); manageMeas(gid,ctx);
   setTimeout(()=>{const sh=$('#sheet');if(sh)sh.scrollTop=sc;},0);
 }
@@ -9241,7 +9265,7 @@ function vmParse(raw){
 }
 
 /* ---- the listener, tied to ONE open piece on the walk ---- */
-let _vmOn=false, _vmRec=null, _vmKey=null, _vmLast=null;
+let _vmOn=false, _vmRec=null, _vmKey=null, _vmLast=null, _vmField=null;
 function vmToggle(key){
   if(_vmOn){ vmStop(); return; }
   if(!sttSupported()){ toast(t('vm_na'),'bad'); return; }
@@ -9263,10 +9287,11 @@ function vmToggle(key){
     toast('🎙️ '+why,'bad'); vmSpeak(why); vmStop(); };
   r.onend=()=>{ if(_vmOn){ try{ r.start(); }catch(e){ vmStop(); } } };   // keep listening between breaths
   try{ r.start(); }catch(e){ _vmOn=false; toast(t('vm_err'),'bad'); return; }
-  renderForm(); vmSpeak(t('vm_ready_say'));
+  renderForm(); vmSpeak(t('vm_ready_say')); setTimeout(()=>vmFocus(null),150);
 }
 function vmStop(){
-  _vmOn=false;
+  _vmOn=false; _vmField=null;
+  try{document.querySelectorAll('.mfield').forEach(el=>el.classList.remove('vm-live'));}catch(e){}
   try{ if(_vmRec){ _vmRec.onend=null; _vmRec.stop(); } }catch(e){}
   _vmRec=null;
   try{ if(window.speechSynthesis)window.speechSynthesis.cancel(); }catch(e){}
@@ -9284,6 +9309,9 @@ function vmHandle(txt){
 
   const g=G(key); const cols=vcols(g||{}).map(c=>c.k);
   let k=p.k;
+  /* v190: a bare number is no longer a refusal — it belongs to the live box, which is the
+     whole point of hands-free. Guessing is still forbidden: if no box is live we ask. */
+  if(!k && _vmField && cols.indexOf(_vmField)>=0) k=_vmField;
   if(!k){ vmRefuse(t('vm_nofield')); return; }              // never guess which field
   if(cols.indexOf(k)<0){ vmRefuse(t('vm_notonthis',{f:k})); return; }
 
@@ -9303,11 +9331,38 @@ function vmHandle(txt){
   (f.mAuto=f.mAuto||{})[key]=f.mAuto[key]||{}; delete f.mAuto[key][k];   // spoken = his own value
   f.mVoice=f.mVoice||{}; f.mVoice[key]=f.mVoice[key]||{}; f.mVoice[key][k]=1;
   propagate({dataset:{g:key,k}, value:String(val)});
-  save(); saveDraft(); renderForm();
-  vmSpeak(vmFieldName(g,k)+' '+val);      // his ear is the second check
+  /* v190 — THE BUG BEHIND "bolta hun length 25, dohrata hai, per likha nahi aata".
+     The mic, the parsing and the write were all working — his own recording proves it,
+     because the app only speaks the value back AFTER a successful write. What followed
+     destroyed it: saveDraft() calls captureForm(), captureForm reads every box ON SCREEN
+     back into the data, and the screen at that instant was still the OLD render with
+     Length empty — so `else delete f.m[gid][k]` wiped the number he had just spoken.
+     THEN renderForm() drew the now-empty data. Render first, save second. */
+  renderForm(); save(); saveDraft();
+  vmSpeak(String(val));                   // v190: just the number — a name every time is too slow
+  vmFocus(k);                             // v190: hands-free — move on so the next word needs no field name
   if(vmAllFilled(f,key)){ const n=walkNext(f,key);
     if(n){ _vmKey=n; setTimeout(()=>{ordStage(2,n); vmSpeak(t('vm_next'));},400); }
     else vmSpeak(t('vm_done')); }
+}
+/* v190 — HANDS-FREE. One boy holds the tape and talks; nobody should have to type or tap.
+   So one box is always the live one: say a bare "25" and it lands there, then the live box
+   steps to the next empty one on its own. Saying a field name still jumps straight to it,
+   which is how he corrects one measurement without disturbing the run. */
+function vmFocus(afterK){
+  const f=form, key=_vmKey; if(!f||!key)return;
+  const g=G(key); if(!g)return;
+  const cols=vcols(g).map(c=>c.k);
+  const filled=k=>String(((f.m||{})[key]||{})[k]||'').trim();
+  let start=afterK?cols.indexOf(afterK)+1:0; if(start<0)start=0;
+  let next=null;
+  for(let i=start;i<cols.length;i++){ if(!MEAS_SECONDARY.includes(cols[i])&&!filled(cols[i])){next=cols[i];break;} }
+  if(!next) for(let i=0;i<cols.length;i++){ if(!MEAS_SECONDARY.includes(cols[i])&&!filled(cols[i])){next=cols[i];break;} }
+  _vmField=next;
+  try{ document.querySelectorAll('.mfield').forEach(el=>el.classList.remove('vm-live'));
+    if(next){ const inp=document.querySelector('.mInput[data-g="'+CSS.escape(key)+'"][data-k="'+CSS.escape(next)+'"]');
+      if(inp){ const fl=inp.closest('.mfield'); if(fl){fl.classList.add('vm-live'); fl.scrollIntoView({block:'center'});} } }
+  }catch(e){}
 }
 function vmFieldName(g,k){ const c=vcols(g||{}).find(x=>x.k===k); return c?c.n:k; }
 function vmAllFilled(f,key){
@@ -9403,9 +9458,23 @@ async function renderReadyPhotos(){const el=$('#rd_photos');if(!el)return;el.inn
     el.appendChild(w);}}
 /* he can pick several photos in one go now, so this walks the whole selection */
 async function processPhoto(e){const files=[...(e.target.files||[])];if(!files.length)return;
+  const fromCam = e.target.id==='filePickCam';
   for(const f of files){ await storePhoto(f); if(photoTarget.type==='cbody')break; }  // one body slot = one photo
   e.target.value='';
-  toast(files.length>1?t('t_photos_n',{n:files.length}):t('t_photo'));}
+  toast(files.length>1?t('t_photos_n',{n:files.length}):t('t_photo'));
+  /* v189 — HIS 13 Aug: "order lete samay multiple photo lene ka system nahi hai, baar
+     baar peeche jana padta hai." The GALLERY path already takes many at once; the CAMERA
+     is the one that hurts, because capture="environment" shoots exactly one frame and
+     hands control back — and cloth, design and body reference are three separate shots
+     of three different things, so it is never one. One tap to shoot the next one now,
+     from wherever he already is. A body slot holds a single photo, so it is excluded. */
+  if(fromCam && photoTarget.type!=='cbody'){
+    const tgt=Object.assign({},photoTarget);
+    modal('📷 '+t('photo_label'),`<p class="hint">${t('ph_more_hint')}</p>`,[
+      {label:'📷 '+t('ph_one_more'),cls:'primary',fn:()=>{closeModal();
+        photoTarget=tgt; const inp=$('#filePickCam'); if(inp){inp.value=''; inp.click();} }},
+      {label:t('done'),cls:'ghost',fn:closeModal}]);
+  }}
 async function storePhoto(file){
   if(!mediaReady()){ toast(t('t_nomedia'),'bad'); return; }
   const blob=await downscale(file);const id='img_'+uid();
