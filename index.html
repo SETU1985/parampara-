@@ -653,7 +653,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v196</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v197</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -9624,7 +9624,15 @@ async function processPhoto(e){const files=[...(e.target.files||[])];if(!files.l
      hands control back — and cloth, design and body reference are three separate shots
      of three different things, so it is never one. One tap to shoot the next one now,
      from wherever he already is. A body slot holds a single photo, so it is excluded. */
-  if(fromCam && photoTarget.type!=='cbody'){
+  /* v197 — MY v189 mistake, caught in the shop the same day: "bulk me add kar raha hun to
+     ye One more ka option aa raha hai, isse kaam kaafi slow ho ja raha hai."
+     Right. "One more" was built for taking an ORDER, where cloth, design and body are
+     three shots of the same job. On a bulk entry line the opposite is true — one roll, one
+     photo, then straight on to the next roll — so the prompt lands squarely in the middle
+     of the fastest screen in the app. It belongs only where several shots of ONE thing are
+     normal, and nowhere that is a repeating line-by-line entry. */
+  const ONE_MORE_OK={order:1,item:1,oditem:1,smp:1,alt:1,altitem:1};
+  if(fromCam && ONE_MORE_OK[photoTarget.type]){
     const tgt=Object.assign({},photoTarget);
     modal('📷 '+t('photo_label'),`<p class="hint">${t('ph_more_hint')}</p>`,[
       {label:'📷 '+t('ph_one_more'),cls:'primary',fn:()=>{closeModal();
