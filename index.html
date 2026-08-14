@@ -356,6 +356,8 @@
   .mfield{background:var(--bg2); border:1px solid var(--line); border-radius:9px; padding:7px 9px}
   .mfield.lenhl{border-color:var(--saffronDim); background:#241d14}
   /* v190: the box the voice will write into — visible from arm's length while measuring. */
+  /* v193: a number outside the usual range is kept and marked, never refused. */
+  .mfield.odd-f{border-color:#c2703a}
   .mfield.vm-live{border-color:var(--saffron); background:#2a2011; box-shadow:0 0 0 2px rgba(224,138,26,.35)}
   .mfield label{font-size:10px; color:var(--mut); display:block; margin-bottom:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
   .mfield input{width:100%; background:transparent; border:none; color:var(--txt); outline:none; font-size:17px; font-weight:600; padding:2px 0}
@@ -651,7 +653,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v192</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v193</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1221,6 +1223,11 @@ const T={
   vm_offline:'Speech needs internet — type as usual', vm_err:'Could not hear — try again',
   vm_ready_say:'Ready. Say the field and the number.', vm_stopped:'Stopped',
   bk_take:'Take a backup', bk_more:'More options', bk_less:'Hide',
+  dft_keep_title:'This order is not finished', dft_keep_msg:'Keep it to carry on later, or throw it away?',
+  dft_keep:'Keep it', dft_drop:'Throw away',
+  vm_out_soft:'{v}? say it again', vm_saved_short:'{v}', vm_next_short:'done — next',
+  ms_title:'Measurement limits', ms_sub:'A number outside these is flagged, never blocked — a child\u2019s measurements are simply smaller.',
+  ms_min:'Least', ms_max:'Most', ms_reset:'Back to normal', ms_flag:'outside the usual range',
   ph_one_more:'One more', ph_more_hint:'Take the next photo without leaving this screen.',
   bk_one_file_note:'One file — orders, measurements, stock, tailor accounts and photos together.',
   bk_file_empty:'This file is empty — it holds no data. Take the backup again and choose "Save to Files".',
@@ -2372,6 +2379,11 @@ const T={
   vm_offline:'आवाज़ के लिए इंटरनेट चाहिए — हमेशा की तरह टाइप कीजिए', vm_err:'सुनाई नहीं दिया — फिर बोलिए',
   vm_ready_say:'तैयार। नाप का नाम और नंबर बोलिए।', vm_stopped:'बंद',
   bk_take:'बैकअप लें', bk_more:'और विकल्प', bk_less:'छुपाएँ',
+  dft_keep_title:'यह ऑर्डर अधूरा है', dft_keep_msg:'बाद में पूरा करने के लिए रखें, या हटा दें?',
+  dft_keep:'रखिए', dft_drop:'हटा दीजिए',
+  vm_out_soft:'{v}? फिर से बोलिए', vm_saved_short:'{v}', vm_next_short:'हो गया — अगला',
+  ms_title:'नाप की सीमा', ms_sub:'इससे बाहर का नंबर सिर्फ़ निशान लगाएगा, रोकेगा नहीं — बच्चे का नाप छोटा ही होता है।',
+  ms_min:'कम से कम', ms_max:'ज़्यादा से ज़्यादा', ms_reset:'सामान्य पर लाएँ', ms_flag:'आम सीमा से बाहर',
   ph_one_more:'एक और', ph_more_hint:'यहीं से अगली फ़ोटो लीजिए, पीछे जाने की ज़रूरत नहीं।',
   bk_one_file_note:'एक ही फ़ाइल — ऑर्डर, नाप, स्टॉक, करीगर हिसाब और फ़ोटो सब साथ।',
   bk_file_empty:'यह फ़ाइल ख़ाली है — इसमें कोई डेटा नहीं है। दोबारा बैकअप लीजिए और "Save to Files" चुनिए।',
@@ -7995,7 +8007,12 @@ function openOrderForm(editId){
       source:o.source||'', sourceRef:o.sourceRef||'',
       members:JSON.parse(JSON.stringify(o.members||[]))};
   }else{
-    form={editId:null,orderNo:nextOrderNo(),customerId:null,customerName:'',phone:'',salesmanId:'',
+    /* v193 — HIS 14 Aug screenshot: TWO drafts both carrying #2581, and a saved order
+       #2581 as well. The number was handed out the moment the form opened, so every
+       abandoned attempt walked away holding one and the same number reached three
+       records. Numbering is how the shop finds a garment physically, so a number is now
+       taken only when the order is actually saved. Until then the form shows no number. */
+    form={editId:null,orderNo:'',customerId:null,customerName:'',phone:'',salesmanId:'',
       orderDate:new Date().toISOString().slice(0,10),deliveryDate:'',   /* HIS #6: "delivery date important hai, poochhna chahiye." It was
     quietly pre-filled, so he could save an order having never once looked at the one date
     the whole production board runs on. Now it starts empty and Save refuses without it. */items:[],m:{},design:{},variant:{},notes:'',total:'',advance:'',photos:[],voiceNotes:[],itemPhotos:{},itemVoice:{},bodyType:[],members:[],dispatch:null,source:'',sourceRef:'',sampleId:''};
@@ -8326,9 +8343,10 @@ function measCardHTML(f,key){
   const fields=shown.map(col=>{const isLen=col.k==='L';const val=vals[col.k]||'';
     const isAuto=!!(val&&autoM[col.k]);
     const isVoice=!!(val&&(((f.mVoice||{})[key])||{})[col.k]);
+    const isOdd=!!(val&&(((f.mFlag||{})[key])||{})[col.k]);   // v193: written, but worth a second look
     if(col.type==='select'){const opts=['<option value="">—</option>'].concat((col.options||[]).map(o=>`<option value="${esc(o)}" ${val===o?'selected':''}>${esc(o)}</option>`)).join('');
       return `<div class="mfield"><label>${esc(col.n)}</label><select class="mInput" data-g="${dkey}" data-k="${col.k}" style="width:100%;background:transparent;border:none;color:var(--txt);font-size:15px;font-weight:600;outline:none">${opts}</select></div>`;}
-    return `<div class="mfield ${isLen?'lenhl':''} ${isAuto?'auto-f':''} ${isVoice?'voice-f':''}"><label>${esc(col.n)}${isLen?' ★':''}</label>
+    return `<div class="mfield ${isLen?'lenhl':''} ${isAuto?'auto-f':''} ${isVoice?'voice-f':''} ${isOdd?'odd-f':''}" ${isOdd?'title="'+esc(t('ms_flag'))+'"':''}><label>${esc(col.n)}${isLen?' ★':''}${isOdd?' ⚠️':''}</label>
       <input class="mInput ${val?'filled':''}" inputmode="${col.type==='text'?'text':'decimal'}" data-g="${dkey}" data-k="${col.k}" value="${esc(val)}" placeholder="—"
         ${isAuto?'data-auto="1"':''} onkeydown="if(event.key==='Enter'){measStep(event,1)}"></div>`;}).join('');
 
@@ -8512,7 +8530,7 @@ function renderForm(){
       <div class="wk-bar">
         <button class="btn sm ghost" onclick="ordStage(1)">☰ ${t('wk_back')}</button>
         <span class="wk-pos">${t('wk_stage3')}</span></div>
-      <h2 style="margin:0 0 10px">${f.editId?t('edit_order'):t('new_order')} #${esc(f.orderNo||'')}</h2>
+      <h2 style="margin:0 0 10px">${f.editId?t('edit_order'):t('new_order')}${f.orderNo?' #'+esc(f.orderNo):''}</h2>
       ${/* HIS BUG, Aug 8: "naam kahan likhu." Save Order refused with "Enter customer name"
            while the ONLY customer box lived back on stage 1 — the screen demanded something
            it gave him no way to type. That is the worst kind of dead end. The last step is
@@ -8531,7 +8549,7 @@ function renderForm(){
       ${/* v187: both moved off stage 1. They are filled in for him and rarely touched,
            but they must stay reachable — the number is how the shop finds the garment. */''}
       <div class="row"><div class="field"><label>${t('order_no')} *</label>
-          <input id="f_ono" value="${esc(f.orderNo)}" placeholder="2481"></div>
+          <input id="f_ono" value="${esc(f.orderNo||nextOrderNo())}" placeholder="2481"></div>
         <div class="field"><label>${t('order_date')}</label>${dateField("f_odate",f.orderDate)}</div></div>
       ${ordBillBlockHTML(f)}
       ${ordExtrasHTML(f)}
@@ -8561,7 +8579,7 @@ function renderForm(){
      and shown as one quiet line; both are still editable, on the LAST screen, which is
      where the order is actually finished. Nothing was removed from the record. */
   sh.innerHTML=`${head}<h2 style="margin:0 0 4px">${f.editId?t('edit_order'):t('new_order')}</h2>
-    <p class="hint" style="margin:0 0 10px">#${esc(f.orderNo||'')} · ${fmtDate(f.orderDate)}</p>
+    <p class="hint" style="margin:0 0 10px">${f.orderNo?'#'+esc(f.orderNo)+' · ':''}${fmtDate(f.orderDate)}</p>
     <div id="draftHint" class="draft-hint">🔒 ${t('draft_never')}</div>
     ${itemsSection}
     <div class="save-dock">${cancelBtn}
@@ -9088,6 +9106,7 @@ function measStep(e,dir){ e.preventDefault();
 let _noPhoneOK=false, _dupPhOK=false;
 function saveOrder(){
   captureForm();const f=form; f.items=sortItems(f.items);
+  if(!f.orderNo)f.orderNo=nextOrderNo();          // v193: the number is earned at save
   if(!f.orderNo){toast(t('t_no_ono'),'bad');return;}
   if(!f.customerName){
     toast(t('t_no_name'),'bad');
@@ -9220,11 +9239,23 @@ const VM_FIELD={chest:'C','छाती':'C',chesst:'C',belly:'B','पेट':'B
   neck:'N','गला':'N','कॉलर':'N',collar:'N',length:'L','लंबाई':'L','लम्बाई':'L',lenth:'L',
   thigh:'TH','जांघ':'TH',mori:'M','मोरी':'M','crotch':'CR','सीट':'CR',bicep:'BI','बाजू':'BI'};
 /* the gate. Outside these a value is REFUSED out loud — never quietly written. */
-const VM_RANGE={C:[26,60],B:[24,60],H:[26,60],W:[22,54],S:[12,24],SL:[18,30],N:[11,22],
+/* v193 — HIS 14 Aug: "ye restriction sahi hai per child ke situation me gadbar ho jayegi,
+   kabhi kabhi log bache ka bhi banva lete hain." A child's shoulder is 10 and the limit
+   started at 12, so a perfectly correct measurement was refused and the work stopped dead.
+   Two things follow. These numbers are this shop's habit, not a fact, so they move to
+   Settings where any shop can set its own. And being outside them now raises a flag
+   instead of a wall — the number is written, marked, and he decides. */
+const VM_RANGE_DEF={C:[26,60],B:[24,60],H:[26,60],W:[22,54],S:[12,24],SL:[18,30],N:[11,22],
   L:[12,60],TH:[16,36],M:[10,26],CR:[8,20],BI:[8,22]};
+function vmRange(k){
+  try{ const o=(DB.measRange||{})[k];
+    if(o && o.length===2 && isFinite(o[0]) && isFinite(o[1]) && +o[0]<+o[1]) return [+o[0],+o[1]];
+  }catch(e){}
+  return VM_RANGE_DEF[k];
+}
 function vmSpeak(txt){
   try{ if(!window.speechSynthesis)return;
-    const u=new SpeechSynthesisUtterance(txt); u.lang=sttLang(); u.rate=1.45;  // v191: measuring pace, not reading pace
+    const u=new SpeechSynthesisUtterance(txt); u.lang=sttLang(); u.rate=1.3;   // v193: brisk, not hurried
     window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
   }catch(e){}
 }
@@ -9338,15 +9369,8 @@ function vmHandle(txt){
     if(Math.abs(p.val)>3){ vmRefuse(t('vm_bigrel')); return; }   // "+20" must never slip through
     val=r2(cur + p.relDir*Math.abs(p.val));
   }
-  const rg=VM_RANGE[k];
-  if(rg && (val<rg[0]||val>rg[1])){
-    /* v191: a refused number used to leave him staring at a box that would not take it.
-       Say it short, keep the same box live, and stay listening — he just says it again. */
-    /* v192 — MY v191 bug: refusing a number re-lit the live box by searching for the
-       first empty field, which is Length — so after "shoulder 29" the cursor jumped all
-       the way back to Length, exactly as he saw. A refusal must move nothing at all. */
-    vmRefuse(t('vm_range',{v:val,a:rg[0],b:rg[1]}));
-    _vmField=k; vmLight(k); return; }
+  const rg=vmRange(k);
+  const outOfRange = !!(rg && (val<rg[0]||val>rg[1]));
 
   /* v192 — the v191 guard compared WORDS, so "29" and "length 29" looked like two
      different things and both got written; that is exactly what filled four boxes from
@@ -9368,8 +9392,15 @@ function vmHandle(txt){
      back into the data, and the screen at that instant was still the OLD render with
      Length empty — so `else delete f.m[gid][k]` wiped the number he had just spoken.
      THEN renderForm() drew the now-empty data. Render first, save second. */
+  /* v193: remember which numbers looked odd, so the card can mark them without arguing */
+  f.mFlag=f.mFlag||{}; f.mFlag[key]=f.mFlag[key]||{};
+  if(outOfRange)f.mFlag[key][k]=1; else delete f.mFlag[key][k];
   renderForm(); save(); saveDraft();
-  vmSpeak(String(val));                   // v190: just the number — a name every time is too slow
+  /* v193 — HIS 14 Aug: "automated voice thoda friendly language me ho sakta hai kya,
+     thoda human type bhi lage." It read out a whole sentence for every value. A man
+     calling measurements across a shop says the number and nothing else. */
+  vmSpeak(outOfRange ? t('vm_out_soft',{v:val}) : String(val));
+  if(outOfRange) toast('⚠️ '+val+' — '+t('ms_flag'),'bad');
   vmFocus(k);                             // v190: hands-free — move on so the next word needs no field name
   if(vmAllFilled(f,key)){ const n=walkNext(f,key);
     if(n){ _vmKey=n; setTimeout(()=>{ordStage(2,n); vmSpeak(t('vm_next'));},120); }   // v191: was 400ms
@@ -9397,6 +9428,32 @@ function vmLight(k){
     if(k){ const inp=document.querySelector('.mInput[data-g="'+CSS.escape(key)+'"][data-k="'+CSS.escape(k)+'"]');
       if(inp){ const fl=inp.closest('.mfield'); if(fl){fl.classList.add('vm-live'); fl.scrollIntoView({block:'center'});} } }
   }catch(e){}
+}
+/* v193 — the limits live here, editable, because they are a shop's habit and not a fact.
+   Left blank they fall back to the shipped numbers; nothing is ever deleted. */
+function measRangeEdit(){
+  const names={C:'Chest',B:'Belly',H:'Hip',W:'Waist',S:'Shoulder',SL:'Sleeve',N:'Neck',
+    L:'Length',TH:'Thigh',M:'Mohri',CR:'Crotch',BI:'Bicep'};
+  const rows=Object.keys(VM_RANGE_DEF).map(k=>{
+    const cur=vmRange(k), d=VM_RANGE_DEF[k];
+    return `<div class="row" style="gap:8px;align-items:center;margin-bottom:6px">
+      <span style="flex:1;font-weight:700;font-size:14px">${esc(names[k]||k)}</span>
+      <input data-mr="${k}" data-mri="0" type="number" inputmode="decimal" value="${cur[0]}" placeholder="${d[0]}" style="width:74px;margin:0">
+      <span class="hint">–</span>
+      <input data-mr="${k}" data-mri="1" type="number" inputmode="decimal" value="${cur[1]}" placeholder="${d[1]}" style="width:74px;margin:0">
+    </div>`;}).join('');
+  modal('📏 '+t('ms_title'),
+    `<p class="hint" style="margin:0 0 10px">${t('ms_sub')}</p>${rows}`,
+    [{label:t('ms_reset'),cls:'ghost',fn:()=>{ delete DB.measRange; save(); closeModal(); measRangeEdit(); }},
+     {label:t('save'),cls:'primary',fn:()=>{
+        const out={};
+        document.querySelectorAll('[data-mr]').forEach(inp=>{
+          const k=inp.dataset.mr, i=+inp.dataset.mri, v=parseFloat(inp.value);
+          if(!isFinite(v))return; out[k]=out[k]||[null,null]; out[k][i]=v; });
+        const clean={};
+        Object.keys(out).forEach(k=>{ const a=out[k];
+          if(a[0]!=null&&a[1]!=null&&a[0]<a[1])clean[k]=[a[0],a[1]]; });
+        DB.measRange=clean; save(); closeModal(); toast(t('saved'),'ok'); }}]);
 }
 function vmFieldName(g,k){ const c=vcols(g||{}).find(x=>x.k===k); return c?c.n:k; }
 function vmAllFilled(f,key){
@@ -13583,6 +13640,7 @@ function settingsMenu(){modal(t('settings'),`
   <button class="btn ghost block" style="margin-bottom:8px" onclick="toggleSTTLang(this)">🎤 ${t('voice_lang')}: <b>${sttLangLabel()}</b></button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();shopInfoEdit()">🧾 ${t('shop_details')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();modulesEdit()">🧩 ${t('mod_title')}</button>
+  <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();measRangeEdit()">📏 ${t('ms_title')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();karigarBook()">👷 ${t('kb_title')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();karigarMaster()">👷 ${t('karigar_master')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();paymentQR()">💳 ${t('qr_title')}</button>
@@ -15407,7 +15465,7 @@ async function restoreSnapshot(key){
 let _sheetOn=false, _popping=false, _curTab='home', _exitArm=0;
 function sheetIsOpen(){return $('#scrim').classList.contains('show');}
 function pushGuard(){try{history.pushState({pbGuard:Date.now()},'');}catch(e){}}
-let _place=null;
+let _place=null, _draftAsked=false;
 function _fieldDesc(el){
   if(!el||!/^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName))return null;
   const d=el.dataset||{};
@@ -15541,6 +15599,26 @@ function bindSheetSwipe(){
 }
 function closeSheet(){
   if(modalIsOpen()){ closeModal(); return; }      // a modal on top closes first — the form stays
+  /* v193 — HIS 14 Aug: "back jane se ye as a draft save ho jata hai, isko bhi kuch rule
+     hona chahiye — har cheez draft par nahi chahiye." Right: a practice run and a real
+     customer who stepped out mid-measurement look identical to the app, so it cannot
+     decide on its own — and quietly binning a real half-taken order would be far worse
+     than a stray draft. So it asks, once, and he decides. */
+  if(formIsOpen() && !_draftAsked){
+    try{ captureForm(); }catch(e){}
+    if(form && !form.editId && formHasContent(form)){
+      _draftAsked=true;
+      /* the flag MUST stay up while we call closeSheet() again — confirmModal's own
+         buttons call closeSheet(), so clearing it first would re-ask forever. The
+         second pass falls straight through and resets the flag on its way out. */
+      confirmModal('📝 '+t('dft_keep_title'), t('dft_keep_msg'),
+        ()=>{ closeModal(); try{saveDraft();}catch(e){} closeSheet(); },
+        ()=>{ closeModal(); try{clearDraft();}catch(e){} closeSheet(); },
+        {yes:t('dft_keep'), no:t('dft_drop'), cls:'primary'});
+      return;
+    }
+  }
+  _draftAsked=false;
   $('#scrim').classList.remove('show');$('#scrim').classList.remove('full');
   $('#fracbar').classList.remove('show');document.body.classList.remove('fb-on');
   _place=null;                                    // don't restore a place into a later visit
