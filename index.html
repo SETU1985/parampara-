@@ -651,7 +651,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v190</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v192</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -9224,7 +9224,7 @@ const VM_RANGE={C:[26,60],B:[24,60],H:[26,60],W:[22,54],S:[12,24],SL:[18,30],N:[
   L:[12,60],TH:[16,36],M:[10,26],CR:[8,20],BI:[8,22]};
 function vmSpeak(txt){
   try{ if(!window.speechSynthesis)return;
-    const u=new SpeechSynthesisUtterance(txt); u.lang=sttLang(); u.rate=1.05;
+    const u=new SpeechSynthesisUtterance(txt); u.lang=sttLang(); u.rate=1.45;  // v191: measuring pace, not reading pace
     window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
   }catch(e){}
 }
@@ -9285,7 +9285,15 @@ function vmToggle(key){
               : (e.error==='audio-capture') ? t('vm_nomic')
               : (e.error==='network') ? t('vm_offline') : t('vm_err');
     toast('🎙️ '+why,'bad'); vmSpeak(why); vmStop(); };
-  r.onend=()=>{ if(_vmOn){ try{ r.start(); }catch(e){ vmStop(); } } };   // keep listening between breaths
+  /* v192 — HIS 14 Aug: "the voice command turned off by itself too." When the engine
+     stops between breaths the restart can throw (it is still winding down), and the old
+     code took that one throw as the end and shut the mic off without a word. Try again a
+     moment later, and if it truly will not come back, SAY so — never stop in silence. */
+  r.onend=()=>{ if(!_vmOn)return;
+    try{ r.start(); }
+    catch(e){ setTimeout(()=>{ if(!_vmOn)return;
+        try{ r.start(); }catch(e2){ toast('🎙️ '+t('vm_stopped'),'bad'); vmSpeak(t('vm_stopped')); vmStop(); }
+      },350); } };
   try{ r.start(); }catch(e){ _vmOn=false; toast(t('vm_err'),'bad'); return; }
   renderForm(); vmSpeak(t('vm_ready_say')); setTimeout(()=>vmFocus(null),150);
 }
@@ -9297,7 +9305,14 @@ function vmStop(){
   try{ if(window.speechSynthesis)window.speechSynthesis.cancel(); }catch(e){}
   if(form)renderForm();
 }
+let _vmEcho={k:null,v:null,at:0};
 function vmHandle(txt){
+  /* v191 — HIS 14 Aug: he said "29" ONCE and it landed in Length, Chest, Belly AND Hip,
+     then jammed on Shoulder with an out-of-range refusal. The phone hands the same final
+     transcript to the page more than once (continuous recognition plus the auto-restart
+     between breaths), and every copy wrote into whatever box was live and stepped the
+     live box on — so one spoken number filled a whole row. A repeat of the same words
+     within two seconds is the phone stuttering, never a man measuring twice that fast. */
   const p=vmParse(txt);
   if(p.cmd==='stop'){ vmSpeak(t('vm_stopped')); vmStop(); return; }
   if(p.cmd==='skip'){ const n=walkNext(form,_vmKey); if(n){ _vmKey=n; ordStage(2,n); vmSpeak(t('vm_next')); } return; }
@@ -9324,7 +9339,22 @@ function vmHandle(txt){
     val=r2(cur + p.relDir*Math.abs(p.val));
   }
   const rg=VM_RANGE[k];
-  if(rg && (val<rg[0]||val>rg[1])){ vmRefuse(t('vm_range',{v:val,a:rg[0],b:rg[1]})); return; }
+  if(rg && (val<rg[0]||val>rg[1])){
+    /* v191: a refused number used to leave him staring at a box that would not take it.
+       Say it short, keep the same box live, and stay listening — he just says it again. */
+    /* v192 — MY v191 bug: refusing a number re-lit the live box by searching for the
+       first empty field, which is Length — so after "shoulder 29" the cursor jumped all
+       the way back to Length, exactly as he saw. A refusal must move nothing at all. */
+    vmRefuse(t('vm_range',{v:val,a:rg[0],b:rg[1]}));
+    _vmField=k; vmLight(k); return; }
+
+  /* v192 — the v191 guard compared WORDS, so "29" and "length 29" looked like two
+     different things and both got written; that is exactly what filled four boxes from
+     one spoken number. The phone's repeats differ in wording but never in MEANING, so
+     the guard belongs here, on the resolved field-and-value, after parsing. */
+  const now2=Date.now();
+  if(_vmEcho.k===k && _vmEcho.v===String(val) && (now2-_vmEcho.at)<2500){ _vmEcho.at=now2; return; }
+  _vmEcho={k, v:String(val), at:now2};
 
   _vmLast={key,k,prev:f.m[key][k]||''};
   f.m[key][k]=String(val);
@@ -9342,7 +9372,7 @@ function vmHandle(txt){
   vmSpeak(String(val));                   // v190: just the number — a name every time is too slow
   vmFocus(k);                             // v190: hands-free — move on so the next word needs no field name
   if(vmAllFilled(f,key)){ const n=walkNext(f,key);
-    if(n){ _vmKey=n; setTimeout(()=>{ordStage(2,n); vmSpeak(t('vm_next'));},400); }
+    if(n){ _vmKey=n; setTimeout(()=>{ordStage(2,n); vmSpeak(t('vm_next'));},120); }   // v191: was 400ms
     else vmSpeak(t('vm_done')); }
 }
 /* v190 — HANDS-FREE. One boy holds the tape and talks; nobody should have to type or tap.
@@ -9358,9 +9388,13 @@ function vmFocus(afterK){
   let next=null;
   for(let i=start;i<cols.length;i++){ if(!MEAS_SECONDARY.includes(cols[i])&&!filled(cols[i])){next=cols[i];break;} }
   if(!next) for(let i=0;i<cols.length;i++){ if(!MEAS_SECONDARY.includes(cols[i])&&!filled(cols[i])){next=cols[i];break;} }
-  _vmField=next;
+  _vmField=next; vmLight(next);
+}
+/* v192: light a box without choosing one — a refusal must not re-pick the field */
+function vmLight(k){
+  const key=_vmKey; if(!key)return;
   try{ document.querySelectorAll('.mfield').forEach(el=>el.classList.remove('vm-live'));
-    if(next){ const inp=document.querySelector('.mInput[data-g="'+CSS.escape(key)+'"][data-k="'+CSS.escape(next)+'"]');
+    if(k){ const inp=document.querySelector('.mInput[data-g="'+CSS.escape(key)+'"][data-k="'+CSS.escape(k)+'"]');
       if(inp){ const fl=inp.closest('.mfield'); if(fl){fl.classList.add('vm-live'); fl.scrollIntoView({block:'center'});} } }
   }catch(e){}
 }
