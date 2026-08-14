@@ -653,7 +653,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v193</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v196</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1223,6 +1223,13 @@ const T={
   vm_offline:'Speech needs internet — type as usual', vm_err:'Could not hear — try again',
   vm_ready_say:'Ready. Say the field and the number.', vm_stopped:'Stopped',
   bk_take:'Take a backup', bk_more:'More options', bk_less:'Hide',
+  inv_no_taken:'{a} was already used — this bill is {b}',
+  od_cust_edit:'Customer', od_cust_saved:'Customer updated',
+  od_add_remove:'Add / remove a piece',
+  od_edit_hint2:'Tap the name, the phone, the date, the order number or any measurement above to correct it right here.',
+  od_cust_hint:'This corrects the name and number on this order and on the customer record.',
+  ph_digits_only:'A phone number can only have digits',
+  vm_saving:'saving', vm_cleared:'cleared',
   dft_keep_title:'This order is not finished', dft_keep_msg:'Keep it to carry on later, or throw it away?',
   dft_keep:'Keep it', dft_drop:'Throw away',
   vm_out_soft:'{v}? say it again', vm_saved_short:'{v}', vm_next_short:'done — next',
@@ -2379,6 +2386,13 @@ const T={
   vm_offline:'आवाज़ के लिए इंटरनेट चाहिए — हमेशा की तरह टाइप कीजिए', vm_err:'सुनाई नहीं दिया — फिर बोलिए',
   vm_ready_say:'तैयार। नाप का नाम और नंबर बोलिए।', vm_stopped:'बंद',
   bk_take:'बैकअप लें', bk_more:'और विकल्प', bk_less:'छुपाएँ',
+  inv_no_taken:'{a} पहले ही इस्तेमाल हो चुका है — यह बिल {b} है',
+  od_cust_edit:'ग्राहक', od_cust_saved:'ग्राहक बदल दिया',
+  od_add_remove:'पीस जोड़ें / हटाएँ',
+  od_edit_hint2:'ऊपर नाम, फ़ोन, तारीख़, ऑर्डर नंबर या कोई भी नाप — जिस पर टैप कीजिए, वहीं सुधर जाएगा।',
+  od_cust_hint:'इससे इस ऑर्डर और ग्राहक दोनों में नाम और नंबर सुधर जाएगा।',
+  ph_digits_only:'फ़ोन नंबर में सिर्फ़ अंक होते हैं',
+  vm_saving:'सेव कर रहे हैं', vm_cleared:'हटा दिया',
   dft_keep_title:'यह ऑर्डर अधूरा है', dft_keep_msg:'बाद में पूरा करने के लिए रखें, या हटा दें?',
   dft_keep:'रखिए', dft_drop:'हटा दीजिए',
   vm_out_soft:'{v}? फिर से बोलिए', vm_saved_short:'{v}', vm_next_short:'हो गया — अगला',
@@ -6433,7 +6447,7 @@ function fuAddPhone(key){
   modal('📞 '+t('fu_add_phone'),
     `<p class="hint" style="margin-bottom:10px">${t('fu_phone_for',{name:esc(g.name)})}</p>
      <div class="field"><label>${t('phone')}</label>
-       <input id="fuPh" type="tel" inputmode="tel" placeholder="9800000000"></div>`,
+       <input id="fuPh" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" inputmode="tel" placeholder="9800000000"></div>`,
     [{label:t('cancel'),cls:'ghost',fn:()=>followUps()},
      {label:t('save'),cls:'primary',fn:()=>{
         const ph=($('#fuPh').value||'').replace(/\D/g,'');
@@ -7211,7 +7225,7 @@ function renderSetup(){
       <div class="field" style="margin-top:10px"><label>${t('su_owner')}</label>
         <input id="su_prop" value="${esc(s.proprietor||'')}" autocomplete="off"></div>
       <div class="field" style="margin-top:10px"><label>${t('phone')}</label>
-        <input id="su_phone" type="tel" value="${esc(s.phone||'')}" autocomplete="off"></div>
+        <input id="su_phone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" value="${esc(s.phone||'')}" autocomplete="off"></div>
       <div class="field" style="margin-top:10px"><label>${t('su_addr')}</label>
         <textarea id="su_addr" rows="2">${esc(s.address||'')}</textarea></div>
       <div class="field" style="margin-top:10px"><label>${t('su_gstin')}</label>
@@ -7776,7 +7790,7 @@ function delCustomer(id){
 function editCustomer(id,isNew){const c=custById(id); _custPhotoId=id;
   $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h3 style="margin:0">${t('cust_edit')}</h3><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     <div class="field"><label>${t('customer')}</label><input id="ec_name" value="${esc(c.name)}"></div>
-    <div class="field"><label>${t('phone')}</label><input id="ec_phone" type="tel" value="${esc(c.phone)}"></div>
+    <div class="field"><label>${t('phone')}</label><input id="ec_phone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" value="${esc(c.phone)}"></div>
     <div class="section-h">🧍 ${t('bp_title')}</div>
     <p class="hint" style="margin:0 0 8px">${t('bp_hint')}</p>
     <div class="media-row" id="cu_body" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start"></div>
@@ -8540,7 +8554,7 @@ function renderForm(){
         <div id="custSearchWrap" style="${f.customerName?'display:none':''}">
           <input id="f_cname" placeholder="${t('name_ph')}" autocomplete="off" onfocus="custSearch(this.value)" oninput="custSearch(this.value)" value="${esc(f.customerName)}">
           <div id="custResults"></div>
-          <input id="f_cphone" type="tel" placeholder="${t('phone')}" value="${esc(f.phone)}" style="margin-top:8px">
+          <input id="f_cphone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" placeholder="${t('phone')}" value="${esc(f.phone)}" style="margin-top:8px">
           ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost" style="margin-top:8px" onclick="pickContact()">📇 ${t('from_contacts')}</button>`:''}</div></div>
       ${mems.map(m=>quickLenHTML(f,itemsOfMember(f,m.id))).join('')}
       ${smpPickHTML(f)}
@@ -8584,7 +8598,14 @@ function renderForm(){
     ${itemsSection}
     <div class="save-dock">${cancelBtn}
       ${walk.length
-        ? `<button class="btn primary" style="flex:2" onclick="startNaap()">▶ ${t('naap_start',{n:walk.length})}</button>`
+        ? (f.editId
+            /* v196 — HIS 13 Aug: "wahan Start measuring wali button ka koi sense hai?"
+               No. On an EXISTING order the measurements are already taken and shown on
+               the order screen; he came here to add or drop a piece, nothing else. So
+               editing gets a Done button that returns him to the order, and measuring
+               keeps its own button where it belongs. */
+            ? `<button class="btn primary" style="flex:2" onclick="saveOrder()">✓ ${t('done')}</button>`
+            : `<button class="btn primary" style="flex:2" onclick="startNaap()">▶ ${t('naap_start',{n:walk.length})}</button>`)
         : `<button class="btn primary" style="flex:2;opacity:.45" disabled>▶ ${t('wk_pick_first')}</button>`}
     </div>
     <div class="fab-pad"></div>`;
@@ -9229,8 +9250,21 @@ const VM_NUM_HI={'शून्य':0,'एक':1,'दो':2,'तीन':3,'चा
   'उनतीस':29,'तीस':30,'इकतीस':31,'बत्तीस':32,'तैंतीस':33,'चौंतीस':34,'पैंतीस':35,'छत्तीस':36,'सैंतीस':37,'अड़तीस':38,
   'उनतालीस':39,'चालीस':40,'इकतालीस':41,'बयालीस':42,'तैंतालीस':43,'चवालीस':44,'पैंतालीस':45,'छियालीस':46,
   'सैंतालीस':47,'अड़तालीस':48,'उनचास':49,'पचास':50,'बावन':52,'चौवन':54,'छप्पन':56,'अट्ठावन':58,'साठ':60};
+/* v195 — HIS 14 Aug: "Hindi ke kaafi number samajhta hi nahi hai." The table above is
+   pure Devanagari, but the recogniser is running in a Hinglish shop and hands back ROMAN
+   text — "chalis", "paintis", "sadhe". None of it matched, so perfectly clear numbers
+   were dropped. Same words, the way they actually arrive. */
+const VM_NUM_HING={'ek':1,'do':2,'teen':3,'char':4,'char':4,'paanch':5,'panch':5,'chhe':6,'che':6,'chah':6,
+  'saat':7,'aath':8,'nau':9,'das':10,'gyarah':11,'gyara':11,'barah':12,'bara':12,'terah':13,'tera':13,
+  'chaudah':14,'chauda':14,'pandrah':15,'pandra':15,'solah':16,'sola':16,'satrah':17,'satra':17,
+  'atharah':18,'athara':18,'unnis':19,'bees':20,'bis':20,'ikkis':21,'bais':22,'teis':23,'chaubis':24,
+  'pachchis':25,'pachis':25,'chhabbis':26,'sattais':27,'atthais':28,'untis':29,'tees':30,'tis':30,
+  'ikattis':31,'battis':32,'taintis':33,'chauntis':34,'paintis':35,'chhattis':36,'saintis':37,
+  'adtis':38,'untalis':39,'chalis':40,'ikatalis':41,'bayalis':42,'taintalis':43,'chawalis':44,
+  'paintalis':45,'chhiyalis':46,'saintalis':47,'adtalis':48,'unchas':49,'pachas':50,
+  'bawan':52,'chauwan':54,'chhappan':56,'atthawan':58,'saath':60};
 /* fractions — his shop speaks in these constantly */
-const VM_FRAC=[[/साढ़े|सादे/,0.5,'pre'],[/सवा/,0.25,'pre'],[/पौने/,-0.25,'pre'],
+const VM_FRAC=[[/साढ़े|सादे|sadhe|sade|sarhe/,0.5,'pre'],[/सवा|sawa|sava/,0.25,'pre'],[/पौने|paune|pone/,-0.25,'pre'],
   [/three\s*fourth|three\s*quarter|पौन/,0.75,'post'],[/half|आधा|आधे/,0.5,'post'],
   [/quarter|चौथाई/,0.25,'post'],[/एक\s*चौथाई/,0.25,'post']];
 /* every field a human can say, mapped to the column key. NEVER add a control word here. */
@@ -9255,7 +9289,11 @@ function vmRange(k){
 }
 function vmSpeak(txt){
   try{ if(!window.speechSynthesis)return;
-    const u=new SpeechSynthesisUtterance(txt); u.lang=sttLang(); u.rate=1.3;   // v193: brisk, not hurried
+    const u=new SpeechSynthesisUtterance(txt); u.lang=sttLang();
+    /* v195 — HIS 14 Aug: "bahut fast hai, automatic voice samajh hi nahi aata kya bol
+       raha hai." A short utterance like "36" is over before the ear catches it at speed.
+       Normal talking pace is 1.0; anything above it clips short words. */
+    u.rate=1.0;
     window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
   }catch(e){}
 }
@@ -9266,6 +9304,21 @@ function vmParse(raw){
   if(/\b(band|बंद|stop|रोको)\b/.test(s))return {cmd:'stop'};
   if(/\b(aage|आगे|chhodo|छोड़ो|skip)\b/.test(s))return {cmd:'skip'};
   if(/\b(nahi|नहीं|galat|ग़लत|गलत|undo)\b/.test(s))return {cmd:'undo'};
+  /* v195 — HIS 14 Aug, three things he said out loud that the app simply ignored:
+     "crotch F 25 ki jagah likh diya to theek karne ka command nahi sun raha", "save karne
+     ko bola order to nahi sun raha", "front chest nahi chahiye bola to bhi nahi samajh
+     raha". All three are ordinary shop speech, so all three are commands now.
+     "<field> nahi chahiye" must be tested BEFORE the plain undo above would swallow it,
+     which is why the field is read out of the phrase here rather than later. */
+  if(/\b(save|सेव|sev)\b/.test(s)||/\border\s*(save|complete|khatam|पूरा)\b/.test(s))return {cmd:'save'};
+  if(/(nahi chahiye|नहीं चाहिए|hata|हटा|remove|nikal|निकाल)/.test(s)){
+    let ck=null; for(const w in VM_FIELD){ if(new RegExp('(^|\\s)'+w+'(\\s|$)').test(s)){ ck=VM_FIELD[w]; break; } }
+    return {cmd:'clear', k:ck};
+  }
+  if(/(theek karo|ठीक करो|badlo|बदलो|change|correct|sudharo|सुधारो)/.test(s)){
+    let ck=null; for(const w in VM_FIELD){ if(new RegExp('(^|\\s)'+w+'(\\s|$)').test(s)){ ck=VM_FIELD[w]; break; } }
+    if(ck)return {cmd:'goto', k:ck};
+  }
 
   let k=null;
   for(const w in VM_FIELD){ if(new RegExp('(^|\\s)'+w+'(\\s|$)').test(s)){ k=VM_FIELD[w]; break; } }
@@ -9282,6 +9335,8 @@ function vmParse(raw){
        other constantly (सैंतालीस/तालीस, अड़तीस/तीस); never match the short one first. */
     const hiKeys=Object.keys(VM_NUM_HI).sort((a,b)=>b.length-a.length);
     for(const w of hiKeys){ if(s.indexOf(w)>=0){ nums.push(VM_NUM_HI[w]); break; } }
+    if(!nums.length){ const hg=Object.keys(VM_NUM_HING).sort((a,b)=>b.length-a.length);
+      for(const w of hg){ if(new RegExp('(^|\\s)'+w+'(\\s|$)').test(s)){ nums.push(VM_NUM_HING[w]); break; } } }
     if(!nums.length)for(const w in VM_NUM_EN){ if(new RegExp('(^|\\s)'+w+'(\\s|$)').test(s)){ nums.push(VM_NUM_EN[w]); break; } }
   }
   // he sometimes repeats himself: the SAME number twice is one number; two DIFFERENT
@@ -9348,6 +9403,16 @@ function vmHandle(txt){
   if(p.cmd==='stop'){ vmSpeak(t('vm_stopped')); vmStop(); return; }
   if(p.cmd==='skip'){ const n=walkNext(form,_vmKey); if(n){ _vmKey=n; ordStage(2,n); vmSpeak(t('vm_next')); } return; }
   if(p.cmd==='undo'){ vmUndo(); return; }
+  /* v195: the three commands he asked for, doing what the words plainly mean */
+  if(p.cmd==='save'){ vmStop(); vmSpeak(t('vm_saving')); setTimeout(()=>{ try{ordStage(3);}catch(e){} },200); return; }
+  if(p.cmd==='clear'){
+    const f2=form, key2=_vmKey; const kk=p.k||_vmField;
+    if(!f2||!key2||!kk){ vmRefuse(t('vm_nofield')); return; }
+    if(f2.m&&f2.m[key2]) delete f2.m[key2][kk];
+    if(f2.mFlag&&f2.mFlag[key2]) delete f2.mFlag[key2][kk];
+    renderForm(); save(); saveDraft(); vmSpeak(t('vm_cleared')); _vmField=kk; vmLight(kk); return;
+  }
+  if(p.cmd==='goto'){ _vmField=p.k; vmLight(p.k); vmSpeak(vmFieldName(G(_vmKey),p.k)); return; }
 
   const f=form, key=_vmKey; if(!f||!key)return;
   if(p.err==='two'){ vmRefuse(t('vm_two')); return; }
@@ -9426,7 +9491,7 @@ function vmLight(k){
   const key=_vmKey; if(!key)return;
   try{ document.querySelectorAll('.mfield').forEach(el=>el.classList.remove('vm-live'));
     if(k){ const inp=document.querySelector('.mInput[data-g="'+CSS.escape(key)+'"][data-k="'+CSS.escape(k)+'"]');
-      if(inp){ const fl=inp.closest('.mfield'); if(fl){fl.classList.add('vm-live'); fl.scrollIntoView({block:'center'});} } }
+      if(inp){ const fl=inp.closest('.mfield'); if(fl){fl.classList.add('vm-live'); try{fl.scrollIntoView({block:'center',behavior:'auto'});}catch(_){fl.scrollIntoView(false);} } } }
   }catch(e){}
 }
 /* v193 — the limits live here, editable, because they are a shop's habit and not a fact.
@@ -9711,13 +9776,14 @@ async function openDetail__inner(id,focusGid){
 
   $('#detailPane').innerHTML=`
     <div class="detail-hd"><button class="back" onclick="go('orders')">←</button>
-      <div style="flex:1"><div style="color:var(--saffron);font-size:11px;font-weight:700">#${esc(o.orderNo)} <span onclick="event.stopPropagation();odEditNo('${o.id}')" style="cursor:pointer;opacity:.7">✏️</span></div><h2>${esc(o.customerName)}</h2></div>
+      <div style="flex:1"><div style="color:var(--saffron);font-size:11px;font-weight:700">#${esc(o.orderNo)} <span onclick="event.stopPropagation();odEditNo('${o.id}')" style="cursor:pointer;opacity:.7">✏️</span></div><h2 onclick="odEditCust('${o.id}')" style="cursor:pointer">${esc(o.customerName)} <span style="opacity:.5;font-size:13px">✏️</span></h2></div>
       <button class="btn sm ghost" onclick="orderMenu('${o.id}')">⋯</button></div>
 
     <button class="btn ghost block od-info-btn" style="margin-bottom:8px" onclick="odInfoToggle()">
       📞 ${esc(o.phone||'—')} ${dl!==null&&st!=='delivered'?('· '+(dl<0?Math.abs(dl)+'d '+t('late'):dl+'d')):''} ${baaki>0.5?('· '+t('baaki')+' '+money(baaki)):''} ${_odInfo?'▴':'▾'}</button>
     <div class="od-x${_odInfo?' on':''}"><div class="card">
-      <div class="kv"><span>${t('phone')}</span><b><a onclick="callNum('${esc(o.phone)}')" style="cursor:pointer;text-decoration:underline">${esc(o.phone||'—')}</a></b></div>
+      <div class="kv"><span>${t('phone')}</span><b><a onclick="callNum('${esc(o.phone)}')" style="cursor:pointer;text-decoration:underline">${esc(o.phone||'—')}</a>
+        <span onclick="odEditCust('${o.id}')" style="cursor:pointer;opacity:.6;margin-left:8px">✏️</span></b></div>
       ${o.salesmanId?`<div class="kv"><span>🧑‍💼 ${t('salesman')}</span><b>${esc(salesmanName(o.salesmanId))}</b></div>`:''}
       <div class="kv"><span>📅 ${t('delivery')}</span>
         <b><input type="date" value="${esc(o.deliveryDate||'')}" onchange="odDateSet('${o.id}',this.value)"
@@ -9773,8 +9839,8 @@ async function openDetail__inner(id,focusGid){
     <div class="row" style="margin-top:10px;gap:8px;align-items:center">
       <div id="d_photos" style="flex:1;display:flex;gap:8px;flex-wrap:wrap"></div>
       <button class="btn sm ghost ic-btn" title="${t('add_photo')}" onclick="odAddOrderPhoto('${o.id}')">📷</button></div>
-    <p class="hint" style="margin:14px 0 4px">${t('od_edit_hint')}</p>
-    <div class="row" style="gap:6px"><button class="btn ghost" onclick="openOrderForm('${o.id}')">✏️ ${t('edit_items')}</button><button class="btn primary" onclick="sendMenu('${o.id}')">📤 ${t('send_meas')}</button><button class="btn ghost" onclick="waOrder('${o.id}')">💬 ${t('customer')}</button></div>
+    <p class="hint" style="margin:14px 0 4px">${t('od_edit_hint2')}</p>
+    <div class="row" style="gap:6px"><button class="btn ghost" onclick="openOrderForm('${o.id}')">➕ ${t('od_add_remove')}</button><button class="btn primary" onclick="sendMenu('${o.id}')">📤 ${t('send_meas')}</button><button class="btn ghost" onclick="waOrder('${o.id}')">💬 ${t('customer')}</button></div>
     <div class="fab-pad"></div>`;
 
   renderTimeline(o);
@@ -9964,7 +10030,7 @@ function renderAltForm(){
     <div class="field"><label>${t('customer')}</label><input id="a_cname" value="${esc(f.customerName)}" placeholder="${t('name_ph')}"
       autocomplete="off" onfocus="altCustSearch(this.value)" oninput="altCustSearch(this.value)">
       <div id="altCustResults"></div>
-      <input id="a_cphone" type="tel" placeholder="${t('phone')}" value="${esc(f.phone)}" style="margin-top:8px"></div>
+      <input id="a_cphone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" placeholder="${t('phone')}" value="${esc(f.phone)}" style="margin-top:8px"></div>
     <div class="field"><label>${t('alt_item')} ${micBtn('#a_item')}</label><textarea id="a_item" placeholder="${t('alt_item_ph')}">${esc(f.itemDesc)}</textarea></div>
     <div class="section-h">📏 ${t('meas_title')}</div>
     <div class="chip-grid">${allItems().map(g=>`<div class="chip ${f.garmentId===g.id?'on':''}" onclick="altPickGarment('${g.id}')"><span class="ico">${g.ico}</span>${g.n}</div>`).join('')}</div>
@@ -10208,7 +10274,7 @@ function estimateRender(){
       <input id="est_cname" placeholder="👤 ${t('name_ph')}" value="${esc(e.customerName||'')}" autocomplete="off"
         onfocus="estCustSearch(this.value)" oninput="estCustSearch(this.value)" style="margin:0">
       <div id="estCustResults"></div>
-      <input id="est_cphone" type="tel" placeholder="📞 ${t('phone')}" value="${esc(e.phone||'')}" style="margin-top:8px">
+      <input id="est_cphone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" placeholder="📞 ${t('phone')}" value="${esc(e.phone||'')}" style="margin-top:8px">
     </div>
     <div class="billed-bar"><span>📄 ${t('est_items')}</span><span class="hint" style="color:inherit">${money(estTotal(e))}</span></div>
     ${rows}
@@ -10348,7 +10414,7 @@ function renderInvoiceForm(){
     <div id="invCustSearchWrap" style="${(f.customerId||f.customerName)?'display:none':''};margin-bottom:10px">
       <div class="cust-2col">
         <div><input id="inv_cname" placeholder="👤 ${t('name_ph')}" autocomplete="off" onfocus="invCustSearch(this.value)" oninput="invCustSearch(this.value)" value="${esc(f.customerName||'')}"></div>
-        <div><input id="inv_cphone" type="tel" placeholder="📞 ${t('phone')}" value="${esc(f.phone||'')}"></div>
+        <div><input id="inv_cphone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" placeholder="📞 ${t('phone')}" value="${esc(f.phone||'')}"></div>
       </div>
       <div id="invCustResults"></div>
       ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost block" style="margin-top:8px" onclick="invPickContact()">📇 ${t('from_contacts')}</button>`:''}
@@ -10935,7 +11001,7 @@ function invEditSalesman(id){
   const k=(DB.salesmen||[]).find(x=>x.id===id); if(!k){invManageSalesmen();return;}
   modal(t('edit'),
     `<div class="field"><label>${t('salesman_name')} *</label><input id="esmName" value="${esc(k.name)}"></div>
-     <div class="field"><label>${t('phone')}</label><input id="esmPhone" type="tel" value="${esc(k.phone||'')}" placeholder="9800000000"></div>`,
+     <div class="field"><label>${t('phone')}</label><input id="esmPhone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" value="${esc(k.phone||'')}" placeholder="9800000000"></div>`,
     [{label:t('cancel'),cls:'ghost',fn:()=>invManageSalesmen()},
      {label:t('save'),cls:'primary',fn:()=>{const n=$('#esmName').value.trim();
        if(!n){toast(t('t_wrong'),'bad');return;}
@@ -10953,7 +11019,7 @@ function invAddSalesman(){
   captureInvoiceForm();
   modal(t('add_salesman'),
     `<div class="field"><label>${t('salesman_name')} *</label><input id="qsmName" placeholder="${t('salesman_name')}"></div>
-     <div class="field"><label>${t('phone')}</label><input id="qsmPhone" type="tel" placeholder="9800000000"></div>`,
+     <div class="field"><label>${t('phone')}</label><input id="qsmPhone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" placeholder="9800000000"></div>`,
     [{label:t('cancel'),cls:'ghost',fn:()=>renderInvoiceForm()},
      {label:t('save'),cls:'primary',fn:()=>{
         const n=$('#qsmName').value.trim(), p=$('#qsmPhone').value.trim();
@@ -10977,7 +11043,7 @@ function ordAddSalesman(){
   captureForm();
   modal(t('add_salesman'),
     `<div class="field"><label>${t('salesman_name')} *</label><input id="osmName" placeholder="${t('salesman_name')}"></div>
-     <div class="field"><label>${t('phone')}</label><input id="osmPhone" type="tel" placeholder="9800000000"></div>`,
+     <div class="field"><label>${t('phone')}</label><input id="osmPhone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" placeholder="9800000000"></div>`,
     [{label:t('cancel'),cls:'ghost',fn:()=>renderForm()},
      {label:t('save'),cls:'primary',fn:()=>{
         const n=$('#osmName').value.trim(), p=$('#osmPhone').value.trim();
@@ -11195,6 +11261,19 @@ function invClose(){
 function saveInvoice(){
   captureInvoiceForm();const f=invForm;
   if(!f.no){toast(t('t_no_invno'),'bad');return;}
+  /* v196 — HIS 14 Aug screenshots: the bill for order #2579 and the bill for order #2580
+     BOTH read INV/2026-27/2949. The number is worked out when the bill is opened, from the
+     numbers already SAVED — so two bills opened before either is saved are handed the same
+     one, and saving both would put two different sales under one invoice number. An invoice
+     number is a legal record; it must never repeat. Re-check at the moment of saving, and
+     if the number has been taken since this bill was opened, move to the next free one and
+     say so rather than overwrite anything. */
+  const _clash=(list,me)=>(list||[]).some(r=>r && r.id!==me && r.invoice && String(r.invoice.no)===String(f.no));
+  if(_clash(DB.orders,f.id)||_clash(DB.sales,f.id)||_clash(DB.alterations,f.id)){
+    const taken=f.no; f.no=nextInvoiceNo();
+    const el=$('#inv_no'); if(el)el.value=f.no;
+    toast('🧾 '+t('inv_no_taken',{a:taken,b:f.no}),'bad');
+  }
   f.items=(f.items||[]).filter(it=>it.label||+it.price);
   if(!f.items.length||f.items.every(it=>!(+it.price))){toast(t('inv_need_amt'),'bad');return;}
   if(f.split){ const sSum=r2((+f.split.cash||0)+(+f.split.upi||0));
@@ -12141,7 +12220,7 @@ function shopInfoEdit(){const s=DB.shopInfo||{};
       <input type="checkbox" id="si_showgst" ${s.showGst?'checked':''} style="width:20px;height:20px;margin-top:2px">
       <span><b style="font-size:14px">${t('si_showgst')}</b><br><span class="hint" style="font-size:12px">${t('si_showgst_hint')}</span></span></label>
     <div class="field" style="margin-top:10px"><label>${t('shop_address')}</label><textarea id="si_addr">${esc(s.address)}</textarea></div>
-    <div class="row" style="margin-top:10px"><div class="field"><label>${t('shop_phone')}</label><input id="si_phone" type="tel" value="${esc(s.phone||'')}"></div>
+    <div class="row" style="margin-top:10px"><div class="field"><label>${t('shop_phone')}</label><input id="si_phone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" value="${esc(s.phone||'')}"></div>
       <div class="field"><label>${t('shop_email')}</label><input id="si_email" type="email" value="${esc(s.email||'')}"></div></div>
     <div class="field" style="margin-top:10px"><label>${t('proprietor')}</label><input id="si_prop" value="${esc(s.proprietor)}"></div>
     <div class="field" style="margin-top:10px"><label>💳 ${t('shop_upi')}</label><input id="si_upi" value="${esc(s.upi||'')}" placeholder="parampara@okhdfcbank">
@@ -12699,7 +12778,7 @@ function renderPurchaseForm(){
         autocomplete="off" onfocus="puSupSug()" oninput="puSupChanged();puSupSug()" style="margin:0">
       <div id="puSupSug"></div>
       <div class="row" style="margin-top:8px;gap:8px">
-        <input id="pu_phone" type="tel" placeholder="${t('phone')}" value="${esc(f.phone)}" style="margin:0">
+        <input id="pu_phone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" placeholder="${t('phone')}" value="${esc(f.phone)}" style="margin:0">
         ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost" style="flex:0 0 auto" onclick="puPickContact()">📇</button>`:''}</div>
       <div class="row" style="margin-top:8px;gap:8px">
         <input id="pu_billno" value="${esc(f.billNo)}" placeholder="${t('purch_bill_no')} *" style="margin:0">
@@ -12922,7 +13001,7 @@ function poRender(){
       <input id="po_sup" placeholder="🏭 ${t('supplier_ph')}" value="${esc(p.supplier||'')}" autocomplete="off"
         onfocus="poSupSearch(this.value)" oninput="poSupSearch(this.value)" style="margin:0">
       <div id="poSupResults"></div>
-      <input id="po_phone" type="tel" placeholder="📞 ${t('phone')}" value="${esc(p.phone||'')}" style="margin-top:8px">
+      <input id="po_phone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" placeholder="📞 ${t('phone')}" value="${esc(p.phone||'')}" style="margin-top:8px">
     </div>
     <div class="billed-bar"><span>📝 ${t('est_items')}</span><span class="hint" style="color:inherit">${money(poTotal(p))}</span></div>
     ${rows}
@@ -13223,6 +13302,35 @@ function odEditNo(oid){
         const dup=(DB.orders||[]).some(x=>x.id!==o.id&&String(x.orderNo||'').trim()===v);
         if(dup){toast(t('t_dup'),'bad');return;}
         o.orderNo=v; touchOrder(o.id); save(o.id); closeSheet(); refreshDetail(oid);
+     }}]);
+}
+/* v196 — HIS 13 Aug, the thing that cost him the most: he sent a bill on WhatsApp and only
+   then saw the customer's NAME was wrong. "Edit me jaakar customer par click kar raha hun
+   to kaise edit karun kuch samajh hi nahi aa raha hai." There was no way to fix a name from
+   the order at all — the only route was the whole order form, which opens on the item
+   picker and offers "Start measuring". A name and a number are the two things most often
+   typed wrong in a hurry, so they are corrected right where the mistake is seen. */
+function odEditCust(oid){
+  const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
+  modal('👤 '+t('od_cust_edit'),
+    `<div class="field"><label>${t('customer')}</label>
+       <input id="odCnIn" value="${esc(o.customerName||'')}" placeholder="${t('name_ph')}"></div>
+     <div class="field"><label>${t('phone')}</label>
+       <input id="odCpIn" type="tel" inputmode="numeric" value="${esc(o.phone||'')}" placeholder="${t('phone')}"
+         oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')"></div>
+     <p class="hint">${t('od_cust_hint')}</p>`,
+    [{label:t('cancel'),cls:'ghost',fn:closeSheet},
+     {label:t('save'),cls:'primary',fn:()=>{
+        const nm=(($('#odCnIn')||{}).value||'').trim();
+        const ph=(($('#odCpIn')||{}).value||'').replace(/[^0-9+]/g,'').trim();
+        if(!nm){toast(t('t_no_name'),'bad');return;}
+        o.customerName=nm; o.phone=ph;
+        /* the customer record is the same person, so it must move too — otherwise the
+           order says one name and every list and message still says the old one */
+        const c=o.customerId?(DB.customers||[]).find(x=>x.id===o.customerId):null;
+        if(c){ c.name=nm; c.phone=ph; }
+        touchOrder(o.id); save(o.id); closeSheet();
+        toast(t('od_cust_saved'),'ok'); refreshDetail(oid);
      }}]);
 }
 function odInfoToggle(){ _odInfo=!_odInfo; if(_curDetailId)openDetail(_curDetailId); }
@@ -14567,7 +14675,7 @@ function karigarEdit(id){const ex=id?(DB.karigars||[]).find(x=>x.id===id):null;
     </div>`;}).join('');
   $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${ex?t('edit'):t('add_karigar')}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     <div class="field"><label>${t('karigar_name')}</label><input id="kName" value="${ex?esc(ex.name):''}" placeholder="${t('karigar_name')}"></div>
-    <div class="field" style="margin-top:10px"><label>${t('phone')}</label><input id="kPhone" type="tel" inputmode="numeric" value="${ex?esc(ex.phone||''):''}" placeholder="${t('phone')}"></div>
+    <div class="field" style="margin-top:10px"><label>${t('phone')}</label><input id="kPhone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" inputmode="numeric" value="${ex?esc(ex.phone||''):''}" placeholder="${t('phone')}"></div>
     ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost" style="margin-top:10px" onclick="pickKarigarContact()">📇 ${t('from_contacts')}</button>`:''}
     <div class="section-h" style="margin-top:16px">🧵 ${t('karigar_specialty')}</div>
     <p class="hint" style="margin-bottom:10px">${t('karigar_rates_hint')}</p>
@@ -14685,7 +14793,7 @@ function salesmanMaster(){
 function salesmanEdit(id){const ex=id?(DB.salesmen||[]).find(x=>x.id===id):null;
   $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${ex?t('edit'):t('add_salesman')}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     <div class="field"><label>${t('salesman_name')}</label><input id="smName" value="${ex?esc(ex.name):''}" placeholder="${t('salesman_name')}"></div>
-    <div class="field" style="margin-top:10px"><label>${t('phone')}</label><input id="smPhone" type="tel" value="${ex?esc(ex.phone||''):''}" placeholder="${t('phone')}"></div>
+    <div class="field" style="margin-top:10px"><label>${t('phone')}</label><input id="smPhone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" value="${ex?esc(ex.phone||''):''}" placeholder="${t('phone')}"></div>
     <div class="modal-actions"><button class="btn ghost" onclick="salesmanBack()">${t('cancel')}</button><button class="btn primary" onclick="salesmanSave('${id||''}')">${t('save')}</button></div>`;
   showSheet();
 }
@@ -15630,7 +15738,16 @@ window.addEventListener('popstate',()=>{
   _popping=true;
   try{
     if(modalIsOpen()){ closeModal(); pushGuard(); return; }     // back out of the modal only
-    if(sheetIsOpen()||_sheetOn){ saveDraft(); closeSheet(); pushGuard(); return; }
+    /* v194 — HIS 14 Aug: "kai jagah app me step by step back nahi aate."
+       Back threw the whole sheet away in one press, however deep he had gone into it.
+       So from the measurement card it did not return to the item list — it abandoned
+       the order outright. Back should undo the LAST step, not the whole journey; the
+       cross is what leaves in one go. Screens that have inner steps say so here, and
+       anything without them still closes exactly as before. */
+    if(sheetIsOpen()||_sheetOn){
+      if(backOneStep()){ pushGuard(); return; }
+      closeSheet(); pushGuard(); return;
+    }
     if(_curTab && _curTab!=='home'){ go('home'); pushGuard(); return; }
     // on Home with nothing open: ask once before letting the app close
     const now=Date.now();
@@ -15643,6 +15760,21 @@ $('#scrim').addEventListener('click',e=>{if(e.target===$('#scrim'))closeSheet();
 $('#mscrim').addEventListener('click',e=>{if(e.target===$('#mscrim'))closeModal();});
 /* A modal lives on its own layer. It must NEVER wipe the sheet underneath —
    that used to destroy a half-filled order form (and everything typed into it). */
+/* v194 — the one place that knows how to walk back out of a screen, one step at a time.
+   Returns true when it handled the press. Kept in a single function so every way back —
+   the device button, a ← on screen — behaves identically and nobody has to remember
+   which is which. */
+function backOneStep(){
+  try{
+    // the order form: measurement card -> item list -> (then the sheet closes)
+    if(formIsOpen()){
+      if(typeof _ordStage!=='undefined' && _ordStage===2){ saveDraft(); ordStage(1); return true; }
+      if(typeof _ordStage!=='undefined' && _ordStage===3){ saveDraft(); ordStage(1); return true; }
+      return false;                          // stage 1: the sheet itself is the step
+    }
+  }catch(e){}
+  return false;
+}
 function modalIsOpen(){ const e=$('#mscrim'); return !!e && e.classList.contains('show'); }
 /* A DEAD END. v147 gave every SHEET a sticky cross and left modals alone, on the
    reasoning that a modal always carries its own buttons. It does not: `orderMenu`
