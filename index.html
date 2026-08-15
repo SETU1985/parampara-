@@ -573,6 +573,32 @@
   .mnu-txt{flex:1;display:flex;flex-direction:column;gap:2px;font-size:15px}
   .mnu-go{color:var(--mut);font-size:19px}
   .home-stats{display:flex;gap:8px;margin-bottom:20px}
+  /* v199 — the dashboard reads top to bottom like the day itself: what must go out, what
+     is still in hand, then the money. Rows, not tiles, because a row can carry a label
+     long enough to be honest and still be tapped with one thumb. */
+  .pn-row{display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--line);
+    border-radius:12px;margin-bottom:8px;background:var(--card)}
+  .pn-row.pn-here{border-color:var(--ok)}
+  .pn-row.pn-done{opacity:.65}
+  .pn-who{flex:1;min-width:0} .pn-act{flex:0 0 auto}
+  .att-grid{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+  .att-d{width:26px;height:26px;border-radius:7px;border:1px solid var(--line2);display:flex;
+    align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--mut);cursor:pointer}
+  .att-d.p{background:rgba(46,160,90,.22);border-color:var(--ok);color:var(--txt)}
+  .att-d.h{background:rgba(224,138,26,.20);border-color:var(--saffron);color:var(--txt)}
+  .att-d.a{background:rgba(200,60,60,.20);border-color:var(--bad);color:var(--txt)}
+  .att-d.o{background:var(--bg2)}
+  .dl-card{padding:6px 4px;margin-top:10px}
+  .dl-hd{font-size:11px;letter-spacing:.10em;text-transform:uppercase;color:var(--mut);
+    font-weight:800;padding:6px 12px 4px}
+  .dl-row{display:flex;align-items:center;gap:10px;padding:11px 12px;border-top:1px solid var(--line)}
+  .dl-card .dl-hd + .dl-row{border-top:none}
+  .dl-row.tappable{cursor:pointer}
+  .dl-row.tappable:active{background:var(--bg2)}
+  .dl-ico{flex:0 0 auto;font-size:17px;width:22px;text-align:center}
+  .dl-lbl{flex:1;min-width:0;font-size:14.5px;font-weight:600;color:var(--txt)}
+  .dl-n{flex:0 0 auto;font-size:19px;font-weight:800;color:var(--mut);min-width:26px;text-align:right}
+  .dl-go{flex:0 0 auto;color:var(--saffron2);font-size:16px;margin-left:2px}
   .home-stat{flex:1;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:12px 8px;text-align:center}
   .hs-val{font-size:20px;font-weight:800;color:var(--txt)}
   .hs-lbl{font-size:11px;color:var(--txt2);margin-top:3px}
@@ -653,7 +679,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v197</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v200</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1226,6 +1252,27 @@ const T={
   inv_no_taken:'{a} was already used — this bill is {b}',
   od_cust_edit:'Customer', od_cust_saved:'Customer updated',
   od_add_remove:'Add / remove a piece',
+  st_title:'Staff', st_desc:'Pay, timing and commission live here. Attendance uses them.',
+  st_none:'No staff yet', st_add:'Add a person', st_name:'Name', st_role:'Role',
+  st_role_ph:'Salesman, helper, accounts…', st_salary:'Monthly salary', st_comm:'Commission %',
+  st_in:'Comes at', st_out:'Leaves at', st_joined:'Joined on',
+  st_loan_note:'Any money given as advance or loan is recorded from Expenses, against this name.',
+  st_left:'Mark as left', st_rejoin:'Bring back',
+  st_left_done:'Marked as left — the record stays', st_rejoin_done:'Back on the list',
+  pn_title:'Attendance', pn_sub:'Tap your name. The time is taken as it is.',
+  pn_arrive:'I have come', pn_leave:'Leaving', pn_not:'not yet', pn_in:'in', pn_done:'done',
+  pn_already:'Already marked in today', pn_no_in:'Not marked in yet',
+  pn_ontime:'on time', pn_late_by:'{n} min late',
+  att_month:'This month', att_tap_hint:'Tap a day to change it: present, half, absent, weekly off, blank.',
+  att_p:'P', att_h:'Half', att_a:'Absent',
+  hd_deliver:'To deliver', hd_work:'Work in hand',
+  hd_late:'Overdue', hd_today:'Today', hd_tomorrow:'Tomorrow', hd_week:'This week',
+  hd_nokar:'Not given to a tailor yet', hd_ready:'Ready to hand over',
+  hd_tomorrow_sub:'Due tomorrow. Chase anything not ready today.',
+  hd_week_sub:'Everything due in the next seven days.',
+  hd_late_sub:'Past the delivery date and still not ready. These come first.',
+  rc_find:'Been here before? Find them — old measurements fill in',
+  rc_has_meas:'measurements already on file',
   od_edit_hint2:'Tap the name, the phone, the date, the order number or any measurement above to correct it right here.',
   od_cust_hint:'This corrects the name and number on this order and on the customer record.',
   ph_digits_only:'A phone number can only have digits',
@@ -2389,6 +2436,27 @@ const T={
   inv_no_taken:'{a} पहले ही इस्तेमाल हो चुका है — यह बिल {b} है',
   od_cust_edit:'ग्राहक', od_cust_saved:'ग्राहक बदल दिया',
   od_add_remove:'पीस जोड़ें / हटाएँ',
+  st_title:'स्टाफ़', st_desc:'तनख़्वाह, समय और कमीशन यहीं रहते हैं। हाज़िरी इन्हीं से चलती है।',
+  st_none:'अभी कोई स्टाफ़ नहीं', st_add:'नया आदमी जोड़ें', st_name:'नाम', st_role:'काम',
+  st_role_ph:'सेल्समैन, हेल्पर, हिसाब…', st_salary:'महीने की तनख़्वाह', st_comm:'कमीशन %',
+  st_in:'आने का समय', st_out:'जाने का समय', st_joined:'कब से',
+  st_loan_note:'एडवांस या क़र्ज़ का पैसा ख़र्च में, इसी नाम पर दर्ज होता है।',
+  st_left:'छोड़ दिया — निशान लगाएँ', st_rejoin:'वापस लाएँ',
+  st_left_done:'निशान लग गया — हिसाब वहीं रहेगा', st_rejoin_done:'दोबारा सूची में',
+  pn_title:'हाज़िरी', pn_sub:'अपने नाम पर टैप कीजिए। समय अपने आप लिया जाएगा।',
+  pn_arrive:'आ गया', pn_leave:'जा रहा हूँ', pn_not:'अभी नहीं', pn_in:'आया', pn_done:'हो गया',
+  pn_already:'आज की हाज़िरी लग चुकी है', pn_no_in:'अभी आना दर्ज नहीं हुआ',
+  pn_ontime:'समय पर', pn_late_by:'{n} मिनट देर',
+  att_month:'इस महीने', att_tap_hint:'दिन पर टैप कीजिए: आया, आधा दिन, नहीं आया, छुट्टी, ख़ाली।',
+  att_p:'आया', att_h:'आधा', att_a:'नहीं आया',
+  hd_deliver:'देना है', hd_work:'काम बाकी',
+  hd_late:'तारीख़ निकल गई', hd_today:'आज', hd_tomorrow:'कल', hd_week:'इस हफ़्ते',
+  hd_nokar:'करीगर को दिया ही नहीं', hd_ready:'तैयार — देने को',
+  hd_tomorrow_sub:'कल देना है। जो तैयार नहीं, आज ही देखिए।',
+  hd_week_sub:'अगले सात दिन में जो देना है।',
+  hd_late_sub:'तारीख़ निकल चुकी और अब तक तैयार नहीं। सबसे पहले यही।',
+  rc_find:'पहले आ चुके हैं? यहाँ ढूँढिए — पुराना नाप भर जाएगा',
+  rc_has_meas:'नाप पहले से है',
   od_edit_hint2:'ऊपर नाम, फ़ोन, तारीख़, ऑर्डर नंबर या कोई भी नाप — जिस पर टैप कीजिए, वहीं सुधर जाएगा।',
   od_cust_hint:'इससे इस ऑर्डर और ग्राहक दोनों में नाम और नंबर सुधर जाएगा।',
   ph_digits_only:'फ़ोन नंबर में सिर्फ़ अंक होते हैं',
@@ -7145,6 +7213,22 @@ function statDetail(mode){
       .sort((a,b)=>String(a.deliveryDate||'9999').localeCompare(String(b.deliveryDate||'9999')));
     title='✅ '+t('home_ready_deliver'); sub=t('stat_ready_sub');
   }
+  else if(mode==='tomorrow'){
+    list=tag((DB.orders||[]).filter(o=>!orderDelivered(o)&&daysLeft(o.deliveryDate)===1),'order');
+    title='📅 '+t('hd_tomorrow'); sub=t('hd_tomorrow_sub');
+  }
+  else if(mode==='week'){
+    list=tag((DB.orders||[]).filter(o=>{ if(orderDelivered(o)||!o.deliveryDate)return false;
+        const d=daysLeft(o.deliveryDate); return d!==null&&d>=0&&d<=7; }),'order')
+      .sort((a,b)=>String(a.deliveryDate||'9999').localeCompare(String(b.deliveryDate||'9999')));
+    title='🗓️ '+t('hd_week'); sub=t('hd_week_sub');
+  }
+  else if(mode==='late'){
+    list=tag((DB.orders||[]).filter(o=>{ if(orderDelivered(o)||!o.deliveryDate)return false;
+        const d=daysLeft(o.deliveryDate); return d!==null&&d<0; }),'order')
+      .sort((a,b)=>String(a.deliveryDate||'0').localeCompare(String(b.deliveryDate||'0')));
+    title='🔴 '+t('hd_late'); sub=t('hd_late_sub');
+  }
   else if(mode==='duetoday'){
     list=tag((DB.orders||[]).filter(o=>!orderDelivered(o)&&daysLeft(o.deliveryDate)===0),'order');
     title='⏰ '+t('home_due_today'); sub=t('stat_duetoday_sub');
@@ -7381,32 +7465,46 @@ function renderHome(){
 
     ${quickRowHTML()}
 
-    <div class="home-stats">
-      ${stat(t('home_pending_orders'),pendingCount,'',"statDetail('pending')")}
-      ${(()=>{
-        /* HOME ANSWERS ONE QUESTION: what do I have to do now.
-           On the order-only shop these two tiles used to be "Total Payable" and
-           "Still to send". Both were already on their OWN screens (karigarBook and
-           courierHub) AND already in the Priority Actions card below — which has the
-           discipline these tiles lacked: it hides a row when the number is zero. So a
-           third of the dashboard repeated something twice, usually to say ₹0 and 0.
-           What he pays a master is a settlement-day question; it belongs where he pays
-           them, not where he starts his day. The billing-on dashboard is untouched. */
-        /* v154 replaced these two tiles for the ORDER-ONLY shop and left the billing
-           shop alone — which is the shop he actually runs, so on his screen nothing
-           changed and "Payables ₹0" was still sitting there. Worse, "Receivables"
-           repeated the figure already in the header two inches above it. So two of his
-           three tiles were dead. The money has three homes of its own already — the
-           header total, the Priority Actions card when it matters, and the Receivables
-           and Payables screens in the menu. Home keeps only what he must ACT on. */
-        const _ready=(DB.orders||[]).filter(o=>!orderDelivered(o)&&orderAllReady(o)).length;
-        const _today=(DB.orders||[]).filter(o=>!orderDelivered(o)&&o.deliveryDate&&daysLeft(o.deliveryDate)===0).length;
-        return stat(t('home_ready_deliver'),_ready,_ready>0?'var(--ok)':'',"statDetail('ready')")
-             + stat(t('home_due_today'),_today,_today>0?'var(--saffron2)':'',"statDetail('duetoday')");
-      })()}
-    </div>
+    ${(()=>{
+      /* v199 — HIS 14 Aug: "dashboard bahut pasand nahi aa raha hai... bahut casual aur
+         bekar lag raha hai", and then the thing that actually matters: "shop khulte hi
+         orders to be delivered today / tomorrow / week ye jaanne se help milegi. Kya maal
+         abhi tak nahi gaya hai karigar ko. Aur kaunse maal ready hai delivery ke liye."
+         That is the whole screen, in his own order. What was here before answered a
+         different question — it reported totals. Two of them even disagreed: the tiles
+         counted ORDERS (15 pending) while the board below counted PIECES (23 overdue), so
+         the screen contradicted itself in the same glance. Everything on this screen now
+         counts orders, from one place, and every line is a list he can open and act on. */
+      const act=(DB.orders||[]).filter(o=>!orderDelivered(o));
+      const dl=o=>o.deliveryDate?daysLeft(o.deliveryDate):null;
+      const nToday=act.filter(o=>dl(o)===0).length;
+      const nTom  =act.filter(o=>dl(o)===1).length;
+      const nWeek =act.filter(o=>{const d=dl(o);return d!==null&&d>=0&&d<=7;}).length;
+      const nLate =act.filter(o=>{const d=dl(o);return d!==null&&d<0;}).length;
+      const nReady=act.filter(o=>orderAllReady(o)).length;
+      const b=abBuckets();
+      const nNoKar=new Set(b.noKar.map(x=>x.o.id)).size;   // orders, not pieces
+      const line=(ico,label,n,go,col)=>
+        `<div class="dl-row${n?' tappable':''}" ${n?`onclick="${go}"`:''}>
+           <span class="dl-ico">${ico}</span>
+           <span class="dl-lbl">${label}</span>
+           <span class="dl-n" style="${col&&n?'color:'+col:''}">${n}</span>
+           ${n?'<span class="dl-go">›</span>':''}</div>`;
+      return `
+      <div class="card dl-card">
+        <div class="dl-hd">🚚 ${t('hd_deliver')}</div>
+        ${nLate?line('🔴',t('hd_late'),nLate,"statDetail('late')",'var(--bad)'):''}
+        ${line('⏰',t('hd_today'),nToday,"statDetail('duetoday')",'var(--saffron2)')}
+        ${line('📅',t('hd_tomorrow'),nTom,"statDetail('tomorrow')",'')}
+        ${line('🗓️',t('hd_week'),nWeek,"statDetail('week')",'')}
+      </div>
+      <div class="card dl-card">
+        <div class="dl-hd">🧵 ${t('hd_work')}</div>
+        ${line('⚠️',t('hd_nokar'),nNoKar,"actionList('nokar')",'var(--saffron2)')}
+        ${line('✅',t('hd_ready'),nReady,"statDetail('ready')",'var(--ok)')}
+      </div>`;
+    })()}
 
-    ${actionBoardHTML()}
 
     ${/* HIS CALL, Aug 9: do the restructure BEFORE staff start, not after — "staff ko baar
          baar change hone se shayad kaam karne me acha nahi lage." Right, and the cheapest
@@ -7415,8 +7513,6 @@ function renderHome(){
          done today — and nothing else. Everything else is one tap away in ☰ Menu, which
          hides nothing: it is the full list, always in the same order, always in the same
          place. His own count was the argument: ~30 things on opening the app. */''}
-    <button class="btn ghost block" style="margin-top:14px" onclick="menuHome()">
-      ☰ ${t('menu_all')}</button>
 
     ${(modOn('accounts')||modOn('billing'))?`
     <div class="card" style="margin-top:12px">
@@ -8424,7 +8520,13 @@ function measCardHTML(f,key){
               ${sttSupported()?`<button class="btn sm ghost ic-btn ${(_vmOn&&_vmKey===key)?'has':''}"
                 onclick="vmToggle('${dkey}')" title="${t('vm_title')}">${(_vmOn&&_vmKey===key)?'🔴':'🗣️'}</button>`:''}
               <button class="btn sm ghost ic-btn ${nt?'has':''}" onclick="itemNoteQuick('${dkey}')">📝</button></div>`;
-        return trio + `${nt?`<p class="hint" style="margin:8px 0 0">📝 ${esc(nt)}</p>`:''}
+        /* v198 — HIS 14 Aug: "maine photo add kiya per dikhai nahi de raha hai."
+           The photo WAS saved and renderItemPhotos() was being called after every render —
+           but it writes into a box called ip_<item>, and this card never contained that
+           box. So the strip had nowhere to appear. A photo you cannot see is a photo you
+           will take twice. */
+        return trio + `<div class="thumbs" id="ip_${cid}" style="margin-top:8px"></div>
+          ${nt?`<p class="hint" style="margin:8px 0 0">📝 ${esc(nt)}</p>`:''}
           <button class="btn primary block" style="margin-top:12px" onclick="itemDone('${dkey}')">✓ ${walkNext(f,key)?t('it_done'):t('it_done_last')}</button>`;
       })()}
     </div></div>`;
@@ -8592,9 +8694,26 @@ function renderForm(){
      So stage 1 opens straight onto the pieces. The number and the date are taken for him
      and shown as one quiet line; both are still editable, on the LAST screen, which is
      where the order is actually finished. Nothing was removed from the record. */
+  /* v198 — HIS 14 Aug: "agar kisi ka pehle se measurement liya hua hai per mujhe yaad
+     nahi, to kaise pata chalega ki us person ka naap liya hua hai?" It could not tell him:
+     v187 moved the customer to the LAST screen, so while measuring the app did not know
+     who this was and could not offer the naap already on file — the tape came out again
+     for a customer already measured. The name and the delivery date STAY at the end, as
+     he wants. This is only a door for a returning customer, and it blocks nothing: skip
+     it and the form behaves exactly as it does today. */
+  const rcHas = f.customerId ? Object.keys(((custById(f.customerId)||{}).m)||{}).length : 0;
+  const rc = f.customerId
+    ? `<div class="cust-result" style="margin-bottom:10px"><div><b>${esc(f.customerName)}</b>
+         <div class="hint">${esc(f.phone||'')}${rcHas?' · ✅ '+t('rc_has_meas'):''}</div></div>
+         <button class="btn sm ghost" onclick="clearCustomer()">${t('change')}</button></div>`
+    : `<div class="field" style="margin-bottom:10px">
+         <input id="rcQ" placeholder="🔁 ${t('rc_find')}" autocomplete="off"
+           oninput="custSearch(this.value)" onfocus="custSearch(this.value)">
+         <div id="custResults"></div></div>`;
   sh.innerHTML=`${head}<h2 style="margin:0 0 4px">${f.editId?t('edit_order'):t('new_order')}</h2>
     <p class="hint" style="margin:0 0 10px">${f.orderNo?'#'+esc(f.orderNo)+' · ':''}${fmtDate(f.orderDate)}</p>
     <div id="draftHint" class="draft-hint">🔒 ${t('draft_never')}</div>
+    ${rc}
     ${itemsSection}
     <div class="save-dock">${cancelBtn}
       ${walk.length
@@ -13757,6 +13876,7 @@ function settingsMenu(){modal(t('settings'),`
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();shopInfoEdit()">🧾 ${t('shop_details')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();modulesEdit()">🧩 ${t('mod_title')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();measRangeEdit()">📏 ${t('ms_title')}</button>
+  <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();staffMaster()">👥 ${t('st_title')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();karigarBook()">👷 ${t('kb_title')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();karigarMaster()">👷 ${t('karigar_master')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();paymentQR()">💳 ${t('qr_title')}</button>
@@ -14788,6 +14908,215 @@ function imBack(){const back=_imDraft?_imDraft.back:null;_imDraft=null;
 function imDelete(id){confirmModal(t('confirm_del'),t('confirm_del_msg'),()=>{
   DB.itemMaster=(DB.itemMaster||[]).filter(x=>x.id!==id);save();itemMaster();toast(t('t_deleted'));});}
 
+/* ── STAFF ─────────────────────────────────────────────────────────────────────
+   v200 — HIS 15 Aug. He keeps his staff in a spreadsheet with a tab per person, and
+   asked for something stronger: a profile carrying pay, timing, commission and loan;
+   a punch on the SHOP's iPad that takes the real clock itself and decides late or not;
+   and reports he can judge people by. The shop's own numbers shaped every rule here:
+   closing is 9:30 but in season it runs to 11, so docking pay for lateness would be
+   read as unfair and would cost him exactly the goodwill he is trying to build. So
+   lateness is COUNTED, never charged, and the reward is on the other side — thirty
+   clean days earns a day's pay. A full day absent costs a day; half a day costs half.
+   Every number here lives in Settings, because the next shop's habits will differ. */
+function staffAll(){ DB.staff=DB.staff||[]; return DB.staff; }
+function staffById(id){ return staffAll().find(x=>x.id===id); }
+function staffCfg(){ DB.staffCfg=DB.staffCfg||{};
+  const c=DB.staffCfg;
+  if(c.dayDiv==null)c.dayDiv=30;      // a month's pay divided by this = one day
+  if(c.graceMin==null)c.graceMin=10;  // minutes after start that still count as on time
+  if(c.bonusDays==null)c.bonusDays=30;// clean days needed for the reward
+  if(c.bonusDayPay==null)c.bonusDayPay=1;
+  if(c.openTime==null)c.openTime='10:30';
+  if(c.closeTime==null)c.closeTime='21:30';
+  return c; }
+const ATT_PRESENT='P', ATT_HALF='H', ATT_ABSENT='A', ATT_OFF='O';
+function attKey(sid,d){ return sid+'|'+d; }
+function attAll(){ DB.attend=DB.attend||{}; return DB.attend; }
+function attGet(sid,d){ return attAll()[attKey(sid,d)]||null; }
+function attSet(sid,d,rec){ const a=attAll();
+  if(rec) a[attKey(sid,d)]=rec; else delete a[attKey(sid,d)];
+  save(); }
+function hhmmToMin(v){ const m=/^(\d{1,2}):(\d{2})$/.exec(String(v||'').trim());
+  return m?(+m[1])*60+(+m[2]):null; }
+function minToHHMM(n){ if(n==null||!isFinite(n))return '';
+  n=Math.max(0,Math.round(n)); return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0'); }
+function nowHHMM(){ const d=new Date();
+  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+/* how late, in minutes, against this person's own start time and the shop's grace */
+function lateMins(st,inAt){
+  const start=hhmmToMin(st&&st.startTime)||hhmmToMin(staffCfg().openTime);
+  const got=hhmmToMin(inAt);
+  if(start==null||got==null)return 0;
+  const g=+staffCfg().graceMin||0;
+  return Math.max(0, got-start-g);
+}
+
+/* ── the punch, on the shop's own iPad ───────────────────────────────────────── */
+function staffPunch(){
+  const d=todayISO(), list=staffAll().filter(x=>!x.left);
+  if(!list.length){ staffMaster(); return; }
+  const rows=list.map(st=>{
+    const a=attGet(st.id,d)||{};
+    const lm=a.in?lateMins(st,a.in):0;
+    const state = a.in ? (a.out?t('pn_done'):t('pn_in')) : t('pn_not');
+    const cls = a.in ? (a.out?'pn-done':'pn-here') : '';
+    return `<div class="pn-row ${cls}">
+      <div class="pn-who"><b>${esc(st.name)}</b>
+        <div class="hint">${a.in?('🕘 '+esc(a.in)+(a.out?' – '+esc(a.out):'')+(lm?' · ⏰ '+t('pn_late_by',{n:lm}):'')):esc(st.startTime||staffCfg().openTime)}</div></div>
+      <div class="pn-act">
+        ${!a.in ? `<button class="btn sm primary" onclick="punchIn('${st.id}')">${t('pn_arrive')}</button>`
+          : (!a.out ? `<button class="btn sm ghost" onclick="punchOut('${st.id}')">${t('pn_leave')}</button>`
+                    : `<span class="hint">${state}</span>`)}
+      </div></div>`;}).join('');
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin:0 0 2px">👥 ${t('pn_title')}</h2>
+    <p class="hint" style="margin:0 0 12px">${fmtDate(d)} · ${t('pn_sub')}</p>
+    ${rows}
+    <button class="btn ghost block" style="margin-top:12px" onclick="attSheet()">📋 ${t('att_month')}</button>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function punchIn(sid){
+  const st=staffById(sid); if(!st)return;
+  const d=todayISO(), a=attGet(sid,d)||{};
+  if(a.in){ toast(t('pn_already'),'bad'); return; }
+  a.in=nowHHMM(); a.st=ATT_PRESENT; a.by=nowHHMM(); a.at=new Date().toISOString();
+  attSet(sid,d,a);
+  const lm=lateMins(st,a.in);
+  toast(lm? '⏰ '+esc(st.name)+' · '+t('pn_late_by',{n:lm}) : '✅ '+esc(st.name)+' · '+t('pn_ontime'),lm?'bad':'ok');
+  staffPunch();
+}
+function punchOut(sid){
+  const d=todayISO(), a=attGet(sid,d)||{};
+  if(!a.in){ toast(t('pn_no_in'),'bad'); return; }
+  a.out=nowHHMM(); attSet(sid,d,a);
+  staffPunch();
+}
+
+/* ── the month, correctable by hand ─────────────────────────────────────────── */
+let _attMonth=null;
+function attSheet(){
+  const mon=_attMonth||todayISO().slice(0,7);
+  const [Y,M]=mon.split('-').map(Number);
+  const days=new Date(Y,M,0).getDate();
+  const list=staffAll().filter(x=>!x.left);
+  const head=`<div class="kv" style="margin-bottom:10px">
+      <button class="btn sm ghost" onclick="attMonthStep(-1)">‹</button>
+      <b>${new Date(Y,M-1,1).toLocaleDateString('en-IN',{month:'long',year:'numeric'})}</b>
+      <button class="btn sm ghost" onclick="attMonthStep(1)">›</button></div>`;
+  const body=list.map(st=>{
+    const sum=attSummary(st.id,mon,days);
+    return `<div class="card" style="padding:10px 12px;margin-bottom:8px">
+      <div class="kv"><b>${esc(st.name)}</b>
+        <span class="hint">${t('att_p')} ${sum.present} · ${t('att_h')} ${sum.half} · ${t('att_a')} ${sum.absent}${sum.lateN?' · ⏰ '+sum.lateN:''}</span></div>
+      <div class="att-grid">${Array.from({length:days},(_,i)=>{
+        const dd=`${mon}-${String(i+1).padStart(2,'0')}`;
+        const a=attGet(st.id,dd);
+        const stt=a?(a.st||ATT_PRESENT):'';
+        const cls=stt===ATT_PRESENT?'p':stt===ATT_HALF?'h':stt===ATT_ABSENT?'a':stt===ATT_OFF?'o':'';
+        return `<span class="att-d ${cls}" onclick="attCycle('${st.id}','${dd}')" title="${dd}">${i+1}</span>`;
+      }).join('')}</div></div>`;}).join('')||`<p class="hint">${t('st_none')}</p>`;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin:0 0 2px">📋 ${t('att_month')}</h2>
+    <p class="hint" style="margin:0 0 12px">${t('att_tap_hint')}</p>
+    ${head}${body}<div class="fab-pad"></div>`;
+  showSheet();
+}
+function attMonthStep(n){
+  const mon=_attMonth||todayISO().slice(0,7);
+  const [Y,M]=mon.split('-').map(Number);
+  const d=new Date(Y,M-1+n,1);
+  _attMonth=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  attSheet();
+}
+/* one tap walks a day round: present → half → absent → weekly off → blank */
+function attCycle(sid,d){
+  const a=attGet(sid,d);
+  const order=[ATT_PRESENT,ATT_HALF,ATT_ABSENT,ATT_OFF,null];
+  const cur=a?(a.st||ATT_PRESENT):null;
+  const nxt=order[(order.indexOf(cur)+1)%order.length];
+  if(nxt==null) attSet(sid,d,null);
+  else attSet(sid,d,Object.assign({},a||{},{st:nxt, edited:new Date().toISOString()}));
+  attSheet();
+}
+function attSummary(sid,mon,days){
+  let present=0,half=0,absent=0,off=0,lateN=0,lateMin=0,extraMin=0;
+  const st=staffById(sid)||{};
+  const closeM=hhmmToMin(staffCfg().closeTime);
+  for(let i=1;i<=days;i++){
+    const dd=`${mon}-${String(i).padStart(2,'0')}`;
+    const a=attGet(sid,dd); if(!a)continue;
+    const s=a.st||ATT_PRESENT;
+    if(s===ATT_PRESENT)present++; else if(s===ATT_HALF)half++;
+    else if(s===ATT_ABSENT)absent++; else if(s===ATT_OFF)off++;
+    if(a.in){ const lm=lateMins(st,a.in); if(lm>0){lateN++; lateMin+=lm;} }
+    if(a.out){ const o=hhmmToMin(a.out); if(o!=null&&closeM!=null&&o>closeM)extraMin+=(o-closeM); }
+  }
+  return {present,half,absent,off,lateN,lateMin,extraMin};
+}
+/* ── the profile: everything about one person in one place ─────────────────── */
+function staffMaster(){
+  const ks=staffAll();
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin:0 0 2px">👥 ${t('st_title')}</h2>
+    <p class="hint" style="margin:0 0 12px">${t('st_desc')}</p>
+    ${ks.map(k=>`<div class="cust-result" onclick="staffEdit('${k.id}')" style="cursor:pointer">
+      <div><b>${k.left?'⚪ ':'🧑‍💼 '}${esc(k.name)}</b>
+        <div class="hint">${esc(k.role||'')}${k.salary?' · '+money(k.salary):''}${k.startTime?' · 🕘 '+esc(k.startTime):''}</div></div>
+      <span class="hs-go">›</span></div>`).join('')||`<p class="hint">${t('st_none')}</p>`}
+    <button class="btn primary block" style="margin-top:10px" onclick="staffEdit()">+ ${t('st_add')}</button>
+    <button class="btn ghost block" style="margin-top:8px" onclick="staffPunch()">👥 ${t('pn_title')}</button>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function staffEdit(id){
+  const ex=id?staffById(id):null, c=staffCfg();
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${ex?esc(ex.name):t('st_add')}</h2>
+      <button class="btn sm ghost" onclick="staffMaster()">✕</button></div>
+    <div class="field"><label>${t('st_name')} *</label><input id="stName" value="${ex?esc(ex.name):''}"></div>
+    <div class="field" style="margin-top:8px"><label>${t('st_role')}</label>
+      <input id="stRole" value="${ex?esc(ex.role||''):''}" placeholder="${t('st_role_ph')}"></div>
+    <div class="field" style="margin-top:8px"><label>${t('phone')}</label>
+      <input id="stPhone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" value="${ex?esc(ex.phone||''):''}"></div>
+    <div class="row" style="gap:8px;margin-top:8px">
+      <div class="field"><label>${t('st_salary')}</label>
+        <input id="stSal" type="number" inputmode="numeric" value="${ex&&ex.salary?ex.salary:''}" placeholder="18000"></div>
+      <div class="field"><label>${t('st_comm')}</label>
+        <input id="stComm" type="number" inputmode="decimal" value="${ex&&ex.commPct?ex.commPct:''}" placeholder="0"></div></div>
+    <div class="row" style="gap:8px;margin-top:8px">
+      <div class="field"><label>${t('st_in')}</label>
+        <input id="stIn" value="${ex?esc(ex.startTime||c.openTime):c.openTime}" placeholder="10:30"></div>
+      <div class="field"><label>${t('st_out')}</label>
+        <input id="stOut" value="${ex?esc(ex.endTime||c.closeTime):c.closeTime}" placeholder="21:30"></div></div>
+    <div class="field" style="margin-top:8px"><label>${t('st_joined')}</label>
+      ${dateField('stJoin', ex?(ex.joined||''):'', '', true)}</div>
+    <p class="hint" style="margin-top:10px">${t('st_loan_note')}</p>
+    ${ex?`<button class="btn ghost block" style="margin-top:10px" onclick="staffLeftToggle('${ex.id}')">
+        ${ex.left?'↩️ '+t('st_rejoin'):'⚪ '+t('st_left')}</button>`:''}
+    <div class="modal-actions"><button class="btn ghost" onclick="staffMaster()">${t('cancel')}</button>
+      <button class="btn primary" onclick="staffSave('${id||''}')">${t('save')}</button></div>`;
+  showSheet();
+}
+function staffSave(id){
+  const name=(($('#stName')||{}).value||'').trim();
+  if(!name){ toast(t('st_name'),'bad'); return; }
+  const g=i=>(($('#'+i)||{}).value||'').trim();
+  const rec={ name, role:g('stRole'), phone:g('stPhone'),
+    salary:+g('stSal')||0, commPct:+g('stComm')||0,
+    startTime:g('stIn')||staffCfg().openTime, endTime:g('stOut')||staffCfg().closeTime,
+    joined:g('stJoin') };
+  DB.staff=DB.staff||[];
+  if(id){ const k=staffById(id); if(k)Object.assign(k,rec); }
+  else DB.staff.push(Object.assign({id:uid(),left:false},rec));
+  save(); staffMaster(); toast(t('t_saved'),'ok');
+}
+/* nobody is deleted — a person who leaves still owns a year of history and a loan */
+function staffLeftToggle(id){
+  const k=staffById(id); if(!k)return;
+  k.left=!k.left; save(); staffMaster();
+  toast(k.left?t('st_left_done'):t('st_rejoin_done'),'ok');
+}
 function salesmanMaster(){
   const ks=DB.salesmen||[];
   $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:6px">${t('salesman_master')}</h2>
