@@ -684,7 +684,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v207</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v208</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1274,6 +1274,7 @@ const T={
   zr_working:'Putting everything back…',
   zb_many:'{n} photos here. One file is easiest to keep, but it takes a few minutes — leave the screen open. Saving in parts is quicker to start.',
   zb_one_go:'One file', bk_parts:'In parts',
+  unstick:'Screen freed — try again',
   zb_packing:'Packing {a} of {b}…',
   zb_title:'One backup file', zb_working:'Gathering everything…',
   zb_progress:'{a} of {b} files', zb_done:'Saved — {n} MB, everything in one file',
@@ -2483,6 +2484,7 @@ const T={
   zr_working:'सब वापस डाल रहे हैं…',
   zb_many:'यहाँ {n} फ़ोटो हैं। एक फ़ाइल रखना सबसे आसान है, पर कुछ मिनट लगेंगे — स्क्रीन खुली रहने दीजिए। हिस्सों में सेव करना जल्दी शुरू होता है।',
   zb_one_go:'एक फ़ाइल', bk_parts:'हिस्सों में',
+  unstick:'स्क्रीन खुल गई — दोबारा कोशिश कीजिए',
   zb_packing:'{b} में से {a} पैक हो रहा है…',
   zb_title:'एक ही बैकअप फ़ाइल', zb_working:'सब इकट्ठा कर रहे हैं…',
   zb_progress:'{b} में से {a} फ़ाइल', zb_done:'सेव हो गया — {n} MB, सब एक ही फ़ाइल में',
@@ -16808,6 +16810,38 @@ async function init(){
     setTimeout(()=>toast(t('rec_used',{src:boot.from}),'bad'),900);
   }
 }
+/* v208 — HIS 16 Aug: "upar ke teen button kaam kar rahe hain, baaki kuch bhi nahi."
+   The header sits outside the sheet system; everything below it was dead. That is the
+   signature of an overlay left showing with nothing drawn in it — a sheet or modal that
+   was opened and then never closed, most likely when the zip build froze the tab mid-way
+   and the page was force-quit. The classes are only in memory, but a reload re-runs a
+   render that can put them straight back. Nothing should ever be able to leave the app
+   untappable, so the app now clears every overlay on startup, before anything is drawn. */
+function clearStuckOverlays(){
+  try{
+    ['scrim','mscrim','fracbar'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el){ el.classList.remove('show'); el.classList.remove('full'); }
+    });
+    document.body.classList.remove('sheet-open');
+    document.body.classList.remove('modal-on');
+    document.body.classList.remove('fb-on');
+    document.body.style.overflow='';
+  }catch(e){}
+}
+clearStuckOverlays();
+/* and a way out even if it happens again: press the shop name for two seconds */
+try{
+  const brand=document.querySelector('.brand');
+  if(brand){ let tmr=null;
+    const start=()=>{ tmr=setTimeout(()=>{ clearStuckOverlays();
+      try{toast(t('unstick'),'ok');}catch(e){} },2000); };
+    const stop=()=>{ clearTimeout(tmr); };
+    brand.addEventListener('touchstart',start,{passive:true});
+    brand.addEventListener('touchend',stop); brand.addEventListener('touchcancel',stop);
+    brand.addEventListener('mousedown',start); brand.addEventListener('mouseup',stop);
+  }
+}catch(e){}
 init();
 </script>
 </body>
