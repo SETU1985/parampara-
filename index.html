@@ -684,7 +684,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v206</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v207</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1272,6 +1272,9 @@ const T={
   ob_done:'Opening balances saved', ob_ref:'Opening',
   zr_bad:'This file is not a PARAMPARA backup', zr_nodata:'No data found inside this file',
   zr_working:'Putting everything back…',
+  zb_many:'{n} photos here. One file is easiest to keep, but it takes a few minutes — leave the screen open. Saving in parts is quicker to start.',
+  zb_one_go:'One file', bk_parts:'In parts',
+  zb_packing:'Packing {a} of {b}…',
   zb_title:'One backup file', zb_working:'Gathering everything…',
   zb_progress:'{a} of {b} files', zb_done:'Saved — {n} MB, everything in one file',
   zb_failed:'Could not build the file', zb_too_big:'Too large for one file — saving in parts instead',
@@ -2478,6 +2481,9 @@ const T={
   ob_done:'शुरुआती बकाया सेव हो गया', ob_ref:'शुरुआती',
   zr_bad:'यह PARAMPARA का बैकअप नहीं है', zr_nodata:'इस फ़ाइल में कोई डेटा नहीं मिला',
   zr_working:'सब वापस डाल रहे हैं…',
+  zb_many:'यहाँ {n} फ़ोटो हैं। एक फ़ाइल रखना सबसे आसान है, पर कुछ मिनट लगेंगे — स्क्रीन खुली रहने दीजिए। हिस्सों में सेव करना जल्दी शुरू होता है।',
+  zb_one_go:'एक फ़ाइल', bk_parts:'हिस्सों में',
+  zb_packing:'{b} में से {a} पैक हो रहा है…',
   zb_title:'एक ही बैकअप फ़ाइल', zb_working:'सब इकट्ठा कर रहे हैं…',
   zb_progress:'{b} में से {a} फ़ाइल', zb_done:'सेव हो गया — {n} MB, सब एक ही फ़ाइल में',
   zb_failed:'फ़ाइल नहीं बन पाई', zb_too_big:'एक फ़ाइल के लिए बहुत बड़ा — हिस्सों में सेव कर रहे हैं',
@@ -15891,6 +15897,38 @@ function crc32(u8){ let c=0xFFFFFFFF;
 function _u16(n){ return [n&0xFF,(n>>>8)&0xFF]; }
 function _u32(n){ return [n&0xFF,(n>>>8)&0xFF,(n>>>16)&0xFF,(n>>>24)&0xFF]; }
 function _bytes(arr){ return new Uint8Array(arr); }
+/* v207 — MY v206 mistake, and it froze his iPad solid: "kuch bhi kaam nahi kar raha hai,
+   na koi button na page scroll." Nothing was broken — the app was stuck inside one
+   enormous synchronous sum. Building a zip needs a CRC over every byte, and with 1280
+   photos that is hundreds of megabytes of arithmetic on the main thread in one go, so
+   the tab stops answering taps entirely until it finishes. The zip is still built here,
+   but in slices, handing the screen back between each one, with the count moving so he
+   can see it is alive. Anything that touches every byte of his data has to be able to
+   pause. */
+async function zipBuildAsync(files, onProgress){
+  const chunks=[], central=[]; let offset=0;
+  const enc=new TextEncoder();
+  for(let i=0;i<files.length;i++){
+    const f=files[i];
+    const nameB=enc.encode(f.name), crc=crc32(f.data), sz=f.data.length;
+    const local=_bytes([].concat(
+      _u32(0x04034b50), _u16(20), _u16(0), _u16(0), _u16(0), _u16(0),
+      _u32(crc), _u32(sz), _u32(sz), _u16(nameB.length), _u16(0)));
+    chunks.push(local, nameB, f.data);
+    central.push(_bytes([].concat(
+      _u32(0x02014b50), _u16(20), _u16(20), _u16(0), _u16(0), _u16(0), _u16(0),
+      _u32(crc), _u32(sz), _u32(sz), _u16(nameB.length),
+      _u16(0), _u16(0), _u16(0), _u16(0), _u32(0), _u32(offset))), nameB);
+    offset += local.length + nameB.length + sz;
+    if(i%5===4){ if(onProgress)onProgress(i+1,files.length); await bkYield(); }
+  }
+  const cdStart=offset;
+  let cdSize=0; central.forEach(c=>cdSize+=c.length);
+  const end=_bytes([].concat(
+    _u32(0x06054b50), _u16(0), _u16(0), _u16(files.length), _u16(files.length),
+    _u32(cdSize), _u32(cdStart), _u16(0)));
+  return new Blob(chunks.concat(central,[end]), {type:'application/zip'});
+}
 /* files: [{name, data:Uint8Array}] — stored, never deflated */
 function zipBuild(files){
   const chunks=[], central=[]; let offset=0;
@@ -15977,6 +16015,17 @@ async function zipRestore(file){
 }
 async function zipBackup(){
   const keys=await photoBackupKeys();
+  /* v207: on his iPad this is 1280 files. Say so before starting, and let him choose the
+     parts route instead — the one thing he must never get is a screen that goes dead with
+     no explanation. */
+  if(keys.length>400){
+    const go=await new Promise(res=>{
+      confirmModal('🗜️ '+t('zb_title'), t('zb_many',{n:keys.length}),
+        ()=>{closeModal();res(true);}, ()=>{closeModal();res(false);},
+        {yes:t('zb_one_go'), no:t('bk_parts'), cls:'primary'});
+    });
+    if(!go){ photoBackup(); return; }
+  }
   modal('🗜️ '+t('zb_title'),
     `<p class="hint" id="zbSub">${t('zb_working')}</p>
      <div class="prog"><div id="zbBar" class="bar" style="width:0%"></div></div>`,[]);
@@ -16001,7 +16050,12 @@ async function zipBackup(){
     }
   }
   let blob;
-  try{ blob=zipBuild(files); }
+  try{
+    blob=await zipBuildAsync(files,(a,b)=>{
+      const bar=$('#zbBar'); if(bar)bar.style.width=Math.round(a*100/b)+'%';
+      const sub=$('#zbSub'); if(sub)sub.textContent=t('zb_packing',{a,b});
+    });
+  }
   catch(e){ closeModal(); toast(t('zb_too_big'),'bad'); photoBackup(); return; }
   closeModal();
   const name='parampara-'+todayISO()+'.zip';
