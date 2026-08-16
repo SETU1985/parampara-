@@ -684,7 +684,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v208</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v210</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -9817,7 +9817,9 @@ function measRangeEdit(){
         const clean={};
         Object.keys(out).forEach(k=>{ const a=out[k];
           if(a[0]!=null&&a[1]!=null&&a[0]<a[1])clean[k]=[a[0],a[1]]; });
-        DB.measRange=clean; save(); closeModal(); toast(t('saved'),'ok'); }}]);
+        /* v209 audit: t('saved') is not a key anywhere — this toast came up blank.
+           The real one has always been t_saved. */
+        DB.measRange=clean; save(); closeModal(); toast(t('t_saved'),'ok'); }}]);
 }
 function vmFieldName(g,k){ const c=vcols(g||{}).find(x=>x.k===k); return c?c.n:k; }
 function vmAllFilled(f,key){
@@ -15251,8 +15253,6 @@ function attSet(sid,d,rec){ const a=attAll();
   save(); }
 function hhmmToMin(v){ const m=/^(\d{1,2}):(\d{2})$/.exec(String(v||'').trim());
   return m?(+m[1])*60+(+m[2]):null; }
-function minToHHMM(n){ if(n==null||!isFinite(n))return '';
-  n=Math.max(0,Math.round(n)); return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0'); }
 function nowHHMM(){ const d=new Date();
   return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
 /* how late, in minutes, against this person's own start time and the shop's grace */
@@ -15931,29 +15931,7 @@ async function zipBuildAsync(files, onProgress){
     _u32(cdSize), _u32(cdStart), _u16(0)));
   return new Blob(chunks.concat(central,[end]), {type:'application/zip'});
 }
-/* files: [{name, data:Uint8Array}] — stored, never deflated */
-function zipBuild(files){
-  const chunks=[], central=[]; let offset=0;
-  const enc=new TextEncoder();
-  files.forEach(f=>{
-    const nameB=enc.encode(f.name), crc=crc32(f.data), sz=f.data.length;
-    const local=_bytes([].concat(
-      _u32(0x04034b50), _u16(20), _u16(0), _u16(0), _u16(0), _u16(0),
-      _u32(crc), _u32(sz), _u32(sz), _u16(nameB.length), _u16(0)));
-    chunks.push(local, nameB, f.data);
-    central.push(_bytes([].concat(
-      _u32(0x02014b50), _u16(20), _u16(20), _u16(0), _u16(0), _u16(0), _u16(0),
-      _u32(crc), _u32(sz), _u32(sz), _u16(nameB.length),
-      _u16(0), _u16(0), _u16(0), _u16(0), _u32(0), _u32(offset))), nameB);
-    offset += local.length + nameB.length + sz;
-  });
-  const cdStart=offset;
-  let cdSize=0; central.forEach(c=>cdSize+=c.length);
-  const end=_bytes([].concat(
-    _u32(0x06054b50), _u16(0), _u16(0), _u16(files.length), _u16(files.length),
-    _u32(cdSize), _u32(cdStart), _u16(0)));
-  return new Blob(chunks.concat(central,[end]), {type:'application/zip'});
-}
+/* (the synchronous zipBuild was replaced by zipBuildAsync in v207 — it froze the tab) */
 async function blobBytes(b){ return new Uint8Array(await b.arrayBuffer()); }
 /* Reading the zip back. A backup you cannot restore is not a backup, so this is written
    against the same STORED-only format we produce — anything deflated is reported, never
@@ -16499,7 +16477,14 @@ function sheetClose(){
 }
 let _sheetFull=false;
 function showSheet(){
-  if(!sheetIsOpen() && !_sheetOn) _sheetFromTab=_curTab;   // v205: remember where he came from bindSheetSwipe();closeModal();$('#scrim').classList.add('show');_sheetOn=true;
+  /* v209 — MY v205 blunder, and it cost him a working day. I appended a one-line comment
+     to the end of this line, and everything that followed it — bindSheetSwipe, closeModal,
+     showing the scrim, setting _sheetOn — was swallowed by that comment. So no sheet ever
+     opened again: New Order, Reports, +, New Sale, All screens all did nothing, while tab
+     buttons kept working because they never come through here. The comment now sits on its
+     own line, where a comment belongs. */
+  if(!sheetIsOpen() && !_sheetOn) _sheetFromTab=_curTab;   // remember where he came from
+  bindSheetSwipe();closeModal();$('#scrim').classList.add('show');_sheetOn=true;
   /* A form takes the WHOLE screen. Set by the caller for one render, cleared here, so no
      other sheet can inherit it. */
   try{ $('#scrim').classList.toggle('full', !!_sheetFull); }catch(e){}
