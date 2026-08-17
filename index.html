@@ -688,7 +688,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v213</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v214</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1298,7 +1298,16 @@ const T={
   pn_cleared:'Today cleared', st_gone:'left',
   st_left_msg:'He stays in the records — attendance, advances and loan are all kept. He can be brought back any time.',
   st_manage:'Add or edit people', pn_all_in:'Everyone is in',
-  pn_yet:'{n} still to come',
+  pn_yet:'{n} still to come', pn_came:'Came today',
+  pn_fix_hint:'Hold a name to correct the time.',
+  pn_fix_note:'Empty the arrival time to clear the whole day.',
+  pn_fix_bad:'Write the time as 10:30',
+  st_adv_open:'Old advance outstanding',
+  st_adv_open_note:'Only what he already owed before this app. It goes to his ledger alone — cash, bank and this month\'s expenses are untouched.',
+  st_adv_open_ask:'Record {a} as {n}\'s opening advance? It only sets his starting balance. No cash moves and it is not counted as an expense.',
+  st_adv_bal:'Advance outstanding',
+  sl_open:'opening', sl_none:'Nothing against this name yet',
+  sl_note:'Money given adds, money returned or cut subtracts. Fresh advances are entered from Expenses.',
   st_title:'Staff', st_desc:'Pay, timing and commission live here. Attendance uses them.',
   st_none:'No staff yet', st_add:'Add a person', st_name:'Name', st_role:'Role',
   st_role_ph:'Salesman, helper, accounts…', st_salary:'Monthly salary', st_comm:'Commission %',
@@ -2520,7 +2529,16 @@ const T={
   pn_cleared:'आज का मिटा दिया', st_gone:'छोड़ दिया',
   st_left_msg:'हिसाब वहीं रहेगा — हाज़िरी, एडवांस और क़र्ज़ सब सुरक्षित। कभी भी वापस ला सकते हैं।',
   st_manage:'लोग जोड़ें या बदलें', pn_all_in:'सब आ गए',
-  pn_yet:'{n} अभी आना बाकी',
+  pn_yet:'{n} अभी आना बाकी', pn_came:'आज आए',
+  pn_fix_hint:'समय ठीक करना हो तो नाम को दबाकर रखिए।',
+  pn_fix_note:'आने का समय ख़ाली कर देंगे तो पूरा दिन मिट जाएगा।',
+  pn_fix_bad:'समय ऐसे लिखिए — 10:30',
+  st_adv_open:'पुराना एडवांस बाकी',
+  st_adv_open_note:'सिर्फ़ वो जो ऐप से पहले का बाकी है। ये सिर्फ़ इनके हिसाब में जुड़ेगा — नकद, बैंक और इस महीने के ख़र्च पर कोई असर नहीं।',
+  st_adv_open_ask:'{n} का पुराना एडवांस {a} दर्ज करें? इससे सिर्फ़ शुरुआती बाकी तय होता है। न पैसा हिलता है, न ख़र्च में गिना जाता है।',
+  st_adv_bal:'एडवांस बाकी',
+  sl_open:'शुरुआती', sl_none:'इस नाम पर अभी कुछ नहीं',
+  sl_note:'दिया हुआ जुड़ता है, वापस आया या कटा हुआ घटता है। नया एडवांस ख़र्च से ही दर्ज होता है।',
   st_title:'स्टाफ़', st_desc:'तनख़्वाह, समय और कमीशन यहीं रहते हैं। हाज़िरी इन्हीं से चलती है।',
   st_none:'अभी कोई स्टाफ़ नहीं', st_add:'नया आदमी जोड़ें', st_name:'नाम', st_role:'काम',
   st_role_ph:'सेल्समैन, हेल्पर, हिसाब…', st_salary:'महीने की तनख़्वाह', st_comm:'कमीशन %',
@@ -7638,15 +7656,19 @@ function renderHome(){
       ${(()=>{ const stf=staffAll().filter(x=>!x.left); if(!stf.length)return '';
         /* v205 — HIS 15 Aug: "staff attendance ka system to home page me hi rahega to
            accha hai." Right — it is done once every morning, and a daily job has no
-           business being buried in Settings. It shows who is still to come, so the line
-           itself is the reminder. */
+           business being buried in Settings.
+           v214 — HIS 17 Aug: "still to come wala chiz weird lag raha hai aur bina matlab
+           confusion badha raha hai." It was comparing each person's own start time against
+           the clock, so at 8:56 it announced "1 still to come · 0/1" while six people were
+           on the sheet — a sentence nobody could act on and a number that looked wrong.
+           A morning line needs one fact: how many of my people are in. */
         const d=todayISO();
         const inN=stf.filter(x=>{const a=attGet(x.id,d);return a&&a.in;}).length;
         return `<div class="card dl-card">
           <div class="dl-hd">👥 ${t('pn_title')}</div>
           <div class="dl-row tappable" onclick="staffPunch()">
             <span class="dl-ico">👥</span>
-            <span class="dl-lbl">${inN>=stf.length?t('pn_all_in'):t('pn_yet',{n:stf.length-inN})}</span>
+            <span class="dl-lbl">${t('pn_came')}</span>
             <span class="dl-n">${inN}/${stf.length}</span><span class="dl-go">›</span></div>
         </div>`; })()}
       <div class="card dl-card">
@@ -15534,6 +15556,54 @@ async function ptPickContact(){
 }
 function salesmenAll(){ return staffAll().filter(x=>!x.left); }
 function staffAll(){ DB.staff=DB.staff||[]; return DB.staff; }
+let _stDraft=null;
+/* the one opening line for this man, if he has one. The bulk opening screen files its
+   rows by NAME with no id, so match both ways — otherwise this field would look empty
+   and quietly write a second opening on top of the first. */
+function staffAdvOpen(sid){
+  const st=staffById(sid)||{}, nm=String(st.name||'').trim().toLowerCase();
+  return (DB.ledger||[]).find(l=>l.refKind==='opening'&&l.partyKind==='staff'&&
+    (l.partyId===sid || (nm && String(l.party||'').trim().toLowerCase()===nm)))||null;
+}
+/* every line standing against this man's name — the same reading the staff report uses */
+function staffAdvLines(sid){
+  const st=staffById(sid)||{}, nm=String(st.name||'').trim().toLowerCase();
+  return (DB.ledger||[]).filter(l=>{
+    if(l.dir!=='in'&&l.dir!=='out')return false;
+    return l.partyId===sid || (nm && String(l.party||'').trim().toLowerCase()===nm);
+  });
+}
+function staffAdvBal(sid){
+  let bal=0; staffAdvLines(sid).forEach(l=>{ bal += (l.dir==='out'?(+l.amt||0):-(+l.amt||0)); });
+  return r2(bal);
+}
+/* read-only: where the figure on the profile comes from, line by line */
+function staffLedger(sid){
+  const st=staffById(sid); if(!st)return;
+  _stDraft={ id:sid,
+    name:(($('#stName')||{}).value||''), role:(($('#stRole')||{}).value||''),
+    phone:(($('#stPhone')||{}).value||''), salary:(($('#stSal')||{}).value||''),
+    commPct:(($('#stComm')||{}).value||''), startTime:(($('#stIn')||{}).value||''),
+    endTime:(($('#stOut')||{}).value||''), advOpen:(($('#stAdvOpen')||{}).value||'') };
+  const lines=staffAdvLines(sid).slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  const bal=staffAdvBal(sid);
+  const rows=lines.map(l=>`<div class="card" style="padding:10px 12px;margin-bottom:8px">
+      <div class="kv"><div>
+        <b>${esc(l.note||l.cat||l.ref||'—')}</b>
+        <div class="hint">${fmtDate(l.date)}${l.opening?' · '+t('sl_open'):''}${l.edited?' · ✏️':''}</div>
+      </div><b style="color:${l.dir==='out'?'var(--saffron2)':'var(--ok)'};font-size:16px">
+        ${l.dir==='out'?'+':'−'} ${money(+l.amt||0)}</b></div></div>`).join('')
+    ||`<p class="hint">${t('sl_none')}</p>`;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">📒 ${esc(st.name)}</h2>
+      <button class="btn sm ghost" onclick="staffEdit('${sid}')">✕</button></div>
+    <div class="card" style="padding:12px 14px;margin-bottom:12px">
+      <div class="kv"><span>${t('st_adv_bal')}</span>
+        <b style="color:var(--saffron2);font-size:18px">${money(Math.abs(bal))}</b></div></div>
+    <p class="hint" style="margin-bottom:10px">${t('sl_note')}</p>
+    ${rows}<div class="fab-pad"></div>`;
+  showSheet();
+}
 function staffById(id){ return staffAll().find(x=>x.id===id); }
 function staffCfg(){ DB.staffCfg=DB.staffCfg||{};
   const c=DB.staffCfg;
@@ -15580,27 +15650,60 @@ function staffPunch(){
     const sub = a.in
       ? ('🕘 '+esc(a.in)+(a.out?(' – '+esc(a.out)):'')+(lm?(' · ⏰ '+t('pn_late_by',{n:lm})):''))
       : (t('pn_tap_me'));
-    return `<div class="pn-row ${cls}" onclick="punchTap('${st.id}')">
+    return `<div class="pn-row ${cls}" onclick="punchTap('${st.id}')"
+      ontouchstart="punchHoldStart('${st.id}')" ontouchend="punchHoldEnd()"
+      ontouchmove="punchHoldEnd()" ontouchcancel="punchHoldEnd()"
+      oncontextmenu="event.preventDefault();punchFix('${st.id}');return false;">
       <div class="pn-who"><b>${esc(st.name)}</b><div class="hint">${sub}</div></div>
       <span class="pn-mark">${a.out?'✓':(a.in?'🟢':'')}</span></div>`;}).join('');
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin:0 0 2px">👥 ${t('pn_title')}</h2>
-    <p class="hint" style="margin:0 0 12px">${fmtDate(d)} · ${t('pn_sub')}</p>
+    <p class="hint" style="margin:0 0 12px">${fmtDate(d)} · ${t('pn_sub')}<br>${t('pn_fix_hint')}</p>
     ${rows}
     <div class="od-addpiece" onclick="staffMaster()">👤 ${t('st_manage')}</div>
     <div class="fab-pad"></div>`;
   showSheet();
 }
-/* one tap does the obvious next thing: not in yet → in; in → leaving; already left → ask */
+/* one tap does the obvious next thing: not in yet → in; in → leaving; already left → fix */
 function punchTap(sid){
+  punchHoldEnd(); if(_pnHeld){ _pnHeld=false; return; }
   const st=staffById(sid); if(!st)return;
   const d=todayISO(), a=attGet(sid,d)||{};
   if(!a.in){ punchIn(sid); return; }
   if(!a.out){ punchOut(sid); toast('👋 '+esc(st.name)+' · '+t('pn_bye'),'ok'); return; }
   /* both marked — the only thing left is to correct a mistake, so offer that */
-  confirmModal('👥 '+esc(st.name), t('pn_redo_msg',{a:esc(a.in),b:esc(a.out)}),
-    ()=>{ attSet(sid,d,null); closeModal(); staffPunch(); toast(t('pn_cleared'),'ok'); },
-    null, {yes:t('pn_redo'), no:t('cancel'), cls:'primary'});
+  punchFix(sid);
+}
+/* v214 — a wrong time is the one thing this screen could not undo without wiping the day.
+   Holding a name opens the two times for editing; clearing the In box clears the day. */
+let _pnHold=null,_pnHeld=false;
+function punchHoldStart(sid){ _pnHeld=false; if(_pnHold)clearTimeout(_pnHold);
+  _pnHold=setTimeout(function(){ _pnHold=null;_pnHeld=true;
+    try{ if(navigator.vibrate)navigator.vibrate(15); }catch(e){}
+    punchFix(sid); },500); }
+function punchHoldEnd(){ if(_pnHold){ clearTimeout(_pnHold); _pnHold=null; } }
+function punchFix(sid){
+  const st=staffById(sid); if(!st)return;
+  const d=todayISO(), a=attGet(sid,d)||{};
+  modal('👥 '+esc(st.name),
+    `<div class="row" style="gap:8px">
+       <div class="field"><label>${t('st_in')}</label>
+         <input id="pnFixIn" value="${esc(a.in||'')}" placeholder="10:30"></div>
+       <div class="field"><label>${t('st_out')}</label>
+         <input id="pnFixOut" value="${esc(a.out||'')}" placeholder="21:00"></div></div>
+     <p class="hint" style="margin-top:8px">${t('pn_fix_note')}</p>`,
+    [{label:t('cancel'),cls:'ghost',fn:()=>{ closeModal(); staffPunch(); }},
+     {label:t('save'),cls:'primary',fn:()=>punchFixSave(sid)}]);
+}
+function punchFixSave(sid){
+  const d=todayISO(), a=attGet(sid,d)||{};
+  const gi=(($('#pnFixIn')||{}).value||'').trim();
+  const go=(($('#pnFixOut')||{}).value||'').trim();
+  if(!gi){ attSet(sid,d,null); closeModal(); staffPunch(); toast(t('pn_cleared'),'ok'); return; }
+  if(hhmmToMin(gi)==null||(go&&hhmmToMin(go)==null)){ toast(t('pn_fix_bad'),'bad'); return; }
+  a.in=gi; a.out=go||''; if(!a.out)delete a.out;
+  a.st=a.st||ATT_PRESENT; a.edited=new Date().toISOString();
+  attSet(sid,d,a); closeModal(); staffPunch(); toast(t('t_saved'),'ok');
 }
 function punchIn(sid){
   const st=staffById(sid); if(!st)return;
@@ -15710,27 +15813,42 @@ function staffMaster(){
 }
 function staffEdit(id){
   const ex=id?staffById(id):null, c=staffCfg();
+  const dr=(_stDraft&&_stDraft.id===(id||''))?_stDraft:null; _stDraft=null;
+  const V=(k,fb)=>dr?(dr[k]||''):fb;
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${ex?esc(ex.name):t('st_add')}</h2>
       <button class="btn sm ghost" onclick="staffMaster()">✕</button></div>
-    <div class="field"><label>${t('st_name')} *</label><input id="stName" value="${ex?esc(ex.name):''}"></div>
+    <div class="field"><label>${t('st_name')} *</label><input id="stName" value="${esc(V('name', ex?ex.name:''))}"></div>
     <div class="field" style="margin-top:8px"><label>${t('st_role')}</label>
-      <input id="stRole" value="${ex?esc(ex.role||''):''}" placeholder="${t('st_role_ph')}"></div>
+      <input id="stRole" value="${esc(V('role', ex?(ex.role||''):''))}" placeholder="${t('st_role_ph')}"></div>
     <div class="field" style="margin-top:8px"><label>${t('phone')}</label>
-      <input id="stPhone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" value="${ex?esc(ex.phone||''):''}">
+      <input id="stPhone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" value="${esc(V('phone', ex?(ex.phone||''):''))}">
       ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost" style="margin-top:8px" onclick="stPickContact()">📇 ${t('from_contacts')}</button>`:''}</div>
     <div class="row" style="gap:8px;margin-top:8px">
       <div class="field"><label>${t('st_salary')}</label>
-        <input id="stSal" type="number" inputmode="numeric" value="${ex&&ex.salary?ex.salary:''}" placeholder="18000"></div>
+        <input id="stSal" type="number" inputmode="numeric" value="${esc(V('salary', ex&&ex.salary?ex.salary:''))}" placeholder="18000"></div>
       <div class="field"><label>${t('st_comm')}</label>
-        <input id="stComm" type="number" inputmode="decimal" value="${ex&&ex.commPct?ex.commPct:''}" placeholder="0"></div></div>
+        <input id="stComm" type="number" inputmode="decimal" value="${esc(V('commPct', ex&&ex.commPct?ex.commPct:''))}" placeholder="0"></div></div>
     <div class="row" style="gap:8px;margin-top:8px">
       <div class="field"><label>${t('st_in')}</label>
-        <input id="stIn" value="${ex?esc(ex.startTime||c.openTime):c.openTime}" placeholder="10:30"></div>
+        <input id="stIn" value="${esc(V('startTime', ex?(ex.startTime||c.openTime):c.openTime))}" placeholder="10:30"></div>
       <div class="field"><label>${t('st_out')}</label>
-        <input id="stOut" value="${ex?esc(ex.endTime||c.closeTime):c.closeTime}" placeholder="21:30"></div></div>
+        <input id="stOut" value="${esc(V('endTime', ex?(ex.endTime||c.closeTime):c.closeTime))}" placeholder="21:30"></div></div>
     <div class="field" style="margin-top:8px"><label>${t('st_joined')}</label>
       ${dateField('stJoin', ex?(ex.joined||''):'', '', true)}</div>
+    ${/* v214 — HIS 17 Aug: "advance ka opening profile me dalna chahiye ya nahi." Yes —
+         money handed over before the app existed has no expense entry anywhere, so
+         without this his balance starts wrong on day one. It is a STATED POSITION, not
+         cash moving today: it carries no account, so it can never touch cash, bank or
+         this month's expenses. Fresh advances still go through Expenses, one door only. */''}
+    <div class="field" style="margin-top:8px"><label>${t('st_adv_open')}</label>
+      <input id="stAdvOpen" type="number" inputmode="numeric" placeholder="0"
+        value="${esc(V('advOpen',(()=>{const o=ex?staffAdvOpen(ex.id):null;return o&&+o.amt?o.amt:'';})()))}"></div>
+    <p class="hint" style="margin-top:6px">${t('st_adv_open_note')}</p>
+    ${ex?`<div class="dl-row tappable" style="margin-top:10px" onclick="staffLedger('${ex.id}')">
+        <span class="dl-ico">📒</span><span class="dl-lbl">${t('st_adv_bal')}</span>
+        <span class="dl-n" style="color:var(--saffron2)">${money(Math.abs(staffAdvBal(ex.id)))}</span>
+        <span class="dl-go">›</span></div>`:''}
     <p class="hint" style="margin-top:10px">${t('st_loan_note')}</p>
     ${ex?`<button class="btn ghost block" style="margin-top:10px" onclick="staffLeftToggle('${ex.id}')">
         ${ex.left?'↩️ '+t('st_rejoin'):'⚪ '+t('st_left')}</button>`:''}
@@ -15746,10 +15864,31 @@ function staffSave(id){
     salary:+g('stSal')||0, commPct:+g('stComm')||0,
     startTime:g('stIn')||staffCfg().openTime, endTime:g('stOut')||staffCfg().closeTime,
     joined:g('stJoin') };
+  const openAmt=r2(+((($('#stAdvOpen')||{}).value)||0)||0);
   DB.staff=DB.staff||[];
+  let sid=id;
   if(id){ const k=staffById(id); if(k)Object.assign(k,rec); }
-  else DB.staff.push(Object.assign({id:uid(),left:false},rec));
-  save(); staffMaster(); toast(t('t_saved'),'ok');
+  else { sid=uid(); DB.staff.push(Object.assign({id:sid,left:false},rec)); }
+  save();
+  /* the opening is money — it never goes in without him seeing what it will do */
+  const op=staffAdvOpen(sid), cur=op?r2(+op.amt||0):0;
+  if(openAmt!==cur){ staffAdvAsk(sid,rec.name,openAmt,op); return; }
+  staffMaster(); toast(t('t_saved'),'ok');
+}
+/* an opening balance changes no cash and no expense — it only states where the man
+   already stood. Struck amounts are never dropped: the same line is amended and stamped. */
+function staffAdvAsk(sid,name,amt,op){
+  const done=()=>{ closeModal(); staffMaster(); toast(t('t_saved'),'ok'); };
+  confirmModal('📒 '+t('st_adv_open'),
+    t('st_adv_open_ask',{n:esc(name), a:money(amt)}),
+    ()=>{ DB.ledger=DB.ledger||[];
+      if(op){ op.amt=amt; op.partyId=op.partyId||sid; op.edited=new Date().toISOString(); }
+      else DB.ledger.push({id:uid(), dir:'out', date:todayISO(), amt, acc:'',
+        party:name, partyId:sid, partyKind:'staff', ref:t('ob_ref'), refKind:'opening',
+        cat:'', note:t('st_adv_open'), opening:true, photos:[]});
+      save(); done(); },
+    ()=>done(),
+    {yes:t('save'), no:t('cancel'), cls:'primary'});
 }
 /* nobody is deleted — a person who leaves still owns a year of history and a loan */
 /* nothing about a person's pay or history is ever thrown away without him saying so */
