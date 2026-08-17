@@ -578,7 +578,11 @@
      long enough to be honest and still be tapped with one thumb. */
   .pn-row{display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--line);
     border-radius:12px;margin-bottom:8px;background:var(--card)}
+  .sr-bar{height:6px;background:var(--bg2);border-radius:4px;overflow:hidden;margin-top:8px}
+  .sr-bar>div{height:100%;background:var(--saffron)}
+  .pn-row{cursor:pointer}
   .pn-row.pn-here{border-color:var(--ok)}
+  .pn-mark{flex:0 0 auto;font-size:16px}
   .pn-row.pn-done{opacity:.65}
   .pn-who{flex:1;min-width:0} .pn-act{flex:0 0 auto}
   .att-grid{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
@@ -684,7 +688,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v212</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v213</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1286,6 +1290,13 @@ const T={
   zb_failed:'Could not build the file', zb_too_big:'Too large for one file — saving in parts instead',
   zb_one:'Backup everything (one file)',
   sg_shop:'The shop', sg_people:'People', sg_money:'Money', sg_things:'Items & stock',
+  sr_title:'Staff report', sr_late:'Late', sr_min:'min', sr_extra:'Extra hours', sr_hrs:'hrs',
+  sr_cut:'Cut for days off', sr_earned:'Earned', sr_loan:'Advance / loan outstanding',
+  sr_clean:'A clean month — the extra day is due',
+  pn_tap_me:'tap to mark in', pn_bye:'marked out', pn_redo:'Clear today',
+  pn_redo_msg:'In at {a}, out at {b}. Clear today and start again?',
+  pn_cleared:'Today cleared', st_gone:'left',
+  st_left_msg:'He stays in the records — attendance, advances and loan are all kept. He can be brought back any time.',
   st_manage:'Add or edit people', pn_all_in:'Everyone is in',
   pn_yet:'{n} still to come',
   st_title:'Staff', st_desc:'Pay, timing and commission live here. Attendance uses them.',
@@ -2501,6 +2512,13 @@ const T={
   zb_failed:'फ़ाइल नहीं बन पाई', zb_too_big:'एक फ़ाइल के लिए बहुत बड़ा — हिस्सों में सेव कर रहे हैं',
   zb_one:'सब कुछ बैकअप (एक फ़ाइल)',
   sg_shop:'दुकान', sg_people:'लोग', sg_money:'पैसा', sg_things:'सामान और स्टॉक',
+  sr_title:'स्टाफ़ रिपोर्ट', sr_late:'देर', sr_min:'मिनट', sr_extra:'ज़्यादा घंटे', sr_hrs:'घंटे',
+  sr_cut:'ग़ैर-हाज़िरी की कटौती', sr_earned:'बनता है', sr_loan:'एडवांस / क़र्ज़ बाकी',
+  sr_clean:'पूरा महीना साफ़ — एक दिन का इनाम बनता है',
+  pn_tap_me:'हाज़िरी के लिए टैप कीजिए', pn_bye:'जाना दर्ज', pn_redo:'आज का मिटाएँ',
+  pn_redo_msg:'{a} बजे आए, {b} बजे गए। आज का मिटाकर दोबारा लगाएँ?',
+  pn_cleared:'आज का मिटा दिया', st_gone:'छोड़ दिया',
+  st_left_msg:'हिसाब वहीं रहेगा — हाज़िरी, एडवांस और क़र्ज़ सब सुरक्षित। कभी भी वापस ला सकते हैं।',
   st_manage:'लोग जोड़ें या बदलें', pn_all_in:'सब आ गए',
   pn_yet:'{n} अभी आना बाकी',
   st_title:'स्टाफ़', st_desc:'तनख़्वाह, समय और कमीशन यहीं रहते हैं। हाज़िरी इन्हीं से चलती है।',
@@ -3344,6 +3362,18 @@ function load(raw){ try{const r=(raw!==undefined&&raw!==null)?raw:localStorage.g
      indirect — and one entry then reaches both the expense book and that person's account,
      with nothing typed twice. Heads with no list keep behaving exactly as they do today. */
   if(!DB.expHeadCfg)DB.expHeadCfg={};
+  /* v213 — HIS 17 Aug: "aaj se attendance software par hi hoga" with six names. Seeded
+     once so the punch screen is usable from the first morning; every one of them can be
+     renamed, given a timing and a salary, or taken off the list from Staff. */
+  if(!DB.staffSeeded){
+    DB.staff=DB.staff||[];
+    ['RAMESH','VICKY','JEESHAN','SOMA HALDER','OM PRAKASH','JAFAR'].forEach(nm=>{
+      if(!DB.staff.some(x=>String(x.name||'').trim().toUpperCase()===nm))
+        DB.staff.push({id:uid(),name:nm,role:'',phone:'',salary:0,commPct:0,
+          startTime:'',endTime:'',joined:'',left:false});
+    });
+    DB.staffSeeded=1;
+  }
   /* v205 — HIS 15 Aug: "staff and salesman master, ye do alag chip ka kya matlab hai?"
      None — Om is a salesman AND staff, and keeping two lists meant typing him twice and
      splitting his account in half. Salesmen fold into staff, once, keeping their ids so
@@ -7636,11 +7666,19 @@ function renderHome(){
          place. His own count was the argument: ~30 things on opening the app. */''}
 
     ${(modOn('accounts')||modOn('billing'))?`
-    <div class="card" style="margin-top:12px">
-      <div class="kv"><span class="hint">💵 ${t('cb_total')}</span>
-        <b style="color:var(--saffron2)">${money(totalCashBank())}</b></div>
-      <div class="kv" style="margin-top:6px"><span class="hint">📈 ${t('home_month_sales')}</span>
-        <b>${money(monthSale)}</b></div>
+    ${/* v213 — HIS 17 Aug: "This Month Sale par click karne se kuch hota hi nahi hai."
+         A dead line on the main screen is his own rule broken. Rather than add chips for
+         Sale and Purchase reports — which would refill the dashboard we just emptied —
+         these two lines simply open what they are already describing. No new buttons. */''}
+    <div class="card dl-card" style="margin-top:12px">
+      <div class="dl-row tappable" onclick="cashBank()">
+        <span class="dl-ico">💵</span><span class="dl-lbl">${t('cb_total')}</span>
+        <span class="dl-n" style="color:var(--saffron2)">${money(totalCashBank())}</span>
+        <span class="dl-go">›</span></div>
+      <div class="dl-row tappable" onclick="go('reports')">
+        <span class="dl-ico">📈</span><span class="dl-lbl">${t('home_month_sales')}</span>
+        <span class="dl-n">${money(monthSale)}</span>
+        <span class="dl-go">›</span></div>
     </div>`:''}
     <div class="fab-pad"></div>`;
 }
@@ -12976,7 +13014,11 @@ function purDraftHTML(){
     <input id="pu_dname" placeholder="${t('purch_item_ph')}" autocomplete="off"
       onfocus="purDSug()" oninput="purDSug()" onkeydown="if(event.key==='Enter'){event.preventDefault();purDraftAdd();}" style="margin:0">
     <div class="pu-qty-row">
-      <input id="pu_dqty" type="number" inputmode="decimal" placeholder="${t('qty')}" value="1"
+      ${/* v213 — HIS 17 Aug: "cursor uske left aa raha hai... ya qty likha ho aur cursor
+           aate hi number daalna ho." Right: a box holding 1 with the caret before it turns
+           "5" into "15". The box now starts empty with Qty written in it, so whatever he
+           types IS the quantity. A blank is read as 1 where a quantity is required. */''}
+      <input id="pu_dqty" type="number" inputmode="decimal" placeholder="${t('qty')}"
         oninput="purDCalc()" style="margin:0;text-align:center">
       <span class="gtags" id="puDUnits">${PUR_UNITS.map(u=>
         `<span class="gtag sm ${_purD.unit===u?'on-tag':''}" data-u="${u}" style="cursor:pointer" onclick="purDUnit('${u}')">${u}</span>`).join('')}</span>
@@ -13022,7 +13064,8 @@ function puEditParty(){
   partyEdit(p.id, (newName)=>{ purchForm.supplier=newName; renderPurchaseForm(); });
 }
 function purDCalc(){
-  const q=+(($('#pu_dqty')||{}).value)||0, r=+(($('#pu_drate')||{}).value)||0;
+  const qv=(($('#pu_dqty')||{}).value||'').trim();
+  const q=qv===''?1:(+qv||0), r=+(($('#pu_drate')||{}).value)||0;
   const el=$('#puDAmt'); if(el)el.textContent=money(r2(q*r));
 }
 function purDSug(){
@@ -13096,7 +13139,7 @@ function purDraftAdd(silent){
   purItemBar();
   purItemBar();
   n.value=''; const rt=$('#pu_drate'); if(rt)rt.value='';
-  const q=$('#pu_dqty'); if(q)q.value=1;
+  const q=$('#pu_dqty'); if(q)q.value='';   // v213: next line starts empty, ready to type
   const box=$('#puDSug'); if(box)box.innerHTML='';
   purDCalc(); updatePurchTotal();
   if(!silent)n.focus();
@@ -13626,6 +13669,73 @@ function rpRange(){
 }
 function setRpPeriod(p){rpPeriod=p;if(p==='custom'){if($('#rp_from'))rpFrom=$('#rp_from').value;if($('#rp_to'))rpTo=$('#rp_to').value;}renderReports();}
 function applyRpCustom(){rpPeriod='custom';rpFrom=$('#rp_from').value;rpTo=$('#rp_to').value;renderReports();}
+/* ── STAFF REPORT ──────────────────────────────────────────────────────────────
+   v213 — HIS 17 Aug: "details report kaun kitne baje aaya, kitne din aaya, kitna payment
+   uthaya, kitna loan (advance) baaki hai uske paas." None of it existed — attendance was
+   being recorded and then never read. It belongs in Reports, where a month is looked at,
+   not on the punch screen where a morning is. People who have left are kept in the list,
+   because a man who worked nine months of the year has to appear in that year's report. */
+let _srMonth=null;
+function staffReport(){
+  const mon=_srMonth||todayISO().slice(0,7);
+  const [Y,M]=mon.split('-').map(Number);
+  const days=new Date(Y,M,0).getDate();
+  const all=staffAll();
+  const rows=all.map(st=>{
+    const sum=attSummary(st.id,mon,days);
+    const day=st.salary?r2(st.salary/((staffCfg().dayDiv)||30)):0;
+    const cut=r2(day*sum.absent + day*sum.half/2);
+    const earned=st.salary?r2(st.salary-cut):0;
+    /* what he has drawn and what is still on him — from the ledger, never guessed */
+    let drawn=0, back=0;
+    (DB.ledger||[]).forEach(l=>{
+      if(l.partyId!==st.id && String(l.party||'').trim().toLowerCase()!==String(st.name||'').trim().toLowerCase())return;
+      if(String(l.date||'').slice(0,7)>mon)return;
+      if(l.dir==='out')drawn+=(+l.amt||0); else back+=(+l.amt||0);
+    });
+    const bal=r2(drawn-back);
+    const clean=(sum.absent===0 && sum.half===0 && sum.present>=((staffCfg().bonusDays)||30));
+    return {st,sum,day,cut,earned,bal,clean};
+  });
+  const bar=(n,max)=>{ const w=max?Math.round(n*100/max):0;
+    return `<div class="sr-bar"><div style="width:${w}%"></div></div>`; };
+  const maxP=Math.max(1,...rows.map(r=>r.sum.present));
+  const body=rows.map(r=>`
+    <div class="card" style="padding:12px 14px;margin-bottom:10px">
+      <div class="kv"><b>${r.st.left?'⚪ ':''}${esc(r.st.name)}</b>
+        <span class="hint">${esc(r.st.role||'')}</span></div>
+      ${bar(r.sum.present,maxP)}
+      <div class="kv" style="margin-top:8px"><span class="hint">${t('att_p')} / ${t('att_h')} / ${t('att_a')}</span>
+        <b>${r.sum.present} · ${r.sum.half} · ${r.sum.absent}</b></div>
+      ${r.sum.lateN?`<div class="kv"><span class="hint">⏰ ${t('sr_late')}</span>
+        <b>${r.sum.lateN} · ${r.sum.lateMin} ${t('sr_min')}</b></div>`:''}
+      ${r.sum.extraMin?`<div class="kv"><span class="hint">🌙 ${t('sr_extra')}</span>
+        <b>${Math.round(r.sum.extraMin/60)} ${t('sr_hrs')}</b></div>`:''}
+      ${r.st.salary?`<div class="kv" style="margin-top:6px"><span class="hint">${t('st_salary')}</span><b>${money(r.st.salary)}</b></div>
+        ${r.cut?`<div class="kv"><span class="hint">− ${t('sr_cut')}</span><b style="color:var(--bad)">${money(r.cut)}</b></div>`:''}
+        <div class="kv"><span class="hint">${t('sr_earned')}</span><b style="color:var(--ok)">${money(r.earned)}</b></div>`:''}
+      ${r.bal?`<div class="kv"><span class="hint">${t('sr_loan')}</span>
+        <b style="color:var(--saffron2)">${money(Math.abs(r.bal))}</b></div>`:''}
+      ${r.clean?`<div class="hint" style="margin-top:6px">🎉 ${t('sr_clean')}</div>`:''}
+    </div>`).join('')||`<p class="hint">${t('st_none')}</p>`;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin:0 0 2px">👥 ${t('sr_title')}</h2>
+    <div class="kv" style="margin:8px 0 12px">
+      <button class="btn sm ghost" onclick="srMonth(-1)">‹</button>
+      <b>${new Date(Y,M-1,1).toLocaleDateString('en-IN',{month:'long',year:'numeric'})}</b>
+      <button class="btn sm ghost" onclick="srMonth(1)">›</button></div>
+    ${body}
+    <button class="btn ghost block" onclick="attSheet()">📋 ${t('att_month')}</button>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function srMonth(n){
+  const mon=_srMonth||todayISO().slice(0,7);
+  const [Y,M]=mon.split('-').map(Number);
+  const d=new Date(Y,M-1+n,1);
+  _srMonth=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  staffReport();
+}
 function renderReports(){
   const el=$('#reportsPane');
   const {from,to}=rpRange();
@@ -13678,6 +13788,11 @@ function renderReports(){
 
   el.innerHTML=`
     <div class="detail-hd"><button class="back" onclick="go('invoices')">←</button><div style="flex:1"><h2>📊 ${t('reports')}</h2></div></div>
+    ${/* v213: every report the shop keeps, reachable from the one place reports live */''}
+    <div class="row" style="gap:6px;margin-bottom:12px">
+      <button class="btn ghost" style="flex:1" onclick="staffReport()">👥 ${t('sr_title')}</button>
+      <button class="btn ghost" style="flex:1" onclick="expenses()">💸 ${t('exp_title')}</button>
+    </div>
     <button class="btn ghost block" style="margin-bottom:12px" onclick="openPurchaseForm()">📦 + ${t('new_purchase')}</button>
     <div class="section-h" style="margin-top:4px">💰 ${t('sales_report')}</div>
     <div class="gtags" style="margin-bottom:10px">${chip('week',t('rp_week'))}${chip('month',t('rp_month'))}${chip('custom',t('rp_custom'))}</div>
@@ -15450,30 +15565,42 @@ function lateMins(st,inAt){
 }
 
 /* ── the punch, on the shop's own iPad ───────────────────────────────────────── */
+/* v213 — HIS 17 Aug: "staff apne naam par click kare to present ho jaye. Simple and easy
+   to punch." So the name IS the button. No "I have come" beside it, no counter to read —
+   he taps his name, the clock is taken as it stands, and the row turns green with the
+   time on it. Tapping again marks him leaving. Everything else that used to sit on this
+   screen has gone to Reports, where it is looked at once a month, not every morning. */
 function staffPunch(){
   const d=todayISO(), list=staffAll().filter(x=>!x.left);
   if(!list.length){ staffMaster(); return; }
   const rows=list.map(st=>{
     const a=attGet(st.id,d)||{};
     const lm=a.in?lateMins(st,a.in):0;
-    const state = a.in ? (a.out?t('pn_done'):t('pn_in')) : t('pn_not');
-    const cls = a.in ? (a.out?'pn-done':'pn-here') : '';
-    return `<div class="pn-row ${cls}">
-      <div class="pn-who"><b>${esc(st.name)}</b>
-        <div class="hint">${a.in?('🕘 '+esc(a.in)+(a.out?' – '+esc(a.out):'')+(lm?' · ⏰ '+t('pn_late_by',{n:lm}):'')):esc(st.startTime||staffCfg().openTime)}</div></div>
-      <div class="pn-act">
-        ${!a.in ? `<button class="btn sm primary" onclick="punchIn('${st.id}')">${t('pn_arrive')}</button>`
-          : (!a.out ? `<button class="btn sm ghost" onclick="punchOut('${st.id}')">${t('pn_leave')}</button>`
-                    : `<span class="hint">${state}</span>`)}
-      </div></div>`;}).join('');
+    const cls = a.out?'pn-done' : (a.in?'pn-here':'');
+    const sub = a.in
+      ? ('🕘 '+esc(a.in)+(a.out?(' – '+esc(a.out)):'')+(lm?(' · ⏰ '+t('pn_late_by',{n:lm})):''))
+      : (t('pn_tap_me'));
+    return `<div class="pn-row ${cls}" onclick="punchTap('${st.id}')">
+      <div class="pn-who"><b>${esc(st.name)}</b><div class="hint">${sub}</div></div>
+      <span class="pn-mark">${a.out?'✓':(a.in?'🟢':'')}</span></div>`;}).join('');
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin:0 0 2px">👥 ${t('pn_title')}</h2>
     <p class="hint" style="margin:0 0 12px">${fmtDate(d)} · ${t('pn_sub')}</p>
     ${rows}
-    <button class="btn ghost block" style="margin-top:12px" onclick="attSheet()">📋 ${t('att_month')}</button>
-    <button class="btn ghost block" style="margin-top:8px" onclick="staffMaster()">👤 ${t('st_manage')}</button>
+    <div class="od-addpiece" onclick="staffMaster()">👤 ${t('st_manage')}</div>
     <div class="fab-pad"></div>`;
   showSheet();
+}
+/* one tap does the obvious next thing: not in yet → in; in → leaving; already left → ask */
+function punchTap(sid){
+  const st=staffById(sid); if(!st)return;
+  const d=todayISO(), a=attGet(sid,d)||{};
+  if(!a.in){ punchIn(sid); return; }
+  if(!a.out){ punchOut(sid); toast('👋 '+esc(st.name)+' · '+t('pn_bye'),'ok'); return; }
+  /* both marked — the only thing left is to correct a mistake, so offer that */
+  confirmModal('👥 '+esc(st.name), t('pn_redo_msg',{a:esc(a.in),b:esc(a.out)}),
+    ()=>{ attSet(sid,d,null); closeModal(); staffPunch(); toast(t('pn_cleared'),'ok'); },
+    null, {yes:t('pn_redo'), no:t('cancel'), cls:'primary'});
 }
 function punchIn(sid){
   const st=staffById(sid); if(!st)return;
@@ -15559,10 +15686,18 @@ function staffMaster(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin:0 0 2px">👥 ${t('st_title')}</h2>
     <p class="hint" style="margin:0 0 12px">${t('st_desc')}</p>
-    ${ks.map(k=>`<div class="cust-result" onclick="staffEdit('${k.id}')" style="cursor:pointer">
-      <div><b>${k.left?'⚪ ':'🧑‍💼 '}${esc(k.name)}</b>
+    ${/* v213 — HIS 17 Aug: "staff permanent nahi, aaj hai, nahi samajh me aaya to wo chhod
+         bhi sakte hain aur main hata bhi sakta hun." So every person can be edited or taken
+         off the list from here. Taken off, never deleted: his attendance, his advances and
+         his loan are a year of history, and a report that silently loses a man who worked
+         nine months of it is worse than no report. He shows as left, and can come back. */''}
+    ${ks.map(k=>`<div class="cust-result" style="align-items:center">
+      <div style="flex:1;min-width:0;cursor:pointer" onclick="staffEdit('${k.id}')">
+        <b>${k.left?'⚪ ':'🧑‍💼 '}${esc(k.name)}${k.left?' · '+t('st_gone'):''}</b>
         <div class="hint">${esc(k.role||'')}${k.salary?' · '+money(k.salary):''}${k.startTime?' · 🕘 '+esc(k.startTime):''}</div></div>
-      <span class="hs-go">›</span></div>`).join('')||`<p class="hint">${t('st_none')}</p>`}
+      <button class="btn sm ghost" style="flex:0 0 auto" onclick="event.stopPropagation();staffEdit('${k.id}')">✏️</button>
+      <button class="btn sm ghost" style="flex:0 0 auto" onclick="event.stopPropagation();staffLeftAsk('${k.id}')">${k.left?'↩️':'⚪'}</button>
+      </div>`).join('')||`<p class="hint">${t('st_none')}</p>`}
     ${/* v205 — HIS 15 Aug: "staff ka naam add karne ke baad bhi aisa lag raha hai jaise app
          keh raha ho Ramesh ko add karna hai." The big bright button stayed on the one job
          already finished. Once somebody is on the list, the daily job takes the weight. */''}
@@ -15617,6 +15752,14 @@ function staffSave(id){
   save(); staffMaster(); toast(t('t_saved'),'ok');
 }
 /* nobody is deleted — a person who leaves still owns a year of history and a loan */
+/* nothing about a person's pay or history is ever thrown away without him saying so */
+function staffLeftAsk(id){
+  const k=staffById(id); if(!k)return;
+  if(k.left){ staffLeftToggle(id); return; }
+  confirmModal('⚪ '+esc(k.name), t('st_left_msg'),
+    ()=>{ closeModal(); staffLeftToggle(id); },
+    null, {yes:t('st_left'), no:t('cancel'), cls:'primary'});
+}
 function staffLeftToggle(id){
   const k=staffById(id); if(!k)return;
   k.left=!k.left; save(); staffMaster();
