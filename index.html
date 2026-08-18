@@ -116,6 +116,9 @@
     font-weight:700;padding:10px 6px;border-radius:9px;cursor:pointer;transition:background .15s}
   .type-tabs .tt.on{background:var(--saffron);color:#1a1206;font-weight:800}
   .head-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+  .head-grid3{display:grid;grid-template-columns:.72fr 1fr 1fr;gap:6px}
+  .head-grid3 .field label{font-size:10px;letter-spacing:.3px}
+  .head-grid3 input{font-size:13px;padding-left:6px;padding-right:6px}
   .head-grid input:disabled{opacity:.55}
   .cust-2col{display:flex;gap:8px}
   .cust-2col>div{flex:1;min-width:0}
@@ -721,7 +724,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v217</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v219</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1330,6 +1333,9 @@ const T={
   pn_redo_msg:'In at {a}, out at {b}. Clear today and start again?',
   pn_cleared:'Today cleared', st_gone:'left',
   st_left_msg:'He stays in the records — attendance, advances and loan are all kept. He can be brought back any time.',
+  dup_ph_other:'Someone else on the same number',
+  rc_other_ok:'New person — his own measurements will be taken',
+  vm_all_done:'All measurements done',
   sw_ready:'Saved on this device — works without internet now',
   sw_update:'New version ready — close and open the app once',
   vm_idle:'Mic off — nothing heard for a while',
@@ -2571,6 +2577,9 @@ const T={
   pn_redo_msg:'{a} बजे आए, {b} बजे गए। आज का मिटाकर दोबारा लगाएँ?',
   pn_cleared:'आज का मिटा दिया', st_gone:'छोड़ दिया',
   st_left_msg:'हिसाब वहीं रहेगा — हाज़िरी, एडवांस और क़र्ज़ सब सुरक्षित। कभी भी वापस ला सकते हैं।',
+  dup_ph_other:'इसी नंबर पर कोई और है',
+  rc_other_ok:'नया व्यक्ति — इनका अपना नाप लिया जाएगा',
+  vm_all_done:'सारे नाप हो गए',
   sw_ready:'इसी डिवाइस में सेव हो गया — अब बिना इंटरनेट भी चलेगा',
   sw_update:'नया वर्ज़न तैयार — ऐप एक बार बंद करके खोलिए',
   vm_idle:'माइक बंद — कुछ देर से कोई आवाज़ नहीं आई',
@@ -3669,11 +3678,28 @@ function daysLeft(d){if(!d)return null;const x=new Date(d);x.setHours(0,0,0,0);c
 function masterDate(deliveryDate){const dl=daysLeft(deliveryDate);if(dl==null)return deliveryDate;
   let buf=0; if(dl>1)buf=Math.min(5,Math.max(1,Math.round(dl*0.25)));   // give karigar a buffer that scales with available time
   const d=new Date(deliveryDate);d.setDate(d.getDate()-buf);return d.toISOString().slice(0,10);}
+/* v218 — the audit proved it and HIS rule forbids it: numbers were being reissued.
+   101,102,103 → next was 104, correct. Delete 103 and the next order came out 103 AGAIN,
+   because the next number was only ever "highest still on file + 1" and the highest had
+   just been erased. Two customers' garments then carry one number and nothing can tell
+   them apart; on a bill it is worse, a GST number cannot be used twice.
+   So the shop now remembers the highest number it has EVER issued. Deleting cannot lower
+   it. Nothing is written when a form merely opens — the mark is set at save, so an
+   abandoned screen still burns nothing. Old data needs no migration: the mark starts at
+   zero and the existing scan already covers everything on file. */
+function numHW(k){ return +(((DB.numCfg||{}).hw||{})[k])||0; }
+function numHWSet(k,v){
+  v=parseInt(v,10); if(!v||isNaN(v))return;
+  DB.numCfg=DB.numCfg||{}; DB.numCfg.hw=DB.numCfg.hw||{};
+  if(v>(+DB.numCfg.hw[k]||0))DB.numCfg.hw[k]=v;
+}
+const numDigits=v=>parseInt(String(v==null?'':v).replace(/\D/g,''),10)||0;
 function nextOrderNo(){
   const c=DB.numCfg||{};
   let mx=0;
-  (DB.orders||[]).forEach(o=>{const n=parseInt(String(o.orderNo).replace(/\D/g,''),10);if(!isNaN(n)&&n>mx)mx=n;});
-  const n=Math.max(mx+1, +c.ordStart||0, 1);
+  (DB.orders||[]).forEach(o=>{const n=parseInt(String(o.orderNo).replace(/\D/g,''),10);if(!isNaN(n)&&n>mx)mx=n;
+    (o.members||[]).forEach(m=>{const k=numDigits(m.ono); if(k>mx)mx=k;});});
+  const n=Math.max(mx+1, numHW('ord')+1, +c.ordStart||0, 1);
   const pre=(c.ordPrefix||'').trim();
   return pre?pre+n:String(n);
 }
@@ -3698,9 +3724,11 @@ function invSeen(){                       // highest number already used in this
   scan(DB.orders);scan(DB.alterations);scan(DB.sales);
   return mx;
 }
+/* the bill series keeps its own mark, one per year — 2026-27 must not restart 2025-26 */
+function invHWKey(){ return 'inv:'+invSeries(); }
 function nextInvoiceNo(){
   const c=DB.numCfg||{};
-  const n=Math.max(invSeen()+1, +c.invStart||0, 1);
+  const n=Math.max(invSeen()+1, numHW(invHWKey())+1, +c.invStart||0, 1);
   const pre=(c.invPrefix||'').trim();
   return (pre?pre+'/':'')+invSeries()+'/'+String(n).padStart(3,'0');
 }
@@ -3715,6 +3743,11 @@ function invCompute(inv){
   let taxable=0,cgst=0,sgst=0,igst=0;
   perItem.forEach(({p,r})=>{const net=r2(p*scale);const base=net/(1+r/100);taxable+=base;
     if(inv.interstate)igst+=(net-base); else {const half=(net-base)/2;cgst+=half;sgst+=half;}});
+  /* v218: ₹3000 at 18% came to 2542.37 + 228.81 + 228.81 = 2999.99 — a printed tax
+     invoice one paisa short of itself. The tax halves are kept and the taxable value is
+     derived from them, so the bill always foots exactly. */
+  const _net=r2(gross-discAmt);
+  taxable=r2(_net - r2(cgst) - r2(sgst) - r2(igst));
   const courier=+inv.courier||0;
   return {gross:r2(gross),discount:r2(discAmt),courier:r2(courier),taxable:r2(taxable),cgst:r2(cgst),sgst:r2(sgst),igst:r2(igst),total:r2(gross-discAmt+courier)};}
 const GST_STATES={'01':'Jammu and Kashmir','02':'Himachal Pradesh','03':'Punjab','04':'Chandigarh','05':'Uttarakhand','06':'Haryana','07':'Delhi','08':'Rajasthan','09':'Uttar Pradesh','10':'Bihar','11':'Sikkim','12':'Arunachal Pradesh','13':'Nagaland','14':'Manipur','15':'Mizoram','16':'Tripura','17':'Meghalaya','18':'Assam','19':'West Bengal','20':'Jharkhand','21':'Odisha','22':'Chhattisgarh','23':'Madhya Pradesh','24':'Gujarat','27':'Maharashtra','29':'Karnataka','30':'Goa','32':'Kerala','33':'Tamil Nadu','36':'Telangana','37':'Andhra Pradesh'};
@@ -5417,10 +5450,16 @@ function acctSelChange(el){
   addBankQuick(id=>{ el.innerHTML=acctOptions(id); el.value=id; });
 }
 /* Cash always lands in the cash box; anything else lands in the account the user picked. */
+/* v218 — HIS 18 Aug: "UPI select kiya hua hai to bhi into account cash kyon hai."
+   Because the fallback was the primary account, and in his shop that is Cash. UPI money
+   never touches the cash box, so the cash drawer read high and the bank read low every
+   time. Anything that is not cash now falls to a BANK account; cash only when he
+   actually said cash. */
+function nonCashAcc(){ return bankAccs()[0] || defaultAcc() || (DB.accounts||[])[0]; }
 function payAccFor(mode,chosen){
   if(/cash/i.test(mode||''))return (cashAcc()||{}).id;
   if(chosen && (DB.accounts||[]).some(a=>a.id===chosen))return chosen;
-  return (defaultAcc()||{}).id;
+  return (nonCashAcc()||{}).id;
 }
 /* The account every payment falls back to when none is picked, and the one whose
    bank details go out on bills/reminders. Set once; used everywhere. */
@@ -8377,7 +8416,7 @@ function openOrderForm(editId){
     quietly pre-filled, so he could save an order having never once looked at the one date
     the whole production board runs on. Now it starts empty and Save refuses without it. */items:[],m:{},design:{},variant:{},notes:'',total:'',advance:'',photos:[],voiceNotes:[],itemPhotos:{},itemVoice:{},bodyType:[],members:[],dispatch:null,source:'',sourceRef:'',sampleId:''};
   }
-  _noPhoneOK=false; _dupPhOK=false;
+  _noPhoneOK=false; _dupPhOK=false; _newPersonOK=false;
   form._did = form._did || ('d'+uid());
   if(_catSeed){                                  // came in from the catalogue
     const seed=_catSeed; _catSeed=null;
@@ -9177,11 +9216,13 @@ function ordPhoneIn(el){
   _ordPhAsked=d;
   const n=Object.keys(c.m||{}).length;
   if(!n){ ordUseCustomer(c.id,false,true); return; }   // known man, no naap on file
-  confirmModal('🔁 '+esc(c.name),
-    t('rc_ask',{n, d:ordLastMeasWhen(c)}),
-    ()=>{ closeModal(); ordUseCustomer(c.id,true); },
-    ()=>{ closeModal(); ordUseCustomer(c.id,false); },
-    {yes:t('rc_use_old'), no:t('rc_take_new'), cls:'primary'});
+  modal('🔁 '+esc(c.name),
+    `<p>${t('rc_ask',{n, d:ordLastMeasWhen(c)})}</p>`,
+    [{label:t('rc_use_old'),cls:'primary',fn:()=>{ closeModal(); ordUseCustomer(c.id,true); }},
+     {label:t('rc_take_new'),cls:'ghost',fn:()=>{ closeModal(); ordUseCustomer(c.id,false); }},
+     /* v218: same number, different man — his naap must start empty and stay his own */
+     {label:t('dup_ph_other'),cls:'ghost',fn:()=>{ closeModal(); _newPersonOK=true;
+        if(form){form.customerId=null;} toast(t('rc_other_ok'),'ok'); }}]);
 }
 function ordLastMeasWhen(c){
   let last='';
@@ -9566,11 +9607,14 @@ function measStep(e,dir){ e.preventDefault();
   if(nxt){ nxt.focus(); if(nxt.select)try{nxt.select();}catch(_){} }
 }
 
-let _noPhoneOK=false, _dupPhOK=false;
+let _noPhoneOK=false, _dupPhOK=false, _newPersonOK=false;
 function saveOrder(){
   captureForm();const f=form; f.items=sortItems(f.items);
   if(_vmOn)vmStop(true);            // v215: the work is done, the mic goes off with it
   if(!f.orderNo)f.orderNo=nextOrderNo();          // v193: the number is earned at save
+  /* v218: earned means kept — this number can never be handed to anybody else */
+  numHWSet('ord', numDigits(f.orderNo));
+  (f.members||[]).forEach(m=>numHWSet('ord', numDigits(m.ono)));
   if(!f.orderNo){toast(t('t_no_ono'),'bad');return;}
   if(!f.customerName){
     toast(t('t_no_name'),'bad');
@@ -9602,12 +9646,18 @@ function saveOrder(){
     const dq=ph10(f.phone);
     const ex=dq?DB.customers.find(x=>ph10(x.phone)===dq):null;
     if(ex && String(ex.name||'').trim().toLowerCase()!==String(f.customerName||'').trim().toLowerCase()){
+      /* v218 — HIS 18 Aug: papa aur beta ek saath aaye, bete ke naam par papa ka number
+         diya, aur app ne papa ka naap utha liya. "Bada confusion ho gaya, samajh hi nahi
+         aa raha tha kya karun." The question existed but had only two answers — same man,
+         or fix the number — and neither was true. One household shares one number: papa,
+         beta, bhai. So there is now a third answer, and it is the one he needed. */
       const n=(DB.orders||[]).filter(o=>o.customerId===ex.id).length;
-      confirmModal('📞 '+t('dup_ph_title'),
-        t('dup_ph_msg',{n:esc(ex.name||''),p:esc(f.phone||''),o:n?t('dup_ph_orders',{n}):''}),
-        ()=>{ _dupPhOK=true; form.customerId=ex.id; saveOrder(); },
-        ()=>{ const el=$('#f_cphone'); if(el){el.focus(); el.select&&el.select(); el.scrollIntoView({block:'center'});} else ordStage(3); },
-        {no:t('dup_ph_edit'), yes:t('dup_ph_same'), cls:'primary'});
+      modal('📞 '+t('dup_ph_title'),
+        `<p>${t('dup_ph_msg',{n:esc(ex.name||''),p:esc(f.phone||''),o:n?t('dup_ph_orders',{n}):''})}</p>`,
+        [{label:t('dup_ph_same'),cls:'primary',fn:()=>{ closeModal(); _dupPhOK=true; form.customerId=ex.id; saveOrder(); }},
+         {label:t('dup_ph_other'),cls:'ghost',fn:()=>{ closeModal(); _dupPhOK=true; _newPersonOK=true; form.customerId=null; saveOrder(); }},
+         {label:t('dup_ph_edit'),cls:'ghost',fn:()=>{ closeModal();
+            const el=$('#f_cphone'); if(el){el.focus(); el.select&&el.select(); el.scrollIntoView({block:'center'});} else ordStage(3); }}]);
       return;
     }
   }
@@ -9617,8 +9667,9 @@ function saveOrder(){
     // (three Rahuls in a season); the number is the only reliable identity, and a second
     // record would split his measurements across two customers.
     const dq=ph10(f.phone);
-    if(dq)c=DB.customers.find(x=>ph10(x.phone)===dq);
-    if(!c)c=DB.customers.find(x=>x.name.toLowerCase()===f.customerName.toLowerCase()&&(x.phone||'')===(f.phone||''));
+    /* v218: unless he has just told us this is somebody else on the same number */
+    if(dq && !_newPersonOK)c=DB.customers.find(x=>ph10(x.phone)===dq);
+    if(!c && !_newPersonOK)c=DB.customers.find(x=>x.name.toLowerCase()===f.customerName.toLowerCase()&&(x.phone||'')===(f.phone||''));
     if(!c){c={id:uid(),name:f.customerName,phone:f.phone,m:{}};DB.customers.push(c);}
   }
   // matched an EXISTING customer by number? keep his stored name — a salesman typing
@@ -9732,9 +9783,24 @@ const VM_NUM_FLAT=(function(){
   return map;
 })();
 /* fractions — his shop speaks in these constantly */
-const VM_FRAC=[[/साढ़े|सादे|sadhe|sade|sarhe/,0.5,'pre'],[/सवा|sawa|sava/,0.25,'pre'],[/पौने|paune|pone/,-0.25,'pre'],
-  [/three\s*fourth|three\s*quarter|पौन/,0.75,'post'],[/half|आधा|आधे/,0.5,'post'],
-  [/quarter|चौथाई/,0.25,'post'],[/एक\s*चौथाई/,0.25,'post']];
+/* v219 — HIS 18 Aug: "½ nahi le raha... aur ¼ ho, ¾ ho, ek chauthai ho, teen chauthai ho
+   to iska kya system kiya hai?" Tested every one of them against the old table and found
+   three silent wrongs, not one:
+     "saadhe chattis"     → 36     (only sadhe/sade were listed, not the long aa)
+     "ek chauthai chattis"→ 1      (chauthai in Roman was missing, so "ek" won as the number)
+     "chattis paav"       → 36     (paav was not listed at all)
+   A chest written as 1 or a half quietly dropped is worse than a refusal, so the table now
+   carries every spelling the shop actually uses, in both scripts.
+   ORDER IS LOAD-BEARING: three-quarter forms must be tested before the plain quarter, or
+   "teen chauthai" matches "chauthai" and becomes ¼ instead of ¾. Each match is also cut
+   out of the sentence, which is what stops "ek" from being read as the number. */
+const VM_FRAC=[
+  [/साढ़े|साढे|सादे|s[a]{1,2}dhe|s[a]{1,2}de|sarhe|sadha/,0.5,'pre'],
+  [/सवा|sawa|sava|savaa/,0.25,'pre'],
+  [/पौने|paune|pone|poune|pauna/,-0.25,'pre'],
+  [/three\s*fourth|three\s*quarter|तीन\s*चौथाई|teen\s*chauthai|पौन|point\s*seven\s*five/,0.75,'post'],
+  [/half|haf|आधा|आधे|aadha|adha|aadhe|ek\s*batta\s*do|एक\s*बटा\s*दो|point\s*five|½/,0.5,'post'],
+  [/एक\s*चौथाई|ek\s*chauthai|quarter|चौथाई|chauthai|chauthaai|paav|पाव|point\s*two\s*five|¼/,0.25,'post']];
 /* every field a human can say, mapped to the column key. NEVER add a control word here. */
 const VM_FIELD={chest:'C','छाती':'C',chesst:'C',belly:'B','पेट':'B',hip:'H','हिप':'H','कमर':'W',
   waist:'W',shoulder:'S','कंधा':'S','कन्धा':'S',sleeve:'SL',sleeves:'SL','आस्तीन':'SL',
@@ -9921,7 +9987,12 @@ function vmHandle(txt){
     }
     const n=walkNext(form,_vmKey);
     if(n){ _vmKey=n; ordStage(2,n); vmSpeak(t('vm_next')); }
-    else vmSpeak(t('vm_last'));
+    else {
+      /* v218 — HIS 18 Aug: "agar koi last field hai per vo zaroori nahi hai to bhi use
+         skip karne ka option nahi hai." Skipping the last one had nowhere to go, so it
+         did nothing and he was stuck holding the tape. Now it finishes cleanly. */
+      vmSpeak(t('vm_all_done')); toast('✅ '+t('vm_all_done'),'ok'); vmStop();
+    }
     return; }
   if(p.cmd==='undo'){ vmUndo(); return; }
   if(p.cmd==='prev'){
@@ -10008,10 +10079,20 @@ function vmFocus(afterK){
   const g=G(key); if(!g)return;
   const cols=vcols(g).map(c=>c.k);
   const filled=k=>String(((f.m||{})[key]||{})[k]||'').trim();
+  /* v219 — HIS 18 Aug: "pehla bolta hun to length me aata hai, per baad me chest me chala
+     jaata hai... cursor idhar udhar rehta hai." Exactly so, and here is why: the live box
+     went to the first EMPTY field, not the first field. On the opening piece everything is
+     blank so it landed on Length, the top of the card. On the next piece Length had already
+     been carried over from the last one, so the first empty field was Chest and the box
+     jumped there — the app skipping ahead by its own logic while he read the tape in card
+     order. A man measuring goes top to bottom, every time, on every piece.
+     So the box is positional now: first field of the card, then the next, then the next.
+     Already-filled fields are not skipped — measuring IS overwriting, and a value he
+     dictates must land where he is looking. Saying a field name still jumps anywhere. */
   let start=afterK?cols.indexOf(afterK)+1:0; if(start<0)start=0;
   let next=null;
-  for(let i=start;i<cols.length;i++){ if(!MEAS_SECONDARY.includes(cols[i])&&!filled(cols[i])){next=cols[i];break;} }
-  if(!next) for(let i=0;i<cols.length;i++){ if(!MEAS_SECONDARY.includes(cols[i])&&!filled(cols[i])){next=cols[i];break;} }
+  for(let i=start;i<cols.length;i++){ if(!MEAS_SECONDARY.includes(cols[i])){next=cols[i];break;} }
+  if(!next && !afterK) for(let i=0;i<cols.length;i++){ if(!MEAS_SECONDARY.includes(cols[i])){next=cols[i];break;} }
   /* v203 — HIS 15 Aug: "handsfree measurement wala part kaam nahi kar raha hai."
      The live box was only ever placed on an EMPTY field. But body measurements auto-fill
      from the customer and from the previous piece, so by the time he opens a card there is
@@ -11021,11 +11102,30 @@ function renderInvoiceForm(){
 
     ${custBlock}
 
-    <div class="head-grid">
+    ${/* v218 — HIS 18 Aug: "invoice date upar diya hai to uski jagah delivery date hona
+         chahiye, aur order no bhi; invoice number wala chip thoda chhota kar de to teeno
+         aasani se aa jayenge." The bill's own number and date are already printed in the
+         title line above, so repeating the date here cost a whole field for nothing.
+         The two things he reaches for — delivery date and order number — now sit where
+         his eye already was. The bill date stays editable, moved into ⚙️ below. */''}
+    <div class="head-grid3">
       <div class="field" style="margin:0"><label>${t('invoice_no')}</label>
-        <input id="inv_no" value="${esc(f.no)}"></div>
-      <div class="field" style="margin:0"><label>${t('invoice_date')}</label>
-        ${dateField("inv_date",f.date)}</div>
+        <input id="inv_no" value="${esc(f.no)}" style="text-align:center"></div>
+      <div class="field" style="margin:0"><label>📅 ${t('inv_delivery')}</label>
+        ${dateField("inv_ddate",f.deliveryDate||'','',true)}</div>
+      ${f.kind==='sale'?`
+      <div class="field" style="margin:0"><label>👔 ${t('pos_orderno')}</label>
+        <div style="display:flex;gap:4px">
+          <input id="pos_ono" list="posOrderList" class="bold-in" value="${esc(f.orderNo||'')}"
+            placeholder="${t('pos_ono_auto')}" style="flex:1;min-width:0" onchange="posLinkOrder(this.value)">
+          <button class="btn ghost" style="flex:0 0 auto;padding:0 8px" onclick="invLoadFromOrder()">🔍</button>
+        </div>
+        <datalist id="posOrderList">${(DB.orders||[]).slice(-60).reverse()
+          .map(o=>`<option value="${esc(o.orderNo)}">${esc(o.customerName||'')}</option>`).join('')}</datalist>
+      </div>`:`
+      <div class="field" style="margin:0"><label>👔 ${t('pos_orderno')}</label>
+        <input class="bold-in" style="text-align:center"
+          value="${esc((invRecOf(f.kind,f.id)||{}).orderNo||(invRecOf(f.kind,f.id)||{}).altNo||'')}" disabled></div>`}
     </div>
 
     ${/* v187 — HIS #6 and #7, which are one complaint: "jab items add ho kar bill dikhta hai
@@ -11051,28 +11151,23 @@ function renderInvoiceForm(){
     <div id="posBilledSummary">${posBilledSummary()}</div>
     <p class="hint" id="invDraftHint" style="text-align:center;opacity:.6;margin:8px 0 0">💾 ${t('draft_auto')}</p>
 
-    <div class="head-grid" style="margin-top:8px">
-      <div class="field" style="margin:0"><label>📅 ${t('inv_delivery')}</label>
-        ${dateField("inv_ddate",f.deliveryDate||'','',true)}</div>
-      ${f.kind==='sale'?`
-      <div class="field" style="margin:0"><label>👔 ${t('pos_orderno')}</label>
-        <div style="display:flex;gap:6px">
-          <input id="pos_ono" list="posOrderList" class="bold-in" value="${esc(f.orderNo||'')}"
-            placeholder="${t('pos_ono_auto')}" style="flex:1" onchange="posLinkOrder(this.value)">
-          <button class="btn ghost" style="flex:0 0 auto;padding:0 10px" onclick="invLoadFromOrder()">🔍</button>
-        </div>
-        <datalist id="posOrderList">${(DB.orders||[]).slice(-60).reverse()
-          .map(o=>`<option value="${esc(o.orderNo)}">${esc(o.customerName||'')}</option>`).join('')}</datalist>
-      </div>`:`
-      <div class="field" style="margin:0"><label>👔 ${t('pos_orderno')}</label>
-        <input class="bold-in" value="${esc((invRecOf(f.kind,f.id)||{}).orderNo||(invRecOf(f.kind,f.id)||{}).altNo||'')}" disabled></div>`}
-    </div>
 
     <div class="card pos-total" id="invTotalsBox" style="padding:12px 14px">
-      <div class="il"><span>${t('sub_total')}</span><b id="tSub">${money(comp0.gross)}</b></div>
+      ${/* v218 — "sub total grand total 2 ki kya jarurat hai, discount wala chip kahan hai."
+           Both fair. Without a discount the two totals were the same number twice, and the
+           discount itself was hidden inside ⚙️ where he could not find it. Now the discount
+           sits in the open and only the one total that matters is shown. */''}
+      <div class="il"><span>🏷️ ${t('discount')}</span>
+        <span style="display:flex;gap:6px;align-items:center">
+          <button class="btn sm ghost" id="ivDiscTog" style="min-width:40px;padding:4px 8px" onclick="invToggleDisc()">${f.discType==='percent'?'%':'₹'}</button>
+          <input id="inv_discval" type="number" inputmode="numeric" value="${f.discValue?esc(f.discValue):''}" placeholder="0"
+            style="width:82px;text-align:right;margin:0" oninput="updateInvTotals()">
+          <input type="hidden" id="inv_disctype" value="${f.discType==='percent'?'percent':'amount'}">
+        </span></div>
 
       <div class="il" id="ivDiscLine" style="${comp0.discount>0?'':'display:none'}"><span>${t('discount')}</span>
         <b id="tDisc" class="neg">− ${money(comp0.discount)}</b></div>
+      <div class="il" style="display:none"><span>${t('sub_total')}</span><b id="tSub">${money(comp0.gross)}</b></div>
       <div class="il" id="ivCourLine" style="${comp0.courier>0?'':'display:none'}"><span>🚚 ${t('courier')}</span>
         <b id="tCour">+ ${money(comp0.courier)}</b></div>
 
@@ -11099,9 +11194,10 @@ function renderInvoiceForm(){
             <span style="display:flex;gap:8px;align-items:center">
               <input type="checkbox" id="inv_paidfull" style="width:18px;height:18px;margin:0" onchange="invPaidFull(this.checked)"
                 ${(+shown>0&&r2(+shown)===r2(comp0.total))?'checked':''}>
-              <span>${t('received_now')}</span></span>
+              <span style="font-weight:800;color:var(--saffron2)">💵 ${t('received_now')}</span></span>
             <input id="inv_recv" type="number" inputmode="numeric" value="${esc(shown)}" placeholder="0"
-              style="width:112px;text-align:right;margin:0" oninput="updateInvTotals()"></div>`;
+              style="width:120px;text-align:right;margin:0;font-weight:800;font-size:16px;
+                     color:var(--saffron2);border-color:var(--saffron)" oninput="updateInvTotals()"></div>`;
       })()}
 
       <div class="il il-stack">
@@ -11112,7 +11208,7 @@ function renderInvoiceForm(){
         <input type="hidden" id="inv_pm" value="${esc(f.paymentMode||'Cash')}"></div>
       <div class="il il-stack" id="ivAccRow" style="padding-top:6px;${/cash/i.test(f.paymentMode||'')&&!f.split?'display:none':''}">
         <span class="hint">${t('acc_into')}</span>
-        <span style="width:100%">${acctSelHTML('inv_acc', f.acc||(defaultAcc()||{}).id)}</span></div>
+        <span style="width:100%">${acctSelHTML('inv_acc', f.acc||(/cash/i.test(f.paymentMode||'')?(cashAcc()||{}).id:(nonCashAcc()||{}).id))}</span></div>
 
       <div class="il" style="border-bottom:0"><span>${t('total_due')}</span>
         <b id="tDue" style="font-size:17px;color:var(--saffron2)">${money(Math.max(0,r2(comp0.total-invRecvNow(f,comp0))))}</b></div>
@@ -11120,13 +11216,8 @@ function renderInvoiceForm(){
 
     <details style="margin-top:14px">
       <summary style="font-size:13px;color:var(--saffron2);cursor:pointer;font-weight:700;padding:6px 0">⚙️ ${t('pos_more')}</summary>
-      <div class="il" style="padding-top:10px"><span>${t('discount')}</span>
-        <span style="display:flex;gap:6px;align-items:center">
-          <button class="btn sm ghost" id="ivDiscTog" style="min-width:40px;padding:4px 8px" onclick="invToggleDisc()">${f.discType==='percent'?'%':'₹'}</button>
-          <input id="inv_discval" type="number" inputmode="numeric" value="${f.discValue?esc(f.discValue):''}" placeholder="0"
-            style="width:82px;text-align:right;margin:0" oninput="updateInvTotals()">
-          <input type="hidden" id="inv_disctype" value="${f.discType==='percent'?'percent':'amount'}">
-        </span></div>
+      <div class="field" style="padding-top:10px;margin:0"><label>${t('invoice_date')}</label>
+        ${dateField("inv_date",f.date)}</div>
       <div class="il"><span>🚚 ${t('courier')}</span>
         <input id="inv_courier" type="number" inputmode="numeric" value="${f.courier?esc(f.courier):''}" placeholder="0"
           style="width:112px;text-align:right;margin:0" oninput="updateInvTotals()"></div>
@@ -11912,6 +12003,7 @@ function saveInvoice(){
   const rec=invRecOf(f.kind,f.id); if(!rec)return;
   clearInvDraft();   /* v211: the bill is real now, so the half-made copy goes */
   if(invForm)invForm.saved=1;
+  numHWSet(invHWKey(), numDigits(String(f.no).split('/').pop()));   // v218
   rec.invoice={no:f.no,date:f.date,interstate:f.interstate,paymentMode:f.paymentMode,discType:f.discType||'amount',discValue:f.discValue||0,courier:+f.courier||0,
     deliveryDate:f.deliveryDate||'',salesmanId:f.salesmanId||'',items:f.items};
   if(rec._fromEst){ const _e=(DB.estimates||[]).find(x=>x.id===rec._fromEst); if(_e)_e.convertedSaleId=rec.id; delete rec._fromEst; }
