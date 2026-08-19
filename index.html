@@ -727,7 +727,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v220</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v221</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1336,6 +1336,12 @@ const T={
   pn_redo_msg:'In at {a}, out at {b}. Clear today and start again?',
   pn_cleared:'Today cleared', st_gone:'left',
   st_left_msg:'He stays in the records — attendance, advances and loan are all kept. He can be brought back any time.',
+  round_off:'Round off',
+  qty_multi:'Qty  (10, 7.8, 7.8)',
+  pur_add_to_bill:'Add to bill',
+  pur_name_ph2:'Type item name — saved ones show below',
+  pur_added_n:'{a} added · {n} on this bill',
+  thaan:'thaan',
   dup_ph_other:'Someone else on the same number',
   rc_other_ok:'New person — his own measurements will be taken',
   vm_all_done:'All measurements done',
@@ -2580,6 +2586,12 @@ const T={
   pn_redo_msg:'{a} बजे आए, {b} बजे गए। आज का मिटाकर दोबारा लगाएँ?',
   pn_cleared:'आज का मिटा दिया', st_gone:'छोड़ दिया',
   st_left_msg:'हिसाब वहीं रहेगा — हाज़िरी, एडवांस और क़र्ज़ सब सुरक्षित। कभी भी वापस ला सकते हैं।',
+  round_off:'राउंड ऑफ',
+  qty_multi:'मात्रा  (10, 7.8, 7.8)',
+  pur_add_to_bill:'बिल में जोड़ें',
+  pur_name_ph2:'आइटम का नाम लिखिए — पुराने नीचे दिखेंगे',
+  pur_added_n:'{a} जुड़ा · इस बिल में {n}',
+  thaan:'थान',
   dup_ph_other:'इसी नंबर पर कोई और है',
   rc_other_ok:'नया व्यक्ति — इनका अपना नाप लिया जाएगा',
   vm_all_done:'सारे नाप हो गए',
@@ -13214,8 +13226,15 @@ function purchCompute(f){
   /* the supplier's own bill splits it the same way, so ours must too */
   const inter=!!f.interstate;
   const igst=inter?tax:0, cgst=inter?0:r2(tax/2), sgst=inter?0:r2(tax-r2(tax/2));
-  return {gross,discount:discAmt,courier,taxable,rate,tax,igst,cgst,sgst,
-          total:r2(taxable+tax+courier)};
+  /* v221 — HIS 19 Aug, from the Kanchan Syntex bill: 59,453.94 was billed as 59,454.00,
+     a round off of 0.06. Every supplier bill lands on whole rupees, so a purchase that
+     stops at the paisa can never be matched against the paper in his hand. It is worked
+     out automatically but stays editable — suppliers round their own way. */
+  const raw=r2(taxable+tax+courier);
+  const auto=r2(Math.round(raw)-raw);
+  const ro=(f.roundOff!=null&&f.roundOff!=='')?r2(+f.roundOff||0):(f.roundOn===false?0:auto);
+  return {gross,discount:discAmt,courier,taxable,rate,tax,igst,cgst,sgst,raw,roundOff:ro,
+          total:r2(raw+ro)};
 }
 /* Money block, Vyapar-compact: Discount / Total / Paid / Balance Due, one line each.
    Everything is inline — no section headings, no full-width labelled fields. */
@@ -13251,6 +13270,14 @@ function purchTotalsBoxHTML(comp){
       <b id="puTaxAmt">${money(comp.tax)}</b></div>
     ${comp.tax?`<div style="${ln}"><span class="hint">${comp.igst?'IGST':'CGST + SGST'}</span>
       <span class="hint">${comp.igst?money(comp.igst):money(comp.cgst)+' + '+money(comp.sgst)}</span></div>`:''}
+    <div style="${ln}">
+      <span style="display:flex;gap:8px;align-items:center">
+        <input type="checkbox" id="pu_roundon" style="width:16px;height:16px;margin:0"
+          ${f.roundOn===false?'':'checked'} onchange="puRoundToggle(this.checked)">
+        <span>${t('round_off')}</span></span>
+      <input id="pu_roundoff" type="number" inputmode="decimal" step="0.01"
+        value="${comp.roundOff?esc(comp.roundOff):''}" placeholder="0"
+        style="width:96px;text-align:right;margin:0" oninput="updatePurchTotal()"></div>
     <div style="${ln}"><span>${t('grand_total')}</span><b id="puTotalAmt" style="font-size:18px">${money(comp.total)}</b></div>
     <div style="${ln}">
       <span style="display:flex;gap:8px;align-items:center">
@@ -13282,6 +13309,12 @@ function updatePurchTotal(){
   const due=r2(Math.max(0,comp.total-puPrior()));
   const b=$('#puBalDue'); if(b)b.textContent=money(r2(Math.max(0,due-paid)));
   const c=$('#pu_paidfull'); if(c)c.checked=(paid>0&&r2(paid)===due);
+}
+function puRoundToggle(on){
+  purchForm.roundOn=!!on;
+  purchForm.roundOff='';                 // let it work itself out again
+  const e=$('#pu_roundoff'); if(e)e.value='';
+  updatePurchTotal();
 }
 function puToggleDisc(){
   const h=$('#pu_disctype'), b=$('#puDiscTog'); if(!h)return;
@@ -13379,14 +13412,21 @@ const PUR_UNITS=['Mtr','Pcs'];
 let _purD={unit:'Mtr',hsn:'',design:'',colour:'',showExtra:false};
 function purDraftHTML(){
   return `<div class="card" id="puDraft" style="padding:12px 14px;margin-bottom:10px;border-color:var(--saffron)">
-    <input id="pu_dname" placeholder="${t('purch_item_ph')}" autocomplete="off"
+    <input id="pu_dname" placeholder="${t('pur_name_ph2')}" autocomplete="off"
       onfocus="purDSug()" oninput="purDSug()" onkeydown="if(event.key==='Enter'){event.preventDefault();purDraftAdd();}" style="margin:0">
     <div class="pu-qty-row">
       ${/* v213 — HIS 17 Aug: "cursor uske left aa raha hai... ya qty likha ho aur cursor
            aate hi number daalna ho." Right: a box holding 1 with the caret before it turns
            "5" into "15". The box now starts empty with Qty written in it, so whatever he
            types IS the quantity. A blank is read as 1 where a quantity is required. */''}
-      <input id="pu_dqty" type="number" inputmode="decimal" placeholder="${t('qty')}"
+      ${/* v221 — HIS Kanchan bill has PW 304 three times: #5 of 10m, #3 of 7.80m, #1 of
+           7.80m. Three separate rolls, one design, one rate. Typing them as three lines
+           means typing the design and rate three times, and forgetting the colour once
+           silently merges them into a single 25.6m roll that does not exist.
+           So the quantity box takes them together — 10, 7.8, 7.8 — and makes one thaan
+           per number, each with its own serial. 11 lines of that bill become 6 entries.
+           A plain single number behaves exactly as before. */''}
+      <input id="pu_dqty" type="text" inputmode="decimal" placeholder="${t('qty_multi')}"
         oninput="purDCalc()" style="margin:0;text-align:center">
       <span class="gtags" id="puDUnits">${PUR_UNITS.map(u=>
         `<span class="gtag sm ${_purD.unit===u?'on-tag':''}" data-u="${u}" style="cursor:pointer" onclick="purDUnit('${u}')">${u}</span>`).join('')}</span>
@@ -13404,9 +13444,31 @@ function purDraftHTML(){
       <span style="display:flex;gap:6px;align-items:center">
         <button class="btn sm ghost" onclick="pickPurItemPhoto('cam')" title="${t('photo_label')}">📷</button>
         <button class="btn sm ghost" onclick="pickPurItemPhoto('lib')">🖼️</button>
-        <button class="btn primary sm" style="padding:7px 20px" onclick="purDraftAdd()">➕ ${t('add')}</button></span></div>
+        ${/* v221 — HIS 19 Aug: "add item click karunga to naya item add karna hai ya saved
+             items select karna hai — confusion rehta hai." The word Add answered neither.
+             This button puts the typed line ON THE BILL; the box above already searches
+             saved items as he types. Vyapar wins here only because its buttons are named
+             for what happens next, so these are too. */''}
+        <button class="btn primary sm" style="padding:7px 18px;font-weight:800"
+          onclick="purDraftAdd()">➕ ${t('pur_add_to_bill')}</button></span></div>
     <div id="puDSug"></div>
   </div>`;
+}
+/* v221 — HIS 19 Aug: "save karo to pata hi nahi chalta ki save hua ya nahi." The line
+   WAS being added, to a list he could not see because it sits above the fold. A toast at
+   the top of a tall screen is not an answer. The new row is scrolled into view and lit up
+   for a moment — he sees the thing itself arrive, which is what Vyapar gets right. */
+function purAddedFlash(count){
+  const rows=$('#puRows'); if(!rows)return;
+  const kids=rows.children, last=kids[kids.length-1];
+  if(!last)return;
+  try{ last.scrollIntoView({block:'center',behavior:'smooth'}); }catch(e){}
+  last.style.transition='background .25s';
+  const was=last.style.background;
+  last.style.background='rgba(245,166,35,.28)';
+  setTimeout(()=>{ last.style.background=was||''; },700);
+  const n=(purchForm.items||[]).length;
+  toast('✅ '+t('pur_added_n',{a:count||1, n}),'ok');
 }
 function purDExtra(){
   _purD.showExtra=!_purD.showExtra;
@@ -13432,6 +13494,15 @@ function puEditParty(){
   partyEdit(p.id, (newName)=>{ purchForm.supplier=newName; renderPurchaseForm(); });
 }
 function purDCalc(){
+  /* v221: with several rolls typed at once the preview shows their total */
+  try{
+    const qs=purQtyList((($('#pu_dqty')||{}).value));
+    const rt=+(($('#pu_drate')||{}).value)||0;
+    const el=$('#puDAmt');
+    if(el){ const tot=r2(qs.reduce((a,b)=>a+b,0)*rt);
+      el.textContent=money(tot)+(qs.length>1?'  ('+qs.length+' × '+t('thaan')+')':''); }
+    return;
+  }catch(e){}
   const qv=(($('#pu_dqty')||{}).value||'').trim();
   const q=qv===''?1:(+qv||0), r=+(($('#pu_drate')||{}).value)||0;
   const el=$('#puDAmt'); if(el)el.textContent=money(r2(q*r));
@@ -13492,14 +13563,24 @@ function purDPick(k){
   const q=$('#pu_dqty'); if(q){q.focus();q.select&&q.select();}
 }
 /* commit the entry line into the list; silent=true is the auto-commit done on Save */
+/* "10, 7.8, 7.8" → [10, 7.8, 7.8].  "12" → [12].  blank → [1] */
+function purQtyList(v){
+  const out=String(v==null?'':v).split(/[,+/]/).map(x=>+String(x).trim()).filter(x=>x>0&&!isNaN(x));
+  return out.length?out:[1];
+}
 function purDraftAdd(silent){
   const n=$('#pu_dname'); if(!n)return false;
   const label=(n.value||'').trim();
   if(!label){ if(!silent)toast(t('pur_need_name'),'bad'); return false; }
-  const qty=+(($('#pu_dqty')||{}).value)||1, rate=+(($('#pu_drate')||{}).value)||0;
-  purchForm.items.push({label,hsn:_purD.hsn||'',qty,unit:_purD.unit||'Mtr',rate,amount:r2(qty*rate),
-    design:(($('#pu_ddesign')||{}).value||'').trim(), colour:(($('#pu_dcolour')||{}).value||'').trim(),
-    photos:[...(_purD.photos||[])]});
+  const qtys=purQtyList((($('#pu_dqty')||{}).value)), rate=+(($('#pu_drate')||{}).value)||0;
+  const design=(($('#pu_ddesign')||{}).value||'').trim();
+  const colour=(($('#pu_dcolour')||{}).value||'').trim();
+  qtys.forEach((qty,k)=>{
+    purchForm.items.push({label,hsn:_purD.hsn||'',qty,unit:_purD.unit||'Mtr',rate,amount:r2(qty*rate),
+      design, /* each roll must stay its own thaan — the piece number keeps them apart */
+      colour: colour || (qtys.length>1?String(k+1):''),
+      photos:[...(_purD.photos||[])]});
+  });
   _purD.hsn=''; _purD.photos=[]; purItemPhotoBadge();
   ['#pu_ddesign','#pu_dcolour'].forEach(id=>{const e=$(id); if(e)e.value='';});
   const rows=$('#puRows'); if(rows)rows.innerHTML=purchForm.items.map((it,i)=>purchItemRow(i,it)).join('');
@@ -13510,6 +13591,7 @@ function purDraftAdd(silent){
   const q=$('#pu_dqty'); if(q)q.value='';   // v213: next line starts empty, ready to type
   const box=$('#puDSug'); if(box)box.innerHTML='';
   purDCalc(); updatePurchTotal();
+  if(!silent)purAddedFlash(qtys.length);
   if(!silent)n.focus();
   return true;
 }
