@@ -13,7 +13,7 @@
    Data ko ye file kabhi haath nahi lagati. Orders, customers, naap, paise — sab
    pehle se device ke andar IndexedDB aur localStorage me hain aur wahin rehte hain. */
 
-const CACHE = 'parampara-v2';
+const CACHE = 'parampara-v3';
 const PAGE  = './index.html';
 
 self.addEventListener('install', e => {
@@ -49,8 +49,14 @@ self.addEventListener('fetch', e => {
       const fresh = fetch(req).then(res => {
         if (res && res.ok && res.type === 'basic') {
           const copy = res.clone();
+          /* v3, 19 Aug — HIS: "baar baar ye kyon aa raha hai." Because the notice fired on
+             every single open, whether or not anything had changed. A message that cries
+             "new version" when the file is identical teaches him to ignore it — and then
+             he ignores the one that matters. Speak only when the file really is different:
+             the server's own tag for the file is compared against the cached one. If the
+             server gives no tag to compare, stay quiet and update silently. */
+          if (hit && changed(hit, res)) notifyUpdate();
           caches.open(CACHE).then(c => c.put(PAGE, copy)).catch(() => {});
-          if (hit) notifyUpdate();
         }
         return res;
       }).catch(() => null);
@@ -61,6 +67,14 @@ self.addEventListener('fetch', e => {
   );
 });
 
+function stamp(r) {
+  if (!r || !r.headers) return '';
+  return r.headers.get('ETag') || r.headers.get('Last-Modified') || r.headers.get('Content-Length') || '';
+}
+function changed(oldRes, newRes) {
+  const a = stamp(oldRes), b = stamp(newRes);
+  return !!(a && b && a !== b);      // no tag on either side → say nothing
+}
 function notifyUpdate() {
   self.clients.matchAll({ type: 'window' }).then(list => {
     list.forEach(c => { try { c.postMessage({ pb: 'updated' }); } catch (e) {} });
