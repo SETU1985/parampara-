@@ -537,7 +537,10 @@
   .row input,.row select,.head-grid input,.head-grid select,
   .bf-l1 input,.bf-l2 input,.field input,.field select{min-width:0;max-width:100%}
   /* Add-item button stays put while the bill list grows underneath it */
-  .pos-addbar{position:sticky; top:0; z-index:6; background:var(--card); padding:8px 0 10px; margin:2px 0 6px;
+  /* v220: this was sticky at the top, so scrolling slid the item rows underneath it and
+     the first row was always half-hidden behind the button. It sits in the flow now —
+     right below the items, exactly where "add one more" belongs. */
+  .pos-addbar{position:static; background:var(--card); padding:8px 0 10px; margin:2px 0 6px;
     box-shadow:0 8px 10px -8px rgba(0,0,0,.55)}
   .toast{position:fixed; bottom:calc(86px + var(--safe-b)); left:50%; transform:translateX(-50%) translateY(20px);
     background:#2c2418; border:1px solid var(--line2); color:var(--txt); padding:11px 18px; border-radius:30px;
@@ -724,7 +727,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v219</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v220</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -8460,9 +8463,18 @@ function ordStage(n,key){
   if(n===2){
     const w=walkOrder(form);
     if(!w.length){ toast(t('wk_none'),'bad'); _ordStage=1; renderForm(); return; }
+    const was=_openItem;
     _openItem=(key&&w.indexOf(key)>=0)?key:(w.indexOf(_openItem)>=0?_openItem:w[0]);
+    /* v220 — HIS 19 Aug: "cursor hamesha sahi field me nahi jaata." v219 made the box walk
+       the card in order, which was half the fault. The other half is here: changing the
+       piece never cleared which field was live, so the new card opened with the box still
+       pointing at whatever he had last spoken into on the OLD card — chest, sleeve,
+       wherever. A new garment starts at the top of its own card. */
+    if(_openItem!==was){ _vmKey=_openItem; _vmField=null; }
   } else { _openItem=null; }
   _ordStage=n; renderForm();
+  if(_ordStage===2 && typeof _vmOn!=='undefined' && _vmOn && !_vmField)
+    setTimeout(()=>{ try{ vmFocus(null); }catch(e){} },60);
   setTimeout(()=>{const sh=$('#sheet'); if(sh)sh.scrollTop=0;},20);
 }
 function msMoreToggle(key){_sheetScroll=$('#sheet')?$('#sheet').scrollTop:0;captureForm();_msMore[key]=!_msMore[key];renderForm();}
@@ -11243,6 +11255,9 @@ function renderInvoiceForm(){
     <div class="fab-pad"></div>`;
   posRefresh();
   showSheet();
+  /* only when the lines came ready-made (billing an order) — a blank sale needs the
+     item name first, and stealing focus there would fight him */
+  setTimeout(()=>{ try{ if(invForm&&(invForm.items||[]).some(it=>it&&it.label))invFocusRate(); }catch(e){} },160);
   /* v211: from here on, every keystroke on this bill is remembered */
   try{ const sh=$('#sheet');
     if(sh && !sh._invDraftBound){ sh._invDraftBound=1;
@@ -11270,7 +11285,7 @@ function posLineHTML(i,it){
         <input class="qty-in" data-iqty="${i}" type="number" inputmode="numeric" min="1" value="${esc(it.qty||1)}" oninput="posLineCalc(${i})">
         <button onclick="posQty(${i},1)">+</button>
       </div>
-      <div class="rate-in"><span>₹</span><input data-irate="${i}" type="number" inputmode="numeric" value="${it.rate?esc(it.rate):''}" placeholder="${t('pos_rate')}" oninput="posLineCalc(${i})"></div>
+      <div class="rate-in"><span>₹</span><input data-irate="${i}" type="number" inputmode="numeric" value="${it.rate?esc(it.rate):''}" placeholder="${t('pos_rate')}" oninput="posLineCalc(${i})" onkeydown="invRateKey(event)"></div>
       <div class="rate-in amt-in"><span>₹</span><input data-iamt="${i}" type="number" inputmode="numeric" value="${amt?esc(amt):''}" placeholder="${t('pos_amt')}" oninput="posAmtEdit(${i})"></div>
     </div>
     <input type="hidden" data-ihsn="${i}" value="${esc(it.hsn||'')}">
@@ -11306,6 +11321,27 @@ function posChromeSync(){
   const n=((invForm&&invForm.items)||[]).length;
   const ch=$('#posChrome'); if(ch)ch.style.display=n?'none':'';
   const sm=$('#posAddSmall'); if(sm)sm.style.display=n?'':'none';
+}
+/* v220 — HIS 19 Aug: when a bill opens from an order the item name and quantity are
+   already there, so the only thing left to do is type rates. The cursor sat nowhere and
+   every rate needed a tap first. Now the first empty rate takes the cursor with the keypad
+   up, Enter walks to the next rate, and after the last one Enter lands on Received Now —
+   the natural end of a bill. If every rate is already filled nothing is grabbed, so
+   coming back to a finished bill does not throw the keypad in his face. */
+function invRateBoxes(){ return [].slice.call(document.querySelectorAll('[data-irate]')); }
+function invPick(el){ if(!el)return; try{ el.focus(); el.select&&el.select(); }catch(e){} }
+function invFocusRate(){
+  const rows=invRateBoxes();
+  const empty=rows.filter(el=>!String(el.value||'').trim());
+  if(!empty.length)return;                      // nothing to fill — leave him alone
+  invPick(empty[0]);
+}
+function invRateKey(ev){
+  if(!ev||ev.key!=='Enter')return;
+  ev.preventDefault();
+  const rows=invRateBoxes(), i=rows.indexOf(ev.target);
+  if(i>=0 && rows[i+1]){ invPick(rows[i+1]); return; }
+  invPick($('#inv_recv'));                      // last rate done → the money he is taking
 }
 function posLineCalc(i){            // ← no re-render: cursor stays exactly where it is
   const qEl=document.querySelector('[data-iqty="'+i+'"]');
