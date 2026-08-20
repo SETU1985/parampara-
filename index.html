@@ -727,7 +727,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v227</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v228</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1339,6 +1339,17 @@ const T={
   exp_new_name:'New name', exp_save_next:'Save + next', clear:'Clear',
   exp_tag_head:'Pick the name this money went to — the list is just above',
   exp_find_name:'Type a name — karigar, staff, supplier, anyone',
+  cb_none:'No account yet', cb_account:'Account',
+  rp_pl:'Profit & Loss', rp_cashflow:'Cash flow', rp_exp_head:'Expenses by head',
+  rp_party_stmt:'Party statement', rp_pick_party:'Whose statement?',
+  rp_sales_gross:'Billed', rp_gst_out:'GST on sales', rp_net_sales:'Net sales',
+  rp_purch_net:'Purchases (without GST)', rp_direct:'Job work & direct cost',
+  rp_gross_profit:'Gross profit', rp_margin:'margin', rp_running:'Running expenses',
+  rp_net_profit:'Net profit', rp_opening:'Opening', rp_closing:'Closing',
+  rp_money_in:'In', rp_money_out:'Out', rp_balance:'Balance',
+  rp_exp_of_sales:'Of net sales', rp_of_total:'of all expenses',
+  rp_pl_note:'This counts what was billed and spent in this period — not what was received. Cash is not profit.',
+  rp_cash_note:'This is money that actually moved. It will not match profit, and it is not meant to.',
   exp_more_heads:'more',
   pt_other:'Other',
   kb_paid_total:'Total paid', kb_due_total:'Still payable', kb_date:'Date',
@@ -2596,6 +2607,17 @@ const T={
   exp_new_name:'नया नाम', exp_save_next:'सेव + अगला', clear:'हटाएँ',
   exp_tag_head:'किसे दिया, वह नाम ऊपर से चुन लीजिए',
   exp_find_name:'नाम लिखिए — कारीगर, स्टाफ़, सप्लायर, कोई भी',
+  cb_none:'अभी कोई खाता नहीं', cb_account:'खाता',
+  rp_pl:'नफ़ा-नुक़सान', rp_cashflow:'नकद बहाव', rp_exp_head:'ख़र्च — खाते के हिसाब से',
+  rp_party_stmt:'किसी का खाता', rp_pick_party:'किसका खाता देखना है?',
+  rp_sales_gross:'बिल हुआ', rp_gst_out:'बिक्री पर GST', rp_net_sales:'शुद्ध बिक्री',
+  rp_purch_net:'ख़रीद (GST छोड़कर)', rp_direct:'जॉब वर्क व सीधा ख़र्च',
+  rp_gross_profit:'सकल मुनाफ़ा', rp_margin:'मार्जिन', rp_running:'चलने का ख़र्च',
+  rp_net_profit:'शुद्ध मुनाफ़ा', rp_opening:'शुरुआती', rp_closing:'आख़िरी',
+  rp_money_in:'आया', rp_money_out:'गया', rp_balance:'बाकी',
+  rp_exp_of_sales:'शुद्ध बिक्री का', rp_of_total:'कुल ख़र्च का',
+  rp_pl_note:'यह इस अवधि में जो बिल हुआ और जो ख़र्च हुआ, उसका हिसाब है — जो पैसा मिला उसका नहीं। नकद और मुनाफ़ा एक चीज़ नहीं।',
+  rp_cash_note:'यह वो पैसा है जो सच में हिला। यह मुनाफ़े से नहीं मिलेगा, और मिलना भी नहीं चाहिए।',
   exp_more_heads:'और',
   pt_other:'अन्य',
   kb_paid_total:'कुल दिया', kb_due_total:'अभी बाकी', kb_date:'तारीख़',
@@ -14358,11 +14380,270 @@ function delPurchase(id){
 
 /* ====================== REPORTS ====================== */
 let rpPeriod='month', rpFrom='', rpTo='';
+/* v228 — the money reports.
+   HIS 20 Aug: "reports hi hai jiske liye log software me jana chahte hai."
+   Four are built here, and they are built on ONE rule taken from his own master document:
+   CASH IS NOT PROFIT. So Profit & Loss counts what was BILLED and what was SPENT in the
+   period, while Cashflow counts what actually moved through cash and bank. The two will
+   not match, and they are not supposed to — a customer who has not paid yet is profit
+   without cash, and an advance is cash without profit. Both are labelled so he never
+   reads one as the other. */
+function plFigures(from,to){
+  let sales=0, gst=0, disc=0;
+  allInvoices().filter(x=>{const d=String(x.inv.date||'');return d>=from&&d<=to;})
+    .forEach(x=>{ const c=invCompute(x.inv);
+      sales+=c.total; gst+=(c.cgst+c.sgst+c.igst); disc+=(c.discount||0); });
+  const netSales=r2(sales-gst);                    // GST is the government's, never income
+
+  let purch=0, purchGst=0;
+  (DB.purchases||[]).filter(pu=>{const d=String(pu.date||'');return d>=from&&d<=to;})
+    .forEach(pu=>{ const c=purchCompute(pu); purch+=c.total; purchGst+=(c.tax||0); });
+  const netPurch=r2(purch-purchGst);
+
+  /* what left the shop for making the goods, and what for keeping it open */
+  const byHead={}; let expTotal=0, direct=0;
+  (DB.ledger||[]).forEach(l=>{
+    if(l.refKind!=='expense')return;
+    const d=String(l.date||''); if(d<from||d>to)return;
+    const h=l.cat||t('exp_other'); const a=r2(+l.amt||0);
+    byHead[h]=r2((byHead[h]||0)+a); expTotal=r2(expTotal+a);
+    if(l.expKind==='direct'||expLooksLikePerson(h))direct=r2(direct+a);
+  });
+  const heads=Object.entries(byHead).sort((a,b)=>b[1]-a[1]);
+
+  const gross=r2(netSales-netPurch-direct);
+  const indirect=r2(expTotal-direct);
+  return {sales:r2(sales),gst:r2(gst),disc:r2(disc),netSales,
+          purch:r2(purch),purchGst:r2(purchGst),netPurch,
+          heads,expTotal,direct,indirect,gross,net:r2(gross-indirect)};
+}
+function cashFigures(from,to){
+  const accs=(DB.accounts||[]).map(a=>{
+    let inn=0,out=0;
+    moneyLines(from,to).forEach(l=>{ if(l.acc!==a.id)return;
+      if(l.dir==='in')inn+=(+l.amt||0); else if(l.dir==='out')out+=(+l.amt||0); });
+    const close=accBalance(a.id,to);
+    return {a, inn:r2(inn), out:r2(out), close, open:r2(close-inn+out)};
+  });
+  const T={inn:0,out:0,open:0,close:0};
+  accs.forEach(x=>{T.inn=r2(T.inn+x.inn);T.out=r2(T.out+x.out);
+    T.open=r2(T.open+x.open);T.close=r2(T.close+x.close);});
+  return {accs,T};
+}
+/* a bar made of two divs — no chart library goes into a file that must open offline */
+function barHTML(pct,colour){
+  return `<div style="background:rgba(255,255,255,.07);border-radius:5px;height:8px;overflow:hidden;margin-top:5px">
+    <div style="width:${Math.max(2,Math.min(100,pct))}%;height:8px;background:${colour||'var(--saffron)'}"></div></div>`;
+}
 function rpRange(){
   const today=new Date();const iso=d=>d.toISOString().slice(0,10);
   if(rpPeriod==='week'){const d=new Date(today);const day=(d.getDay()+6)%7;d.setDate(d.getDate()-day);return {from:iso(d),to:iso(today)};}
   if(rpPeriod==='month'){return {from:iso(new Date(today.getFullYear(),today.getMonth(),1)),to:iso(today)};}
   return {from:rpFrom||iso(new Date(today.getFullYear(),today.getMonth(),1)),to:rpTo||iso(today)};
+}
+function plReport(){
+  sheetAt(plReport);
+  const {from,to}=rpRange(), f=plFigures(from,to);
+  const row=(lbl,val,opt)=>`<div class="il" style="${opt&&opt.bold?'font-weight:800':''}">
+    <span>${lbl}</span><b style="${opt&&opt.col?'color:'+opt.col:''};${opt&&opt.big?'font-size:18px':''}">${opt&&opt.neg?'− ':''}${money(Math.abs(val))}</b></div>`;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">📈 ${t('rp_pl')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
+    <p class="hint" style="margin-bottom:12px">${fmtDate(from)} → ${fmtDate(to)}</p>
+    <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
+      ${row('🧾 '+t('rp_sales_gross'),f.sales)}
+      ${row(t('rp_gst_out'),f.gst,{neg:1})}
+      ${row(t('rp_net_sales'),f.netSales,{bold:1})}
+    </div>
+    <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
+      ${row('📦 '+t('rp_purch_net'),f.netPurch,{neg:1})}
+      ${f.direct?row('👷 '+t('rp_direct'),f.direct,{neg:1}):''}
+      ${row(t('rp_gross_profit'),f.gross,{bold:1,big:1,col:f.gross>=0?'var(--ok)':'var(--bad)'})}
+      <div class="hint" style="text-align:right;margin-top:2px">${f.netSales?Math.round(f.gross/f.netSales*100):0}% ${t('rp_margin')}</div>
+    </div>
+    <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
+      ${row('💸 '+t('rp_running'),f.indirect,{neg:1})}
+      ${row(t('rp_net_profit'),f.net,{bold:1,big:1,col:f.net>=0?'var(--ok)':'var(--bad)'})}
+    </div>
+    <p class="hint" style="margin-bottom:12px">${t('rp_pl_note')}</p>
+    <div class="modal-actions">
+      <button class="btn ghost" style="flex:1" onclick="closeSheet()">${t('back')}</button>
+      <button class="btn primary" style="flex:1" onclick="plPrint()">🖨️ ${t('rp_pdf')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function plPrint(){
+  const {from,to}=rpRange(), f=plFigures(from,to);
+  const r=(l,v,cls)=>`<tr${cls?' class="'+cls+'"':''}><td>${esc(l)}</td><td class="n">${money(v)}</td></tr>`;
+  const body=`<table>
+    ${r(t('rp_sales_gross'),f.sales)}${r(t('rp_gst_out'),-f.gst)}${r(t('rp_net_sales'),f.netSales,'tot')}
+    ${r(t('rp_purch_net'),-f.netPurch)}${f.direct?r(t('rp_direct'),-f.direct):''}
+    ${r(t('rp_gross_profit'),f.gross,'tot')}
+    ${r(t('rp_running'),-f.indirect)}${r(t('rp_net_profit'),f.net,'tot')}</table>
+    <table><tr><th>${esc(t('exp_title'))}</th><th class="n">${esc(t('amount'))}</th></tr>
+    ${f.heads.map(([h,v])=>`<tr><td>${esc(h)}</td><td class="n">${money(v)}</td></tr>`).join('')}
+    <tr class="tot"><td>${esc(t('total'))}</td><td class="n">${money(f.expTotal)}</td></tr></table>`;
+  reportPrint(t('rp_pl'), body, fmtDate(from)+' → '+fmtDate(to));
+}
+
+/* ── CASHFLOW — what actually moved ── */
+function cashflowReport(){
+  sheetAt(cashflowReport);
+  const {from,to}=rpRange(), c=cashFigures(from,to);
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">💵 ${t('rp_cashflow')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
+    <p class="hint" style="margin-bottom:12px">${fmtDate(from)} → ${fmtDate(to)}</p>
+    <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
+      <div class="il"><span>${t('rp_opening')}</span><b>${money(c.T.open)}</b></div>
+      <div class="il"><span style="color:var(--ok)">↓ ${t('rp_money_in')}</span><b style="color:var(--ok)">${money(c.T.inn)}</b></div>
+      <div class="il"><span style="color:var(--bad)">↑ ${t('rp_money_out')}</span><b style="color:var(--bad)">${money(c.T.out)}</b></div>
+      <div class="il" style="border-bottom:0"><span style="font-weight:800">${t('rp_closing')}</span>
+        <b style="font-size:18px;color:var(--saffron2)">${money(c.T.close)}</b></div></div>
+    ${c.accs.map(x=>`<div class="card" style="padding:12px 14px;margin-bottom:8px">
+      <div class="kv"><b>${esc(x.a.name)}</b><b style="color:var(--saffron2)">${money(x.close)}</b></div>
+      <div class="hint" style="margin-top:4px">${t('rp_opening')} ${money(x.open)} · ↓ ${money(x.inn)} · ↑ ${money(x.out)}</div>
+      ${barHTML(c.T.close?Math.abs(x.close)/Math.max(1,Math.abs(c.T.close))*100:0)}
+    </div>`).join('')||`<p class="hint">${t('cb_none')}</p>`}
+    <p class="hint" style="margin:12px 0">${t('rp_cash_note')}</p>
+    <div class="modal-actions">
+      <button class="btn ghost" style="flex:1" onclick="closeSheet()">${t('back')}</button>
+      <button class="btn primary" style="flex:1" onclick="cashflowPrint()">🖨️ ${t('rp_pdf')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function cashflowPrint(){
+  const {from,to}=rpRange(), c=cashFigures(from,to);
+  const body=`<table>
+    <tr><th>${esc(t('cb_account'))}</th><th class="n">${esc(t('rp_opening'))}</th>
+        <th class="n">${esc(t('rp_money_in'))}</th><th class="n">${esc(t('rp_money_out'))}</th>
+        <th class="n">${esc(t('rp_closing'))}</th></tr>
+    ${c.accs.map(x=>`<tr><td>${esc(x.a.name)}</td><td class="n">${money(x.open)}</td>
+      <td class="n">${money(x.inn)}</td><td class="n">${money(x.out)}</td>
+      <td class="n">${money(x.close)}</td></tr>`).join('')}
+    <tr class="tot"><td>${esc(t('total'))}</td><td class="n">${money(c.T.open)}</td>
+      <td class="n">${money(c.T.inn)}</td><td class="n">${money(c.T.out)}</td>
+      <td class="n">${money(c.T.close)}</td></tr></table>`;
+  reportPrint(t('rp_cashflow'), body, fmtDate(from)+' → '+fmtDate(to));
+}
+
+/* ── EXPENSE BY HEAD — where the money goes, biggest first ── */
+function expHeadReport(){
+  sheetAt(expHeadReport);
+  const {from,to}=rpRange(), f=plFigures(from,to);
+  const top=f.heads.length?f.heads[0][1]:1;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">💸 ${t('rp_exp_head')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
+    <p class="hint" style="margin-bottom:12px">${fmtDate(from)} → ${fmtDate(to)}</p>
+    <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
+      <div class="il"><span>${t('exp_total')}</span><b style="color:var(--bad);font-size:18px">${money(f.expTotal)}</b></div>
+      <div class="il" style="border-bottom:0"><span>${t('rp_exp_of_sales')}</span>
+        <b>${f.netSales?Math.round(f.expTotal/f.netSales*100):0}%</b></div></div>
+    ${f.heads.map(([h,v])=>`<div class="card" style="padding:12px 14px;margin-bottom:8px">
+      <div class="kv"><b>${esc(h)}</b><b>${money(v)}</b></div>
+      ${barHTML(v/top*100,'var(--bad)')}
+      <div class="hint" style="margin-top:4px">${f.expTotal?Math.round(v/f.expTotal*100):0}% ${t('rp_of_total')}</div>
+    </div>`).join('')||`<p class="hint">${t('exp_none')}</p>`}
+    <div class="modal-actions">
+      <button class="btn ghost" style="flex:1" onclick="closeSheet()">${t('back')}</button>
+      <button class="btn primary" style="flex:1" onclick="expHeadPrint()">🖨️ ${t('rp_pdf')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function expHeadPrint(){
+  const {from,to}=rpRange(), f=plFigures(from,to);
+  const body=`<table><tr><th>${esc(t('exp_title'))}</th><th class="n">${esc(t('amount'))}</th><th class="n">%</th></tr>
+    ${f.heads.map(([h,v])=>`<tr><td>${esc(h)}</td><td class="n">${money(v)}</td>
+      <td class="n">${f.expTotal?Math.round(v/f.expTotal*100):0}%</td></tr>`).join('')}
+    <tr class="tot"><td>${esc(t('total'))}</td><td class="n">${money(f.expTotal)}</td><td class="n">100%</td></tr></table>`;
+  reportPrint(t('rp_exp_head'), body, fmtDate(from)+' → '+fmtDate(to));
+}
+
+/* ── PARTY STATEMENT — one person, everything, on paper ── */
+function partyStatement(pid,kind){
+  sheetAt(()=>partyStatement(pid,kind));
+  const who=peopleAll();
+  if(!pid){
+    $('#sheet').innerHTML=`<div class="grip"></div>
+      <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">📒 ${t('rp_party_stmt')}</h2>
+        <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
+      <p class="hint" style="margin-bottom:10px">${t('rp_pick_party')}</p>
+      <input id="psQ" placeholder="${t('exp_find_name')}" oninput="psFilter(this.value)" autocomplete="off">
+      <div id="psList" style="margin-top:10px">${psRows(who)}</div>
+      <div class="fab-pad"></div>`;
+    showSheet(); return;
+  }
+  const p=who.find(x=>x.id===pid&&x.kind===kind)||who.find(x=>x.id===pid);
+  if(!p){ toast(t('pt_no_bal'),'bad'); return; }
+  const lines=psLines(p);
+  let run=0;
+  const rows=lines.map(l=>{ run=r2(run+(l.dir==='in'?l.amt:-l.amt));
+    return `<div class="card" style="padding:10px 12px;margin-bottom:6px">
+      <div class="kv"><div style="min-width:0"><b>${esc(l.ref||l.note||'—')}</b>
+        <div class="hint">${fmtDate(l.date)}${l.acc?' · '+esc(accName(l.acc)):''}</div></div>
+      <div style="text-align:right"><b style="color:${l.dir==='in'?'var(--ok)':'var(--bad)'}">
+        ${l.dir==='in'?'+':'−'} ${money(l.amt)}</b>
+        <div class="hint">${money(Math.abs(run))}</div></div></div></div>`; }).join('');
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">${PK_ICON[p.kind]||'📒'} ${esc(p.name)}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
+    <p class="hint" style="margin-bottom:12px">${t(PK_LBL[p.kind]||'pt_other')} · ${lines.length} ${t('rp_items')}</p>
+    <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
+      <div class="il" style="border-bottom:0"><span>${t('rp_balance')}</span>
+        <b style="font-size:18px;color:${run<0?'var(--bad)':'var(--ok)'}">${money(Math.abs(run))} ${run<0?t('ob_pay'):t('ob_get')}</b></div></div>
+    ${rows||`<p class="hint">${t('pt_no_bal')}</p>`}
+    <div class="modal-actions">
+      <button class="btn ghost" style="flex:1" onclick="partyStatement()">${t('back')}</button>
+      <button class="btn primary" style="flex:1" onclick="psPrint('${pid}','${p.kind}')">🖨️ ${t('rp_pdf')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+const PK_LBL={karigar:'eh_karigar',staff:'st_title',supplier:'eh_supplier',customer:'eh_customer',other:'pt_other'};
+function psRows(list){
+  return list.map(p=>`<div class="card" style="padding:10px 12px;margin-bottom:6px;cursor:pointer"
+    onclick="partyStatement('${p.id}','${p.kind}')">
+    <div class="kv"><b>${PK_ICON[p.kind]||''} ${esc(p.name)}</b>
+      <span class="hint">${t(PK_LBL[p.kind]||'pt_other')}</span></div></div>`).join('')
+    ||`<p class="hint">${t('pt_no_bal')}</p>`;
+}
+function psFilter(v){
+  const q=String(v||'').trim().toLowerCase();
+  const list=peopleAll().filter(p=>!q||String(p.name).toLowerCase().indexOf(q)>=0);
+  const el=$('#psList'); if(el)el.innerHTML=psRows(list.slice(0,40));
+}
+/* every line that touches this man, from both places money is kept */
+function psLines(p){
+  const out=[];
+  const nm=String(p.name||'').trim().toLowerCase();
+  (DB.ledger||[]).forEach(l=>{
+    if(l.dir!=='in'&&l.dir!=='out')return;
+    if(l.partyId!==p.id && String(l.party||'').trim().toLowerCase()!==nm)return;
+    out.push({date:l.date,dir:l.dir,amt:r2(+l.amt||0),acc:l.acc,
+      ref:l.cat||l.ref||'',note:l.note||''});
+  });
+  moneyLines('','9999-12-31').forEach(l=>{
+    if(l.partyId!==p.id && String(l.party||'').trim().toLowerCase()!==nm)return;
+    out.push({date:l.date,dir:l.dir,amt:r2(+l.amt||0),acc:l.acc,ref:l.ref||'',note:''});
+  });
+  return out.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+}
+function psPrint(pid,kind){
+  const p=peopleAll().find(x=>x.id===pid&&x.kind===kind)||peopleAll().find(x=>x.id===pid);
+  if(!p)return;
+  const lines=psLines(p); let run=0;
+  const body=`<table>
+    <tr><th>${esc(t('kb_date'))}</th><th>${esc(t('stk_note'))}</th>
+        <th class="n">${esc(t('rp_money_in'))}</th><th class="n">${esc(t('rp_money_out'))}</th>
+        <th class="n">${esc(t('rp_balance'))}</th></tr>
+    ${lines.map(l=>{ run=r2(run+(l.dir==='in'?l.amt:-l.amt));
+      return `<tr><td>${fmtDate(l.date)}</td><td>${esc(l.ref||l.note||'')}</td>
+        <td class="n">${l.dir==='in'?money(l.amt):''}</td>
+        <td class="n">${l.dir==='out'?money(l.amt):''}</td>
+        <td class="n">${money(Math.abs(run))}</td></tr>`; }).join('')}
+    <tr class="tot"><td colspan="4">${esc(t('rp_balance'))}</td>
+      <td class="n">${money(Math.abs(run))} ${run<0?esc(t('ob_pay')):esc(t('ob_get'))}</td></tr></table>`;
+  reportPrint(p.name, body, t(PK_LBL[p.kind]||'pt_other'));
 }
 function setRpPeriod(p){rpPeriod=p;if(p==='custom'){if($('#rp_from'))rpFrom=$('#rp_from').value;if($('#rp_to'))rpTo=$('#rp_to').value;}renderReports();}
 function applyRpCustom(){rpPeriod='custom';rpFrom=$('#rp_from').value;rpTo=$('#rp_to').value;renderReports();}
@@ -14436,6 +14717,14 @@ function srMonth(n){
 }
 function renderReports(){
   const el=$('#reportsPane');
+  /* v228: the four money reports lead, because these are the ones he opens to decide
+     something. The lists below them are for looking a number up. */
+  const _mainRp=`<div class="row" style="gap:8px;margin-bottom:8px">
+      <button class="btn ghost" style="flex:1" onclick="plReport()">📈 ${t('rp_pl')}</button>
+      <button class="btn ghost" style="flex:1" onclick="cashflowReport()">💵 ${t('rp_cashflow')}</button></div>
+    <div class="row" style="gap:8px;margin-bottom:12px">
+      <button class="btn ghost" style="flex:1" onclick="expHeadReport()">💸 ${t('rp_exp_head')}</button>
+      <button class="btn ghost" style="flex:1" onclick="partyStatement()">📒 ${t('rp_party_stmt')}</button></div>`;
   const {from,to}=rpRange();
   const invs=allInvoices().filter(x=>{const d=String(x.inv.date||'');return d>=from&&d<=to;});
   let sales=0,gst=0;
@@ -14486,6 +14775,7 @@ function renderReports(){
 
   el.innerHTML=`
     <div class="detail-hd"><button class="back" onclick="go('invoices')">←</button><div style="flex:1"><h2>📊 ${t('reports')}</h2></div></div>
+    ${_mainRp}
     ${/* v213: every report the shop keeps, reachable from the one place reports live */''}
     <div class="row" style="gap:6px;margin-bottom:12px">
       <button class="btn ghost" style="flex:1" onclick="staffReport()">👥 ${t('srp_title')}</button>
