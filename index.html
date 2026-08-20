@@ -727,7 +727,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v225</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v227</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1338,6 +1338,8 @@ const T={
   st_left_msg:'He stays in the records — attendance, advances and loan are all kept. He can be brought back any time.',
   exp_new_name:'New name', exp_save_next:'Save + next', clear:'Clear',
   exp_tag_head:'Pick the name this money went to — the list is just above',
+  exp_find_name:'Type a name — karigar, staff, supplier, anyone',
+  exp_more_heads:'more',
   pt_other:'Other',
   kb_paid_total:'Total paid', kb_due_total:'Still payable', kb_date:'Date',
   rp_pdf:'PDF / Print',
@@ -2593,6 +2595,8 @@ const T={
   st_left_msg:'हिसाब वहीं रहेगा — हाज़िरी, एडवांस और क़र्ज़ सब सुरक्षित। कभी भी वापस ला सकते हैं।',
   exp_new_name:'नया नाम', exp_save_next:'सेव + अगला', clear:'हटाएँ',
   exp_tag_head:'किसे दिया, वह नाम ऊपर से चुन लीजिए',
+  exp_find_name:'नाम लिखिए — कारीगर, स्टाफ़, सप्लायर, कोई भी',
+  exp_more_heads:'और',
   pt_other:'अन्य',
   kb_paid_total:'कुल दिया', kb_due_total:'अभी बाकी', kb_date:'तारीख़',
   rp_pdf:'PDF / प्रिंट',
@@ -4130,7 +4134,8 @@ function readySet(m,size,q){ m.stk=m.stk||{}; const v=Math.max(0,Math.round(+q||
 
 /* ======================= STOCK HOME ======================= */
 let _stkTab='fabric';
-function stockHome(tab){ if(!modOn('stock')){toast(t('mod_off'),'bad');return;}
+function stockHome(tab){
+  sheetAt(stockHome); if(!modOn('stock')){toast(t('mod_off'),'bad');return;}
   if(tab)_stkTab=tab;
   const tabs=[['fabric','🧵 '+t('stk_fabric')],['ready','👔 '+t('stk_ready')],['reports','📊 '+t('stk_reports')]];
   const fabMtr=r2((DB.thaans||[]).reduce((s,t)=>s+thaanBal(t),0));
@@ -4298,6 +4303,7 @@ function thaanEdit(id){
   thaanRender();
 }
 function thaanRender(){
+  sheetAt(thaanRender);
   const d=_th;
   const names=[...new Set((DB.fabItems||[]).map(f=>f.name))];
   const cats=[...new Set((DB.fabItems||[]).map(f=>f.category).filter(Boolean))];
@@ -4567,6 +4573,7 @@ function bulkFabRefresh(){
   setTimeout(()=>{const el=$('#bfSerial');if(el)el.focus();},60);
 }
 function bulkFabRender(){
+  sheetAt(bulkFabRender);
   const added=_bulk.added||[];
   const totalMtr=r2(added.reduce((s,a)=>s+(+a.mtr||0),0));
   const addedHTML=added.map(a=>`<div class="pur-collapsed">
@@ -4607,6 +4614,7 @@ function bulkFabRender(){
 }
 
 function thaanDetail(id){
+  sheetAt(thaanDetail);
   const th=TH(id); if(!th)return;
   const f=FI(th.fabId)||{};
   const hist=(DB.moves||[]).filter(m=>m.thaanId===id).sort((a,b)=>b.ts.localeCompare(a.ts));
@@ -4811,6 +4819,7 @@ function readyBulkDelAdded(idx){
   _rbulk.added.splice(idx,1); save(); readyBulkRender();
 }
 function readyBulkRender(){
+  sheetAt(readyBulkRender);
   const added=_rbulk.added||[];
   const totalPcs=added.reduce((s,a)=>s+(+a.pcs||0),0);
   const addedHTML=added.map((a,idx)=>`<div class="pur-collapsed">
@@ -4849,6 +4858,7 @@ function readyEdit(id){
   readyRender();
 }
 function readyRender(){
+  sheetAt(readyRender);
   const d=_rd; const sizes=DB.stkCfg.sizes||[];
   const grid=sizes.map(sz=>`<div class="sz-cell">
       <div class="sz-lbl">${esc(sz)}</div>
@@ -5135,6 +5145,7 @@ function stkReportsBody(){
 
 /* ================== NUMBERING (invoice + order series) ================== */
 function numberingEdit(){
+  sheetAt(numberingEdit);
   const c=DB.numCfg||{};
   const seen=invSeen();
   $('#sheet').innerHTML=`<div class="grip"></div>
@@ -5235,6 +5246,7 @@ function parseDMY(v){
 }
 let _imp=null;
 function importVyapar(){
+  sheetAt(importVyapar);
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">📥 ${t('imp_title')}</h2>
     <p class="hint" style="margin-bottom:14px">${t('imp_sub')}</p>
@@ -5387,6 +5399,7 @@ function growthData(){
 }
 const FY_MONTHS=['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
 function growthReport(){
+  sheetAt(growthReport);
   const data=growthData();
   const years=Object.keys(data).map(Number).sort((a,b)=>b-a);
   if(!years.length){
@@ -5578,7 +5591,8 @@ function totalCashBank(upto){ return r2(allBalances(upto).reduce((s,x)=>s+x.bal,
 /* payables = what we still owe suppliers */
 
 /* ---------------- CASH & BANK ---------------- */
-function cashBank(){ if(!modOn('accounts')){toast(t('mod_off'),'bad');return;}
+function cashBank(){
+  sheetAt(cashBank); if(!modOn('accounts')){toast(t('mod_off'),'bad');return;}
   const bals=allBalances();
   const total=totalCashBank();
   $('#sheet').innerHTML=`<div class="grip"></div>
@@ -5645,6 +5659,7 @@ function accDel(id){
     DB.accounts=(DB.accounts||[]).filter(x=>x.id!==id); save(); cashBank(); toast(t('t_deleted'));});
 }
 function accDetail(id){
+  sheetAt(accDetail);
   const a=ACC(id); if(!a)return;
   const lines=moneyLines(a.openingDate||'', '9999-12-31').filter(l=>l.acc===id)
     .sort((x,y)=>String(y.date).localeCompare(String(x.date))).slice(0,60);
@@ -5773,7 +5788,8 @@ function payEntry(dir){
 
 /* ---------------- EXPENSES ---------------- */
 let _exp=null, _expFrom='', _expTo='';
-function expenses(){ if(!modOn('accounts')){toast(t('mod_off'),'bad');return;}
+function expenses(){
+  sheetAt(expenses); if(!modOn('accounts')){toast(t('mod_off'),'bad');return;}
   const from=_expFrom||monthStart(), to=_expTo||todayISO();
   const list=(DB.ledger||[]).filter(l=>l.refKind==='expense'&&l.date>=from&&l.date<=to)
     .sort((a,b)=>String(b.date).localeCompare(String(a.date)));
@@ -5814,9 +5830,25 @@ function expEdit(id){
   expRender();
 }
 function expRender(){
+  sheetAt(expRender);
   const d=_exp, accs=DB.accounts||[];
-  const chips=(DB.expCats||[]).map(c=>`<span class="gtag ${d.cat===c?'on-tag':''}" style="cursor:pointer"
-      onclick="expPickCat('${esc(c).replace(/'/g,"\\'")}')">${esc(c)}</span>`).join('');
+  /* v227 — HIS 20 Aug: "saare head bahar dikh rahe hain, isse page bada dikh raha hai;
+     kya bahar dikhna hai kya nahi iska option hona chahiye." A head he uses twice a year
+     should not cost him a screenful every single day. Long-press any head to park it;
+     parked ones live behind "+N more" and come back the same way. Nothing is deleted. */
+  DB.expHide=DB.expHide||{};
+  const allCats=(DB.expCats||[]);
+  const hidden=allCats.filter(c=>DB.expHide[c] && c!==d.cat);
+  const shown=allCats.filter(c=>!DB.expHide[c] || c===d.cat);
+  const _q=c=>esc(c).replace(/'/g,"\\'");
+  const chips=(_expShowAll?allCats:shown).map(c=>`<span class="gtag ${d.cat===c?'on-tag':''}" style="cursor:pointer"
+      onclick="expPickCat('${_q(c)}')"
+      oncontextmenu="event.preventDefault();expToggleHide('${_q(c)}');return false;"
+      ontouchstart="expHeadHold('${_q(c)}')" ontouchend="expHeadHoldEnd()"
+      ontouchmove="expHeadHoldEnd()" ontouchcancel="expHeadHoldEnd()"
+      >${DB.expHide[c]?'🙈 ':''}${esc(c)}</span>`).join('')
+    + ((!_expShowAll && hidden.length)
+        ? `<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="expMoreHeads()">+${hidden.length} ${t('exp_more_heads')}</span>` : '');
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">💸 ${d.id?t('edit'):t('exp_add')}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     <div class="field"><label>${t('pay_date')}</label>${dateField("ex_date",d.date)}</div>
@@ -5839,11 +5871,15 @@ function expRender(){
       const ppl = tagged ? partyList(hc.who) : expHeadNames(d.cat);
       return `<div class="field" style="margin-top:10px">
         <label>${t('exp_party')}${tagged?' *':''}</label>
-        <div class="gtags">${ppl.map(p=>`<span class="gtag ${d.partyId===p.id?'on-tag':''}" style="cursor:pointer"
-          onclick="expPickParty('${p.id}')">${esc(p.name)}</span>`).join('')}
-          <span class="gtag" style="cursor:pointer;border-style:dashed" onclick="expNewParty()">➕ ${t('exp_new_name')}</span>
-          ${d.partyId?`<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="expPickParty('')">✕ ${t('clear')}</span>`:''}
-        </div></div>`;
+        ${d.partyId
+          ? `<div class="gtags"><span class="gtag on-tag">${esc(d.partyName||'')}</span>
+             <span class="gtag" style="cursor:pointer;border-style:dashed" onclick="expPickParty('')">✕ ${t('clear')}</span></div>`
+          : `<input id="expPtQ" placeholder="${t('exp_find_name')}" autocomplete="off"
+               oninput="expPartySearch(this.value)" onfocus="expPartySearch(this.value)">
+             <div class="gtags" id="expPtHits" style="margin-top:6px"></div>
+             <div class="gtags" style="margin-top:4px">${ppl.slice(0,6).map(p=>`<span class="gtag" style="cursor:pointer"
+               onclick="expPickParty('${p.id}')">${esc(p.name)}</span>`).join('')}</div>`}
+        </div>`;
     })()}
     <div class="field" style="margin-top:10px"><label>${t('amount')} ₹ *</label>
       <input id="ex_amt" type="number" inputmode="numeric" value="${esc(d.amt)}" placeholder="0"></div>
@@ -5879,10 +5915,60 @@ function expCapture(){ const d=_exp; if(!d)return;
   if($('#ex_cat'))d.cat=$('#ex_cat').value.trim();
   if($('#ex_acc'))d.acc=$('#ex_acc').value;
   if($('#ex_note'))d.note=$('#ex_note').value.trim();
+  /* keep the chosen man's hat across a re-render */
+  if(!d.partyId)d.partyKind='';
 }
-function expPickCat(c){ expCapture(); _exp.cat=(_exp.cat===c)?'':c;
+function expPickCat(c){
+  if(_expHeld){ _expHeld=false; return; } expCapture(); _exp.cat=(_exp.cat===c)?'':c;
   _exp.partyId=null; _exp.partyName='';   // a new head means a new list of names
   expRender(); }
+/* v227 — HIS 20 Aug: "naam likh kar save karenge to shayad naya karigar ban jaye, search
+   karne ka option nahi hai." Exactly the danger. The chips only offered names already used
+   under THAT head, so on a fresh head there was nothing but ➕ New name — and typing
+   "Washim" there minted a SECOND Washim with an empty ledger, while the real karigar
+   Washim sat untouched in the Tailor book. Two men, one name, money split between them.
+   So the box now searches everyone the shop already knows — karigars, staff, suppliers,
+   customers and plain names — and says what each one is, so picking the karigar Washim
+   links to the karigar Washim. A new name is only created when the search finds nobody. */
+function peopleAll(){
+  const out=[], seen={};
+  /* one line per person. The specific hats are added first, so a supplier who also sits in
+     the party book is offered as a SUPPLIER — never twice, which would make him pick blind. */
+  const add=(id,name,kind)=>{ if(!id||!name)return;
+    if(seen[id])return; seen[id]=1; out.push({id,name,kind}); };
+  (DB.karigars||[]).forEach(k=>add(k.id,k.name,'karigar'));
+  (staffAll()||[]).filter(x=>!x.left).forEach(k=>add(k.id,k.name,'staff'));
+  (partyList('supplier')||[]).forEach(k=>add(k.id,k.name,'supplier'));
+  (DB.customers||[]).forEach(k=>add(k.id,k.name,'customer'));
+  (DB.parties||[]).forEach(k=>add(k.id,k.name,'other'));
+  return out;
+}
+const PK_ICON={karigar:'👷',staff:'👤',supplier:'🚚',customer:'🧍',other:'📒'};
+function expFindParty(q){
+  q=String(q||'').trim().toLowerCase();
+  if(!q)return [];
+  return peopleAll().filter(p=>String(p.name).toLowerCase().indexOf(q)>=0).slice(0,8);
+}
+function expPartySearch(v){
+  const box=$('#expPtHits'); if(!box)return;
+  const hits=expFindParty(v);
+  if(!hits.length){
+    box.innerHTML = String(v||'').trim()
+      ? `<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="expNewParty('${esc(String(v).trim()).replace(/'/g,"\\'")}')">➕ ${t('exp_new_name')}: ${esc(String(v).trim())}</span>`
+      : '';
+    return;
+  }
+  box.innerHTML = hits.map(p=>`<span class="gtag" style="cursor:pointer"
+     onclick="expPickPerson('${p.id}','${p.kind}')">${PK_ICON[p.kind]||''} ${esc(p.name)}</span>`).join('');
+}
+/* the hat comes from WHO he is, not from the head — that is what keeps his ledger whole */
+function expPickPerson(pid,kind){
+  expCapture();
+  const p=peopleAll().find(x=>x.id===pid&&x.kind===kind);
+  if(!p)return;
+  _exp.partyId=p.id; _exp.partyName=p.name; _exp.partyKind=p.kind;
+  expRender();
+}
 function expPickParty(pid){ expCapture();
   if(!pid || _exp.partyId===pid){ _exp.partyId=null; _exp.partyName=''; expRender(); return; }
   /* v223: the name can come from a tagged master list OR from the general party book */
@@ -5891,6 +5977,20 @@ function expPickParty(pid){ expCapture();
   _exp.partyId=pid;
   _exp.partyName=fromMaster ? fromMaster.name : ((partyById(pid)||{}).name||'');
   expRender(); }
+let _expShowAll=false, _expHold=null, _expHeld=false;
+/* long-press a head to park it — the same gesture everywhere else in this app */
+function expHeadHold(c){ _expHeld=false; clearTimeout(_expHold);
+  _expHold=setTimeout(()=>{ _expHeld=true;
+    try{ if(navigator.vibrate)navigator.vibrate(15); }catch(e){}
+    expToggleHide(c); },550); }
+function expHeadHoldEnd(){ clearTimeout(_expHold); }
+function expToggleHide(c){
+  DB.expHide=DB.expHide||{};
+  if(DB.expHide[c])delete DB.expHide[c]; else DB.expHide[c]=1;
+  save(); expCapture(); expRender();
+  toast(DB.expHide[c]?('🙈 '+c):('👁️ '+c),'ok');
+}
+function expMoreHeads(){ _expShowAll=true; expCapture(); expRender(); }
 function expAddCat(){ expCapture();
   modal(t('exp_new_cat'),`<div class="field"><label>${t('exp_cat')}</label><input id="newCat" placeholder="${t('exp_cat_ph')}"></div>`,
     [{label:t('cancel'),cls:'ghost',fn:()=>expRender()},
@@ -5912,17 +6012,18 @@ function expHeadNames(cat){
   return out;
 }
 /* a name typed once becomes a party record, so his ledger builds itself from then on */
-function expNewParty(){
+function expNewParty(pre){
   expCapture();
   modal('👤 '+t('exp_new_name'),
-    `<div class="field"><input id="expPtName" placeholder="${t('pt_name')}" autocomplete="off"></div>`,
+    `<div class="field"><input id="expPtName" value="${esc(pre||'')}" placeholder="${t('pt_name')}" autocomplete="off"></div>`,
     [{label:t('cancel'),cls:'ghost',fn:()=>{closeModal();expRender();}},
      {label:t('save'),cls:'primary',fn:()=>{
         const nm=(($('#expPtName')||{}).value||'').trim();
         if(!nm){ toast(t('pt_name'),'bad'); return; }
         const hc=expHeadCfg(_exp.cat);
-        const p=partyEnsure(nm,'',hc.who||'other'); save();
-        _exp.partyId=p.id; _exp.partyName=p.name;
+        const kind=hc.who||'other';
+        const p=partyEnsure(nm,'',kind); save();
+        _exp.partyId=p.id; _exp.partyName=p.name; _exp.partyKind=kind;
         closeModal(); expRender();
      }}]);
 }
@@ -5964,14 +6065,16 @@ function expSave(next){ expCapture(); const d=_exp;
   const _l=d.id?(DB.ledger||[]).find(x=>x.id===d.id):null;
   if(_l){
     Object.assign(_l,{date:d.date,amt,acc:d.acc,cat:d.cat,note:d.note,
-      party:d.partyName||d.cat, partyId:d.partyId||null, partyKind:hc.who||(d.partyId?'other':''),
+      party:d.partyName||d.cat, partyId:d.partyId||null,
+      partyKind:d.partyKind||hc.who||(d.partyId?'other':''),
       expKind:hc.kind||'indirect', photos:[...(d.photos||[])]});
   } else {
     DB.ledger.push({id:uid(),dir:'out',date:d.date||todayISO(),amt,acc:d.acc,
       /* v224 — a name picked on an UNTAGGED head (rent → Akhil) was filed with no hat at
          all, and his party card only lists supplier / customer / karigar / staff. So Akhil
          took the money and his ledger stayed blank. Everyone else gets the 'other' hat. */
-      party:d.partyName||d.cat, partyId:d.partyId||null, partyKind:hc.who||(d.partyId?'other':''),
+      party:d.partyName||d.cat, partyId:d.partyId||null,
+      partyKind:d.partyKind||hc.who||(d.partyId?'other':''),
       expKind:hc.kind||'indirect',
       ref:t('exp_title'), refKind:'expense', cat:d.cat, note:d.note, photos:[...(d.photos||[])]});
   }
@@ -6025,7 +6128,8 @@ async function renderExpPhotos(){ const el=$('#ex_photos'); if(!el)return; el.in
 /* ---------------- DAY BOOK ---------------- */
 let _dbFrom='', _dbTo='';
 function monthStart(){ const d=new Date(); return new Date(d.getFullYear(),d.getMonth(),1).toISOString().slice(0,10); }
-function dayBook(){ if(!modOn('accounts')){toast(t('mod_off'),'bad');return;}
+function dayBook(){
+  sheetAt(dayBook); if(!modOn('accounts')){toast(t('mod_off'),'bad');return;}
   const from=_dbFrom||todayISO(), to=_dbTo||todayISO();
   const lines=moneyLines(from,to).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
   const real=lines.filter(l=>!l._contra);     // a cash↔bank transfer is neither income nor expense
@@ -6140,6 +6244,7 @@ function ofSet(k,v){ pageReset('of'); if(k==='basis')_ofBasis=v; else if(k==='st
 function ofRange(from,to){ _ofFrom=from; _ofTo=to; orderFilter(); }
 function ofClear(){ pageReset('of'); _ofBasis='delivery';_ofFrom='';_ofTo='';_ofStatus='';_ofKar='';_ofSm='';_ofItem='';_ofQ=''; orderFilter(); }
 function orderFilter(){
+  sheetAt(orderFilter);
   const list=ofMatches();
   let pieces=0, value=0, recv=0, due=0;
   list.forEach(o=>{ pieces+=(o.items||[]).length; value=r2(value+orderTotal(o));
@@ -6211,6 +6316,7 @@ function orderFilter(){
 function addDaysISO(n){ const d=new Date(); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
 
 function orderReports(){
+  sheetAt(orderReports);
   const from=_orFrom||fyStart(), to=_orTo||todayISO();
   const all=(DB.orders||[]).filter(o=>{const d=o.orderDate||(o.created||'').slice(0,10);return d>=from&&d<=to;});
   const done=all.filter(orderDelivered), pend=all.filter(o=>!orderDelivered(o));
@@ -6320,7 +6426,8 @@ function hubHTML(title,sub,tiles){
     
     <div class="fab-pad"></div>`;
 }
-function saleHub(){ if(!modOn('billing')){toast(t('mod_off'),'bad');return;}
+function saleHub(){
+  sheetAt(saleHub); if(!modOn('billing')){toast(t('mod_off'),'bad');return;}
   $('#sheet').innerHTML=hubHTML('🧾 '+t('hub_sale'), t('hub_sale_sub'), [
     ['➕', t('new_sale'), "closeSheet();openSaleForm()"],
     ['📋', t('home_invoices'), "closeSheet();go('invoices')"],
@@ -6329,7 +6436,8 @@ function saleHub(){ if(!modOn('billing')){toast(t('mod_off'),'bad');return;}
   ]);
   showSheet();
 }
-function purchaseHub(){ if(!modOn('billing')){toast(t('mod_off'),'bad');return;}
+function purchaseHub(){
+  sheetAt(purchaseHub); if(!modOn('billing')){toast(t('mod_off'),'bad');return;}
   $('#sheet').innerHTML=hubHTML('🚚 '+t('hub_purchase'), t('hub_purchase_sub'), [
     ['➕', t('new_purchase'), "closeSheet();openPurchaseForm()"],
     ['📋', t('purchases_list'), "closeSheet();go('purchases')"],
@@ -6339,7 +6447,8 @@ function purchaseHub(){ if(!modOn('billing')){toast(t('mod_off'),'bad');return;}
   showSheet();
 }
 /* who we owe money to */
-function creditors(){ if(!modOn('billing')){toast(t('mod_off'),'bad');return;}
+function creditors(){
+  sheetAt(creditors); if(!modOn('billing')){toast(t('mod_off'),'bad');return;}
   const list=(DB.purchases||[]).filter(p=>orderBaaki(p)>0);
   const map={};
   list.forEach(p=>{const k=p.supplier||'—';
@@ -6385,6 +6494,7 @@ function navQuick(tab){
   else if(tab==='purchases')openPurchaseForm();
 }
 function quickAdd(){
+  sheetAt(quickAdd);
   const items=[['👔', t('home_new_order'), "closeSheet();openOrderForm()"],
     ['🔧', t('new_alteration'), "closeSheet();openAltForm()"]];
   if(modOn('billing')){
@@ -6708,6 +6818,7 @@ function paymentQR(amount,note,who){
 }
 let _qrNote='',_qrWho='',_qrDue='';
 function qrRender(){
+  sheetAt(qrRender);
   const shop=DB.shopInfo||{};
   const amt=+_qrAmt||0;
   const url=qrDataURL(amt,_qrNote,340);
@@ -6932,6 +7043,7 @@ function waStatement(key){
 
 /* the screen */
 function followUps(){
+  sheetAt(followUps);
   const groups=dueGroups();
   const total=r2(groups.reduce((s,g)=>s+g.due,0));
   const rows=groups.map(g=>{
@@ -7074,6 +7186,7 @@ function abRowHTML(x,showAge){
 /* (actionBoardHTML removed in v211 — the v199 dashboard replaced it) */
 
 function actionList(kind){
+  sheetAt(actionList);
   const b=abBuckets();
   const map={urgent:['🔴',t('ab_urgent'),b.urgent,false],
              late:['🔴',t('ab_late'),b.late,false],
@@ -7136,6 +7249,7 @@ function custStatusRows(c){
   return live;
 }
 function custStatus(cid){
+  sheetAt(custStatus);
   const c=custById(cid); if(!c)return;
   const live=custStatusRows(c);
   const blocks=live.map(o=>{
@@ -7245,6 +7359,7 @@ function orderAllReady(o){
 let _cuTab='send', _cuQ='';
 function setCuQ(v){ _cuQ=v; pageReset('cu'); courierHub(true); }
 function courierHub(keep){
+  sheetAt(courierHub);
   const {toSend,sent}=courierLists();
   const q=(_cuQ||'').trim().toLowerCase();
   const filt=l=>!q?l:l.filter(o=>(String(o.orderNo||'')+' '+String(o.customerName||'')+' '+
@@ -7411,6 +7526,7 @@ function catLookup(pid){
 
 /* ---------- the front door: his own folders ---------- */
 function catalogue(){
+  sheetAt(catalogue);
   _catFolder=null; _catPickMode=false;
   const fs=catFolders();
   const cards=fs.map(f=>`
@@ -7452,6 +7568,7 @@ function catFolderDel(id){
   });
 }
 function catOpenFolder(id){
+  sheetAt(catOpenFolder);
   const f=catFolderById(id); if(!f){catalogue();return;}
   _catFolder=id; _catPickMode=false; pageReset('cat');
   const items=(f.pids||[]).map(catLookup);
@@ -7498,6 +7615,7 @@ function catPickSave(){
 }
 /* the stock-derived browser — also used on its own as "browse everything" */
 function catSource(keepFocus){
+  sheetAt(catSource);
   if(!modOn('stock')&&_catTab!=='made')_catTab='made';
   const picking=_catPickMode;
   const list=catItems();
@@ -7567,6 +7685,7 @@ function catUse(i){
 }
 let _catSeed=null;
 function statDetail(mode){
+  sheetAt(statDetail);
   const tag=(arr,k)=>(arr||[]).map(x=>{x._kind=k;return x;});
   let list=[], title='', sub='', total=0;
 
@@ -7759,6 +7878,7 @@ function quickRowHTML(){
    This is the half of his Vyapar lesson that matters: Home carries today's work, the Menu
    carries everything else, and a thing is always in the same place. */
 function menuHome(){
+  sheetAt(menuHome);
   const row=(ico,label,fn,sub)=>`<button class="mnu-row" onclick="closeSheet();${fn}">
     <span class="mnu-ico">${ico}</span>
     <span class="mnu-txt"><b>${esc(label)}</b>${sub?`<span class="hint">${esc(sub)}</span>`:''}</span>
@@ -8086,6 +8206,7 @@ function openCampaign(){
   campRender();
 }
 function campRender(){
+  sheetAt(campRender);
   const list=campFiltered();
   const chosen=campSelected().length;
   const F=[['all','camp_f_all'],['due','camp_f_due'],['lapsed','camp_f_lapsed'],['recent','camp_f_recent']];
@@ -8150,6 +8271,7 @@ function campStep(list){
         _camp.idx++; setTimeout(()=>campStep(list),400);}}]);
 }
 function campCSV(){
+  sheetAt(campCSV);
   const list=campSelected().length?campSelected():campFiltered();
   const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
   const rows=[['Name','Phone','Visits','Total Business','Balance Due','Last Visit'].map(q).join(',')];
@@ -8179,6 +8301,7 @@ function renderCustomers(){
   }).join('')+pageMoreBtn('cust',list.length);
 }
 function openCustomer(id){
+  sheetAt(openCustomer);
   const c=custById(id); if(!c)return;
   const byNew=(a,b)=>new Date(b.created||b.date)-new Date(a.created||a.date);
   const orders=(DB.orders||[]).filter(o=>o.customerId===id).sort(byNew);
@@ -8290,7 +8413,8 @@ function delCustomer(id){
       DB.customers.splice(Math.min(i,DB.customers.length),0,rec); save(); renderCustomers(); });
   });
 }
-function editCustomer(id,isNew){const c=custById(id); _custPhotoId=id;
+function editCustomer(id,isNew){
+  sheetAt(editCustomer);const c=custById(id); _custPhotoId=id;
   $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h3 style="margin:0">${t('cust_edit')}</h3><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     <div class="field"><label>${t('customer')}</label><input id="ec_name" value="${esc(c.name)}"></div>
     <div class="field"><label>${t('phone')}</label><input id="ec_phone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" value="${esc(c.phone)}"></div>
@@ -8825,6 +8949,7 @@ function quickLenHTML(f,mine,only){
    the note inside the card (form.design), so whichever way he opens it he sees the same
    text. The design-token list comes along, because that is how the note is usually built. */
 function itemNoteQuick(key){
+  sheetAt(itemNoteQuick);
   _sheetScroll=$('#sheet')?$('#sheet').scrollTop:0; captureForm();
   const g=G(key); if(!g)return;
   const gid=g.id, cur=String((form.design||{})[key]||'');
@@ -10793,6 +10918,7 @@ function altPrefillAltMeas(gid){
 }
 function unlinkAltOrder(){captureAltForm();altForm.origOrderId=null;altForm.customerId=null;renderAltForm();}
 function renderAltForm(){
+  sheetAt(renderAltForm);
   const f=altForm;
   const origO=f.origOrderId?DB.orders.find(x=>x.id===f.origOrderId):null;
   const kopts=`<option value="">${t('karigar_none')}</option>`+(DB.karigars||[]).map(k=>`<option value="${k.id}" ${k.id===f.karigarId?'selected':''}>${esc(k.name)}</option>`).join('');
@@ -11001,6 +11127,7 @@ function delAlteration(id){confirmModal(t('confirm_alt_del'),t('confirm_alt_del_
    sale (which then deducts stock and takes payment through the normal invoice flow). */
 let _est=null;
 function estimateList(){
+  sheetAt(estimateList);
   const rows=(DB.estimates||[]).slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)))
     .map(e=>`<div class="cust-result" style="margin-bottom:6px" onclick="estimateOpen('${e.id}')">
       <div style="min-width:0"><b>📄 ${esc(e.no)}</b>
@@ -11027,6 +11154,7 @@ function estimateOpen(id){
   estimateRender();
 }
 function estimateRender(){
+  sheetAt(estimateRender);
   const e=_est;
   const rows=e.items.map((it,i)=>`<div class="pur-card">
     <div class="pur-card-h"><span class="pur-num">#${i+1}</span>
@@ -11188,6 +11316,7 @@ function invApplyMaster(i,val){
 }
 /* ============ POS BILLING SCREEN (fast, no re-render on typing) ============ */
 function renderInvoiceForm(){
+  sheetAt(renderInvoiceForm);
   const f=invForm;
   invNormItems(f.items);
   if(f.paymentMode==='Credit'||!f.paymentMode)f.paymentMode='UPI';
@@ -12252,6 +12381,7 @@ function saveInvoice(){
   openInvoicePreview(f.kind,f.id);
 }
 function openInvoicePreview(kind,id){
+  sheetAt(openInvoicePreview);
   const rec=invRecOf(kind,id); if(!rec||!rec.invoice)return;
   const inv=rec.invoice, comp=invCompute(inv);
   const items=(inv.items||[]).map(it=>`<div class="kv" style="padding:5px 0;font-size:13px">
@@ -12292,6 +12422,7 @@ function alreadyReturnedQty(saleId,idx){
     .reduce((s,r)=>s+(((r.lines||[]).find(l=>l.idx===idx)||{}).qty||0),0);
 }
 function salesReturnPick(){
+  sheetAt(salesReturnPick);
   const sales=(DB.sales||[]).filter(sv=>((sv.invoice&&sv.invoice.items||[]).length>0)&&orderTotal(sv)>0)
     .sort((a,b)=>String(b.date||b.created).localeCompare(String(a.date||a.created)));
   const rows=sales.map(sv=>{
@@ -12317,6 +12448,7 @@ function salesReturnOpen(saleId){
   salesReturnRender();
 }
 function salesReturnRender(){
+  sheetAt(salesReturnRender);
   const sv=(DB.sales||[]).find(x=>x.id===_sret.saleId)||{}; const inv=sv.invoice||{};
   const rows=_sret.lines.map((l,i)=>{
     const done=alreadyReturnedQty(_sret.saleId,l.idx);
@@ -12805,6 +12937,7 @@ function smpPickHTML(f){
 }
 function smpPickSet(id){ captureForm(); form.sampleId=id||''; renderForm(); }
 function samplesHome(){
+  sheetAt(samplesHome);
   if(!modOn('samples')){toast(t('mod_off'),'bad');return;}
   const list=smpAll().slice().sort((a,b)=>new Date(b.created||0)-new Date(a.created||0));
   const shown=_smpF==='none' ? list.filter(s=>!sampleOrders(s).length)
@@ -12866,6 +12999,7 @@ function sampleForm(id){
   sampleFormRender();
 }
 function sampleFormRender(){
+  sheetAt(sampleFormRender);
   const d=_smp, sizes=DB.stkCfg.sizes||[];
   const th=(DB.thaans||[]).filter(x=>thaanBal(x)>0.05);
   $('#sheet').innerHTML=`<div class="grip"></div>
@@ -12977,6 +13111,7 @@ function sampleSave(){
 
 /* ---- the sample's own page. The line he is really paying for sits at the top. ---- */
 function sampleDetail(id){
+  sheetAt(sampleDetail);
   const s=smpById(id); if(!s)return;
   const g=G(s.gid)||{n:'—',ico:'👔'};
   const ords=sampleOrders(s), earned=sampleEarned(s), cost=sampleCost(s);
@@ -13055,7 +13190,8 @@ function sampleDel(id){
   });
 }
 
-function shopInfoEdit(){const s=DB.shopInfo||{};
+function shopInfoEdit(){
+  sheetAt(shopInfoEdit);const s=DB.shopInfo||{};
   $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${t('shop_details')}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     <div class="field"><label>🕉️ ${t('blessing')}</label><input id="si_bless" value="${esc(s.blessing||'')}" placeholder="|| ॐ श्री गणेशाय नमः ||">
       <p class="hint" style="margin-top:4px">${t('blessing_hint')}</p></div>
@@ -13779,6 +13915,7 @@ function purSugList(q){
 /* "Add New Item" = this is not in stock yet; keep whatever was typed and move on.
    The purchase itself is what brings the item in, so nothing needs creating up front. */
 function renderPurchaseForm(){
+  sheetAt(renderPurchaseForm);
   const f=purchForm;
   if(f._openIdx==null||f._openIdx>=f.items.length)f._openIdx=f.items.length-1;
   const p=f.editId?(DB.purchases||[]).find(x=>x.id===f.editId):null;
@@ -13980,6 +14117,7 @@ function purAlreadyReturnedQty(purId,idx){
    is flagged right on the line. */
 let _po=null;
 function poList(){
+  sheetAt(poList);
   const rows=(DB.purchaseOrders||[]).slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)))
     .map(p=>`<div class="cust-result" style="margin-bottom:6px" onclick="poOpen('${p.id}')">
       <div style="min-width:0"><b>📝 ${esc(p.no)}</b>
@@ -14006,6 +14144,7 @@ function poOpen(id){
   poRender();
 }
 function poRender(){
+  sheetAt(poRender);
   const p=_po, done=!!p.convertedPurId;
   const rows=p.items.map((it,i)=>{
     const ordered=+it.qty||0, recv=(it.recv===''||it.recv==null)?'':(+it.recv||0);
@@ -14051,7 +14190,8 @@ function poRender(){
     <div class="fab-pad"></div>`;
   showSheet();
 }
-function poSupSearch(q){const box=$('#poSupResults'); if(!box)return;
+function poSupSearch(q){
+  sheetAt(poSupSearch);const box=$('#poSupResults'); if(!box)return;
   q=String(q||'').trim().toLowerCase();
   let list=pastSuppliers(); if(q)list=list.filter(x=>x.name.toLowerCase().includes(q)||String(x.phone||'').includes(q));
   list=list.slice(0,6);
@@ -14105,6 +14245,7 @@ function poConvert(){
 }
 
 function purchaseReturnPick(){
+  sheetAt(purchaseReturnPick);
   const purs=(DB.purchases||[]).filter(p=>(p.items||[]).length>0 && orderTotal(p)>0)
     .sort((a,b)=>String(b.date||b.created).localeCompare(String(a.date||a.created)));
   const rows=purs.map(p=>`<div class="cust-result" style="margin-bottom:6px" onclick="purchaseReturnOpen('${p.id}')">
@@ -14127,6 +14268,7 @@ function purchaseReturnOpen(purId){
   purchaseReturnRender();
 }
 function purchaseReturnRender(){
+  sheetAt(purchaseReturnRender);
   const p=(DB.purchases||[]).find(x=>x.id===_pret.purId)||{};
   const rows=_pret.lines.map((l,i)=>{
     const done=purAlreadyReturnedQty(_pret.purId,l.idx);
@@ -14232,6 +14374,7 @@ function applyRpCustom(){rpPeriod='custom';rpFrom=$('#rp_from').value;rpTo=$('#r
    because a man who worked nine months of the year has to appear in that year's report. */
 let _srMonth=null;
 function staffReport(){
+  sheetAt(staffReport);
   const mon=_srMonth||todayISO().slice(0,7);
   const [Y,M]=mon.split('-').map(Number);
   const days=new Date(Y,M,0).getDate();
@@ -14819,6 +14962,7 @@ function orderPrint(oid){const o=DB.orders.find(x=>x.id===oid);if(o)doPrint(o,nu
 /* Turn parts of the app on or off. Nothing is deleted — a switched-off module
    just stops showing, and switching it back on brings the data straight back. */
 function modulesEdit(){
+  sheetAt(modulesEdit);
   const row=(k,ico,label)=>`<label style="display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line);cursor:pointer">
     <input type="checkbox" id="md_${k}" ${modOn(k)?'checked':''} style="width:20px;height:20px">
     <span>${ico} ${esc(label)}</span></label>`;
@@ -15141,6 +15285,7 @@ function kiSelectAll(kid,mode){
 }
 /* mode 'give' = hand work out, mode 'take' = receive it back */
 function karigarIssue(kid,mode,keepFocus){
+  sheetAt(karigarIssue);
   const k=(DB.karigars||[]).find(x=>x.id===kid); if(!k)return;
   const give=(mode!=='take');
   const {types,list}=kiVisibleList(kid,mode);
@@ -15292,6 +15437,7 @@ function karStatementSend(kid){
    pick the master, pick the pieces, give them; later pick him again, tick what he
    brought back, date, done. The hisab is one tap further in, where it belongs. */
 function karMaster(kid){
+  sheetAt(karMaster);
   const k=(DB.karigars||[]).find(x=>x.id===kid); if(!k)return;
   const out=karOutCount(kid), free=kiItemsFree(kid).length, bal=karBalance(kid);
   const spec=(k.specialties||[]).map(id=>{const g=G(id);return g?(g.ico||'')+' '+g.n:'';}).filter(Boolean);
@@ -15331,6 +15477,7 @@ function weekStart(d){ const x=new Date(d||todayISO()); const g=x.getDay();
    at all. Old due is shown separately, so the two papers can be matched and agreed. */
 let _ksFrom='', _ksTo='';
 function karSettle(kid,from,to){
+  sheetAt(karSettle);
   const k=(DB.karigars||[]).find(x=>x.id===kid); if(!k)return;
   if(from!==undefined)_ksFrom=from; if(to!==undefined)_ksTo=to;
   const jobs=karJobs(kid);
@@ -15409,6 +15556,7 @@ function karSettleText(kid){
   return L.join('\n');
 }
 function settleDay(){
+  sheetAt(settleDay);
   const to=_stlTo||todayISO();
   const from=_stlFrom||weekStart(to);
   const rows=(DB.karigars||[]).map(k=>{
@@ -15462,6 +15610,7 @@ function stlApply(){
   settleDay();
 }
 function jobWork(){
+  sheetAt(jobWork);
   const ks=DB.karigars||[];
   const b=abBuckets();
   const unassigned=b.noKar.length;
@@ -15497,6 +15646,7 @@ function jobWork(){
   showSheet();
 }
 function karigarBook(){
+  sheetAt(karigarBook);
   const ks=DB.karigars||[];
   const rows=ks.map(k=>{
     const bal=karBalance(k.id), pend=karOutCount(k.id);
@@ -15572,6 +15722,7 @@ function krReRender(spec){
 /* ============ ONE MASTER — tabbed so nothing is a long scroll ============ */
 let _krTab='hisab';
 function karigarLedger(kid,tab){
+  sheetAt(karigarLedger);
   const k=(DB.karigars||[]).find(x=>x.id===kid); if(!k)return;
   _krTab=tab||_krTab||'hisab';
   const earned=karEarned(kid), paid=karPaid(kid), bal=r2(earned-paid);
@@ -15659,6 +15810,7 @@ function karigarLedger(kid,tab){
 
 /* ============ ALL MASTERS, ITEM-WISE — one report ============ */
 function karigarReport(){
+  sheetAt(karigarReport);
   const ks=DB.karigars||[];
   const per=ks.map(k=>({k,st:karPieceStats(k.id)}))
     .sort((a,b)=>b.st.totalN-a.st.totalN||b.st.totalAmt-a.st.totalAmt);
@@ -15791,6 +15943,7 @@ function karPayEdit(pid){
   _kpEdit=pid; karPayEntry(p.karigarId, p);
 }
 function karPayEntry(kid,ex){
+  sheetAt(karPayEntry);
   _kpEdit = ex ? _kpEdit : null;                 // opening a fresh entry clears any edit
   const bal=r2(karBalance(kid)+(ex?(+ex.amt||0)+(+ex.settled||0):0));
   $('#sheet').innerHTML=`<div class="grip"></div>
@@ -15860,6 +16013,7 @@ function karPayDel(pid){
 }
 
 function karigarMaster(){
+  sheetAt(karigarMaster);
   const ks=DB.karigars||[];
   $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:6px">${t('karigar_master')}</h2>
     <p class="hint" style="margin-bottom:12px">${t('karigar_desc')}</p>
@@ -15870,7 +16024,8 @@ function karigarMaster(){
   showSheet();
 }
 let _krSpec=new Set(), _karAfterAdd=null;
-function karigarEdit(id){const ex=id?(DB.karigars||[]).find(x=>x.id===id):null;
+function karigarEdit(id){
+  sheetAt(karigarEdit);const ex=id?(DB.karigars||[]).find(x=>x.id===id):null;
   _krSpec=new Set((ex&&ex.specialties)||[]);
   const rates=(ex&&ex.rates)||{};
   const rows=GARMENTS.map(g=>{const on=_krSpec.has(g.id);
@@ -15907,6 +16062,7 @@ function karigarDelete(id){confirmModal(t('confirm_del'),t('confirm_del_msg'),()
 
 /* ====================== ITEM MASTER (billing items) ====================== */
 function itemMaster(){
+  sheetAt(itemMaster);
   const its=DB.itemMaster||[];
   $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:6px">📦 ${t('item_master')}</h2>
     <p class="hint" style="margin-bottom:12px">${t('item_master_desc')}</p>
@@ -15927,6 +16083,7 @@ function imEdit(id,backTo){
   imRender();
 }
 function imRender(){
+  sheetAt(imRender);
   const d=_imDraft;
   const chips=(DB.inclLib||[]).map(p=>{const on=d.incl.includes(p);
     return `<span class="gtag" onclick="imTogglePart('${esc(p).replace(/'/g,"\\'")}')" style="cursor:pointer;${on?'background:var(--saffron);color:#1a1206;border-color:var(--saffron)':''}">${on?'✓ ':''}${esc(p)}</span>`;}).join('');
@@ -15998,6 +16155,7 @@ function imDelete(id){confirmModal(t('confirm_del'),t('confirm_del_msg'),()=>{
    Every number here lives in Settings, because the next shop's habits will differ. */
 /* ── expense heads: what kind of spend, and whose account ─────────────────── */
 function manageExpHeads(){
+  sheetAt(manageExpHeads);
   const cats=DB.expCats||[];
   const whoOpts=[['','—'],['staff','st_title'],['karigar','eh_karigar'],['supplier','eh_supplier'],['customer','eh_customer']];
   const rows=cats.map((c,i)=>{ const hc=expHeadCfg(c);
@@ -16030,6 +16188,7 @@ function expHeadSet(i,k,v){
 /* ── opening balances, entered in one sitting ─────────────────────────────── */
 let _obRows=[];
 function openingBulk(){
+  sheetAt(openingBulk);
   const kinds=[['karigar','eh_karigar'],['supplier','eh_supplier'],['customer','eh_customer'],['staff','st_title'],['lender','ob_lender']];
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin:0 0 2px">📒 ${t('ob_title')}</h2>
@@ -16132,6 +16291,27 @@ function partyEnsure(name,phone,kind){
   return p;
 }
 /* What this person owes, or is owed, under ONE hat. Never a single mixed figure. */
+/* v227 — the audit found this hole: a party card read only the ledger, and a customer's
+   payments do not live there — they sit inside his bill. So a customer who had paid showed
+   nothing at all on his own page. Bills are read too now, so every hat is complete. */
+function partyBillFlow(p,kind){
+  if(kind!=='customer' && kind!=='supplier')return 0;
+  let v=0;
+  const nm=String(p.name||'').trim().toLowerCase();
+  const mine=r=>(r.customerId&&r.customerId===p.id)||String(r.customerName||'').trim().toLowerCase()===nm;
+  if(kind==='customer'){
+    [['orders',DB.orders],['alterations',DB.alterations],['sales',DB.sales]].forEach(([,list])=>{
+      (list||[]).forEach(r=>{ if(!mine(r))return;
+        (r.payments||[]).forEach(pay=>{ v+=(+pay.amt||0); }); });
+    });
+  }else{
+    (DB.purchases||[]).forEach(pu=>{
+      if(String(pu.supplier||'').trim().toLowerCase()!==nm)return;
+      (pu.payments||[]).forEach(pay=>{ v-=(+pay.amt||0); });
+    });
+  }
+  return r2(v);
+}
 function partyBalance(p,kind){
   let bal=0;
   (DB.ledger||[]).forEach(l=>{
@@ -16168,7 +16348,7 @@ function partyEdit(id,onDone){
 function partyBalHTML(p){
   const rows=[['supplier','eh_supplier'],['customer','eh_customer'],['karigar','eh_karigar'],
               ['staff','st_title'],['other','pt_other']]
-    .map(([k,lbl])=>{ const b=partyBalance(p,k); if(!b)return '';
+    .map(([k,lbl])=>{ const b=r2(partyBalance(p,k)+partyBillFlow(p,k)); if(!b)return '';
       return `<div class="kv"><span class="hint">${t(lbl)}</span>
         <b style="color:${b<0?'var(--bad)':'var(--ok)'}">${money(Math.abs(b))} ${b<0?t('ob_pay'):t('ob_get')}</b></div>`;
     }).filter(Boolean).join('');
@@ -16209,6 +16389,7 @@ function staffAdvBal(sid){
 }
 /* read-only: where the figure on the profile comes from, line by line */
 function staffLedger(sid){
+  sheetAt(staffLedger);
   const st=staffById(sid); if(!st)return;
   _stDraft={ id:sid,
     name:(($('#stName')||{}).value||''), role:(($('#stRole')||{}).value||''),
@@ -16271,6 +16452,7 @@ function lateMins(st,inAt){
    time on it. Tapping again marks him leaving. Everything else that used to sit on this
    screen has gone to Reports, where it is looked at once a month, not every morning. */
 function staffPunch(){
+  sheetAt(staffPunch);
   const d=todayISO(), list=staffAll().filter(x=>!x.left);
   if(!list.length){ staffMaster(); return; }
   const rows=list.map(st=>{
@@ -16355,6 +16537,7 @@ function punchOut(sid){
 /* ── the month, correctable by hand ─────────────────────────────────────────── */
 let _attMonth=null;
 function attSheet(){
+  sheetAt(attSheet);
   const mon=_attMonth||todayISO().slice(0,7);
   const [Y,M]=mon.split('-').map(Number);
   const days=new Date(Y,M,0).getDate();
@@ -16415,6 +16598,7 @@ function attSummary(sid,mon,days){
 }
 /* ── the profile: everything about one person in one place ─────────────────── */
 function staffMaster(){
+  sheetAt(staffMaster);
   const ks=staffAll();
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin:0 0 2px">👥 ${t('st_title')}</h2>
@@ -16442,6 +16626,7 @@ function staffMaster(){
   showSheet();
 }
 function staffEdit(id){
+  sheetAt(staffEdit);
   const ex=id?staffById(id):null, c=staffCfg();
   const dr=(_stDraft&&_stDraft.id===(id||''))?_stDraft:null; _stDraft=null;
   const V=(k,fb)=>dr?(dr[k]||''):fb;
@@ -16535,6 +16720,7 @@ function staffLeftToggle(id){
   toast(k.left?t('st_left_done'):t('st_rejoin_done'),'ok');
 }
 function salesmanMaster(){
+  sheetAt(salesmanMaster);
   const ks=salesmenAll();
   $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:6px">${t('salesman_master')}</h2>
     <p class="hint" style="margin-bottom:12px">${t('salesman_desc')}</p>
@@ -16544,7 +16730,8 @@ function salesmanMaster(){
     `;
   showSheet();
 }
-function salesmanEdit(id){const ex=id?salesmenAll().find(x=>x.id===id):null;
+function salesmanEdit(id){
+  sheetAt(salesmanEdit);const ex=id?salesmenAll().find(x=>x.id===id):null;
   $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${ex?t('edit'):t('add_salesman')}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     <div class="field"><label>${t('salesman_name')}</label><input id="smName" value="${ex?esc(ex.name):''}" placeholder="${t('salesman_name')}"></div>
     <div class="field" style="margin-top:10px"><label>${t('phone')}</label><input id="smPhone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" value="${ex?esc(ex.phone||''):''}" placeholder="${t('phone')}"></div>
@@ -16585,6 +16772,7 @@ async function pickKarigarContact(){
    sit on the front row. Nothing here deletes data: hiding a piece only takes it out of
    the picker, and any order that already uses it keeps it. */
 function itemShortcuts(){
+  sheetAt(itemShortcuts);
   const c=itemCfg(), all=allItems();
   const live=orderedItems();
   const hidden=all.filter(g=>c.hide.includes(g.id));
@@ -16690,6 +16878,7 @@ function itemHideToggle(id){
   });
 }
 function garmentMaster(){
+  sheetAt(garmentMaster);
   const items=DB.customItems||[];
   $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:6px">${t('item_master')}</h2>
     <p class="hint" style="margin-bottom:12px">${t('item_master_desc')}</p>
@@ -16703,7 +16892,8 @@ let itemDraft=null;
 function itemEdit(id){const ex=id?(DB.customItems||[]).find(x=>x.id===id):null;
   itemDraft=ex?JSON.parse(JSON.stringify(ex)):{id:'ci_'+uid(),n:'',ico:'🧩',cat:'custom',fields:[]};
   renderItemEdit();}
-function renderItemEdit(){const d=itemDraft;
+function renderItemEdit(){
+  sheetAt(renderItemEdit);const d=itemDraft;
   const rows=d.fields.map((f,i)=>`<div class="card" style="padding:10px;margin-bottom:8px">
     <div class="row"><div class="field" style="margin:0"><label>${t('field_name')}</label><input data-fn="${i}" value="${esc(f.n)}" placeholder="Head, Size…"></div>
       <div class="field" style="margin:0"><label>${t('field_type')}</label><select data-ft="${i}">
@@ -17220,6 +17410,7 @@ async function photoBackupPlan(){
   return parts;
 }
 async function photoBackup(){
+  sheetAt(photoBackup);
   const keys=await photoBackupKeys();
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">🖼️ ${t('pb_title')}</h2>
@@ -17444,6 +17635,7 @@ function rollStats(thaans){
 }
 let _auditSrc=[];
 async function stockAudit(){
+  sheetAt(stockAudit);
   const now=rollStats(DB.thaans||[]);
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">🩺 ${t('au_title')}</h2>
@@ -17709,6 +17901,9 @@ function closeSheet(){
     }
   }
   _draftAsked=false;
+  /* v226: a page opened from another page closes back INTO it */
+  try{ if(!formIsOpen() && sheetBack())return; }catch(e){}
+  sheetReset();
   $('#scrim').classList.remove('show');$('#scrim').classList.remove('full');
   $('#fracbar').classList.remove('show');document.body.classList.remove('fb-on');
   _place=null;                                    // don't restore a place into a later visit
@@ -17750,6 +17945,27 @@ $('#mscrim').addEventListener('click',e=>{if(e.target===$('#mscrim'))closeModal(
    Returns true when it handled the press. Kept in a single function so every way back —
    the device button, a ← on screen — behaves identically and nobody has to remember
    which is which. */
+/* v226 — HIS 19 Aug: "expenses ke andar ke page ko band karne se homepage me aa jate hain,
+   ye kai jagah hai." Every screen in this app paints into the same #sheet, so once the
+   expense form painted over the expense list, the list was simply gone — nothing
+   remembered it had been there, and closing dropped him all the way out to the tab. Same
+   for a purchase inside Purchases, a karigar's page inside the Tailor book, and so on.
+   So a screen now leaves a bookmark when it paints over another one, and closing walks
+   back one page instead of leaping to Home. The order form keeps its own step logic and
+   is asked first. */
+let _sheetStack=[], _sheetCur=null;
+function sheetAt(fn){
+  if(typeof fn!=='function')return;
+  if(_sheetCur && _sheetCur!==fn)_sheetStack.push(_sheetCur);
+  _sheetCur=fn;
+}
+function sheetBack(){
+  const prev=_sheetStack.pop();
+  if(!prev)return false;
+  _sheetCur=null;                       // prev re-registers itself when it paints
+  try{ prev(); return true; }catch(e){ _sheetCur=null; return false; }
+}
+function sheetReset(){ _sheetStack=[]; _sheetCur=null; }
 function backOneStep(){
   try{
     // the order form: measurement card -> item list -> (then the sheet closes)
@@ -17759,6 +17975,7 @@ function backOneStep(){
       return false;                          // stage 1: the sheet itself is the step
     }
   }catch(e){}
+  try{ if(sheetBack())return true; }catch(e){}
   return false;
 }
 function modalIsOpen(){ const e=$('#mscrim'); return !!e && e.classList.contains('show'); }
