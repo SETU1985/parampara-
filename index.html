@@ -727,7 +727,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v228</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v229</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1340,6 +1340,11 @@ const T={
   exp_tag_head:'Pick the name this money went to — the list is just above',
   exp_find_name:'Type a name — karigar, staff, supplier, anyone',
   cb_none:'No account yet', cb_account:'Account',
+  pur_is_saved:'Already saved', pur_is_new:'New item',
+  pur_or_pick:'or pick one of the {n} below',
+  pur_will_code:'it will be saved with its own code',
+  mnu_sale_sub:'Bills, returns, customers who owe',
+  mnu_pur_sub:'Supplier bills, returns, who you owe',
   rp_pl:'Profit & Loss', rp_cashflow:'Cash flow', rp_exp_head:'Expenses by head',
   rp_party_stmt:'Party statement', rp_pick_party:'Whose statement?',
   rp_sales_gross:'Billed', rp_gst_out:'GST on sales', rp_net_sales:'Net sales',
@@ -2608,6 +2613,11 @@ const T={
   exp_tag_head:'किसे दिया, वह नाम ऊपर से चुन लीजिए',
   exp_find_name:'नाम लिखिए — कारीगर, स्टाफ़, सप्लायर, कोई भी',
   cb_none:'अभी कोई खाता नहीं', cb_account:'खाता',
+  pur_is_saved:'पहले से सेव है', pur_is_new:'नया आइटम',
+  pur_or_pick:'या नीचे के {n} में से चुनिए',
+  pur_will_code:'अपने कोड के साथ सेव हो जाएगा',
+  mnu_sale_sub:'बिल, वापसी, किससे लेना है',
+  mnu_pur_sub:'सप्लायर के बिल, वापसी, किसे देना है',
   rp_pl:'नफ़ा-नुक़सान', rp_cashflow:'नकद बहाव', rp_exp_head:'ख़र्च — खाते के हिसाब से',
   rp_party_stmt:'किसी का खाता', rp_pick_party:'किसका खाता देखना है?',
   rp_sales_gross:'बिल हुआ', rp_gst_out:'बिक्री पर GST', rp_net_sales:'शुद्ध बिक्री',
@@ -4809,7 +4819,7 @@ function readyBulkAddOne(){
   if(!(qty>0)){toast(t('rb_need_qty'),'bad');return;}
   DB.itemMaster=DB.itemMaster||[];
   let m=DB.itemMaster.find(x=>x.kind==='ready'&&String(x.name).toLowerCase()===name.toLowerCase());
-  if(!m){m={id:uid(),name,kind:'ready',stk:{},incl:[],photos:[],category:(_rbulk.cat||'')};DB.itemMaster.push(m);}
+  if(!m){m=itemCodeStamp({id:uid(),name,kind:'ready',stk:{},incl:[],photos:[],category:(_rbulk.cat||'')});DB.itemMaster.push(m);}
   m.stk=m.stk||{};
   sizes.forEach(sz=>{m.stk[sz]=(+m.stk[sz]||0)+qty;});
   if(cost)m.cost=cost;
@@ -4946,7 +4956,7 @@ function readySave(){
   DB.itemMaster=DB.itemMaster||[];
   let m;
   if(d.id)m=DB.itemMaster.find(x=>x.id===d.id);
-  else{m={id:uid(),name,hsn,incl:[],kind:'ready',stk:{},photos:[]};DB.itemMaster.push(m);}
+  else{m=itemCodeStamp({id:uid(),name,hsn,incl:[],kind:'ready',stk:{},photos:[]});DB.itemMaster.push(m);}
   const before=Object.assign({},m.stk||{});
   const cfg=(DB.stkCfg.sizes||[]);
   // sizes the shop has since removed from the size list may still HOLD pieces —
@@ -7911,29 +7921,41 @@ function menuHome(){
     <h2 style="margin-bottom:12px">☰ ${t('menu_all')}</h2>
     <input id="mnuQ" placeholder="🔍 ${t('menu_find')}" oninput="menuFilter(this.value)" style="margin-bottom:12px">
     <div id="mnuBody">
-    ${sec('📋 '+t('home_tailoring'),[
+    ${/* v229 — HIS 20 Aug: "sabse pehle SALES / PURCHASES / ORDER / STOCK / EXPENSES /
+         JOBWORKER / EMPLOYEE is sequence me rakho, jyada buttons nahi." So the list is his
+         working order now, one line per thing, and everything that belongs to a subject
+         lives inside that subject's own screen instead of being spread across the menu. */''}
+    ${modOn('billing')?sec('🧾 '+t('hub_sale'),[
+      row('🧾',t('hub_sale'),"saleHub()",t('mnu_sale_sub'))]):''}
+    ${modOn('billing')?sec('🚚 '+t('hub_purchase'),[
+      row('🚚',t('hub_purchase'),"purchaseHub()",t('mnu_pur_sub'))]):''}
+    ${sec('📋 '+t('nav_orders'),[
       row('📋',t('nav_orders'),"go('orders')"),
-      row('🧵',t('jw_title'),"jobWork()"),
+      row('🔎',t('of_title'),"orderFilter()"),
       row('📞',t('se_title'),"statusEnquiry('')"),
+      row('🔧',t('home_alterations'),"go('alterations')"),
       row('📦',t('cu_title'),"courierHub()"),
       row('📖',t('cat_title'),"catalogue()"),
-      modOn('samples')?row('🧥',t('smp_title'),"samplesHome()"):'',
-      row('🔎',t('of_title'),"orderFilter()"),
-      row('📊',t('or_title'),"orderReports()"),
-      row('🔧',t('home_alterations'),"go('alterations')"),
-      row('👥',t('nav_customers'),"go('customers')")])}
-    ${modOn('billing')?sec('🧾 '+t('home_billing'),[
-      row('🧾',t('hub_sale'),"saleHub()"),
-      row('🚚',t('hub_purchase'),"purchaseHub()")]):''}
-    ${sec('💰 '+t('home_accounts'),[
-      modOn('accounts')?row('📒',t('db_title'),"dayBook()"):'',
-      modOn('accounts')?row('🏦',t('cb_title'),"cashBank()"):'',
-      modOn('accounts')?row('💸',t('exp_title'),"expenses()"):'',
+      modOn('samples')?row('🥻',t('smp_title'),"samplesHome()"):'',
+      row('👥',t('nav_customers'),"go('customers')"),
+      row('📊',t('or_title'),"orderReports()")])}
+    ${modOn('stock')?sec('📦 '+t('stk_title'),[
+      row('📦',t('stk_title'),"stockHome()")]):''}
+    ${modOn('accounts')?sec('💸 '+t('exp_title'),[
+      row('💸',t('exp_title'),"expenses()"),
+      row('📒',t('db_title'),"dayBook()"),
+      row('🏦',t('cb_title'),"cashBank()"),
       modOn('billing')?row('🔔',t('debtors_report'),"followUps()"):'',
-      modOn('billing')?row('📤',t('creditors_report'),"creditors()"):'',
-      modOn('stock')?row('📦',t('stk_title'),"stockHome()"):'',
-      modOn('billing')?row('📊',t('reports'),"go('reports')"):'',
-      modOn('billing')?row('📈',t('gr_title'),"growthReport()"):''])}
+      modOn('billing')?row('📤',t('creditors_report'),"creditors()"):'']):''}
+    ${sec('🧵 '+t('jw_title'),[
+      row('🧵',t('jw_title'),"jobWork()")])}
+    ${sec('👤 '+t('st_title'),[
+      row('👤',t('st_title'),"staffMaster()"),
+      row('👥',t('pn_title'),"staffPunch()"),
+      row('📄',t('srp_title'),"staffReport()")])}
+    ${modOn('billing')?sec('📈 '+t('reports'),[
+      row('📈',t('reports'),"go('reports')"),
+      row('📉',t('gr_title'),"growthReport()")]):''}
     ${sec('⚙️ '+t('settings'),[row('⚙️',t('settings'),"settingsMenu()")])}
     </div>
     <div class="fab-pad"></div>`;
@@ -13677,6 +13699,18 @@ function purDraftHTML(){
   return `<div class="card" id="puDraft" style="padding:12px 14px;margin-bottom:10px;border-color:var(--saffron)">
     <input id="pu_dname" placeholder="${t('pur_name_ph2')}" autocomplete="off"
       onfocus="purDSug()" oninput="purDSug()" onkeydown="if(event.key==='Enter'){event.preventDefault();purDraftAdd();}" style="margin:0">
+    ${/* v229 — HIS 20 Aug: "item name daal raha hun to vo already save hai ki nahi dikh
+         nahi raha, keyboard aa ja raha hai." The saved list sits below the fold and the
+         keyboard covers it, so he was typing blind — and on a purchase bill most items ARE
+         new, so the one thing he needs to know is whether this one already exists. This
+         line sits directly under the box and answers it in a glance, keyboard or no. */''}
+    <div id="puDState" class="hint" style="margin:6px 0 0;min-height:16px"></div>
+    ${/* v229 — HIS 20 Aug: "add to bill, add new item se pehle hai, tumhara system
+         confusing hai." He was right: the saved-item list sat BELOW the Add button, so the
+         order on screen was type → add → and only then "is it already saved?" — backwards.
+         The answer to that question now sits directly under the name, where he is looking
+         while he types, and Add to bill stays where an action belongs: last. */''}
+    <div id="puDSug"></div>
     <div class="pu-qty-row">
       ${/* v213 — HIS 17 Aug: "cursor uske left aa raha hai... ya qty likha ho aur cursor
            aate hi number daalna ho." Right: a box holding 1 with the caret before it turns
@@ -13714,7 +13748,7 @@ function purDraftHTML(){
              for what happens next, so these are too. */''}
         <button class="btn primary sm" style="padding:7px 18px;font-weight:800"
           onclick="purDraftAdd()">➕ ${t('pur_add_to_bill')}</button></span></div>
-    <div id="puDSug"></div>
+
   </div>`;
 }
 /* v221 — HIS 19 Aug: "save karo to pata hi nahi chalta ki save hua ya nahi." The line
@@ -13773,7 +13807,8 @@ function purDCalc(){
 function purDSug(){
   const box=$('#puDSug'), inp=$('#pu_dname'); if(!box||!inp)return;
   const q=(inp.value||'').trim();
-  const list=purSugList(q); _purSug.d=list;
+  const list=purSugList(q);
+  purDState(q,list); _purSug.d=list;
   const norm=v=>String(v||'').toLowerCase().replace(/[^a-z0-9]/g,'');
   const exact=q&&list.some(o=>norm(o.val.label)===norm(q));
   // "Saved items | Add new" — the add action is always on the header, never hidden
@@ -13784,7 +13819,9 @@ function purDSug(){
      read as the same button twice. The declaration is only ever needed when the search
      came back empty, so that is the only time it shows now — exactly where the doubt is. */
   let h=`<div class="sug-head"><span>📦 ${t('pur_sug_head')}</span>${
-      (!list.length&&q)?`<a onclick="purDNew()">➕ ${t('pur_sug_new')}</a>`:''}</div>`;
+      /* v229: he said most items on a purchase bill are NEW, so declaring one is not the
+         rare case — it is the common one, and it belongs next to the name at all times. */
+      q?`<a onclick="purDNew()">➕ ${t('pur_sug_new')}</a>`:''}</div>`;
   if(list.length){
     h+=list.map((o,k)=>`<div class="cust-result" style="margin-bottom:6px" onclick="purDPick(${k})">
       <div style="min-width:0"><b>${esc(o.title)}</b>
@@ -13809,12 +13846,45 @@ function sugFacts(o){
   if(v.rate&&!bits.length)bits.push('₹'+v.rate);
   return bits.join(' · ')||(o.sub||'');
 }
+/* v229 — HIS 20 Aug: "save new karte hi puche serial number, assign aur save ho jaye,
+   isse stock lene me aasani hogi — har item ke paas hamara serial number dikhega."
+   So every item the shop creates carries a code of its own from birth: PP-0001, PP-0002.
+   It never repeats, not even if an item is deleted — the same high-water rule the order
+   and bill numbers now follow, because a code that comes back means two different bolts
+   of cloth wearing one label on the shelf. */
+function nextItemCode(){
+  let mx=numHW('item');
+  (DB.itemMaster||[]).forEach(m=>{ const n=numDigits(m.code); if(n>mx)mx=n; });
+  return 'PP-'+String(mx+1).padStart(4,'0');
+}
+function itemCodeStamp(m){
+  if(!m || m.code)return m;
+  m.code=nextItemCode();
+  numHWSet('item', numDigits(m.code));
+  return m;
+}
 function purDNew(){
   const n=$('#pu_dname');
   if(n && !(n.value||'').trim()){ toast(t('pur_type_name'),'bad'); n.focus(); return; }
   const box=$('#puDSug'); if(box)box.innerHTML='';
   _purD.hsn='';
   const q=$('#pu_dqty'); if(q){q.focus();q.select&&q.select();}
+}
+/* saved, or about to be created — said plainly, right under the box */
+function purDState(q,list){
+  const el=$('#puDState'); if(!el)return;
+  if(!q){ el.innerHTML=''; return; }
+  const norm=v=>String(v||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const hit=(list||[]).find(o=>norm(o.val.label)===norm(q));
+  if(hit){
+    el.innerHTML='<span style="color:var(--ok)">✅ '+t('pur_is_saved')+'</span>'
+      + (sugFacts(hit)?' · '+esc(sugFacts(hit)):'');
+  }else if((list||[]).length){
+    el.innerHTML='<span style="color:var(--saffron2)">🆕 '+t('pur_is_new')+'</span> · '+t('pur_or_pick',{n:list.length});
+  }else{
+    el.innerHTML='<span style="color:var(--saffron2)">🆕 '+t('pur_is_new')+'</span> · '
+      +t('pur_will_code')+' <b style="color:var(--saffron2)">'+esc(nextItemCode())+'</b>';
+  }
 }
 function purDPick(k){
   const o=(_purSug.d||[])[k]; if(!o)return;
