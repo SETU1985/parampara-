@@ -727,7 +727,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v229</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v232</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1342,6 +1342,15 @@ const T={
   cb_none:'No account yet', cb_account:'Account',
   pur_is_saved:'Already saved', pur_is_new:'New item',
   pur_or_pick:'or pick one of the {n} below',
+  exp_search_ph:'Search — head, note, name, amount',
+  exp_less:'show less',
+  exp_move_title:'Move to another head',
+  exp_move_msg:'{n} entries are under this head. Which head should they go to?',
+  exp_move_ask:'Move all {n} entries from “{a}” to “{b}”? Only the head changes — amounts, dates and names stay exactly as they are.',
+  exp_moved:'{n} entries moved',
+  hub_orders_sub:'Orders, search, status, alterations, courier, samples',
+  pur_will_ser:'serial', pur_assign_ser:'· give it now',
+  pur_ser_none:'No serial run yet — enter one thaan by hand first',
   pur_will_code:'it will be saved with its own code',
   mnu_sale_sub:'Bills, returns, customers who owe',
   mnu_pur_sub:'Supplier bills, returns, who you owe',
@@ -2615,6 +2624,15 @@ const T={
   cb_none:'अभी कोई खाता नहीं', cb_account:'खाता',
   pur_is_saved:'पहले से सेव है', pur_is_new:'नया आइटम',
   pur_or_pick:'या नीचे के {n} में से चुनिए',
+  exp_search_ph:'खोजिए — खाता, नोट, नाम, रकम',
+  exp_less:'कम दिखाइए',
+  exp_move_title:'दूसरे खाते में ले जाएँ',
+  exp_move_msg:'इस खाते में {n} एंट्री हैं। इन्हें किस खाते में ले जाना है?',
+  exp_move_ask:'“{a}” की सारी {n} एंट्री “{b}” में ले जाएँ? सिर्फ़ खाता बदलेगा — रकम, तारीख़ और नाम जस के तस रहेंगे।',
+  exp_moved:'{n} एंट्री चली गईं',
+  hub_orders_sub:'ऑर्डर, खोज, स्टेटस, अल्टरेशन, कूरियर, सैंपल',
+  pur_will_ser:'सीरियल', pur_assign_ser:'· अभी दे दीजिए',
+  pur_ser_none:'अभी कोई सीरियल चालू नहीं — पहले एक थान हाथ से डालिए',
   pur_will_code:'अपने कोड के साथ सेव हो जाएगा',
   mnu_sale_sub:'बिल, वापसी, किससे लेना है',
   mnu_pur_sub:'सप्लायर के बिल, वापसी, किसे देना है',
@@ -5820,15 +5838,36 @@ function payEntry(dir){
 
 /* ---------------- EXPENSES ---------------- */
 let _exp=null, _expFrom='', _expTo='';
-function expenses(){
+/* v232 — HIS 20 Aug: "ye kya hai, kitna scroll karun? Kyon karun? Mujhe lagta hai ek
+   search bar hone se hi kaam ho jayega."
+   He is right, and the fault was mine: this screen opened with fourteen head totals and
+   then every single entry of the month underneath, so reaching the Add button meant
+   scrolling past a report he had not asked for. A list a man cannot search is a list he
+   has to read. So: a search box at the top, the head totals folded to the four that
+   matter with the rest one tap away, and the entries filtered as he types — by head, by
+   note, by name, by amount. Nothing is removed, it just stops being in the way. */
+let _expQ='';
+function expSearch(v){ _expQ=String(v||''); expenses(true); }
+function expMatch(l,q){
+  if(!q)return true;
+  q=q.toLowerCase();
+  return [l.cat,l.note,l.party,String(l.amt),accName(l.acc),fmtDate(l.date)]
+    .some(x=>String(x||'').toLowerCase().indexOf(q)>=0);
+}
+let _expCatsAll=false;
+function expToggleCats(){ _expCatsAll=!_expCatsAll; expenses(true); }
+function expenses(keepQ){
   sheetAt(expenses); if(!modOn('accounts')){toast(t('mod_off'),'bad');return;}
+  if(!keepQ)_expQ='';
   const from=_expFrom||monthStart(), to=_expTo||todayISO();
-  const list=(DB.ledger||[]).filter(l=>l.refKind==='expense'&&l.date>=from&&l.date<=to)
+  const all=(DB.ledger||[]).filter(l=>l.refKind==='expense'&&l.date>=from&&l.date<=to)
     .sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  const list=all.filter(l=>expMatch(l,_expQ));
   const total=r2(list.reduce((s,l)=>s+l.amt,0));
   const byCat={};
   list.forEach(l=>{const c=l.cat||t('exp_other');byCat[c]=r2((byCat[c]||0)+l.amt);});
-  const cats=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  const catsAll=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  const cats=_expCatsAll?catsAll:catsAll.slice(0,4);
 
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">💸 ${t('exp_title')}</h2>
@@ -5838,12 +5877,20 @@ function expenses(){
         <input type="date" value="${from}" onchange="_expFrom=this.value;expenses()"></div>
       <div class="field" style="margin:0"><label>${t('rp_to')}</label>
         <input type="date" value="${to}" onchange="_expTo=this.value;expenses()"></div></div>
+    <button class="btn primary block" style="margin-bottom:10px" onclick="expEdit()">➕ ${t('exp_add')}</button>
+    <input id="expQ" value="${esc(_expQ)}" placeholder="🔍 ${t('exp_search_ph')}"
+      autocomplete="off" oninput="expSearch(this.value)" style="margin-bottom:10px">
     <div class="card pos-total" style="margin-bottom:12px">
       <div class="sum-row grand" style="border-top:none;padding-top:0">
-        <span>${t('exp_total')}</span><b style="color:var(--bad)">${money(total)}</b></div>
-      ${cats.map(([c,v])=>`<div class="sum-row" style="min-height:34px;padding:5px 0">
-        <span>${esc(c)}</span><b>${money(v)}</b></div>`).join('')}</div>
-    <button class="btn primary block" style="margin-bottom:12px" onclick="expEdit()">➕ ${t('exp_add')}</button>
+        <span>${t('exp_total')}${_expQ?' · '+list.length:''}</span>
+        <b style="color:var(--bad)">${money(total)}</b></div>
+      ${cats.map(([c,v])=>`<div class="sum-row" style="min-height:34px;padding:5px 0;cursor:pointer"
+        onclick="expSearch('${esc(c).replace(/'/g,"\\'")}')"
+        oncontextmenu="event.preventDefault();expMoveHead('${esc(c).replace(/'/g,"\\'")}');return false;">
+        <span>${esc(c)}</span><b>${money(v)}</b></div>`).join('')}
+      ${catsAll.length>4?`<div class="sum-row" style="min-height:30px;padding:4px 0;cursor:pointer"
+        onclick="expToggleCats()"><span class="hint">${_expCatsAll?t('exp_less'):'+'+(catsAll.length-4)+' '+t('exp_more_heads')}</span><span></span></div>`:''}
+    </div>
     ${list.map(l=>`<div class="card" style="margin-bottom:8px" onclick="expEdit('${l.id}')">
       <div class="kv"><div>
         <b>${esc(l.cat||t('exp_other'))}</b>
@@ -5854,6 +5901,32 @@ function expenses(){
     
     <div class="fab-pad"></div>`;
   showSheet();
+}
+/* v232 — HIS 20 Aug: "maan lo accountant ne expenses galat head me daal diye hain, kai
+   saari entry ho gayi hai, use kaise theek karun?"
+   One at a time was the only answer, and with forty entries that is not an answer. Renaming
+   a head moves everything under it, but that is no good when only THIS head is wrong and
+   the right one already exists. So a head can now hand all its entries to another head in
+   one move — the amounts, dates and names are untouched, only the label changes, and he is
+   told exactly how many are moving before anything happens. */
+function expMoveHead(from){
+  const heads=(DB.expCats||[]).filter(c=>c!==from);
+  const n=(DB.ledger||[]).filter(l=>l.refKind==='expense'&&String(l.cat||'')===String(from)).length;
+  if(!n){ toast(t('exp_none'),'bad'); return; }
+  modal('🔀 '+esc(from),
+    `<p>${t('exp_move_msg',{n})}</p>
+     <div class="gtags" style="margin-top:8px">${heads.map(c=>`<span class="gtag" style="cursor:pointer"
+       onclick="expMoveDo('${esc(from).replace(/'/g,"\\'")}','${esc(c).replace(/'/g,"\\'")}')">${esc(c)}</span>`).join('')}</div>`,
+    [{label:t('cancel'),cls:'ghost',fn:()=>{closeModal();expenses(true);}}]);
+}
+function expMoveDo(from,to){
+  const rows=(DB.ledger||[]).filter(l=>l.refKind==='expense'&&String(l.cat||'')===String(from));
+  confirmModal('🔀 '+t('exp_move_title'),
+    t('exp_move_ask',{n:rows.length,a:esc(from),b:esc(to)}),
+    ()=>{ rows.forEach(l=>{ l.cat=to; l.moved=new Date().toISOString(); });
+      save(); closeModal(); expenses(true); toast('✅ '+t('exp_moved',{n:rows.length}),'ok'); },
+    ()=>{ closeModal(); expenses(true); },
+    {yes:t('save'), no:t('cancel'), cls:'primary'});
 }
 function expEdit(id){
   const ex=id?(DB.ledger||[]).find(l=>l.id===id):null;
@@ -6466,6 +6539,23 @@ function saleHub(){
     ['↩️', t('sr_menu'), "closeSheet();salesReturnPick()"],
     ['📄', t('estimate'), "closeSheet();estimateList()"],
   ]);
+  showSheet();
+}
+/* v231 — HIS 20 Aug: "orders me find orders, status, samples, alteration, courier jayega;
+   catalogue neeche ki taraf hoga; stock 4-5 number par chahiye."
+   Sale and Purchase already worked this way and that is why they read as one clean line
+   each. Everything that belongs to an order now sits inside the order screen, so the menu
+   is a short list of subjects rather than a wall of twenty-five doors. */
+function ordersHub(){
+  sheetAt(ordersHub);
+  $('#sheet').innerHTML=hubHTML('📋 '+t('nav_orders'), t('hub_orders_sub'), [
+    ['📋', t('nav_orders'), "closeSheet();go('orders')"],
+    ['🔍', t('of_title'), "closeSheet();orderFilter()"],
+    ['📞', t('se_title'), "closeSheet();statusEnquiry('')"],
+    ['🔧', t('home_alterations'), "closeSheet();go('alterations')"],
+    ['📦', t('cu_title'), "closeSheet();courierHub()"],
+    modOn('samples')?['👗', t('smp_title'), "closeSheet();samplesHome()"]:null,
+  ].filter(Boolean));
   showSheet();
 }
 function purchaseHub(){
@@ -7930,15 +8020,7 @@ function menuHome(){
     ${modOn('billing')?sec('🚚 '+t('hub_purchase'),[
       row('🚚',t('hub_purchase'),"purchaseHub()",t('mnu_pur_sub'))]):''}
     ${sec('📋 '+t('nav_orders'),[
-      row('📋',t('nav_orders'),"go('orders')"),
-      row('🔎',t('of_title'),"orderFilter()"),
-      row('📞',t('se_title'),"statusEnquiry('')"),
-      row('🔧',t('home_alterations'),"go('alterations')"),
-      row('📦',t('cu_title'),"courierHub()"),
-      row('📖',t('cat_title'),"catalogue()"),
-      modOn('samples')?row('🥻',t('smp_title'),"samplesHome()"):'',
-      row('👥',t('nav_customers'),"go('customers')"),
-      row('📊',t('or_title'),"orderReports()")])}
+      row('📋',t('nav_orders'),"ordersHub()",t('hub_orders_sub'))])}
     ${modOn('stock')?sec('📦 '+t('stk_title'),[
       row('📦',t('stk_title'),"stockHome()")]):''}
     ${modOn('accounts')?sec('💸 '+t('exp_title'),[
@@ -7946,15 +8028,19 @@ function menuHome(){
       row('📒',t('db_title'),"dayBook()"),
       row('🏦',t('cb_title'),"cashBank()"),
       modOn('billing')?row('🔔',t('debtors_report'),"followUps()"):'',
-      modOn('billing')?row('📤',t('creditors_report'),"creditors()"):'']):''}
+      modOn('billing')?row('📥',t('creditors_report'),"creditors()"):'']):''}
     ${sec('🧵 '+t('jw_title'),[
       row('🧵',t('jw_title'),"jobWork()")])}
     ${sec('👤 '+t('st_title'),[
       row('👤',t('st_title'),"staffMaster()"),
       row('👥',t('pn_title'),"staffPunch()"),
       row('📄',t('srp_title'),"staffReport()")])}
-    ${modOn('billing')?sec('📈 '+t('reports'),[
-      row('📈',t('reports'),"go('reports')"),
+    ${sec('📖 '+t('cat_title'),[
+      row('📖',t('cat_title'),"catalogue()"),
+      row('👥',t('nav_customers'),"go('customers')")])}
+    ${modOn('billing')?sec('📊 '+t('reports'),[
+      row('📊',t('reports'),"go('reports')"),
+      row('📈',t('or_title'),"orderReports()"),
       row('📉',t('gr_title'),"growthReport()")]):''}
     ${sec('⚙️ '+t('settings'),[row('⚙️',t('settings'),"settingsMenu()")])}
     </div>
@@ -13846,22 +13932,36 @@ function sugFacts(o){
   if(v.rate&&!bits.length)bits.push('₹'+v.rate);
   return bits.join(' · ')||(o.sub||'');
 }
-/* v229 — HIS 20 Aug: "save new karte hi puche serial number, assign aur save ho jaye,
-   isse stock lene me aasani hogi — har item ke paas hamara serial number dikhega."
-   So every item the shop creates carries a code of its own from birth: PP-0001, PP-0002.
-   It never repeats, not even if an item is deleted — the same high-water rule the order
-   and bill numbers now follow, because a code that comes back means two different bolts
-   of cloth wearing one label on the shelf. */
-function nextItemCode(){
-  let mx=numHW('item');
-  (DB.itemMaster||[]).forEach(m=>{ const n=numDigits(m.code); if(n>mx)mx=n; });
-  return 'PP-'+String(mx+1).padStart(4,'0');
+/* v230 — HIS 20 Aug, correcting me: "koi apna new code nahi — serial number app me 1227
+   tak ho gaya hai, 1228 hona chahiye, serial number ka continuous flow tootna nahi hai."
+   He is right and my PP-0001 was wrong: a second numbering series running beside the real
+   one is exactly the confusion a shop cannot afford — the number written on the cloth and
+   the number in the app must be the same number. The shop has ONE running serial and
+   everything new takes the next one in that run. */
+function itemCodeStamp(m){ return m; }               // kept so older callers stay valid
+/* what the next few serials will be, WITHOUT consuming them */
+function serialPeek(n){
+  const out=[];
+  const taken=new Set((DB.thaans||[]).map(t=>String(t.serial||'')).filter(Boolean));
+  for(let i=0;i<(n||1);i++){
+    const all=[...taken,...out];
+    const top=serialRunTop(all.length?all:['000']);
+    if(!top){ out.push(''); continue; }
+    let k=top.num+1, guard=0, cand;
+    do{ cand=top.pre+String(k).padStart(top.pad,'0'); k++; }
+    while((taken.has(cand)||out.indexOf(cand)>=0)&&guard++<9999);
+    out.push(cand);
+  }
+  return out;
 }
-function itemCodeStamp(m){
-  if(!m || m.code)return m;
-  m.code=nextItemCode();
-  numHWSet('item', numDigits(m.code));
-  return m;
+/* the button he asked for — hand this line its serial(s) from the running series */
+function purAssignSerial(){
+  const qs=purQtyList((($('#pu_dqty')||{}).value));
+  const sr=serialPeek(qs.length).filter(Boolean);
+  if(!sr.length){ toast(t('pur_ser_none'),'bad'); return; }
+  _purD.serials=sr;
+  purDSug();
+  toast('🔢 '+sr.join(', '),'ok');
 }
 function purDNew(){
   const n=$('#pu_dname');
@@ -13869,6 +13969,16 @@ function purDNew(){
   const box=$('#puDSug'); if(box)box.innerHTML='';
   _purD.hsn='';
   const q=$('#pu_dqty'); if(q){q.focus();q.select&&q.select();}
+}
+/* the serial line: what it will get, or what he has already pinned to it */
+function purSerialHTML(){
+  const qs=purQtyList((($('#pu_dqty')||{}).value));
+  const got=(_purD.serials||[]);
+  if(got.length) return ' · <b style="color:var(--ok)">🔢 '+esc(got.join(', '))+'</b>';
+  const nxt=serialPeek(qs.length).filter(Boolean);
+  if(!nxt.length)return '';
+  return ' · '+t('pur_will_ser')+' <b style="color:var(--saffron2)">'+esc(nxt.join(', '))
+    +'</b> <a onclick="purAssignSerial()" style="color:var(--saffron2);cursor:pointer">'+t('pur_assign_ser')+'</a>';
 }
 /* saved, or about to be created — said plainly, right under the box */
 function purDState(q,list){
@@ -13878,12 +13988,11 @@ function purDState(q,list){
   const hit=(list||[]).find(o=>norm(o.val.label)===norm(q));
   if(hit){
     el.innerHTML='<span style="color:var(--ok)">✅ '+t('pur_is_saved')+'</span>'
-      + (sugFacts(hit)?' · '+esc(sugFacts(hit)):'');
+      + (sugFacts(hit)?' · '+esc(sugFacts(hit)):'') + purSerialHTML();
   }else if((list||[]).length){
     el.innerHTML='<span style="color:var(--saffron2)">🆕 '+t('pur_is_new')+'</span> · '+t('pur_or_pick',{n:list.length});
   }else{
-    el.innerHTML='<span style="color:var(--saffron2)">🆕 '+t('pur_is_new')+'</span> · '
-      +t('pur_will_code')+' <b style="color:var(--saffron2)">'+esc(nextItemCode())+'</b>';
+    el.innerHTML='<span style="color:var(--saffron2)">🆕 '+t('pur_is_new')+'</span>'+purSerialHTML();
   }
 }
 function purDPick(k){
@@ -13908,12 +14017,15 @@ function purDraftAdd(silent){
   const qtys=purQtyList((($('#pu_dqty')||{}).value)), rate=+(($('#pu_drate')||{}).value)||0;
   const design=(($('#pu_ddesign')||{}).value||'').trim();
   const colour=(($('#pu_dcolour')||{}).value||'').trim();
+  const pinned=(_purD.serials||[]);
   qtys.forEach((qty,k)=>{
     purchForm.items.push({label,hsn:_purD.hsn||'',qty,unit:_purD.unit||'Mtr',rate,amount:r2(qty*rate),
       design, /* each roll must stay its own thaan — the piece number keeps them apart */
       colour: colour || (qtys.length>1?String(k+1):''),
+      serial: pinned[k]||'',            /* v230: the number he was shown is the number it keeps */
       photos:[...(_purD.photos||[])]});
   });
+  _purD.serials=null;
   _purD.hsn=''; _purD.photos=[]; purItemPhotoBadge();
   ['#pu_ddesign','#pu_dcolour'].forEach(id=>{const e=$(id); if(e)e.value='';});
   const rows=$('#puRows'); if(rows)rows.innerHTML=purchForm.items.map((it,i)=>purchItemRow(i,it)).join('');
@@ -14006,6 +14118,7 @@ function purSugList(q){
 }
 /* "Add New Item" = this is not in stock yet; keep whatever was typed and move on.
    The purchase itself is what brings the item in, so nothing needs creating up front. */
+let _purRestSaid=false;
 function renderPurchaseForm(){
   sheetAt(renderPurchaseForm);
   const f=purchForm;
@@ -14016,10 +14129,14 @@ function renderPurchaseForm(){
       <option value="">${t('past_suppliers')}</option>${sups.map(s=>`<option value="${esc(s.name)}" ${s.name===f.supplier?'selected':''}>${esc(s.name)}</option>`).join('')}</select>`:'';
   const rows=f.items.map((it,i)=>purchItemRow(i,it)).join('');
   const comp0=purchCompute(f);
-  const restored = (!f.editId && purHasContent(f))
-    ? `<div class="card" style="padding:10px 12px;margin-bottom:10px;border:1px solid var(--saffron);background:rgba(246,166,35,.08);display:flex;justify-content:space-between;align-items:center;gap:8px">
-         <span class="hint" style="margin:0">↩️ ${t('draft_restored')}</span>
-         <button class="btn sm ghost" style="flex:0 0 auto" onclick="discardPurDraft()">🗑️ ${t('draft_discard')}</button></div>` : '';
+  /* v231 — HIS 20 Aug: "discard wala button aur ye upar wala, kya vakai iski yahan zaroorat
+     hai?" No. Getting his unfinished bill back is what he WANTED — not news worth the top
+     of the screen — and a Discard button that erases work should not be the biggest thing
+     above the supplier's name. It is said once as a toast now, and the way to throw the
+     draft away sits down on the draft line itself, where the draft is already mentioned. */
+  const restored = '';
+  if(!f.editId && purHasContent(f) && !_purRestSaid){ _purRestSaid=true;
+    setTimeout(()=>{ try{ toast('↩️ '+t('draft_restored'),'ok'); }catch(e){} },250); }
   $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h2 style="margin:0">📦 ${f.editId?t('edit_purchase'):t('new_purchase')}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>${restored}
     <div class="card" style="padding:12px 14px;margin-bottom:10px">
       <div class="kv" style="align-items:baseline;margin-bottom:4px">
@@ -14054,7 +14171,7 @@ function renderPurchaseForm(){
     <div class="field"><label>${t('notes')}</label><textarea id="pu_notes" placeholder="${t('notes_ph')}">${esc(f.notes)}</textarea></div>
     <div class="modal-actions"><button class="btn ghost" onclick="savePurchaseNew()">${t('pur_save_new')}</button>
       <button class="btn primary" onclick="savePurchase()">${t('save')}</button></div>
-    <p class="hint" id="puDraftHint" style="text-align:center;opacity:.6;margin:8px 0 0">${(!f.editId&&purHasContent(f))?('✅ '+t('draft_saved')):('💾 '+t('draft_auto'))}</p>
+    <p class="hint" id="puDraftHint" style="text-align:center;opacity:.6;margin:8px 0 0">${(!f.editId&&purHasContent(f))?('✅ '+t('draft_saved')+' · <a onclick="discardPurDraft()" style="color:var(--bad);cursor:pointer">'+t('draft_discard')+'</a>'):('💾 '+t('draft_auto'))}</p>
     <div class="fab-pad"></div>`;
   showSheet();renderPurchPhotos();
   const sh=$('#sheet');
@@ -14114,7 +14231,7 @@ function purApplyStock(pur){
       const size=(it.colour||'').trim()||'-';
       if(m){ readySet(m,size,(+(m.stk||{})[size]||0)+qty); merged++; }
       else{
-        m={id:uid(),kind:'ready',name:it.label,_key:key,serial:nextThaanSerial(),design:it.design||'',
+        m={id:uid(),kind:'ready',name:it.label,_key:key,serial:it.serial||nextThaanSerial(),design:it.design||'',
            hsn:it.hsn||'',cost:rate,sell:'',rate:'',stk:{}};
         readySet(m,size,qty); DB.itemMaster.push(m); bumpSerial(); made++;
         it.serial=m.serial;
@@ -14129,7 +14246,7 @@ function purApplyStock(pur){
       else{
         let f=(DB.fabItems||[]).find(x=>String(x.name||'').trim().toLowerCase()===String(it.label).trim().toLowerCase());
         if(!f){ f={id:uid(),name:it.label,category:'',party:pur.supplier||'',rate}; DB.fabItems.push(f); }
-        th={id:uid(),created:new Date().toISOString(),serial:nextThaanSerial(),fabId:f.id,_key:key,
+        th={id:uid(),created:new Date().toISOString(),serial:it.serial||nextThaanSerial(),fabId:f.id,_key:key,
             design:it.design||'',colour:it.colour||'',mtr:qty,used:0,rate,rack:'',party:pur.supplier||'',
             notes:'',photos:[]};
         DB.thaans.push(th); bumpSerial(); made++;
