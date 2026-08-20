@@ -727,7 +727,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v221</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v225</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1336,6 +1336,11 @@ const T={
   pn_redo_msg:'In at {a}, out at {b}. Clear today and start again?',
   pn_cleared:'Today cleared', st_gone:'left',
   st_left_msg:'He stays in the records — attendance, advances and loan are all kept. He can be brought back any time.',
+  exp_new_name:'New name', exp_save_next:'Save + next', clear:'Clear',
+  exp_tag_head:'Pick the name this money went to — the list is just above',
+  pt_other:'Other',
+  kb_paid_total:'Total paid', kb_due_total:'Still payable', kb_date:'Date',
+  rp_pdf:'PDF / Print',
   round_off:'Round off',
   qty_multi:'Qty  (10, 7.8, 7.8)',
   pur_add_to_bill:'Add to bill',
@@ -2586,6 +2591,11 @@ const T={
   pn_redo_msg:'{a} बजे आए, {b} बजे गए। आज का मिटाकर दोबारा लगाएँ?',
   pn_cleared:'आज का मिटा दिया', st_gone:'छोड़ दिया',
   st_left_msg:'हिसाब वहीं रहेगा — हाज़िरी, एडवांस और क़र्ज़ सब सुरक्षित। कभी भी वापस ला सकते हैं।',
+  exp_new_name:'नया नाम', exp_save_next:'सेव + अगला', clear:'हटाएँ',
+  exp_tag_head:'किसे दिया, वह नाम ऊपर से चुन लीजिए',
+  pt_other:'अन्य',
+  kb_paid_total:'कुल दिया', kb_due_total:'अभी बाकी', kb_date:'तारीख़',
+  rp_pdf:'PDF / प्रिंट',
   round_off:'राउंड ऑफ',
   qty_multi:'मात्रा  (10, 7.8, 7.8)',
   pur_add_to_bill:'बिल में जोड़ें',
@@ -5815,22 +5825,36 @@ function expRender(){
       <div class="gtags" style="margin-top:8px">${chips}
         <span class="gtag" style="cursor:pointer;border-style:dashed" onclick="expAddCat()">➕ ${t('exp_new_cat')}</span>
         ${(DB.expCats||[]).length?`<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="manageExpCats()">⚙️ ${t('ml_manage')}</span>`:''}</div></div>
-    ${(()=>{ const hc=expHeadCfg(d.cat); if(!hc.who)return '';
+    ${(()=>{ const hc=expHeadCfg(d.cat); if(!d.cat)return '';
       /* v201: the head decided which names belong here, so the right list simply appears.
-         No extra tap on heads that never carry a name — tea still asks nothing. */
-      const ppl=partyList(hc.who);
-      return `<div class="field" style="margin-top:10px"><label>${t('exp_party')} *</label>
+         v223 — HIS 19 Aug: "rent main Akhil ji ko deta hun... chahta hun ki Akhil ke ledger
+         me bhi entry ho jaye, expense bhi record ho jaye aur cash/bank me bhi." Akhil is a
+         landlord — not a karigar, not staff, not a supplier — so under the old rule his
+         head carried no name list at all and the money went out anonymously.
+         Now every head offers names. A tagged head still shows its own master list first;
+         an untagged one offers whoever has been paid under this head before, and ➕ to
+         write a new name. One entry, three places: the expense, the man's ledger, and the
+         cash or bank it left from. */
+      const tagged=!!hc.who;
+      const ppl = tagged ? partyList(hc.who) : expHeadNames(d.cat);
+      return `<div class="field" style="margin-top:10px">
+        <label>${t('exp_party')}${tagged?' *':''}</label>
         <div class="gtags">${ppl.map(p=>`<span class="gtag ${d.partyId===p.id?'on-tag':''}" style="cursor:pointer"
-          onclick="expPickParty('${p.id}')">${esc(p.name)}</span>`).join('')
-          ||`<span class="hint">${t('exp_party_none')}</span>`}</div></div>`;
+          onclick="expPickParty('${p.id}')">${esc(p.name)}</span>`).join('')}
+          <span class="gtag" style="cursor:pointer;border-style:dashed" onclick="expNewParty()">➕ ${t('exp_new_name')}</span>
+          ${d.partyId?`<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="expPickParty('')">✕ ${t('clear')}</span>`:''}
+        </div></div>`;
     })()}
     <div class="field" style="margin-top:10px"><label>${t('amount')} ₹ *</label>
       <input id="ex_amt" type="number" inputmode="numeric" value="${esc(d.amt)}" placeholder="0"></div>
     <div class="field" style="margin-top:10px"><label>${t('cb_paid_from')}</label>${acctSelHTML('ex_acc', d.acc||(cashAcc()||{}).id)}</div>
+    ${/* v223 — HIS 19 Aug: "note setting me chhupa hai, upar chahiye." He is entering months
+         of old expenses and the note is what tells him later what the money was for. It had
+         no business being behind a fold. */''}
+    <div class="field" style="margin-top:10px"><label>${t('stk_note')}</label>
+      <input id="ex_note" value="${esc(d.note)}" placeholder="${t('stk_note_ph')}"></div>
 
     <details style="margin-top:6px"><summary style="font-size:13px;color:var(--saffron2);cursor:pointer;font-weight:700;padding:6px 0">⚙️ ${t('pos_more')}</summary>
-      <div class="field" style="margin-top:10px"><label>${t('stk_note')}</label>
-        <input id="ex_note" value="${esc(d.note)}" placeholder="${t('stk_note_ph')}"></div>
       <div class="hint" style="margin-bottom:4px">📷 ${t('bill_photo')}</div>
       <div class="media-row" id="ex_photos"></div>
       <div class="row" style="margin-top:6px;gap:6px">
@@ -5838,9 +5862,13 @@ function expRender(){
         <button class="btn sm ghost" onclick="pickExpPhoto('lib')">🖼️ ${t('gallery')}</button></div>
     </details>
 
+    ${/* v223: he is entering months of back-dated expenses in one sitting. Save-and-next
+         keeps the date, the head and the account — only the amount, name and note change —
+         so an old book goes in at the speed he can read it. */''}
     <div class="modal-actions">
       <button class="btn ghost" onclick="expenses()">${t('cancel')}</button>
       ${d.id?`<button class="btn danger" onclick="expDel('${d.id}')">🗑️</button>`:''}
+      ${d.id?'':`<button class="btn ghost" style="flex:1" onclick="expSave(true)">➕ ${t('exp_save_next')}</button>`}
       <button class="btn primary" style="flex:2" onclick="expSave()">${t('save')}</button></div>
     <div class="fab-pad"></div>`;
   showSheet(); renderExpPhotos();
@@ -5856,9 +5884,12 @@ function expPickCat(c){ expCapture(); _exp.cat=(_exp.cat===c)?'':c;
   _exp.partyId=null; _exp.partyName='';   // a new head means a new list of names
   expRender(); }
 function expPickParty(pid){ expCapture();
-  const hc=expHeadCfg(_exp.cat), p=partyList(hc.who).find(x=>x.id===pid);
-  if(_exp.partyId===pid){ _exp.partyId=null; _exp.partyName=''; }
-  else { _exp.partyId=pid; _exp.partyName=p?p.name:''; }
+  if(!pid || _exp.partyId===pid){ _exp.partyId=null; _exp.partyName=''; expRender(); return; }
+  /* v223: the name can come from a tagged master list OR from the general party book */
+  const hc=expHeadCfg(_exp.cat);
+  const fromMaster=(partyList(hc.who)||[]).find(x=>x.id===pid);
+  _exp.partyId=pid;
+  _exp.partyName=fromMaster ? fromMaster.name : ((partyById(pid)||{}).name||'');
   expRender(); }
 function expAddCat(){ expCapture();
   modal(t('exp_new_cat'),`<div class="field"><label>${t('exp_cat')}</label><input id="newCat" placeholder="${t('exp_cat_ph')}"></div>`,
@@ -5867,6 +5898,38 @@ function expAddCat(){ expCapture();
        if(v){DB.expCats=DB.expCats||[];if(!DB.expCats.includes(v))DB.expCats.push(v);_exp.cat=v;save();}
        expRender();}}]);
   setTimeout(()=>{const e=$('#newCat');if(e)e.focus();},120);
+}
+/* Who has been paid under this head before — the shop's own habit, not a fixed list.
+   Rent goes to Akhil every month, so after the first time his name is simply there. */
+function expHeadNames(cat){
+  const seen={}, out=[];
+  (DB.ledger||[]).forEach(l=>{
+    if(l.refKind!=='expense' || String(l.cat||'')!==String(cat||''))return;
+    if(!l.partyId)return;
+    const p=partyById(l.partyId); if(!p||seen[p.id])return;
+    seen[p.id]=1; out.push({id:p.id,name:p.name});
+  });
+  return out;
+}
+/* a name typed once becomes a party record, so his ledger builds itself from then on */
+function expNewParty(){
+  expCapture();
+  modal('👤 '+t('exp_new_name'),
+    `<div class="field"><input id="expPtName" placeholder="${t('pt_name')}" autocomplete="off"></div>`,
+    [{label:t('cancel'),cls:'ghost',fn:()=>{closeModal();expRender();}},
+     {label:t('save'),cls:'primary',fn:()=>{
+        const nm=(($('#expPtName')||{}).value||'').trim();
+        if(!nm){ toast(t('pt_name'),'bad'); return; }
+        const hc=expHeadCfg(_exp.cat);
+        const p=partyEnsure(nm,'',hc.who||'other'); save();
+        _exp.partyId=p.id; _exp.partyName=p.name;
+        closeModal(); expRender();
+     }}]);
+}
+/* the two heads that are always somebody's money, in either script */
+function expLooksLikePerson(cat){
+  const c=String(cat||'').toLowerCase();
+  return /karigar|कारीगर|tailor|salary|वेतन|staff|advance|एडवांस/.test(c);
 }
 function expHeadCfg(cat){ DB.expHeadCfg=DB.expHeadCfg||{};
   return DB.expHeadCfg[cat]||{who:'',kind:'indirect'}; }
@@ -5886,27 +5949,69 @@ function partyList(who){
   if(who==='customer')return (DB.customers||[]).map(x=>({id:x.id,name:x.name}));
   return [];
 }
-function expSave(){ expCapture(); const d=_exp;
+function expSave(next){ expCapture(); const d=_exp;
   const amt=+d.amt||0;
   if(amt<=0){toast(t('t_no_amount'),'bad');return;}
   if(!d.cat){toast(t('exp_need_cat'),'bad');return;}
   const hc=expHeadCfg(d.cat);
   if(hc.who && !d.partyId){ toast(t('exp_need_party'),'bad'); return; }
+  /* v222: a head that names a karigar or a staff member is only useful if the name is on
+     it. If he has not tagged the head yet, say what to do instead of silently filing a
+     nameless payment. */
+  if(!hc.who && !d.partyId && expLooksLikePerson(d.cat)){
+    toast(t('exp_tag_head'),'bad'); return;
+  }
   const _l=d.id?(DB.ledger||[]).find(x=>x.id===d.id):null;
   if(_l){
     Object.assign(_l,{date:d.date,amt,acc:d.acc,cat:d.cat,note:d.note,
-      party:d.partyName||d.cat, partyId:d.partyId||null, partyKind:hc.who||'', expKind:hc.kind||'indirect',
-      photos:[...(d.photos||[])]});
+      party:d.partyName||d.cat, partyId:d.partyId||null, partyKind:hc.who||(d.partyId?'other':''),
+      expKind:hc.kind||'indirect', photos:[...(d.photos||[])]});
   } else {
     DB.ledger.push({id:uid(),dir:'out',date:d.date||todayISO(),amt,acc:d.acc,
-      party:d.partyName||d.cat, partyId:d.partyId||null, partyKind:hc.who||'',
+      /* v224 — a name picked on an UNTAGGED head (rent → Akhil) was filed with no hat at
+         all, and his party card only lists supplier / customer / karigar / staff. So Akhil
+         took the money and his ledger stayed blank. Everyone else gets the 'other' hat. */
+      party:d.partyName||d.cat, partyId:d.partyId||null, partyKind:hc.who||(d.partyId?'other':''),
       expKind:hc.kind||'indirect',
       ref:t('exp_title'), refKind:'expense', cat:d.cat, note:d.note, photos:[...(d.photos||[])]});
   }
-  save(); toast(t('t_saved'),'ok'); expenses();
+  expSyncKarigar(_l ? _l.id : DB.ledger[DB.ledger.length-1].id);
+  save();
+  if(next){
+    /* same day, same head, same account — the next line of the old book */
+    _exp={id:null,dir:'out',date:d.date,amt:'',acc:d.acc,cat:d.cat,
+          partyId:d.partyId||null,partyName:d.partyName||'',note:'',photos:[]};
+    expRender();
+    setTimeout(()=>{const e=$('#ex_amt'); if(e){e.focus(); e.select&&e.select();}},60);
+    toast('✅ '+t('t_saved'),'ok');
+    return;
+  }
+  toast(t('t_saved'),'ok'); expenses();
+}
+/* v222 — HIS 19 Aug: "kharche ki entry maar raha hun to yahin se ho jaye aur uske ledger
+   par chala jaye." Right, and it was half-broken: an expense against Waseem carried his
+   name on the ledger line, but the Karigar book counts only what the Karigar screen
+   itself wrote. So the money left the cash box and Waseem's balance did not move — he
+   still showed fully unpaid. Bulk-entering old expenses would have quietly built a wrong
+   payable for every karigar.
+   The expense line stays the ONE place the cash moves; this only mirrors it into his
+   book, tied to the same id, so editing or deleting the expense keeps them together.
+   Nothing is ever counted twice. */
+function expSyncKarigar(lid){
+  if(!lid)return;
+  const l=(DB.ledger||[]).find(x=>x.id===lid); if(!l)return;
+  DB.karigarPays=DB.karigarPays||[];
+  const tag='exp:'+lid;
+  DB.karigarPays=DB.karigarPays.filter(p=>p.id!==tag);          // rebuild, never duplicate
+  if(l.partyKind==='karigar' && l.partyId){
+    DB.karigarPays.push({id:tag, karigarId:l.partyId, date:l.date, amt:r2(+l.amt||0),
+      settled:0, acc:l.acc||'', note:l.note||l.cat||'', fromExpense:true});
+  }
 }
 function expDel(id){ confirmModal(t('confirm_del'),t('confirm_del_msg'),()=>{
-  DB.ledger=(DB.ledger||[]).filter(l=>l.id!==id); save(); expenses(); toast(t('t_deleted'));});}
+  DB.ledger=(DB.ledger||[]).filter(l=>l.id!==id);
+  DB.karigarPays=(DB.karigarPays||[]).filter(p=>p.id!=='exp:'+id);   // v222: mirror goes with it
+  save(); expenses(); toast(t('t_deleted'));});}
 function pickExpPhoto(src){ expCapture(); photoTarget={type:'exp'};
   const inp=src==='cam'?$('#filePickCam'):$('#filePick'); inp.value=''; inp.click(); }
 async function renderExpPhotos(){ const el=$('#ex_photos'); if(!el)return; el.innerHTML='';
@@ -15545,7 +15650,9 @@ function karigarLedger(kid,tab){
     <div class="ktabs">${tabs.map(([id,lbl,sfx])=>
       `<div class="ktab ${_krTab===id?'on':''}" onclick="karigarLedger('${kid}','${id}')">${t(lbl)}${sfx}</div>`).join('')}</div>
     ${body}
-    <div class="modal-actions"><button class="btn ghost block" onclick="karigarBook()">${t('back')}</button></div>
+    <div class="modal-actions">
+      <button class="btn ghost" style="flex:1" onclick="karigarBook()">${t('back')}</button>
+      <button class="btn primary" style="flex:1" onclick="karigarLedgerPrint('${kid}')">🖨️ ${t('rp_pdf')}</button></div>
     <div class="fab-pad"></div>`;
   showSheet();
 }
@@ -15555,7 +15662,12 @@ function karigarReport(){
   const ks=DB.karigars||[];
   const per=ks.map(k=>({k,st:karPieceStats(k.id)}))
     .sort((a,b)=>b.st.totalN-a.st.totalN||b.st.totalAmt-a.st.totalAmt);
-  const grand={n:0,amt:0}, byItem={};
+  /* v225 — HIS 19 Aug: "karigar par total kitne kharch hue, aur Waseem ko kitne diye —
+     dono dekh sakun." The report counted pieces made and what they earned, but never what
+     actually left the shop. Earned is what he owes; PAID is what he spent. Both now sit
+     side by side, per man and for all of them together, with the balance that follows. */
+  const grand={n:0,amt:0,paid:0}, byItem={};
+  per.forEach(({k,st})=>{ grand.paid+=karPaid(k.id); });
   per.forEach(({st})=>{ grand.n+=st.totalN; grand.amt+=st.totalAmt;
     st.rows.forEach(r=>{ byItem[r.id]=byItem[r.id]||{...r,n:0,amt:0};
       byItem[r.id].n+=r.n; byItem[r.id].amt+=r.amt; }); });
@@ -15567,7 +15679,11 @@ function karigarReport(){
     <p class="hint" style="margin:-4px 0 10px">${t('kb_period')}: <b>${krRangeLabel()}</b></p>
     <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
       <div class="il"><span>${t('kb_pieces_made')}</span><b style="font-size:18px">${grand.n} ${t('kb_pcs')}</b></div>
-      <div class="il" style="border-bottom:0"><span>${t('kb_earned')}</span><b>${money(r2(grand.amt))}</b></div></div>
+      <div class="il"><span>${t('kb_earned')}</span><b>${money(r2(grand.amt))}</b></div>
+      <div class="il"><span>💸 ${t('kb_paid_total')}</span>
+        <b style="color:var(--saffron2);font-size:17px">${money(r2(grand.paid))}</b></div>
+      <div class="il" style="border-bottom:0"><span>${t('kb_due_total')}</span>
+        <b style="color:${r2(grand.amt-grand.paid)>0?'var(--bad)':'var(--ok)'}">${money(Math.abs(r2(grand.amt-grand.paid)))}</b></div></div>
     ${itemRows.length?`<div class="section-h" style="margin-top:0">${t('kb_by_item')}</div>
     <div class="card" style="padding:0;margin-bottom:12px">${itemRows.map(r=>`<div class="krow">
       <span class="kpc">${r.n}</span><span class="kn">${r.ico} ${esc(r.nm)}</span>
@@ -15578,16 +15694,98 @@ function karigarReport(){
         <b>👷 ${esc(k.name)}</b>
         <div class="hint" style="margin-top:2px">${st.rows.length?st.rows.map(r=>`${r.ico} ${esc(r.nm)} ${r.n}`).join(' · '):t('kb_no_pieces')}</div>
       </div><div style="text-align:right;flex:0 0 auto">
-        <b style="font-size:17px;color:var(--saffron2)">${st.totalN}</b>
-        <div class="hint">${t('kb_pcs')} · ${money(st.totalAmt)}</div></div></div></div>`).join('')
+        <b style="font-size:17px;color:var(--saffron2)">${money(karPaid(k.id))}</b>
+        <div class="hint">${t('kb_paid')}</div>
+        <div class="hint" style="margin-top:2px">${st.totalN} ${t('kb_pcs')} · ${money(st.totalAmt)}</div>
+        ${karBalance(k.id)?`<div class="hint" style="color:var(--bad)">${t('kb_payable')} ${money(Math.abs(karBalance(k.id)))}</div>`:''}
+      </div></div></div>`).join('')
       ||`<p class="hint">${t('no_karigars')}</p>`}
-    <div class="modal-actions"><button class="btn ghost block" onclick="karigarBook()">${t('back')}</button></div>
+    <div class="modal-actions">
+      <button class="btn ghost" style="flex:1" onclick="karigarBook()">${t('back')}</button>
+      <button class="btn primary" style="flex:1" onclick="karigarReportPrint()">🖨️ ${t('rp_pdf')}</button></div>
     <div class="fab-pad"></div>`;
   showSheet();
 }
+/* the same figures on paper — one row per man, and the totals that must tie */
+function karigarReportPrint(){
+  const ks=DB.karigars||[];
+  const per=ks.map(k=>({k,st:karPieceStats(k.id),paid:karPaid(k.id),bal:karBalance(k.id)}))
+    .sort((a,b)=>b.paid-a.paid);
+  let tN=0,tE=0,tP=0;
+  const rows=per.map(({k,st,paid,bal})=>{ tN+=st.totalN; tE+=st.totalAmt; tP+=paid;
+    return `<tr><td>${esc(k.name)}</td><td class="n">${st.totalN}</td>
+      <td class="n">${money(r2(st.totalAmt))}</td><td class="n">${money(r2(paid))}</td>
+      <td class="n">${money(Math.abs(r2(bal)))}${r2(bal)>0?' '+esc(t('kb_payable')):''}</td></tr>`; }).join('');
+  const body=`<table>
+    <tr><th>${esc(t('karigar_master'))}</th><th class="n">${esc(t('kb_pcs'))}</th>
+        <th class="n">${esc(t('kb_earned'))}</th><th class="n">${esc(t('kb_paid'))}</th>
+        <th class="n">${esc(t('kb_payable'))}</th></tr>
+    ${rows||`<tr><td colspan="5">${esc(t('no_karigars'))}</td></tr>`}
+    <tr class="tot"><td>${esc(t('total'))}</td><td class="n">${tN}</td>
+      <td class="n">${money(r2(tE))}</td><td class="n">${money(r2(tP))}</td>
+      <td class="n">${money(Math.abs(r2(tE-tP)))}</td></tr></table>`;
+  reportPrint(t('kb_report'), body, krRangeLabel());
+}
 
+/* v225 — HIS 19 Aug: "sabhi reports ko pdf me sent ya download kar sakun." There is no PDF
+   library in this file and there should not be — it would add megabytes to a file that has
+   to open offline. The browser already makes PDFs: printing offers "Save as PDF" on the
+   laptop and Share → PDF on iPad. So a report is handed to the printer as clean paper —
+   white, black text, shop name and period at the top — and the device does the rest.
+   Written once here so every report can use the same button. */
+function reportPrint(title, bodyHTML, sub){
+  const shop=(DB.shopInfo&&DB.shopInfo.name)||'PARAMPARA';
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(title)}</title>
+    <style>
+      *{font-family:Arial,Helvetica,sans-serif;box-sizing:border-box}
+      body{margin:0;padding:16px;color:#000;background:#fff;font-size:13px}
+      h1{font-size:19px;margin:0 0 2px}
+      .sub{color:#555;font-size:12px;margin:0 0 14px}
+      table{width:100%;border-collapse:collapse;margin-bottom:14px}
+      th,td{border:1px solid #bbb;padding:6px 8px;text-align:left}
+      th{background:#eee;font-size:12px}
+      td.n,th.n{text-align:right;white-space:nowrap}
+      tr.tot td{font-weight:bold;background:#f4f4f4}
+      .foot{color:#777;font-size:11px;margin-top:18px;border-top:1px solid #ccc;padding-top:6px}
+      @media print{@page{margin:10mm}body{padding:0}}
+    </style></head><body>
+    <h1>${esc(shop)}</h1>
+    <p class="sub">${esc(title)}${sub?' · '+esc(sub):''} · ${fmtDate(todayISO())}</p>
+    ${bodyHTML}
+    <div class="foot">${esc(shop)} · PARAMPARA Orderbook</div>
+    </body></html>`;
+  const ifr=document.createElement('iframe');
+  ifr.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+  document.body.appendChild(ifr);
+  const d=ifr.contentWindow.document; d.open(); d.write(html); d.close();
+  setTimeout(()=>{ try{ ifr.contentWindow.focus(); ifr.contentWindow.print(); }catch(e){}
+    setTimeout(()=>{ try{ document.body.removeChild(ifr); }catch(e){} },60000); },350);
+}
 /* ---- Saturday settlement ---- */
 let _kpEdit=null;
+/* Waseem alone — every payment, with the running total he asked for */
+function karigarLedgerPrint(kid){
+  const k=(DB.karigars||[]).find(x=>x.id===kid); if(!k)return;
+  const ps=karPays(kid);
+  let run=0;
+  const rows=ps.slice().reverse().map(p=>{ run+=(+p.amt||0)+(+p.settled||0);
+    return `<tr><td>${fmtDate(p.date)}</td><td>${esc(p.note||'')}</td>
+      <td class="n">${money(r2(+p.amt||0))}</td><td class="n">${money(r2(run))}</td></tr>`; }).join('');
+  const st=karPieceStats(kid);
+  const body=`<table>
+      <tr><th>${esc(t('kb_date'))}</th><th>${esc(t('stk_note'))}</th>
+          <th class="n">${esc(t('kb_paid'))}</th><th class="n">${esc(t('total'))}</th></tr>
+      ${rows||`<tr><td colspan="4">—</td></tr>`}
+      <tr class="tot"><td colspan="2">${esc(t('kb_paid_total'))}</td>
+        <td class="n">${money(r2(karPaid(kid)))}</td><td class="n"></td></tr>
+    </table>
+    <table>
+      <tr class="tot"><td>${esc(t('kb_earned'))}</td><td class="n">${money(r2(st.totalAmt))}</td></tr>
+      <tr class="tot"><td>${esc(t('kb_paid_total'))}</td><td class="n">${money(r2(karPaid(kid)))}</td></tr>
+      <tr class="tot"><td>${esc(t('kb_payable'))}</td><td class="n">${money(Math.abs(r2(karBalance(kid))))}</td></tr>
+    </table>`;
+  reportPrint('👷 '+k.name, body, krRangeLabel());
+}
 function karPayEdit(pid){
   const p=(DB.karigarPays||[]).find(x=>x.id===pid); if(!p)return;
   _kpEdit=pid; karPayEntry(p.karigarId, p);
@@ -15623,6 +15821,9 @@ function karPayCalc(bal){
   const amt=+($('#kp_amt')||{}).value||0;
   const e=$('#kpShort'); if(e)e.textContent=money(r2(Math.max(0,bal-amt)));
 }
+/* v222: rows mirrored from an expense are corrected on the Expenses screen, where the
+   cash entry actually lives — otherwise one copy would be edited and the other left. */
+function karPayIsExp(pid){ return String(pid||'').indexOf('exp:')===0; }
 function karPaySave(kid,bal){
   const amt=+($('#kp_amt')||{}).value||0;
   if(amt<=0){toast(t('kb_need_amt'),'bad');return;}
@@ -15965,7 +16166,8 @@ function partyEdit(id,onDone){
 }
 /* his own words: dukaan ka hisaab X, personal hisaab Y — side by side, never added up */
 function partyBalHTML(p){
-  const rows=[['supplier','eh_supplier'],['customer','eh_customer'],['karigar','eh_karigar'],['staff','st_title']]
+  const rows=[['supplier','eh_supplier'],['customer','eh_customer'],['karigar','eh_karigar'],
+              ['staff','st_title'],['other','pt_other']]
     .map(([k,lbl])=>{ const b=partyBalance(p,k); if(!b)return '';
       return `<div class="kv"><span class="hint">${t(lbl)}</span>
         <b style="color:${b<0?'var(--bad)':'var(--ok)'}">${money(Math.abs(b))} ${b<0?t('ob_pay'):t('ob_get')}</b></div>`;
