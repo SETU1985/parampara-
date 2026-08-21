@@ -727,7 +727,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v236</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v237</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1844,6 +1844,12 @@ const T={
   mod_sub:'Switch on only what you use. Nothing is deleted when you switch a part off.',
   mod_saved:'Modules updated',
   bk_never:'No backup taken yet — your data lives only on this device',
+  bk_daily:'Backup — data + new photos',
+  bk_daily_note:'Full data every time, plus only the photos that have never been backed up. Small and quick.',
+  bk_fresh_n:'{n} photos not yet backed up',
+  bk_fresh_0:'Every photo is already backed up — today\'s file will be data only',
+  bk_inc_done:'Backup done · {n} new photos went with it',
+  bk_inc_more:'{n} photos sent · {left} still waiting — press Backup again',
   bk_days:'{n} days since your last backup',
   bk_day_1:'1 day since your last backup',
   su_done:'Welcome, {n}',
@@ -3142,6 +3148,12 @@ const T={
   mod_sub:'जो इस्तेमाल करते हैं वही चालू रखें। बंद करने से कुछ मिटता नहीं है।',
   mod_saved:'मॉड्यूल अपडेट हुए',
   bk_never:'अभी तक बैकअप नहीं लिया — डेटा सिर्फ़ इसी डिवाइस में है',
+  bk_daily:'बैकअप — डेटा + नई फ़ोटो',
+  bk_daily_note:'पूरा डेटा हर बार, और सिर्फ़ वो फ़ोटो जो कभी बैकअप में नहीं गईं। छोटी फ़ाइल, झट से।',
+  bk_fresh_n:'{n} फ़ोटो अभी बैकअप में नहीं गईं',
+  bk_fresh_0:'हर फ़ोटो बैकअप हो चुकी है — आज की फ़ाइल में सिर्फ़ डेटा जाएगा',
+  bk_inc_done:'बैकअप हो गया · {n} नई फ़ोटो साथ गईं',
+  bk_inc_more:'{n} फ़ोटो गईं · {left} अभी बाकी — बैकअप फिर दबाइए',
   bk_days:'पिछले बैकअप को {n} दिन हो गए',
   bk_day_1:'पिछले बैकअप को 1 दिन हो गया',
   su_done:'स्वागत है, {n}',
@@ -17899,10 +17911,11 @@ function backupMenu(){
   const d=daysSinceBackup();
   const when = d===null?t('sf_never'):t('sf_last',{n:d});
   modal(t('backup_title'),
-   `<button class="btn primary block" style="padding:18px;font-size:17px" onclick="zipBackup()">
-      💾 ${t('bk_take')}</button>
+   `<button class="btn primary block" style="padding:18px;font-size:17px" onclick="closeModal();dailyBackup()">
+      💾 ${t('bk_daily')}</button>
+    <p class="hint" id="bkFreshLine" style="text-align:center;margin:6px 0 0"></p>
     <p class="hint" style="text-align:center;margin:8px 0 0">${d!==null&&d>2?'⚠️ ':''}${when}</p>
-    <p class="hint" style="text-align:center;margin:4px 0 14px">${t('bk_one_file_note')}</p>
+    <p class="hint" style="text-align:center;margin:4px 0 14px">${t('bk_daily_note')}</p>
     <button class="btn ghost block" onclick="doImport()">⬆️ ${t('restore_backup')}</button>
     <div id="bkMore" style="display:none;margin-top:10px">
       <div class="card" style="padding:10px 12px"><div class="kv"><span class="hint">${t('bk_stored')}</span><b id="bkSize">…</b></div></div>
@@ -17910,6 +17923,7 @@ function backupMenu(){
       <div id="bkFile"></div>
       <button class="btn ghost block" style="margin-top:8px" onclick="shareBackup(true)">📨 ${t('bk_data_only')}</button>
       <p class="hint" style="margin:2px 0 8px">${t('bk_data_only_hint')}</p>
+      <button class="btn ghost block" onclick="closeModal();zipBackup()">🗜️ ${t('bk_take')}</button>
       <button class="btn ghost block" onclick="photoBackup()">🖼️ ${t('pb_title')}</button>
       <button class="btn ghost block" onclick="doExport()">⬇️ ${t('download_backup')}</button>
       <button class="btn ghost block" onclick="restoreSnapshotMenu()">🕑 ${t('restore_auto')}</button>
@@ -17917,6 +17931,7 @@ function backupMenu(){
     </div>
     <button class="btn sm ghost block" style="margin-top:10px" id="bkMoreBtn" onclick="bkMoreToggle()">${t('bk_more')}</button>`,
   [{label:t('close'),cls:'ghost',fn:closeSheet}]);
+  setTimeout(bkFreshCount,80);
 }
 function bkMoreToggle(){
   const m=$('#bkMore'), b=$('#bkMoreBtn'); if(!m)return;
@@ -18107,6 +18122,96 @@ async function zipRestore(file){
     },
     null, {yes:t('restore_backup'), no:t('cancel'), cls:'primary'});
 }
+/* ═══ v237 — INCREMENTAL BACKUP ═══
+   HIS 21 Aug: "a solid solution must be found to take a backup of all app files daily;
+   stopping photos from being saved is not a solution." Right. The old daily backup
+   repacked all ~1,300 photos every day — 95% of the weight was things already safely
+   backed up, and that weight is what killed the build on both devices.
+   So the app now remembers, photo by photo, what has already gone out in a completed
+   backup. The daily button sends the FULL data (small, irreplaceable) plus ONLY the
+   photos that have never left — usually a handful, a few MB, seconds. If more is
+   pending than one file should carry (first run, or a fresh device), it takes one
+   25 MB helping per press and says how much remains.
+   The file has exactly the shape of the old full backup, so every existing restore —
+   including on older versions — reads it unchanged; and photo restore has always
+   upserted, so base + increments layer together safely. */
+function bkSent(){ try{ return JSON.parse(localStorage.getItem('pb_ob_sent')||'{}'); }catch(e){ return {}; } }
+function bkMarkSent(keys){
+  const m=bkSent(); (keys||[]).forEach(k=>{ m[k]=1; });
+  try{ localStorage.setItem('pb_ob_sent',JSON.stringify(m)); }catch(e){}
+}
+async function bkNewKeys(){
+  _pbKeys=null;                                   // fresh look — photos arrive all day
+  const all=await photoBackupKeys();
+  const m=bkSent();
+  return all.filter(k=>!m[k]);
+}
+/* how many photos have never left — written onto the menu after it opens */
+async function bkFreshCount(){
+  try{
+    const fresh=await bkNewKeys();
+    const e=$('#bkFreshLine');
+    if(e)e.textContent = fresh.length ? t('bk_fresh_n',{n:fresh.length}) : t('bk_fresh_0');
+  }catch(e){}
+}
+async function dailyBackup(){
+  if(_pbBusy){ toast(t('pb_busy'),'bad'); return; }
+  _pbBusy=true;
+  try{
+    const fresh=await bkNewKeys();
+    const budget=PB_BUDGET_MB*1024*1024;       // one helping per press keeps devices alive
+    let take=[], sz=0;
+    let szCache={}; try{ szCache=JSON.parse(localStorage.getItem('pb_ob_szcache')||'{}'); }catch(e){}
+    for(const k of fresh){
+      let one=szCache[k];
+      if(one==null){ try{ const b=await mGet(k); one=(b&&b.size)||0; }catch(e){ one=0; } }
+      if(take.length && sz+one>budget)break;
+      take.push(k); sz+=one;
+    }
+    bkBusyModal();
+    _bkCancel=false;
+    let parts=['{"__v":2,"db":', JSON.stringify(DB), ',"media":{'];
+    let acc=null, pend=0, wrote=0;
+    for(let i=0;i<take.length;i++){
+      if(_bkCancel)break;
+      try{
+        const b=await mGet(take[i]);
+        if(b && b.size!==undefined){
+          const d=await blobToB64(b);
+          if(d){ parts.push((wrote?',':'')+JSON.stringify(String(take[i]))+':'+JSON.stringify(d)); wrote++; }
+        }
+      }catch(e){}
+      pend+=(parts[parts.length-1]||'').length;
+      if(pend>FLUSH_BYTES){ acc=acc?new Blob([acc,...parts]):new Blob(parts); parts=[]; pend=0; }
+      bkProgress(i+1,take.length);
+      await bkYield();
+    }
+    if(_bkCancel){ closeSheet(); toast(t('bk_cancelled'),'bad'); return; }
+    parts.push('}}');
+    const blob=acc?new Blob([acc,...parts],{type:'application/json'}):new Blob(parts,{type:'application/json'});
+    acc=null; parts=null;
+    const name='PARAMPARA-daily-'+todayISO()+'.txt';
+    let shared=false;
+    try{
+      const file=new File([blob],name,{type:'text/plain'});
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        await navigator.share({files:[file],title:name}); shared=true;
+      }
+    }catch(e){ if(e&&e.name==='AbortError'){ closeSheet(); return; } }
+    if(!shared){
+      const u=URL.createObjectURL(blob);
+      const a=document.createElement('a'); a.href=u; a.download=name; a.click();
+      setTimeout(()=>URL.revokeObjectURL(u),1500);
+    }
+    bkMarkSent(take);                          /* only after the file was handed over */
+    localStorage.setItem('pb_ob_lastbackup', todayISO());
+    closeSheet();
+    const left=fresh.length-take.length;
+    toast(left>0 ? '✅ '+t('bk_inc_more',{n:wrote,left})
+                 : '✅ '+t('bk_inc_done',{n:wrote}),'ok');
+    if(left>0)setTimeout(()=>{ try{ backupMenu(); }catch(e){} },900);
+  } finally { _pbBusy=false; }
+}
 async function zipBackup(){
   const keys=await photoBackupKeys();
   /* v207: on his iPad this is 1280 files. Say so before starting, and let him choose the
@@ -18283,6 +18388,7 @@ async function photoBackupPart(i){
     }
     const done=JSON.parse(localStorage.getItem('pb_ob_pbdone')||'[]');
     if(done.indexOf(i)<0){ done.push(i); localStorage.setItem('pb_ob_pbdone',JSON.stringify(done)); }
+    bkMarkSent(slice);                     /* v237: these photos have left the building */
     closeSheet(); toast(t('pb_saved',{n:wrote}),'ok');
     _pbParts=null; photoBackup();
   }finally{ _pbBusy=false; }
