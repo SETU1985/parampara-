@@ -727,7 +727,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v246</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v248</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1387,6 +1387,12 @@ const T={
   rp_purch_net:'Purchases (net of GST)', rp_direct:'Direct expenses',
   rp_gross_profit:'Gross Profit', rp_margin:'margin', rp_running:'Indirect expenses',
   rp_net_profit:'Net Profit', rp_opening:'Opening', rp_closing:'Closing',
+  ag_title:'By age', ag_cur:'Not yet 30 days', ag_30:'31-60 days', ag_60:'61-90 days', ag_90:'Over 90 days',
+  ag_oldest:'oldest {n} days',
+  sb_title:'Production board', sb_sub:'Every piece still being made, by the stage it is at',
+  sb_none:'Nothing in production', sb_pieces:'{n} pieces', sb_empty_stage:'nothing here',
+  ex_csv:'CSV', ex_pdf:'PDF / Print', ex_done:'{n} rows exported', ex_nothing:'Nothing to export',
+  stk_cat_all:'All categories', stk_cat_pick:'Category',
   rp_money_in:'In', rp_money_out:'Out', rp_balance:'Balance',
   rp_exp_of_sales:'Of net sales', rp_of_total:'of all expenses',
   rp_pl_note:'This counts what was billed and spent in this period — not what was received. Cash is not profit.',
@@ -1490,6 +1496,7 @@ const T={
   stk_fab_name_hint:'No name from the party? Use anything you will recognise — you can also search by serial.',
   stk_category:'Category',
   stk_party:'Party / supplier',
+  im_notes:'Notes / description', im_notes_ph:'Fabric, fit, brand, anything worth remembering',
   stk_thaan_details:'This roll',
   stk_serial:'Serial no.',
   stk_mtr:'Metres',
@@ -2705,6 +2712,12 @@ const T={
   rp_purch_net:'Purchases (net of GST)', rp_direct:'Direct expenses',
   rp_gross_profit:'Gross Profit', rp_margin:'margin', rp_running:'Indirect expenses',
   rp_net_profit:'Net Profit', rp_opening:'Opening', rp_closing:'Closing',
+  ag_title:'उम्र के हिसाब से', ag_cur:'30 दिन से कम', ag_30:'31-60 दिन', ag_60:'61-90 दिन', ag_90:'90 दिन से ज्यादा',
+  ag_oldest:'सबसे पुराना {n} दिन',
+  sb_title:'प्रोडक्शन बोर्ड', sb_sub:'जो भी बन रहा है, उसके स्टेज के हिसाब से',
+  sb_none:'बनने को कुछ नहीं है', sb_pieces:'{n} पीस', sb_empty_stage:'कुछ नहीं',
+  ex_csv:'CSV', ex_pdf:'PDF / प्रिंट', ex_done:'{n} लाइन एक्सपोर्ट हुईं', ex_nothing:'एक्सपोर्ट करने को कुछ नहीं',
+  stk_cat_all:'सभी कैटेगरी', stk_cat_pick:'कैटेगरी',
   rp_money_in:'In', rp_money_out:'Out', rp_balance:'Balance',
   rp_exp_of_sales:'Of Net Sales', rp_of_total:'of total expenses',
   rp_pl_note:'यह इस अवधि में जो बिल हुआ और जो ख़र्च हुआ, उसका हिसाब है — जो पैसा मिला उसका नहीं। नकद और मुनाफ़ा एक चीज़ नहीं।',
@@ -2807,6 +2820,7 @@ const T={
   stk_fab_name_hint:'पार्टी ने नाम नहीं दिया? जो याद रहे वही लिखें — सीरियल से भी खोज सकते हैं।',
   stk_category:'श्रेणी',
   stk_party:'पार्टी / सप्लायर',
+  im_notes:'नोट्स / विवरण', im_notes_ph:'कपड़ा, फिट, ब्रांड — जो भी याद रखना हो',
   stk_thaan_details:'इस रोल की जानकारी',
   stk_serial:'सीरियल नं.',
   stk_mtr:'मीटर',
@@ -4228,6 +4242,29 @@ function serialTaken(sr){ return (DB.thaans||[]).some(x=>String(x.serial)===Stri
 
 const FI = id => (DB.fabItems||[]).find(x=>x.id===id);
 const TH = id => (DB.thaans||[]).find(x=>x.id===id);
+/* v248 - HIS 22 Aug: "1267 me fabric name Suiting TR se change karke KURTA FABRIC kiya aur
+   save kar diya, per name change hi nahi ho raha hai."
+   The fault was in the model, not the button. A roll had NO name of its own - the name lived
+   on a shared fabItem and every roll merely pointed at one, matched BY NAME STRING. So
+   editing one roll's name did not rename that roll; it re-pointed it at some other shared
+   record and, worse, overwrote THAT record's category, party, rate and sell with this one
+   roll's values - silently rewriting every other roll carrying the same name. #1255 and
+   #1256 are both "Suiting rare wool" at 265 and 525; under the old code, saving either one
+   rewrote the master rate for both. A roll is a physical thing on a shelf and it owns its
+   own name. thaanName() reads the roll first and falls back to the shared item, so every
+   roll entered before today keeps reading exactly as it does now. */
+function thaanName(th){
+  if(!th)return '';
+  const own=String(th.name||'').trim();
+  if(own)return own;
+  return String(((FI(th.fabId)||{}).name)||'');
+}
+function thaanCat(th){
+  if(!th)return '';
+  const own=String(th.category||'').trim();
+  if(own)return own;
+  return String(((FI(th.fabId)||{}).category)||'');
+}
 const thaanBal = th => r2(Math.max(0,(+th.mtr||0)-(+th.used||0)));
 const thaanValue = th => r2(thaanBal(th)*(+th.rate||0));
 
@@ -4308,6 +4345,7 @@ function stockHome(tab){
 let _fabQ='', _fabCat='', _fabSort='serial', _fabBand='';
 let _smp=null, _smpF='all';
 const FAB_BANDS=[['le1','≤ 1 m',0,1],['1to2','1 – 2 m',1,2],['2to5','2 – 5 m',2,5],['ge5','5 m +',5,1e9]];
+function setFabCat(v){ _fabCat=String(v||''); pageReset('fab'); fabricBody(); }
 function setFabBand(v){ _fabBand=(_fabBand===v?'':v); pageReset('fab'); fabricBody(); }
 function setFabQ(v){_fabQ=v;pageReset('fab');fabricBody(true);}
 function setFabSort(v){_fabSort=v;pageReset('fab');fabricBody();}
@@ -4344,14 +4382,16 @@ function fabricBody(keepFocus){
      does not know the rule. A finished roll is not missing stock; it is a roll with nothing
      left, and saying so plainly beats making it disappear. It shows with 0 and a FINISHED
      tag, and the serial run reads unbroken. */
-  if(_fabCat)list=list.filter(t=>{const f=FI(t.fabId);return f&&f.category===_fabCat;});
+  if(_fabCat)list=list.filter(t=>thaanCat(t)===_fabCat);
   if(_fabBand){const bd=FAB_BANDS.find(x=>x[0]===_fabBand);
     if(bd)list=list.filter(t=>{const b=thaanBal(t);return b>bd[2]&&b<=bd[3];});}
   if(q)list=list.filter(t=>{
     const f=FI(t.fabId)||{};
     return String(t.serial).toLowerCase().includes(q)
-      || String(f.name||'').toLowerCase().includes(q)
-      || String(f.party||t.party||'').toLowerCase().includes(q);});
+      || thaanName(t).toLowerCase().includes(q)
+      || thaanCat(t).toLowerCase().includes(q)          /* v248: category is searchable now
+             that the chip wall is gone - typing "velvet" must still find velvet */
+      || String(t.party||f.party||'').toLowerCase().includes(q);});
   /* Newest first by default: when he is taking stock he is looking at what he JUST
      entered, and serial order buried that at the bottom of hundreds of rolls. */
   // highest serial first: the run reads unbroken AND the newest roll is still on top
@@ -4368,20 +4408,30 @@ function fabricBody(keepFocus){
   el.innerHTML=`
     <div class="field" style="margin-bottom:10px">
       <input id="fabSearch" value="${esc(_fabQ)}" placeholder="🔍 ${t('stk_fab_search')}" oninput="setFabQ(this.value)"></div>
-    ${cats.length?`<div class="gtags" style="margin-bottom:10px">
-      <span class="gtag ${_fabCat?'':'on-tag'}" style="cursor:pointer" onclick="_fabCat='';pageReset('fab');fabricBody()">${t('all')}</span>
-      ${cats.map(c=>`<span class="gtag ${_fabCat===c?'on-tag':''}" style="cursor:pointer" onclick="_fabCat='${jq(c)}';pageReset('fab');fabricBody()">${esc(c)}</span>`).join('')}
-    </div>`:''}
+    ${/* v248 - HIS 22 Aug: "fabric ke saare naam shortcut me kyon dikh rahe hain, maine
+         kaha itni baar ki mujhe page neat and clean chahiye. Search ke andar naam ho, yahan
+         to bhi chalega - itni bheed kyon?"
+         He is right and I had let it grow unchecked: every category the shop had ever typed
+         drew its own chip, so 27 of them filled half the screen before a single roll was
+         visible. A filter used now and then does not deserve more room than the stock it is
+         filtering. One line, one picker, and the search box now matches category text too -
+         so typing "velvet" finds velvet without any chip at all. */''}
+    ${cats.length?`<select id="fabCatSel" style="margin-bottom:10px" onchange="setFabCat(this.value)">
+      <option value="">${t('stk_cat_all')} · ${(DB.thaans||[]).length}</option>
+      ${cats.slice().sort((a,b)=>a.localeCompare(b)).map(c=>{
+        const n=(DB.thaans||[]).filter(th=>thaanCat(th)===c).length;
+        return `<option value="${esc(c)}" ${_fabCat===c?'selected':''}>${esc(c)} · ${n}</option>`;}).join('')}
+    </select>`:''}
     <div class="hint" style="margin:0 0 5px">${t('stk_by_length')}</div>
     <div class="gtags" style="margin-bottom:10px">
       ${FAB_BANDS.map(bd=>{
         const n=(DB.thaans||[]).filter(th=>{const b=thaanBal(th);
           if(!(b>bd[2]&&b<=bd[3]))return false;
-          if(_fabCat){const f=FI(th.fabId); if(!f||f.category!==_fabCat)return false;}
+          if(_fabCat && thaanCat(th)!==_fabCat)return false;
           return true;}).length;
         const m=r2((DB.thaans||[]).filter(th=>{const b=thaanBal(th);
           if(!(b>bd[2]&&b<=bd[3]))return false;
-          if(_fabCat){const f=FI(th.fabId); if(!f||f.category!==_fabCat)return false;}
+          if(_fabCat && thaanCat(th)!==_fabCat)return false;
           return true;}).reduce((a2,th)=>a2+thaanBal(th),0));
         return `<span class="gtag ${_fabBand===bd[0]?'on-tag':''}" style="cursor:pointer" onclick="setFabBand('${bd[0]}')">${bd[1]} · ${n}</span>`;}).join('')}
       ${_fabBand?`<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="setFabBand('${_fabBand}')">✕ ${t('all')}</span>`:''}
@@ -4416,8 +4466,8 @@ function fabricBody(keepFocus){
               ${done?`<span class="pill st-delivered" style="font-size:10px">${t('stk_finished')}</span>`:''}
               ${dead?`<span class="pill" style="font-size:10px;background:#5a2b2b;color:#ffd7d7">🐌 ${t('stk_slow')}</span>`:''}
             </div>
-            <div style="font-weight:700;margin-top:2px">${esc(f.name||'—')}</div>
-            <div class="hint">${f.category?esc(f.category)+' · ':''}${esc(f.party||th.party||'')}${th.rack?' · 📍 '+esc(th.rack):''}</div>
+            <div style="font-weight:700;margin-top:2px">${esc(thaanName(th)||'—')}</div>
+            <div class="hint">${thaanCat(th)?esc(thaanCat(th))+' · ':''}${esc(th.party||f.party||'')}${th.rack?' · 📍 '+esc(th.rack):''}</div>
           </div>
           <div style="text-align:right">
             <div style="font-size:18px;font-weight:900">${bal} <span style="font-size:12px;color:var(--mut)">m</span></div>
@@ -4435,8 +4485,8 @@ let _th=null, _thMore=false;
 function thaanMore(){ thaanCapture(); _thMore=true; thaanRender(); setTimeout(()=>{const e=$('#th_rack');if(e)e.focus();},60); }
 function thaanEdit(id){
   const ex=id?TH(id):null;
-  _th = ex ? {id:ex.id,serial:ex.serial,fabId:ex.fabId,name:(FI(ex.fabId)||{}).name||'',
-      category:(FI(ex.fabId)||{}).category||'', party:ex.party||(FI(ex.fabId)||{}).party||'',
+  _th = ex ? {id:ex.id,serial:ex.serial,fabId:ex.fabId,name:thaanName(ex),
+      category:thaanCat(ex), party:ex.party||(FI(ex.fabId)||{}).party||'',
       mtr:ex.mtr, used:ex.used||0, rate:ex.rate||'', sell:ex.sell||(FI(ex.fabId)||{}).sell||'', rack:ex.rack||'', count:1, notes:ex.notes||'',
       photos:[...(ex.photos||[])]}
     : {id:null,serial:nextThaanSerial(),fabId:'',name:'',category:'',party:'',mtr:'',used:0,rate:'',sell:'',rack:'',count:1,notes:'',photos:[]};
@@ -4447,7 +4497,8 @@ function thaanRender(){
   sheetAt(thaanRender);
   const d=_th;
   const names=[...new Set((DB.fabItems||[]).map(f=>f.name))];
-  const cats=[...new Set((DB.fabItems||[]).map(f=>f.category).filter(Boolean))];
+  const cats=[...new Set((DB.fabItems||[]).map(f=>f.category).filter(Boolean)
+    .concat((DB.thaans||[]).map(t=>String(t.category||'').trim()).filter(Boolean)))];
   const parties=[...new Set((DB.thaans||[]).map(t=>t.party).filter(Boolean).concat((DB.purchases||[]).map(p=>p.supplier).filter(Boolean)))];
   const racks=[...new Set((DB.thaans||[]).map(t=>t.rack).filter(Boolean))];
   $('#sheet').innerHTML=`<div class="grip"></div>
@@ -4509,7 +4560,7 @@ function thaanCapture(){
   const d=_th; if(!d)return;
   const g=id=>{const e=$('#'+id);return e?e.value:undefined;};
   if(g('th_name')!==undefined)d.name=g('th_name').trim();
-  if(g('th_cat')!==undefined)d.category=g('th_cat').trim();
+  if(g('th_cat')!==undefined)d.category=g('th_cat').trim();   /* v248: also written to the roll */
   if(g('th_party')!==undefined)d.party=g('th_party').trim();
   if(g('th_serial')!==undefined)d.serial=g('th_serial').trim();
   if(g('th_mtr')!==undefined)d.mtr=g('th_mtr');
@@ -4553,13 +4604,21 @@ function thaanSave(){
   // fabric quality (item) — created on the fly, reused if it already exists
   let f=(DB.fabItems||[]).find(x=>String(x.name).toLowerCase()===name.toLowerCase());
   if(!f){f={id:uid(),name,category:cat,party,rate,sell};DB.fabItems.push(f);}
-  else{ if(cat)f.category=cat; if(party)f.party=party; if(rate)f.rate=rate; if(sell)f.sell=sell; }
+  /* v248: the shared record is NO LONGER rewritten from one roll. It used to copy this
+     roll's category, party, rate and sell onto the shared item, which changed every other
+     roll of the same name behind his back - two rolls of "Suiting rare wool" at 265 and 525
+     ended up sharing whichever was saved last. Blank fields are still filled in, because
+     filling a hole helps and overwrites nothing. */
+  else{ if(cat&&!f.category)f.category=cat; if(party&&!f.party)f.party=party;
+        if(rate&&!(+f.rate))f.rate=rate; if(sell&&!(+f.sell))f.sell=sell; }
 
   if(d.id){
     const th=TH(d.id); if(!th)return;
     const used=Math.max(0,+($('#th_used')||{}).value||0);
     const oldBal=thaanBal(th);
-    Object.assign(th,{serial,fabId:f.id,mtr,used,rate,sell,rack,party,notes,photos:[...(d.photos||[])]});
+    /* v248: name and category are written ONTO THE ROLL, which is what he edited. This is
+       the line that makes a rename actually rename. */
+    Object.assign(th,{serial,fabId:f.id,name,category:cat,mtr,used,rate,sell,rack,party,notes,photos:[...(d.photos||[])]});
     const newBal=thaanBal(th);
     if(Math.abs(newBal-oldBal)>0.01){
       move({dir:newBal>oldBal?MV_IN:MV_OUT,target:'fab',thaanId:th.id,
@@ -4579,7 +4638,7 @@ function thaanSave(){
       sr=numMatch[1]+String(+numMatch[2]+i).padStart(pad,'0');
     } else sr=base+'-'+(i+1);
     while(serialTaken(sr))sr=sr+'A';
-    const th={id:uid(),created:new Date().toISOString(),serial:sr,fabId:f.id,mtr,used:0,rate,sell,rack,party,notes,
+    const th={id:uid(),created:new Date().toISOString(),serial:sr,fabId:f.id,name,category:cat,mtr,used:0,rate,sell,rack,party,notes,
       photos:(i===0)?[...(d.photos||[])]:[]};   // the photo belongs to the roll it was shot on
     DB.thaans.push(th); made.push(th);
     move({dir:MV_IN,target:'fab',thaanId:th.id,qty:mtr,rate,reason:'opening',ref:t('stk_opening')});
@@ -4625,13 +4684,16 @@ function bulkAddOne(){
   if(!name)name=cat||('Fabric '+ser);
   let f=DB.fabItems.find(x=>String(x.name).toLowerCase()===name.toLowerCase());
   if(!f){f={id:uid(),name,category:cat,party,rate,sell};DB.fabItems.push(f);}
-  else{if(cat)f.category=cat;if(party)f.party=party;if(rate)f.rate=rate;if(sell)f.sell=sell;}
-  const th={id:uid(),created:new Date().toISOString(),serial:ser,fabId:f.id,mtr,used:0,rate,sell,rack,party,notes:'',photos:[...(_bulk.entryPhotos||[])]};
+  /* v248: same rule as the single-roll form - fill a blank, never overwrite a value that
+     other rolls of this name are already relying on. */
+  else{if(cat&&!f.category)f.category=cat;if(party&&!f.party)f.party=party;
+       if(rate&&!(+f.rate))f.rate=rate;if(sell&&!(+f.sell))f.sell=sell;}
+  const th={id:uid(),created:new Date().toISOString(),serial:ser,fabId:f.id,name,category:cat,mtr,used:0,rate,sell,rack,party,notes:'',photos:[...(_bulk.entryPhotos||[])]};
   DB.thaans.push(th);
   move({dir:MV_IN,target:'fab',thaanId:th.id,qty:mtr,rate,reason:'opening',ref:t('stk_opening')});
   const num=String(ser).match(/\d+/); if(num && +num[0]>=(DB.stkCfg.nextSerial||1))DB.stkCfg.nextSerial=+num[0]+1;
   save();
-  _bulk.added.unshift({id:th.id,serial:ser,name:f.name,mtr,rate});
+  _bulk.added.unshift({id:th.id,serial:ser,name:thaanName(th)||f.name,mtr,rate});
   _bulk.entry={serial:'',mtr:'',rate:'',name:''}; _bulk.entryPhotos=[];
   bulkFabRefresh();
 }
@@ -4666,7 +4728,7 @@ function bulkDelAdded(id){
   const mv=(DB.moves||[]).filter(m=>m.thaanId===id);
   const used=mv.some(m=>(+m.mtr||0)!==0 && m.kind!=='in');
   const f=th?(FI(th.fabId)||{}):{};
-  const label=th?('#'+(th.serial||'')+' '+(f.name||'')+' · '+(th.mtr||0)+'m'):'';
+  const label=th?('#'+(th.serial||'')+' '+(thaanName(th)||'')+' · '+(th.mtr||0)+'m'):'';
   confirmModal('🗑️ '+t('confirm_del'),
     label+(used?'<br><br>⚠️ '+t('th_del_used'):'<br><br>'+t('th_del_free')),
     ()=>{
@@ -4813,7 +4875,7 @@ function thaanDetail(id){
       <span class="hint">${fmtDate(m.date)}</span></div>`).join('')||`<p class="hint">${t('stk_no_moves')}</p>`;
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:2px">🧵 #${esc(th.serial)}</h2>
-    <p class="hint" style="margin-bottom:12px">${esc(f.name||'')}${f.category?' · '+esc(f.category):''}</p>
+    <p class="hint" style="margin-bottom:12px">${esc(thaanName(th)||'')}${thaanCat(th)?' · '+esc(thaanCat(th)):''}</p>
     <div class="card pos-total" style="margin-bottom:12px">
       <div class="sum-row"><span>${t('stk_purchased')}</span><b>${+th.mtr||0} m</b></div>
       <div class="sum-row"><span>${t('stk_used')}</span><b class="neg">− ${r2(th.used)} m</b></div>
@@ -4947,6 +5009,7 @@ function readyBody(keepFocus){
           ${(m.photos||[]).length?`<img class="stk-thumb" data-pid="${m.photos[0]}">`:''}
           <div style="flex:1"><b style="font-size:15px">${esc(m.name)}</b>
             ${m.rate?`<div class="hint">${money(m.rate)} / pc</div>`:''}
+            ${m.notes?`<div class="hint" style="margin-top:3px;white-space:pre-wrap">${esc(m.notes)}</div>`:''}
             <div class="gtags" style="margin-top:6px">${chips||`<span class="hint">${t('stk_out')}</span>`}</div></div>
           <div style="text-align:right">
             <div style="font-size:20px;font-weight:900;color:${tot?'var(--txt)':'var(--bad)'}">${tot}</div>
@@ -5042,8 +5105,8 @@ function readyBulkRender(){
 let _rd=null;
 function readyEdit(id){
   const ex=id?(DB.itemMaster||[]).find(x=>x.id===id):null;
-  _rd = ex ? {id:ex.id,name:ex.name,cost:ex.cost||'',sell:(ex.sell!=null&&ex.sell!==''?ex.sell:(ex.rate||'')),hsn:ex.hsn||'',stk:Object.assign({},ex.stk||{}),photos:[...(ex.photos||[])]}
-    : {id:null,name:'',cost:'',sell:'',hsn:'',stk:{},photos:[]};
+  _rd = ex ? {id:ex.id,name:ex.name,cost:ex.cost||'',sell:(ex.sell!=null&&ex.sell!==''?ex.sell:(ex.rate||'')),hsn:ex.hsn||'',notes:ex.notes||'',stk:Object.assign({},ex.stk||{}),photos:[...(ex.photos||[])]}
+    : {id:null,name:'',cost:'',sell:'',hsn:'',notes:'',stk:{},photos:[]};
   readyRender();
 }
 function readyRender(){
@@ -5068,6 +5131,12 @@ function readyRender(){
       <div class="field"><label>${t('rb_sell_lbl')}</label>
         <input id="rd_sell" type="number" inputmode="numeric" value="${esc(d.sell)}" placeholder="0"></div></div>
     <div class="field"><label>${t('im_hsn')}</label><input id="rd_hsn" value="${esc(d.hsn)}" placeholder="6203"></div>
+    ${/* v247 - HIS 22 Aug: "item creation me notes/description daalna hai to vo nahi hai."
+         An item had a name, a rate and an HSN and nowhere to say WHAT it actually is - the
+         cloth, the fit, the brand, the thing a salesman needs when a customer asks. It is
+         written once here and shown wherever the item is listed. */''}
+    <div class="field"><label>${t('im_notes')}</label>
+      <textarea id="rd_notes" rows="2" placeholder="${t('im_notes_ph')}">${esc(d.notes||'')}</textarea></div>
     <div class="section-h" style="display:flex;justify-content:space-between;align-items:baseline">
       <span>📐 ${t('stk_size_grid')}</span><span class="hint" id="szTot">${t('stk_n_pcs',{n:tot})}</span></div>
     <p class="hint" style="margin:0 0 10px">${t('stk_grid_hint')}</p>
@@ -5110,6 +5179,7 @@ function readySave(){
   if(!name){toast(t('t_no_im_name'),'bad');return;}
   szSync();
   const cost=+$('#rd_cost').value||0, sell=+$('#rd_sell').value||0, hsn=($('#rd_hsn').value||'').trim();
+  const notes=(($('#rd_notes')||{}).value||'').trim();
   DB.itemMaster=DB.itemMaster||[];
   let m;
   if(d.id)m=DB.itemMaster.find(x=>x.id===d.id);
@@ -5119,7 +5189,7 @@ function readySave(){
   // sizes the shop has since removed from the size list may still HOLD pieces —
   // carry them over instead of wiping them, or those pieces vanish with no trace
   const kept={}; Object.keys(before).forEach(sz=>{ if(!cfg.includes(sz)&&(+before[sz]||0)>0)kept[sz]=+before[sz]; });
-  m.name=name;m.cost=cost;m.sell=sell;m.rate=sell;m.hsn=hsn;m.kind='ready';m.stk={};m.photos=[...(d.photos||[])];
+  m.name=name;m.cost=cost;m.sell=sell;m.rate=sell;m.hsn=hsn;m.notes=notes;m.kind='ready';m.stk={};m.photos=[...(d.photos||[])];
   cfg.forEach(sz=>{ readySet(m,sz,d.stk[sz]||0); });
   Object.keys(kept).forEach(sz=>{ readySet(m,sz,kept[sz]); });
   // log the difference so reports & "slow moving" stay honest
@@ -5157,11 +5227,11 @@ function cutPromptRender(keep){
   if(!avail.length){toast(t('stk_no_fabric'),'bad');return;}
   const q=(_cutQ||'').trim().toLowerCase();
   if(q)avail=avail.filter(th=>{const f=FI(th.fabId)||{};
-    return (String(th.serial||'')+' '+String(f.name||'')+' '+String(f.category||'')+' '+String(th.rack||'')).toLowerCase().includes(q);});
+    return (String(th.serial||'')+' '+thaanName(th)+' '+thaanCat(th)+' '+String(th.rack||'')).toLowerCase().includes(q);});
   const rows=pageSlice('cutf',avail).map(th=>{const f=FI(th.fabId)||{};
     return `<div class="cust-result" style="margin-bottom:8px;align-items:center" onclick="closeSheet();thaanIssue('${th.id}','${orderId||''}','${gid||''}')">
       ${(th.photos||[]).length?`<img class="stk-thumb" data-pid="${th.photos[0]}" style="margin-right:10px">`:''}
-      <div style="min-width:0;flex:1"><b>#${esc(th.serial)}</b>${f.name?' — '+esc(f.name):''}
+      <div style="min-width:0;flex:1"><b>#${esc(th.serial)}</b>${thaanName(th)?' — '+esc(thaanName(th)):''}
         <div class="hint">${thaanBal(th)} m ${t('stk_left')}${th.rack?' · 📍 '+esc(th.rack):''}</div></div>
       <span class="btn sm primary">${t('select')}</span></div>`;}).join('')
     + pageMoreBtn('cutf',avail.length)
@@ -5235,7 +5305,7 @@ function fabricUsage(){
     if(m.reason==='adjust')return;
     if(String(m.date||'')<from)return;
     const th=TH(m.thaanId); if(!th)return;
-    const f=FI(th.fabId); const nm=f?f.name:'—';
+    const nm=thaanName(th)||'—';
     map[nm]=map[nm]||{mtr:0,value:0,thaans:new Set()};
     map[nm].mtr=r2(map[nm].mtr+m.qty);
     map[nm].value=r2(map[nm].value+m.qty*(+m.rate||0));
@@ -5310,7 +5380,7 @@ function stkReportsBody(){
         <b style="color:var(--bad);font-size:18px">${money(deadVal)}</b></div>
       ${dead.map(x=>{const f=FI(x.th.fabId)||{};
         return `<div class="kv" style="padding:8px 0;border-top:1px solid var(--line)" onclick="thaanDetail('${x.th.id}')">
-          <div><b>#${esc(x.th.serial)}</b> ${esc(f.name||'')}
+          <div><b>#${esc(x.th.serial)}</b> ${esc(thaanName(x.th)||'')}
             <div class="hint">${Math.round(x.since)} ${t('rp_months_idle')}${x.th.rack?' · 📍 '+esc(x.th.rack):''}</div></div>
           <div style="text-align:right"><b>${thaanBal(x.th)} m</b>
             <div class="hint" style="color:var(--bad)">${money(thaanValue(x.th))}</div></div></div>`;}).join('')}
@@ -6802,6 +6872,7 @@ function ordersHub(){
   sheetAt(ordersHub);
   $('#sheet').innerHTML=hubHTML('📋 '+t('nav_orders'), t('hub_orders_sub'), [
     ['📋', t('nav_orders'), "closeSheet();go('orders')"],
+    ['🧵', t('sb_title'), "closeSheet();statusBoard()"],
     ['🔍', t('of_title'), "closeSheet();orderFilter()"],
     ['📞', t('se_title'), "closeSheet();statusEnquiry('')"],
     ['🔧', t('home_alterations'), "closeSheet();go('alterations')"],
@@ -6829,7 +6900,9 @@ function creditors(){
     map[k]=map[k]||{name:k,phone:p.phone||'',recs:[],due:0};
     map[k].recs.push(p); map[k].due=r2(map[k].due+orderBaaki(p));
     if(!map[k].phone&&p.phone)map[k].phone=p.phone;});
-  Object.values(map).forEach(g=>{ g.due=r2(Math.max(0,g.due-supplierCredit(g.name))); });
+  Object.values(map).forEach(g=>{ g.due=r2(Math.max(0,g.due-supplierCredit(g.name)));
+    /* v247: same ageing as the debtors side, read off each supplier bill's own date */
+    g.age=ageSplit(g.recs.map(p=>({date:recDateOf(p), amt:orderBaaki(p)}))); });
   const groups=Object.values(map).filter(g=>g.due>0).sort((a,b)=>b.due-a.due);
   const total=r2(groups.reduce((s,g)=>s+g.due,0));
   $('#sheet').innerHTML=`<div class="grip"></div>
@@ -6838,13 +6911,18 @@ function creditors(){
     ${groups.length?`<div class="card pos-total" style="margin-bottom:14px">
       <div class="sum-row due" style="border-top:none;margin:0;padding:4px 0">
         <span>${t('rp_creditor_total')}</span><b>${money(total)}</b></div>
-      <div class="hint">${t('cr_from_n',{n:groups.length})}</div></div>`:''}
+      <div class="hint">${t('cr_from_n',{n:groups.length})}</div>
+      ${ageBarHTML(ageTotals(groups.map(g=>g.age)))}</div>
+    ${exportBarHTML('creditors',()=>({title:t('creditors_report'), sub:t('rp_creditor_total')+': '+money(total),
+      head:[t('supplier'),t('phone'),t('amount'),t('ag_cur'),t('ag_30'),t('ag_60'),t('ag_90'),t('ag_oldest',{n:''}).trim()],
+      rows:groups.map(g=>[g.name,ph10(g.phone),r2(g.due),g.age.cur,g.age.b30,g.age.b60,g.age.b90,g.age.oldest])}))}`:''}
     ${groups.map(g=>`<div class="card" style="margin-bottom:8px">
       <div class="kv"><div style="flex:1">
         <b style="font-size:15px">${esc(g.name)}</b>
         ${g.phone?`<div class="hint">📞 ${esc(g.phone)}</div>`:''}
         ${g.recs.map(p=>`<div class="hint fu-open" onclick="closeSheet();purchMenu('${p.id}')">• ${esc(p.billNo||fmtDate(p.date))} — ${money(orderBaaki(p))} <span style="color:var(--saffron2)">›</span></div>`).join('')}
-      </div><b style="color:var(--bad);font-size:18px">${money(g.due)}</b></div>
+      </div><div style="text-align:right"><b style="color:var(--bad);font-size:18px">${money(g.due)}</b>
+        <div style="margin-top:4px">${ageChipHTML(g.age)}</div></div></div>
       <div class="row" style="margin-top:10px;gap:6px">
         <button class="btn primary" style="flex:2" onclick="closeSheet();payEntry('out')">⬆️ ${t('pay_out')}</button>
         ${g.phone?`<button class="btn ghost" onclick="event.stopPropagation();callNum('${jq(g.phone)}')">📞</button>`:''}
@@ -7329,9 +7407,70 @@ function dueGroups(){
     if(!g.custId&&r.customerId)g.custId=r.customerId;
     g.recs.push(r); g.due=r2(g.due+orderBaaki(r));
   });
+  /* v247: each party's own age profile, read off the bills already gathered above */
+  Object.values(map).forEach(g=>{
+    g.age=ageSplit(g.recs.map(r=>({date:recDateOf(r), amt:orderBaaki(r)})));
+  });
   // a return held as credit lowers what the customer owes — same figure as their chip
   Object.values(map).forEach(g=>{ if(g.custId)g.due=r2(Math.max(0,g.due-customerCredit(g.custId))); });
   return Object.values(map).filter(g=>g.due>0).sort((a,b)=>b.due-a.due);
+}
+/* v247 - HIS 22 Aug pending list: receivable and payable ageing. One figure of "38,100 to
+   collect" says nothing about WHO to chase first; money three months old is a different
+   problem from money billed last week. Buckets are read off the bill date - no new field,
+   no new entry, nothing for anyone to fill in, and no existing number changes. */
+const AGE_BUCKETS=[['cur',0,30,'ag_cur'],['b30',31,60,'ag_30'],['b60',61,90,'ag_60'],['b90',91,1e9,'ag_90']];
+const AGE_COL={cur:'var(--ok)',b30:'var(--saffron2)',b60:'#d98a12',b90:'var(--bad)'};
+function recDateOf(r){
+  return String((r&&(r.date || (r.invoice&&r.invoice.date) || r.billDate || r.created)) || '').slice(0,10);
+}
+function ageDays(iso){
+  if(!iso)return 0;
+  const d=Math.floor((new Date(todayISO()+'T00:00:00')-new Date(iso+'T00:00:00'))/86400000);
+  return (isFinite(d)&&d>0)?d:0;
+}
+function ageBucketOf(days){
+  for(let i=0;i<AGE_BUCKETS.length;i++){ const b=AGE_BUCKETS[i]; if(days>=b[1]&&days<=b[2])return b[0]; }
+  return 'cur';
+}
+/* rows = [{date, amt}] */
+function ageSplit(rows){
+  const out={cur:0,b30:0,b60:0,b90:0,oldest:0};
+  (rows||[]).forEach(r=>{
+    const a=r2(+r.amt||0); if(!(a>0))return;
+    const d=ageDays(r.date), k=ageBucketOf(d);
+    out[k]=r2(out[k]+a);
+    if(d>out.oldest)out.oldest=d;
+  });
+  return out;
+}
+function ageTotals(list){
+  const out={cur:0,b30:0,b60:0,b90:0,oldest:0};
+  (list||[]).forEach(sp=>{ if(!sp)return;
+    out.cur=r2(out.cur+sp.cur); out.b30=r2(out.b30+sp.b30);
+    out.b60=r2(out.b60+sp.b60); out.b90=r2(out.b90+sp.b90);
+    if(sp.oldest>out.oldest)out.oldest=sp.oldest; });
+  return out;
+}
+function ageBarHTML(sp){
+  if(!sp)return '';
+  const tot=r2(sp.cur+sp.b30+sp.b60+sp.b90); if(!tot)return '';
+  const bar=AGE_BUCKETS.map(b=>{ const v=sp[b[0]]; if(!v)return '';
+    return `<span style="display:block;height:100%;width:${(v/tot*100).toFixed(2)}%;background:${AGE_COL[b[0]]}"></span>`;
+  }).join('');
+  const legend=AGE_BUCKETS.map(b=>{ const v=sp[b[0]]; if(!v)return '';
+    return `<div class="kv" style="padding:2px 0"><span class="hint">`+
+      `<span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${AGE_COL[b[0]]};margin-right:6px"></span>${t(b[3])}</span>`+
+      `<b style="color:${AGE_COL[b[0]]}">${money(v)}</b></div>`; }).join('');
+  return `<div style="margin-top:8px">
+    <div class="hint" style="margin-bottom:4px">${t('ag_title')}</div>
+    <div style="display:flex;height:7px;border-radius:4px;overflow:hidden;background:var(--bg2)">${bar}</div>
+    <div style="margin-top:6px">${legend}</div></div>`;
+}
+function ageChipHTML(sp){
+  if(!sp||!sp.oldest)return '';
+  const col=AGE_COL[ageBucketOf(sp.oldest)];
+  return `<span class="gtag" style="font-size:11px;color:${col};border-color:${col}">${t('ag_oldest',{n:sp.oldest})}</span>`;
 }
 function fuLog(key){ return (DB.followups&&DB.followups[key])||null; }
 function fuText(key){
@@ -7434,7 +7573,8 @@ function followUps(){
           <div style="margin-top:6px">${lines}</div>
           ${last?`<div class="hint" style="margin-top:6px;color:var(--saffron2)">🔔 ${last}</div>`:''}
         </div>
-        <div style="text-align:right"><div style="font-size:18px;font-weight:900;color:var(--bad)">${money(g.due)}</div></div>
+        <div style="text-align:right"><div style="font-size:18px;font-weight:900;color:var(--bad)">${money(g.due)}</div>
+          <div style="margin-top:4px">${ageChipHTML(g.age)}</div></div>
       </div>
       ${g.phone?'':`<button class="btn ghost block" style="margin-top:8px" onclick="fuAddPhone('${g.key}')">📞 ${t('fu_add_phone')}</button>`}
       <div class="row" style="margin-top:10px;gap:6px">
@@ -7448,7 +7588,11 @@ function followUps(){
     ${groups.length?`<div class="card pos-total" style="margin-bottom:14px">
       <div class="sum-row due" style="border-top:none;margin:0;padding:4px 0">
         <span>${t('stat_total_due')}</span><b>${money(total)}</b></div>
-      <div class="hint">${t('stat_from_n',{n:groups.length})}</div></div>`:''}
+      <div class="hint">${t('stat_from_n',{n:groups.length})}</div>
+      ${ageBarHTML(ageTotals(groups.map(g=>g.age)))}</div>
+    ${exportBarHTML('debtors',()=>({title:t('fu_title'), sub:t('stat_total_due')+': '+money(total),
+      head:[t('pt_name'),t('phone'),t('amount'),t('ag_cur'),t('ag_30'),t('ag_60'),t('ag_90'),t('ag_oldest',{n:''}).trim()],
+      rows:groups.map(g=>[g.name,ph10(g.phone),r2(g.due),g.age.cur,g.age.b30,g.age.b60,g.age.b90,g.age.oldest])}))}`:''}
     ${rows||`<div class="empty" style="padding:30px 10px"><div class="big">🎉</div><p>${t('fu_all_clear')}</p></div>`}
     
     <div class="fab-pad"></div>`;
@@ -7545,6 +7689,46 @@ function abBuckets(){
   return {late,soon,noKar,stuck,payable,courier,qcDue,urgent,
     sort:a=>a.slice().sort((x,y)=>String(x.o.deliveryDate||'9999').localeCompare(String(y.o.deliveryDate||'9999')))};
 }
+/* v247 - HIS pending list: an order's stage was recorded on every piece (new, cut,
+   handwork, stitching, checking, ready) but there was no screen that showed the shop as a
+   whole - only lists filtered by date. This is that screen: one column per stage, every
+   live piece in the column it is standing in, so he can see at a glance where the work has
+   piled up. It READS itemStatus and changes nothing; tapping a piece opens it, which is
+   where the stage is already changed. */
+let _sbStage='';
+function statusBoard(){
+  sheetAt(statusBoard);
+  const stages=STATUS.filter(x=>x!=='delivered');
+  const live=abPieces().filter(x=>x.st!=='delivered');
+  const by={}; stages.forEach(st=>by[st]=[]);
+  live.forEach(x=>{ const st=stages.indexOf(x.st)>=0?x.st:'new'; by[st].push(x); });
+  const total=live.length;
+  if(_sbStage && !(by[_sbStage]||[]).length)_sbStage='';
+  const chip=(st)=>{
+    const n=(by[st]||[]).length, on=_sbStage===st;
+    return `<span class="gtag ${on?'on-tag':''}" style="cursor:pointer" onclick="sbPick('${st}')">${sLabel(st)} <b>${n}</b></span>`;
+  };
+  const shown = _sbStage ? [_sbStage] : stages;
+  const cols = shown.map(st=>{
+    const rows=(by[st]||[]);
+    if(!rows.length && _sbStage!==st)return '';
+    const sorted=rows.slice().sort((a,b)=>String(a.o.deliveryDate||'9999').localeCompare(String(b.o.deliveryDate||'9999')));
+    return `<div class="section-h" style="display:flex;justify-content:space-between;align-items:baseline">
+        <span>${sLabel(st)}</span><span class="hint">${t('sb_pieces',{n:rows.length})}</span></div>
+      ${sorted.map(x=>abRowHTML(x,false)).join('') || `<p class="hint" style="margin:0 0 10px">${t('sb_empty_stage')}</p>`}`;
+  }).join('');
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F9F5} ${t('sb_title')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
+    <p class="hint" style="margin-bottom:10px">${t('sb_sub')} \u00B7 ${t('sb_pieces',{n:total})}</p>
+    <div class="gtags" style="margin-bottom:12px">
+      <span class="gtag ${_sbStage?'':'on-tag'}" style="cursor:pointer" onclick="sbPick('')">${t('f_all')} <b>${total}</b></span>
+      ${stages.map(chip).join('')}</div>
+    ${total?cols:`<div class="empty" style="padding:30px 10px"><div class="big">\u{1F389}</div><p>${t('sb_none')}</p></div>`}
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function sbPick(st){ _sbStage=(_sbStage===st)?'':st; statusBoard(); }
 function abRowHTML(x,showAge){
   const late=x.dl!==null&&x.dl<0;
   const age=x.issued?(-daysLeft(x.issued)):null;
@@ -7860,7 +8044,7 @@ function catItems(){
       if(!(th.photos||[]).length)return;
       if(thaanBal(th)<=0.05)return;
       const f=FI(th.fabId)||{};
-      out.push({pid:th.photos[0], title:f.name||('#'+th.serial), sub:'#'+th.serial,
+      out.push({pid:th.photos[0], title:thaanName(th)||('#'+th.serial), sub:'#'+th.serial,
         note:thaanBal(th)+' m '+t('stk_left'), price:+th.sell||+f.sell||0,
         cat:f.category||'', gid:''});
     });
@@ -8707,6 +8891,65 @@ function campStep(list){
      {label:'📲 '+t('camp_open'),cls:'primary',fn:()=>{
         waSend(c.phone,campText(c));
         _camp.idx++; setTimeout(()=>campStep(list),400);}}]);
+}
+/* v247 - HIS pending list: reports had no way out of the screen. Every report is a title,
+   a header row and a grid of rows, so ONE pair of functions serves all of them: the same
+   grid goes to a spreadsheet or to the printer (and "Save as PDF" is inside the printer
+   dialog on both iPad and Android). Nothing is recalculated for export - the caller hands
+   over the rows it already drew, so the paper can never disagree with the screen. */
+function csvCell(v){ return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'; }
+function exportCSV(name,head,rows){
+  if(!rows||!rows.length){ toast(t('ex_nothing'),'bad'); return; }
+  const out=[head.map(csvCell).join(',')].concat(rows.map(r=>r.map(csvCell).join(',')));
+  const blob=new Blob(['\ufeff'+out.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='parampara-'+String(name||'report').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+todayISO()+'.csv';
+  a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+  toast(t('ex_done',{n:rows.length}),'ok');
+}
+function exportPDF(title,sub,head,rows){
+  if(!rows||!rows.length){ toast(t('ex_nothing'),'bad'); return; }
+  const shop=((DB.shopInfo||{}).name)||'PARAMPARA';
+  const th=head.map(h=>`<th>${esc(h)}</th>`).join('');
+  const tr=rows.map(r=>`<tr>${r.map((c,i)=>`<td${i?' class="n"':''}>${esc(c)}</td>`).join('')}</tr>`).join('');
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>
+    *{font-family:Arial,sans-serif;color:#111}body{margin:18px}
+    .hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #c97e10;padding-bottom:6px;margin-bottom:10px}
+    .hd .b{font-size:20px;font-weight:bold;color:#c97e10;letter-spacing:1px}
+    .hd .l{font-size:14px;font-weight:bold;text-align:right}
+    .sub{font-size:12px;color:#555;font-weight:normal}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th,td{border:1px solid #ccc;padding:5px 7px;text-align:left;vertical-align:top}
+    th{background:#f3f3f3}
+    td.n{text-align:right;white-space:nowrap}
+    tr{page-break-inside:avoid}
+    @media print{@page{margin:10mm}body{margin:0}thead{display:table-header-group}}
+  </style></head><body>
+    <div class="hd"><div><div class="b">${esc(shop)}</div><div class="sub">${esc(sub||'')}</div></div>
+      <div class="l">${esc(title)}<div class="sub">${fmtDate(todayISO())}</div></div></div>
+    <table><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table></body></html>`;
+  const ifr=document.createElement('iframe');
+  ifr.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+  document.body.appendChild(ifr);
+  const d=ifr.contentWindow.document; d.open(); d.write(html); d.close();
+  setTimeout(()=>{try{ifr.contentWindow.focus();ifr.contentWindow.print();}catch(e){}setTimeout(()=>ifr.remove(),2000);},400);
+}
+/* the two buttons every report carries. The caller passes a builder so nothing is computed
+   until he actually taps one. */
+let _expBuild={};
+function exportBarHTML(key,builder){
+  _expBuild[key]=builder;
+  return `<div class="row" style="gap:8px;margin:10px 0 4px">
+    <button class="btn sm ghost" style="flex:1" onclick="expDo('${jq(key)}','csv')">\u{1F4C4} ${t('ex_csv')}</button>
+    <button class="btn sm ghost" style="flex:1" onclick="expDo('${jq(key)}','pdf')">\u{1F5A8}\uFE0F ${t('ex_pdf')}</button></div>`;
+}
+function expDo(key,how){
+  const b=_expBuild[key]; if(typeof b!=='function'){ toast(t('ex_nothing'),'bad'); return; }
+  let d; try{ d=b(); }catch(e){ toast(t('ex_nothing'),'bad'); return; }
+  if(!d||!d.rows||!d.rows.length){ toast(t('ex_nothing'),'bad'); return; }
+  if(how==='csv')exportCSV(d.title,d.head,d.rows);
+  else exportPDF(d.title,d.sub||'',d.head,d.rows);
 }
 function campCSV(){
   sheetAt(campCSV);
@@ -13509,14 +13752,14 @@ function thaanPickRows(){
   const hit=all.filter(x=>{
     if(!q)return true;
     const f=FI(x.fabId)||{};
-    return [x.serial,f.name,f.colour,x.design,x.colour]
+    return [x.serial,thaanName(x),f.colour,x.design,x.colour]
       .some(v=>String(v||'').toLowerCase().indexOf(q)>=0);
   }).slice(0,60);
   if(!hit.length)return `<p class="hint">${t('th_none')}</p>`;
   return hit.map(x=>{ const f=FI(x.fabId)||{};
     return `<div class="card" style="padding:10px 12px;margin-bottom:6px;cursor:pointer"
       onclick="thaanPickDone('${x.id}')">
-      <div class="kv"><b>#${esc(x.serial||'')} ${esc(f.name||'')}</b>
+      <div class="kv"><b>#${esc(x.serial||'')} ${esc(thaanName(x)||'')}</b>
         <b style="color:var(--saffron2)">${thaanBal(x)}m</b></div>
       ${(f.colour||x.design)?`<div class="hint">${esc(f.colour||'')}${x.design?' · '+esc(x.design):''}</div>`:''}
     </div>`; }).join('');
@@ -15504,6 +15747,9 @@ function renderReports(){
       <div class="kv"><span>${t('rp_total_gst')}</span><b>${money(r2(gst))}</b></div>
       <div class="hint" style="margin-top:6px">${fmtDate(from)} → ${fmtDate(to)}</div>
     </div>
+    ${invs.length?exportBarHTML('rp_sales',()=>({title:t('sales_report'), sub:fmtDate(from)+' \u2013 '+fmtDate(to),
+      head:[t('pay_date'),t('invoice'),t('customer'),t('amount')],
+      rows:invs.map(x=>[fmtDate(x.inv.date), x.inv.no, x.rec.customerName||'', r2(invCompute(x.inv).total)])})):''}
     ${invRows||`<p class="hint">${t('rp_no_data')}</p>`}
     <div class="section-h">🔴 ${t('debtors_report')}</div>
     ${debtors.length?`<div class="card"><div class="kv"><span>${t('rp_debtor_total')}</span><b style="color:var(--saffron2);font-size:18px">${money(r2(debTotal))}</b></div></div>`+debRows:`<p class="hint">${t('rp_no_debtors')}</p>`}
@@ -15512,6 +15758,9 @@ function renderReports(){
       <div class="kv"><span>${t('rp_total_purchases')}</span><b style="font-size:18px">${money(r2(purchTotal))}</b></div>
       <div class="hint" style="margin-top:6px">${fmtDate(from)} → ${fmtDate(to)}</div>
     </div>
+    ${purch.length?exportBarHTML('rp_purch',()=>({title:t('purchases_report'), sub:fmtDate(from)+' \u2013 '+fmtDate(to),
+      head:[t('pay_date'),t('supplier'),t('purch_bill_no'),t('amount')],
+      rows:purch.map(p=>[fmtDate(p.date), p.supplier||'', p.billNo||'', r2(+p.total||0)])})):''}
     ${purchRows||`<p class="hint">${t('rp_no_data')}</p>`}
     <div class="section-h">🟠 ${t('creditors_report')}</div>
     ${creditors.length?`<div class="card"><div class="kv"><span>${t('rp_creditor_total')}</span><b style="color:var(--saffron2);font-size:18px">${money(r2(credTotal))}</b></div></div>`+credRows:`<p class="hint">${t('rp_no_creditors')}</p>`}
@@ -18100,6 +18349,8 @@ function renderItemEdit(){
   $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h3 style="margin:0">${d.n?esc(d.n):t('add_item')}</h3><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     <div class="row"><div class="field" style="flex:0 0 64px"><label>${t('icon')}</label><input id="id_ico" value="${esc(d.ico)}" maxlength="2" style="text-align:center;font-size:20px"></div>
       <div class="field"><label>${t('item_name')}</label><input id="id_name" value="${esc(d.n)}" placeholder="Safa, Juti…"></div></div>
+    <div class="field"><label>${t('im_notes')}</label>
+      <textarea id="id_notes" rows="2" placeholder="${t('im_notes_ph')}">${esc(d.notes||'')}</textarea></div>
     <div class="section-h">${t('fields')}</div>${rows||'<p class="hint">'+t('no_fields')+'</p>'}
     <button class="btn ghost block" style="margin-top:8px" onclick="itemDraftAddField()">+ ${t('add_field')}</button>
     <div class="modal-actions"><button class="btn ghost" onclick="garmentMaster()">${t('cancel')}</button><button class="btn primary" onclick="itemDraftSave()">${t('save')}</button></div>`;
@@ -18108,6 +18359,7 @@ function renderItemEdit(){
 }
 function captureItemDraft(){const d=itemDraft;
   if($('#id_name'))d.n=$('#id_name').value.trim(); if($('#id_ico'))d.ico=$('#id_ico').value.trim()||'🧩';
+  if($('#id_notes'))d.notes=$('#id_notes').value.trim();
   $('#sheet').querySelectorAll('[data-fn]').forEach(inp=>{d.fields[+inp.dataset.fn].n=inp.value.trim();});
   $('#sheet').querySelectorAll('[data-ft]').forEach(sel=>{d.fields[+sel.dataset.ft].type=sel.value;});
   $('#sheet').querySelectorAll('[data-fopt]').forEach(inp=>{d.fields[+inp.dataset.fopt].options=inp.value.split(',').map(s=>s.trim()).filter(Boolean);});
