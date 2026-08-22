@@ -727,7 +727,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v248</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v249</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1393,6 +1393,17 @@ const T={
   sb_none:'Nothing in production', sb_pieces:'{n} pieces', sb_empty_stage:'nothing here',
   ex_csv:'CSV', ex_pdf:'PDF / Print', ex_done:'{n} rows exported', ex_nothing:'Nothing to export',
   stk_cat_all:'All categories', stk_cat_pick:'Category',
+  pty_title:'Parties', pty_sub:'Everyone the shop owes or is owed by — openings, payments and balance',
+  pty_search:'Search a name…', pty_add:'Add a party', pty_none:'Nobody yet',
+  pty_open:'Opening', pty_open_left:'Opening still open', pty_open_none:'No opening entered',
+  pty_open_set:'Set opening balance', pty_open_edit:'Change opening', pty_open_del:'Remove opening',
+  pty_ason:'As on', pty_ason_hint:'The day this balance stood. Usually 1 April. No cash moves.',
+  pty_settle:'Record a payment', pty_settled:'Paid against opening',
+  pty_settle_in:'Received against opening', pty_settle_hint:'A real payment against the old balance. This DOES move cash or bank.',
+  pty_stmt:'Full statement', pty_clear:'Opening fully settled',
+  pty_open_saved:'Opening saved', pty_open_removed:'Opening removed', pty_settle_saved:'Payment recorded',
+  pty_too_much:'That is more than the {a} still open',
+  pty_kind:'As what', pty_no_open_yet:'Enter what he owed, or what you owed him, on the starting day',
   rp_money_in:'In', rp_money_out:'Out', rp_balance:'Balance',
   rp_exp_of_sales:'Of net sales', rp_of_total:'of all expenses',
   rp_pl_note:'This counts what was billed and spent in this period — not what was received. Cash is not profit.',
@@ -2718,6 +2729,17 @@ const T={
   sb_none:'बनने को कुछ नहीं है', sb_pieces:'{n} पीस', sb_empty_stage:'कुछ नहीं',
   ex_csv:'CSV', ex_pdf:'PDF / प्रिंट', ex_done:'{n} लाइन एक्सपोर्ट हुईं', ex_nothing:'एक्सपोर्ट करने को कुछ नहीं',
   stk_cat_all:'सभी कैटेगरी', stk_cat_pick:'कैटेगरी',
+  pty_title:'पार्टी', pty_sub:'जिनका देना है या लेना है — शुरुआती बकाया, भुगतान और बैलेंस',
+  pty_search:'नाम ढूंढें…', pty_add:'पार्टी जोड़ें', pty_none:'अभी कोई नहीं',
+  pty_open:'शुरुआती बकाया', pty_open_left:'शुरुआती बकाया बचा है', pty_open_none:'कोई शुरुआती बकाया नहीं',
+  pty_open_set:'शुरुआती बकाया डालें', pty_open_edit:'शुरुआती बकाया बदलें', pty_open_del:'शुरुआती बकाया हटाएँ',
+  pty_ason:'इस तारीख को', pty_ason_hint:'जिस दिन यह बकाया था। आमतौर पर 1 अप्रैल। इससे नकद नहीं हिलता।',
+  pty_settle:'भुगतान दर्ज करें', pty_settled:'शुरुआती बकाये में दिया',
+  pty_settle_in:'शुरुआती बकाये में मिला', pty_settle_hint:'पुराने बकाये के खिलाफ असली भुगतान। इससे नकद/बैंक हिलेगा।',
+  pty_stmt:'पूरा खाता', pty_clear:'शुरुआती बकाया पूरा चुका',
+  pty_open_saved:'शुरुआती बकाया सेव हुआ', pty_open_removed:'शुरुआती बकाया हटा', pty_settle_saved:'भुगतान दर्ज हुआ',
+  pty_too_much:'यह बचे हुए {a} से ज्यादा है',
+  pty_kind:'किस रूप में', pty_no_open_yet:'शुरुआत के दिन उसका कितना बाकी था, वही लिखिए',
   rp_money_in:'In', rp_money_out:'Out', rp_balance:'Balance',
   rp_exp_of_sales:'Of Net Sales', rp_of_total:'of total expenses',
   rp_pl_note:'यह इस अवधि में जो बिल हुआ और जो ख़र्च हुआ, उसका हिसाब है — जो पैसा मिला उसका नहीं। नकद और मुनाफ़ा एक चीज़ नहीं।',
@@ -6900,9 +6922,25 @@ function creditors(){
     map[k]=map[k]||{name:k,phone:p.phone||'',recs:[],due:0};
     map[k].recs.push(p); map[k].due=r2(map[k].due+orderBaaki(p));
     if(!map[k].phone&&p.phone)map[k].phone=p.phone;});
+  /* v249: an opening payable is money owed exactly as a bill is. It was invisible here
+     before, so anything he typed on the opening screen could never be seen or chased. */
+  peopleAll().filter(p=>p.kind==='supplier').forEach(p=>{
+    const left=openingLeft(p.name,'supplier','out'); if(!left)return;
+    const k=p.name;
+    map[k]=map[k]||{name:k,phone:(partyByName(k)||{}).phone||'',recs:[],due:0};
+    map[k].due=r2(map[k].due+left); map[k]._open=left;
+  });
+  /* openings typed against a name that never had a purchase bill still belong here */
+  (DB.ledger||[]).filter(l=>l.refKind==='opening'&&pkNorm(l.partyKind)==='supplier'&&l.dir==='out').forEach(l=>{
+    const k=String(l.party||'').trim(); if(!k||map[k])return;
+    const left=openingLeft(k,'supplier','out'); if(!left)return;
+    map[k]={name:k,phone:(partyByName(k)||{}).phone||'',recs:[],due:left,_open:left};
+  });
   Object.values(map).forEach(g=>{ g.due=r2(Math.max(0,g.due-supplierCredit(g.name)));
     /* v247: same ageing as the debtors side, read off each supplier bill's own date */
-    g.age=ageSplit(g.recs.map(p=>({date:recDateOf(p), amt:orderBaaki(p)}))); });
+    const rows=g.recs.map(p=>({date:recDateOf(p), amt:orderBaaki(p)}));
+    if(g._open){ const o=openingLine(g.name,'supplier'); rows.push({date:(o&&o.date)||'', amt:g._open}); }
+    g.age=ageSplit(rows); });
   const groups=Object.values(map).filter(g=>g.due>0).sort((a,b)=>b.due-a.due);
   const total=r2(groups.reduce((s,g)=>s+g.due,0));
   $('#sheet').innerHTML=`<div class="grip"></div>
@@ -6921,6 +6959,7 @@ function creditors(){
         <b style="font-size:15px">${esc(g.name)}</b>
         ${g.phone?`<div class="hint">📞 ${esc(g.phone)}</div>`:''}
         ${g.recs.map(p=>`<div class="hint fu-open" onclick="closeSheet();purchMenu('${p.id}')">• ${esc(p.billNo||fmtDate(p.date))} — ${money(orderBaaki(p))} <span style="color:var(--saffron2)">›</span></div>`).join('')}
+        ${g._open?`<div class="hint fu-open" onclick="closeSheet();partyCard('${jq(g.name)}','supplier')">• ${t('pty_open')} — ${money(g._open)} <span style="color:var(--saffron2)">›</span></div>`:''}
       </div><div style="text-align:right"><b style="color:var(--bad);font-size:18px">${money(g.due)}</b>
         <div style="margin-top:4px">${ageChipHTML(g.age)}</div></div></div>
       <div class="row" style="margin-top:10px;gap:6px">
@@ -7407,9 +7446,23 @@ function dueGroups(){
     if(!g.custId&&r.customerId)g.custId=r.customerId;
     g.recs.push(r); g.due=r2(g.due+orderBaaki(r));
   });
+  /* v249: an opening receivable is money owed to the shop exactly as an unpaid bill is.
+     Matched by NAME, because an opening is typed as a name and may belong to someone who
+     has no bill in the app at all. */
+  (DB.ledger||[]).filter(l=>l.refKind==='opening'&&pkNorm(l.partyKind)==='customer'&&l.dir==='in').forEach(l=>{
+    const nm=String(l.party||'').trim(); if(!nm)return;
+    const left=openingLeft(nm,'customer','in'); if(!left)return;
+    let g=Object.values(map).find(x=>pkNorm(x.name)===pkNorm(nm));
+    if(!g){ const key='open:'+pkNorm(nm);
+      g=map[key]={key, name:nm, phone:(partyByName(nm)||{}).phone||'', custId:null, recs:[], due:0};
+    }
+    g.due=r2(g.due+left); g._open=left; g._openDate=l.date||'';
+  });
   /* v247: each party's own age profile, read off the bills already gathered above */
   Object.values(map).forEach(g=>{
-    g.age=ageSplit(g.recs.map(r=>({date:recDateOf(r), amt:orderBaaki(r)})));
+    const rows=g.recs.map(r=>({date:recDateOf(r), amt:orderBaaki(r)}));
+    if(g._open)rows.push({date:g._openDate||'', amt:g._open});
+    g.age=ageSplit(rows);
   });
   // a return held as credit lowers what the customer owes — same figure as their chip
   Object.values(map).forEach(g=>{ if(g.custId)g.due=r2(Math.max(0,g.due-customerCredit(g.custId))); });
@@ -7570,7 +7623,7 @@ function followUps(){
         <div style="flex:1">
           <b style="font-size:15px" ${nameTap?`class="fu-open" onclick="closeSheet();${nameTap}"`:''}>${esc(g.name)}${nameTap?' <span style="color:var(--saffron2)">›</span>':''}</b>
           ${g.phone?`<div class="hint">📞 ${esc(g.phone)}</div>`:`<div class="hint" style="color:var(--bad)">⚠️ ${t('fu_no_phone')}</div>`}
-          <div style="margin-top:6px">${lines}</div>
+          <div style="margin-top:6px">${lines}${g._open?`<div class="hint fu-open" style="margin-left:2px" onclick="closeSheet();partyCard('${jq(g.name)}','customer')">• ${t('pty_open')} — ${money(g._open)} <span style="color:var(--saffron2)">›</span></div>`:''}</div>
           ${last?`<div class="hint" style="margin-top:6px;color:var(--saffron2)">🔔 ${last}</div>`:''}
         </div>
         <div style="text-align:right"><div style="font-size:18px;font-weight:900;color:var(--bad)">${money(g.due)}</div>
@@ -8516,6 +8569,7 @@ function menuHome(){
       row('💸',t('exp_title'),"expenses()"),
       row('📒',t('db_title'),"dayBook()"),
       row('🏦',t('cb_title'),"cashBank()"),
+      row('📒',t('pty_title'),"partiesHome()",t('pty_sub')),
       modOn('billing')?row('🔔',t('debtors_report'),"followUps()"):'',
       modOn('billing')?row('📥',t('creditors_report'),"creditors()"):'']):''}
     ${sec('🧵 '+t('jw_title'),[
@@ -17641,6 +17695,9 @@ function openingBulk(){
       <div class="field"><label>${t('ob_name')}</label><input id="obName" placeholder="${t('ob_name_ph')}"></div>
       <div class="field" style="margin-top:8px"><label>${t('ob_kind')}</label>
         <select id="obKind">${kinds.map(([v,k])=>`<option value="${v}">${t(k)}</option>`).join('')}</select></div>
+      <div class="field" style="margin-top:8px"><label>${t('pty_ason')}</label>
+        ${dateField('obDate', fyStartISO())}
+        <p class="hint" style="margin-top:4px">${t('pty_ason_hint')}</p></div>
       <div class="row" style="gap:8px;margin-top:8px">
         <div class="field" style="margin:0"><label>${t('amount')} ₹</label>
           <input id="obAmt" type="number" inputmode="numeric" placeholder="0"
@@ -17693,9 +17750,13 @@ function obCommit(){
   confirmModal('📒 '+t('ob_confirm_title'),
     t('ob_confirm_msg',{n:_obRows.length, p:money(pay), g:money(get)}),
     ()=>{
-      const d=todayISO();
+      /* v249: the day the balance stood, not the day it was typed. Ageing and the FY both
+         read this date, so "1 April" has to be sayable. */
+      const d=((($('#obDate')||{}).value)||fyStartISO());
       DB.ledger=DB.ledger||[];
       _obRows.forEach(r=>{
+        const ex=openingLine(r.name,r.kind);
+        if(ex){ Object.assign(ex,{amt:r2(+r.amt||0), dir:r.dir==='pay'?'out':'in', date:d}); return; }
         /* an opening is a stated starting position, not cash moving today — it carries no
            account, so it can never disturb the cash or bank balance. */
         DB.ledger.push({id:uid(), dir:r.dir==='pay'?'out':'in', date:d, amt:r.amt,
@@ -17765,6 +17826,206 @@ function partyBalance(p,kind){
   });
   return r2(bal);
 }
+
+/* ══════════ v249 — OPENING BALANCES THAT ACTUALLY REACH THE REPORTS ══════════
+   HIS 22 Aug: "debtors/creditors sab me opening balance daalna hai, party add karni hai,
+   is financial year me kisko payment gaya hai update karna hai."
+
+   Three of his asks, one root problem. The opening screen already existed and wrote a
+   ledger line — but creditors() read ONLY purchase bills and followUps() read ONLY sale
+   bills, so an opening he typed appeared nowhere and could never come down. There was also
+   no screen to add a party or correct an opening once saved.
+
+   The sign trap, and why it is solved this way. A ledger line's `dir` is CASH direction,
+   not obligation. An opening payable is written dir:'out' with no account, so it never
+   touches cash. But a real payment to that supplier is ALSO dir:'out' — so netting them by
+   direction alone made paying a supplier increase what he owed. Rather than re-interpret
+   every historical line (which would silently move live money), a settlement against an
+   opening is written as its own kind: refKind:'openpay'. It carries a real account, because
+   real cash really moved, and it is matched to the opening by party + kind. So:
+
+       still owed = opening amount − payments tagged against that opening
+
+   Nothing already in the books changes meaning. Bills keep their own arithmetic. This adds
+   one clearly-labelled kind of line and reads it in exactly two places.
+
+   The formula the reports now use, which is standard and which I am stating plainly rather
+   than asking a fourth time:
+       supplier payable   = bills outstanding − purchase-return credit + opening still open
+       customer receivable = bills outstanding − customer credit      + opening still open  */
+
+function pkNorm(v){ return String(v||'').trim().toLowerCase(); }
+/* one opening line per person per hat — the bulk screen files by name, the party card by
+   name too, so both find the same row whichever way it was entered */
+function openingLine(name,kind){
+  const nm=pkNorm(name);
+  return (DB.ledger||[]).find(l=>l.refKind==='opening' && pkNorm(l.partyKind)===pkNorm(kind)
+    && pkNorm(l.party)===nm) || null;
+}
+function openingPays(name,kind){
+  const nm=pkNorm(name);
+  return (DB.ledger||[]).filter(l=>l.refKind==='openpay' && pkNorm(l.partyKind)===pkNorm(kind)
+    && pkNorm(l.party)===nm);
+}
+/* {amt, paid, left, dir, date} — dir 'out' = I have to pay, 'in' = I have to receive */
+function openingState(name,kind){
+  const o=openingLine(name,kind);
+  if(!o)return null;
+  const amt=r2(+o.amt||0);
+  const paid=r2(openingPays(name,kind).reduce((a,l)=>a+(+l.amt||0),0));
+  return {amt, paid, left:r2(Math.max(0,amt-paid)), dir:o.dir, date:o.date||'', id:o.id};
+}
+function openingLeft(name,kind,dir){
+  const st=openingState(name,kind);
+  if(!st||st.dir!==dir)return 0;
+  return st.left;
+}
+
+/* ── the Parties screen: one place to add a person and see where he stands ── */
+let _ptyQ='';
+function partiesHome(){
+  sheetAt(partiesHome);
+  const rows=partiesRows();
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F4D2} ${t('pty_title')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
+    <p class="hint" style="margin-bottom:10px">${t('pty_sub')}</p>
+    <input id="ptyQ" value="${esc(_ptyQ)}" placeholder="\u{1F50D} ${t('pty_search')}" oninput="ptySearch(this.value)" autocomplete="off">
+    <button class="btn primary block" style="margin:10px 0" onclick="partyEdit(null,()=>partiesHome())">\u2795 ${t('pty_add')}</button>
+    <div id="ptyList">${rows}</div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function ptySearch(v){ _ptyQ=String(v||''); const el=$('#ptyList'); if(el)el.innerHTML=partiesRows(); }
+function partiesRows(){
+  const q=pkNorm(_ptyQ);
+  let who=peopleAll();
+  if(q)who=who.filter(p=>pkNorm(p.name).indexOf(q)>=0);
+  if(!who.length)return `<p class="hint" style="padding:20px 4px;text-align:center">${t('pty_none')}</p>`;
+  return who.map(p=>{
+    const st=openingState(p.name,p.kind);
+    const bal=r2(partyBalance(p,p.kind)+partyBillFlow(p,p.kind));
+    const bits=[];
+    if(st&&st.left)bits.push(`<span style="color:${st.dir==='out'?'var(--bad)':'var(--ok)'}">${t('pty_open')} ${money(st.left)}</span>`);
+    if(bal)bits.push(`${money(Math.abs(bal))} ${bal<0?t('ob_pay'):t('ob_get')}`);
+    return `<div class="cust-result" style="margin-bottom:6px" onclick="partyCard('${jq(p.name)}','${jq(p.kind)}')">
+      <div style="min-width:0;flex:1"><b>${PK_ICON[p.kind]||''} ${esc(p.name)}</b>
+        <div class="hint">${bits.join(' \u00B7 ')||t('pty_open_none')}</div></div>
+      <span style="color:var(--saffron2)">\u203A</span></div>`;
+  }).join('');
+}
+
+/* ── one person, one hat ── */
+function partyCard(name,kind){
+  sheetAt(()=>partyCard(name,kind));
+  const st=openingState(name,kind);
+  const pays=openingPays(name,kind).slice().sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+  const pp=partyByName(name);
+  const payWord = (st&&st.dir==='in') ? t('pty_settle_in') : t('pty_settled');
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">${PK_ICON[kind]||''} ${esc(name)}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
+    <p class="hint" style="margin-bottom:12px">${t(PK_LBL[kind]||'pt_other')}${pp&&pp.phone?' \u00B7 '+esc(pp.phone):''}${pp&&pp.gstin?' \u00B7 '+esc(pp.gstin):''}</p>
+
+    <div class="card" style="padding:12px 14px;margin-bottom:10px">
+      <div class="dl-hd" style="padding:0 0 8px">\u{1F4C5} ${t('pty_open')}</div>
+      ${st?`
+        <div class="kv"><span class="hint">${st.dir==='out'?t('ob_pay'):t('ob_get')} \u00B7 ${t('pty_ason')} ${fmtDate(st.date)}</span>
+          <b>${money(st.amt)}</b></div>
+        ${st.paid?`<div class="kv"><span class="hint">${payWord}</span><b style="color:var(--ok)">\u2212 ${money(st.paid)}</b></div>`:''}
+        <div class="kv" style="border-top:1px solid var(--line);margin-top:6px;padding-top:6px">
+          <span>${st.left?t('pty_open_left'):t('pty_clear')}</span>
+          <b style="font-size:18px;color:${st.left?(st.dir==='out'?'var(--bad)':'var(--saffron2)'):'var(--ok)'}">${money(st.left)}</b></div>
+        ${pays.map(l=>`<div class="hint" style="margin-top:6px">\u2022 ${fmtDate(l.date)} \u00B7 ${money(l.amt)}${l.acc?' \u00B7 '+esc(accName(l.acc)):''}
+            <a onclick="openPayDrop('${jq(l.id)}','${jq(name)}','${jq(kind)}')" style="color:var(--bad);cursor:pointer;margin-left:6px">\u2715</a></div>`).join('')}
+        <div class="row" style="gap:6px;margin-top:10px">
+          ${st.left?`<button class="btn sm primary" style="flex:1" onclick="openSettleAsk('${jq(name)}','${jq(kind)}')">\u{1F4B5} ${t('pty_settle')}</button>`:''}
+          <button class="btn sm ghost" onclick="openingAsk('${jq(name)}','${jq(kind)}')">\u270F\uFE0F ${t('pty_open_edit')}</button></div>`
+      :`<p class="hint" style="margin:0 0 10px">${t('pty_no_open_yet')}</p>
+        <button class="btn ghost block" onclick="openingAsk('${jq(name)}','${jq(kind)}')">\u2795 ${t('pty_open_set')}</button>`}
+    </div>
+
+    <div class="card" style="padding:12px 14px;margin-bottom:10px">${partyBalHTML({id:(pp&&pp.id)||'',name})}</div>
+    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();partyStatement('${jq((pp&&pp.id)||'')}','${jq(kind)}')">\u{1F4D2} ${t('pty_stmt')}</button>
+    ${pp?`<button class="btn ghost block" onclick="partyEdit('${jq(pp.id)}',()=>partyCard('${jq(name)}','${jq(kind)}'))">\u{1F464} ${t('pt_profile')}</button>`:''}
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+
+/* ── set / change / remove one opening ── */
+function openingAsk(name,kind){
+  const st=openingState(name,kind);
+  modal('\u{1F4C5} '+t('pty_open')+' \u2014 '+esc(name),
+    `<div class="row"><div class="field"><label>${t('amount')} \u20B9 *</label>
+        <input id="ob1_amt" type="number" inputmode="numeric" value="${st?esc(st.amt):''}" placeholder="0"></div>
+      <div class="field"><label>${t('ob_dir')}</label>
+        <select id="ob1_dir">
+          <option value="pay" ${(!st||st.dir==='out')?'selected':''}>${t('ob_pay')}</option>
+          <option value="get" ${(st&&st.dir==='in')?'selected':''}>${t('ob_get')}</option></select></div></div>
+     <div class="field" style="margin-top:8px"><label>${t('pty_ason')}</label>
+       ${dateField('ob1_date', (st&&st.date)||fyStartISO())}
+       <p class="hint" style="margin-top:4px">${t('pty_ason_hint')}</p></div>`,
+    [{label:t('cancel'),cls:'ghost',fn:closeModal},
+     st?{label:'\u{1F5D1}\uFE0F',cls:'danger',fn:()=>openingDrop(name,kind)}:null,
+     {label:t('save'),cls:'primary',fn:()=>openingSave(name,kind)}].filter(Boolean));
+}
+/* 1 April of the financial year we are standing in — the day an opening normally belongs to */
+function fyStartISO(){
+  const d=new Date(todayISO()+'T00:00:00');
+  const y=d.getMonth()>=3?d.getFullYear():d.getFullYear()-1;
+  return y+'-04-01';
+}
+function openingSave(name,kind){
+  const amt=r2(+(($('#ob1_amt')||{}).value)||0);
+  const dir=(($('#ob1_dir')||{}).value)==='get'?'in':'out';
+  const date=(($('#ob1_date')||{}).value)||fyStartISO();
+  if(!(amt>0)){ toast(t('t_no_amount'),'bad'); return; }
+  DB.ledger=DB.ledger||[];
+  const ex=openingLine(name,kind);
+  if(ex)Object.assign(ex,{amt,dir,date});
+  else DB.ledger.push({id:uid(), dir, date, amt, acc:'', party:name, partyId:null,
+    partyKind:kind, ref:t('ob_ref'), refKind:'opening', cat:'', note:'', opening:true, photos:[]});
+  save(); closeModal(); toast(t('pty_open_saved'),'ok'); partyCard(name,kind);
+}
+function openingDrop(name,kind){
+  const n=openingPays(name,kind).length;
+  confirmModal('\u{1F5D1}\uFE0F '+t('pty_open_del'),
+    n?t('pty_settled')+': '+n+' \u00B7 '+t('confirm_del_msg'):t('confirm_del_msg'),
+    ()=>{ const ex=openingLine(name,kind);
+      DB.ledger=(DB.ledger||[]).filter(l=>l!==ex);
+      save(); closeModal(); toast(t('pty_open_removed'),'ok'); partyCard(name,kind); });
+}
+/* a REAL payment against the old balance — this one carries an account, so cash moves */
+function openSettleAsk(name,kind){
+  const st=openingState(name,kind); if(!st||!st.left)return;
+  modal('\u{1F4B5} '+t('pty_settle')+' \u2014 '+esc(name),
+    `<p class="hint" style="margin-bottom:10px">${t('pty_settle_hint')}</p>
+     <div class="row"><div class="field"><label>${t('amount')} \u20B9 *</label>
+        <input id="op_amt" type="number" inputmode="numeric" value="${st.left}" placeholder="0"></div>
+       <div class="field"><label>${t('pay_date')}</label>${dateField('op_date',todayISO())}</div></div>
+     <div class="field" style="margin-top:8px"><label>${t('cb_into')}</label>${acctSelHTML('op_acc',(defaultAcc()||{}).id)}</div>
+     <div class="field" style="margin-top:8px"><label>${t('stk_note')}</label><input id="op_note" placeholder="${t('stk_note_ph')}"></div>
+     <p class="hint" style="margin-top:8px">${t('pty_open_left')}: <b>${money(st.left)}</b></p>`,
+    [{label:t('cancel'),cls:'ghost',fn:closeModal},
+     {label:t('save'),cls:'primary',fn:()=>{
+        const amt=r2(+(($('#op_amt')||{}).value)||0);
+        if(!(amt>0)){ toast(t('t_no_amount'),'bad'); return; }
+        if(amt>st.left+0.01){ toast(t('pty_too_much',{a:money(st.left)}),'bad'); return; }
+        const date=(($('#op_date')||{}).value)||todayISO();
+        const accEl=$('#op_acc'); const acc=(accEl&&accEl.value!=='__new')?accEl.value:((defaultAcc()||{}).id||'');
+        DB.ledger=DB.ledger||[];
+        DB.ledger.push({id:uid(), dir:st.dir, date, amt, acc, party:name, partyId:null,
+          partyKind:kind, ref:t('pty_settled'), refKind:'openpay', cat:'',
+          note:(($('#op_note')||{}).value||'').trim(), photos:[]});
+        save(); closeModal(); toast(t('pty_settle_saved'),'ok'); partyCard(name,kind);
+     }}]);
+}
+function openPayDrop(id,name,kind){
+  confirmModal('\u{1F5D1}\uFE0F '+t('pty_settled'), t('confirm_del_msg'), ()=>{
+    DB.ledger=(DB.ledger||[]).filter(l=>l.id!==id);
+    save(); closeModal(); toast(t('t_deleted'),'ok'); partyCard(name,kind); });
+}
+
 function partyEdit(id,onDone){
   const ex=id?partyById(id):null;
   modal('👤 '+(ex?esc(ex.name):t('pt_new')),
