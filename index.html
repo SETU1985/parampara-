@@ -727,7 +727,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v243</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v244</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -3829,6 +3829,16 @@ async function mURL(id){ if(urlCache[id])return urlCache[id]; const b=await mGet
 /* ---- helpers ---- */
 const $=s=>document.querySelector(s);
 const esc=s=>(s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+/* v244 — AUDIT FINDING, and it was silently killing buttons. esc() turns an apostrophe
+   into &#39;, and the HTML parser turns &#39; back into a bare ' BEFORE the JavaScript
+   inside an onclick is ever parsed. So onclick="callNum('D&#39;Souza')" reached the engine
+   as callNum('D'Souza') - a syntax error, and the tap did nothing at all, with no message.
+   Any name, size, category or expense head carrying an apostrophe (D'Souza, Men's) had a
+   dead button. The .replace(/'/g,...) written in a few places was a no-op for the same
+   reason: esc had already removed every ' before that replace could run. jq() escapes for
+   JavaScript FIRST and for the attribute SECOND, the only order that survives both
+   parsers. jq() for anything inside quotes in a handler; esc() stays right for text. */
+const jq=s=>String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\r?\n/g,'\\n').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const money=n=>'₹'+(Number(n)||0).toLocaleString('en-IN');
 function fmtDate(d){if(!d)return '—';const x=new Date(d);return x.toLocaleDateString('en-IN',{day:'numeric',month:'short'});}
 function fmtDateTime(d){const x=new Date(d);return x.toLocaleDateString('en-IN',{day:'numeric',month:'short'})+' '+x.toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'});}
@@ -4358,7 +4368,7 @@ function fabricBody(keepFocus){
       <input id="fabSearch" value="${esc(_fabQ)}" placeholder="🔍 ${t('stk_fab_search')}" oninput="setFabQ(this.value)"></div>
     ${cats.length?`<div class="gtags" style="margin-bottom:10px">
       <span class="gtag ${_fabCat?'':'on-tag'}" style="cursor:pointer" onclick="_fabCat='';pageReset('fab');fabricBody()">${t('all')}</span>
-      ${cats.map(c=>`<span class="gtag ${_fabCat===c?'on-tag':''}" style="cursor:pointer" onclick="_fabCat='${esc(c)}';pageReset('fab');fabricBody()">${esc(c)}</span>`).join('')}
+      ${cats.map(c=>`<span class="gtag ${_fabCat===c?'on-tag':''}" style="cursor:pointer" onclick="_fabCat='${jq(c)}';pageReset('fab');fabricBody()">${esc(c)}</span>`).join('')}
     </div>`:''}
     <div class="hint" style="margin:0 0 5px">${t('stk_by_length')}</div>
     <div class="gtags" style="margin-bottom:10px">
@@ -5040,10 +5050,10 @@ function readyRender(){
   const grid=sizes.map(sz=>`<div class="sz-cell">
       <div class="sz-lbl">${esc(sz)}</div>
       <div class="qty-step" style="width:100%">
-        <button onclick="szBump('${esc(sz)}',-1)">−</button>
+        <button onclick="szBump('${jq(sz)}',-1)">−</button>
         <input class="qty-in" data-sz="${esc(sz)}" type="number" inputmode="numeric" min="0"
           value="${(d.stk[sz]||'')}" placeholder="0" style="flex:1;width:auto">
-        <button onclick="szBump('${esc(sz)}',1)">+</button>
+        <button onclick="szBump('${jq(sz)}',1)">+</button>
       </div></div>`).join('');
   const tot=sizes.reduce((s,sz)=>s+(+d.stk[sz]||0),0);
   $('#sheet').innerHTML=`<div class="grip"></div>
@@ -6021,8 +6031,8 @@ function expenses(keepQ){
         <span>${t('exp_total')}${_expQ?' · '+list.length:''}</span>
         <b style="color:var(--bad)">${money(total)}</b></div>
       ${cats.map(([c,v])=>`<div class="sum-row" style="min-height:34px;padding:5px 0;cursor:pointer"
-        onclick="expSearch('${esc(c).replace(/'/g,"\\'")}')"
-        oncontextmenu="event.preventDefault();expMoveHead('${esc(c).replace(/'/g,"\\'")}');return false;">
+        onclick="expSearch('${jq(c).replace(/'/g,"\\'")}')"
+        oncontextmenu="event.preventDefault();expMoveHead('${jq(c).replace(/'/g,"\\'")}');return false;">
         <span>${esc(c)}</span><b>${money(v)}</b></div>`).join('')}
       ${catsAll.length>4?`<div class="sum-row" style="min-height:30px;padding:4px 0;cursor:pointer"
         onclick="expToggleCats()"><span class="hint">${_expCatsAll?t('exp_less'):'+'+(catsAll.length-4)+' '+t('exp_more_heads')}</span><span></span></div>`:''}
@@ -6052,7 +6062,7 @@ function expMoveHead(from){
   modal('🔀 '+esc(from),
     `<p>${t('exp_move_msg',{n})}</p>
      <div class="gtags" style="margin-top:8px">${heads.map(c=>`<span class="gtag" style="cursor:pointer"
-       onclick="expMoveDo('${esc(from).replace(/'/g,"\\'")}','${esc(c).replace(/'/g,"\\'")}')">${esc(c)}</span>`).join('')}</div>`,
+       onclick="expMoveDo('${jq(from).replace(/'/g,"\\'")}','${jq(c).replace(/'/g,"\\'")}')">${esc(c)}</span>`).join('')}</div>`,
     [{label:t('cancel'),cls:'ghost',fn:()=>{closeModal();expenses(true);}}]);
 }
 function expMoveDo(from,to){
@@ -6136,7 +6146,7 @@ function expRender(){
   const qf=String(_expCatQ||'').trim().toLowerCase();
   if(qf)shown=allCats.filter(c=>String(c).toLowerCase().indexOf(qf)>=0);
   const hidden=allCats.filter(c=>shown.indexOf(c)<0);
-  const _q=c=>esc(c).replace(/'/g,"\\'");
+  const _q=c=>jq(c);
   const chips=((_expShowAll&&!qf)?allCats:shown).map(c=>`<span class="gtag ${d.cat===c?'on-tag':''}" style="cursor:pointer"
       onclick="expPickCat('${_q(c)}')"
       oncontextmenu="event.preventDefault();expToggleHide('${_q(c)}');return false;"
@@ -6264,7 +6274,7 @@ function expPartySearch(v){
   const hits=expFindParty(v);
   if(!hits.length){
     box.innerHTML = String(v||'').trim()
-      ? `<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="expNewParty('${esc(String(v).trim()).replace(/'/g,"\\'")}')">➕ ${t('exp_new_name')}: ${esc(String(v).trim())}</span>`
+      ? `<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="expNewParty('${jq(String(v).trim()).replace(/'/g,"\\'")}')">➕ ${t('exp_new_name')}: ${esc(String(v).trim())}</span>`
       : '';
     return;
   }
@@ -6835,7 +6845,7 @@ function creditors(){
       </div><b style="color:var(--bad);font-size:18px">${money(g.due)}</b></div>
       <div class="row" style="margin-top:10px;gap:6px">
         <button class="btn primary" style="flex:2" onclick="closeSheet();payEntry('out')">⬆️ ${t('pay_out')}</button>
-        ${g.phone?`<button class="btn ghost" onclick="event.stopPropagation();callNum('${esc(g.phone)}')">📞</button>`:''}
+        ${g.phone?`<button class="btn ghost" onclick="event.stopPropagation();callNum('${jq(g.phone)}')">📞</button>`:''}
       </div></div>`).join('')
       ||`<div class="empty" style="padding:30px 10px"><div class="big">🎉</div><p>${t('rp_no_creditors')}</p></div>`}
     
@@ -7195,7 +7205,7 @@ function qrRender(){
       ${_qrWho?`<div class="hint" style="margin-top:4px">${esc(_qrWho)}</div>`:''}
     </div>
     <div class="gtags" style="margin-top:14px">
-      <span class="gtag ${_qrAmt?'on-tag':''}" style="cursor:pointer" onclick="qrSetAmt('${esc(_qrDue||'')}')">💰 ${t('qr_full')}${_qrDue?' — '+money(+_qrDue):''}</span>
+      <span class="gtag ${_qrAmt?'on-tag':''}" style="cursor:pointer" onclick="qrSetAmt('${jq(_qrDue||'')}')">💰 ${t('qr_full')}${_qrDue?' — '+money(+_qrDue):''}</span>
       <span class="gtag ${_qrAmt?'':'on-tag'}" style="cursor:pointer" onclick="qrSetAmt('')">✏️ ${t('qr_open')}</span>
     </div>
     <div class="field" style="margin-top:10px"><label>${t('qr_amount')}</label>
@@ -7427,7 +7437,7 @@ function followUps(){
       ${g.phone?'':`<button class="btn ghost block" style="margin-top:8px" onclick="fuAddPhone('${g.key}')">📞 ${t('fu_add_phone')}</button>`}
       <div class="row" style="margin-top:10px;gap:6px">
         <button class="btn primary" style="flex:3" onclick="${g.phone?`waStatement('${g.key}')`:`fuAddPhone('${g.key}')`}">💬 ${t('fu_send')}</button>
-        ${g.phone?`<button class="btn ghost" onclick="event.stopPropagation();callNum('${esc(g.phone)}')">📞</button>`:''}
+        ${g.phone?`<button class="btn ghost" onclick="event.stopPropagation();callNum('${jq(g.phone)}')">📞</button>`:''}
       </div></div>`;}).join('');
 
   $('#sheet').innerHTML=`<div class="grip"></div>
@@ -7537,7 +7547,7 @@ function abRowHTML(x,showAge){
   const late=x.dl!==null&&x.dl<0;
   const age=x.issued?(-daysLeft(x.issued)):null;
   const kn=x.kid?(((DB.karigars||[]).find(k=>k.id===x.kid)||{}).name||''):'';
-  return `<div class="cust-result fu-open" style="margin-bottom:6px" onclick="closeSheet();openDetail('${x.o.id}','${esc(x.gid)}')">
+  return `<div class="cust-result fu-open" style="margin-bottom:6px" onclick="closeSheet();openDetail('${x.o.id}','${jq(x.gid)}')">
     <div style="min-width:0;flex:1">
       <b>${(x.g&&x.g.ico)||'▪'} ${esc((x.g&&x.g.n)||'')}</b>
       <div class="hint">#${esc(x.o.orderNo||'—')} · ${esc(x.o.customerName||'')}</div>
@@ -7629,7 +7639,7 @@ function custStatus(cid){
       ${items}</div>`;}).join('');
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:2px"><h2 style="margin:0">${esc(c.name||'—')}</h2>
-      ${c.phone?`<button class="btn sm ghost" onclick="callNum('${esc(c.phone)}')">📞</button>`:''}</div>
+      ${c.phone?`<button class="btn sm ghost" onclick="callNum('${jq(c.phone)}')">📞</button>`:''}</div>
     <p class="hint" style="margin-bottom:12px">${esc(c.phone||'')}</p>
     ${live.length?`<button class="btn primary block" style="margin-bottom:12px" onclick="custStatusSend('${cid}')">💬 ${t('se_send')}</button>
       ${blocks}`:`<p class="hint" style="padding:14px 0;text-align:center">${t('se_none_live')}</p>`}
@@ -7940,7 +7950,7 @@ function catOpenFolder(id){
       <img class="cat-img" data-pid="${esc(x.pid)}" alt="" onclick="catOpen(${i})">
       <div class="cat-meta">
         <div class="kv"><b>${esc(x.title||t('cat_design'))}</b>
-          <span onclick="catRemoveFromFolder('${id}','${esc(x.pid)}')" style="color:#d9534f;cursor:pointer">✕</span></div>
+          <span onclick="catRemoveFromFolder('${id}','${jq(x.pid)}')" style="color:#d9534f;cursor:pointer">✕</span></div>
         ${x.note?`<div class="hint">${esc(x.note)}</div>`:''}
         ${x.price?`<div class="hint" style="color:var(--saffron2)">${money(x.price)}</div>`:''}
       </div></div>`).join('')
@@ -7993,7 +8003,7 @@ function catSource(keepFocus){
   }
   const cards=pageSlice('cat',list).map((x,i)=>{
     const on=_catPick.has(x.pid);
-    return `<div class="cat-card ${on?'on':''}" onclick="${picking?`catPickToggle('${esc(x.pid)}')`:`catOpen(${i})`}">
+    return `<div class="cat-card ${on?'on':''}" onclick="${picking?`catPickToggle('${jq(x.pid)}')`:`catOpen(${i})`}">
       <img class="cat-img" data-pid="${esc(x.pid)}" alt="">
       ${picking?`<div class="cat-tick">${on?'✅':'⬜'}</div>`:''}
       <div class="cat-meta"><b>${esc(x.title)}</b>
@@ -8557,7 +8567,7 @@ function renderOrders(){
     const _mm=activeMembers(o).length>1;
     const tags=sortItems(o.items).map(gid=>{const g=G(gid);const s=itemStatusOf(o,gid);const dot=(s==='ready'||s==='delivered')?'✅':'';
       const who=_mm?(memberName(o,memberOf(gid))||''):'';
-      return g?`<span class="gtag" style="cursor:pointer" onclick="event.stopPropagation();focusItem('${o.id}','${esc(gid)}')">${g.ico} ${who?esc(who)+' · ':''}${esc(itemTitle(o,gid))} ${dot}</span>`:'';}).join('')+pageMoreBtn('orders',list.length);
+      return g?`<span class="gtag" style="cursor:pointer" onclick="event.stopPropagation();focusItem('${o.id}','${jq(gid)}')">${g.ico} ${who?esc(who)+' · ':''}${esc(itemTitle(o,gid))} ${dot}</span>`:'';}).join('')+pageMoreBtn('orders',list.length);
     const rc=readyCount(o),tot=(o.items||[]).length;
     const ready=st==='ready';
     const altN=altsForOrder(o.id).length;
@@ -8754,25 +8764,25 @@ function openCustomer(id){
     const grid=vcols(g).map(col=>{const val=v[col.k]||'';
       if(col.type==='select'){const opts=['<option value="">—</option>'].concat((col.options||[]).map(op=>`<option value="${esc(op)}" ${val===op?'selected':''}>${esc(op)}</option>`)).join('');
         return `<div class="ki-m"><label>${esc(col.n)}</label><select class="mInput" data-g="${esc(gid)}" data-k="${esc(col.k)}"
-          onchange="cuMeasSet('${id}','${esc(gid)}','${esc(col.k)}',this.value)">${opts}</select></div>`;}
+          onchange="cuMeasSet('${id}','${jq(gid)}','${jq(col.k)}',this.value)">${opts}</select></div>`;}
       return `<div class="ki-m"><label>${esc(col.n)}${col.k==='L'?' ★':''}</label>
         <input class="mInput ${val?'filled':''}" inputmode="${col.type==='text'?'text':'decimal'}"
           data-g="${esc(gid)}" data-k="${esc(col.k)}" value="${esc(val)}" placeholder="—"
-          onchange="cuMeasSet('${id}','${esc(gid)}','${esc(col.k)}',this.value)"
+          onchange="cuMeasSet('${id}','${jq(gid)}','${jq(col.k)}',this.value)"
           onkeydown="if(event.key==='Enter'){measStep(event,1)}"></div>`;}).join('');
     return `<div class="mcard${_op?'':' collapsed'}" data-key="${_gc}">
-      <div class="mh mh-tap" onclick="cuItemToggle('${id}','${esc(gid)}')">
+      <div class="mh mh-tap" onclick="cuItemToggle('${id}','${jq(gid)}')">
         <b>${g.ico} ${esc(g.n)}</b>
         <span class="hint" style="margin-left:auto">${v.L?('L '+esc(v.L)+' · '):''}${_n} ${t('meas')} ${_op?'▴':'▾'}</span></div>
       ${_op?`<div class="mb"><div class="ki-mgrid">${grid}</div>
-        <button class="btn sm danger block" style="margin-top:10px" onclick="cuDelGarment('${id}','${esc(gid)}')">🗑️ ${t('cu_meas_del')}</button></div>`:''}
+        <button class="btn sm danger block" style="margin-top:10px" onclick="cuDelGarment('${id}','${jq(gid)}')">🗑️ ${t('cu_meas_del')}</button></div>`:''}
     </div>`;}).join('');
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${esc(c.name)}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div><div style="display:flex;gap:6px"><button class="btn sm ghost" onclick="editCustomer('${id}')">✏️ ${t('edit')}</button>
       <button class="btn sm danger" onclick="delCustomer('${id}')">🗑️</button></div></div>
-    <div class="kv"><span>${t('phone')}</span><b><a onclick="callNum('${esc(c.phone)}')" style="cursor:pointer;text-decoration:underline">${esc(c.phone||'—')}</a></b></div>
+    <div class="kv"><span>${t('phone')}</span><b><a onclick="callNum('${jq(c.phone)}')" style="cursor:pointer;text-decoration:underline">${esc(c.phone||'—')}</a></b></div>
     ${c.phone?`<button class="btn sm ghost block" style="margin-top:8px"
-      onclick="saveToPhone('${esc(c.name||'')}','${esc(c.phone)}',t('vc_role_cust'))">📇 ${t('vc_save')}</button>`:''}
+      onclick="saveToPhone('${jq(c.name||'')}','${jq(c.phone)}',t('vc_role_cust'))">📇 ${t('vc_save')}</button>`:''}
     ${(DB.orders||[]).some(o=>o.customerId===id&&!orderDelivered(o))?`<button class="btn ghost block" style="margin-top:10px" onclick="custStatus('${id}')">📞 ${t('se_title')}</button>`:''}
     <div class="card" style="padding:12px 14px;margin:10px 0">
       <div class="il"><span>${t('cust_business')}</span><b>${money(sm.spent)}</b></div>
@@ -9367,11 +9377,11 @@ function quickLenHTML(f,mine,only){
     const pc=((f.itemPhotos||{})[k]||[]).length;
     const nt=String((f.design||{})[k]||'').trim();
     const sum=measSummary(f,k);
-    return `<div class="ql-row ${open?'ql-on':''}" onclick="ordStage(2,'${esc(k)}')">
+    return `<div class="ql-row ${open?'ql-on':''}" onclick="ordStage(2,'${jq(k)}')">
       <span class="ql-nm">${g.ico} ${esc(g.n)}${instOf(k)>1?' <span class="inst-tag">'+instOf(k)+'</span>':''}</span>
       <span class="ql-sum ${sum?'':'empty'}">${sum?esc(sum):t('ql_no_meas')}</span>
-      <span class="ql-ic ${pc?'has':''}" onclick="event.stopPropagation();pickItemPhotoQuick('${esc(k)}')" title="${t('photo_label')}">📷${pc>1?'<i>'+pc+'</i>':''}</span>
-      <span class="ql-ic ${nt?'has':''}" onclick="event.stopPropagation();itemNoteQuick('${esc(k)}')" title="${t('item_notes')}">📝</span>
+      <span class="ql-ic ${pc?'has':''}" onclick="event.stopPropagation();pickItemPhotoQuick('${jq(k)}')" title="${t('photo_label')}">📷${pc>1?'<i>'+pc+'</i>':''}</span>
+      <span class="ql-ic ${nt?'has':''}" onclick="event.stopPropagation();itemNoteQuick('${jq(k)}')" title="${t('item_notes')}">📝</span>
       <span class="ql-go">›</span></div>`;
   }).join('');
   return `<div class="ql-wrap">
@@ -9392,8 +9402,8 @@ function itemNoteQuick(key){
   /* the design words moved here with the note box (v168), so the "save a new word" path
      had to come with them or the library could never grow again */
   const chips=`<div class="hint" style="margin:10px 0 4px">${t('design_lib')}</div>
-    <div class="gtags">${lib.map(tok=>`<span class="gtag" style="cursor:pointer" onclick="qnAdd('${esc(tok).replace(/'/g,"\\'")}')">+ ${esc(tok)}</span>`).join('')}
-    <span class="gtag" style="cursor:pointer;border-style:dashed" onclick="qnNewOption('${esc(key)}','${esc(gid)}')">➕ ${t('add_option')}</span></div>`;
+    <div class="gtags">${lib.map(tok=>`<span class="gtag" style="cursor:pointer" onclick="qnAdd('${jq(tok).replace(/'/g,"\\'")}')">+ ${esc(tok)}</span>`).join('')}
+    <span class="gtag" style="cursor:pointer;border-style:dashed" onclick="qnNewOption('${jq(key)}','${jq(gid)}')">➕ ${t('add_option')}</span></div>`;
   modal(g.ico+' '+esc(g.n)+' — '+t('item_notes'),
     `<div class="field" style="margin:0"><textarea id="qn_note" rows="3" placeholder="${t('item_notes_ph')}">${esc(cur)}</textarea></div>${chips}`,
     [{label:t('cancel'),cls:'ghost',fn:()=>renderForm()},
@@ -9565,7 +9575,7 @@ function memberBlockHTML(f,mem,idx,multi){
     const key=itemKey(mem.id,g.id);
     const n=(f.items||[]).filter(k=>memberOf(k)===mem.id&&garmentOf(k)===g.id).length;
     const on=n>0;
-    return `<div class="chip ${on?'on':''}" onclick="toggleItem('${esc(key)}')"><span class="ico">${g.ico}</span>${g.n}${on?`<span class="badge">${n>1?n:'✓'}</span>`:''}</div>`;}).join('')
+    return `<div class="chip ${on?'on':''}" onclick="toggleItem('${jq(key)}')"><span class="ico">${g.ico}</span>${g.n}${on?`<span class="badge">${n>1?n:'✓'}</span>`:''}</div>`;}).join('')
     + ((!_folds||_exp)?`<div class="chip chip-add" onclick="itemShortcuts()"><span class="ico">⚙️</span>${t('it_setup')}</div>`
         +`<div class="chip chip-add" onclick="garmentMaster()"><span class="ico">➕</span>${t('new_garment')}</div>`:'')
     + (_folds?`<div class="chip chip-add" onclick="gcToggle('${mem.id}')"><span class="ico">${_exp?'▴':'▾'}</span>${_exp?t('gc_less'):t('gc_more')+' ('+_hid+')'}</div>`:'');
@@ -9791,7 +9801,7 @@ function ordExtrasHTML(f){
 
     <div class="section-h">📣 ${t('src_title')}</div>
     <div class="gtags" style="margin-bottom:8px">${srcOptions().map(o=>
-      `<span class="gtag ${(f.source||'')===o?'on-tag':''}" style="cursor:pointer" onclick="setSource('${esc(o)}')">${esc(o)}</span>`).join('')}
+      `<span class="gtag ${(f.source||'')===o?'on-tag':''}" style="cursor:pointer" onclick="setSource('${jq(o)}')">${esc(o)}</span>`).join('')}
       <span class="gtag" style="cursor:pointer;border-style:dashed" onclick="addSource()">➕ ${t('src_add')}</span></div>
     ${f.source?`<div class="field"><label>${t('src_who')}</label>
       <input id="f_srcRef" value="${esc(f.sourceRef||'')}" placeholder="${t('src_who_ph')}"></div>`:''}
@@ -9864,8 +9874,8 @@ function manageMeas(gid,ctx){ctx=ctx||'order';const rerender=ctx==='alt'?renderA
     return `<div class="kv" style="padding:9px 0;border-bottom:1px solid var(--line)">
       <span style="${off?'opacity:.45;text-decoration:line-through':''}">${esc(c.n)}${custom?' <span class="hint">(custom)</span>':''}</span>
       <span style="display:flex;gap:12px;align-items:center">
-        <span onclick="toggleMeasField('${gid}','${esc(c.k)}','${ctx}')" style="cursor:pointer;font-weight:700;color:${off?'var(--mut)':'var(--ok)'}">${off?'✕ '+t('mm_off'):'✓ '+t('mm_on')}</span>
-        ${custom?`<span onclick="delMeasField('${gid}','${esc(c.k)}','${ctx}')" style="color:#d9534f;cursor:pointer">🗑️</span>`:''}
+        <span onclick="toggleMeasField('${gid}','${jq(c.k)}','${ctx}')" style="cursor:pointer;font-weight:700;color:${off?'var(--mut)':'var(--ok)'}">${off?'✕ '+t('mm_off'):'✓ '+t('mm_on')}</span>
+        ${custom?`<span onclick="delMeasField('${gid}','${jq(c.k)}','${ctx}')" style="color:#d9534f;cursor:pointer">🗑️</span>`:''}
       </span></div>`;}).join('');
   modal('⚙️ '+t('manage_meas')+' — '+g.n,
     `<p class="hint" style="margin-bottom:8px">${t('manage_meas_desc')}</p>${rows}`,
@@ -11060,15 +11070,15 @@ async function openDetail__inner(id,focusGid){
     const cells=vcols(g).map(col=>{const val=v[col.k]||'';
       if(col.type==='select'){const opts=['<option value="">—</option>'].concat((col.options||[]).map(op=>`<option value="${esc(op)}" ${val===op?'selected':''}>${esc(op)}</option>`)).join('');
         return `<div class="ki-m"><label>${esc(col.n)}</label><select class="mInput" data-g="${esc(gid)}" data-k="${esc(col.k)}"
-          onchange="odMeasSet('${o.id}','${esc(gid)}','${esc(col.k)}',this.value)">${opts}</select></div>`;}
+          onchange="odMeasSet('${o.id}','${jq(gid)}','${jq(col.k)}',this.value)">${opts}</select></div>`;}
       return `<div class="ki-m"><label>${esc(col.n)}${col.k==='L'?' ★':''}</label>
         <input class="mInput ${val?'filled':''}" inputmode="${col.type==='text'?'text':'decimal'}"
           data-g="${esc(gid)}" data-k="${esc(col.k)}" value="${esc(val)}" placeholder="—"
-          onchange="odMeasSet('${o.id}','${esc(gid)}','${esc(col.k)}',this.value)"
+          onchange="odMeasSet('${o.id}','${jq(gid)}','${jq(col.k)}',this.value)"
           onkeydown="if(event.key==='Enter'){measStep(event,1)}"></div>`;}).join('');
     const dn=`<div class="field" style="margin:10px 0 0"><label>📝 ${t('item_notes')}</label>
       <input value="${esc((o.design&&o.design[gid])||'')}" placeholder="${t('item_notes_ph')}"
-        onchange="odDesignSet('${o.id}','${esc(gid)}',this.value)"></div>`;
+        onchange="odDesignSet('${o.id}','${jq(gid)}',this.value)"></div>`;
     const ist=itemStatusOf(o,gid);
     const selStyle='flex:1;background:var(--bg2);border:1px solid var(--line);color:var(--txt);padding:9px 10px;border-radius:var(--r2);font-size:15px';
     const _si=STATUS.indexOf(ist);
@@ -11108,10 +11118,10 @@ async function openDetail__inner(id,focusGid){
       <div class="ki-mgrid">${cells||`<span class="hint">—</span>`}</div>${dn}
       <div class="row" style="margin-top:10px;gap:8px;align-items:center">
         <div class="media-row" id="dip_${_cid}" style="flex:1;display:flex;gap:8px;flex-wrap:wrap"></div>
-        <button class="btn sm ghost ic-btn" title="${t('add_photo')}" onclick="odAddItemPhoto('${o.id}','${esc(gid)}')">📷</button></div>
+        <button class="btn sm ghost ic-btn" title="${t('add_photo')}" onclick="odAddItemPhoto('${o.id}','${jq(gid)}')">📷</button></div>
       <div id="div_${_cid}" style="margin-top:4px"></div>
       ${sStat}
-      <button class="btn sm ghost block" style="margin-top:10px;text-align:left" onclick="odProdToggle('${esc(gid)}')">⚙️ ${t('od_production')}${_prodMark?` · ${_prodMark}`:''} ${_odProd[gid]?'▴':'▾'}</button>
+      <button class="btn sm ghost block" style="margin-top:10px;text-align:left" onclick="odProdToggle('${jq(gid)}')">⚙️ ${t('od_production')}${_prodMark?` · ${_prodMark}`:''} ${_odProd[gid]?'▴':'▾'}</button>
       ${_odProd[gid]?`
         <button class="btn sm ${urg?'danger':'ghost'} block" style="margin-top:8px" onclick="toggleUrgent('${o.id}','${gid}')">${urg?'🔴 '+t('urgent_on'):'⚪ '+t('urgent_off')}</button>
         ${legLine}${sQc}${ksel}
@@ -11127,7 +11137,7 @@ async function openDetail__inner(id,focusGid){
     <button class="btn ghost block od-info-btn" style="margin-bottom:8px" onclick="odInfoToggle()">
       📞 ${esc(o.phone||'—')} ${dl!==null&&st!=='delivered'?('· '+(dl<0?Math.abs(dl)+'d '+t('late'):dl+'d')):''} ${baaki>0.5?('· '+t('baaki')+' '+money(baaki)):''} ${_odInfo?'▴':'▾'}</button>
     <div class="od-x${_odInfo?' on':''}"><div class="card">
-      <div class="kv"><span>${t('phone')}</span><b><a onclick="callNum('${esc(o.phone)}')" style="cursor:pointer;text-decoration:underline">${esc(o.phone||'—')}</a>
+      <div class="kv"><span>${t('phone')}</span><b><a onclick="callNum('${jq(o.phone)}')" style="cursor:pointer;text-decoration:underline">${esc(o.phone||'—')}</a>
         <span onclick="odEditCust('${o.id}')" style="cursor:pointer;opacity:.6;margin-left:8px">✏️</span></b></div>
       ${o.salesmanId?`<div class="kv"><span>🧑‍💼 ${t('salesman')}</span><b>${esc(salesmanName(o.salesmanId))}</b></div>`:''}
       <div class="kv"><span>📅 ${t('delivery')}</span>
@@ -11478,7 +11488,7 @@ async function openAltDetail(id){
       <button class="btn sm ghost" onclick="altMenu('${a.id}')">⋯</button></div>
 
     <div class="card">
-      <div class="kv"><span>${t('phone')}</span><b><a onclick="callNum('${esc(a.phone)}')" style="cursor:pointer;text-decoration:underline">${esc(a.phone||'—')}</a></b></div>
+      <div class="kv"><span>${t('phone')}</span><b><a onclick="callNum('${jq(a.phone)}')" style="cursor:pointer;text-decoration:underline">${esc(a.phone||'—')}</a></b></div>
       ${origO?`<div class="kv"><span>${t('alt_orig_order')}</span><b><a href="#" onclick="event.preventDefault();openDetail('${origO.id}')">#${esc(origO.orderNo)}</a></b></div>`:''}
       <div class="kv"><span>${t('alt_received_date')} / ${t('delivery')}</span><b>${fmtDate(a.receivedDate)} → ${a.deliveryDate?fmtDate(a.deliveryDate):'—'} ${dl!==null&&st!=='delivered'?`<span class="deliv ${dl<0?'soon':dl<=2?'soon':''}" style="margin-left:4px">${dl<0?Math.abs(dl)+'d '+t('late'):dl+'d'}</span>`:''}</b></div>
       <div class="kv"><span>${t('alt_charge')}</span><b>${money(a.total)}</b></div>
@@ -12122,7 +12132,7 @@ function posPickSize(m){
   // Add the item as a plain line and warn, so billing is never blocked.
   if(!sizes.length){ toast(t('stk_oversell'),'bad'); posAdd(m.id,''); return; }
   const chips=sizes.map(sz=>`<span class="gtag" style="cursor:pointer;font-size:14px;padding:10px 14px"
-      onclick="closeSheet();posAdd('${m.id}','${esc(sz)}')">${esc(sz)} <b style="color:var(--saffron2)">(${readyQty(m,sz)})</b></span>`).join('');
+      onclick="closeSheet();posAdd('${m.id}','${jq(sz)}')">${esc(sz)} <b style="color:var(--saffron2)">(${readyQty(m,sz)})</b></span>`).join('');
   modal('📐 '+t('stk_pick_size')+' — '+esc(m.name),
     `<p class="hint" style="margin-bottom:10px">${t('stk_pick_size_hint')}</p><div class="gtags">${chips}</div>`,
     [{label:t('cancel'),cls:'ghost',fn:()=>renderInvoiceForm()}]);
@@ -12207,7 +12217,7 @@ function posSearchRun(qraw){
     h+=_posItems.map((it,i)=>{
       if(it.sizes){   // readymade → tap a SIZE (so the right size's stock is deducted)
         const szchips=it.sizes.length
-          ? `<div class="hint" style="margin:6px 0 3px">${t('stk_pick_size')}:</div><div class="gtags">`+it.sizes.map(sz=>`<span class="gtag" style="cursor:pointer" onclick="event.stopPropagation();posAddReadySize('${it.mid}','${esc(sz).replace(/'/g,"\\'")}')">${esc(sz)} <b style="color:var(--saffron2)">(${readyQty((DB.itemMaster||[]).find(x=>x.id===it.mid)||{},sz)})</b></span>`).join('')+`</div>`
+          ? `<div class="hint" style="margin:6px 0 3px">${t('stk_pick_size')}:</div><div class="gtags">`+it.sizes.map(sz=>`<span class="gtag" style="cursor:pointer" onclick="event.stopPropagation();posAddReadySize('${it.mid}','${jq(sz).replace(/'/g,"\\'")}')">${esc(sz)} <b style="color:var(--saffron2)">(${readyQty((DB.itemMaster||[]).find(x=>x.id===it.mid)||{},sz)})</b></span>`).join('')+`</div>`
           : '';
         return `<div class="cust-result ${(i===0&&q)?'pos-top':''}" style="margin-bottom:6px;display:block;cursor:pointer" onclick="posPick(${i})">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
@@ -12293,7 +12303,7 @@ function posIncl(i){
   picked.forEach(p=>{if(!pool.includes(p))pool.push(p);});
   (DB.inclLib||[]).forEach(p=>{if(!pool.includes(p))pool.push(p);});
   const chips=pool.map(p=>{const on=picked.includes(p);
-    return `<span class="gtag ${on?'on-tag':''}" style="cursor:pointer" onclick="posTogglePart(${i},'${esc(p).replace(/'/g,"\\'")}')">${on?'✓ ':''}${esc(p)}</span>`;}).join('');
+    return `<span class="gtag ${on?'on-tag':''}" style="cursor:pointer" onclick="posTogglePart(${i},'${jq(p).replace(/'/g,"\\'")}')">${on?'✓ ':''}${esc(p)}</span>`;}).join('');
   modal('📎 '+t('inv_includes')+' — '+(it.label||'#'+(i+1)),
     `<p class="hint" style="margin-bottom:8px">${t('im_incl_desc')}</p>
      <div class="gtags">${chips}<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="posAddPart(${i})">${t('im_add_part')}</span>
@@ -12346,7 +12356,7 @@ function posInclChipsHTML(i,it){
   const pool=[]; (mst?mst.incl||[]:[]).forEach(p=>{if(!pool.includes(p))pool.push(p);});
   picked.forEach(p=>{if(!pool.includes(p))pool.push(p);});
   const chips=pool.map(p=>{const on=picked.includes(p);
-    return `<span class="gtag sm ${on?'on-tag':''}" style="cursor:pointer" onclick="posTogglePartInline(${i},'${esc(p).replace(/'/g,"\\'")}')">${on?'✓ ':''}${esc(p)}</span>`;}).join('');
+    return `<span class="gtag sm ${on?'on-tag':''}" style="cursor:pointer" onclick="posTogglePartInline(${i},'${jq(p).replace(/'/g,"\\'")}')">${on?'✓ ':''}${esc(p)}</span>`;}).join('');
   return `<span class="incl-lbl">📎 ${t('inv_includes')}</span>${chips}<span class="gtag sm" style="cursor:pointer;border-style:dashed" onclick="posAddPartInline(${i})">＋</span>`;
 }
 function renderPosInclChips(i){
@@ -12374,7 +12384,7 @@ function posAddPartInline(i){
   setTimeout(()=>{const el=$('#posNewPartI');if(el)el.focus();},120);
 }
 function posPoolChip(i,p,on){
-  return `<span class="gtag ${on?'on-tag':''}" style="cursor:pointer" onclick="posPoolToggle(${i},'${esc(p).replace(/'/g,"\\'")}')">${on?'✓ ':''}${esc(p)}</span>`;
+  return `<span class="gtag ${on?'on-tag':''}" style="cursor:pointer" onclick="posPoolToggle(${i},'${jq(p).replace(/'/g,"\\'")}')">${on?'✓ ':''}${esc(p)}</span>`;
 }
 function posRenderPool(i){
   const el=$('#posInclPool'); if(!el)return;
@@ -12857,8 +12867,8 @@ function openInvoicePreview(kind,id){
     </div>
     <button class="btn primary block" style="margin-bottom:8px" onclick="closeSheet();waInvoice('${kind}','${id}')">💬 ${t('inv_wa_img')}</button>
     <button class="btn ghost block" style="margin-bottom:8px" onclick="printInvoice('${kind}','${id}')">🖨️ ${t('print')}</button>
-    ${due>0?`<button class="btn primary block" style="margin-bottom:8px" onclick="sendQRToCustomer(${due},'${esc(inv.no)}','${esc(rec.phone||'')}','${esc(rec.customerName||'')}')">📤 ${t('qr_send_cust')}</button>
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="paymentQR(${due},'${esc(inv.no)}','${esc(rec.customerName||'')}')">💳 ${t('qr_for_due')}</button>`:''}
+    ${due>0?`<button class="btn primary block" style="margin-bottom:8px" onclick="sendQRToCustomer(${due},'${jq(inv.no)}','${jq(rec.phone||'')}','${jq(rec.customerName||'')}')">📤 ${t('qr_send_cust')}</button>
+    <button class="btn ghost block" style="margin-bottom:8px" onclick="paymentQR(${due},'${jq(inv.no)}','${jq(rec.customerName||'')}')">💳 ${t('qr_for_due')}</button>`:''}
     <button class="btn ghost block" style="margin-bottom:8px" onclick="openInvoiceForm('${kind}','${id}')">✏️ ${t('edit')}</button>
     ${kind==='sale'?`<button class="btn danger block" style="margin-bottom:8px" onclick="delSale('${id}')">🗑️ ${t('delete')}</button>`:''}
     
@@ -13538,7 +13548,7 @@ function sampleFormRender(){
     <div class="section-h">${t('smp_size')}</div>
     <p class="hint" style="margin:0 0 6px">${t('smp_size_hint')}</p>
     <div class="gtags" style="margin-bottom:12px">${sizes.map(z=>
-      `<span class="gtag ${(d.sizes||[]).includes(z)?'on-tag':''}" style="cursor:pointer" onclick="smpSizeTog('${esc(z)}')">${esc(z)}</span>`).join('')}</div>
+      `<span class="gtag ${(d.sizes||[]).includes(z)?'on-tag':''}" style="cursor:pointer" onclick="smpSizeTog('${jq(z)}')">${esc(z)}</span>`).join('')}</div>
 
     <div class="section-h">📷 ${t('smp_photos')}</div>
     <p class="hint" style="margin:0 0 6px">${t('smp_photo_hint')}</p>
@@ -13668,8 +13678,8 @@ function sampleDetail(id){
       return `<div class="il"><span><b>${esc(z)}</b> <span class="pill ${st==='sold'?'st-delivered':(st==='stock'?'st-ready':'st-stitching')}">${t('smp_st_'+st)}</span>
         ${st==='sold'&&p.amt?`<span class="hint"> · ${money(p.amt)}</span>`:''}</span>
         <span style="display:flex;gap:6px">
-          ${st==='making'?`<button class="btn sm ghost" onclick="smpToStock('${s.id}','${esc(z)}')">📦 ${t('smp_to_stock')}</button>`:''}
-          ${st==='stock'?`<button class="btn sm ghost" onclick="smpMarkSold('${s.id}','${esc(z)}')">✅ ${t('smp_sold')}</button>`:''}
+          ${st==='making'?`<button class="btn sm ghost" onclick="smpToStock('${s.id}','${jq(z)}')">📦 ${t('smp_to_stock')}</button>`:''}
+          ${st==='stock'?`<button class="btn sm ghost" onclick="smpMarkSold('${s.id}','${jq(z)}')">✅ ${t('smp_sold')}</button>`:''}
         </span></div>`;}).join('')}
 
     <div class="section-h" style="margin-top:14px">${t('smp_cost')}</div>
@@ -14177,7 +14187,7 @@ function puSupSug(){
   if(q&&list.length===1&&list[0].name.toLowerCase()===q){box.innerHTML='';return;}
   box.innerHTML=sugHead('saved_suppliers','puNewSupplier()')
     +(list.length?list.map(x=>{const b=supBalance(x.name);
-    return `<div class="cust-result" style="margin-top:7px" onclick="puPickSup('${esc(x.name).replace(/'/g,"\\'")}')">
+    return `<div class="cust-result" style="margin-top:7px" onclick="puPickSup('${jq(x.name).replace(/'/g,"\\'")}')">
       <div><b>${esc(x.name)}</b><div class="hint">${esc(x.phone||'')}${b?` · ${balArrow(-b)}`:''}</div></div>
       <span class="btn sm primary">${t('select')}</span></div>`;}).join('')
       :`<p class="hint" style="margin:6px 0 0">${q?t('sup_none_q'):t('sup_none')}</p>`);
@@ -15409,7 +15419,7 @@ function renderReports(){
   const debRows=debtors.map(d=>`<div class="card" style="padding:10px 12px;display:flex;justify-content:space-between;align-items:center">
     <div><b>${esc(d.name)}</b><div class="hint">${esc(d.phone||'')} · ${d.count} ${t('rp_items')}</div></div>
     <div style="display:flex;align-items:center;gap:10px"><b style="color:var(--saffron2);font-size:16px">${money(r2(d.total))}</b>
-    ${d.phone?`<button class="btn sm ghost" onclick="event.stopPropagation();waSend('${esc(d.phone)}','Namaste ${esc(d.name)} ji 🙏\\n\\nAapka ${money(r2(d.total))} balance pending hai PARAMPARA me. Kripya jald se jald clear karein. Dhanyawad!')">💬</button>`:''}</div></div>`).join('');
+    ${d.phone?`<button class="btn sm ghost" onclick="event.stopPropagation();waSend('${jq(d.phone)}','Namaste ${esc(d.name)} ji 🙏\\n\\nAapka ${money(r2(d.total))} balance pending hai PARAMPARA me. Kripya jald se jald clear karein. Dhanyawad!')">💬</button>`:''}</div></div>`).join('');
 
   /* purchases in period */
   const purch=(DB.purchases||[]).filter(p=>{const d=String(p.date||'');return d>=from&&d<=to;}).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
@@ -16168,7 +16178,7 @@ function kiDetailHTML(x,kid,mode){
   const meas=cols.map(col=>`<div class="ki-m"><label>${esc(col.n)}</label>
       <input value="${esc(v[col.k]||'')}" placeholder="—" inputmode="${col.type==='text'?'text':'decimal'}"
         class="mInput" data-g="${esc(gid)}" data-k="${esc(col.k)}"
-        onchange="kiMeasSet('${o.id}','${esc(gid)}','${esc(col.k)}',this.value)"
+        onchange="kiMeasSet('${o.id}','${jq(gid)}','${jq(col.k)}',this.value)"
         onkeydown="if(event.key==='Enter'){measStep(event,1)}"></div>`).join('');
   const dn=(o.design&&o.design[gid])?`<div class="hint" style="margin-top:8px">✎ ${esc(o.design[gid])}</div>`:'';
   const rate=karRateFor(o,gid);
@@ -16178,7 +16188,7 @@ function kiDetailHTML(x,kid,mode){
     <div class="row" style="margin-top:10px;gap:8px;align-items:center">
       <span class="hint" style="flex:1">💰 ${t('kb_his_rate')}</span>
       <input type="number" inputmode="numeric" value="${esc(rate||'')}" placeholder="0"
-        onchange="setItemKarAmt('${o.id}','${esc(gid)}',this.value)" style="width:110px;text-align:right;margin:0"></div>
+        onchange="setItemKarAmt('${o.id}','${jq(gid)}',this.value)" style="width:110px;text-align:right;margin:0"></div>
     <div class="row" style="margin-top:8px;gap:8px;align-items:center">
       <span class="hint" style="flex:1">📅 ${t('inv_delivery')}</span>
       <input type="date" value="${esc(o.deliveryDate||'')}"
@@ -16220,20 +16230,20 @@ function kiRow(x,kid,inGroup,mode){
   const col = dl===null?'' : late?'color:var(--bad)' : dl===0?'color:var(--saffron2)':'';
   if(inGroup)return `<div style="border-top:1px solid var(--line)">
     <div style="display:flex;align-items:center;gap:10px;padding:9px 12px">
-      <input type="checkbox" ${on?'checked':''} onchange="kiToggle('${esc(key)}')" style="width:22px;height:22px;flex:0 0 auto">
-      <span style="flex:1;min-width:0" onclick="kiToggle('${esc(key)}');this.parentElement.querySelector('input').checked=_kiSel.has('${esc(key)}')">
+      <input type="checkbox" ${on?'checked':''} onchange="kiToggle('${jq(key)}')" style="width:22px;height:22px;flex:0 0 auto">
+      <span style="flex:1;min-width:0" onclick="kiToggle('${jq(key)}');this.parentElement.querySelector('input').checked=_kiSel.has('${jq(key)}')">
         <b>${x.g.ico} ${esc(x.g.n)}</b>${kiUrgTag(x)}${kiPrevTag(x)}</span>
-      <button class="btn sm ghost ic-btn" onclick="kiItemToggle('${esc(key)}','${kid}','${mode||'give'}')">${_op?'▴':'▾'}</button></div>
+      <button class="btn sm ghost ic-btn" onclick="kiItemToggle('${jq(key)}','${kid}','${mode||'give'}')">${_op?'▴':'▾'}</button></div>
     ${_op?kiDetailHTML(x,kid,mode||'give'):''}</div>`;
   return `<div class="cust-result" style="margin-bottom:6px;flex-direction:column;align-items:stretch;${on?'border-color:var(--saffron)':''}">
     <div style="display:flex;align-items:center;gap:10px">
-      <input type="checkbox" ${on?'checked':''} onchange="kiToggle('${esc(key)}')" style="width:22px;height:22px;flex:0 0 auto">
-      <div style="flex:1;min-width:0" onclick="kiToggle('${esc(key)}');this.parentElement.querySelector('input').checked=_kiSel.has('${esc(key)}')">
+      <input type="checkbox" ${on?'checked':''} onchange="kiToggle('${jq(key)}')" style="width:22px;height:22px;flex:0 0 auto">
+      <div style="flex:1;min-width:0" onclick="kiToggle('${jq(key)}');this.parentElement.querySelector('input').checked=_kiSel.has('${jq(key)}')">
         <b>${x.g.ico} ${esc(x.g.n)}</b>${kiUrgTag(x)}${kiPrevTag(x)}
         <div class="hint">#${esc(memberOno(x.o,memberOf(x.gid))||x.o.orderNo||'—')}
           · <span style="${col}">${fmtDate(x.o.deliveryDate)}${late?' · '+Math.abs(dl)+'d '+t('late'):''}</span></div>
       </div>
-      <button class="btn sm ghost ic-btn" onclick="kiItemToggle('${esc(key)}','${kid}','${mode||'give'}')">${_op?'▴':'▾'}</button></div>
+      <button class="btn sm ghost ic-btn" onclick="kiItemToggle('${jq(key)}','${kid}','${mode||'give'}')">${_op?'▴':'▾'}</button></div>
     ${_op?kiDetailHTML(x,kid,mode||'give'):''}</div>`;
 }
 function kiToggle(key){ if(_kiSel.has(key))_kiSel.delete(key); else _kiSel.add(key);
@@ -16404,7 +16414,7 @@ function karMaster(kid){
   const spec=(k.specialties||[]).map(id=>{const g=G(id);return g?(g.ico||'')+' '+g.n:'';}).filter(Boolean);
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:2px"><h2 style="margin:0">👷 ${esc(k.name)}</h2>
-      ${k.phone?`<button class="btn sm ghost" onclick="callNum('${esc(k.phone)}')">📞</button>`:''}</div>
+      ${k.phone?`<button class="btn sm ghost" onclick="callNum('${jq(k.phone)}')">📞</button>`:''}</div>
     <p class="hint">${esc(k.phone||'')}</p>
     ${spec.length?`<div class="gtags" style="margin-top:8px">${spec.map(x=>`<span class="gtag">${esc(x)}</span>`).join('')}</div>`:''}
 
@@ -16454,7 +16464,7 @@ function karSettle(kid,from,to){
       <span class="ks-lbl"><b>${esc(j.label)}</b>
         <div class="hint">${fmtDate(j.date)}${j.who?' · '+esc(j.who):''}</div></span>
       <input class="ks-rate" inputmode="numeric" value="${j.amt||''}" placeholder="0"
-        onchange="karRateSet('${kid}','${j.kind}','${j.id}','${esc(j.gid)}',${j.leg},this.value)"></div>`;
+        onchange="karRateSet('${kid}','${j.kind}','${j.id}','${jq(j.gid)}',${j.leg},this.value)"></div>`;
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">🧾 ${esc(k.name)}</h2>
       <button class="btn sm ghost" onclick="settleDay()" title="Back">←</button></div>
@@ -16477,7 +16487,7 @@ function karSettle(kid,from,to){
       <div class="il" style="border-bottom:0"><span><b>${t('ks_net')}</b></span>
         <b style="font-size:20px;color:${due>0.5?'var(--bad)':'var(--ok)'}">${money(Math.max(0,due))}</b></div></div>
     ${due>0.5?`<button class="btn primary block" onclick="karPayEntry('${kid}')">💰 ${t('kb_pay')} ${money(due)}</button>`:''}
-    <button class="btn ghost block" style="margin-top:8px" onclick="waSend('${esc(k.phone||'')}',karSettleText('${kid}'))">💬 ${t('ks_send')}</button>
+    <button class="btn ghost block" style="margin-top:8px" onclick="waSend('${jq(k.phone||'')}',karSettleText('${kid}'))">💬 ${t('ks_send')}</button>
     <p class="hint" style="margin-top:10px">${t('ks_note')}</p>
     <div class="modal-actions"><button class="btn ghost block" onclick="settleDay()">${t('back')}</button></div>
     <div class="fab-pad"></div>`;
@@ -16747,7 +16757,7 @@ function karigarLedger(kid,tab){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:2px">
       <h2 style="margin:0">👷 ${esc(k.name)}</h2>
-      ${k.phone?`<button class="btn sm ghost" onclick="callNum('${esc(k.phone)}')">📞</button>`:''}</div>
+      ${k.phone?`<button class="btn sm ghost" onclick="callNum('${jq(k.phone)}')">📞</button>`:''}</div>
     <p class="hint">${esc(k.phone||'')}</p>
     <div class="card pos-total" style="margin:10px 0 0;padding:12px 14px">
       <div class="il"><span>${t('kb_earned')}</span><b>${money(earned)}</b></div>
@@ -17229,7 +17239,7 @@ function imRender(){
   sheetAt(imRender);
   const d=_imDraft;
   const chips=(DB.inclLib||[]).map(p=>{const on=d.incl.includes(p);
-    return `<span class="gtag" onclick="imTogglePart('${esc(p).replace(/'/g,"\\'")}')" style="cursor:pointer;${on?'background:var(--saffron);color:#1a1206;border-color:var(--saffron)':''}">${on?'✓ ':''}${esc(p)}</span>`;}).join('');
+    return `<span class="gtag" onclick="imTogglePart('${jq(p).replace(/'/g,"\\'")}')" style="cursor:pointer;${on?'background:var(--saffron);color:#1a1206;border-color:var(--saffron)':''}">${on?'✓ ':''}${esc(p)}</span>`;}).join('');
   $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${d.id?t('edit'):t('add_item_master')}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     <div class="field"><label>${t('im_name')} *</label><input id="im_name" value="${esc(d.name)}" placeholder="${t('im_name_ph')}"></div>
     <div class="row"><div class="field"><label>${t('im_hsn')}</label><input id="im_hsn" value="${esc(d.hsn)}" placeholder="6203"></div>
@@ -17952,7 +17962,7 @@ function itemIconPick(gid){
   const cur=g.ico||'';
   const chips=ICO_CHOICES.map(ic=>
     `<span class="gtag ${ic===cur?'on-tag':''}" style="cursor:pointer;font-size:20px;padding:6px 10px"
-       onclick="itemIconSet('${esc(gid)}','${ic}')">${ic}</span>`).join('');
+       onclick="itemIconSet('${jq(gid)}','${ic}')">${ic}</span>`).join('');
   modal(t('it_icon_pick')+' — '+esc(g.n),
     `<div class="gtags">${chips}</div>
      <div class="field" style="margin:12px 0 0"><label>${t('it_icon_own')}</label>
@@ -19194,6 +19204,38 @@ $('#mscrim').addEventListener('click',e=>{if(e.target===$('#mscrim'))closeModal(
    back one page instead of leaping to Home. The order form keeps its own step logic and
    is asked first. */
 let _sheetStack=[], _sheetCur=null;
+
+/* v244 — AUDIT FINDING: every re-render of a sheet threw him back to the top.
+   The order form was protected (it captures _sheetScroll before each redraw), but nothing
+   else was. renderInvoiceForm redraws itself in 27 places, expRender in 21, purchase in 8,
+   alteration in 6 — so on a Sale bill, adding the fourth item scrolled the screen back to
+   the customer name and he had to hunt his way down again for the fifth. Same on Expenses
+   and Purchase. Rather than patch sixty-odd call sites, the sheet's own innerHTML is
+   wrapped once, here: it remembers where the page was standing and puts it back ONLY when
+   the same screen is redrawing itself. Screen identity is its <h2> heading, so opening a
+   DIFFERENT screen still starts at the top, which is what he expects. Anything that wants
+   the top on purpose (ordStage sets scrollTop=0 after its redraw) still wins, because it
+   runs after this. */
+let _shTitle='';
+function _shT(v){
+  const m=/<h[23][^>]*>([\s\S]{0,160}?)<\/h[23]>/.exec(String(v||''));
+  return m?m[1].replace(/<[^>]*>/g,'').trim():'';
+}
+(function(){
+  try{
+    const sh=document.getElementById('sheet'); if(!sh)return;
+    const d=Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML');
+    if(!d||!d.set||!d.get)return;
+    Object.defineProperty(sh,'innerHTML',{configurable:true,
+      get(){ return d.get.call(sh); },
+      set(v){
+        const top=sh.scrollTop, prev=_shTitle, nt=_shT(v);
+        d.set.call(sh,v);
+        _shTitle=nt;
+        if(top>0 && nt && prev===nt){ try{ sh.scrollTop=top; }catch(e){} }
+      }});
+  }catch(e){}
+})();
 function sheetAt(fn){
   if(typeof fn!=='function')return;
   if(_sheetCur && _sheetCur!==fn)_sheetStack.push(_sheetCur);
