@@ -727,7 +727,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v249</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v250</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1404,6 +1404,7 @@ const T={
   pty_open_saved:'Opening saved', pty_open_removed:'Opening removed', pty_settle_saved:'Payment recorded',
   pty_too_much:'That is more than the {a} still open',
   pty_kind:'As what', pty_no_open_yet:'Enter what he owed, or what you owed him, on the starting day',
+  inv_preview:'Bill preview', inv_prev_print:'Print / PDF', pos_added:'Added to bill',
   rp_money_in:'In', rp_money_out:'Out', rp_balance:'Balance',
   rp_exp_of_sales:'Of net sales', rp_of_total:'of all expenses',
   rp_pl_note:'This counts what was billed and spent in this period — not what was received. Cash is not profit.',
@@ -2740,6 +2741,7 @@ const T={
   pty_open_saved:'शुरुआती बकाया सेव हुआ', pty_open_removed:'शुरुआती बकाया हटा', pty_settle_saved:'भुगतान दर्ज हुआ',
   pty_too_much:'यह बचे हुए {a} से ज्यादा है',
   pty_kind:'किस रूप में', pty_no_open_yet:'शुरुआत के दिन उसका कितना बाकी था, वही लिखिए',
+  inv_preview:'बिल का प्रीव्यू', inv_prev_print:'प्रिंट / PDF', pos_added:'बिल में जुड़ा',
   rp_money_in:'In', rp_money_out:'Out', rp_balance:'Balance',
   rp_exp_of_sales:'Of Net Sales', rp_of_total:'of total expenses',
   rp_pl_note:'यह इस अवधि में जो बिल हुआ और जो ख़र्च हुआ, उसका हिसाब है — जो पैसा मिला उसका नहीं। नकद और मुनाफ़ा एक चीज़ नहीं।',
@@ -9941,7 +9943,19 @@ function renderForm(){
       ${measCardHTML(f,_openItem)}
       <div class="fab-pad"></div>`;
     _sheetFull=true; showSheet(); bindMeasInputs(); bindDraftAutosave();
-    if(_vmOn)setTimeout(()=>vmFocus(null),60);   // v190: keep the live box lit across renders
+    /* v250 — HIS 22 Aug, and this ONE line caused all three of his voice complaints:
+       "field bhi bolna pad raha tha measurement ke saath", "cursor sahi jagah nahi aa raha
+       tha", "measurement bharne ke turant baad next field me jana chahiye tha".
+       vmFocus(null) means "put the live box on the FIRST field of the card". It was being
+       fired 60ms after every single redraw — and vmHandle redraws after every number it
+       writes. So the true order of events was: write the value, vmFocus(k) correctly steps
+       the live box forward, then 60ms later THIS line drags it back to field one. Every
+       time. The live box therefore sat on Length permanently, a bare number would have
+       overwritten Length again, and the only way to reach any other field was to say its
+       name out loud — exactly what he described.
+       A redraw must RE-LIGHT the box that is already live, never choose a new one.
+       vmFocus(null) is now the fallback for when nothing is live yet. */
+    if(_vmOn)setTimeout(()=>{ if(_vmField)vmLight(_vmField); else vmFocus(null); },60);
     renderItemPhotos(_openItem); bindVoice('iv_'+cssId(_openItem),()=>itemVoiceList(_openItem),null);
     return;
   }
@@ -11007,7 +11021,11 @@ function vmHandle(txt){
       if(i>=0 && i<cols.length-1){ _vmField=cols[i+1]; vmLight(_vmField); vmSpeak(vmFieldName(g0,_vmField)); return; }
     }
     const n=walkNext(form,_vmKey);
-    if(n){ _vmKey=n; ordStage(2,n); vmSpeak(t('vm_next')); }
+    /* v250: _vmField still held the LAST field of the piece he just left. On the next
+       piece that field often does not exist at all (a shirt has no waist-seat), so a bare
+       number had no home and was refused — the second reason he had to keep saying field
+       names. Clearing it makes the redraw light the first field of the new card. */
+    if(n){ _vmKey=n; _vmField=null; ordStage(2,n); vmSpeak(t('vm_next')); }
     else {
       /* v218 — HIS 18 Aug: "agar koi last field hai per vo zaroori nahi hai to bhi use
          skip karne ka option nahi hai." Skipping the last one had nowhere to go, so it
@@ -11080,7 +11098,13 @@ function vmHandle(txt){
   /* v193: remember which numbers looked odd, so the card can mark them without arguing */
   f.mFlag=f.mFlag||{}; f.mFlag[key]=f.mFlag[key]||{};
   if(outOfRange)f.mFlag[key][k]=1; else delete f.mFlag[key][k];
-  renderForm(); save(); saveDraft();
+  /* v250 — HIS 22 Aug: "bahut slow raha hai." save() flushes the WHOLE database, and it
+     was being called for every number he spoke. On a new order there is nothing of this
+     order in the database yet, so that flush wrote 1,266 fabric rolls and every customer
+     to disk to record a chest measurement that only lives in `form`. The draft still
+     saves every time — that is the crash protection and it is small. The full flush now
+     runs only when he is editing an order that really is in the books. */
+  renderForm(); if(f.editId)save(); saveDraft();
   /* v193 — HIS 14 Aug: "automated voice thoda friendly language me ho sakta hai kya,
      thoda human type bhi lage." It read out a whole sentence for every value. A man
      calling measurements across a shop says the number and nothing else. */
@@ -11088,7 +11112,8 @@ function vmHandle(txt){
   if(outOfRange) toast('⚠️ '+val+' — '+t('ms_flag'),'bad');
   vmFocus(k);                             // v190: hands-free — move on so the next word needs no field name
   if(vmAllFilled(f,key)){ const n=walkNext(f,key);
-    if(n){ _vmKey=n; setTimeout(()=>{ordStage(2,n); vmSpeak(t('vm_next'));},120); }   // v191: was 400ms
+    if(n){ _vmKey=n; _vmField=null;                                   /* v250: see above */
+      setTimeout(()=>{ordStage(2,n); vmSpeak(t('vm_next'));},120); }   // v191: was 400ms
     else vmSpeak(t('vm_done')); }
 }
 /* v190 — HANDS-FREE. One boy holds the tape and talks; nobody should have to type or tap.
@@ -12548,6 +12573,13 @@ function posPushItem(o){
   invForm.items=(invForm.items||[]).filter(it=>it.label||+it.rate);
   invForm.items.push(Object.assign({masterId:'',label:'',hsn:'',qty:1,unit:'Pcs',rate:'',price:'',disc:0,incl:[],includes:''},o));
   posRefresh();
+  /* v250 — HIS 22 Aug: "shirt add kiya, add button click kar diya, per pata hi nahi chala
+     ki add ho gaya ki nahi." posAdd() said so with a toast; this path — the one every
+     typed item, custom line and size pick goes through — said nothing at all. The line did
+     land on the bill, but below the fold, so from where he was standing the tap had simply
+     done nothing. Every way of adding an item now answers back the same way. */
+  const it=invForm.items[invForm.items.length-1]||{};
+  toast('\u2795 '+(String(it.label||'').trim()||t('pos_added'))+' \u00B7 '+t('rp_items')+' '+invForm.items.length,'ok');
   posFocusLine(invForm.items.length-1);
 }
 /* Put the caret where the next keystroke belongs on the line just added. */
@@ -12955,9 +12987,36 @@ function previewInvoice(){
       payments:pays});
   }
   const html=buildInvoiceHTML(previewRec,tempInv);
-  const win=window.open('','_blank');
-  if(win){win.document.write(html);win.document.close();}
-  else{toast(t('t_popup_blocked'),'bad');}
+  /* v250 — HIS 22 Aug: "bill ka preview ka option bhi nahi aata hai." The button was there
+     and it worked on a desktop, but it called window.open() — and Safari on the iPad and
+     Chrome on his phone block a new window unless the tap goes straight to it. His did not
+     (previewInvoice captures the form first), so the popup was refused and the screen just
+     sat there. Shown inside the app instead, where nothing can block it, with Print on the
+     same screen for anyone who wants paper or a PDF. */
+  _invPrevHTML=html;
+  const back=_sheetCur;
+  sheetAt(()=>{});
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:8px"><h2 style="margin:0">\u{1F441}\uFE0F ${t('inv_preview')}</h2>
+      <button class="btn sm ghost" onclick="invPrevBack()">\u2715</button></div>
+    <div style="background:#fff;border-radius:10px;overflow:hidden">
+      <iframe id="invPrevFrame" style="width:100%;height:62vh;border:0;background:#fff"></iframe></div>
+    <div class="modal-actions" style="margin-top:10px">
+      <button class="btn ghost" style="flex:1" onclick="invPrevBack()">${t('back')}</button>
+      <button class="btn primary" style="flex:1" onclick="invPrevPrint()">\u{1F5A8}\uFE0F ${t('inv_prev_print')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+  _invPrevBack=back;
+  setTimeout(()=>{ const fr=$('#invPrevFrame'); if(!fr)return;
+    try{ const d=fr.contentWindow.document; d.open(); d.write(_invPrevHTML); d.close(); }catch(e){}
+  },60);
+}
+let _invPrevHTML='', _invPrevBack=null;
+function invPrevBack(){ _sheetCur=null; renderInvoiceForm(); }
+function invPrevPrint(){
+  const fr=$('#invPrevFrame');
+  try{ fr.contentWindow.focus(); fr.contentWindow.print(); }
+  catch(e){ toast(t('t_popup_blocked'),'bad'); }
 }
 function captureInvoiceForm(){const f=invForm;
   if($('#inv_no'))f.no=$('#inv_no').value.trim();
