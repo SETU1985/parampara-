@@ -727,7 +727,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v237</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v243</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -756,7 +756,7 @@
   <button class="on" id="nav-home" onclick="go('home')"><span class="nico">🏠</span><span data-t="nav_home"></span></button>
   <button id="nav-orders" onclick="navQuick('orders')"><span class="nico">📋</span><span data-t="nav_orders"></span></button>
   <button class="add" onclick="quickAdd()"><span class="nico">+</span></button>
-  <button id="nav-invoices" onclick="navQuick('invoices')" class="simple-hide mod-billing"><span class="nico">🧾</span><span data-t="nav_sale"></span></button>
+  <button id="nav-invoices" onclick="navQuick('reports')" class="simple-hide mod-billing"><span class="nico">📊</span><span data-t="reports"></span></button>
   <button id="nav-menu" onclick="menuHome()"><span class="nico">☰</span><span data-t="menu_all"></span></button>
 </nav>
 <button id="railToggle" onclick="toggleRail()" title="Show / hide the sidebar">‹</button>
@@ -937,7 +937,10 @@ const T={
   draft_auto:'This bill saves itself — leave and come back anytime',
   draft_restored:'Restored your unfinished bill',
   dft_back:'↩️ Back where you left off',
-  pur_billed:'Billed items',
+  pur_billed:'Billed items', pur_draft_del:'Discard this bill',
+  pur_rate0_q:'Rate is 0 — add this line with no value?',
+  pur_need_qty:'Qty likhiye — it is written on the bill',
+  pu_paid_first:'Paying now? Put the amount first — the mode appears with it',
   pur_total_qty:'Total qty',
   pur_subtotal:'Subtotal',
   draft_never:'Auto-save on — nothing will be lost',
@@ -1282,6 +1285,12 @@ const T={
   smp_photos:'Photos', smp_photo_hint:'Front, back and a close-up of the work. This is what the customer will point at.',
   smp_design:'Design note', smp_design_ph:'e.g. self-collar, dori work, 4 button…',
   smp_cloth:'Cloth', smp_thaan:'Roll', smp_meters:'Meters', smp_labour:'Labour',
+  th_pick_ph:'Serial, fabric or colour', th_pick_sub:'{n} rolls with cloth left',
+  date_lock:'Keep this date for the next bill', date_lock_x:'Keep this date for the next entry',
+  th_del_used:'Cloth has already been cut from this roll. Its serial will NOT be reused.',
+  th_del_free:'Nothing was cut from this roll — undo brings the serial back too.',
+
+  th_none:'Nothing matches — try the serial number',
   smp_target:'Ready by', smp_target_hint:'A loose target — nothing is promised to a customer, so this never shows as overdue.',
   smp_sell:'Selling price', smp_sell_hint:'Can be filled in later, when it goes on the rack.',
   smp_cost:'Cost', smp_margin:'Margin', smp_need_item:'Pick which garment this is',
@@ -1844,6 +1853,9 @@ const T={
   mod_sub:'Switch on only what you use. Nothing is deleted when you switch a part off.',
   mod_saved:'Modules updated',
   bk_never:'No backup taken yet — your data lives only on this device',
+  kpi_cash:'Cash + Bank', kpi_due_today:'Due today', kpi_debtors:'To collect', kpi_today_sale:'Today\'s sale',
+  qr_payin:'Payment in', qr_exp:'Expense', qr_status:'Status',
+  home_classic:'Old home', home_new_view:'New home',
   bk_daily:'Backup — data + new photos',
   bk_daily_note:'Full data every time, plus only the photos that have never been backed up. Small and quick.',
   bk_fresh_n:'{n} photos not yet backed up',
@@ -2242,7 +2254,10 @@ const T={
   draft_auto:'यह बिल अपने-आप सेव होता रहता है — कभी भी बाहर जाकर वापस आएँ',
   draft_restored:'आपका अधूरा बिल वापस आ गया',
   dft_back:'↩️ जहाँ छोड़ा था वहीं से',
-  pur_billed:'बिल के आइटम',
+  pur_billed:'बिल के आइटम', pur_draft_del:'यह बिल मिटाएँ',
+  pur_rate0_q:'रेट 0 है — बिना क़ीमत की लाइन जोड़ें?',
+  pur_need_qty:'मात्रा लिखिए — बिल पर लिखी होती है',
+  pu_paid_first:'अभी भुगतान करना है? पहले रकम डालिए — मोड उसी के साथ दिखेगा',
   pur_total_qty:'कुल मात्रा',
   pur_subtotal:'सबटोटल',
   draft_never:'ऑटो-सेव चालू — कुछ नहीं खोएगा',
@@ -2587,6 +2602,12 @@ const T={
   smp_photos:'फ़ोटो', smp_photo_hint:'आगे, पीछे और काम का क्लोज़-अप। ग्राहक इसी पर उँगली रखेगा।',
   smp_design:'डिज़ाइन नोट', smp_design_ph:'जैसे सेल्फ़ कॉलर, दोरी वर्क, 4 बटन…',
   smp_cloth:'कपड़ा', smp_thaan:'थान', smp_meters:'मीटर', smp_labour:'मजूरी',
+  th_pick_ph:'सीरियल, कपड़ा या रंग', th_pick_sub:'{n} थान जिनमें कपड़ा बचा है',
+  date_lock:'अगले बिल के लिए यही तारीख़ रखें', date_lock_x:'अगली एंट्री के लिए यही तारीख़ रखें',
+  th_del_used:'इस थान से कपड़ा कट चुका है। इसका सीरियल दोबारा किसी को नहीं मिलेगा।',
+  th_del_free:'इस थान से कुछ नहीं कटा — वापस लाने पर सीरियल भी लौट आएगा।',
+
+  th_none:'कुछ नहीं मिला — सीरियल नंबर से देखिए',
   smp_target:'कब तक', smp_target_hint:'बस एक अंदाज़ा — ग्राहक से वादा नहीं है, इसलिए ये कभी ओवरड्यू नहीं दिखेगा।',
   smp_sell:'बेचने का दाम', smp_sell_hint:'बाद में भी भर सकते हैं, जब रैक पर जाए।',
   smp_cost:'लागत', smp_margin:'बचत', smp_need_item:'कौन सा कपड़ा है, ये चुनिए',
@@ -3148,6 +3169,9 @@ const T={
   mod_sub:'जो इस्तेमाल करते हैं वही चालू रखें। बंद करने से कुछ मिटता नहीं है।',
   mod_saved:'मॉड्यूल अपडेट हुए',
   bk_never:'अभी तक बैकअप नहीं लिया — डेटा सिर्फ़ इसी डिवाइस में है',
+  kpi_cash:'कैश + बैंक', kpi_due_today:'आज देना है', kpi_debtors:'वसूली बाकी', kpi_today_sale:'आज की बिक्री',
+  qr_payin:'पैसा आया', qr_exp:'ख़र्च', qr_status:'स्टेटस',
+  home_classic:'पुराना होम', home_new_view:'नया होम',
   bk_daily:'बैकअप — डेटा + नई फ़ोटो',
   bk_daily_note:'पूरा डेटा हर बार, और सिर्फ़ वो फ़ोटो जो कभी बैकअप में नहीं गईं। छोटी फ़ाइल, झट से।',
   bk_fresh_n:'{n} फ़ोटो अभी बैकअप में नहीं गईं',
@@ -4466,7 +4490,8 @@ function thaanRender(){
     <div class="modal-actions"><button class="btn ghost" onclick="stockHome('fabric')">${t('cancel')}</button>
       <button class="btn primary" onclick="thaanSave()">${t('save')}</button></div>
     <div class="fab-pad"></div>`;
-  showSheet(); renderThaanPhotos();
+  showSheet();
+  fastForm('#sheet',{onLast:thaanSave}); renderThaanPhotos();
 }
 function thaanCapture(){
   const d=_th; if(!d)return;
@@ -4598,12 +4623,59 @@ function bulkAddOne(){
   _bulk.entry={serial:'',mtr:'',rate:'',name:''}; _bulk.entryPhotos=[];
   bulkFabRefresh();
 }
+/* ═══ v242 — NOTHING IMPORTANT DIES SILENTLY ═══
+   HIS 21 Aug: "mujhe kai baar galti se bhi galti ho jaati hai... item delete kar diya to
+   serial number kyon wapas nahi aayega." Both fair, and the second one showed my rule was
+   too broad. A bill number is printed and handed to a customer — it can never come back.
+   A thaan serial is written on the cloth still sitting on the shelf — if the roll never
+   moved, that number belongs to it and must come back.
+   So: risky deletes now name what is going, keep it in a bin, and offer WAPAS LAO. And a
+   thaan that never moved gives its serial back when it is undeleted, because the number
+   on the cloth and the number in the app must agree. */
+function trashPut(kind,row,extra){
+  DB.trash=DB.trash||[];
+  DB.trash.unshift({id:uid(),kind,row:JSON.parse(JSON.stringify(row||{})),
+    extra:extra||null, at:new Date().toISOString()});
+  if(DB.trash.length>200)DB.trash.length=200;     // a bin, not an archive
+}
+function trashPop(tid){
+  DB.trash=DB.trash||[];
+  const i=DB.trash.findIndex(x=>x.id===tid); if(i<0)return null;
+  return DB.trash.splice(i,1)[0];
+}
+/* v242: the app already had undoOffer() — one action, one chance, seven seconds.
+   Risky deletes now go through it, with the bin holding the row until then. */
+function undoToast(msg,tid,fn){
+  undoOffer(msg, ()=>{ const rec=trashPop(tid); if(!rec)return; fn(rec); save(); });
+}
 function bulkDelAdded(id){
   const idx=(_bulk.added||[]).findIndex(a=>a.id===id); if(idx<0)return;
-  DB.thaans=(DB.thaans||[]).filter(x=>x.id!==id);
-  DB.moves=(DB.moves||[]).filter(m=>m.thaanId!==id);
-  _bulk.added.splice(idx,1); save();
-  const w=$('#bfAddedWrap'); if(w)w.innerHTML=bulkAddedHTML();
+  const th=(DB.thaans||[]).find(x=>x.id===id);
+  const mv=(DB.moves||[]).filter(m=>m.thaanId===id);
+  const used=mv.some(m=>(+m.mtr||0)!==0 && m.kind!=='in');
+  const f=th?(FI(th.fabId)||{}):{};
+  const label=th?('#'+(th.serial||'')+' '+(f.name||'')+' · '+(th.mtr||0)+'m'):'';
+  confirmModal('🗑️ '+t('confirm_del'),
+    label+(used?'<br><br>⚠️ '+t('th_del_used'):'<br><br>'+t('th_del_free')),
+    ()=>{
+      closeModal();
+      const snap={th:th?JSON.parse(JSON.stringify(th)):null, moves:JSON.parse(JSON.stringify(mv)),
+                  bulkIdx:idx, bulkRow:JSON.parse(JSON.stringify(_bulk.added[idx]||{}))};
+      trashPut('thaan',snap);
+      const tid=DB.trash[0].id;
+      DB.thaans=(DB.thaans||[]).filter(x=>x.id!==id);
+      DB.moves=(DB.moves||[]).filter(m=>m.thaanId!==id);
+      _bulk.added.splice(idx,1); save();
+      const w=$('#bfAddedWrap'); if(w)w.innerHTML=bulkAddedHTML();
+      undoToast('🗑️ '+label, tid, rec=>{
+        const r=rec.row;
+        if(r.th)(DB.thaans=DB.thaans||[]).push(r.th);      // serial comes back with it
+        (r.moves||[]).forEach(m=>(DB.moves=DB.moves||[]).push(m));
+        _bulk.added.splice(Math.min(r.bulkIdx,_bulk.added.length),0,r.bulkRow);
+        const w2=$('#bfAddedWrap'); if(w2)w2.innerHTML=bulkAddedHTML();
+      });
+    },
+    ()=>closeModal(), {yes:t('delete'), no:t('cancel'), cls:'bad'});
 }
 /* Next serial = carry the last one forward, keeping its prefix and zero padding.
    "001"->"002", "MFS937"->"MFS938". Falls back to 001 on a fresh shop. */
@@ -5934,9 +6006,13 @@ function expenses(keepQ){
     <p class="hint" style="margin-bottom:12px">${t('exp_sub')}</p>
     <div class="row" style="margin-bottom:12px">
       <div class="field" style="margin:0"><label>${t('rp_from')}</label>
-        <input type="date" value="${from}" onchange="_expFrom=this.value;expenses()"></div>
+        ${/* v240 — HIS 21 Aug: "date ka range gayab ho gaya." My v233 reset wiped the range
+             the moment he picked one: choosing a date re-rendered the screen and the
+             re-render put the month back. Opening fresh still resets — that was the v233
+             point — but a range he just chose now holds. */''}
+        <input type="date" value="${from}" onchange="_expFrom=this.value;expenses(true)"></div>
       <div class="field" style="margin:0"><label>${t('rp_to')}</label>
-        <input type="date" value="${to}" onchange="_expTo=this.value;expenses()"></div></div>
+        <input type="date" value="${to}" onchange="_expTo=this.value;expenses(true)"></div></div>
     <button class="btn primary block" style="margin-bottom:10px" onclick="expEdit()">➕ ${t('exp_add')}</button>
     <input id="expQ" value="${esc(_expQ)}" placeholder="🔍 ${t('exp_search_ph')}"
       autocomplete="off" oninput="expSearch(this.value)" style="margin-bottom:10px">
@@ -6028,7 +6104,7 @@ function expMLRowsHTML(){
   </div>`;
 }
 function expEdit(id){
-  _expWantName=false; _expMLOn=false; _expML=[];
+  _expWantName=false; _expMLOn=false; _expML=[]; _expCatQ='';
   const ex=id?(DB.ledger||[]).find(l=>l.id===id):null;
   _exp = ex ? {...ex, photos:[...(ex.photos||[])]}
             : {id:null,dir:'out',date:todayISO(),amt:'',acc:(cashAcc()||{}).id,cat:'',note:'',photos:[]};
@@ -6041,24 +6117,43 @@ function expRender(){
      kya bahar dikhna hai kya nahi iska option hona chahiye." A head he uses twice a year
      should not cost him a screenful every single day. Long-press any head to park it;
      parked ones live behind "+N more" and come back the same way. Nothing is deleted. */
-  DB.expHide=DB.expHide||{};
+  /* v240 — HIS 21 Aug screenshot, twenty-two chips deep: "jarurat ke 5 heads bahar, baaki
+     dropdown me; mujhe shortcut me kya chahiye vo decide karne ka HAK hai." His right,
+     his call. Long-press any chip to 📌 pin it; the form then shows ONLY his pins. Until
+     he pins anything it shows the six he actually uses most, so the wall is gone from day
+     one. Everything else waits one tap behind "▾ N और", and the Head box on top is now a
+     live search across every head — the use it never had. */
+  DB.expPin=DB.expPin||{}; DB.expHide=DB.expHide||{};
   const allCats=(DB.expCats||[]);
-  const hidden=allCats.filter(c=>DB.expHide[c] && c!==d.cat);
-  const shown=allCats.filter(c=>!DB.expHide[c] || c===d.cat);
+  const pinned=allCats.filter(c=>DB.expPin[c]);
+  let shown;
+  if(pinned.length)shown=pinned.slice();
+  else{
+    const cnt={};(DB.ledger||[]).forEach(l=>{ if(l.refKind==='expense'&&l.cat)cnt[l.cat]=(cnt[l.cat]||0)+1; });
+    shown=allCats.slice().sort((a,b)=>(cnt[b]||0)-(cnt[a]||0)).slice(0,6);
+  }
+  if(d.cat && shown.indexOf(d.cat)<0)shown=[d.cat,...shown];
+  const qf=String(_expCatQ||'').trim().toLowerCase();
+  if(qf)shown=allCats.filter(c=>String(c).toLowerCase().indexOf(qf)>=0);
+  const hidden=allCats.filter(c=>shown.indexOf(c)<0);
   const _q=c=>esc(c).replace(/'/g,"\\'");
-  const chips=(_expShowAll?allCats:shown).map(c=>`<span class="gtag ${d.cat===c?'on-tag':''}" style="cursor:pointer"
+  const chips=((_expShowAll&&!qf)?allCats:shown).map(c=>`<span class="gtag ${d.cat===c?'on-tag':''}" style="cursor:pointer"
       onclick="expPickCat('${_q(c)}')"
       oncontextmenu="event.preventDefault();expToggleHide('${_q(c)}');return false;"
       ontouchstart="expHeadHold('${_q(c)}')" ontouchend="expHeadHoldEnd()"
       ontouchmove="expHeadHoldEnd()" ontouchcancel="expHeadHoldEnd()"
-      >${DB.expHide[c]?'🙈 ':''}${esc(c)}</span>`).join('')
+      >${DB.expPin[c]?'📌 ':''}${esc(c)}</span>`).join('')
     + ((!_expShowAll && hidden.length)
         ? `<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="expMoreHeads()">+${hidden.length} ${t('exp_more_heads')}</span>` : '');
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">💸 ${d.id?t('edit'):t('exp_add')}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
-    <div class="field"><label>${t('pay_date')}</label>${dateField("ex_date",d.date)}</div>
+    <div class="field"><label>${t('pay_date')}</label>${dateField("ex_date",d.date)}
+      <label class="hint" style="display:flex;gap:6px;align-items:center;margin-top:4px;cursor:pointer">
+        <input type="checkbox" id="ex_datelock" style="width:15px;height:15px;margin:0"
+          ${_dateLock.exp?'checked':''} onchange="expCapture()">${t('date_lock_x')}</label></div>
     <div class="field" style="margin-top:10px"><label>${t('exp_cat')} *</label>
-      <input id="ex_cat" value="${esc(d.cat)}" placeholder="${t('exp_cat_ph')}">
+      <input id="ex_cat" value="${esc(d.cat)}" placeholder="${t('exp_cat_ph')}"
+        autocomplete="off" oninput="expCatType(this.value)">
       <div class="gtags" style="margin-top:8px">${chips}
         <span class="gtag" style="cursor:pointer;border-style:dashed" onclick="expAddCat()">➕ ${t('exp_new_cat')}</span>
         ${(DB.expCats||[]).length?`<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="manageExpCats()">⚙️ ${t('ml_manage')}</span>`:''}</div></div>
@@ -6119,7 +6214,8 @@ function expRender(){
       ${d.id?'':`<button class="btn ghost" style="flex:1" onclick="expSave(true)">➕ ${t('exp_save_next')}</button>`}
       <button class="btn primary" style="flex:2" onclick="expSave()">${t('save')}</button></div>
     <div class="fab-pad"></div>`;
-  showSheet(); renderExpPhotos();
+  showSheet();
+  fastForm('#sheet',{onLast:()=>expSave(true)}); renderExpPhotos();
 }
 function expCapture(){ const d=_exp; if(!d)return;
   if($('#ex_amt'))d.amt=$('#ex_amt').value;
@@ -6127,11 +6223,13 @@ function expCapture(){ const d=_exp; if(!d)return;
   if($('#ex_cat'))d.cat=$('#ex_cat').value.trim();
   if($('#ex_acc'))d.acc=$('#ex_acc').value;
   if($('#ex_note'))d.note=$('#ex_note').value.trim();
+  if($('#ex_datelock'))_dateLock.exp=$('#ex_datelock').checked?d.date:'';
   /* keep the chosen man's hat across a re-render */
   if(!d.partyId)d.partyKind='';
 }
 function expPickCat(c){
-  if(_expHeld){ _expHeld=false; return; } expCapture(); _exp.cat=(_exp.cat===c)?'':c;
+  if(_expHeld){ _expHeld=false; return; }
+  _expCatQ=''; expCapture(); _exp.cat=(_exp.cat===c)?'':c;
   _exp.partyId=null; _exp.partyName='';   // a new head means a new list of names
   expRender(); }
 /* v227 — HIS 20 Aug: "naam likh kar save karenge to shayad naya karigar ban jaye, search
@@ -6196,11 +6294,18 @@ function expHeadHold(c){ _expHeld=false; clearTimeout(_expHold);
     try{ if(navigator.vibrate)navigator.vibrate(15); }catch(e){}
     expToggleHide(c); },550); }
 function expHeadHoldEnd(){ clearTimeout(_expHold); }
-function expToggleHide(c){
-  DB.expHide=DB.expHide||{};
-  if(DB.expHide[c])delete DB.expHide[c]; else DB.expHide[c]=1;
+let _expCatQ='';
+function expCatType(v){
+  _expCatQ=String(v||'');
+  expCapture(); expRender();
+  setTimeout(()=>{ const e=$('#ex_cat');
+    if(e){ e.focus(); try{ e.setSelectionRange(e.value.length,e.value.length); }catch(x){} } },30);
+}
+function expToggleHide(c){                       /* long-press = his pin, his choice */
+  DB.expPin=DB.expPin||{};
+  if(DB.expPin[c])delete DB.expPin[c]; else DB.expPin[c]=1;
   save(); expCapture(); expRender();
-  toast(DB.expHide[c]?('🙈 '+c):('👁️ '+c),'ok');
+  toast(DB.expPin[c]?('📌 '+c):('📍 '+c),'ok');
 }
 function expMoreHeads(){ _expShowAll=true; expCapture(); expRender(); }
 function expAddCat(){ expCapture();
@@ -8119,7 +8224,54 @@ function setupSave(){
    always there because every shop that takes orders gives them out; Sale and Purchase need
    the billing module, the Day Book needs accounts. A shop never sees a button for a module
    it has switched off, which is exactly why this is safe to ship in the launch build. */
+/* ═══ v238 — BLUEPRINT PHASE 1 ═══
+   The researched blueprint, now in the file. Home answers three questions in five
+   seconds — how much money do I have, what is due today, who is working — through four
+   tappable cards, then offers at most six actions, then today's work. The fourth tab of
+   the bottom bar becomes Reports (Sale still lives one tap away: in ➕ and in the Menu),
+   and a "purana home" link keeps the old layout reachable until his hands trust the new
+   one — the golden rule was never to move a thing and burn the bridge in the same
+   release. */
+function kpiCardsHTML(){
+  if(localStorage.getItem('pp_home_classic')==='1')return '';
+  let cash=0; (DB.accounts||[]).forEach(a=>{ cash+=accBalance(a.id); });
+  let due=0, todaySale=0; const td=todayISO();
+  allInvoices().forEach(x=>{
+    const c=invCompute(x.inv);
+    const paid=(x.rec.payments||[]).reduce((s2,p)=>s2+(+p.amt||0),0);
+    if(c.total>paid)due+=c.total-paid;
+    if(String(x.inv.date||'')===td)todaySale+=c.total;
+  });
+  const act=(DB.orders||[]).filter(o=>!orderDelivered(o));
+  const nDue=act.filter(o=>{const d=o.deliveryDate?daysLeft(o.deliveryDate):null;return d!==null&&d<=0;}).length;
+  const card=(lbl,val,col,fn)=>`<div class="home-stat tappable" onclick="${fn}" style="cursor:pointer">
+      <div class="hs-val" style="${col?'color:'+col:''}">${val}</div>
+      <div class="hs-lbl">${lbl}</div></div>`;
+  return `<div class="kpi-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+    ${card('💰 '+t('kpi_cash'), money(r2(cash)), 'var(--saffron2)', "cashBank()")}
+    ${card('🚚 '+t('kpi_due_today'), nDue, nDue?'var(--bad)':'var(--ok)', "statDetail('duetoday')")}
+    ${card('🔔 '+t('kpi_debtors'), money(r2(due)), '', "followUps()")}
+    ${card('🧾 '+t('kpi_today_sale'), money(r2(todaySale)), '', "go('invoices')")}
+  </div>`;
+}
+function homeClassicToggle(){
+  const on=localStorage.getItem('pp_home_classic')==='1';
+  localStorage.setItem('pp_home_classic', on?'0':'1');
+  renderHome();
+}
 function quickRowHTML(){
+  if(localStorage.getItem('pp_home_classic')==='1')return quickRowClassicHTML();
+  const b=[['👔',t('qr_order'),"openOrderForm()"]];
+  if(modOn('billing'))b.push(['🧾',t('qr_sale'),"openSaleForm()"]);
+  b.push(['💵',t('qr_payin'),"payEntry('in')"]);
+  if(modOn('accounts'))b.push(['💸',t('qr_exp'),"expEdit()"]);
+  b.push(['🧵',t('qr_karigar'),"jobWork()"]);
+  b.push(['📞',t('qr_status'),"statusEnquiry('')"]);
+  return `<div class="qrow">${b.map(([i,l,fn],ix)=>
+    `<button class="qbtn${ix===0?' qmain':''}" onclick="${fn}"><span class="qi">${i}</span><span class="ql">${l}</span></button>`).join('')}</div>`;
+}
+/* the old row, kept whole behind the "purana home" link */
+function quickRowClassicHTML(){
   const b=[['👔',t('qr_order'),"openOrderForm()"],
            ['🧵',t('qr_karigar'),"jobWork()"]];
   if(modOn('billing')){
@@ -8215,7 +8367,10 @@ function renderHome(){
       <div class="home-sub">${new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'short'})}</div></div>
     </div>
 
+    ${kpiCardsHTML()}
     ${quickRowHTML()}
+    <p class="hint" style="text-align:right;margin:2px 0 8px">
+      <a onclick="homeClassicToggle()" style="cursor:pointer;color:var(--saffron2)">${localStorage.getItem('pp_home_classic')==='1'?('✨ '+t('home_new_view')):('↩︎ '+t('home_classic'))}</a></p>
 
     ${(()=>{
       /* v199 — HIS 14 Aug: "dashboard bahut pasand nahi aa raha hai... bahut casual aur
@@ -8549,11 +8704,26 @@ function campCSV(){
   a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),3000);
   toast(t('camp_csv_done',{n:list.length}),'ok');
 }
+/* v242 — the customer list had no search of its own. The header search finds a customer
+   fine, but on THIS screen — where he is looking one up to call or open — he was left
+   scrolling an alphabetical wall. Name, phone or city, and it narrows as he types. */
+let _custQ='';
+function custListSearch(v){
+  _custQ=String(v||'');
+  renderCustomers();
+  const e=$('#custListQ');
+  if(e){ e.focus(); try{ e.setSelectionRange(e.value.length,e.value.length); }catch(x){} }
+}
 function renderCustomers(){
   const el=$('#custList');
-  const list=DB.customers.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  const _q=String(_custQ||'').trim().toLowerCase();
+  const list=DB.customers.slice()
+    .filter(c=>!_q||[c.name,c.phone,c.city,c.area].some(v=>String(v||'').toLowerCase().indexOf(_q)>=0))
+    .sort((a,b)=>(a.name||'').localeCompare(b.name||''));
   const bar=$('#custCampBar');
   if(bar)bar.innerHTML=`<button class="btn primary block" style="margin-bottom:8px" onclick="newCustomer()">➕ ${t('cust_new')}</button>`
+    +((DB.customers||[]).length>=8?`<input id="custListQ" value="${esc(_custQ)}" placeholder="🔍 ${t('search_ph')}"
+        autocomplete="off" style="margin-bottom:8px" oninput="custListSearch(this.value)">`:'')
     +(list.length?`<button class="btn ghost block" style="margin-bottom:10px" onclick="openCampaign()">📣 ${t('camp_title')}</button>`:'');
   if(!list.length){el.innerHTML=`<div class="empty"><div class="big">👥</div><p><b>${t('no_cust')}</b></p><p style="font-size:13px">${t('no_cust_sub')}</p></div>`;return;}
   // one pass over the orders instead of a full scan per customer — that inner filter
@@ -9664,7 +9834,24 @@ function addMeas(gid,ctx){ctx=ctx||'order';const rerender=ctx==='alt'?renderAltF
    [{label:t('close'),cls:'ghost',fn:()=>rerender()},
     {label:t('add'),cls:'primary',fn:()=>{const v=(($('#newmeas')&&$('#newmeas').value)||'').trim();if(!v){rerender();return;}
       DB.measLib=DB.measLib||{};DB.measLib[gid]=DB.measLib[gid]||[];if(!DB.measLib[gid].includes(v))DB.measLib[gid].push(v);save();rerender();}}]);}
-function delMeas(gid,i,ctx){if(DB.measLib&&DB.measLib[gid]){DB.measLib[gid].splice(i,1);save();}addMeas(gid,ctx);}
+function delMeas(gid,i,ctx){
+  /* v242: a saved measurement line cannot be rebuilt unless the customer is standing
+     there, so it never goes without being named — and it can be brought back. */
+  const row=(DB.measLib&&DB.measLib[gid])?DB.measLib[gid][i]:null;
+  if(row==null){ addMeas(gid,ctx); return; }
+  confirmModal('🗑️ '+t('confirm_del'), String(row),
+    ()=>{ closeModal();
+      trashPut('meas',{gid,i,row});
+      const tid=DB.trash[0].id;
+      DB.measLib[gid].splice(i,1); save();
+      undoToast('🗑️ '+String(row), tid, rec=>{
+        const r=rec.row; DB.measLib[r.gid]=DB.measLib[r.gid]||[];
+        DB.measLib[r.gid].splice(Math.min(r.i,DB.measLib[r.gid].length),0,r.row);
+      });
+      addMeas(gid,ctx);
+    },
+    ()=>{ closeModal(); addMeas(gid,ctx); }, {yes:t('delete'), no:t('cancel'), cls:'bad'});
+}
 /* --- design tokens: pick / remove --- */
 /* --- measurement fields: show / hide / delete --- */
 function manageMeas(gid,ctx){ctx=ctx||'order';const rerender=ctx==='alt'?renderAltForm:renderForm;const cap=ctx==='alt'?captureAltForm:captureForm;
@@ -11667,7 +11854,8 @@ function renderInvoiceForm(){
       <div class="pos-addbar"><button class="btn primary block" onclick="posAddMenu()">➕ ${t('pos_add_item')}</button></div>
     </div>
     <div class="billed-bar" style="${(f.items||[]).length?'':'display:none'}" id="posBilledBar"><span>🧾 ${t('pur_billed')}</span>
-      <span class="hint" id="posCount" style="color:inherit">${t('inv_items_n',{n:(f.items||[]).length})}</span></div>
+      <span class="hint" id="posCount" style="color:inherit">${t('inv_items_n',{n:(f.items||[]).length})}
+        ${!f.editId?` · <a onclick="discardPurDraft()" style="color:var(--bad);cursor:pointer">🗑️ ${t('pur_draft_del')}</a>`:''}</span></div>
     <div id="posLines"></div>
     <div id="posAddSmall" class="pos-add-small" style="${(f.items||[]).length?'':'display:none'}"
       onclick="posAddMenu()">➕ ${t('pos_add_item')}</div>
@@ -13263,6 +13451,78 @@ function sampleForm(id){
               thaanId:'', meters:'', karigarId:'', labour:'', target:'', sell:'', pcs:{}};
   sampleFormRender();
 }
+/* v241 — HIS 21 Aug: "sample de raha tha to fabric me search ka option hi nahi tha,
+   fabric kam kar paane ke kaaran entry nahi kar paya."
+   A native <select> holding 1,200 rolls is not a chooser, it is a haystack — his
+   screenshot shows #0001 to #0010 and no way to reach #0847. So the roll is picked
+   through a searchable sheet instead: type a serial, a fabric name or a colour and the
+   list narrows as he types. Written once here so every place that picks a roll uses the
+   same door. */
+/* v242 — the same haystack as the rolls, smaller today and worse every month: karigar
+   names sit as a flat chip wall. One box narrows them; under eight names it stays out of
+   the way entirely, because a search box over six chips is furniture, not help. */
+let _karQ={};
+function karChipsHTML(sel,onPick,key){
+  key=key||'k';
+  const all=(DB.karigars||[]);
+  if(!all.length)return `<span class="hint">${t('no_karigars')}</span>`;
+  const q=String(_karQ[key]||'').trim().toLowerCase();
+  const hit=q?all.filter(k=>String(k.name).toLowerCase().indexOf(q)>=0):all;
+  const box=all.length>=8
+    ? `<input id="karQ_${key}" value="${esc(_karQ[key]||'')}" placeholder="🔍 ${t('kd_who')}"
+         autocomplete="off" style="margin-bottom:6px" oninput="karChipType('${key}',this.value)">` : '';
+  return box+`<div class="gtags">${hit.map(k=>
+      `<span class="gtag ${sel===k.id?'on-tag':''}" style="cursor:pointer"
+        onclick="${onPick.replace(/KID/g,k.id)}">${esc(k.name)}</span>`).join('')
+    ||`<span class="hint">${t('th_none')}</span>`}</div>`;
+}
+function karChipType(key,v){
+  _karQ[key]=v;
+  const host=$('#karBox_'+key); if(!host)return;
+  host.innerHTML=karChipsHTML(host.getAttribute('data-sel')||'', host.getAttribute('data-pick')||'', key);
+  const e=$('#karQ_'+key);
+  if(e){ e.focus(); try{ e.setSelectionRange(e.value.length,e.value.length); }catch(x){} }
+}
+let _thPickFn=null, _thPickQ='';
+function thaanPick(onPick){ _thPickFn=onPick; _thPickQ=''; thaanPickRender(); }
+function thaanPickRows(){
+  const q=String(_thPickQ||'').trim().toLowerCase();
+  const all=(DB.thaans||[]).filter(x=>thaanBal(x)>0);
+  const hit=all.filter(x=>{
+    if(!q)return true;
+    const f=FI(x.fabId)||{};
+    return [x.serial,f.name,f.colour,x.design,x.colour]
+      .some(v=>String(v||'').toLowerCase().indexOf(q)>=0);
+  }).slice(0,60);
+  if(!hit.length)return `<p class="hint">${t('th_none')}</p>`;
+  return hit.map(x=>{ const f=FI(x.fabId)||{};
+    return `<div class="card" style="padding:10px 12px;margin-bottom:6px;cursor:pointer"
+      onclick="thaanPickDone('${x.id}')">
+      <div class="kv"><b>#${esc(x.serial||'')} ${esc(f.name||'')}</b>
+        <b style="color:var(--saffron2)">${thaanBal(x)}m</b></div>
+      ${(f.colour||x.design)?`<div class="hint">${esc(f.colour||'')}${x.design?' · '+esc(x.design):''}</div>`:''}
+    </div>`; }).join('');
+}
+function thaanPickRender(){
+  sheetAt(thaanPickRender);
+  const n=(DB.thaans||[]).filter(x=>thaanBal(x)>0).length;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">🧵 ${t('smp_thaan')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
+    <p class="hint" style="margin-bottom:10px">${t('th_pick_sub',{n})}</p>
+    <input id="thPickQ" value="${esc(_thPickQ)}" placeholder="🔍 ${t('th_pick_ph')}"
+      autocomplete="off" oninput="_thPickQ=this.value;thPickList()">
+    <div id="thPickList" style="margin-top:10px">${thaanPickRows()}</div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+  setTimeout(()=>{const e=$('#thPickQ'); if(e)e.focus();},80);
+}
+function thPickList(){ const el=$('#thPickList'); if(el)el.innerHTML=thaanPickRows(); }
+function thaanPickDone(id){
+  const fn=_thPickFn; _thPickFn=null;
+  closeSheet();
+  if(fn)setTimeout(()=>fn(id),60);
+}
 function sampleFormRender(){
   sheetAt(sampleFormRender);
   const d=_smp, sizes=DB.stkCfg.sizes||[];
@@ -13292,7 +13552,14 @@ function sampleFormRender(){
     <div class="section-h">🧵 ${t('smp_cloth')}</div>
     <div class="row" style="gap:8px">
       <div class="field" style="flex:2;margin:0"><label>${t('smp_thaan')}</label>
-        <select id="smp_thaan" onchange="_smp.thaanId=this.value;sampleFormRender()">
+        ${(()=>{ const cur=(DB.thaans||[]).find(x=>x.id===d.thaanId);
+          const f=cur?(FI(cur.fabId)||{}):null;
+          return `<button class="btn ghost block" style="text-align:left;justify-content:flex-start"
+            onclick="thaanPick(id=>{_smp.thaanId=id;sampleFormRender();})">
+            ${cur?`#${esc(cur.serial||'')} ${esc(f.name||'')} · ${thaanBal(cur)}m`:('🔍 '+t('th_pick_ph'))}</button>
+          ${cur?`<a class="hint" style="cursor:pointer;color:var(--bad)" onclick="_smp.thaanId='';sampleFormRender()">✕ ${t('clear')}</a>`:''}`;
+        })()}
+        <select id="smp_thaan" hidden onchange="_smp.thaanId=this.value;sampleFormRender()">
           <option value="">—</option>
           ${th.map(x=>`<option value="${x.id}" ${d.thaanId===x.id?'selected':''}>#${esc(x.serial||'')} ${esc((FI(x.fabId)||{}).name||'')} · ${thaanBal(x)}m</option>`).join('')}
         </select></div>
@@ -13301,9 +13568,9 @@ function sampleFormRender(){
     </div>
 
     <div class="section-h">👷 ${t('karigar')}</div>
-    <div class="gtags" style="margin-bottom:8px">${(DB.karigars||[]).map(k=>
-      `<span class="gtag ${d.karigarId===k.id?'on-tag':''}" style="cursor:pointer" onclick="_smp.karigarId='${k.id}';sampleFormRender()">${esc(k.name)}</span>`).join('')
-      ||`<span class="hint">${t('no_karigars')}</span>`}</div>
+    <div id="karBox_smp" style="margin-bottom:8px"
+      data-sel="${esc(d.karigarId||'')}" data-pick="_smp.karigarId='KID';sampleFormRender()">
+      ${karChipsHTML(d.karigarId,"_smp.karigarId='KID';sampleFormRender()",'smp')}</div>
     <div class="row" style="gap:8px">
       <div class="field" style="flex:1;margin:0"><label>${t('smp_labour')}</label>
         <input id="smp_lab" inputmode="decimal" value="${esc(d.labour)}" placeholder="0" oninput="_smp.labour=this.value;smpCostLine()"></div>
@@ -13322,6 +13589,7 @@ function sampleFormRender(){
       <button class="btn primary" style="flex:2" onclick="sampleSave()">💾 ${t('save')}</button></div>
     <div class="fab-pad"></div>`;
   showSheet();
+  fastForm('#sheet',{});
   renderSmpPhotos();
   bindVoice('smpv',()=>_smp.voice,null);
 }
@@ -13702,6 +13970,7 @@ function capturePurchForm(){const f=purchForm;if(!f)return;
   if($('#pu_gstpct'))f.gstPct=$('#pu_gstpct').value===''?null:(+$('#pu_gstpct').value||0);
   if($('#pu_nogst'))f.noGst=$('#pu_nogst').checked;
   if($('#pu_nostock'))f.noStock=$('#pu_nostock').checked;
+  if($('#pu_datelock'))_dateLock.pur=$('#pu_datelock').checked?f.date:'';
   if($('#pu_date'))f.date=$('#pu_date').value;
   if($('#pu_paid'))f.paidNow=$('#pu_paid').value===''?null:(+$('#pu_paid').value||0);
   if($('#pu_pm'))f.paymentMode=$('#pu_pm').value;
@@ -13795,7 +14064,8 @@ function purchTotalsBoxHTML(comp){
         style="width:112px;text-align:right;margin:0" oninput="updatePurchTotal()"></div>
     <div style="${ln}"><span>${t('baaki')}</span>
       <b id="puBalDue" style="font-size:17px;color:var(--saffron2)">${money(bal)}</b></div>
-    <div style="${lnStack};border-bottom:0;padding-bottom:0">
+    <div class="hint" id="puPayHint" style="padding:7px 0 0" ${(+paid>0)?'hidden':''}>${t('pu_paid_first')}</div>
+    <div style="${lnStack};border-bottom:0;padding-bottom:0" id="puModeRow" ${(+paid>0)?'':'hidden'}>
       <span class="hint">${t('payment_mode')}</span>
       <span class="gtags" id="puModes">${PAY_MODES_PUR.map(m=>
         `<span class="gtag sm ${f.paymentMode===m[0]?'on-tag':''}" data-pm="${m[0]}" style="cursor:pointer" onclick="puSetMode('${m[0]}')">${t(m[1])}</span>`).join('')}</span>
@@ -13815,6 +14085,12 @@ function updatePurchTotal(){
   const tx=$('#puTaxAmt'); if(tx)tx.textContent=money(comp.tax);
   const due=r2(Math.max(0,comp.total-puPrior()));
   const b=$('#puBalDue'); if(b)b.textContent=money(r2(Math.max(0,due-paid)));
+  /* v239: the pay-mode block lives only while money is moving now. Toggled in place —
+     a re-render here would tear the keyboard out from under his thumb mid-amount. */
+  const mr=$('#puModeRow'), ph=$('#puPayHint');
+  if(mr)mr.hidden=!(paid>0);
+  if(ph)ph.hidden=(paid>0);
+  const ar2=$('#puAccRow'); if(ar2)ar2.hidden=!(paid>0)||/cash/i.test(purchForm.paymentMode||'');
   const c=$('#pu_paidfull'); if(c)c.checked=(paid>0&&r2(paid)===due);
 }
 function puRoundToggle(on){
@@ -13841,6 +14117,13 @@ function puSetMode(m){
   document.querySelectorAll('#puModes .gtag').forEach(el=>
     el.classList.toggle('on-tag', el.dataset.pm===m));
   const ar=$('#puAccRow'); if(ar)ar.hidden=/cash/i.test(m);
+  /* v239 — HIS screenshot: mode said "Bank transfer", account said "Cash". Money would
+     have left the cash box wearing a bank label, and the Cash Flow report would carry
+     that lie forever. The account now follows the mode the moment it is picked. */
+  if(/cash/i.test(m)){ const a=cashAcc(); if(a)purchForm.acc=a.id; }
+  else { const cur=(DB.accounts||[]).find(x=>x.id===purchForm.acc);
+    if(!cur || /cash/i.test(cur.kind||cur.name||'')){ const b=nonCashAcc(); if(b)purchForm.acc=b.id; } }
+  const sel=$('#pu_acc'); if(sel && purchForm.acc)sel.value=purchForm.acc;
   const box=$('#puTotalsBox');
   if(box){ capturePurchForm(); box.innerHTML=purchTotalsBoxHTML(purchCompute(purchForm)); }  // cheque ref appears/disappears
 }
@@ -14150,7 +14433,21 @@ function purDraftAdd(silent){
   const n=$('#pu_dname'); if(!n)return false;
   const label=(n.value||'').trim();
   if(!label){ if(!silent)toast(t('pur_need_name'),'bad'); return false; }
-  const qtys=purQtyList((($('#pu_dqty')||{}).value)), rate=+(($('#pu_drate')||{}).value)||0;
+  /* v239 — HIS screenshot 21 Aug: "#1 PW304/5 · 1 Mtr × ₹0". He never typed a quantity
+     and never typed a rate; the strip quietly invented 1 metre at nothing, and two such
+     lines sat on the bill looking like data. A purchase bill always states qty and rate —
+     if either box is empty that is a question for HIM, not a blank for the app to fill. */
+  const qRaw=String((($('#pu_dqty')||{}).value)||'').trim();
+  if(!qRaw){ toast(t('pur_need_qty'),'bad');
+    const e=$('#pu_dqty'); if(e)e.focus(); return false; }
+  const qtys=purQtyList(qRaw), rate=+(($('#pu_drate')||{}).value)||0;
+  if(rate<=0 && !_purD._zeroOK){
+    confirmModal('₹0', t('pur_rate0_q'),
+      ()=>{ closeModal(); _purD._zeroOK=true; purDraftAdd(silent); _purD._zeroOK=false; },
+      ()=>{ closeModal(); const e=$('#pu_drate'); if(e)e.focus(); },
+      {yes:t('add'), no:t('cancel'), cls:'primary'});
+    return false;
+  }
   const design=(($('#pu_ddesign')||{}).value||'').trim();
   const colour=(($('#pu_dcolour')||{}).value||'').trim();
   const pinned=(_purD.serials||[]);
@@ -14294,6 +14591,9 @@ function renderPurchaseForm(){
       <div class="row" style="margin-top:8px;gap:8px">
         <input id="pu_billno" value="${esc(f.billNo)}" placeholder="${t('purch_bill_no')} *" style="margin:0">
         ${dateField("pu_date",f.date)}</div>
+      <label class="hint" style="display:flex;gap:6px;align-items:center;margin-top:6px;cursor:pointer">
+        <input type="checkbox" id="pu_datelock" style="width:15px;height:15px;margin:0"
+          ${_dateLock.pur?'checked':''} onchange="capturePurchForm()">${t('date_lock')}</label>
     </div>
     <div class="billed-bar" style="${f.items.length?'':'display:none'}"><span>🧾 ${t('pur_billed')}</span>
       <span class="hint" id="puItemCount" style="color:inherit">${t('inv_items_n',{n:f.items.length})}</span></div>
@@ -14316,17 +14616,36 @@ function renderPurchaseForm(){
     <p class="hint" id="puDraftHint" style="text-align:center;opacity:.6;margin:8px 0 0">${(!f.editId&&purHasContent(f))?('✅ '+t('draft_saved')+' · <a onclick="discardPurDraft()" style="color:var(--bad);cursor:pointer">'+t('draft_discard')+'</a>'):('💾 '+t('draft_auto'))}</p>
     <div class="fab-pad"></div>`;
   showSheet();renderPurchPhotos();
+  /* v243: an empty bill starts on the supplier; a bill he re-opened starts nowhere.
+     Inside the item strip, Enter walks name → qty → rate → adds the line. */
+  fastForm('#sheet',{noFocus:!!(f.supplier||f.editId||(f.items||[]).length)});
+  setTimeout(()=>{
+    ['pu_dname','pu_dqty','pu_drate'].forEach(id=>{
+      const e=$('#'+id); if(!e||e._pchain)return; e._pchain=1;
+      e.addEventListener('keydown',ev=>{
+        if(ev.key!=='Enter')return;
+        ev.preventDefault();
+        if(id==='pu_dname'){ const q=$('#pu_dqty'); if(q){q.focus();q.select&&q.select();} }
+        else if(id==='pu_dqty'){ const r=$('#pu_drate'); if(r){r.focus();r.select&&r.select();} }
+        else { purDraftAdd(); const n=$('#pu_dname'); if(n)n.focus(); }
+      });
+    });
+  },160);
   const sh=$('#sheet');
   if(sh && !f.editId){ sh.addEventListener('input',purDraftSoon); sh.addEventListener('change',purDraftSoon); }
 }
 let _purDraftT=null;
 function discardPurDraft(){
   clearPurDraft();
-  purchForm={editId:null,supplier:'',phone:'',billNo:'',date:todayISO(),
+  purchForm={editId:null,supplier:'',phone:'',billNo:'',date:_dateLock.pur||todayISO(),
     items:[],discType:'amount',discValue:0,courier:0,paidNow:null,paymentMode:'Bank',notes:'',photos:[]};
   renderPurchaseForm();
   toast(t('draft_discarded'),'ok');
 }
+/* v243 — HIS pending list: "tareekh pakad ke rakhne wala switch — purani entry bharte
+   waqt baar-baar date badalni padti hai." Ticked, the date he set stays on the next bill
+   and the next, until he unticks it or leaves the screen for good. */
+let _dateLock={pur:'',exp:''};
 function purDraftSoon(){ clearTimeout(_purDraftT); _purDraftT=setTimeout(savePurDraft,600); }
 /* ===== purchase → stock, automatic =====
    The SERIAL is the identity (the app's own barcode); the party's design no is just a label,
@@ -14447,8 +14766,10 @@ function savePurchase(){
      the same name is never typed twice. */
   save();clearPurDraft();toast(t('t_purch_saved'),'ok');purQ='';purSort='new';
   if(_purSaveNew){ _purSaveNew=false;
-    const sup=f.supplier,ph=f.phone;
-    openPurchaseForm(); purchForm.supplier=sup; purchForm.phone=ph; renderPurchaseForm();
+    const sup=f.supplier,ph=f.phone,dt=_dateLock.pur;   /* v243: the locked date rides along */
+    openPurchaseForm(); purchForm.supplier=sup; purchForm.phone=ph;
+    if(dt)purchForm.date=dt;
+    renderPurchaseForm();
     setTimeout(()=>{const n=$('#pu_dname');if(n)n.focus();},120); return; }
   closeSheet(); go('purchases');
 }
@@ -18940,6 +19261,39 @@ function toast(msg,kind){const el=$('#toast');el.textContent=msg;el.className='t
    for a few seconds. Nothing here is a general undo stack: one action, one chance,
    deliberately small so it can be trusted. */
 let _undo=null, _undoT=null;
+/* ═══ v243 — ENTRY SPEED ═══
+   The audit found it: of 32 screens only 4 put the cursor anywhere, and only the invoice
+   Rate box moved on Enter. So every form began with a tap, and every field after it cost
+   another tap. A year of back-entry at two extra taps a field is hours.
+   One helper, wired into the forms he actually lives in. It never steals focus from a
+   filled form (re-opening a saved bill must not throw a keyboard in his face) and never
+   fires on a screen he only came to read. */
+function fastForm(rootSel, opts){
+  opts=opts||{};
+  setTimeout(()=>{
+    const root=$(rootSel); if(!root)return;
+    const fields=[...root.querySelectorAll('input,select,textarea')]
+      .filter(e=>!e.disabled && !e.readOnly && e.type!=='hidden' && e.type!=='checkbox'
+                 && e.offsetParent!==null);
+    if(!fields.length)return;
+    /* Enter walks to the next empty box; on the last one it saves */
+    fields.forEach((e,i)=>{
+      if(e._fchain)return; e._fchain=1;
+      e.addEventListener('keydown',ev=>{
+        if(ev.key!=='Enter')return;
+        if(e.tagName==='TEXTAREA')return;                 // notes need their line breaks
+        ev.preventDefault();
+        const rest=fields.slice(i+1).filter(x=>x.offsetParent!==null);
+        const nxt=rest.find(x=>!String(x.value||'').trim()) || rest[0];
+        if(nxt){ nxt.focus(); if(nxt.select)try{nxt.select();}catch(x){} }
+        else if(opts.onLast)opts.onLast();
+      });
+    });
+    if(opts.noFocus)return;
+    const first=fields.find(e=>!String(e.value||'').trim() && e.type!=='date');
+    if(first){ first.focus(); if(first.select)try{first.select();}catch(x){} }
+  }, opts.delay||120);
+}
 function undoOffer(msg, restore){
   _undo=restore; clearTimeout(_undoT);
   const el=$('#toast');
