@@ -733,7 +733,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v266</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v268</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1293,6 +1293,8 @@ const T={
   ml_cat_hint:'Rename a category to correct a spelling. Rename it to a category that already exists and the two are merged. Removing a category never deletes a roll.',
   ml_cat_del:'Remove the category "{n}"? {c} fabric name(s) will simply have no category. No roll is deleted.',
   ml_merge_hint:'Type an existing name here to merge the two together.',
+  exp_near:'Similar head already exists', exp_near_q:'You already have “{a}”. Use that instead of making a new one?',
+  exp_near_use:'Use “{a}”', exp_near_new:'Make “{b}” anyway',
   ml_merge_title:'Merge together?', ml_dup:'That name is already in the list',
   ml_merge_msg:'Move everything from "{a}" into "{b}"? {n} entries will move and "{a}" will be gone.',
   stk_finished:'FINISHED',
@@ -2669,6 +2671,8 @@ const T={
   ml_cat_hint:'स्पेलिंग ठीक करने के लिए श्रेणी का नाम बदलें। पहले से मौजूद किसी श्रेणी का नाम डालेंगे तो दोनों मिल जाएँगी। श्रेणी हटाने से कोई थान नहीं हटता।',
   ml_cat_del:'श्रेणी "{n}" हटाएँ? {c} कपड़ों की कोई श्रेणी नहीं रहेगी। कोई थान नहीं हटेगा।',
   ml_merge_hint:'दोनों को मिलाने के लिए यहाँ पहले से मौजूद नाम लिखें।',
+  exp_near:'मिलता-जुलता हेड पहले से है', exp_near_q:'“{a}” पहले से मौजूद है। नया बनाने की जगह वही लें?',
+  exp_near_use:'“{a}” लें', exp_near_new:'फिर भी “{b}” बनाएँ',
   ml_merge_title:'मिला दें?', ml_dup:'ये नाम पहले से लिस्ट में है',
   ml_merge_msg:'"{a}" का सब कुछ "{b}" में ले जाएँ? {n} एंट्री जाएँगी और "{a}" ख़त्म हो जाएगी।',
   stk_finished:'ख़त्म',
@@ -6459,28 +6463,7 @@ function expRender(){
      he pins anything it shows the six he actually uses most, so the wall is gone from day
      one. Everything else waits one tap behind "▾ N और", and the Head box on top is now a
      live search across every head — the use it never had. */
-  DB.expPin=DB.expPin||{}; DB.expHide=DB.expHide||{};
-  const allCats=(DB.expCats||[]);
-  const pinned=allCats.filter(c=>DB.expPin[c]);
-  let shown;
-  if(pinned.length)shown=pinned.slice();
-  else{
-    const cnt={};(DB.ledger||[]).forEach(l=>{ if(l.refKind==='expense'&&l.cat)cnt[l.cat]=(cnt[l.cat]||0)+1; });
-    shown=allCats.slice().sort((a,b)=>(cnt[b]||0)-(cnt[a]||0)).slice(0,6);
-  }
-  if(d.cat && shown.indexOf(d.cat)<0)shown=[d.cat,...shown];
-  const qf=String(_expCatQ||'').trim().toLowerCase();
-  if(qf)shown=allCats.filter(c=>String(c).toLowerCase().indexOf(qf)>=0);
-  const hidden=allCats.filter(c=>shown.indexOf(c)<0);
-  const _q=c=>jq(c);
-  const chips=((_expShowAll&&!qf)?allCats:shown).map(c=>`<span class="gtag ${d.cat===c?'on-tag':''}" style="cursor:pointer"
-      onclick="expPickCat('${_q(c)}')"
-      oncontextmenu="event.preventDefault();expToggleHide('${_q(c)}');return false;"
-      ontouchstart="expHeadHold('${_q(c)}')" ontouchend="expHeadHoldEnd()"
-      ontouchmove="expHeadHoldEnd()" ontouchcancel="expHeadHoldEnd()"
-      >${DB.expPin[c]?'📌 ':''}${esc(c)}</span>`).join('')
-    + ((!_expShowAll && hidden.length)
-        ? `<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="expMoreHeads()">+${hidden.length} ${t('exp_more_heads')}</span>` : '');
+  const chips=expChipsHTML(d.cat);
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">💸 ${d.id?t('edit'):t('exp_add')}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     <div class="field"><label>${t('pay_date')}</label>${dateField("ex_date",d.date)}
@@ -6490,9 +6473,7 @@ function expRender(){
     <div class="field" style="margin-top:10px"><label>${t('exp_cat')} *</label>
       <input id="ex_cat" value="${esc(d.cat)}" placeholder="${t('exp_cat_ph')}"
         autocomplete="off" oninput="expCatType(this.value)">
-      <div class="gtags" style="margin-top:8px">${chips}
-        <span class="gtag" style="cursor:pointer;border-style:dashed" onclick="expAddCat()">➕ ${t('exp_new_cat')}</span>
-        ${(DB.expCats||[]).length?`<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="manageExpCats()">⚙️ ${t('ml_manage')}</span>`:''}</div></div>
+      <div class="gtags" id="exCatChips" style="margin-top:8px">${chips}</div></div>
     ${(()=>{ const hc=expHeadCfg(d.cat); if(!d.cat)return '';
       /* v201: the head decided which names belong here, so the right list simply appears.
          v223 — HIS 19 Aug: "rent main Akhil ji ko deta hun... chahta hun ki Akhil ke ledger
@@ -6631,11 +6612,49 @@ function expHeadHold(c){ _expHeld=false; clearTimeout(_expHold);
     expToggleHide(c); },550); }
 function expHeadHoldEnd(){ clearTimeout(_expHold); }
 let _expCatQ='';
+/* v267 — HIS 23 Aug, with a screen recording: "har ek letter type karte waqt cursor gayab
+   ho jaata hai... poora word type hi nahi kar pa raha hoon... 'Dr' likha to 'D' head me
+   aur '2' amount me chala gaya."
+   expCatType re-drew the ENTIRE sheet on every keystroke and then, 30ms later, tried to put
+   the cursor back. On a desktop that race is usually won. On his Android it is not: the
+   input he is typing into is destroyed and rebuilt mid-word, which closes the soft keyboard,
+   drops the character being composed, and — worst of all — sometimes lands the next
+   keystroke in whatever field the browser focuses instead. That is exactly how a "2" ended
+   up in Amount while he was still typing the head.
+   The whole re-render existed for one reason: to filter the chip row. So now ONLY the chip
+   row is repainted. The input element is never touched, never rebuilt, never re-focused —
+   so the cursor cannot move and the keyboard cannot close. No timer, no race. */
+function expChipsHTML(cat){
+  DB.expPin=DB.expPin||{}; DB.expHide=DB.expHide||{};
+  const allCats=(DB.expCats||[]);
+  const pinned=allCats.filter(c=>DB.expPin[c]);
+  let shown;
+  if(pinned.length)shown=pinned.slice();
+  else{
+    const cnt={};(DB.ledger||[]).forEach(l=>{ if(l.refKind==='expense'&&l.cat)cnt[l.cat]=(cnt[l.cat]||0)+1; });
+    shown=allCats.slice().sort((a,b)=>(cnt[b]||0)-(cnt[a]||0)).slice(0,6);
+  }
+  if(cat && shown.indexOf(cat)<0)shown=[cat,...shown];
+  const qf=String(_expCatQ||'').trim().toLowerCase();
+  if(qf)shown=allCats.filter(c=>String(c).toLowerCase().indexOf(qf)>=0);
+  const hidden=allCats.filter(c=>shown.indexOf(c)<0);
+  const _q=c=>jq(c);
+  return ((_expShowAll&&!qf)?allCats:shown).map(c=>`<span class="gtag ${cat===c?'on-tag':''}" style="cursor:pointer"
+      onclick="expPickCat('${_q(c)}')"
+      oncontextmenu="event.preventDefault();expToggleHide('${_q(c)}');return false;"
+      ontouchstart="expHeadHold('${_q(c)}')" ontouchend="expHeadHoldEnd()"
+      ontouchmove="expHeadHoldEnd()" ontouchcancel="expHeadHoldEnd()"
+      >${DB.expPin[c]?'📌 ':''}${esc(c)}</span>`).join('')
+    + ((!_expShowAll && hidden.length)
+        ? `<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="expMoreHeads()">+${hidden.length} ${t('exp_more_heads')}</span>` : '')
+    + `<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="expAddCat()">➕ ${t('exp_new_cat')}</span>`
+    + ((DB.expCats||[]).length?`<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="manageExpCats()">⚙️ ${t('ml_manage')}</span>`:'');
+}
 function expCatType(v){
   _expCatQ=String(v||'');
-  expCapture(); expRender();
-  setTimeout(()=>{ const e=$('#ex_cat');
-    if(e){ e.focus(); try{ e.setSelectionRange(e.value.length,e.value.length); }catch(x){} } },30);
+  if(_exp)_exp.cat=String(v||'').trim();     /* keep the draft in step without reading the DOM */
+  const box=$('#exCatChips');
+  if(box)box.innerHTML=expChipsHTML(_exp?_exp.cat:'');
 }
 function expToggleHide(c){                       /* long-press = his pin, his choice */
   DB.expPin=DB.expPin||{};
@@ -6644,12 +6663,55 @@ function expToggleHide(c){                       /* long-press = his pin, his ch
   toast(DB.expPin[c]?('📌 '+c):('📍 '+c),'ok');
 }
 function expMoreHeads(){ _expShowAll=true; expCapture(); expRender(); }
+/* v268: closest existing head — one contains the other, or they differ by a single letter.
+   Deliberately strict: a loose match would nag on every genuinely new head and he would
+   learn to tap past it. */
+function expNearHead(v){
+  const a=String(v||'').trim().toLowerCase(); if(a.length<3)return '';
+  let best='', bestScore=99;
+  (DB.expCats||[]).forEach(c=>{
+    const b=String(c).trim().toLowerCase();
+    if(!b||b===a)return;
+    if(b.indexOf(a)>=0||a.indexOf(b)>=0){ if(bestScore>0){best=c;bestScore=0;} return; }
+    if(Math.abs(a.length-b.length)>1)return;
+    /* v268: two neighbouring letters swapped — "Rapdio" for "Rapido", "Peasad" for
+       "Prasad". A thumb on a phone does this constantly and plain edit distance calls it
+       two mistakes, so it would slip past. */
+    if(a.length===b.length){
+      let sw=-1, bad=0;
+      for(let k=0;k<a.length;k++) if(a[k]!==b[k]){ bad++; if(sw<0)sw=k; }
+      if(bad===2 && a[sw]===b[sw+1] && a[sw+1]===b[sw] && a.slice(sw+2)===b.slice(sw+2)){
+        if(bestScore>1){ best=c; bestScore=1; } return; }
+    }
+    let d=0,i=0,j=0;
+    while(i<a.length&&j<b.length){ if(a[i]===b[j]){i++;j++;continue;}
+      d++; if(d>1)return;
+      if(a.length>b.length)i++; else if(b.length>a.length)j++; else {i++;j++;} }
+    d+=(a.length-i)+(b.length-j);
+    if(d<=1 && d<bestScore){ best=c; bestScore=d; }
+  });
+  return best;
+}
 function expAddCat(){ expCapture();
   modal(t('exp_new_cat'),`<div class="field"><label>${t('exp_cat')}</label><input id="newCat" placeholder="${t('exp_cat_ph')}"></div>`,
     [{label:t('cancel'),cls:'ghost',fn:()=>expRender()},
      {label:t('save'),cls:'primary',fn:()=>{const v=($('#newCat').value||'').trim();
-       if(v){DB.expCats=DB.expCats||[];if(!DB.expCats.includes(v))DB.expCats.push(v);_exp.cat=v;save();}
-       expRender();}}]);
+       if(!v){ expRender(); return; }
+       DB.expCats=DB.expCats||[];
+       /* v268: the cure is good, but the disease is a man at the counter inventing a head
+          because he could not see the one that already fits. Before a new head is born the
+          app offers the closest existing one. It only ASKS — he can still make his own,
+          because a shop does grow real new heads. */
+       const near=expNearHead(v);
+       if(near && !DB.expCats.includes(v)){
+         modal(t('exp_near'), `<p style="color:var(--txt2);font-size:14px;line-height:1.6">${t('exp_near_q',{a:esc(near)})}</p>`,
+           [{label:t('exp_near_new',{b:esc(v)}),cls:'ghost',fn:()=>{
+               if(!DB.expCats.includes(v))DB.expCats.push(v); _exp.cat=v; save(); expRender(); }},
+            {label:t('exp_near_use',{a:esc(near)}),cls:'primary',fn:()=>{ _exp.cat=near; save(); expRender(); }}]);
+         return;
+       }
+       if(!DB.expCats.includes(v))DB.expCats.push(v);
+       _exp.cat=v; save(); expRender();}}]);
   setTimeout(()=>{const e=$('#newCat');if(e)e.focus();},120);
 }
 /* Who has been paid under this head before — the shop's own habit, not a fixed list.
@@ -7320,7 +7382,27 @@ function manageExpCats(){
     inUse:v=>(DB.ledger||[]).filter(l=>l.cat===v).length,
     remove:v=>{ rmFrom(DB.expCats,v); },
     rename:(o,n)=>{ rnIn(DB.expCats,o,n);
-      (DB.ledger||[]).forEach(l=>{ if(l.cat===o){l.cat=n; if(l.party===o)l.party=n;} }); },
+      (DB.ledger||[]).forEach(l=>{ if(l.cat===o){l.cat=n; if(l.party===o)l.party=n;} });
+      if(DB.expHeadCfg&&DB.expHeadCfg[o]){ DB.expHeadCfg[n]=DB.expHeadCfg[o]; delete DB.expHeadCfg[o]; }
+      if(DB.expPin&&DB.expPin[o]){ DB.expPin[n]=1; delete DB.expPin[o]; }
+      if(DB.expHide&&DB.expHide[o]){ DB.expHide[n]=1; delete DB.expHide[o]; } },
+    /* v268 — HIS 23 Aug: "jisne entry ki hai unhone kai unnecessary expenses ke heads bana
+       diye hain jo ki sirf General expenses me ja sakta tha."
+       The merge machinery already existed and every other library used it — expense heads
+       were the one list that never got a merge handler, so renaming a junk head onto
+       "General expenses" was REFUSED as a duplicate. The only way out was to delete the
+       head, which would have orphaned Saturday's entries. Now the entries move and the
+       junk head goes, which is the whole job.
+       Deliberately NOT deleting anything: every rupee keeps its date, amount and note, it
+       simply sits under the right head. The head's own settings do not travel — the target
+       head keeps the Paid-to and Cost-type he already chose for it. */
+    merge:(o,n)=>{
+      (DB.ledger||[]).forEach(l=>{ if(l.cat===o){ l.cat=n; if(l.party===o)l.party=n; } });
+      rmFrom(DB.expCats,o);
+      if(DB.expHeadCfg)delete DB.expHeadCfg[o];
+      if(DB.expPin)delete DB.expPin[o];
+      if(DB.expHide)delete DB.expHide[o];
+    },
     back:()=>expRender()
   });
 }
