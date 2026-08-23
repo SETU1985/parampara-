@@ -254,7 +254,13 @@
   .brand h1{font-size:18px; letter-spacing:1.5px}
   .brand small{display:block; font-size:10px; letter-spacing:2px; color:var(--saffron); font-weight:600}
   .hrow{display:flex; align-items:center; justify-content:space-between}
-  .htools{display:flex; align-items:center; gap:8px}
+  /* v255 AUDIT — P3: at 320px (iPhone SE, and every cheap Android) the header tools row
+     pushed the page 6px wider than the screen, so the WHOLE app scrolled sideways. Found by
+     loading the real file at 320x568 in a browser, not by reading the CSS. Letting the row
+     wrap and the stat block shrink costs nothing on bigger screens. */
+  .htools{display:flex; align-items:center; gap:8px; min-width:0; flex-wrap:wrap}
+  .stat{min-width:0}
+  .stat b{overflow-wrap:anywhere}
   .langtog{font-size:12px; font-weight:700; border:1px solid var(--line2); border-radius:20px; padding:5px 10px; color:var(--txt2); background:var(--bg2)}
   .langtog b{color:var(--saffron2)}
   .stat{font-size:11px; color:var(--mut); text-align:right} .stat b{color:var(--saffron2); font-size:13px}
@@ -727,7 +733,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v252</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v266</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -801,16 +807,26 @@ const T={
   nav_orders:'Orders',
   nav_customers:'Customers',
   backup:'Backup',
-  home_tailoring:'Orders & Production',
+  home_tailoring:'Orders & production',
   home_accounts:'Accounts',
   home_alterations:'Alterations',
-  home_new_order:'New Order',
+  home_new_order:'New order',
   home_pending_orders:'Pending',
   home_ready_deliver:'Ready to give',
   stat_ready_sub:'Everything on these orders is finished — call the customer.',
-  home_due_today:'Due Today',
+  home_due_today:'Due today',
   home_to_collect:'Receivables',
-  home_month_sales:'This Month Sale',
+  home_month_sales:'This month sale',
+  hm_pl:'This month', hm_pl_sales:'Sales', hm_pl_cost:'Costs', hm_pl_profit:'Profit',
+  gst_title:'GST', gst_sub:'Output tax on what you sold, input tax on what you bought, and the difference.',
+  gst_out:'Output tax · sales', gst_in:'Input tax · purchases', gst_net:'Net payable', gst_net_cr:'Credit carried forward',
+  gst_taxable:'Taxable value', gst_cgst:'CGST', gst_sgst:'SGST', gst_igst:'IGST', gst_rate:'Rate',
+  gst_b2b:'B2B · registered buyers', gst_b2c:'B2C · everyone else', gst_bills:'{n} bills',
+  gst_r1:'GSTR-1 · sales', gst_r3:'GSTR-3B · summary', gst_none:'No bills in this period',
+  gst_noreg:'Add your GSTIN in Shop details first', gst_by_rate:'By tax rate',
+  gst_note:'Figures come from the bills as entered. Check them with your CA before filing.',
+  gst_nogstin:'no GSTIN',
+  hm_pl_loss:'Loss', hm_pl_none:'Nothing billed this month yet', hm_pl_go:'Full profit & loss',
   orders_word:'orders',
   due:'due',
   no_orders:'No orders yet',
@@ -819,17 +835,17 @@ const T={
   try_other:'Try another name or number',
   no_items:'No items',
   baaki:'Balance',
-  new_order:'New Order',
-  edit_order:'Edit Order',
+  new_order:'New order',
+  edit_order:'Edit order',
   order_no:'Order No',
-  delivery:'Delivery Date',
-  order_date:'Order Date',
+  delivery:'Delivery date',
+  order_date:'Order date',
   customer:'Customer',
   name_ph:'Name or mobile number',
   phone:'Phone',
   change:'Change',
   select:'Select',
-  items:'Items / Cutting',
+  items:'Items / cutting',
   remove:'Remove',
   prefill_note:'Body measurements auto-filled — enter the Length for each',
   saved_meas:'saved',
@@ -861,20 +877,20 @@ const T={
   add_type:'Add type',
   type_ph:'Type body type (e.g. Slim)',
   gc_more:'More', gc_less:'Less',
-  it_extras:'Voice note · Photo', ord_extras:'Notes · Source · Voice · Photo', hide_x:'Hide',
+  it_extras:'Voice note · photo', ord_extras:'Notes · source · voice · photo', hide_x:'Hide',
   bp_title:'Body photos', bp_front:'Front', bp_side:'Side', bp_back:'Back',
   bp_hint:'Capture front / side / back once — the body shape then appears on every order.',
   add_meas:'Add measurement',
   meas_ph:'Measurement name (e.g. Kali)',
   voice_dl:'Voice note downloaded — attach it in WhatsApp',
-  order_notes:'Order Notes',
+  order_notes:'Order notes',
   ki_no_meas:'No measurements on this piece yet',
   del_title:'Delete?',
   del_salesman_q:'Delete {n} from the salesman list? Past orders keep his name.',
   del_voice_q:'Delete this voice note? It cannot be recovered.',
   del_log_q:'Delete this entry from the update log?',
   notes:'Notes', notes_ph:'Any general note…',
-  photo_label:'Fabric / Reference Photo',
+  photo_label:'Fabric / reference photo',
   add_photo:'Add photo',
   undo:'Undo', undo_done:'Brought back', undo_fail:'Could not bring it back', t_removed:'Removed',
   t_nomedia:'Photos and voice notes cannot be saved on this device. Orders and measurements are safe.',
@@ -899,12 +915,12 @@ const T={
   edit_items:'Items / customer',
   od_edit_hint:'Measurements, notes, photos and the delivery date are edited right here. Use this only to add or remove a piece, or to change the customer.',
   cancel:'Cancel',
-  save_order:'Save Order',
+  save_order:'Save order',
   update:'Update',
   close:'Close',
   back:'Back',
-  sr_menu:'Sales Return',
-  sr_title:'Sales Return',
+  sr_menu:'Sales return',
+  sr_title:'Sales return',
   sr_pick:'Pick the bill the goods came back from',
   sr_no_sales:'No sales yet',
   sr_sold:'Sold',
@@ -921,8 +937,8 @@ const T={
   sr_save:'Save return',
   sr_saved:'Sales return saved — stock updated',
   del_with_returns:'This bill has {n} return(s). Deleting removes those too, and stock is set right.',
-  pr_menu:'Purchase Return',
-  pr_title:'Purchase Return',
+  pr_menu:'Purchase return',
+  pr_title:'Purchase return',
   pr_pick:'Pick the bill the goods went back to',
   pr_no_pur:'No purchases yet',
   pr_bought:'Bought',
@@ -950,21 +966,25 @@ const T={
   draft_disc_title:'Discard this order?',
   draft_disc_msg:'The details you entered will be deleted. Are you sure?',
   status:'Status',
-  timeline:'Update Log',
+  timeline:'Update log',
   update_ph:'Type an update… (e.g. given to Ramesh)',
   recording:'Recording… tap to stop',
   add:'Add',
-  voice_notes:'Voice Notes',
+  voice_notes:'Voice notes',
   vn_hint:'Tap the mic 🎙️ to record',
   camera:'Camera',
   gallery:'Gallery',
   t_voice_del:'Voice note deleted',
   settings:'Settings',
-  item_master:'Item Master',
+  item_master:'Item master',
   item_master_desc:'Make your own billing items once. Then just pick, set rate, done.',
-  karigar_master:'Tailor Master',
+  karigar_master:'Tailor master',
   karigar_desc:'Add your tailors with their phone numbers.',
   no_karigars:'No tailors yet',
+  kar_arch:'Archive', kar_unarch:'Bring back', kar_archived:'Archived',
+  kar_has_hist_t:'This karigar has work in the books', kar_has_hist:'{n} pieces worth {v} are recorded against {name}. Deleting him would erase who made them and change past order profit. Archiving hides him from every picker and keeps the history.',
+  kar_arch_done:'{name} archived', kar_unarch_done:'{name} is back',
+  kar_del_clean:'No work is recorded against {name}, so nothing will be lost.',
   add_karigar:'Add tailor',
   karigar_name:'Tailor name',
   karigar_specialty:'Specialty & rates',
@@ -983,7 +1003,7 @@ const T={
   master_pick:'Select items to send to the master:',
   master_none:'Select at least one item',
   voice_share_na:'Sharing not supported on this device',
-  from_contacts:'From Contacts',
+  from_contacts:'From contacts',
   t_contact_loaded:'Contact loaded',
   contacts_na:'Contacts picker not supported on this browser',
   ready_word:'Ready',
@@ -994,7 +1014,7 @@ const T={
   f_pending:'Pending',
   f_today:'Today',
   f_tomorrow:'Tomorrow',
-  f_week:'This Week',
+  f_week:'This week',
   f_date:'Date',
   no_deliveries:'No deliveries in this range',
   backup_now:'Backup',
@@ -1037,9 +1057,9 @@ const T={
   no_cust_sub:'Customers are saved automatically when you create an order',
   cust_edit:'Edit customer',
   save:'Save',
-  meas_title:'Saved Measurements',
+  meas_title:'Saved measurements',
   orders_n:'order',
-  backup_title:'Backup & Restore',
+  backup_title:'Backup & restore',
   backup_desc:'All order + customer data downloads as a JSON file. Keep it safe — you can restore it if you change phones.',
   backup_note:'Photos stay on the device; the JSON holds order/measurement data only.',
   download_backup:'Download backup',
@@ -1068,18 +1088,18 @@ const T={
   t_update_added:'Update added',
   late:'late',
   alterations:'Alterations',
-  new_alteration:'New Alteration',
-  edit_alteration:'Edit Alteration',
+  new_alteration:'New alteration',
+  edit_alteration:'Edit alteration',
   alt_no:'Alteration No',
-  alt_item:'Item / Issue',
+  alt_item:'Item / issue',
   alt_item_ph:'e.g. Sherwani — waist tight',
   alt_pick_item_hint:'Pick the garment to add its measurements (optional).',
-  alt_received_date:'Received Date',
+  alt_received_date:'Received date',
   alt_charge:'Charge ₹',
-  alt_orig_order:'Linked Order',
+  alt_orig_order:'Linked order',
   no_alterations:'No alterations yet',
   no_alterations_sub:'Tap 🔧 below to add one',
-  start_alteration:'🔧 Start Alteration',
+  start_alteration:'🔧 Start alteration',
   alt_from_order:'From order #{n}',
   as_received:'Received',
   as_progress:'With master',
@@ -1097,24 +1117,24 @@ const T={
   t_alt_dup:'This alteration number already exists',
   invoice:'Invoice',
   invoice_no:'Invoice No',
-  invoice_date:'Invoice Date',
+  invoice_date:'Invoice date',
   interstate:'Interstate (IGST) — customer outside West Bengal',
-  save_generate:'Save & Generate',
+  save_generate:'Save & generate',
   invoice_gst_hint:'Enter the final price customer pays — GST is inclusive (extracted from this, not added). Rate: 5% up to ₹2,500 per item, 18% above.',
   t_no_invno:'Enter invoice number',
   t_invoice_saved:'Invoice saved',
-  shop_details:'Shop Details (for Invoice)',
-  shop_name:'Shop Name',
+  shop_details:'Shop details',
+  shop_name:'Shop name',
   shop_address:'Address',
   proprietor:'Proprietor',
   shop_phone:'Phone',
   shop_email:'Email',
   shop_tagline:'Tagline',
-  shop_terms:'Terms & Conditions',
+  shop_terms:'Terms & conditions',
   hsn:'HSN/SAC',
   qty:'Qty',
   unit:'Unit',
-  payment_mode:'Payment Mode',
+  payment_mode:'Payment mode',
   pm_cash:'Cash',
   split_pay:'Split payment (cash + online)',
   pm_upi:'UPI',
@@ -1124,7 +1144,7 @@ const T={
   no_items_master:'No item yet — add your first one',
   add_item_master:'+ New item',
   im_name:'Item name',
-  im_name_ph:'e.g. Suit 3 Pc',
+  im_name_ph:'e.g. suit 3 pc',
   im_hsn:'HSN code',
   im_rate:'Default rate ₹ (optional)',
   stk_sell:'Sale rate ₹/mtr', stk_cost_ph:'Cost ₹/mtr',
@@ -1133,7 +1153,7 @@ const T={
   im_incl_desc:'Tap to select. These will auto-fill on the invoice.',
   im_add_part:'+ New part',
   im_new_part:'New part name',
-  im_part_ph:'e.g. Waistcoat',
+  im_part_ph:'e.g. waistcoat',
   manage_meas:'Manage fields',
   manage_meas_desc:'Turn a field off to hide it from this garment. Custom fields can be deleted.',
   mm_on:'On',
@@ -1171,34 +1191,34 @@ const T={
   add_member:'+ Add another person',
   add_member_first:'Add another person (family / group order)',
   mem_name_ph:'Name',
-  mem_rel_ph:'Groom / Brother…',
+  mem_rel_ph:'Groom / brother…',
   mem_del:'Remove this person?',
   mem_del_msg:'{n} and their {c} garment(s) will be removed from this order. Sure?',
   home_billing:'Billing', hub_sale:'Sale', hub_sale_sub:'Invoices, credit notes and estimates.',
   hub_purchase:'Purchase', hub_purchase_sub:'Purchase bills, debit notes and purchase orders.',
-  purchases_list:'Purchase list', credit_note:'Credit Note', debit_note:'Debit Note',
-  estimate:'Estimate', purchase_order:'Purchase Order', soon:'SOON', coming_soon:'Coming in the next update',
+  purchases_list:'Purchase list', credit_note:'Credit note', debit_note:'Debit note',
+  estimate:'Estimate', purchase_order:'Purchase order', soon:'SOON', coming_soon:'Coming in the next update',
   qa_title:'What do you want to do?', qa_sub:'Everything you add day to day, in one place.',
-  pay_in:'Payment In', pay_out:'Payment Out',
+  pay_in:'Payment In', pay_out:'Payment out',
   pay_in_hint:'Money received that is not against a bill (advance, old balance…).',
   pay_out_hint:'Money paid out that is not against a purchase bill.',
-  cb_title:'Cash & Bank', cb_sub:'Where your money sits, and what has moved.',
-  cb_total:'Cash + Bank', cb_balance:'Balance', cb_opening:'Opening', cb_open_date:'As on',
+  cb_title:'Cash & bank', cb_sub:'Where your money sits, and what has moved.',
+  cb_total:'Cash + bank', cb_balance:'Balance', cb_opening:'Opening', cb_open_date:'As on',
   cb_open_hint:'Enter the balance as it stood on that date. Everything after it is calculated.',
-  cb_add_bank:'Add a bank account', cb_acc_name:'Account name', cb_acc_ph:'e.g. ICICI Current',
+  cb_add_bank:'Add a bank account', cb_acc_name:'Account name', cb_acc_ph:'e.g. ICICI current',
   cb_bank_name:'Bank', cb_accno:'A/C number', cb_ifsc:'IFSC',
   cb_need_name:'Enter an account name', cb_del_msg:'Remove the account “{n}”?',
   cb_moves:'Movements', cb_no_moves:'Nothing has moved yet',
-  cb_contra:'Cash ↔ Bank transfer', cb_contra_hint:'Moving your own money between cash and bank. It is not income or expense.',
+  cb_contra:'Cash ↔ bank transfer', cb_contra_hint:'Moving your own money between cash and bank. It is not income or expense.',
   cb_from:'From', cb_to:'To', cb_same_acc:'Pick two different accounts', cb_need_two:'Add a bank account first',
   cb_into:'Into', cb_paid_from:'Paid from',
   exp_title:'Expenses', exp_sub:'Every rupee that goes out of the shop.',
-  exp_total:'Total spent', exp_add:'Add expense', exp_cat:'Head', exp_cat_ph:'e.g. Rent, Electricity',
+  exp_total:'Total spent', exp_add:'Add expense', exp_cat:'Head', exp_cat_ph:'e.g. rent, electricity',
   exp_new_cat:'New head', exp_need_cat:'Choose a head', exp_none:'No expense in this period', exp_other:'Other',
-  db_title:'Day Book', db_sub:'Opening balance, everything in and out, closing balance.',
+  db_title:'Day book', db_sub:'Opening balance, everything in and out, closing balance.',
   db_opening:'Opening balance', db_closing:'Closing balance', db_in:'Money in', db_out:'Money out',
   db_entries:'Entries', db_none:'Nothing moved in this period', db_today:'Today', db_yest:'Yesterday',
-  or_title:'Order Reports', or_sub:'What was ordered, what is made, what is still running.',
+  or_title:'Order reports', or_sub:'What was ordered, what is made, what is still running.',
   or_orders:'Orders', or_pending:'Pending', or_done:'Delivered', or_late:'Overdue orders',
   or_value:'Order value', or_pieces:'Garments', or_due:'Still to collect',
   or_product:'Product-wise', or_product_hint:'How many sherwanis, suits, kurtas… and how many are ready.',
@@ -1220,7 +1240,7 @@ const T={
   dft_parked:'Kept as an unfinished order — it is on the Orders page',
   variant:'Type / variant', variant_ph:'e.g. worn under sherwani, short {g}…',
   add_another:'Add another {g}', item_notes:'Item notes', item_notes_ph:'e.g. flower work, dori, 2 button…',
-  new_garment:'New item', garment_master:'Item Types (Sherwani, Kurta…)',
+  new_garment:'New item', garment_master:'Garment types',
   mem_this:'This person',
   mem_count:'{p} people · {g} garments',
   edit_bill:'Edit the bill',
@@ -1261,7 +1281,7 @@ const T={
   stk_none_match:'Nothing matches this search or filter.',
   stk_add_thaan:'Add fabric',
   stk_bulk:'Bulk',
-  stk_bulk_title:'Opening / Bulk Fabric',
+  stk_bulk_title:'Opening / bulk fabric',
   stk_bulk_desc:'Add many thaans fast. Only Serial + Meter are needed — name, rate, supplier are optional.',
   stk_bulk_shared:'Category / Supplier / Selling rate above apply to every row (leave blank if mixed).',
   stk_bulk_none:'Fill at least Serial + Meter in one row',
@@ -1311,8 +1331,8 @@ const T={
   od_add_remove:'Add / remove a piece',
   exp_party:'Whose account', exp_party_none:'Nobody on this list yet — add them first',
   exp_need_party:'Pick whose account this goes to',
-  eh_title:'Expense heads', eh_sub:'A head says what kind of spend it is, and whose account it lands in.',
-  eh_who:'Names from', eh_kind:'Nature', eh_direct:'Direct', eh_indirect:'Indirect',
+  eh_title:'Expense heads', eh_sub:'Set who each head is paid to, and whether it is a cost of goods or of running the shop.',
+  eh_who:'Paid to', eh_kind:'Cost type', eh_direct:'Direct · cost of goods', eh_indirect:'Indirect · running cost',
   eh_karigar:'Tailors', eh_supplier:'Suppliers', eh_customer:'Customers', eh_none:'No heads yet',
   ob_title:'Opening balances', ob_sub:'Enter what everyone owed on the day you start. Nothing here touches cash or bank.',
   ob_name:'Name', ob_name_ph:'Raju tailor, Ashok cloth…', ob_kind:'Which kind',
@@ -1381,17 +1401,17 @@ const T={
   pur_will_code:'it will be saved with its own code',
   mnu_sale_sub:'Bills, returns, customers who owe',
   mnu_pur_sub:'Supplier bills, returns, who you owe',
-  rp_pl:'Profit & Loss', rp_cashflow:'Cash Flow', rp_exp_head:'Expenses by head',
+  rp_pl:'Profit & loss', rp_cashflow:'Cash flow', rp_exp_head:'Expenses by head',
   rp_party_stmt:'Party statement', rp_pick_party:'Whose statement?',
-  rp_sales_gross:'Gross Sales', rp_gst_out:'GST on sales', rp_net_sales:'Net Sales',
+  rp_sales_gross:'Gross sales', rp_gst_out:'GST on sales', rp_net_sales:'Net sales',
   rp_purch_net:'Purchases (net of GST)', rp_direct:'Direct expenses',
-  rp_gross_profit:'Gross Profit', rp_margin:'margin', rp_running:'Indirect expenses',
-  rp_net_profit:'Net Profit', rp_opening:'Opening', rp_closing:'Closing',
+  rp_gross_profit:'Gross profit', rp_margin:'margin', rp_running:'Indirect expenses',
+  rp_net_profit:'Net profit', rp_opening:'Opening', rp_closing:'Closing',
   ag_title:'By age', ag_cur:'Not yet 30 days', ag_30:'31-60 days', ag_60:'61-90 days', ag_90:'Over 90 days',
   ag_oldest:'oldest {n} days',
   sb_title:'Production board', sb_sub:'Every piece still being made, by the stage it is at',
   sb_none:'Nothing in production', sb_pieces:'{n} pieces', sb_empty_stage:'nothing here',
-  ex_csv:'CSV', ex_pdf:'PDF / Print', ex_done:'{n} rows exported', ex_nothing:'Nothing to export',
+  ex_csv:'CSV', ex_pdf:'PDF / print', ex_done:'{n} rows exported', ex_nothing:'Nothing to export',
   stk_cat_all:'All categories', stk_cat_pick:'Category',
   pty_title:'Parties', pty_sub:'Everyone the shop owes or is owed by — openings, payments and balance',
   pty_search:'Search a name…', pty_add:'Add a party', pty_none:'Nobody yet',
@@ -1415,6 +1435,13 @@ const T={
   trial:'Trial', trial_date:'Trial date', trial_hint:'The day he comes to try it on. Leave blank if there is no trial.',
   trial_due:'Trial due', trial_today:'Trial today', trial_late:'Trial overdue by {n}d', trial_none:'No trial fitting',
   fu_log:'Follow-up', fu_out:'What happened', fu_next:'Call again on', fu_why:'Why',
+  op_title:'Order profit', op_sub:'What each order really left behind, after the cloth and the karigar',
+  op_net:'Net sale', op_fab:'Fabric used', op_kar:'Karigar work', op_gross:'Gross contribution', op_margin:'margin',
+  op_nocost:'No cloth or karigar cost recorded', op_none:'No orders in this period',
+  op_note:'Shop running costs are NOT taken off here — this is contribution before overhead. Net profit is in the P&L.',
+  op_partial:'Costs still being added', op_billed:'Billed', op_unbilled:'Order value',
+  eh_setup_title:'Tag your staff expense heads', eh_setup_sub:'Until a head is tagged it stays out of advance outstanding. Check these and save.',
+  eh_setup_go:'Save tags', eh_setup_done:'All staff heads are tagged',
   fu_note_ph:'What he said, in one line', fu_save:'Save follow-up', fu_hist:'Earlier calls', fu_no_hist:'No calls logged yet',
   fu_due_now:'Due to call', fu_planned:'Next {d}', fu_r_pay:'Payment', fu_r_ready:'Order ready', fu_r_trial:'Trial',
   fu_r_design:'Design approval', fu_r_meas:'Measurement', fu_r_deliv:'Delivery', fu_r_other:'Other',
@@ -1428,7 +1455,7 @@ const T={
   exp_more_heads:'more',
   pt_other:'Other',
   kb_paid_total:'Total paid', kb_due_total:'Still payable', kb_date:'Date',
-  rp_pdf:'PDF / Print',
+  rp_pdf:'PDF / print',
   round_off:'Round off',
   qty_multi:'Qty  (10, 7.8, 7.8)',
   pur_add_to_bill:'Add to bill',
@@ -1520,7 +1547,7 @@ const T={
   stk_edit_thaan:'Edit fabric',
   stk_thaan_hint:'Type the fabric name — if it is new it gets created automatically.',
   stk_fab_name:'Fabric name',
-  stk_fab_name_ph:'e.g. Raymond Grey Suiting',
+  stk_fab_name_ph:'e.g. raymond grey suiting',
   stk_fab_name_hint:'No name from the party? Use anything you will recognise — you can also search by serial.',
   stk_category:'Category',
   stk_party:'Party / supplier',
@@ -1638,7 +1665,7 @@ const T={
   of_total:'of',
   stat_total_due:'Total receivable',
   stat_from_n:'From {n} customers',
-  fu_title:'Payment Reminders',
+  fu_title:'Payment reminders',
   fu_bank_head:'Bank details',
   si_bank_head:'Bank details for bills & reminders',
   su_title:'Set up your shop',
@@ -1652,9 +1679,9 @@ const T={
   su_later:'Bank details, UPI and terms can be added later from Settings.',
   su_need_name:'Please enter your shop name',
   mod_off:'That section is switched off in Settings',
-  kb_title:'Tailor Ledger',
+  kb_title:'Tailor ledger',
   urgent:'Urgent', urgent_on:'Urgent — tap to clear', urgent_off:'Mark urgent',
-  urgent_marked:'marked Urgent', urgent_cleared:'Urgent cleared', ab_urgent:'Marked urgent',
+  urgent_marked:'marked urgent', urgent_cleared:'Urgent cleared', ab_urgent:'Marked urgent',
   pb_title:'Photos backup', pb_hint:'Photos go out in parts, so a large collection never crashes the app.',
   pb_sub:'{n} photos and voice notes, in {p} parts. Save one part at a time.',
   pb_part:'Part {n} of {of}', pb_files:'files {a} – {b}', pb_files_n:'{n} files', pb_again:'Save again', pb_planning:'Checking file sizes…',
@@ -1671,7 +1698,7 @@ const T={
   stl_note:'The amount shown is his full outstanding balance, including anything left over from earlier weeks — not only this period.',
   wa_no_number:'No mobile number saved — add it first, then the message goes straight to him.',
   meas:'measurements',
-  od_more:'Payments · Cloth · Log · Voice',
+  od_more:'Payments · cloth · log · voice',
   cust_new_hint:'New customer — enter the mobile number below. He is saved together with the order.',
   ord_more:'Delivery · Body type · Salesman · Notes · Voice · Photo',
   ph_missing_title:'No mobile number', ph_missing_msg:'This customer has no mobile number. Names repeat, so he will be hard to find next time, and no status or delivery message can reach him. Save the order without a mobile number?',
@@ -1701,7 +1728,7 @@ const T={
   bk_done_data:'Data-only backup ready',
   stk_serial_far_title:'Serial is out of sequence',
   stk_serial_far:'{s} is far outside your numbering — the next one in sequence is {n}. Save it anyway?',
-  stk_bulk_shared_btn:'Category · Supplier · Sale rate',
+  stk_bulk_shared_btn:'Category · supplier · sale rate',
   stk_bulk_rate_note:'The ₹/mtr box on each line is your COST. The Sale rate above is what the customer bill uses.',
   au_highest:'Highest serial numbers', au_highest_hint:'The next serial is built from the highest one here — including rolls already finished, which the stock list hides. A stray high number here is why a new roll gets an unexpected serial. Open it to correct or delete it.',
   stk_sort_name:'By name',
@@ -1715,7 +1742,7 @@ const T={
   ki_search_ph:'Order no., customer name or mobile', ki_no_match:'Nothing matches that search.',
   ki_by_order:'Grouped by order', ki_by_item:'Flat list', ki_pick_order:'tap to take all',
   ki_after:'after {n}',
-  jw_title:'Job Work', jw_sub:'Every tailor, what he is holding, and what is waiting to go out.',
+  jw_title:'Job work', jw_sub:'Every tailor, what he is holding, and what is waiting to go out.',
   jw_holding:'holding {n} pieces',
   stk_cut_items:'Which pieces is this cloth for?', stk_cut_items_hint:'Tick every piece cut from this roll — one cut covers all of them.',
   stk_cut_pick:'Tick at least one piece', cu_used_title:'Cloth used', cu_used_none:'No cloth issued against this order yet.',
@@ -1731,13 +1758,13 @@ const T={
   stk_cut_search_ph:'Serial no., fabric name or rack',
   qc_label:'Quality check', qc_mark:'Mark as checked', qc_done:'Checked', qc_undone:'quality check removed',
   ab_qc:'Ready — quality check pending', ab_qc_sub:'These pieces are ready but have not been checked yet.',
-  src_title:'How did they hear about us?', src_add:'Add source', src_ph:'e.g. Exhibition, Facebook',
+  src_title:'How did they hear about us?', src_add:'Add source', src_ph:'e.g. exhibition, facebook',
   src_who:'Referred by (name)', src_who_ph:'Name of the person who referred them',
   src_report:'Where the business came from', src_report_hint:'Orders and value by enquiry source.',
   src_unknown:'Not recorded',
   ql_title:'Lengths', ql_editing:'open below', it_nav_prev:'Previous item', it_nav_next:'Next item',
   dsp_title:'Delivery', dsp_shop:'Collect from shop', dsp_courier:'Courier',
-  dsp_city:'City / town', dsp_city_ph:'Patna, Siliguri, Kathmandu…',
+  dsp_city:'City / town', dsp_city_ph:'Patna, siliguri, kathmandu…',
   dsp_addr:'Courier address', dsp_addr_ph:'Full address with pin code',
   cu_title:'Courier', cu_sub:'What is still to be sent, and what has already gone.',
   cu_pending:'Still to send', cu_sent_month:'Sent this month',
@@ -1745,7 +1772,7 @@ const T={
   cu_ready:'Ready', cu_not_ready:'Not ready', cu_sent:'Sent',
   cu_mark_sent:'Mark as sent', cu_none_send:'Nothing waiting to be couriered.',
   cu_none_sent:'Nothing sent yet.', cu_search_ph:'Name, order no. or city',
-  cu_date:'Sent on', cu_company:'Courier company', cu_company_ph:'DTDC, Delhivery, Blue Dart…',
+  cu_date:'Sent on', cu_company:'Courier company', cu_company_ph:'DTDC, delhivery, blue dart…',
   cu_awb:'Tracking no.', cu_awb_ph:'Docket / AWB number',
   cu_saved:'Marked as sent', cu_undo:'Undo the sent entry for this order?',
   cu_send_wa:'Send details', cu_warn_not_ready:'Every piece is not marked ready yet.',
@@ -1760,7 +1787,7 @@ const T={
   rec_used:'The latest copy could not be read — restored from the {src} copy. Please check your recent entries.',
   pg_more:'Show {n} more', pg_left:'{n} left',
   bk_stored:'Data stored', bk_files:'files', bk_progress:'{a} of {b} files', bk_cancelled:'Backup cancelled',
-  rb_title:'Readymade — Bulk Entry',
+  rb_title:'Readymade — bulk entry',
   rb_sub:'Enter one design → Add → next. Purchase price is required, Selling is optional.',
   rb_cat:'Category (optional — applies to all)', rb_size_hint:'Size — tap one or more',
   rb_name_ph:'Item name * (e.g. S-01 Tuxedo)', rb_qty_ph:'Quantity (pcs)',
@@ -1771,7 +1798,7 @@ const T={
   rb_need_name:'Item name is required', rb_need_size:'Select at least one size', rb_need_qty:'Enter the quantity',
   stk_rdy_del_msg:'This readymade item will be removed. Continue?',
   stk_rdy_del_stock:'{n} pieces are in stock. The item and its stock will both be removed. Continue?',
-  ab_title:'Priority Actions', ab_all_clear:'All clear', ab_all_clear_sub:'Nothing overdue, nothing stuck with a karigar, no payments due.',
+  ab_title:'Priority actions', ab_all_clear:'All clear', ab_all_clear_sub:'Nothing overdue, nothing stuck with a karigar, no payments due.',
   ab_late:'Overdue — not ready', ab_soon:'Due within {n} days — not ready', ab_nokar:'Not yet given to any tailor',
   ab_stuck:'With a tailor {n}+ days', ab_payable:'Payable to tailors', ab_nobody:'unassigned',
   ab_days_with:'{n} days with tailor', ab_none:'Nothing pending here.',
@@ -1780,42 +1807,42 @@ const T={
   ab_nokar_sub:'Nobody has been given these yet — issue them before they run late.',
   ab_stuck_sub:'Given out long ago and still not returned. Follow up with the tailor.',
   ab_urgent_sub:'Marked urgent and not ready yet.',
-  se_title:'Order Status', se_sub:'Search by name, mobile or order number to see every live garment.',
+  se_title:'Order status', se_sub:'Search by name, mobile or order number to see every live garment.',
   se_ph:'Name / mobile / order no.', se_nohit:'No customer found.',
   se_live:'{n} active orders', se_none_live:'No active orders.',
   se_send:'Send status via WhatsApp', se_full_profile:'Full profile & measurements',
   se_wa_intro:'Status of your order:',
-  kb_tab_hisab:'Summary', kb_tab_out:'In Progress', kb_tab_made:'Completed', kb_tab_pays:'Payments',
-  kb_pieces_made:'Pieces Completed', kb_by_item:'By Garment', kb_pcs:'pcs',
+  kb_tab_hisab:'Summary', kb_tab_out:'In progress', kb_tab_made:'Completed', kb_tab_pays:'Payments',
+  kb_pieces_made:'Pieces completed', kb_by_item:'By garment', kb_pcs:'pcs',
   kb_range_month:'This month', kb_range_lmonth:'Last month', kb_range_all:'All time', kb_range_custom:'Custom',
-  kb_avg_rate:'Average per Piece', kb_no_pieces:'No work completed in this period.',
-  kb_report:'Tailor Report', kb_report_sub:'Every tailor, garment-wise pieces and value.',
+  kb_avg_rate:'Average per piece', kb_no_pieces:'No work completed in this period.',
+  kb_report:'Tailor report', kb_report_sub:'Every tailor, garment-wise pieces and value.',
   kb_pick_master:'Select tailor', kb_total_pieces:'{n} pieces in progress',
   kb_spec_none:'No specialty set', kb_period:'Period',
-  ki_give:'Issue Work',
-  ki_take:'Receive Work',
+  ki_give:'Issue work',
+  ki_take:'Receive work',
   ki_give_sub:'select the pieces being issued',
   ki_take_sub:'select the pieces received back',
   ki_none_free:'Nothing left to give out',
   ki_none_with:'Nothing is with him right now',
   ki_only_his:'Only items this tailor makes',
-  ki_toggle_all:'Select all / Clear',
+  ki_toggle_all:'Select all / clear',
   ki_selected:'Selected',
-  ki_do_give:'Issue Selected',
-  ki_do_take:'Receive Selected',
+  ki_do_give:'Issue selected',
+  ki_do_take:'Receive selected',
   ki_pick_some:'Tick at least one piece',
   ki_gave:'{n} pieces given',
   ki_took:'{n} pieces taken back',
-  ki_send_hisab:'Send Statement',
+  ki_send_hisab:'Send statement',
   kb_sub:'What each tailor is holding, what he has delivered, and the balance payable.',
-  kb_total_payable:'Total Payable',
+  kb_total_payable:'Total payable',
   kb_payable:'payable',
   kb_with_him:'{n} pieces in progress',
   kb_nothing_out:'no pending work',
-  kb_earned:'Total Earned',
+  kb_earned:'Total earned',
   kb_paid:'Paid',
-  kb_balance:'Balance Payable',
-  kb_pay:'Record Payment',
+  kb_balance:'Balance payable',
+  kb_pay:'Record payment',
   kb_pay_sub:'Balance right now: {a}',
   kb_full:'Full',
   kb_part:'Part payment',
@@ -1826,7 +1853,7 @@ const T={
   kb_need_amt:'Enter the amount',
   kb_settled_ok:'Paid — {a} settled off',
   kb_ledger_note:'Master payment — {n}',
-  kb_out_now:'In Progress',
+  kb_out_now:'In progress',
   kb_submitted:'Completed',
   kb_payments:'Payments',
   kb_none_sub:'No completed work yet',
@@ -1838,7 +1865,7 @@ const T={
   kb_his_rate:'His amount ₹',
   kb_own_rework:'His own work — no payment',
   kb_own_rework_hint:'Alteration on a piece this master made himself. Tick it and nothing is added to his account.',
-  of_title:'Find Orders',
+  of_title:'Find orders',
   of_sub:'Filter by master, status, item or date — tap any order to open it.',
   of_by_delivery:'By delivery date',
   of_by_order:'By order date',
@@ -1889,7 +1916,7 @@ const T={
   mod_sub:'Switch on only what you use. Nothing is deleted when you switch a part off.',
   mod_saved:'Modules updated',
   bk_never:'No backup taken yet — your data lives only on this device',
-  kpi_cash:'Cash + Bank', kpi_due_today:'Due today', kpi_debtors:'To collect', kpi_today_sale:'Today\'s sale',
+  kpi_cash:'Cash + bank', kpi_due_today:'Due today', kpi_debtors:'To collect', kpi_today_sale:'Today\'s sale',
   qr_payin:'Payment in', qr_exp:'Expense', qr_status:'Status',
   home_classic:'Old home', home_new_view:'New home',
   bk_daily:'Backup — data + new photos',
@@ -2007,9 +2034,9 @@ const T={
   inv_item_name_ph:'e.g. Suit 3pc, Sherwani, Readymade Shirt',
   pos_rate:'Rate',
   pos_amt:'Amount',
-  sub_total:'Sub Total',
+  sub_total:'Sub total',
   grand_total:'Grand Total (after discount)',
-  total_due:'Net Due',
+  total_due:'Net due',
   preview:'Preview',
   t_popup_blocked:'Please allow popups to preview',
   nav_sale:'Sale',
@@ -2018,7 +2045,7 @@ const T={
   no_invoices:'No invoices yet',
   inv_sales:'Sales',
   inv_tax:'GST',
-  salesman_master:'Salesman Master',
+  salesman_master:'Salesman master',
   salesman_desc:'Add your sales staff.',
   no_salesmen:'No salesman yet',
   add_salesman:'Add salesman',
@@ -2055,11 +2082,11 @@ const T={
   cust_del:'Delete customer?',
   cust_del_msg:'This customer will be removed.',
   cust_del_busy:'This customer has {n} orders/bills/alterations. Deleting removes the customer only — that history stays.',
-  simple_mode:'Simple Mode (for staff)',
+  simple_mode:'Simple mode (for staff)',
   simple_mode_desc:'Bigger buttons, hides billing & GST — good for handing the phone to staff.',
-  new_sale:'New Invoice',
-  received_now:'Received Now ₹',
-  inv_all:'All Invoices',
+  new_sale:'New invoice',
+  received_now:'Received now ₹',
+  inv_all:'All invoices',
   inv_search_ph:'Search invoice no, customer, order no...',
   inv_count:'{n} invoices',
   inv_none_match:'No invoice matches that search',
@@ -2068,45 +2095,47 @@ const T={
   inv_paid:'Paid',
   home_invoices:'Invoices',
   reports:'Reports',
-  sales_report:'Sales Report',
+  sales_report:'Sales report',
   debtors_report:'Receivables',
-  rp_week:'This Week',
-  rp_month:'This Month',
+  rp_week:'This week',
+  rp_month:'This month',
   rp_custom:'Custom',
   rp_from:'From',
   rp_to:'To',
   rp_apply:'Apply',
   rp_invoices:'Invoices',
-  rp_total_sales:'Total Sales',
+  rp_total_sales:'Total sales',
   rp_total_gst:'Total GST',
   rp_no_data:'No invoices in this period',
   rp_no_debtors:'No pending balances 🎉',
-  rp_debtor_total:'Total Receivable',
+  rp_debtor_total:'Total receivable',
   rp_items:'items',
   purchase:'Purchase',
-  new_purchase:'Purchase Entry',
-  edit_purchase:'Edit Purchase',
+  new_purchase:'Purchase entry',
+  edit_purchase:'Edit purchase',
   supplier:'Supplier',
   supplier_ph:'Supplier / party name',
-  paid_now:'Paid Now ₹',
-  purchases_report:'Purchase Report',
-  rp_total_purchases:'Total Purchases',
+  paid_now:'Paid now ₹',
+  purchases_report:'Purchase report',
+  rp_total_purchases:'Total purchases',
   creditors_report:'Payables',
   rp_no_creditors:'Nothing to pay 🎉',
-  rp_creditor_total:'Total Payable',
+  rp_creditor_total:'Total payable',
   t_purch_saved:'Purchase saved',
   t_no_supplier:'Enter supplier name',
   t_no_billno:'Invoice number is required',
   t_no_amount:'Enter amount',
+  t_name_long:'Name shortened to {n} characters', t_past_deliv:'That delivery date has already passed',
+  t_past_deliv_msg:'{d} is in the past. Save the order with this date anyway?',
   purch_options:'Purchase options',
   delete_purchase:'Delete purchase',
   purch_bill_no:'Invoice No',
   past_suppliers:'— pick from past suppliers —',
-  bill_photo:'Bill Photo',
+  bill_photo:'Bill photo',
   no_purchases:'No purchases yet',
   no_purchases_sub:'Tap + New Purchase to add fabric/stock entries',
   purch_rate:'Rate ₹',
-  purch_item_ph:'e.g. Suiting fabric, Buttons, Lining',
+  purch_item_ph:'e.g. suiting fabric, buttons, lining',
   master:'Master',
   bill_no:'Invoice No',
   pur_sug_head:'Saved items — tap to fill',
@@ -2116,9 +2145,9 @@ const T={
   pur_sug_past:'bought before',
   pur_party_bal:'Balance',
   pur_need_name:'Type the item name first',
-  pur_save_new:'Save & New',
+  pur_save_new:'Save & new',
   pur_design_ph:'Design no (optional)',
-  pur_colour_ph:'Colour / Size (optional)',
+  pur_colour_ph:'Colour / size (optional)',
   pur_more_fields:'Design, colour',
   cust_visits:'visits',
   cust_loaded:'Customer loaded · {n} past visits',
@@ -2143,7 +2172,7 @@ const T={
   camp_csv_done:'{n} customers downloaded',
   pur_stock_made:'{n} added to stock',
   pur_stock_merged:'{n} merged into existing stock',
-  pur_sug_new:'Add New Item',
+  pur_sug_new:'Add new item',
   pur_sug_purch:'Purchase',
   pur_sug_instock:'In stock',
  },
@@ -2164,6 +2193,16 @@ const T={
   home_due_today:'आज डिलीवरी',
   home_to_collect:'वसूली बाकी',
   home_month_sales:'इस महीने की बिक्री',
+  hm_pl:'इस महीने', hm_pl_sales:'बिक्री', hm_pl_cost:'खर्च', hm_pl_profit:'मुनाफ़ा',
+  gst_title:'GST', gst_sub:'बिक्री पर लिया टैक्स, खरीद पर दिया टैक्स, और दोनों का फ़र्क।',
+  gst_out:'बिक्री का टैक्स', gst_in:'खरीद का टैक्स', gst_net:'जमा करना है', gst_net_cr:'क्रेडिट आगे जाएगा',
+  gst_taxable:'टैक्स योग्य राशि', gst_cgst:'CGST', gst_sgst:'SGST', gst_igst:'IGST', gst_rate:'दर',
+  gst_b2b:'B2B · रजिस्टर्ड खरीदार', gst_b2c:'B2C · बाकी सब', gst_bills:'{n} बिल',
+  gst_r1:'GSTR-1 · बिक्री', gst_r3:'GSTR-3B · सारांश', gst_none:'इस अवधि में कोई बिल नहीं',
+  gst_noreg:'पहले शॉप डिटेल्स में अपना GSTIN डालें', gst_by_rate:'दर के हिसाब से',
+  gst_note:'ये आंकड़े बिलों से बने हैं। फाइल करने से पहले अपने CA से जाँच लें।',
+  gst_nogstin:'GSTIN नहीं',
+  hm_pl_loss:'घाटा', hm_pl_none:'इस महीने अभी कोई बिल नहीं', hm_pl_go:'पूरा प्रॉफिट एंड लॉस',
   orders_word:'ऑर्डर',
   due:'बकाया',
   no_orders:'अभी कोई ऑर्डर नहीं',
@@ -2318,6 +2357,10 @@ const T={
   karigar_master:'कारीगर मास्टर',
   karigar_desc:'अपने कारीगरों को फ़ोन नंबर के साथ जोड़ें।',
   no_karigars:'अभी कोई कारीगर नहीं',
+  kar_arch:'आर्काइव', kar_unarch:'वापस लाएँ', kar_archived:'आर्काइव किया',
+  kar_has_hist_t:'इस कारीगर का काम हिसाब में है', kar_has_hist:'{name} के नाम पर {n} पीस, {v} का काम दर्ज है। डिलीट करने से यह मिट जाएगा कि किसने बनाया, और पुराना मुनाफ़ा बदल जाएगा। आर्काइव करने से वह हर जगह से छिप जाएगा और हिसाब बचा रहेगा।',
+  kar_arch_done:'{name} आर्काइव हुआ', kar_unarch_done:'{name} वापस आ गया',
+  kar_del_clean:'{name} के नाम पर कोई काम दर्ज नहीं है, कुछ नहीं खोएगा।',
   add_karigar:'कारीगर जोड़ें',
   karigar_name:'कारीगर का नाम',
   karigar_specialty:'स्पेशलिटी और रेट',
@@ -2664,8 +2707,8 @@ const T={
   od_add_remove:'पीस जोड़ें / हटाएँ',
   exp_party:'किसके नाम पर', exp_party_none:'इस सूची में अभी कोई नहीं — पहले जोड़िए',
   exp_need_party:'चुनिए यह किसके खाते में जाएगा',
-  eh_title:'ख़र्च के हेड', eh_sub:'हेड बताता है ख़र्च किस किस्म का है, और किसके खाते में जाएगा।',
-  eh_who:'नाम कहाँ से', eh_kind:'किस्म', eh_direct:'सीधा', eh_indirect:'अप्रत्यक्ष',
+  eh_title:'ख़र्च के हेड', eh_sub:'हेड बताता है ख़र्च किसको दिया, और वह माल पर लगा या दुकान पर।',
+  eh_who:'किसको दिया', eh_kind:'ख़र्च किस पर', eh_direct:'माल पर', eh_indirect:'दुकान पर',
   eh_karigar:'करीगर', eh_supplier:'सप्लायर', eh_customer:'ग्राहक', eh_none:'अभी कोई हेड नहीं',
   ob_title:'शुरुआती बकाया', ob_sub:'शुरू करने के दिन किसका कितना बाकी था, वही लिखिए। इससे नकद या बैंक नहीं हिलेगा।',
   ob_name:'नाम', ob_name_ph:'राजू टेलर, अशोक कपड़ा…', ob_kind:'किस किस्म का',
@@ -2768,6 +2811,13 @@ const T={
   trial:'ट्रायल', trial_date:'ट्रायल की तारीख़', trial_hint:'जिस दिन वह पहन कर देखने आएगा। ट्रायल नहीं है तो खाली छोड़ दें।',
   trial_due:'ट्रायल बाकी', trial_today:'आज ट्रायल', trial_late:'ट्रायल {n} दिन लेट', trial_none:'कोई ट्रायल नहीं',
   fu_log:'फॉलो-अप', fu_out:'क्या हुआ', fu_next:'अगली बार कब', fu_why:'किस लिए',
+  op_title:'ऑर्डर पर मुनाफ़ा', op_sub:'कपड़ा और कारीगर निकालने के बाद हर ऑर्डर से क्या बचा',
+  op_net:'नेट सेल', op_fab:'कपड़ा लगा', op_kar:'कारीगर का काम', op_gross:'ग्रॉस कंट्रिब्यूशन', op_margin:'मार्जिन',
+  op_nocost:'कपड़े या कारीगर का खर्च दर्ज नहीं', op_none:'इस अवधि में कोई ऑर्डर नहीं',
+  op_note:'दुकान का खर्च यहां नहीं कटा — यह ओवरहेड से पहले का कंट्रिब्यूशन है। नेट प्रॉफिट P&L में है।',
+  op_partial:'खर्च अभी जुड़ रहे हैं', op_billed:'बिल हुआ', op_unbilled:'ऑर्डर वैल्यू',
+  eh_setup_title:'स्टाफ के खर्च हेड पर टैग लगाइए', eh_setup_sub:'जब तक टैग नहीं, वह हेड एडवांस बकाये में नहीं गिना जाएगा। देख कर सेव कर दीजिए।',
+  eh_setup_go:'टैग सेव करें', eh_setup_done:'सभी स्टाफ हेड पर टैग लग चुका है',
   fu_note_ph:'उसने क्या कहा, एक लाइन में', fu_save:'फॉलो-अप सेव करें', fu_hist:'पिछली बातें', fu_no_hist:'अभी कोई बात दर्ज नहीं',
   fu_due_now:'फोन करना है', fu_planned:'अगली बार {d}', fu_r_pay:'पेमेंट', fu_r_ready:'ऑर्डर तैयार', fu_r_trial:'ट्रायल',
   fu_r_design:'डिज़ाइन पसंद', fu_r_meas:'नाप', fu_r_deliv:'डिलीवरी', fu_r_other:'अन्य',
@@ -3450,6 +3500,8 @@ const T={
   t_no_supplier:'सप्लायर का नाम डालें',
   t_no_billno:'इनवॉइस नंबर ज़रूरी है',
   t_no_amount:'राशि डालें',
+  t_name_long:'नाम {n} अक्षर तक छोटा किया', t_past_deliv:'यह डिलीवरी की तारीख़ निकल चुकी है',
+  t_past_deliv_msg:'{d} बीत चुकी है। इसी तारीख़ के साथ ऑर्डर सेव करें?',
   purch_options:'ख़रीद विकल्प',
   delete_purchase:'ख़रीद हटाएँ',
   purch_bill_no:'इनवॉइस नं.',
@@ -3501,8 +3553,36 @@ const T={
  },
 };
 let lang = localStorage.getItem('pb_ob_lang') || 'en';
-function t(k,vars){ let s=(T[lang]&&T[lang][k]!=null)?T[lang][k]:(T.en[k]!=null?T.en[k]:k);
+/* v264 — HIS 23 Aug: "Hindi ki zaroorat hi nahi, hata hi do" — then, asked whether his men
+   read English, "kuch hi". Only some. So deleting Hindi was the wrong instrument: it saves
+   2.9% of the file and its cost is a counter man stranded halfway through an order on a
+   screen he cannot read. What he actually wants is his own written design law, which the
+   app had drifted from: HINDI ON THE SHOP FLOOR, ENGLISH ON THE ACCOUNTS.
+   So nothing is deleted. Screens only he opens — reports, P&L, cash & bank, expense heads,
+   parties, backup, settings — now render in English whatever the toggle says, because
+   accounting terms belong in accounting language and he reads them faster. Order taking,
+   measurements, the tailor hand-over, attendance and delivery keep their Hindi.
+   One flag, set around a render and cleared after. Nothing else in the app changes. */
+let _enLock=0;
+function t(k,vars){ const lg=_enLock?'en':lang;
+  let s=(T[lg]&&T[lg][k]!=null)?T[lg][k]:(T.en[k]!=null?T.en[k]:k);
   if(vars) for(const p in vars) s=s.split('{'+p+'}').join(vars[p]); return s; }
+/* wraps a screen so everything it draws comes out in English */
+/* v264: the owner's own screens, locked to English. Wrapping AFTER every definition means
+   the wrapper is what every caller and every onclick reaches, without touching one call
+   site. Names are checked at boot — a screen that gets renamed later simply stays bilingual
+   instead of throwing. */
+const EN_SCREENS=["gstReport","plReport", "cashflowReport", "expHeadReport", "orderProfitReport", "staffReport", "karigarReport", "renderReports", "creditors", "followUps", "partiesHome", "partyCard", "manageExpHeads", "settingsMenu", "backupMenu", "cashBank", "staffSettings", "openingBulk", "karigarBook", "stockAudit", "partyStatement"];
+function enLockScreens(){
+  EN_SCREENS.forEach(n=>{ const f=window[n];
+    if(typeof f==='function' && !f.__enWrapped){
+      const w=enScreen(f); w.__enWrapped=1; window[n]=w; } });
+}
+function enScreen(fn){
+  return function(){ _enLock++;
+    try{ return fn.apply(this,arguments); }
+    finally{ _enLock--; } };
+}
 
 /* ---- status workflow ---- */
 const STATUS=['new','cut','handwork','stitching','checking','ready','delivered'];
@@ -3823,8 +3903,24 @@ async function writeStoreV2(){
    overwrite. The previous good copy is kept under '__db_prev', the new copy is written
    and then READ BACK and parsed before it is trusted. If anything fails the older copy
    is still intact and boot will pick it up. */
+/* v259 AUDIT — hardening, NOT a fix for the symptom I first blamed it for.
+   Honest note, because the reasoning matters more than the patch: I saw three deletes
+   "come back" after a reload and blamed this function. I was WRONG. The store had simply
+   never been given the order record (my test assigned DB.orders directly and never called
+   touchOrder), so readStoreV2 found __meta listing an order whose row was missing, refused
+   to trust an incomplete store — exactly as it should — and recovered from a snapshot,
+   which carried the pre-delete data. The app behaved correctly and even says so.
+   The change below stays because a real, narrower hazard is still there: flushDB opened
+   with `if(!_dbDirty||_dbWriting)return;`, so a call arriving mid-write was dropped without
+   trace, and the only thing that brought it back was a 600ms TIMER. flushDBNow() runs on
+   pagehide and when he swipes out of Safari — moments when the page may not live another
+   600ms. A dropped call is now remembered, and a "now" request starts the next write the
+   instant the current one ends instead of after a nap. This closes a window; it did not
+   fix the thing I first accused it of. */
+let _flushAsap=false;
 async function flushDB(){
-  if(!_dbDirty||_dbWriting)return;
+  if(_dbWriting){ if(_dbDirty)_flushAsap=true; return; }
+  if(!_dbDirty)return;
   _dbWriting=true; _dbDirty=false;
   let stored=false;
   if(idb){ stored=await writeStoreV2(); }
@@ -3840,12 +3936,15 @@ async function flushDB(){
   }
   try{ if(Date.now()-(+(localStorage.getItem('pb_ob_lastsnap_ts')||0)) >= SNAP_GAP_H*3600000) autoSnapshot(dbSerialize()); }catch(e){}
   _dbWriting=false;
+  /* v259: a call that arrived mid-write is served straight away, not after a 600ms nap */
+  if(_dbDirty && _flushAsap){ _flushAsap=false; clearTimeout(_dbTimer); return flushDB(); }
   if(_dbDirty){ clearTimeout(_dbTimer); _dbTimer=setTimeout(flushDB,600); }
 }
 /* the app may be closed or backgrounded at any moment — never leave a change unwritten */
 function flushDBNow(){
   clearTimeout(_dbTimer);
-  reconcileOrders(true).then(()=>{ _dbDirty=true; flushDB(); }).catch(()=>{});
+  _flushAsap=true;                 /* v259: never let a busy writer swallow a close */
+  reconcileOrders(true).then(()=>{ _dbDirty=true; flushDB(); }).catch(()=>{ _dbDirty=true; flushDB(); });
   // Only mirror into localStorage when IndexedDB is unavailable. Serialising the whole
   // database on every app switch was costing him seconds on the iPad for no benefit.
   if(!idb){ try{ const s=dbSerialize(); if(s.length<4200000)localStorage.setItem('pb_ob_v1',s); }catch(e){} }
@@ -3900,6 +3999,16 @@ async function mURL(id){ if(urlCache[id])return urlCache[id]; const b=await mGet
 
 /* ---- helpers ---- */
 const $=s=>document.querySelector(s);
+/* v258: one place that shortens over-long free text and says so once. Silent truncation
+   would be worse than the bug — he must know the app changed what he typed. */
+let _capSaid={};
+function capText(v,max,tag){
+  const s2=String(v==null?'':v).trim();
+  if(s2.length<=max)return s2;
+  if(tag&&!_capSaid[tag]){ _capSaid[tag]=1;
+    setTimeout(()=>{ try{ toast(t('t_name_long',{n:max}),'bad'); _capSaid[tag]=0; }catch(e){} },50); }
+  return s2.slice(0,max);
+}
 const esc=s=>(s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 /* v244 — AUDIT FINDING, and it was silently killing buttons. esc() turns an apostrophe
    into &#39;, and the HTML parser turns &#39; back into a bare ' BEFORE the JavaScript
@@ -3928,6 +4037,13 @@ function masterDate(deliveryDate){const dl=daysLeft(deliveryDate);if(dl==null)re
    abandoned screen still burns nothing. Old data needs no migration: the mark starts at
    zero and the existing scan already covers everything on file. */
 function numHW(k){ return +(((DB.numCfg||{}).hw||{})[k])||0; }
+/* v257: called ONLY when an order truly enters the books. Keeping this separate from
+   numHWSet is the whole point — numHWSet is a raw setter and several screens legitimately
+   use it, but an order number must be burned at exactly one moment: the save that works. */
+function numHWCommitOrder(f){
+  numHWSet('ord', numDigits(f.orderNo));
+  (f.members||[]).forEach(m=>numHWSet('ord', numDigits(m.ono)));
+}
 function numHWSet(k,v){
   v=parseInt(v,10); if(!v||isNaN(v))return;
   DB.numCfg=DB.numCfg||{}; DB.numCfg.hw=DB.numCfg.hw||{};
@@ -3972,11 +4088,24 @@ function nextInvoiceNo(){
   const pre=(c.invPrefix||'').trim();
   return (pre?pre+'/':'')+invSeries()+'/'+String(n).padStart(3,'0');
 }
-const invRate=p=>(+p||0)>2500?18:5;
+/* v263 — HIS 23 Aug: "readymade me 18% aur 5% wala formula theek hai, per fabric sale par
+   5% hi GST hai. Mera GST registration hai."
+   The slab was applied to EVERY line, so a ₹9,000 suit length — cloth, sold by the metre —
+   was taxed at 18% when cloth is 5% whatever it costs. The slab is right for readymade and
+   stays exactly as it was; cloth is now pinned at 5%.
+   A fabric line is recognised three ways because it can reach a bill by three routes: cut
+   off a thaan (carries thaanId), picked from the fabric list (carries fabId), or typed by
+   the metre (unit 'Mtr'). Any one of them is enough.
+   IMPORTANT — no customer's bill total moves. The total is gross minus discount plus
+   courier and never touched tax; only the CGST/SGST split INSIDE it changes, and with it
+   the net-sales figure the P&L derives. Past bills will now show the tax they should always
+   have shown. */
+const invIsFabric=it=>!!(it && (it.thaanId||it.fabId||String(it.unit||'')==='Mtr'));
+const invRate=(p,it)=>invIsFabric(it)?5:((+p||0)>2500?18:5);
 const r2=n=>Math.round((+n||0)*100)/100;
 function invCompute(inv){
   let gross=0;const perItem=[];
-  (inv.items||[]).forEach(it=>{const p=+it.price||0;const qty=+it.qty||1;const r=invRate(p/qty);perItem.push({p,r});gross+=p;});
+  (inv.items||[]).forEach(it=>{const p=+it.price||0;const qty=+it.qty||1;const r=invRate(p/qty,it);perItem.push({p,r});gross+=p;});
   let discAmt=inv.discType==='percent'?r2(gross*(+inv.discValue||0)/100):r2(+inv.discValue||0);
   discAmt=Math.max(0,Math.min(discAmt,gross));
   const scale=gross>0?(gross-discAmt)/gross:1;
@@ -4136,6 +4265,26 @@ const orderReceived=o=>{migratePayments(o);return (o.payments||[]).reduce((s,p)=
    - bill made    → the BILL. It is what the customer actually owes. */
 const orderTotal=o=>{ if(!o)return 0; if(o.invoice)return invCompute(o.invoice).total; return +o.total||0; };
 const orderBaaki=o=>Math.max(0,orderTotal(o)-orderReceived(o));
+/* ══ v254 AUDIT — P1: ONE QUESTION, THREE ANSWERS ══
+   "How much is still to collect?" was being answered three different ways on ONE screen:
+     · the header ran DB.orders through orderBaaki  — orders only, no alterations, no
+       counter sales, no opening balances
+     · the Cash+Bank KPI card walked allInvoices() with its OWN private summation that
+       skipped migratePayments(), so any order still holding the old single `advance` field
+       (payments[] not yet built) counted as PAID NOTHING and inflated the figure
+     · the Debtors report used dueGroups() — orders + alterations + sales + openings
+   That is why his own screenshot shows "24,000 due" in the header and "38,100 To collect"
+   in the card, two hand-spans apart, both claiming to be the money owed to him. Neither
+   matched the Debtors report. A shopkeeper cannot trust a screen that argues with itself.
+   One definition now, used by all three. Scope is deliberately the Debtors report's scope,
+   because that is the screen he acts on. */
+function receivableTotal(){
+  let v=0;
+  [DB.orders,DB.alterations,DB.sales].forEach(arr=>(arr||[]).forEach(r=>{ v+=orderBaaki(r); }));
+  (DB.ledger||[]).filter(l=>l.refKind==='opening'&&pkNorm(l.partyKind)==='customer'&&l.dir==='in')
+    .forEach(l=>{ v+=openingLeft(String(l.party||'').trim(),'customer','in'); });
+  return r2(v);
+}
 const orderStatus=o=>o.status||'new';
 function itemStatusOf(o,gid){return (o.itemStatus&&o.itemStatus[gid])||'new';}
 function migrateItemStatus(o){ if(!o.itemStatus){o.itemStatus={};(o.items||[]).forEach(gid=>o.itemStatus[gid]=o.status||'new');} }
@@ -5303,6 +5452,55 @@ function cutPromptRender(keep){
   loadStockThumbs();
   if(keep){ const el=$('#cutQ'); if(el){ el.focus(); el.setSelectionRange(el.value.length,el.value.length); } }
 }
+/* ══════════ v253 — ORDER-LEVEL PROFITABILITY ══════════
+   From his master document, section 13, and the one thing the app could never answer:
+   what did THIS order actually leave behind? Sales were known, the cloth was known, the
+   karigar was known — but nothing ever put the three on one line, so a ₹1,00,000 order
+   with ₹40,000 of cloth in it looked exactly like one with ₹12,000.
+
+   Two rules taken straight from the master doc and obeyed here:
+     · CASH IS NOT PROFIT — this reads what was BILLED, never what was received. An
+       advance is not revenue and does not appear.
+     · Contribution, not net profit — rent, salaries and electricity are NOT deducted.
+       They belong to no single order, and pretending otherwise would make every order
+       look bad in a slow month. The line is honestly labelled "gross contribution", and
+       net profit stays where it belongs, in the P&L.
+
+   Karigar cost is taken from the REAL assignment (karRateFor plus any completed earlier
+   legs of the same piece) because that is what will actually be paid. The figure typed at
+   cloth-issue time is only a fallback for pieces nobody has been assigned to yet — using
+   both would count the same work twice. */
+function orderKarCost(o,gid){
+  let amt=0, real=false;
+  ((o.jobs&&o.jobs[gid])||[]).forEach(leg=>{ if(leg.recv){ amt+=(+leg.amt||0); real=true; } });
+  const kid=(o.assign&&o.assign[gid])||'';
+  if(kid){ amt+=karRateFor(o,gid); real=true; }
+  if(!real){ const c=(o.cost&&o.cost[gid])||{}; amt=+c.karigar||0; }
+  return r2(amt);
+}
+function orderNetSale(o){
+  const inv=o.invoice;
+  if(inv && inv.items && inv.items.length){ return {amt:r2(invCompute(inv).total), billed:true}; }
+  return {amt:r2(+o.total||0), billed:false};
+}
+/* NAME NOTE: deliberately not called orderProfit — a no-argument orderProfit() already
+   exists further down and drives the stock reports. Two functions of the same name means
+   the second silently replaces the first, and one of the two screens goes blank with no
+   error. Caught by the pre-ship scan; the name stays distinct. */
+function ordProfitOf(o){
+  let fabric=0, karigar=0;
+  (o.items||[]).forEach(gid=>{
+    const c=(o.cost&&o.cost[gid])||{};
+    fabric=r2(fabric+(+c.fabric||0));
+    karigar=r2(karigar+orderKarCost(o,gid));
+  });
+  const ns=orderNetSale(o);
+  const gross=r2(ns.amt-fabric-karigar);
+  return {net:ns.amt, billed:ns.billed, fabric, karigar,
+          direct:r2(fabric+karigar), gross,
+          pct: ns.amt? Math.round(gross/ns.amt*100) : 0,
+          hasCost: !!(fabric||karigar)};
+}
 function itemCostOf(o,gid){
   const c=(o.cost&&o.cost[gid])||{fabric:0,karigar:0};
   return {fabric:+c.fabric||0,karigar:+c.karigar||0,total:r2((+c.fabric||0)+(+c.karigar||0))};
@@ -6384,7 +6582,7 @@ function peopleAll(){
      the party book is offered as a SUPPLIER — never twice, which would make him pick blind. */
   const add=(id,name,kind)=>{ if(!id||!name)return;
     if(seen[id])return; seen[id]=1; out.push({id,name,kind}); };
-  (DB.karigars||[]).forEach(k=>add(k.id,k.name,'karigar'));
+  karigarsActive().forEach(k=>add(k.id,k.name,'karigar'));   /* v260 */
   (staffAll()||[]).filter(x=>!x.left).forEach(k=>add(k.id,k.name,'staff'));
   (partyList('supplier')||[]).forEach(k=>add(k.id,k.name,'supplier'));
   (DB.customers||[]).forEach(k=>add(k.id,k.name,'customer'));
@@ -6495,7 +6693,7 @@ function expHeadCfg(cat){ DB.expHeadCfg=DB.expHeadCfg||{};
 /* the people a head draws on — one door, so every screen offers the same names */
 function partyList(who){
   if(who==='staff')   return staffAll().filter(x=>!x.left).map(x=>({id:x.id,name:x.name}));
-  if(who==='karigar') return (DB.karigars||[]).map(x=>({id:x.id,name:x.name}));
+  if(who==='karigar') return karigarsActive().map(x=>({id:x.id,name:x.name}));   /* v260 */
   if(who==='supplier'){
     /* there is no supplier master in this app — a supplier is a name typed on a purchase
        bill. So the list is built from the bills themselves, which is also the only place
@@ -7849,6 +8047,49 @@ function abBuckets(){
    piled up. It READS itemStatus and changes nothing; tapping a piece opens it, which is
    where the stage is already changed. */
 let _sbStage='';
+/* v253 — the report: every order in the period, worst margin first, because the ones
+   losing money are the ones he needs to see. */
+function orderProfitReport(){
+  sheetAt(orderProfitReport);
+  const {from,to}=rpRange();
+  const list=(DB.orders||[]).filter(o=>{
+    const d=String(o.orderDate||(o.created||'').slice(0,10));
+    return d>=from && d<=to;
+  }).map(o=>({o,p:ordProfitOf(o)}))
+    .sort((a,b)=>a.p.pct-b.p.pct || b.p.net-a.p.net);
+  const T=list.reduce((s2,x)=>({net:r2(s2.net+x.p.net),fab:r2(s2.fab+x.p.fabric),
+    kar:r2(s2.kar+x.p.karigar),gr:r2(s2.gr+x.p.gross)}),{net:0,fab:0,kar:0,gr:0});
+  const line=(l,v,col,bold)=>`<div class="il"${bold?' style="font-weight:800"':''}>
+    <span>${l}</span><b style="${col?'color:'+col:''}">${money(v)}</b></div>`;
+  const body=list.map(({o,p})=>`
+    <div class="card" style="padding:12px 14px;margin-bottom:8px">
+      <div class="kv" style="cursor:pointer" onclick="closeSheet();orderMenu('${jq(o.id)}')">
+        <div style="min-width:0;flex:1"><b>#${esc(o.orderNo||'')} \u00B7 ${esc(o.customerName||'\u2014')}</b>
+          <div class="hint">${fmtDate(o.orderDate||(o.created||'').slice(0,10))} \u00B7 ${p.billed?t('op_billed'):t('op_unbilled')}</div></div>
+        <div style="text-align:right"><b style="font-size:17px;color:${p.gross>=0?'var(--ok)':'var(--bad)'}">${money(p.gross)}</b>
+          <div class="hint">${p.pct}% ${t('op_margin')}</div></div></div>
+      <div class="hint" style="margin-top:6px">${t('op_net')} ${money(p.net)}
+        \u00B7 ${t('op_fab')} ${money(p.fabric)} \u00B7 ${t('op_kar')} ${money(p.karigar)}</div>
+      ${p.hasCost?'':`<div class="hint" style="color:var(--saffron2);margin-top:4px">\u26A0\uFE0F ${t('op_nocost')}</div>`}
+    </div>`).join('');
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F4B0} ${t('op_title')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
+    <p class="hint" style="margin-bottom:12px">${t('op_sub')} \u00B7 ${fmtDate(from)} \u2192 ${fmtDate(to)}</p>
+    ${list.length?`<div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
+      ${line('\u{1F9FE} '+t('op_net'),T.net)}
+      ${line('\u{1F9F5} '+t('op_fab'),T.fab,'var(--bad)')}
+      ${line('\u{1F477} '+t('op_kar'),T.kar,'var(--bad)')}
+      ${line(t('op_gross'),T.gr,T.gr>=0?'var(--ok)':'var(--bad)',1)}
+      <div class="hint" style="text-align:right;margin-top:2px">${T.net?Math.round(T.gr/T.net*100):0}% ${t('op_margin')}</div></div>
+    ${exportBarHTML('rp_oprofit',()=>({title:t('op_title'), sub:fmtDate(from)+' \u2013 '+fmtDate(to),
+      head:[t('order_no'),t('customer'),t('pay_date'),t('op_net'),t('op_fab'),t('op_kar'),t('op_gross'),t('op_margin')],
+      rows:list.map(({o,p})=>[o.orderNo||'',o.customerName||'',fmtDate(o.orderDate||''),p.net,p.fabric,p.karigar,p.gross,p.pct+'%'])}))}`:''}
+    ${list.length?body:`<div class="empty" style="padding:30px 10px"><p>${t('op_none')}</p></div>`}
+    <p class="hint" style="margin-top:10px">${t('op_note')}</p>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
 function statusBoard(){
   sheetAt(statusBoard);
   const stages=STATUS.filter(x=>x!=='delivered');
@@ -8624,15 +8865,22 @@ function setupSave(){
 function kpiCardsHTML(){
   if(localStorage.getItem('pp_home_classic')==='1')return '';
   let cash=0; (DB.accounts||[]).forEach(a=>{ cash+=accBalance(a.id); });
-  let due=0, todaySale=0; const td=todayISO();
+  /* v254: the card no longer counts its own way — see receivableTotal above.
+     Today's sale legitimately stays invoice-only: a sale is a sale when it is billed. */
+  const due=receivableTotal();
+  let todaySale=0; const td=todayISO();
   allInvoices().forEach(x=>{
-    const c=invCompute(x.inv);
-    const paid=(x.rec.payments||[]).reduce((s2,p)=>s2+(+p.amt||0),0);
-    if(c.total>paid)due+=c.total-paid;
-    if(String(x.inv.date||'')===td)todaySale+=c.total;
+    if(String(x.inv.date||'')===td)todaySale+=invCompute(x.inv).total;
   });
   const act=(DB.orders||[]).filter(o=>!orderDelivered(o));
-  const nDue=act.filter(o=>{const d=o.deliveryDate?daysLeft(o.deliveryDate):null;return d!==null&&d<=0;}).length;
+  /* v256 AUDIT — P2: the card said one thing and its own tap said another. It counted
+     d<=0, which lumps EVERY overdue order in with today's, while the drill-down it opens
+     filters d===0. So the card read "3 Due today", he tapped it, and the list showed none —
+     his own screenshot has "3 Due today" beside a TO DELIVER row reading "Overdue 3,
+     Today 0". A dashboard number that cannot be reconciled to the records behind it is
+     worse than no number, so the count now matches the list it opens. Nothing is lost:
+     overdue already has its own red row, with its own tap, in the card directly below. */
+  const nDue=act.filter(o=>{const d=o.deliveryDate?daysLeft(o.deliveryDate):null;return d===0;}).length;
   const card=(lbl,val,col,fn)=>`<div class="home-stat tappable" onclick="${fn}" style="cursor:pointer">
       <div class="hs-val" style="${col?'color:'+col:''}">${val}</div>
       <div class="hs-lbl">${lbl}</div></div>`;
@@ -8646,7 +8894,11 @@ function kpiCardsHTML(){
 function homeClassicToggle(){
   const on=localStorage.getItem('pp_home_classic')==='1';
   localStorage.setItem('pp_home_classic', on?'0':'1');
-  renderHome();
+  /* v262: it is pressed from Settings now, so close that and land him on the Home he just
+     chose — otherwise the switch appears to do nothing at all. */
+  try{ closeModal(); }catch(e){}
+  try{ closeSheet(); }catch(e){}
+  go('home'); renderHome();
 }
 function quickRowHTML(){
   if(localStorage.getItem('pp_home_classic')==='1')return quickRowClassicHTML();
@@ -8765,8 +9017,11 @@ function renderHome(){
 
     ${kpiCardsHTML()}
     ${quickRowHTML()}
-    <p class="hint" style="text-align:right;margin:2px 0 8px">
-      <a onclick="homeClassicToggle()" style="cursor:pointer;color:var(--saffron2)">${localStorage.getItem('pp_home_classic')==='1'?('✨ '+t('home_new_view')):('↩︎ '+t('home_classic'))}</a></p>
+    ${/* v262: the "Old home" link is retired from this screen. It was a migration escape
+         hatch from the bottom-nav rollout and it has done its job — he has been on the new
+         Home for twenty versions. A permanent link back to a layout nobody uses is one more
+         thing on the screen he must decide to ignore. The toggle itself still exists and
+         still works; it lives in Settings, where a once-ever choice belongs. */''}
 
     ${(()=>{
       /* v199 — HIS 14 Aug: "dashboard bahut pasand nahi aa raha hai... bahut casual aur
@@ -8859,16 +9114,40 @@ function renderHome(){
          A dead line on the main screen is his own rule broken. Rather than add chips for
          Sale and Purchase reports — which would refill the dashboard we just emptied —
          these two lines simply open what they are already describing. No new buttons. */''}
-    <div class="card dl-card" style="margin-top:12px">
-      <div class="dl-row tappable" onclick="cashBank()">
-        <span class="dl-ico">💵</span><span class="dl-lbl">${t('cb_total')}</span>
-        <span class="dl-n" style="color:var(--saffron2)">${money(totalCashBank())}</span>
-        <span class="dl-go">›</span></div>
-      <div class="dl-row tappable" onclick="go('reports')">
-        <span class="dl-ico">📈</span><span class="dl-lbl">${t('home_month_sales')}</span>
-        <span class="dl-n">${money(monthSale)}</span>
-        <span class="dl-go">›</span></div>
-    </div>`:''}
+    ${/* v262 — HIS 23 Aug: "software easy to use hona chahiye, reports behtar honi chahiye
+         jisse business me decisions lene me asani ho, profit and loss pata chale."
+         Two things were wrong here and they fixed each other. Cash + Bank was printed
+         TWICE on one screen — as a KPI card at the top and again as a row down here — and
+         This Month Sale repeated the sale card. Repeating a number teaches him to stop
+         reading it. Meanwhile the one figure he actually asked for, PROFIT, was not on the
+         main screen at all: he had to open Reports, find P&L and set a date range to learn
+         whether the month was going well.
+         So the two duplicated rows are gone and this month's profit stands in their place —
+         billed sales, what it cost, and what is left, on one line each, with the full P&L
+         one tap away. Home got SHORTER and started answering the harder question.
+         It reads plFigures(), the same function the P&L report uses, so the two can never
+         disagree. Cash + Bank is still tappable — from its card at the top. */''}
+    ${(()=>{
+      const mFrom=todayISO().slice(0,7)+'-01', mTo=todayISO();
+      let f; try{ f=plFigures(mFrom,mTo); }catch(e){ return ''; }
+      const cost=r2(f.netPurch+f.expTotal);
+      const prof=f.net, up=prof>=0;
+      if(!f.netSales && !cost) return `<div class="card dl-card" style="margin-top:12px">
+        <div class="dl-hd">📊 ${t('hm_pl')}</div>
+        <p class="hint" style="padding:2px 12px 10px;margin:0">${t('hm_pl_none')}</p></div>`;
+      return `<div class="card dl-card" style="margin-top:12px">
+        <div class="dl-hd">📊 ${t('hm_pl')}</div>
+        <div class="dl-row"><span class="dl-ico">🧾</span>
+          <span class="dl-lbl">${t('hm_pl_sales')}</span><span class="dl-n">${money(f.netSales)}</span></div>
+        <div class="dl-row"><span class="dl-ico">💸</span>
+          <span class="dl-lbl">${t('hm_pl_cost')}</span><span class="dl-n">${money(cost)}</span></div>
+        <div class="dl-row tappable" onclick="go('reports');setTimeout(plReport,120)">
+          <span class="dl-ico">${up?'📈':'📉'}</span>
+          <span class="dl-lbl"><b>${up?t('hm_pl_profit'):t('hm_pl_loss')}</b></span>
+          <span class="dl-n" style="color:${up?'var(--ok)':'var(--bad)'};font-weight:900">${money(Math.abs(prof))}</span>
+          <span class="dl-go">›</span></div>
+      </div>`;
+    })()}`:''}
     <div class="fab-pad"></div>`;
 }
 
@@ -10450,7 +10729,12 @@ function captureForm(){const f=form;
   document.querySelectorAll('[data-mono]').forEach(inp=>{const m=(f.members||[]).find(x=>x.id===inp.dataset.mono);if(m)m.ono=inp.value.trim();});
   document.querySelectorAll('[data-mrel]').forEach(inp=>{const m=(f.members||[]).find(x=>x.id===inp.dataset.mrel);if(m){m.rel=inp.value.trim();
     if(m.rel&&!(DB.relLib||[]).includes(m.rel)){DB.relLib=DB.relLib||[];DB.relLib.push(m.rel);}}});
-  if($('#f_cname')&&!f.customerId)f.customerName=$('#f_cname').value.trim();
+  /* v258 AUDIT — P3: a 5,000-character customer name saved without a murmur. Typed by
+     accident (a phone that repeats a key, a paste from WhatsApp) it wrecks every list row,
+     the printed bill and the WhatsApp message, and it sits in the backup for ever. The
+     name is trimmed, not refused — refusing would lose what he typed. 80 characters is
+     longer than any real name and shorter than anything that breaks a layout. */
+  if($('#f_cname')&&!f.customerId)f.customerName=capText($('#f_cname').value,80,'name');
   if($('#f_cphone')&&!f.customerId)f.phone=$('#f_cphone').value.trim();
   document.querySelectorAll('.mInput').forEach(inp=>{const gid=inp.dataset.g,k=inp.dataset.k,v=inp.value.trim();if(!f.m[gid])f.m[gid]={};if(v)f.m[gid][k]=v;else delete f.m[gid][k];});
   document.querySelectorAll('[data-design]').forEach(inp=>{f.design[inp.dataset.design]=inp.value.trim();});
@@ -10795,13 +11079,22 @@ function measStep(e,dir){ e.preventDefault();
 }
 
 let _noPhoneOK=false, _dupPhOK=false, _newPersonOK=false;
+let _pastDelivOK=false;
 function saveOrder(){
   captureForm();const f=form; f.items=sortItems(f.items);
   if(_vmOn)vmStop(true);            // v215: the work is done, the mic goes off with it
   if(!f.orderNo)f.orderNo=nextOrderNo();          // v193: the number is earned at save
-  /* v218: earned means kept — this number can never be handed to anybody else */
-  numHWSet('ord', numDigits(f.orderNo));
-  (f.members||[]).forEach(m=>numHWSet('ord', numDigits(m.ono)));
+  /* v257 AUDIT — P1: ORDER NUMBERS WERE BEING BURNED BY FAILED SAVES.
+     numHWSet raises the permanent high-water mark, and it was called HERE — before a single
+     validation had run. So every rejected attempt (no delivery date, trial after delivery,
+     blank name) silently consumed a number for ever. Driving the real form twelve times
+     produced six saved orders numbered 1, 5, 6, 7, 10, 11: five numbers gone, and gaps the
+     shop can never explain. His own rule says it plainly — "do not permanently consume an
+     order number merely because a New Order screen was opened and abandoned", and numbering
+     is how he finds a garment physically on the rack.
+     The number is still CHOSEN here, so it can be shown on screen and stays stable while he
+     answers the confirm prompts. It is only COMMITTED at the moment the order actually
+     enters the books — see numHWCommit below, called on both save paths. */
   if(!f.orderNo){toast(t('t_no_ono'),'bad');return;}
   if(!f.customerName){
     toast(t('t_no_name'),'bad');
@@ -10825,6 +11118,17 @@ function saveOrder(){
   /* v252: a trial dated after delivery is always a slip of the finger — caught here
      rather than silently promising the customer a fitting he can never come to. */
   if(f.trialDate && f.deliveryDate && f.trialDate>f.deliveryDate){ toast(t('trial_after_del'),'bad'); return; }
+  /* v258 AUDIT — P3: a delivery date already gone by saved in silence, so "2020-01-01"
+     typed by a slipped finger became a promise the order board would show as 2,000 days
+     late. Back-dating a genuinely old order is legitimate, so this asks once and takes his
+     answer — it never refuses. Editing an existing order is exempt: its date is already
+     in the past by the time it is delivered. */
+  if(!f.editId && f.deliveryDate && f.deliveryDate<todayISO() && !_pastDelivOK){
+    confirmModal(t('t_past_deliv'), t('t_past_deliv_msg',{d:fmtDate(f.deliveryDate)}),
+      ()=>{ _pastDelivOK=true; closeModal(); saveOrder(); },
+      ()=>{ closeModal(); const el=$('#f_ddate'); if(el)el.focus(); });
+    return;
+  }
   if(!f.items.length){toast(t('t_no_item'),'bad');return;}
   if(DB.orders.find(o=>String(o.orderNo)===String(f.orderNo)&&o.id!==f.editId)){toast(t('t_dup'),'bad');return;}
   /* v187 — HIS #1: "mobile number agar same hai to save karne se pehle poochna chahiye."
@@ -10884,12 +11188,15 @@ function saveOrder(){
        Object.assign(undefined,…) threw, and because the throw happened mid-save NOTHING
        was written and no message appeared: he tapped Save and the edit vanished. */
     if(!o){ toast(t('t_order_gone'),'bad'); closeSheet(); go('orders'); return; }
+    numHWCommitOrder(f);                       /* v257: an edit may raise it too */
     Object.assign(o,{orderNo:f.orderNo,customerId:c.id,customerName:c.name,phone:c.phone,salesmanId:f.salesmanId||'',orderDate:f.orderDate,deliveryDate:f.deliveryDate,trialDate:f.trialDate||'',items:f.items,m:f.m,design:f.design,variant:f.variant||{},notes:f.notes,total:f.total,advance:f.advance,photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,bodyType:f.bodyType,dispatch:f.dispatch||null,source:f.source||'',sourceRef:f.sourceRef||'',sampleId:f.sampleId||'',members:(f.members||[]).filter(m=>m.id!=='' )});
     clearDraft();save(o.id);closeSheet();toast(t('t_updated'),'ok');openDetail(o.id);
   }else{const o={id:uid(),created:new Date().toISOString(),orderNo:f.orderNo,customerId:c.id,customerName:c.name,phone:c.phone,salesmanId:f.salesmanId||'',
       members:(f.members||[]).filter(m=>m.id!==''),
       orderDate:f.orderDate,deliveryDate:f.deliveryDate,trialDate:f.trialDate||'',items:f.items,m:f.m,design:f.design,variant:f.variant||{},notes:f.notes,total:f.total,advance:f.advance,payments:(+f.advance>0?[{amt:+f.advance,date:f.orderDate||new Date().toISOString().slice(0,10)}]:[]),photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,bodyType:f.bodyType,dispatch:f.dispatch||null,source:f.source||'',sourceRef:f.sourceRef||'',sampleId:f.sampleId||'',
       status:'new',itemStatus:(function(){const o={};f.items.forEach(g=>o[g]='new');return o;})(),log:[{id:uid(),ts:new Date().toISOString(),text:t('t_status',{s:sLabel('new')}),voiceId:null}]};
+    _pastDelivOK=false;                        /* v258: the question is asked per order */
+    numHWCommitOrder(f);                       /* v257: burned here, and only here */
     DB.orders.push(o);clearDraft();save(o.id);closeSheet();toast(t('t_created',{n:o.orderNo}),'ok');
     go('orders');
     // customer is still standing there — bill it now, but only on an install that HAS billing
@@ -11581,7 +11888,7 @@ async function openDetail__inner(id,focusGid){
         ? `<b style="color:var(--ok)">${t('qc_done')}</b> <button class="btn sm ghost" style="margin-left:8px" onclick="setItemQC('${o.id}','${gid}',false)">✕</button>`
         : `<button class="btn sm primary" onclick="setItemQC('${o.id}','${gid}',true)">${t('qc_mark')}</button>`}</span></div>`:'';
     const kid=(o.assign&&o.assign[gid])||'';
-    const kopts=`<option value="">${t('karigar_none')}</option>`+(DB.karigars||[]).map(k=>`<option value="${k.id}" ${k.id===kid?'selected':''}>${esc(k.name)}</option>`).join('')
+    const kopts=`<option value="">${t('karigar_none')}</option>`+karigarsActive().map(k=>`<option value="${k.id}" ${k.id===kid?'selected':''}>${esc(k.name)}</option>`).join('')   /* v260 */
       +`<option value="__new__">➕ ${t('add_karigar')}</option>`;
     const rdate=karRecvDate(o,gid), ramt=karRateFor(o,gid);
     const ksel=`<div class="row" style="margin-top:8px;align-items:center;gap:8px"><span class="hint">👷 ${t('karigar')}</span><select onchange="setItemKarigar('${o.id}','${gid}',this.value)" style="${selStyle}">${kopts}</select></div>`
@@ -11868,7 +12175,7 @@ function renderAltForm(){
   sheetAt(renderAltForm);
   const f=altForm;
   const origO=f.origOrderId?DB.orders.find(x=>x.id===f.origOrderId):null;
-  const kopts=`<option value="">${t('karigar_none')}</option>`+(DB.karigars||[]).map(k=>`<option value="${k.id}" ${k.id===f.karigarId?'selected':''}>${esc(k.name)}</option>`).join('');
+  const kopts=`<option value="">${t('karigar_none')}</option>`+karigarsActive().map(k=>`<option value="${k.id}" ${k.id===f.karigarId?'selected':''}>${esc(k.name)}</option>`).join('');   /* v260 */
   $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${f.editId?t('edit_alteration'):t('new_alteration')}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     <div class="row"><div class="field"><label>${t('alt_no')}</label><input id="a_no" value="${esc(f.altNo)}"></div>
       <div class="field"><label>${t('alt_received_date')}</label>${dateField("a_rdate",f.receivedDate)}</div></div>
@@ -11964,7 +12271,7 @@ async function openAltDetail(id){
   go('altdetail');$('#searchWrap').style.display='none';
   const baaki=orderBaaki(a),dl=daysLeft(a.deliveryDate),st=a.status||'received';
   const origO=a.origOrderId?DB.orders.find(x=>x.id===a.origOrderId):null;
-  const kopts=`<option value="">${t('karigar_none')}</option>`+(DB.karigars||[]).map(k=>`<option value="${k.id}" ${k.id===a.karigarId?'selected':''}>${esc(k.name)}</option>`).join('');
+  const kopts=`<option value="">${t('karigar_none')}</option>`+karigarsActive().map(k=>`<option value="${k.id}" ${k.id===a.karigarId?'selected':''}>${esc(k.name)}</option>`).join('');   /* v260 */
   const selStyle='flex:1;background:var(--bg2);border:1px solid var(--line);color:var(--txt);padding:9px 10px;border-radius:var(--r2);font-size:15px';
 
   $('#altDetailPane').innerHTML=`
@@ -13543,7 +13850,7 @@ function buildInvoiceText(rec,inv){
   s+='\n';
   const G=!!(DB.shopInfo&&DB.shopInfo.showGst);   // same toggle as the printed bill
   (inv.items||[]).forEach(it=>{const qty=+it.qty||1;const p=+it.price||0;
-    s+=`${it.label}${qty>1?' x'+qty:''} — ${money(p)}${G?` (GST ${invRate(p/qty)}%)`:''}${it.includes?'\n  Includes: '+it.includes:''}\n`;});
+    s+=`${it.label}${qty>1?' x'+qty:''} — ${money(p)}${G?` (GST ${invRate(p/qty,it)}%)`:''}${it.includes?'\n  Includes: '+it.includes:''}\n`;});
   if(comp.discount>0)s+=`\nGross: ${money(comp.gross)}\nDiscount: −${money(comp.discount)}\n`;
   if(comp.courier>0)s+=`Courier: +${money(comp.courier)}\n`;
   if(G){
@@ -13562,7 +13869,7 @@ function buildInvoiceHTML(rec,inv){
   const comp=invCompute(inv),shop=DB.shopInfo||{};
   const G=!!shop.showGst;   // GST columns/summary shown only when the officer-toggle is ON
   const sm=rec.salesmanId?salesmenAll().find(x=>x.id===rec.salesmanId):null;
-  const rows=(inv.items||[]).map((it,i)=>{const p=+it.price||0,qty=+it.qty||1,unitP=p/qty,r=invRate(unitP),base=r2(p/(1+r/100)),gstAmt=r2(p-base);
+  const rows=(inv.items||[]).map((it,i)=>{const p=+it.price||0,qty=+it.qty||1,unitP=p/qty,r=invRate(unitP,it),base=r2(p/(1+r/100)),gstAmt=r2(p-base);
     return `<tr>
       <td class="c">${i+1}</td>
       <td><span class="inm">${esc(it.label)}</span>${it.includes?`<div class="incl">+ ${esc(it.includes)}</div>`:''}</td>
@@ -13993,7 +14300,7 @@ function sampleForm(id){
 let _karQ={};
 function karChipsHTML(sel,onPick,key){
   key=key||'k';
-  const all=(DB.karigars||[]);
+  const all=karigarsActive();   /* v260: give-work picker */
   if(!all.length)return `<span class="hint">${t('no_karigars')}</span>`;
   const q=String(_karQ[key]||'').trim().toLowerCase();
   const hit=q?all.filter(k=>String(k.name).toLowerCase().indexOf(q)>=0):all;
@@ -15663,6 +15970,104 @@ function rpRange(){
   if(rpPeriod==='month'){return {from:iso(new Date(today.getFullYear(),today.getMonth(),1)),to:iso(today)};}
   return {from:rpFrom||iso(new Date(today.getFullYear(),today.getMonth(),1)),to:rpTo||iso(today)};
 }
+/* ══════════ v265 — GST ══════════
+   He confirmed on 23 Aug that he is registered, and that cloth is 5% while readymade
+   follows the slab. Every bill already carries its tax split; nothing here recalculates
+   anything — it groups what the bills already say, the way the return asks for it.
+
+   Three numbers matter every month and the app could not show one of them:
+     output tax  — what he collected on sales
+     input tax   — what he paid on purchases
+     the difference — what he actually deposits
+
+   Sales are split B2B / B2C off the buyer's GSTIN, because GSTR-1 asks for them apart.
+   Rate-wise rows are what GSTR-3B wants. Deliberately NOT called a filing tool: it is his
+   own bills, added up correctly, for him and his CA to check. His master document is
+   explicit that the app must not claim statutory compliance merely because a report
+   exists. */
+function gstFigures(from,to){
+  const out={b2b:[], b2c:[], byRate:{}, taxable:0, cgst:0, sgst:0, igst:0, total:0, n:0};
+  allInvoices().filter(x=>{const d=String(x.inv.date||'');return d>=from&&d<=to;})
+    .forEach(x=>{
+      const c=invCompute(x.inv);
+      const gstin=String((x.rec&&(x.rec.gstin||x.rec.customerGstin))||'').trim();
+      const row={date:x.inv.date, no:x.inv.no||'', party:x.rec.customerName||'', gstin,
+        taxable:c.taxable, cgst:c.cgst, sgst:c.sgst, igst:c.igst, total:c.total};
+      (gstin?out.b2b:out.b2c).push(row);
+      out.taxable=r2(out.taxable+c.taxable); out.cgst=r2(out.cgst+c.cgst);
+      out.sgst=r2(out.sgst+c.sgst); out.igst=r2(out.igst+c.igst);
+      out.total=r2(out.total+c.total); out.n++;
+      /* rate-wise, read off the same per-line rule the bill itself used */
+      (x.inv.items||[]).forEach(it=>{
+        const p=+it.price||0, q=+it.qty||1, r=invRate(p/q,it);
+        const scale=c.gross>0?(c.gross-c.discount)/c.gross:1;
+        const net=r2(p*scale), base=r2(net/(1+r/100)), tax=r2(net-base);
+        out.byRate[r]=out.byRate[r]||{taxable:0,tax:0};
+        out.byRate[r].taxable=r2(out.byRate[r].taxable+base);
+        out.byRate[r].tax=r2(out.byRate[r].tax+tax);
+      });
+    });
+  return out;
+}
+function gstInputTax(from,to){
+  let taxable=0, cgst=0, sgst=0, igst=0, n=0;
+  (DB.purchases||[]).filter(p=>{const d=String(p.date||'');return d>=from&&d<=to;})
+    .forEach(p=>{ const c=purchCompute(p);
+      taxable=r2(taxable+(c.taxable||0)); cgst=r2(cgst+(c.cgst||0));
+      sgst=r2(sgst+(c.sgst||0)); igst=r2(igst+(c.igst||0)); n++; });
+  return {taxable,cgst,sgst,igst,total:r2(cgst+sgst+igst),n};
+}
+function gstReport(){
+  sheetAt(gstReport);
+  const {from,to}=rpRange();
+  const o=gstFigures(from,to), i=gstInputTax(from,to);
+  const outTax=r2(o.cgst+o.sgst+o.igst);
+  const net=r2(outTax-i.total);
+  const myGstin=String(((DB.shopInfo||{}).gstin)||'').trim();
+  const line=(l,v,col,bold)=>`<div class="il"${bold?' style="font-weight:800"':''}>
+    <span>${l}</span><b style="${col?'color:'+col:''}">${money(v)}</b></div>`;
+  const rateRows=Object.keys(o.byRate).sort((a,b)=>a-b).map(r=>`
+    <div class="il"><span>${r}% \u00B7 ${t('gst_taxable')} ${money(o.byRate[r].taxable)}</span>
+      <b>${money(o.byRate[r].tax)}</b></div>`).join('');
+  const partyRows=(arr)=>arr.slice(0,40).map(r=>`
+    <div class="il"><span class="hint">${fmtDate(r.date)} \u00B7 ${esc(r.no)} \u00B7 ${esc(r.party||'\u2014')}${r.gstin?' \u00B7 '+esc(r.gstin):''}</span>
+      <b>${money(r2(r.cgst+r.sgst+r.igst))}</b></div>`).join('');
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F9FE} ${t('gst_title')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
+    <p class="hint" style="margin-bottom:10px">${t('gst_sub')} \u00B7 ${fmtDate(from)} \u2192 ${fmtDate(to)}</p>
+    ${myGstin?'':`<p class="hint" style="color:var(--saffron2)">\u26A0\uFE0F ${t('gst_noreg')}</p>`}
+    ${(o.n||i.n)?`
+    <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
+      ${line('\u{1F4E4} '+t('gst_out'), outTax)}
+      ${line('\u{1F4E5} '+t('gst_in'), i.total, 'var(--ok)')}
+      ${line(net>=0?t('gst_net'):t('gst_net_cr'), Math.abs(net), net>=0?'var(--bad)':'var(--ok)', 1)}
+    </div>
+    <div class="section-h">${t('gst_r3')} \u00B7 ${t('gst_by_rate')}</div>
+    <div class="card" style="padding:12px 14px;margin-bottom:12px">
+      ${rateRows||`<p class="hint">${t('gst_none')}</p>`}
+      <div class="il" style="border-top:1px solid var(--line);margin-top:6px;padding-top:6px">
+        <span>CGST ${money(o.cgst)} \u00B7 SGST ${money(o.sgst)}${o.igst?' \u00B7 IGST '+money(o.igst):''}</span>
+        <b>${money(outTax)}</b></div>
+    </div>
+    <div class="section-h">${t('gst_r1')}</div>
+    <div class="card" style="padding:12px 14px;margin-bottom:8px">
+      <div class="kv"><b>${t('gst_b2b')}</b><span class="hint">${t('gst_bills',{n:o.b2b.length})}</span></div>
+      ${partyRows(o.b2b)||`<p class="hint" style="margin:4px 0 0">${t('gst_none')}</p>`}
+    </div>
+    <div class="card" style="padding:12px 14px;margin-bottom:12px">
+      <div class="kv"><b>${t('gst_b2c')}</b><span class="hint">${t('gst_bills',{n:o.b2c.length})}</span></div>
+      ${partyRows(o.b2c)||`<p class="hint" style="margin:4px 0 0">${t('gst_none')}</p>`}
+    </div>
+    ${exportBarHTML('rp_gst',()=>({title:t('gst_title'), sub:fmtDate(from)+' \u2013 '+fmtDate(to),
+      head:[t('pay_date'),t('invoice'),t('customer'),t('gstin'),t('gst_taxable'),'CGST','SGST','IGST',t('total')],
+      rows:o.b2b.concat(o.b2c).map(r=>[fmtDate(r.date),r.no,r.party,r.gstin||t('gst_nogstin'),
+        r.taxable,r.cgst,r.sgst,r.igst,r.total])}))}
+    `:`<div class="empty" style="padding:30px 10px"><p>${t('gst_none')}</p></div>`}
+    <p class="hint" style="margin-top:10px">${t('gst_note')}</p>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
 function plReport(){
   sheetAt(plReport);
   const {from,to}=rpRange(), f=plFigures(from,to);
@@ -15960,9 +16365,12 @@ function renderReports(){
   const _mainRp=`<div class="row" style="gap:8px;margin-bottom:8px">
       <button class="btn ghost" style="flex:1" onclick="plReport()">📈 ${t('rp_pl')}</button>
       <button class="btn ghost" style="flex:1" onclick="cashflowReport()">💵 ${t('rp_cashflow')}</button></div>
-    <div class="row" style="gap:8px;margin-bottom:12px">
+    <div class="row" style="gap:8px;margin-bottom:8px">
       <button class="btn ghost" style="flex:1" onclick="expHeadReport()">💸 ${t('rp_exp_head')}</button>
-      <button class="btn ghost" style="flex:1" onclick="partyStatement()">📒 ${t('rp_party_stmt')}</button></div>`;
+      <button class="btn ghost" style="flex:1" onclick="partyStatement()">📒 ${t('rp_party_stmt')}</button></div>
+    <div class="row" style="gap:8px;margin-bottom:12px">
+      <button class="btn ghost" style="flex:1" onclick="orderProfitReport()">💰 ${t('op_title')}</button>
+      <button class="btn ghost" style="flex:1" onclick="gstReport()">🧾 ${t('gst_title')}</button></div>`;
   const {from,to}=rpRange();
   const invs=allInvoices().filter(x=>{const d=String(x.inv.date||'');return d>=from&&d<=to;});
   let sales=0,gst=0;
@@ -16532,6 +16940,9 @@ function settingsMenu(){modal(t('settings'),`
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();shopInfoEdit()">🧾 ${t('shop_details')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();modulesEdit()">🧩 ${t('mod_title')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();measRangeEdit()">📏 ${t('ms_title')}</button>
+  ${/* v262: the Home layout switch, moved off the main screen to here. A once-ever choice
+       does not belong on the screen he opens forty times a day. */''}
+  <button class="btn ghost block" style="margin-bottom:8px" onclick="homeClassicToggle()">🏠 ${localStorage.getItem('pp_home_classic')==='1'?t('home_new_view'):t('home_classic')}</button>
   <div class="dl-hd" style="padding:12px 2px 6px">${t('sg_people')}</div>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();staffMaster()">👥 ${t('st_title')}</button>
   <div class="dl-hd" style="padding:12px 2px 6px">${t('sg_money')}</div>
@@ -17750,8 +18161,16 @@ function karigarMaster(){
   const ks=DB.karigars||[];
   $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:6px">${t('karigar_master')}</h2>
     <p class="hint" style="margin-bottom:12px">${t('karigar_desc')}</p>
-    ${ks.map(k=>`<div class="cust-result"><div><b>👷 ${esc(k.name)}</b><div class="hint">${esc(k.phone||'—')}</div></div>
-      <div style="display:flex;gap:6px"><button class="btn sm ghost" onclick="karigarEdit('${k.id}')">✏️</button><button class="btn sm danger" onclick="karigarDelete('${k.id}')">✕</button></div></div>`).join('')||'<p class="hint">'+t('no_karigars')+'</p>'}
+    ${/* v260: archived men stay listed here — dimmed, with one tap to bring them back —
+         because the money and the pieces are still theirs. They are gone from the pickers,
+         not from the books. */''}
+    ${ks.slice().sort((a,b)=>(a.archived?1:0)-(b.archived?1:0)).map(k=>`<div class="cust-result" style="${k.archived?'opacity:.5':''}">
+      <div><b>👷 ${esc(k.name)}</b><div class="hint">${k.archived?t('kar_archived')+' · ':''}${esc(k.phone||'—')}</div></div>
+      <div style="display:flex;gap:6px">
+        ${k.archived
+          ? `<button class="btn sm ghost" onclick="karigarArchive('${k.id}',false)">↩️ ${t('kar_unarch')}</button>`
+          : `<button class="btn sm ghost" onclick="karigarEdit('${k.id}')">✏️</button><button class="btn sm danger" onclick="karigarDelete('${k.id}')">✕</button>`}
+      </div></div>`).join('')||'<p class="hint">'+t('no_karigars')+'</p>'}
     <button class="btn primary block" style="margin-top:10px" onclick="karigarEdit()">+ ${t('add_karigar')}</button>
     `;
   showSheet();
@@ -17789,9 +18208,54 @@ function karigarSave(id){const name=($('#kName').value||'').trim();if(!name){toa
     if(_karAfterAdd){ const c=_karAfterAdd; _karAfterAdd=null; save();
       setItemKarigar(c.oid,c.gid,nk.id); return; } }
   save();karigarMaster();toast(t('t_saved'),'ok');}
-function karigarDelete(id){confirmModal(t('confirm_del'),t('confirm_del_msg'),()=>{DB.karigars=(DB.karigars||[]).filter(x=>x.id!==id);
-  DB.orders.forEach(o=>{if(o.assign)for(const g in o.assign)if(o.assign[g]===id)delete o.assign[g];});
-  save();karigarMaster();toast(t('t_deleted'));});}
+/* v260 AUDIT — P2: DELETING A KARIGAR REWROTE HISTORY.
+   The old delete did two destructive things and warned about neither. It removed the man,
+   and then walked every order in the book stripping o.assign — so the record of WHO made a
+   garment was erased from live orders. With him gone, karRateFor() finds no rate, so his
+   cost falls to zero and PAST order profit silently rises: a test order went from ₹74,100
+   to ₹75,000 the moment he was deleted. The karigar report loses the work too.
+   That is exactly what his rules forbid — "never silently erase financial history", and
+   "anything that moves value asks me first and says what it will do".
+   A man who has worked can now only be ARCHIVED: he disappears from every picker, so nobody
+   assigns new work to him, and every rupee and every piece stays exactly where it was. A man
+   with no work recorded still deletes outright, and the confirm now says so. */
+function karHistory(id){
+  let n=0, amt=0;
+  (DB.orders||[]).forEach(o=>(o.items||[]).forEach(gid=>{
+    if(((o.assign&&o.assign[gid])||'')===id){ n++; amt+=karRateFor(o,gid); }
+    ((o.jobs&&o.jobs[gid])||[]).forEach(leg=>{ if((leg.kid||'')===id){ n++; amt+=(+leg.amt||0); } });
+  }));
+  (DB.alterations||[]).forEach(a=>{ if((a.karigarId||'')===id){ n++; amt+=(+a.karAmt||0); } });
+  const pays=(typeof karPaid==='function')?karPaid(id):0;
+  return {n, amt:r2(amt), paid:r2(pays||0)};
+}
+function karigarDelete(id){
+  const k=(DB.karigars||[]).find(x=>x.id===id)||{};
+  const h=karHistory(id);
+  if(h.n||h.paid){
+    modal('\u{1F477} '+t('kar_has_hist_t'),
+      `<p style="color:var(--txt2);font-size:14px;line-height:1.6">
+         ${t('kar_has_hist',{n:h.n, v:money(h.amt), name:esc(k.name||'')})}</p>`,
+      [{label:t('cancel'),cls:'ghost',fn:closeModal},
+       {label:'\u{1F4E6} '+t('kar_arch'),cls:'primary',fn:()=>karigarArchive(id,true)}]);
+    return;
+  }
+  /* v260 P4: confirm_del reads "Delete order?" verbatim — right on an order row, plainly
+     wrong on a karigar. The thing being deleted is named instead. */
+  confirmModal('\u{1F5D1}\uFE0F '+t('karigar')+' — '+(k.name||''), t('kar_del_clean',{name:k.name||''}), ()=>{
+    DB.karigars=(DB.karigars||[]).filter(x=>x.id!==id);
+    save(); closeModal(); karigarMaster(); toast(t('t_deleted'));
+  });
+}
+function karigarArchive(id,on){
+  const k=(DB.karigars||[]).find(x=>x.id===id); if(!k)return;
+  k.archived=on?1:0;
+  save(); closeModal(); karigarMaster();
+  toast(t(on?'kar_arch_done':'kar_unarch_done',{name:k.name||''}),'ok');
+}
+/* every picker asks for this list, never DB.karigars directly, so an archived man cannot be
+   handed new work — while every screen that reports on the past still finds him by id */
+function karigarsActive(){ return (DB.karigars||[]).filter(k=>!k.archived); }
 
 /* ====================== ITEM MASTER (billing items) ====================== */
 function itemMaster(){
@@ -17887,6 +18351,39 @@ function imDelete(id){confirmModal(t('confirm_del'),t('confirm_del_msg'),()=>{
    clean days earns a day's pay. A full day absent costs a day; half a day costs half.
    Every number here lives in Settings, because the next shop's habits will differ. */
 /* ── expense heads: what kind of spend, and whose account ─────────────────── */
+/* v253 — HIS 22 Aug: "vo 2 minute wala kaam to kar do." I cannot — those heads live on
+   his iPad, not here, and I have never seen their names. What I CAN do is stop making him
+   hunt: this reads his own heads, guesses each one from its name, shows the guess, and
+   saves the lot on one tap. A guess is only ever OFFERED — nothing is written until he
+   presses the button, because silently deciding that a head is an advance is precisely the
+   bug v251 was fixing. */
+function ehGuessPay(name){
+  const n=String(name||'').toLowerCase();
+  if(/(recover|recovery|wapas|vapas|vasool|\u0935\u093e\u092a\u0938|\u0935\u0938\u0942\u0932|adjust|katauti|\u0915\u091f\u094c\u0924\u0940)/.test(n))return 'rec';
+  if(/(salary|tankh|tankhwah|talab|wages|pagar|\u0935\u0947\u0924\u0928|\u0924\u0928\u0916|\u0938\u0948\u0932\u0930\u0940|\u092a\u0917\u093e\u0930)/.test(n))return 'sal';
+  if(/(advance|adv|peshgi|pesgi|udhar|\u090f\u0921\u0935\u093e\u0902\u0938|\u092a\u0947\u0936\u0917\u0940|\u0909\u0927\u093e\u0930|loan|karz|\u0915\u0930\u094d\u091c)/.test(n))return 'adv';
+  return '';
+}
+function ehUntagged(){
+  return (DB.expCats||[]).filter(c=>{ const h=expHeadCfg(c); return h.who==='staff' && !h.pay; });
+}
+function ehSetupAsk(){
+  const list=ehUntagged();
+  if(!list.length){ toast(t('eh_setup_done'),'ok'); return; }
+  const opts=[['','eh_pay_none'],['adv','eh_pay_adv'],['sal','eh_pay_sal'],['rec','eh_pay_rec']];
+  modal('\u{1F3F7}\uFE0F '+t('eh_setup_title'),
+    `<p class="hint" style="margin-bottom:10px">${t('eh_setup_sub')}</p>
+     ${list.map((c,i)=>`<div class="field" style="margin-bottom:8px"><label>${esc(c)}</label>
+       <select id="ehs${i}">${opts.map(([v,k])=>
+         `<option value="${v}" ${ehGuessPay(c)===v?'selected':''}>${t(k)}</option>`).join('')}</select></div>`).join('')}`,
+    [{label:t('cancel'),cls:'ghost',fn:closeModal},
+     {label:t('eh_setup_go'),cls:'primary',fn:()=>{
+        list.forEach((c,i)=>{ const v=(($('#ehs'+i)||{}).value)||'';
+          DB.expHeadCfg=DB.expHeadCfg||{};
+          DB.expHeadCfg[c]=Object.assign({who:'staff',kind:'indirect',pay:''},DB.expHeadCfg[c]||{},{pay:v}); });
+        save(); closeModal(); toast(t('t_saved'),'ok'); manageExpHeads();
+     }}]);
+}
 function manageExpHeads(){
   sheetAt(manageExpHeads);
   const cats=DB.expCats||[];
@@ -17915,6 +18412,11 @@ function manageExpHeads(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin:0 0 2px">⚙️ ${t('eh_title')}</h2>
     <p class="hint" style="margin:0 0 12px">${t('eh_sub')}</p>
+    ${/* v253: the tagging he asked me to do, offered as one button instead of a hunt */''}
+    ${ehUntagged().length?`<div class="card" style="border-color:var(--saffron);padding:10px 12px;margin-bottom:12px">
+      <b>🏷️ ${t('eh_setup_title')}</b>
+      <p class="hint" style="margin:4px 0 8px">${t('eh_setup_sub')}</p>
+      <button class="btn sm primary block" onclick="ehSetupAsk()">${t('eh_setup_go')} · ${ehUntagged().length}</button></div>`:''}
     ${rows}<div class="fab-pad"></div>`;
   showSheet();
 }
@@ -19387,10 +19889,30 @@ async function zipRestore(file){
    The file has exactly the shape of the old full backup, so every existing restore —
    including on older versions — reads it unchanged; and photo restore has always
    upserted, so base + increments layer together safely. */
-function bkSent(){ try{ return JSON.parse(localStorage.getItem('pb_ob_sent')||'{}'); }catch(e){ return {}; } }
+/* v261 AUDIT — the incremental backup was sound; its MEMORY was not.
+   The list of "photos already handed over" lived in localStorage alone. Every record that
+   matters lives in IndexedDB, where the app has asked the browser for persistent storage —
+   localStorage has no such protection and Safari clears it on its own schedule. Tested here:
+   remove that one key and 300 already-sent photos instantly look new again. On his iPad that
+   is 1,336 photos re-queued at 25MB a press — roughly thirty presses to get back to where he
+   already was. Not lost data, but enough pointless work that he would stop taking backups,
+   and a backup nobody takes is the real failure.
+   The list now lives in DB beside everything else, so it is durable AND it travels inside
+   the backup file. localStorage is kept as a mirror, and an existing list is adopted once so
+   nothing already sent is forgotten. Roughly 25 bytes a photo — 33KB at his size. */
+function bkSent(){
+  DB.bkSent=DB.bkSent||null;
+  if(!DB.bkSent){
+    let old={};
+    try{ old=JSON.parse(localStorage.getItem('pb_ob_sent')||'{}'); }catch(e){ old={}; }
+    DB.bkSent=old;                                   // one-time adoption, nothing re-sent
+  }
+  return DB.bkSent;
+}
 function bkMarkSent(keys){
   const m=bkSent(); (keys||[]).forEach(k=>{ m[k]=1; });
-  try{ localStorage.setItem('pb_ob_sent',JSON.stringify(m)); }catch(e){}
+  DB.bkSent=m; save();                               // durable, and it rides inside the backup
+  try{ localStorage.setItem('pb_ob_sent',JSON.stringify(m)); }catch(e){}   // mirror, not the source
 }
 async function bkNewKeys(){
   _pbKeys=null;                                   // fresh look — photos arrive all day
@@ -20279,7 +20801,7 @@ function doUndo(){
 }
 
 /* ====================== INIT ====================== */
-function updateHeadStat(){const due=DB.orders.reduce((s,o)=>s+orderBaaki(o),0);
+function updateHeadStat(){const due=receivableTotal();   /* v254: was orders-only */
   const hs=$('#headStat');if(hs)hs.innerHTML=`<b>${DB.orders.length}</b> ${t('orders_word')} · <b onclick="statDetail('collect')" style="cursor:pointer;text-decoration:underline dotted">${money(due)}</b> ${t('due')}<br><span onclick="backupMenu()" style="text-decoration:underline;cursor:pointer">💾 ${t('backup')}</span>`;}
 /* Boot must never come up EMPTY while readable data still exists somewhere.
    Each candidate is parsed before it is accepted; the first one that is both readable
@@ -20365,6 +20887,7 @@ async function init(){
   _coreDirty=false; _dirtyOrd.clear(); _dbDirty=false;
   syncShopNameKey();applyModules();applyLang();
   document.body.classList.toggle('simple-mode',localStorage.getItem('pb_ob_simple')==='1');
+  enLockScreens();                     /* v264: accounts screens speak English */
   renderHome();_curTab='home';pushGuard();
   reopenForm();                        // interrupted mid-order? put him back in it
   setTimeout(autoFileBackup,4000);
