@@ -749,7 +749,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v286</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v289</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -2002,6 +2002,7 @@ const T={
   db_bal_now:'Cash & bank now',
   t_order_gone:'This order no longer exists — nothing was saved.',
   pur_edit_nostock:'Bill updated. Stock was NOT changed — correct the roll or piece in Stock.',
+  pur_del_partial_stock:'Bill deleted. Some of this cloth (roll #{s}) was already cut, so only the unused part could be taken back — check the roll.',
   wk_back:'All items', wk_stage3:'Last step',
   wk_none:'Pick at least one item first', wk_pick_first:'Pick an item to begin',
   wk_no_cust:'No customer name yet',
@@ -3468,6 +3469,7 @@ const T={
   db_bal_now:'अभी कैश और बैंक',
   t_order_gone:'ये ऑर्डर अब मौजूद नहीं है — कुछ सेव नहीं हुआ।',
   pur_edit_nostock:'बिल अपडेट हो गया। स्टॉक नहीं बदला — थान/पीस को Stock में खुद ठीक करें।',
+  pur_del_partial_stock:'बिल डिलीट हो गया। थान #{s} में से कुछ कपड़ा पहले ही कट चुका था, इसलिए सिर्फ बचा हुआ हिस्सा वापस लिया गया — थान चेक कर लें।',
   wk_back:'सारे आइटम', wk_stage3:'आखिरी स्टेप',
   wk_none:'पहले कोई आइटम चुनें', wk_pick_first:'शुरू करने के लिए आइटम चुनें',
   wk_no_cust:'ग्राहक का नाम अभी नहीं',
@@ -3941,18 +3943,15 @@ function load(raw){ try{const r=(raw!==undefined&&raw!==null)?raw:localStorage.g
      indirect — and one entry then reaches both the expense book and that person's account,
      with nothing typed twice. Heads with no list keep behaving exactly as they do today. */
   if(!DB.expHeadCfg)DB.expHeadCfg={};
-  /* v213 — HIS 17 Aug: "aaj se attendance software par hi hoga" with six names. Seeded
-     once so the punch screen is usable from the first morning; every one of them can be
-     renamed, given a timing and a salary, or taken off the list from Staff. */
-  if(!DB.staffSeeded){
-    DB.staff=DB.staff||[];
-    ['RAMESH','VICKY','JEESHAN','SOMA HALDER','OM PRAKASH','JAFAR'].forEach(nm=>{
-      if(!DB.staff.some(x=>String(x.name||'').trim().toUpperCase()===nm))
-        DB.staff.push({id:uid(),name:nm,role:'',phone:'',salary:0,commPct:0,
-          startTime:'',endTime:'',joined:'',left:false});
-    });
-    DB.staffSeeded=1;
-  }
+  /* v213 originally seeded this ONE shop's own six real staff names here so the punch
+     screen was usable on day one. v287 AUDIT: that seed ran unconditionally for ANY
+     fresh database, so a brand new shop's very first boot would silently arrive with
+     someone else's real employees already on the payroll screen — exactly what "never
+     hardcode this shop's name, rates, staff, or item list into logic" forbids. This
+     shop's own live data already has DB.staffSeeded set from when v213 first ran, so
+     removing the seed changes nothing here; a new install now starts with an empty
+     Staff list, same as Tailors, Customers and every other master in the app. */
+  DB.staff=DB.staff||[];
   /* v205 — HIS 15 Aug: "staff and salesman master, ye do alag chip ka kya matlab hai?"
      None — Om is a salesman AND staff, and keeping two lists meant typing him twice and
      splitting his account in half. Salesmen fold into staff, once, keeping their ids so
@@ -4822,9 +4821,30 @@ function revertStockByRef(refId){
     if(mv.target==='ready'&&mv.itemId&&mv.size){
       const m=(DB.itemMaster||[]).find(x=>x.id===mv.itemId);
       if(m)readySet(m,mv.size,readyQty(m,mv.size)+sign*q);
-    }else if(mv.target==='fab'&&mv.thaanId){
+    }else if((mv.target==='fab'||mv.target==='fabric')&&mv.thaanId){
+      /* v289 AUDIT — HIS 24 Aug: deleted a wrong purchase, the roll it created stayed in
+         stock at full metres, and re-entering the correct bill counted the same cloth
+         twice. Root cause, found live: a purchase logs its fabric move as target:'fabric'
+         (one stray call, everywhere else in the file says 'fab'), so this function's own
+         match never fired — the reversal was a silent no-op every single time. That is
+         fixed by matching both spellings, for his existing history as much as new bills.
+         But matching alone was not enough: a purchase ADDS to a roll's total (mtr), never
+         to what has been used — the old line here only ever touched .used, which a
+         purchase never touches. Undoing a purchase must give the METRES back, and it must
+         never claim back cloth that has already been cut, exactly the rule his own serial-
+         undo already follows elsewhere. */
       const th=(DB.thaans||[]).find(x=>x.id===mv.thaanId);
-      if(th)th.used=r2(Math.max(0,(+th.used||0)-sign*q));
+      if(th){
+        if(mv.reason==='purchase'){
+          const already=Math.max(0,(+th.mtr||0)-(+th.used||0)) < q;   // some of it was cut since
+          th.mtr=r2(Math.max(+th.used||0,(+th.mtr||0)-q));
+          if(already)toast(t('pur_del_partial_stock',{s:th.serial||''}),'bad');
+          if((+th.mtr||0)<=0.01 && (+th.used||0)<=0.01)
+            DB.thaans=(DB.thaans||[]).filter(x=>x.id!==th.id);        // nothing left, nothing cut — the roll goes too
+        }else{
+          th.used=r2(Math.max(0,(+th.used||0)-sign*q));
+        }
+      }
     }
   });
   DB.moves=(DB.moves||[]).filter(m=>m.refId!==refId);
@@ -16258,13 +16278,26 @@ function purApplyStock(pur){
         DB.thaans.push(th); bumpSerial(); made++;
       }
       it.thaanId=th.id; it.fabId=th.fabId; it.serial=th.serial;
-      move({date:pur.date,dir:'in',target:'fabric',thaanId:th.id,qty,rate,
+      move({date:pur.date,dir:'in',target:'fab',thaanId:th.id,qty,rate,
         reason:'purchase',ref:pur.billNo||'',refId:pur.id});
     }
   });
   pur._stockDone=true;
   return {made,merged};
 }
+/* v289 FIX — HIS 24 Aug: a purchase entry got double-counted in stock, and the delete
+   button felt unresponsive right before it happened. Root cause: nothing stopped a second
+   tap, landing while the first save was still being processed, from creating a SECOND,
+   entirely separate purchase record — a fresh uid() each time — each one independently
+   adding its own stock via purApplyStock(). The _stockDone guard inside purApplyStock only
+   stops the SAME record from being applied twice; it does nothing for two different records
+   from two taps.
+   A boolean re-entrancy flag was tried first and PROVED WRONG by its own test: this
+   function has no await inside it, so two taps never actually overlap — the first always
+   finishes, flag and all, before the second one starts. The real failure is an impatient
+   SECOND tap after the first has already gone through, not a concurrent one. That needs a
+   cooldown, not a lock. */
+let _purLastSave=0;
 function savePurchase(){
   purDraftAdd(true);              // an item still sitting in the entry line counts
   capturePurchForm();const f=purchForm;
@@ -16273,6 +16306,11 @@ function savePurchase(){
   if(!f.supplier){toast(t('t_no_supplier'),'bad');return;}
   if(!(f.billNo||'').trim()){toast(t('t_no_billno'),'bad');return;}
   if(!total){toast(t('t_no_amount'),'bad');return;}
+  /* only once every real validation has passed does a repeat tap become a genuine risk —
+     checked here, not at the top, so fixing a typo and tapping Save again right away is
+     never mistaken for the same double-tap this guards against. */
+  if(Date.now()-_purLastSave<1200)return;
+  _purLastSave=Date.now();
   if(f.editId){
     const p=(DB.purchases||[]).find(x=>x.id===f.editId);
     /* Editing a purchase does NOT re-apply stock, and it is deliberate. Re-applying would
@@ -17109,7 +17147,19 @@ function gstFigures(from,to){
   allInvoices().filter(x=>{const d=String(x.inv.date||'');return d>=from&&d<=to;})
     .forEach(x=>{
       const c=invCompute(x.inv);
-      const gstin=String((x.rec&&(x.rec.gstin||x.rec.customerGstin))||'').trim();
+      /* v287 FIX: gstin was read off the order/sale record itself, but no save path in the
+         app has ever written .gstin or .customerGstin there — a customer's GSTIN only ever
+         lands on their PARTY card (Parties → customer). Every bill was silently falling into
+         B2C, forever, with no way to see it from the report screen. Looked up from the party
+         master instead, the same way the party card itself is found elsewhere in the app. */
+      let gstin='';
+      if(x.rec){
+        const nm=String(x.rec.customerName||'').trim();
+        const pp=(x.rec.customerId&&(DB.customers||[]).find(c=>c.id===x.rec.customerId))
+          ? partyByName(((DB.customers||[]).find(c=>c.id===x.rec.customerId)||{}).name)
+          : (nm?partyByName(nm):null);
+        if(pp)gstin=String(pp.gstin||'').trim();
+      }
       const row={date:x.inv.date, no:x.inv.no||'', party:x.rec.customerName||'', gstin,
         taxable:c.taxable, cgst:c.cgst, sgst:c.sgst, igst:c.igst, total:c.total};
       (gstin?out.b2b:out.b2c).push(row);
