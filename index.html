@@ -749,7 +749,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v289</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v291</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1373,6 +1373,10 @@ const T={
   stk_none_match:'Nothing matches this search or filter.',
   stk_add_thaan:'Add fabric',
   stk_bulk:'Bulk',
+  fab_select:'Select', fab_selected:'selected',
+  fab_sel_del_t:'Delete {n} rolls?', fab_sel_del_msg:'{n} rolls · worth {v} will be removed from stock. This cannot be undone.',
+  fab_sel_del_used:'{n} of them already have some cloth cut from them.',
+  t_deleted_n:'{n} deleted',
   stk_bulk_title:'Opening / bulk fabric',
   stk_bulk_desc:'Add many thaans fast. Only Serial + Meter are needed — name, rate, supplier are optional.',
   stk_bulk_shared:'Category / Supplier / Selling rate above apply to every row (leave blank if mixed).',
@@ -2841,6 +2845,10 @@ const T={
   stk_none_match:'इस खोज या फ़िल्टर से कुछ नहीं मिला।',
   stk_add_thaan:'कपड़ा जोड़ें',
   stk_bulk:'बल्क',
+  fab_select:'चुनें', fab_selected:'चुने गए',
+  fab_sel_del_t:'{n} रोल डिलीट करें?', fab_sel_del_msg:'{n} रोल · कीमत {v} स्टॉक से हट जाएंगे। यह वापस नहीं होगा।',
+  fab_sel_del_used:'इनमें से {n} रोल से कुछ कपड़ा पहले ही कट चुका है।',
+  t_deleted_n:'{n} हटाए गए',
   stk_bulk_title:'ओपनिंग / बल्क फैब्रिक',
   stk_bulk_desc:'कई थान तेज़ी से जोड़ें। सिर्फ़ Serial + Meter ज़रूरी — नाम, रेट, सप्लायर वैकल्पिक।',
   stk_bulk_shared:'ऊपर की कैटेगरी / सप्लायर / बिक्री दाम नीचे सभी लाइनों पर लगेंगे (अलग-अलग हों तो खाली छोड़ें)।',
@@ -4869,6 +4877,9 @@ function readySet(m,size,q){ m.stk=m.stk||{}; const v=Math.max(0,Math.round(+q||
 let _stkTab='fabric';
 function stockHome(tab){
   sheetAt(stockHome); if(!modOn('stock')){toast(t('mod_off'),'bad');return;}
+  /* v290: select mode belongs to the fabric list only — leaving it (another tab, closing
+     the sheet, coming back later) always starts clean, never half-selected by surprise. */
+  if(tab && tab!==_stkTab){ _fabSelMode=false; _fabSel.clear(); }
   if(tab)_stkTab=tab;
   const tabs=[['fabric','🧵 '+t('stk_fabric')],['ready','👔 '+t('stk_ready')],['reports','📊 '+t('stk_reports')]];
   const fabMtr=r2((DB.thaans||[]).reduce((s,t)=>s+thaanBal(t),0));
@@ -4899,6 +4910,33 @@ function stockHome(tab){
 /* ======================= FABRIC ======================= */
 let _fabQ='', _fabCat='', _fabSort='serial', _fabBand='';
 let _smp=null, _smpF='all';
+/* v290 — HIS 24 Aug: "stock me multiple items delete karna hai, taaki galat entries jaldi
+   thik ho jaye." One wrong roll at a time through thaanDetail was fine for a mistake here
+   and there; a batch of bad entries needs a batch way out. Select mode changes nothing
+   about a single row's own delete — it just lets many be picked before one confirm. */
+let _fabSelMode=false, _fabSel=new Set();
+function fabSelToggle(){ _fabSelMode=!_fabSelMode; _fabSel.clear(); fabricBody(); }
+function fabSelPick(id){
+  if(_fabSel.has(id))_fabSel.delete(id); else _fabSel.add(id);
+  fabricBody();
+}
+function fabSelDelete(){
+  if(!_fabSel.size)return;
+  const ids=[..._fabSel];
+  const rolls=ids.map(id=>TH(id)).filter(Boolean);
+  const usedN=rolls.filter(th=>(+th.used||0)>0.01).length;
+  const val=r2(rolls.reduce((s,th)=>s+thaanValue(th),0));
+  confirmModal('🗑️ '+t('fab_sel_del_t',{n:rolls.length}),
+    t('fab_sel_del_msg',{n:rolls.length,v:money(val)})+(usedN?'<br><br>⚠️ '+t('fab_sel_del_used',{n:usedN}):''),
+    ()=>{
+      ids.forEach(id=>{
+        DB.thaans=(DB.thaans||[]).filter(x=>x.id!==id);
+        DB.moves=(DB.moves||[]).filter(m=>m.thaanId!==id);
+      });
+      save(); closeModal(); _fabSelMode=false; _fabSel.clear();
+      toast(t('t_deleted_n',{n:rolls.length}),'ok'); fabricBody();
+    }, closeModal, {yes:t('delete'), no:t('cancel'), cls:'danger'});
+}
 const FAB_BANDS=[['le1','≤ 1 m',0,1],['1to2','1 – 2 m',1,2],['2to5','2 – 5 m',2,5],['ge5','5 m +',5,1e9]];
 function setFabCat(v){ _fabCat=String(v||''); pageReset('fab'); fabricBody(); }
 function setFabBand(v){ _fabBand=(_fabBand===v?'':v); pageReset('fab'); fabricBody(); }
@@ -5005,6 +5043,7 @@ function fabricBody(keepFocus){
     <div class="row" style="margin-bottom:10px;gap:6px">
       <button class="btn primary" style="flex:1" onclick="thaanEdit()">➕ ${t('stk_add_thaan')}</button>
       <button class="btn ghost" style="flex:0 0 auto;padding:0 12px" onclick="bulkFabOpen()">📋 ${t('stk_bulk')}</button>
+      ${list.length?`<button class="btn ${_fabSelMode?'primary':'ghost'}" style="flex:0 0 auto;padding:0 12px" onclick="fabSelToggle()">${_fabSelMode?'✕ '+t('cancel'):'☑️ '+t('fab_select')}</button>`:''}
       ${(DB.fabItems||[]).length?`<button class="btn ghost" style="flex:0 0 auto;padding:0 14px" onclick="fabSetupMenu()">⚙️</button>`:''}</div>
     <div class="kv" style="margin-bottom:8px">
       <span class="hint">${t('stk_n_thaans',{n:list.length})}${finN?` · ${t('stk_fin_n',{n:finN})}`:''}</span>
@@ -5016,8 +5055,9 @@ function fabricBody(keepFocus){
       const f=FI(th.fabId)||{}; const bal=thaanBal(th);
       const low=bal<=3&&bal>0; const done=bal<=0.05;
       const dead=monthsSince(lastMoveTs(m=>m.thaanId===th.id&&m.dir===MV_OUT)||th.created)>=(DB.stkCfg.deadMonths||6);
-      return `<div class="card" style="margin-bottom:8px;${low?'border-color:var(--saffron)':''}" onclick="thaanDetail('${th.id}')">
+      return `<div class="card" data-th="${th.id}" style="margin-bottom:8px;${low?'border-color:var(--saffron)':''}${_fabSelMode&&_fabSel.has(th.id)?';border-color:var(--saffron2);border-width:2px':''}" onclick="${_fabSelMode?`fabSelPick('${th.id}')`:`thaanDetail('${th.id}')`}">
         <div class="kv" style="align-items:flex-start">
+          ${_fabSelMode?`<span style="font-size:20px;line-height:1;margin-right:2px">${_fabSel.has(th.id)?'☑️':'⬜'}</span>`:''}
           ${(th.photos||[]).length?`<img class="stk-thumb" data-pid="${th.photos[0]}">`:''}
           <div style="flex:1">
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
@@ -5035,7 +5075,10 @@ function fabricBody(keepFocus){
             ${th.rate?`<div class="hint" style="color:var(--saffron2)">@ ${money(th.rate)}/m = ${money(thaanValue(th))}</div>`:''}
             ${(th.sell||f.sell)?`<div class="hint" style="color:#1a9d5a;font-weight:700">🏷️ ${money(th.sell||f.sell)}/m</div>`:''}
           </div></div></div>`;}).join('')+pageMoreBtn('fab',list.length)
-      || `<div class="empty" style="padding:26px 10px"><p>${t('stk_no_thaan')}</p></div>`}`;
+      || `<div class="empty" style="padding:26px 10px"><p>${t('stk_no_thaan')}</p></div>`}
+    ${_fabSelMode?`<div id="fabSelBar" class="save-dock" style="display:${_fabSel.size?'':'none'}">
+      <span class="hint" style="flex:1;padding-left:4px"><b id="fabSelCount">${_fabSel.size}</b> ${t('fab_selected')}</span>
+      <button class="btn danger" onclick="fabSelDelete()">🗑️ ${t('delete')}</button></div>`:''}`;
   if(keepFocus){const e=$('#fabSearch');if(e){const v=e.value;e.focus();e.setSelectionRange(v.length,v.length);}}
   loadStockThumbs();
 }
@@ -15759,7 +15802,7 @@ function purDraftDrop(){
 function purDraftHTML(){
   return `<div class="card" id="puDraft" style="padding:12px 14px;margin-bottom:10px;border-color:var(--saffron)">
     <input id="pu_dname" placeholder="${t('pur_name_ph2')}" autocomplete="off"
-      onfocus="purDSug()" oninput="purDSug()" onkeydown="if(event.key==='Enter'){event.preventDefault();purDraftAdd();}" style="margin:0">
+      onfocus="purDSug()" oninput="purDSug()" onblur="purDBlur()" onkeydown="if(event.key==='Enter'){event.preventDefault();purDraftAdd();}" style="margin:0">
     ${/* v229 — HIS 20 Aug: "item name daal raha hun to vo already save hai ki nahi dikh
          nahi raha, keyboard aa ja raha hai." The saved list sits below the fold and the
          keyboard covers it, so he was typing blind — and on a purchase bill most items ARE
@@ -15868,6 +15911,12 @@ function purDCalc(){
 function purDSug(){
   const box=$('#puDSug'), inp=$('#pu_dname'); if(!box||!inp)return;
   const q=(inp.value||'').trim();
+  /* v290 — HIS 24 Aug: "cursor hatte hi chip ke andar... 4-5 items bhi bahar nahi chahiye,
+     jab cursor aayega tab hi do." Nothing shows until he actually types something — an
+     empty tap into the box used to dump every saved item at once, which is exactly the
+     clutter his own design law rules out, and on a long list it ran straight into the
+     Save bar underneath it. */
+  if(!q){ box.innerHTML=''; purDState('',[]); return; }
   const list=purSugList(q);
   purDState(q,list); _purSug.d=list;
   const norm=v=>String(v||'').toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -15884,7 +15933,7 @@ function purDSug(){
          rare case — it is the common one, and it belongs next to the name at all times. */
       q?`<a onclick="purDNew()">➕ ${t('pur_sug_new')}</a>`:''}</div>`;
   if(list.length){
-    h+=list.map((o,k)=>`<div class="cust-result" style="margin-bottom:6px" onclick="purDPick(${k})">
+    h+=list.map((o,k)=>`<div class="cust-result" style="margin-bottom:6px" onmousedown="event.preventDefault()" onclick="purDPick(${k})">
       <div style="min-width:0"><b>${esc(o.title)}</b>
         <div class="hint">${esc(sugFacts(o)||o.sub)}</div></div>
       <span class="btn sm primary" style="flex:0 0 auto">${t('select')}</span></div>`).join('');
@@ -15893,6 +15942,12 @@ function purDSug(){
   }
   box.innerHTML=h;
 }
+/* v290: the list is only for the moment he is actually typing — a small delay so a tap on
+   a row (which needs the box to still be there when the click lands) is not swallowed by
+   the blur that fires a beat before it; onmousedown above already stops the input from
+   losing focus on that tap, this is the fallback for anything that still gets through. */
+function purDBlur(){ setTimeout(()=>{ const box=$('#puDSug'); if(box)box.innerHTML=''; },160); }
+
 /* One line of truth under every suggestion: what it cost last, what is left. */
 function sugFacts(o){
   const v=o.val||{}, bits=[];
@@ -21412,9 +21467,46 @@ async function zipRestore(file){
           const sub=$('#zrSub'); if(sub)sub.textContent=t('zb_progress',{a:i,b:media.length});
           await bkYield(); }
       }
-      DB=d; save(); closeModal();
+      /* v290 AUDIT — HIS 24 Aug, a real restore that came back to "Set up your shop"
+         empty, right after the app itself said 9 orders · 20 customers · 1266 rolls
+         were found and put back. The photos truly were restored — 1220 of 1402 files
+         had gone in fine, this loop is sound. What followed it was not.
+         `save()` here only sets a dirty flag and a 400ms timer; it never marks a single
+         restored ORDER as needing to be written, because touchOrder() was never called
+         for any of them — save() with no id does not know they exist. The debounced
+         flush that fires from that timer writes __core (thaans, customers, shop info)
+         but finds nothing in its dirty-order list, so it writes __meta pointing at 9
+         order ids with zero matching records behind them. On the very next boot,
+         readStoreV2() counts the mismatch, correctly refuses to trust a store missing
+         its own orders — and because nothing else on a bare device has ever written
+         __db either, there is nothing left to fall back to but empty. The 600ms wait
+         before reload never had a chance: the write it was hoping to catch was already
+         wrong before the clock started.
+         Fixed the way migrateToV2 already does it elsewhere in this file: every order
+         is touched so it is actually written, the write is done and VERIFIED by reading
+         it straight back, and only if that check fails does a raw legacy copy go to
+         __db as a second net — so a device with no history of its own still has
+         somewhere to land. */
+      DB=d;
+      (d.orders||[]).forEach(o=>{ try{ touchOrder(o.id); }catch(e){} });
+      _coreDirty=true; _dbDirty=true;
+      let restoredOk=false;
+      if(idb){
+        try{
+          restoredOk=await writeStoreV2();
+          if(restoredOk){ const check=await readStoreV2();
+            restoredOk=!!(check && (check.orders||[]).length===(d.orders||[]).length); }
+        }catch(e){ restoredOk=false; }
+      }
+      if(!restoredOk){
+        try{ const s=dbSerialize();
+          if(s.length<4200000)localStorage.setItem('pb_ob_v1',s);
+          if(idb)await mPut('__db', s);
+        }catch(e){}
+      }
+      closeModal();
       toast(t('t_restored'),'ok');
-      setTimeout(()=>location.reload(),600);
+      location.reload();
     },
     null, {yes:t('restore_backup'), no:t('cancel'), cls:'primary'});
 }
@@ -21842,8 +21934,27 @@ function doImport(){const inp=document.createElement('input');inp.type='file';in
       const found=t('bk_found',{o:(d.orders||[]).length, c:(d.customers||[]).length,
                                 r:(d.thaans||[]).length, p:nMedia});
       confirmModal(t('restore_title'), found+'\n\n'+t('restore_msg'),async ()=>{
+        /* v290: same root cause as the zip path — DB.orders was never touchOrder()'d, so
+           the per-order store had nothing to write and the next boot found none of them.
+           Fixed the same way: touch every order, write, verify by reading it back, and
+           fall back to a raw legacy copy if that check doesn't pass. */
         DB=d;if(!DB.customers)DB.customers=[];if(!DB.designLib)DB.designLib={};if(!DB.karigars)DB.karigars=[];
-        save(); flushDBNow();
+        (DB.orders||[]).forEach(o=>{ try{ touchOrder(o.id); }catch(e){} });
+        _coreDirty=true; _dbDirty=true;
+        let restoredOk=false;
+        if(idb){
+          try{
+            restoredOk=await writeStoreV2();
+            if(restoredOk){ const check=await readStoreV2();
+              restoredOk=!!(check && (check.orders||[]).length===(DB.orders||[]).length); }
+          }catch(e){ restoredOk=false; }
+        }
+        if(!restoredOk){
+          try{ const s=dbSerialize();
+            if(s.length<4200000)localStorage.setItem('pb_ob_v1',s);
+            if(idb)await mPut('__db', s);
+          }catch(e){}
+        }
         if(nMedia){ toast(t('bk_restoring'),'ok'); await restoreMedia(pack.media); }
         closeSheet();go('orders');toast(t('t_restored'),'ok');
       });
@@ -21957,7 +22068,26 @@ async function restoreSnapshotMenu(){
 async function restoreSnapshot(key){
   let data=await mGet(key); if(!data){toast(t('t_wrong'),'bad');return;}
   if(data instanceof Blob)data=await data.text();
-  confirmModal(t('restore_title'),t('restore_msg'),()=>{try{const d=JSON.parse(data);if(!d.orders)throw 0;DB=d;if(!DB.customers)DB.customers=[];if(!DB.designLib)DB.designLib={};if(!DB.karigars)DB.karigars=[];save();flushDBNow();closeSheet();go('orders');toast(t('t_restored'),'ok');}catch(e){toast(t('t_wrong'),'bad');}});
+  confirmModal(t('restore_title'),t('restore_msg'),async()=>{try{const d=JSON.parse(data);if(!d.orders)throw 0;
+    /* v290: the same fix as the other two restore paths — see zipRestore's note. */
+    DB=d;if(!DB.customers)DB.customers=[];if(!DB.designLib)DB.designLib={};if(!DB.karigars)DB.karigars=[];
+    (DB.orders||[]).forEach(o=>{ try{ touchOrder(o.id); }catch(e){} });
+    _coreDirty=true; _dbDirty=true;
+    let restoredOk=false;
+    if(idb){
+      try{
+        restoredOk=await writeStoreV2();
+        if(restoredOk){ const check=await readStoreV2();
+          restoredOk=!!(check && (check.orders||[]).length===(DB.orders||[]).length); }
+      }catch(e){ restoredOk=false; }
+    }
+    if(!restoredOk){
+      try{ const s=dbSerialize();
+        if(s.length<4200000)localStorage.setItem('pb_ob_v1',s);
+        if(idb)await mPut('__db', s);
+      }catch(e){}
+    }
+    closeSheet();go('orders');toast(t('t_restored'),'ok');}catch(e){toast(t('t_wrong'),'bad');}});
 }
 
 /* ====================== MODAL / TOAST ====================== */
