@@ -538,6 +538,22 @@
     cursor:grab; touch-action:none; position:relative}
   .grip::after{content:''; position:absolute; left:-40px; right:-40px; top:-14px; bottom:-14px}
   .modal-actions{display:flex; gap:10px; margin-top:18px} .modal-actions .btn{flex:1}
+  /* v276 — HIS 23 Aug: "form fill karne ke baad Save ka option kahin nahi dikhta, isse
+     confusion hoti hai."
+     Measured it rather than guessed: on a 390px screen the Save button sat at 868px in the
+     karigar form, 871px in the fabric roll, 782px in a journal entry and 767px in a
+     readymade item — all below a 758px fold, and none of them sticky. So he filled a form,
+     looked at the bottom of what he could see, and there was nothing there. Even the forms
+     that "passed" were within a few pixels of the edge and would fail on a phone with a
+     taller browser bar.
+     Every one of these forms already wraps its buttons in .modal-actions, so one rule fixes
+     all of them at once: the action row sticks to the bottom of the sheet and stays in
+     sight the whole way down. The blur and the top border keep it readable over content
+     scrolling underneath. */
+  #sheet .modal-actions{position:sticky; bottom:0; z-index:6;
+    margin:18px -18px 0; padding:10px 18px calc(10px + env(safe-area-inset-bottom));
+    background:linear-gradient(to bottom, transparent, var(--bg) 22%);
+    backdrop-filter:blur(6px); border-top:1px solid var(--line)}
   /* inputs default to a ~20ch intrinsic width and blow their row apart on a phone */
   .row>*,.head-grid>*,.bf-l1>*,.bf-l2>*{min-width:0}
   .row input,.row select,.head-grid input,.head-grid select,
@@ -733,7 +749,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v275</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v286</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -742,7 +758,7 @@
   </div>
   <div class="searchbar" id="searchWrap">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg>
-    <input id="search" oninput="pageReset('orders');renderOrders()">
+    <input id="search" oninput="searchType()">
   </div>
 </header>
 
@@ -819,7 +835,7 @@ const T={
   home_month_sales:'This month sale',
   hm_pl:'This month', hm_pl_sales:'Sales', hm_pl_cost:'Costs', hm_pl_profit:'Profit',
   gst_title:'GST', gst_sub:'Output tax on what you sold, input tax on what you bought, and the difference.',
-  eh_drawing:'Owner drawings · not a business cost',
+  eh_drawing:'My own drawings',
   bs_title:'Balance sheet', tb_title:'Trial balance', de_menu:'Accounts',
   jv_title:'Journal', jv_sub:'Adjustment entries — depreciation, closing stock, outstandings, corrections.',
   jv_new:'New entry', jv_edit:'Edit entry', jv_none:'No journal entries yet',
@@ -836,6 +852,16 @@ const T={
   bs_cash:'Cash in hand', bs_bank:'Bank', bs_debtors:'Receivable from customers',
   cb_iscc:'Cash credit / overdraft', cb_iscc_hint:'A bank limit, not your money. What is drawn shows as owed, and only interest is charged — there is no EMI.',
   bs_cc:'Cash credit drawn', ob_loan_biz:'Business', ob_loan_pers:'Personal',
+  rc_title:'Rent on sales', rc_sub:'Rent paid as a share of sales instead of a fixed amount.',
+  rc_who:'Paid to', rc_who_ph:'Landlord’s name', rc_pct:'Share of gross sale %',
+  rc_on:'On', rc_gross:'Gross sale (bill total)', rc_net:'Net sale (after GST)',
+  rc_off:'Not set up', rc_earned:'Earned this period', rc_paid:'Paid', rc_owed:'Still to pay',
+  rc_ret:'Less sales returns', rc_base:'Sale it is charged on',
+  rc_head:'Which expense head', rc_head_hint:'Payments recorded under this head count as paid against it.',
+  rc_note:'Worked out from bills, never stored twice. Pay it from Expenses under the head you pick here.',
+  rc_saved:'Rent on sales saved', rc_remove:'Remove',
+  hm_rent:'Rent on sales', bs_rentcomm:'Rent payable',
+  rc_need:'Enter a name and a percentage',
   pin_title:'Money lock', pin_sub:'Hide money figures on the home screen, and ask for a PIN before opening the money screens.',
   pin_on:'Money lock is on', pin_off:'Money lock is off', pin_set:'Set a PIN', pin_change:'Change PIN', pin_remove:'Remove lock',
   pin_new:'New PIN (4 digits)', pin_again:'Type it again', pin_enter:'Enter PIN', pin_wrong:'Wrong PIN',
@@ -854,9 +880,14 @@ const T={
   bs_total_a:'Total assets', bs_total_l:'Total liabilities & capital',
   bs_diff:'Difference — books do not balance', bs_ok:'Balanced',
   bs_diff_why:'Something is missing from the opening figures. Nothing has been hidden or adjusted — the gap is shown so it can be found.',
-  ob_shop:'Opening balances · shop', ob_shop_sub:'What the shop itself held on the starting day. Party balances are entered separately.',
+  ob_shop:'Opening · shop, stock & loans', ob_shop_sub:'What the shop itself held on the starting day. Party balances are entered separately.',
   ob_date:'Books start on', ob_stock_v:'Stock value', ob_fixed_v:'Furniture, machines, fittings',
   ob_calc:'Work it out from my records', ob_calc_t:'Opening stock, worked out',
+  ob_est:'I have no figure for that day', ob_est_t:'Opening stock — a working figure',
+  ob_est_why:'You counted stock only now, so no true figure exists for the starting day. Rather than leave it blank or invent one, take today’s count as the opening figure and mark it as an estimate. Every month from here is right; only the first stretch carries the guess.',
+  ob_est_use:'Use today’s count as opening', ob_est_flag:'Opening stock is an estimate',
+  ob_est_note:'Replace it the day your CA gives you the real figure — one field, and the P&L and balance sheet correct themselves. Or pass a journal entry if you want the change on record.',
+  ob_est_on:'Marked as an estimate', ob_est_off:'Marked as counted',
   ob_calc_now:'Fabric on the shelf today', ob_calc_used:'Fabric cut into orders since {d}',
   ob_calc_buy:'Fabric bought since {d}', ob_calc_res:'Stock on {d}',
   ob_calc_note:'Whatever is on the shelf today was either there on the starting day or bought since; whatever was cut into an order was there on the starting day. So: today + cut − bought.',
@@ -1094,7 +1125,8 @@ const T={
   delete_order:'Delete order',
   order_options:'Order options',
   wa_customer:'WhatsApp to customer',
-  confirm_del:'Delete order?',
+  confirm_del:'Delete this?',
+  confirm_del_order:'Delete order?',
   confirm_del_msg:'This will be permanently deleted.',
   no:'No',
   yes:'Yes',
@@ -1236,6 +1268,20 @@ const T={
   members_hint:'One bill, one delivery — but each person has their own measurements.',
   add_member:'+ Add another person',
   add_member_first:'Add another person (family / group order)',
+  add_member_next:'Add next person', add_member_hint:'For a family or group order — measurements for the first person are done.',
+  home_layout:'Home layout', home_layout_new:'New', home_layout_old:'Old',
+  ontime_title:'Delivery record', ontime_sub:'Kept or missed, against the date promised.',
+  qc_title:'Home shortcuts', qc_sub:'Long-press any shortcut on Home to change it. Hidden ones are listed below.',
+  rp_cogs:'Cost of goods sold', rp_open_stk:'Opening stock', rp_close_stk:'Closing stock',
+  ob_stock_now:'On the shelf right now', ob_stock_open_only:'This is the opening figure only. Closing stock is counted from the rolls and pieces themselves — you never type it again.',
+  ob_stock_use_now:'Use today’s figure',
+  qc_hide:'Hide', qc_show:'Show', qc_left:'Move left', qc_right:'Move right', qc_reset:'Back to default',
+  qc_hidden:'Hidden', qc_none_hidden:'Nothing hidden', qc_reset_done:'Shortcuts back to default',
+  qc_last:'At least one shortcut has to stay',
+  ontime_pct:'On time', ontime_ok:'On or before the date', ontime_late:'Late', ontime_avg:'Late by, on average',
+  ontime_days:'{n} days', ontime_none:'No deliveries in this period', ontime_nodate:'No delivery date was set',
+  ontime_old:'Orders delivered before this was recorded are not counted.',
+  sg_open:'Opening balances & rules', sg_tools:'Setup',
   mem_name_ph:'Name',
   mem_rel_ph:'Groom / brother…',
   mem_del:'Remove this person?',
@@ -1286,7 +1332,7 @@ const T={
   dft_parked:'Kept as an unfinished order — it is on the Orders page',
   variant:'Type / variant', variant_ph:'e.g. worn under sherwani, short {g}…',
   add_another:'Add another {g}', item_notes:'Item notes', item_notes_ph:'e.g. flower work, dori, 2 button…',
-  new_garment:'New item', garment_master:'Garment types',
+  new_garment:'New item', garment_master:'Garment types & measurements',
   mem_this:'This person',
   mem_count:'{p} people · {g} garments',
   edit_bill:'Edit the bill',
@@ -1298,7 +1344,7 @@ const T={
   pur_spent:'Spent',
   pm_bank:'Bank transfer',
   pos_ono_auto:'auto',
-  num_title:'Numbering',
+  num_title:'Order & bill numbers',
   num_sub:'Control how invoice and order numbers are generated.',
   num_inv:'Invoice number',
   num_ord:'Order number',
@@ -1380,9 +1426,9 @@ const T={
   exp_party:'Whose account', exp_party_none:'Nobody on this list yet — add them first',
   exp_need_party:'Pick whose account this goes to',
   eh_title:'Expense heads', eh_sub:'Set who each head is paid to, and whether it is a cost of goods or of running the shop.',
-  eh_who:'Paid to', eh_kind:'Cost type', eh_direct:'Direct · cost of goods', eh_indirect:'Indirect · running cost',
+  eh_who:'Paid to', eh_kind:'Cost type', eh_direct:'On the goods', eh_indirect:'On the shop',
   eh_karigar:'Tailors', eh_supplier:'Suppliers', eh_customer:'Customers', eh_none:'No heads yet',
-  ob_title:'Opening balances', ob_sub:'Enter what everyone owed on the day you start. Nothing here touches cash or bank.',
+  ob_title:'Opening · customers & suppliers', ob_sub:'Enter what everyone owed on the day you start. Nothing here touches cash or bank.',
   ob_name:'Name', ob_name_ph:'Raju tailor, Ashok cloth…', ob_kind:'Which kind',
   ob_dir:'Direction', ob_pay:'I have to pay', ob_get:'I have to receive',
   ob_lender:'Lender', ob_add_next:'Add & next', ob_empty:'Nothing added yet',
@@ -1391,6 +1437,9 @@ const T={
   ob_confirm_msg:'{n} accounts. To pay {p}, to receive {g}. Cash and bank are not touched.',
   ob_done:'Opening balances saved', ob_ref:'Opening',
   zr_bad:'This file is not a PARAMPARA backup', zr_nodata:'No data found inside this file',
+  zr_deflate:'This file is compressed — opening it', zr_big:'That file is {n} MB. The phone may run out of memory — a computer or the iPad will do better.',
+  zr_oom:'Not enough memory to open a file this big on this device. Try the iPad, or use the data-only backup.',
+  zr_stop:'Stop', zr_stopped:'Stopped — nothing was changed',
   zr_working:'Putting everything back…',
   zb_many:'{n} photos here. One file is easiest to keep, but it takes a few minutes — leave the screen open. Saving in parts is quicker to start.',
   zb_one_go:'One file', bk_parts:'In parts',
@@ -1476,6 +1525,8 @@ const T={
   att_derived:'Not marked — counted absent', att_weekoff:'Weekly off', att_weekoff_hint:'Blank on these days means off, not absent.',
   att_extra:'Worked on an off day', att_extra_n:'{n} extra {n,day}', sr_extra_days:'Extra days worked', sr_extra_pay:'Extra day pay',
   eh_pay:'Salary or advance', eh_pay_none:'Neither', eh_pay_adv:'Advance given', eh_pay_sal:'Salary paid', eh_pay_rec:'Advance recovered',
+  autosave:'Saves as you change it — no Save button needed',
+  eh_kind_hint:'On the goods = fabric, tailor, packing, freight. On the shop = rent, salary, electricity. My own drawings = money you take out — not a business cost at all.',
   eh_pay_hint:'Only heads marked “Advance given” add to what a man still owes. Salary never does.',
   att_before_join:'Before joining',
   scfg_title:'Attendance & pay rules', scfg_sub:'These shape every staff report. They belong to the shop, not to one person.',
@@ -1630,6 +1681,11 @@ const T={
   stk_r_sale:'Cloth sale',
   stk_r_cut:'Cut for order',
   stk_r_waste:'Wastage',
+  scrap_title:'Short ends', scrap_sub:'Rolls with too little left to sell. Written off, they stop inflating stock and the cloth goes into cost of goods.',
+  scrap_n:'{n} rolls with under {m} m left', scrap_val:'Carried in stock at', scrap_off:'Write off',
+  scrap_off_all:'Write off all {n}', scrap_none:'No short ends', scrap_below:'Count as a short end below',
+  scrap_done:'{n} written off · {v}', scrap_q:'Write off {n} m on #{s}? It leaves stock and becomes cost of goods.',
+  scrap_undo:'Wrong one? Add the metres back from the roll itself.',
   stk_not_enough:'Only {n} m left',
   stk_issued:'{n} m issued',
   stk_rdy_search:'Search readymade item...',
@@ -2246,7 +2302,7 @@ const T={
   home_month_sales:'इस महीने की बिक्री',
   hm_pl:'इस महीने', hm_pl_sales:'बिक्री', hm_pl_cost:'खर्च', hm_pl_profit:'मुनाफ़ा',
   gst_title:'GST', gst_sub:'बिक्री पर लिया टैक्स, खरीद पर दिया टैक्स, और दोनों का फ़र्क।',
-  eh_drawing:'मालिक का निकाला · दुकान का खर्च नहीं',
+  eh_drawing:'अपना निकाला',
   bs_title:'Balance sheet', tb_title:'Trial balance', de_menu:'Accounts',
   jv_title:'Journal', jv_sub:'Adjustment entries — depreciation, closing stock, outstandings, corrections.',
   jv_new:'New entry', jv_edit:'Edit entry', jv_none:'No journal entries yet',
@@ -2263,6 +2319,16 @@ const T={
   bs_cash:'Cash in hand', bs_bank:'Bank', bs_debtors:'Receivable from customers',
   cb_iscc:'कैश क्रेडिट / ओवरड्राफ्ट', cb_iscc_hint:'बैंक की लिमिट है, आपका पैसा नहीं। जितना निकाला वह देना है, और सिर्फ ब्याज लगता है — EMI नहीं।',
   bs_cc:'कैश क्रेडिट लिया', ob_loan_biz:'दुकान का', ob_loan_pers:'निजी',
+  rc_title:'Rent on sales', rc_sub:'Rent paid as a share of sales instead of a fixed amount.',
+  rc_who:'Paid to', rc_who_ph:'Landlord’s name', rc_pct:'Share of gross sale %',
+  rc_on:'On', rc_gross:'Gross sale (bill total)', rc_net:'Net sale (after GST)',
+  rc_off:'Not set up', rc_earned:'Earned this period', rc_paid:'Paid', rc_owed:'Still to pay',
+  rc_ret:'Less sales returns', rc_base:'Sale it is charged on',
+  rc_head:'Which expense head', rc_head_hint:'Payments recorded under this head count as paid against it.',
+  rc_note:'Worked out from bills, never stored twice. Pay it from Expenses under the head you pick here.',
+  rc_saved:'Rent on sales saved', rc_remove:'Remove',
+  hm_rent:'Rent on sales', bs_rentcomm:'Rent payable',
+  rc_need:'Enter a name and a percentage',
   pin_title:'पैसे का लॉक', pin_sub:'होम पर पैसे के आंकड़े छिपाएँ, और पैसे वाली स्क्रीन खोलने से पहले PIN पूंछें।',
   pin_on:'लॉक चालू है', pin_off:'लॉक बंद है', pin_set:'PIN लगाएँ', pin_change:'PIN बदलें', pin_remove:'लॉक हटाएँ',
   pin_new:'नया PIN (4 अंक)', pin_again:'दोबारा लिखें', pin_enter:'PIN डालें', pin_wrong:'गलत PIN',
@@ -2281,9 +2347,14 @@ const T={
   bs_total_a:'Total assets', bs_total_l:'Total liabilities & capital',
   bs_diff:'Difference — books do not balance', bs_ok:'Balanced',
   bs_diff_why:'Something is missing from the opening figures. Nothing has been hidden or adjusted — the gap is shown so it can be found.',
-  ob_shop:'Opening balances · shop', ob_shop_sub:'What the shop itself held on the starting day. Party balances are entered separately.',
+  ob_shop:'शुरुआती बकाया · दुकान, स्टॉक और कर्ज़', ob_shop_sub:'What the shop itself held on the starting day. Party balances are entered separately.',
   ob_date:'Books start on', ob_stock_v:'Stock value', ob_fixed_v:'Furniture, machines, fittings',
   ob_calc:'मेरे रिकॉर्ड से निकालें', ob_calc_t:'शुरुआती स्टॉक, हिसाब से',
+  ob_est:'I have no figure for that day', ob_est_t:'Opening stock — a working figure',
+  ob_est_why:'You counted stock only now, so no true figure exists for the starting day. Rather than leave it blank or invent one, take today’s count as the opening figure and mark it as an estimate. Every month from here is right; only the first stretch carries the guess.',
+  ob_est_use:'Use today’s count as opening', ob_est_flag:'Opening stock is an estimate',
+  ob_est_note:'Replace it the day your CA gives you the real figure — one field, and the P&L and balance sheet correct themselves. Or pass a journal entry if you want the change on record.',
+  ob_est_on:'Marked as an estimate', ob_est_off:'Marked as counted',
   ob_calc_now:'आज शेल्फ पर कपड़ा', ob_calc_used:'{d} से अब तक ऑर्डर में कटा कपड़ा',
   ob_calc_buy:'{d} से अब तक खरीदा कपड़ा', ob_calc_res:'{d} को स्टॉक',
   ob_calc_note:'आज जो शेल्फ पर है वह या तो शुरू के दिन था या बाद में खरीदा; और जो कट गया वह शुरू के दिन था। इसलिए: आज + कटा − खरीदा।',
@@ -2521,7 +2592,8 @@ const T={
   delete_order:'ऑर्डर हटाएँ',
   order_options:'ऑर्डर विकल्प',
   wa_customer:'ग्राहक को WhatsApp',
-  confirm_del:'ऑर्डर हटाएँ?',
+  confirm_del:'यह हटाएँ?',
+  confirm_del_order:'ऑर्डर हटाएँ?',
   confirm_del_msg:'यह हमेशा के लिए हट जाएगा।',
   no:'नहीं',
   yes:'हाँ',
@@ -2663,6 +2735,20 @@ const T={
   members_hint:'एक बिल, एक डिलीवरी — पर हर व्यक्ति का अपना नाप।',
   add_member:'+ और व्यक्ति जोड़ें',
   add_member_first:'और व्यक्ति जोड़ें (परिवार / ग्रुप ऑर्डर)',
+  add_member_next:'और व्यक्ति जोड़ें', add_member_hint:'परिवार या ग्रुप ऑर्डर के लिए — पहले व्यक्ति की नाप हो चुकी है।',
+  home_layout:'होम का लेआउट', home_layout_new:'नया', home_layout_old:'पुराना',
+  ontime_title:'Delivery record', ontime_sub:'Kept or missed, against the date promised.',
+  qc_title:'होम के शॉर्टकट', qc_sub:'होम पर किसी भी शॉर्टकट को दबाए रखें और बदलें। छिपाए हुए नीचे हैं।',
+  rp_cogs:'Cost of goods sold', rp_open_stk:'Opening stock', rp_close_stk:'Closing stock',
+  ob_stock_now:'On the shelf right now', ob_stock_open_only:'This is the opening figure only. Closing stock is counted from the rolls and pieces themselves — you never type it again.',
+  ob_stock_use_now:'Use today’s figure',
+  qc_hide:'छिपाएँ', qc_show:'दिखाएँ', qc_left:'बाएँ ले जाएँ', qc_right:'दाएँ ले जाएँ', qc_reset:'डिफ़ॉल्ट पर लाएँ',
+  qc_hidden:'छिपे हुए', qc_none_hidden:'कुछ छिपा नहीं है', qc_reset_done:'शॉर्टकट डिफ़ॉल्ट पर आ गए',
+  qc_last:'कम से कम एक शॉर्टकट रहना चाहिए',
+  ontime_pct:'On time', ontime_ok:'On or before the date', ontime_late:'Late', ontime_avg:'Late by, on average',
+  ontime_days:'{n} days', ontime_none:'No deliveries in this period', ontime_nodate:'No delivery date was set',
+  ontime_old:'Orders delivered before this was recorded are not counted.',
+  sg_open:'शुरुआती बकाया और नियम', sg_tools:'सेटअप',
   mem_name_ph:'नाम',
   mem_rel_ph:'दूल्हा / भाई…',
   mem_del:'इस व्यक्ति को हटाएँ?',
@@ -2713,7 +2799,7 @@ const T={
   dft_parked:'अधूरे ऑर्डर में रख दिया — ऑर्डर पेज पर मिलेगा',
   variant:'प्रकार / वैरिएंट', variant_ph:'जैसे शेरवानी के अंदर, शॉर्ट {g}…',
   add_another:'एक और {g} जोड़ें', item_notes:'इस आइटम के नोट', item_notes_ph:'जैसे फूल वर्क, डोरी, 2 बटन…',
-  new_garment:'नया आइटम', garment_master:'आइटम के प्रकार (शेरवानी, कुर्ता…)',
+  new_garment:'नया आइटम', garment_master:'आइटम के प्रकार और नाप',
   mem_this:'यह व्यक्ति',
   mem_count:'{p} लोग · {g} कपड़े',
   edit_bill:'बिल बदलें',
@@ -2725,7 +2811,7 @@ const T={
   pur_spent:'ख़र्च',
   pm_bank:'बैंक ट्रांसफ़र',
   pos_ono_auto:'अपने-आप',
-  num_title:'नंबरिंग',
+  num_title:'ऑर्डर और बिल के नंबर',
   num_sub:'इनवॉइस और ऑर्डर के नंबर कैसे बनें, यहाँ से तय करें।',
   num_inv:'इनवॉइस नंबर',
   num_ord:'ऑर्डर नंबर',
@@ -2809,7 +2895,7 @@ const T={
   eh_title:'ख़र्च के हेड', eh_sub:'हेड बताता है ख़र्च किसको दिया, और वह माल पर लगा या दुकान पर।',
   eh_who:'किसको दिया', eh_kind:'ख़र्च किस पर', eh_direct:'माल पर', eh_indirect:'दुकान पर',
   eh_karigar:'करीगर', eh_supplier:'सप्लायर', eh_customer:'ग्राहक', eh_none:'अभी कोई हेड नहीं',
-  ob_title:'शुरुआती बकाया', ob_sub:'शुरू करने के दिन किसका कितना बाकी था, वही लिखिए। इससे नकद या बैंक नहीं हिलेगा।',
+  ob_title:'शुरुआती बकाया · ग्राहक और सप्लायर', ob_sub:'शुरू करने के दिन किसका कितना बाकी था, वही लिखिए। इससे नकद या बैंक नहीं हिलेगा।',
   ob_name:'नाम', ob_name_ph:'राजू टेलर, अशोक कपड़ा…', ob_kind:'किस किस्म का',
   ob_dir:'किधर', ob_pay:'देना है', ob_get:'लेना है',
   ob_lender:'जिनसे क़र्ज़ लिया', ob_add_next:'जोड़ें और अगला', ob_empty:'अभी कुछ नहीं जोड़ा',
@@ -2818,6 +2904,9 @@ const T={
   ob_confirm_msg:'{n} खाते। देना {p}, लेना {g}। नकद और बैंक नहीं छुए जाएँगे।',
   ob_done:'शुरुआती बकाया सेव हो गया', ob_ref:'शुरुआती',
   zr_bad:'यह PARAMPARA का बैकअप नहीं है', zr_nodata:'इस फ़ाइल में कोई डेटा नहीं मिला',
+  zr_deflate:'This file is compressed — opening it', zr_big:'That file is {n} MB. The phone may run out of memory — a computer or the iPad will do better.',
+  zr_oom:'Not enough memory to open a file this big on this device. Try the iPad, or use the data-only backup.',
+  zr_stop:'Stop', zr_stopped:'Stopped — nothing was changed',
   zr_working:'सब वापस डाल रहे हैं…',
   zb_many:'यहाँ {n} फ़ोटो हैं। एक फ़ाइल रखना सबसे आसान है, पर कुछ मिनट लगेंगे — स्क्रीन खुली रहने दीजिए। हिस्सों में सेव करना जल्दी शुरू होता है।',
   zb_one_go:'एक फ़ाइल', bk_parts:'हिस्सों में',
@@ -2903,6 +2992,8 @@ const T={
   att_derived:'निशान नहीं — गैरहाज़िर गिना', att_weekoff:'साप्ताहिक छुट्टी', att_weekoff_hint:'इन दिनों में खाली का मतलब छुट्टी है, गैरहाज़िर नहीं।',
   att_extra:'छुट्टी वाले दिन काम', att_extra_n:'{n} अतिरिक्त दिन', sr_extra_days:'अतिरिक्त दिन काम', sr_extra_pay:'अतिरिक्त दिन का पैसा',
   eh_pay:'सैलरी या एडवांस', eh_pay_none:'कोई नहीं', eh_pay_adv:'एडवांस दिया', eh_pay_sal:'सैलरी दी', eh_pay_rec:'एडवांस वापस लिया',
+  autosave:'बदलते ही सेव हो जाता है — Save दबाने की ज़रूरत नहीं',
+  eh_kind_hint:'माल पर = कपड़ा, कारीगर, पैकिंग, भाड़ा। दुकान पर = किराया, वेतन, बिजली। अपना निकाला = जो आप निकालते हो — दुकान का खर्च नहीं।',
   eh_pay_hint:'सिर्फ “एडवांस दिया” वाले हेड से बकाया बढ़ता है। सैलरी से कभी नहीं।',
   att_before_join:'जोड़ने से पहले',
   scfg_title:'हाज़िरी और तनख्वाह के नियम', scfg_sub:'इनसे हर स्टाफ रिपोर्ट बनती है। ये पूरी दुकान के लिए हैं।',
@@ -3056,6 +3147,11 @@ const T={
   stk_r_sale:'कपड़ा बेचा',
   stk_r_cut:'ऑर्डर के लिए काटा',
   stk_r_waste:'बर्बाद',
+  scrap_title:'छोटे टुकड़े', scrap_sub:'जिन रोल में बेचने लायक़ नहीं बचा। लिख देने पर स्टॉक बढ़ा नहीं दिखेगा और कपड़ा माल के खर्च में जाएगा।',
+  scrap_n:'{n} रोल में {m} मीटर से कम', scrap_val:'स्टॉक में इतने का', scrap_off:'बट्टे खाते',
+  scrap_off_all:'सभी {n} बट्टे खाते', scrap_none:'कोई छोटा टुकड़ा नहीं', scrap_below:'इतने से कम को छोटा टुकड़ा मानें',
+  scrap_done:'{n} बट्टे खाते · {v}', scrap_q:'#{s} का {n} मीटर बट्टे खाते डालें? वह स्टॉक से निकल कर माल का खर्च बन जाएगा।',
+  scrap_undo:'गलत रोल? मीटर रोल में से वापस जोड़ दें।',
   stk_not_enough:'सिर्फ़ {n} मी बचा है',
   stk_issued:'{n} मी निकल गया',
   stk_rdy_search:'रेडीमेड आइटम खोजें…',
@@ -3674,7 +3770,7 @@ function t(k,vars){ const lg=_enLock?'en':lang;
    the wrapper is what every caller and every onclick reaches, without touching one call
    site. Names are checked at boot — a screen that gets renamed later simply stays bilingual
    instead of throwing. */
-const EN_SCREENS=["journalBook","journalEdit","balanceSheet","trialBalance","openBSEdit","gstReport","plReport", "cashflowReport", "expHeadReport", "orderProfitReport", "staffReport", "karigarReport", "renderReports", "creditors", "followUps", "partiesHome", "partyCard", "manageExpHeads", "settingsMenu", "backupMenu", "cashBank", "staffSettings", "openingBulk", "karigarBook", "stockAudit", "partyStatement"];
+const EN_SCREENS=["ontimeReport","rentSetup","journalBook","journalEdit","balanceSheet","trialBalance","openBSEdit","gstReport","plReport", "cashflowReport", "expHeadReport", "orderProfitReport", "staffReport", "karigarReport", "renderReports", "creditors", "followUps", "partiesHome", "partyCard", "manageExpHeads", "settingsMenu", "backupMenu", "cashBank", "staffSettings", "openingBulk", "karigarBook", "stockAudit", "partyStatement"];
 function enLockScreens(){
   EN_SCREENS.forEach(n=>{ const f=window[n];
     if(typeof f==='function' && !f.__enWrapped){
@@ -4493,7 +4589,7 @@ function pinRemove(){
     try{ settingsMenu(); }catch(e){} });
 }
 /* every money screen, asked once and then left alone for five minutes */
-const PIN_SCREENS=['journalBook','cashBank','renderReports','plReport','cashflowReport','expHeadReport',
+const PIN_SCREENS=['ontimeReport','rentSetup','journalBook','cashBank','renderReports','plReport','cashflowReport','expHeadReport',
   'orderProfitReport','gstReport','balanceSheet','trialBalance','staffReport','karigarReport',
   'backupMenu','settingsMenu','openBSEdit','openingBulk','manageExpHeads','creditors','partiesHome'];
 function pinLockScreens(){
@@ -4594,7 +4690,15 @@ function go(tab){
   $('#tab-'+tab).classList.add('active');
   document.querySelectorAll('nav button').forEach(b=>b.classList.remove('on'));
   const n=$('#nav-'+tab); if(n)n.classList.add('on');
-  $('#searchWrap').style.display=tab==='orders'?'':'none';
+  /* v286 LIVE TEST — found by typing into the box on a running app, not by reading code.
+     Two faults, one line. The search bar was shown only on the Orders tab, yet at boot the
+     app lands on Home with the bar visible — so a man's very first instinct, type a
+     customer's name, went into a box whose results render into the HIDDEN Orders pane. He
+     saw nothing happen. And the moment he touched any other tab, go() hid the bar and it
+     never came back on Home, so the way he finds anything simply vanished.
+     The bar belongs on Home too — that is where he starts — and typing now takes him to
+     the results instead of drawing them where he cannot see them. */
+  $('#searchWrap').style.display=(tab==='orders'||tab==='home')?'':'none';
   window.scrollTo(0,0);
   if(tab==='home')safeRender('Home',renderHome); if(tab==='orders')safeRender('Orders',renderOrders); if(tab==='customers')safeRender('Customers',renderCustomers); if(tab==='alterations')safeRender('Alterations',renderAlterations); if(tab==='invoices')safeRender('Invoices',renderInvoices); if(tab==='reports')safeRender('Reports',renderReports); if(tab==='purchases')safeRender('Purchases',renderPurchases);
 }
@@ -4847,6 +4951,11 @@ function fabricBody(keepFocus){
          visible. A filter used now and then does not deserve more room than the stock it is
          filtering. One line, one picker, and the search box now matches category text too -
          so typing "velvet" finds velvet without any chip at all. */''}
+    ${/* v284: the list says so itself when short ends are sitting in it, and only then. */''}
+    ${(()=>{ const n=thaanScraps().length;
+      return n?`<div class="card" style="border-color:var(--saffron);padding:10px 12px;margin-bottom:10px;cursor:pointer" onclick="scrapBook()">
+        <div class="kv"><b>\u{1F9F5} ${t('scrap_n',{n,m:scrapBelow()})}</b>
+          <b style="color:var(--saffron2)">${money(scrapValue())} \u203A</b></div></div>`:''; })()}
     ${cats.length?`<select id="fabCatSel" style="margin-bottom:10px" onchange="setFabCat(this.value)">
       <option value="">${t('stk_cat_all')} · ${(DB.thaans||[]).length}</option>
       ${cats.slice().sort((a,b)=>a.localeCompare(b)).map(c=>{
@@ -5335,6 +5444,79 @@ function thaanDel(id){const th=TH(id);if(!th)return;
     save();stockHome('fabric');toast(t('t_deleted'));});}
 
 /* ---- issue fabric out (sample, direct sale of cloth, wastage) ---- */
+/* ══════════ v284 — SHORT ENDS ══════════
+   HIS 24 Aug, and he was right to come back for it: I asked how a leftover scrap should be
+   treated, got no answer, and moved on without building anything. That was wrong twice —
+   the question mattered and I let it drop.
+   What happens without this: a 20 m roll is cut down to 0.4 m. Those 0.4 m sit in stock at
+   full rate for ever, as if he could still sell them. Stock reads high, and because cost of
+   goods is opening + purchases − closing, a high closing stock makes GROSS PROFIT read
+   high too. On 1,266 rolls the error is not small.
+   The "Wastage" reason already existed on the issue screen — what was missing is that the
+   app never TOLD him a scrap was sitting there. It does now, and writing one off uses that
+   same existing path, so there is one way cloth leaves a roll and not two.
+   Nothing is automatic. He sets what counts as a short end, he sees the list and the money,
+   and he presses the button. */
+function scrapBelow(){ DB.stkCfg=DB.stkCfg||{};
+  if(DB.stkCfg.wasteBelow==null)DB.stkCfg.wasteBelow=0.5;
+  return +DB.stkCfg.wasteBelow||0; }
+function thaanScraps(){
+  const lim=scrapBelow(); if(!(lim>0))return [];
+  return (DB.thaans||[]).filter(th=>{ const b=thaanBal(th); return b>0 && b<lim; })
+    .sort((a,b)=>thaanValue(b)-thaanValue(a));
+}
+function scrapValue(){ return r2(thaanScraps().reduce((a,th)=>a+thaanValue(th),0)); }
+/* one roll, through the same door a normal issue uses */
+function scrapWriteOne(th,silent){
+  const m=thaanBal(th); if(!(m>0))return 0;
+  const v=thaanValue(th);
+  th.used=r2((+th.used||0)+m);
+  move({dir:MV_OUT,target:'fab',thaanId:th.id,qty:m,rate:th.rate||0,reason:'waste',
+    ref:t('scrap_title'),refId:'',note:''});
+  return v;
+}
+function scrapOne(id){
+  const th=TH(id); if(!th)return;
+  const m=thaanBal(th);
+  confirmModal('\u{1F5D1}\uFE0F '+t('scrap_off'), t('scrap_q',{n:m,s:th.serial}), ()=>{
+    const v=scrapWriteOne(th); save(); closeModal();
+    toast(t('scrap_done',{n:1,v:money(v)}),'ok'); scrapBook();
+  });
+}
+function scrapAll(){
+  const list=thaanScraps(); if(!list.length)return;
+  const v=scrapValue();
+  confirmModal('\u{1F5D1}\uFE0F '+t('scrap_off_all',{n:list.length}),
+    t('scrap_val')+' '+money(v)+' \u00B7 '+t('confirm_del_msg'), ()=>{
+    let tot=0; list.forEach(th=>{ tot=r2(tot+scrapWriteOne(th)); });
+    save(); closeModal(); toast(t('scrap_done',{n:list.length,v:money(tot)}),'ok'); scrapBook();
+  });
+}
+function scrapBook(){
+  sheetAt(scrapBook);
+  const list=thaanScraps(), lim=scrapBelow(), v=scrapValue();
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F9F5} ${t('scrap_title')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
+    <p class="hint" style="margin-bottom:10px">${t('scrap_sub')}</p>
+    <div class="field"><label>${t('scrap_below')}</label>
+      <input id="scrapLim" type="number" step="0.1" inputmode="decimal" value="${lim}"
+        onchange="scrapSetLimit(this.value)"> </div>
+    ${list.length?`<div class="card pos-total" style="padding:12px 14px;margin:10px 0">
+      <div class="il"><span>${t('scrap_n',{n:list.length,m:lim})}</span><b>${money(v)}</b></div>
+      <div class="hint">${t('scrap_val')} ${money(v)}</div></div>
+      <button class="btn primary block" style="margin-bottom:12px" onclick="scrapAll()">\u{1F5D1}\uFE0F ${t('scrap_off_all',{n:list.length})}</button>
+      ${list.map(th=>`<div class="cust-result">
+        <div style="min-width:0;flex:1"><b>#${esc(th.serial)} ${esc(thaanName(th))}</b>
+          <div class="hint">${thaanBal(th)} m \u00B7 ${money(thaanValue(th))}</div></div>
+        <button class="btn sm danger" onclick="scrapOne('${jq(th.id)}')">${t('scrap_off')}</button></div>`).join('')}
+      <p class="hint" style="margin-top:10px">${t('scrap_undo')}</p>`
+     :`<div class="empty" style="padding:26px 10px"><div class="big">\u2705</div><p>${t('scrap_none')}</p></div>`}
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function scrapSetLimit(v){ DB.stkCfg=DB.stkCfg||{}; DB.stkCfg.wasteBelow=Math.max(0,+v||0);
+  save(); scrapBook(); }
 function thaanIssue(id,orderId,gid){
   const th=TH(id); if(!th)return;
   const bal=thaanBal(th);
@@ -8304,6 +8486,7 @@ function markDelivered(oid){
   const go=()=>{
     o.itemStatus=o.itemStatus||{};
     (o.items||[]).forEach(gid=>{ o.itemStatus[gid]='delivered'; });
+    stampDelivered(o);                                          /* v281 */
     o.log=o.log||[];
     o.log.push({id:uid(),ts:new Date().toISOString(),text:sLabel('delivered'),voiceId:null});
     save(o.id);
@@ -8357,6 +8540,64 @@ function abBuckets(){
 let _sbStage='';
 /* v253 — the report: every order in the period, worst margin first, because the ones
    losing money are the ones he needs to see. */
+/* v281 — the report the stamp exists for. His master document asks for on-time delivery %
+   and delayed-order reporting; neither could be built while the app knew only THAT a
+   garment went, never WHEN.
+   Counted honestly: only orders that carry both a promised date and a delivery stamp. An
+   order delivered before v281 has no stamp and is left out, and the screen says so rather
+   than quietly making the number look better than it is. */
+function ontimeRows(from,to){
+  const rows=[];
+  (DB.orders||[]).forEach(o=>{
+    const d=String(o.deliveredOn||''); if(!d) return;
+    if(d<from||d>to)return;
+    const due=String(o.deliveryDate||'');
+    if(!due){ rows.push({o,due:'',on:d,late:null}); return; }
+    const late=Math.round((new Date(d+'T00:00:00')-new Date(due+'T00:00:00'))/86400000);
+    rows.push({o,due,on:d,late});
+  });
+  return rows.sort((a,b)=>(b.late||0)-(a.late||0));
+}
+function ontimeReport(){
+  sheetAt(ontimeReport);
+  const {from,to}=rpRange();
+  const rows=ontimeRows(from,to);
+  const dated=rows.filter(r=>r.late!==null);
+  const ok=dated.filter(r=>r.late<=0).length;
+  const late=dated.filter(r=>r.late>0);
+  const pct=dated.length?Math.round(ok*100/dated.length):0;
+  const avg=late.length?Math.round(late.reduce((a,r)=>a+r.late,0)/late.length):0;
+  const nodate=rows.length-dated.length;
+  const line=(l,v,col,bold)=>`<div class="il"${bold?' style="font-weight:800"':''}>
+    <span>${l}</span><b style="${col?'color:'+col:''}">${v}</b></div>`;
+  const body=rows.map(r=>`<div class="card" style="padding:10px 14px;margin-bottom:8px;cursor:pointer"
+      onclick="closeSheet();orderMenu('${jq(r.o.id)}')">
+      <div class="kv"><div style="min-width:0;flex:1">
+        <b>#${esc(r.o.orderNo||'')} \u00B7 ${esc(r.o.customerName||'\u2014')}</b>
+        <div class="hint">${r.due?t('delivery')+' '+fmtDate(r.due)+' \u00B7 ':''}${t('as_delivered')} ${fmtDate(r.on)}</div></div>
+        <b style="color:${r.late===null?'var(--mut)':(r.late>0?'var(--bad)':'var(--ok)')}">
+          ${r.late===null?t('ontime_nodate'):(r.late>0?t('ontime_days',{n:r.late}):'\u2705')}</b></div></div>`).join('');
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F69A} ${t('ontime_title')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
+    <p class="hint" style="margin-bottom:12px">${t('ontime_sub')} \u00B7 ${fmtDate(from)} \u2192 ${fmtDate(to)}</p>
+    ${dated.length?`<div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
+      ${line('\u2705 '+t('ontime_pct'), pct+'%', pct>=80?'var(--ok)':(pct>=50?'var(--saffron2)':'var(--bad)'),1)}
+      ${line(t('ontime_ok'), ok, 'var(--ok)')}
+      ${line(t('ontime_late'), late.length, late.length?'var(--bad)':'')}
+      ${avg?line(t('ontime_avg'), t('ontime_days',{n:avg}), 'var(--bad)'):''}
+      ${nodate?`<div class="hint" style="margin-top:6px">${nodate} \u00B7 ${t('ontime_nodate')}</div>`:''}
+    </div>
+    ${exportBarHTML('rp_ontime',()=>({title:t('ontime_title'), sub:fmtDate(from)+' \u2013 '+fmtDate(to),
+      head:[t('order_no'),t('customer'),t('delivery'),t('as_delivered'),t('ontime_late')],
+      rows:rows.map(r=>[r.o.orderNo||'',r.o.customerName||'',r.due?fmtDate(r.due):'',fmtDate(r.on),
+        r.late===null?'':r.late])}))}`
+    :`<div class="empty" style="padding:30px 10px"><p>${t('ontime_none')}</p></div>`}
+    ${body}
+    <p class="hint" style="margin-top:10px">${t('ontime_old')}</p>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
 function orderProfitReport(){
   sheetAt(orderProfitReport);
   const {from,to}=rpRange();
@@ -9213,8 +9454,92 @@ function homeClassicToggle(){
   try{ closeSheet(); }catch(e){}
   go('home'); renderHome();
 }
+/* ══════════ v281 — HOME SHORTCUTS HE CAN ARRANGE ══════════
+   The blueprint asked for pin / hide / reorder with a reset, using the pattern every phone
+   already teaches: long-press the thing itself.
+   Two guardrails, because untrained staff share this device. He can hide and reorder, he
+   cannot invent or rename — the actions themselves stay exactly what they are, so nobody
+   can make a button that does something other than it says. And "Back to default" is one
+   tap away on the manage screen, so a wrong edit is never a trap. */
+const QR_ALL=[
+  ['order','👔','qr_order',"openOrderForm()",null],
+  ['sale','🧾','qr_sale',"openSaleForm()",'billing'],
+  ['purchase','🚚','qr_purchase',"openPurchaseForm()",'billing'],
+  ['payin','💵','qr_payin',"payEntry('in')",null],
+  ['expense','💸','qr_exp',"expEdit()",'accounts'],
+  ['karigar','🧵','qr_karigar',"jobWork()",null],
+  ['status','📞','qr_status',"statusEnquiry('')",null]
+];
+function qrCfg(){
+  DB.qrCfg=DB.qrCfg||{};
+  if(!Array.isArray(DB.qrCfg.order))DB.qrCfg.order=QR_ALL.map(x=>x[0]);
+  if(!Array.isArray(DB.qrCfg.hidden))DB.qrCfg.hidden=[];
+  /* a shortcut added by a later version must appear, not vanish because an old saved
+     order never heard of it */
+  QR_ALL.forEach(x=>{ if(DB.qrCfg.order.indexOf(x[0])<0)DB.qrCfg.order.push(x[0]); });
+  return DB.qrCfg;
+}
+function qrVisible(){
+  const c=qrCfg();
+  return c.order.map(k=>QR_ALL.find(x=>x[0]===k))
+    .filter(x=>x && c.hidden.indexOf(x[0])<0 && (!x[4]||modOn(x[4])));
+}
+function qrReset(){ DB.qrCfg={order:QR_ALL.map(x=>x[0]),hidden:[]}; save();
+  toast(t('qc_reset_done'),'ok'); qrManage(); renderHome(); }
+function qrHide(k){
+  const c=qrCfg();
+  if(qrVisible().length<=1 && c.hidden.indexOf(k)<0){ toast(t('qc_last'),'bad'); return; }
+  const i=c.hidden.indexOf(k);
+  if(i>=0)c.hidden.splice(i,1); else c.hidden.push(k);
+  save(); qrManage(); renderHome();
+}
+function qrMove(k,dir){
+  const c=qrCfg(); const i=c.order.indexOf(k); const j=i+dir;
+  if(i<0||j<0||j>=c.order.length)return;
+  c.order.splice(j,0,c.order.splice(i,1)[0]);
+  save(); qrManage(); renderHome();
+}
+let _qrHoldT=null;
+function qrHold(k){ clearTimeout(_qrHoldT); _qrHoldT=setTimeout(()=>qrManage(k),550); }
+function qrHoldEnd(){ clearTimeout(_qrHoldT); }
+function qrManage(focus){
+  sheetAt(qrManage);
+  const c=qrCfg();
+  const row=(x,vis)=>{
+    const k=x[0];
+    return `<div class="cust-result" style="${focus===k?'border-color:var(--saffron);':''}${vis?'':'opacity:.5;'}">
+      <div style="min-width:0;flex:1"><b>${x[1]} ${t(x[2])}</b></div>
+      <div style="display:flex;gap:6px">
+        ${vis?`<button class="btn sm ghost" onclick="qrMove('${k}',-1)">\u2190</button>
+               <button class="btn sm ghost" onclick="qrMove('${k}',1)">\u2192</button>`:''}
+        <button class="btn sm ${vis?'ghost':'primary'}" onclick="qrHide('${k}')">${vis?t('qc_hide'):t('qc_show')}</button>
+      </div></div>`;
+  };
+  const vis=qrVisible();
+  const hid=c.order.map(k=>QR_ALL.find(x=>x[0]===k))
+    .filter(x=>x && c.hidden.indexOf(x[0])>=0 && (!x[4]||modOn(x[4])));
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u2699\uFE0F ${t('qc_title')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
+    <p class="hint" style="margin-bottom:12px">${t('qc_sub')}</p>
+    ${vis.map(x=>row(x,true)).join('')}
+    <div class="section-h" style="margin-top:14px">${t('qc_hidden')}</div>
+    ${hid.length?hid.map(x=>row(x,false)).join(''):`<p class="hint">${t('qc_none_hidden')}</p>`}
+    <button class="btn ghost block" style="margin-top:14px" onclick="qrReset()">\u21A9\uFE0F ${t('qc_reset')}</button>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
 function quickRowHTML(){
   if(localStorage.getItem('pp_home_classic')==='1')return quickRowClassicHTML();
+  const b=qrVisible().map(x=>[x[1],t(x[2]),x[3],x[0]]);
+  return `<div class="qrow">${b.map(([i,l,fn,key],ix)=>
+    `<button class="qbtn${ix===0?' qmain':''}" onclick="${fn}"
+       oncontextmenu="event.preventDefault();qrManage('${key}');return false;"
+       ontouchstart="qrHold('${key}')" ontouchend="qrHoldEnd()"
+       ontouchmove="qrHoldEnd()" ontouchcancel="qrHoldEnd()"
+       ><span class="qi">${i}</span><span class="ql">${l}</span></button>`).join('')}</div>`;
+}
+function quickRowHTML_OLD(){
   const b=[['👔',t('qr_order'),"openOrderForm()"]];
   if(modOn('billing'))b.push(['🧾',t('qr_sale'),"openSaleForm()"]);
   /* v246 — HIS 22 Aug: "sale ke baad purchase ka shortcut chip hona chahiye tha shayad
@@ -9454,6 +9779,8 @@ function renderHome(){
           <span class="dl-lbl">${t('hm_pl_sales')}</span><span class="dl-n">${moneyMask(money(f.netSales))}</span></div>
         <div class="dl-row"><span class="dl-ico">💸</span>
           <span class="dl-lbl">${t('hm_pl_cost')}</span><span class="dl-n">${moneyMask(money(cost))}</span></div>
+        ${f.rentDue?`<div class="dl-row"><span class="dl-ico">🏪</span>
+          <span class="dl-lbl">${t('hm_rent')}</span><span class="dl-n">${moneyMask(money(f.rentDue))}</span></div>`:''}
         <div class="dl-row tappable" onclick="go('reports');setTimeout(plReport,120)">
           <span class="dl-ico">${up?'📈':'📉'}</span>
           <span class="dl-lbl"><b>${up?t('hm_pl_profit'):t('hm_pl_loss')}</b></span>
@@ -9517,6 +9844,16 @@ function discardDraft(id){
   confirmModal(t('draft_disc_title'),t('draft_disc_msg'),()=>{
     dropDraft(id); renderOrders(); renderHome(); toast(t('draft_discarded'));
   });
+}
+/* v286: one keystroke moves him to where the answers are, and only the first one does —
+   after that he is already on Orders and the list just narrows. The box lives outside the
+   tab panes, so switching tab does not touch what he is typing or where the cursor is. */
+function searchType(){
+  const q=($('#search').value||'').trim();
+  pageReset('orders');
+  if(q && _curTab!=='orders'){ go('orders'); return; }
+  if(!q && _curTab==='orders'){ go('home'); return; }
+  renderOrders();
 }
 function renderOrders(){
   const q=($('#search').value||'').toLowerCase().trim();
@@ -10725,6 +11062,10 @@ function renderForm(){
       <div class="field" style="margin-top:8px"><label>👗 ${t('trial_date')}</label>
         ${dateField("f_tdate",f.trialDate||'','',true)}
         <p class="hint" style="margin-top:4px">${t('trial_hint')}</p></div>
+      ${/* v280: the right moment to ask. The pieces above have been measured; if there is
+           another person he knows it by now. */''}
+      ${(modOn('family')&&!multi)?`<button class="btn ghost block" style="margin-top:14px" onclick="addMember()">👥 ${t('add_member_next')}</button>
+        <p class="hint" style="margin:4px 0 0">${t('add_member_hint')}</p>`:''}
       ${/* v187: both moved off stage 1. They are filled in for him and rarely touched,
            but they must stay reachable — the number is how the shop finds the garment. */''}
       <div class="row"><div class="field"><label>${t('order_no')} *</label>
@@ -10750,7 +11091,19 @@ function renderForm(){
       <span class="hint">${multi?t('mem_count',{p:mems.length,g:(f.items||[]).length}):''}</span></div>
     ${multi?`<p class="hint" style="margin:0 0 10px">${t('members_hint')}</p>`:''}
     ${memberBlocks}
-    ${(modOn('family')||multi)?`<button class="btn ghost block" style="margin-top:10px" onclick="addMember()">👥 ${multi?t('add_member'):t('add_member_first')}</button>`:''}`;
+    ${/* v280 — HIS 23 Aug, with a cross drawn over this button: "measurement ke samay
+         starting me hi add another person kaise pooch sakta hai... ek aadmi ka hua, fir
+         next ka poochna chahiye."
+         He is right twice over. It asked before a single measurement had been taken, at the
+         busiest moment of the job, and the answer is not even known yet — it is halfway
+         through measuring the groom that somebody mentions the brother's kurta. His own
+         design law says it: if a field can be filled later at the right moment, move it
+         there instead of onto the form.
+         So the FIRST person's invitation is gone from here and now sits on stage 3, after
+         the measuring is done. An order that ALREADY has several people keeps the button
+         here, because then it is not a new decision — it is the shape of the order he is
+         already editing. */''}
+    ${multi?`<button class="btn ghost block" style="margin-top:10px" onclick="addMember()">👥 ${t('add_member')}</button>`:''}`;
 
   /* v187 — HIS #9: "order number save karte samay customer name and delivery date chahiye,
      pehle kuch nahi, sirf order date (auto) and measuring steps."
@@ -16230,6 +16583,52 @@ let rpPeriod='month', rpFrom='', rpTo='';
    not match, and they are not supposed to — a customer who has not paid yet is profit
    without cash, and an advance is cash without profit. Both are labelled so he never
    reads one as the other. */
+/* ══════════ v277 — RENT AS A SHARE OF SALES ══════════
+   HIS 23 Aug: "Alhit Golcha ko rent nahi, sale par 15% commission deta hoon", and on gross.
+   This is one of the largest costs the shop has — on ~22L of sales it is over 3 lakh — and
+   the app had no idea it existed. He was working it out on a calculator each month, and
+   nothing ever told him how much had built up since the last payment.
+   It is DERIVED from the bills, never typed and never stored as its own figure: the moment
+   a sale is billed the rent on it exists. Storing it separately would let the two drift.
+   What he pays is recorded as an ordinary expense under the head he picks here; the report
+   shows earned, paid, and what is still owed, and the balance sheet carries the unpaid part
+   as a liability, because that is exactly what it is. */
+function rentCfg(){ DB.rentComm=DB.rentComm||{}; return DB.rentComm; }
+function rentOn(){ const c=rentCfg(); return !!(c.pct>0 && String(c.who||'').trim()); }
+/* v285 — HIS 24 Aug: "sales return hua to commission me bhi adjustment hona hi chahiye."
+   He is right and this was my omission: I asked the question while building the rent, got
+   no answer, and shipped it counting every bill in full. So a garment sold and then taken
+   back still carried 15% for ever — on a return he was paying rent on a sale that did not
+   happen. Returns now come off the base the rent is charged on, at their own date, so a
+   return in September reduces September rather than rewriting August. */
+function rentBase(from,to){
+  const c=rentCfg();
+  let base=0;
+  allInvoices().filter(x=>{const d=String(x.inv.date||'');return d>=from&&d<=to;})
+    .forEach(x=>{ const k=invCompute(x.inv);
+      base+=(c.on==='net') ? (k.taxable||0) : (k.total||0); });
+  let ret=0;
+  (DB.salesReturns||[]).forEach(r=>{ const d=String(r.date||'');
+    if(d<from||d>to)return; ret+=(+r.total||0); });
+  return {gross:r2(base), ret:r2(ret), net:r2(Math.max(0,base-ret))};
+}
+function rentEarned(from,to){
+  if(!rentOn())return 0;
+  const c=rentCfg();
+  return r2(rentBase(from,to).net*(+c.pct||0)/100);
+}
+function rentPaid(from,to){
+  const c=rentCfg(); const head=String(c.head||'').trim();
+  if(!head)return 0;
+  let v=0;
+  (DB.ledger||[]).forEach(l=>{
+    if(l.refKind!=='expense')return;
+    if(String(l.cat||'')!==head)return;
+    const d=String(l.date||''); if(d<from||d>to)return;
+    v+=(+l.amt||0);
+  });
+  return r2(v);
+}
 function plFigures(from,to){
   let sales=0, gst=0, disc=0;
   allInvoices().filter(x=>{const d=String(x.inv.date||'');return d>=from&&d<=to;})
@@ -16260,11 +16659,23 @@ function plFigures(from,to){
   });
   const heads=Object.entries(byHead).sort((a,b)=>b[1]-a[1]);
 
-  const gross=r2(netSales-netPurch-direct);
-  const indirect=r2(expTotal-direct);
+  /* v282: what was SOLD, not what was bought. */
+  const openStk=r2(+((DB.openBS||{}).stock)||0);
+  const closeStk=stockNowValue();
+  const cogs=r2(openStk+netPurch-closeStk);
+  const gross=r2(netSales-cogs-direct);
+  /* v277: rent-on-sales is a running cost. It is added to indirect rather than to a head,
+     so it cannot be double counted with whatever he actually pays out — the payment sits
+     under its own head and is netted in the rent report, not here. */
+  /* v277: rent-on-sales is a running cost of the shop. Only the part NOT yet paid is added
+     here — whatever he has already paid out is sitting in expTotal under its own head, and
+     adding the full earned figure on top would count that payment twice. */
+  const rentDue=rentOn()?Math.max(0,r2(rentEarned(from,to)-rentPaid(from,to))):0;
+  const indirect=r2(expTotal-direct+rentDue);
   return {sales:r2(sales),gst:r2(gst),disc:r2(disc),netSales,
           purch:r2(purch),purchGst:r2(purchGst),netPurch,
-          heads,expTotal,direct,indirect,gross,drawings,net:r2(gross-indirect)};
+          heads,expTotal,direct,indirect,gross,drawings,rentDue,
+          openStk,closeStk,cogs,net:r2(gross-indirect)};
 }
 function cashFigures(from,to){
   const accs=(DB.accounts||[]).map(a=>{
@@ -16396,7 +16807,8 @@ function bsFigures(from,to){
     else add(A, a.type==='cash'?'cash':'bank', bal);
   });
   add(A,'debtors', receivableTotal());
-  add(A,'stock', +ob.stock||0);
+  /* v282: the shelf, not a number he typed months ago */
+  add(A,'stock', stockNowValue());
   add(A,'fixed', +ob.fixed||0);
   let staffAdv=0;
   (DB.staff||[]).forEach(st=>{ const b=staffAdvBal(st.id); if(b>0)staffAdv=r2(staffAdv+b); });
@@ -16415,6 +16827,9 @@ function bsFigures(from,to){
   /* v270: only the shop's own borrowing. A personal loan is his debt, not the business's,
      and carrying it here would understate the shop's worth. An EMI on it paid out of shop
      money is drawings — the opening screen says so. */
+  /* v277: rent earned on sales but not yet handed over is money he owes, exactly like a
+     supplier bill. */
+  add(L,'rentcomm', Math.max(0, r2(rentEarned(ob.date||from,to)-rentPaid(ob.date||from,to))));
   add(L,'loans', (ob.loans||[]).filter(x=>x.kind!=='personal')
     .reduce((s2,x)=>r2(s2+(+x.amt||0)),0));
   const g=gstFigures(from,to), gi=gstInputTax(from,to);
@@ -16471,12 +16886,13 @@ function tbRows(from,to){
   dr('bs_stock',raw(f.A.stock,'stock')); dr('bs_fixed',raw(f.A.fixed,'fixed'));
   dr('bs_staffadv',raw(f.A.staffadv,'staffadv'));
   cr('bs_creditors',raw(f.L.creditors,'creditors')); cr('bs_karigar',raw(f.L.karigar,'karigar'));
-  cr('bs_cc',raw(f.L.cc,'cc')); cr('bs_loans',raw(f.L.loans,'loans')); cr('bs_gst',raw(f.L.gst,'gst'));
+  cr('bs_cc',raw(f.L.cc,'cc')); cr('bs_rentcomm',f.L.rentcomm);
+  cr('bs_loans',raw(f.L.loans,'loans')); cr('bs_gst',raw(f.L.gst,'gst'));
   cr('bs_opencap',raw(f.cap.opening,'capital'));
   const drw=raw(f.cap.drawings,'drawings');
   if(drw)dr('bs_draw',drw);
   R.push({acc:t('rp_net_sales'),dr:0,cr:pl.netSales});
-  R.push({acc:t('rp_purch_net'),dr:pl.netPurch,cr:0});
+  R.push({acc:t('rp_cogs'),dr:pl.cogs,cr:0});   /* v282: what was sold, not what was bought */
   if(pl.direct)R.push({acc:t('rp_direct'),dr:pl.direct,cr:0});
   if(pl.indirect)R.push({acc:t('rp_running'),dr:pl.indirect,cr:0});
   /* v273: an adjustment is shown on its own line, never folded into the figure it adjusts,
@@ -16641,7 +17057,7 @@ function balanceSheet(){
     <div class="card" style="padding:12px 14px;margin-bottom:10px">
       <div class="dl-hd">${t('bs_liab')}</div>
       ${row('bs_creditors',f.L.creditors)}${row('bs_karigar',f.L.karigar)}
-      ${row('bs_cc',f.L.cc)}${row('bs_loans',f.L.loans)}${row('bs_gst',f.L.gst)}
+      ${row('bs_cc',f.L.cc)}${row('bs_rentcomm',f.L.rentcomm)}${row('bs_loans',f.L.loans)}${row('bs_gst',f.L.gst)}
       <div class="dl-hd" style="margin-top:10px">${t('bs_cap')}</div>
       ${row('bs_opencap',f.cap.opening)}
       <div class="il"><span>${t('bs_profit')}</span><b style="color:${f.cap.profit>=0?'var(--ok)':'var(--bad)'}">${money(f.cap.profit)}</b></div>
@@ -16786,7 +17202,12 @@ function plReport(){
       ${row(t('rp_net_sales'),f.netSales,{bold:1})}
     </div>
     <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
-      ${row('📦 '+t('rp_purch_net'),f.netPurch,{neg:1})}
+      ${/* v282: purchases alone never was the cost of what he sold. The three lines that
+           make it are shown, so the figure can be checked rather than believed. */''}
+      ${row(t('rp_open_stk')+((DB.openBS||{}).stockEst?' \u26A0\uFE0F':''),f.openStk,{})}
+      ${row('📦 '+t('rp_purch_net'),f.netPurch,{})}
+      ${row(t('rp_close_stk'),f.closeStk,{neg:1})}
+      ${row('🧾 '+t('rp_cogs'),f.cogs,{neg:1,bold:1})}
       ${f.direct?row('👷 '+t('rp_direct'),f.direct,{neg:1}):''}
       ${row(t('rp_gross_profit'),f.gross,{bold:1,big:1,col:f.gross>=0?'var(--ok)':'var(--bad)'})}
       <div class="hint" style="text-align:right;margin-top:2px">${f.netSales?Math.round(f.gross/f.netSales*100):0}% ${t('rp_margin')}</div>
@@ -16801,7 +17222,9 @@ function plReport(){
     ${exportBarHTML('rp_pl',()=>({title:t('rp_pl'), sub:fmtDate(from)+' – '+fmtDate(to),
       head:[t('rp_pl'), t('amount')],
       rows:[[t('rp_sales_gross'),f.sales],[t('rp_gst_out'),-f.gst],[t('rp_net_sales'),f.netSales],
-            [t('rp_purch_net'),-f.netPurch],[t('rp_direct'),-(f.direct||0)],[t('rp_gross_profit'),f.gross],
+            [t('rp_open_stk'),f.openStk],[t('rp_purch_net'),f.netPurch],
+            [t('rp_close_stk'),-f.closeStk],[t('rp_cogs'),-f.cogs],
+            [t('rp_direct'),-(f.direct||0)],[t('rp_gross_profit'),f.gross],
             [t('rp_running'),-f.indirect],[t('rp_net_profit'),f.net]]}))}
     <div class="modal-actions">
       <button class="btn ghost" style="flex:1" onclick="closeSheet()">${t('back')}</button>
@@ -17078,7 +17501,8 @@ function renderReports(){
       <button class="btn ghost" style="flex:1" onclick="balanceSheet()">🏦 ${t('bs_title')}</button>
       <button class="btn ghost" style="flex:1" onclick="trialBalance()">📋 ${t('tb_title')}</button></div>
     <div class="row" style="gap:8px;margin-bottom:12px">
-      <button class="btn ghost" style="flex:1" onclick="journalBook()">📓 ${t('jv_title')}</button></div>`;
+      <button class="btn ghost" style="flex:1" onclick="journalBook()">📓 ${t('jv_title')}</button>
+      <button class="btn ghost" style="flex:1" onclick="ontimeReport()">🚚 ${t('ontime_title')}</button></div>`;
   const {from,to}=rpRange();
   const invs=allInvoices().filter(x=>{const d=String(x.inv.date||'');return d>=from&&d<=to;});
   let sales=0,gst=0;
@@ -17235,11 +17659,21 @@ function odXToggle(){ _odX=!_odX; const el=document.querySelector('.od-x'); if(e
   const b=el&&el.previousElementSibling; if(b)b.innerHTML=b.innerHTML.replace(_odX?'▾':'▴', _odX?'▴':'▾'); }
 /* move a piece FORWARD to a stage, never backwards, and write it into the order log so
    the timeline reads the same as the stage strip */
+/* v281 — the day a garment actually went out was never written down. The app knew a piece
+   was 'delivered' but not WHEN, so "did we keep our promise" could not be answered at all,
+   and an on-time report was impossible to build. One field, stamped at the two places a
+   piece becomes delivered, and never overwritten once set — a delivery happens once.
+   Old orders have no stamp and are honestly left out of the report rather than guessed at. */
+function stampDelivered(o){
+  if(!o)return;
+  if(!o.deliveredOn)o.deliveredOn=todayISO();
+}
 function advanceStatus(o,gid,to){
   o.itemStatus=o.itemStatus||{};
   const cur=itemStatusOf(o,gid);
   if(STATUS.indexOf(cur)>=STATUS.indexOf(to))return false;   // already at or past it
   o.itemStatus[gid]=to;
+  if(to==='delivered' && orderDelivered(o))stampDelivered(o);   /* v281 */
   const g=G(gid); o.log=o.log||[];
   o.log.push({id:uid(),ts:new Date().toISOString(),text:(g?g.n+': ':'')+sLabel(to),voiceId:null});
   return true;
@@ -17265,6 +17699,7 @@ function refreshDetail(oid){
   setTimeout(()=>{ const s2=$('#sheet'); if(s2)s2.scrollTop=y; },40);
 }
 function setItemStatus(oid,gid,s){const o=DB.orders.find(x=>x.id===oid);if(!o)return;  o.itemStatus=o.itemStatus||{}; if(o.itemStatus[gid]===s)return; o.itemStatus[gid]=s;
+  if(s==='delivered' && orderDelivered(o))stampDelivered(o);    /* v281 */
   const _wasCut = (s==='cut') && !((o.cost&&o.cost[gid]&&(o.cost[gid].cuts||[]).length));
   const g=G(gid); o.log=o.log||[];
   o.log.push({id:uid(),ts:new Date().toISOString(),text:(g?g.n+': ':'')+sLabel(s),voiceId:null});
@@ -17362,7 +17797,7 @@ function orderMenu(id){const o=DB.orders.find(x=>x.id===id);const canAlt=o&&orde
     ${canAlt?`<button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();openAltForm(null,'${id}')">${t('start_alteration')}</button>`:''}
     <button class="btn ghost block simple-hide" style="margin-bottom:8px" onclick="backupMenu()">💾 ${t('backup')}</button>
     <button class="btn danger block simple-hide" onclick="delOrder('${id}')">🗑️ ${t('delete_order')}</button>`,[]);}
-function delOrder(id){confirmModal(t('confirm_del'),t('confirm_del_msg'),async()=>{
+function delOrder(id){confirmModal(t('confirm_del_order'),t('confirm_del_msg'),async()=>{
   const i=DB.orders.findIndex(x=>x.id===id); if(i<0)return;
   const o=DB.orders[i];
   /* The photos and voice notes are NOT destroyed here any more. They used to go first,
@@ -17650,15 +18085,27 @@ function settingsMenu(){modal(t('settings'),`
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();measRangeEdit()">📏 ${t('ms_title')}</button>
   ${/* v262: the Home layout switch, moved off the main screen to here. A once-ever choice
        does not belong on the screen he opens forty times a day. */''}
-  <button class="btn ghost block" style="margin-bottom:8px" onclick="homeClassicToggle()">🏠 ${localStorage.getItem('pp_home_classic')==='1'?t('home_new_view'):t('home_classic')}</button>
+  ${/* v280 — HIS 23 Aug: "old home / opening balance shop / garment type... samajh nahi aa
+       raha hai." A label a man has to already know the answer to is a failed label. This
+       one names the setting and shows which way it is set, like every other toggle here. */''}
+  <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();qrManage()">⚙️ ${t('qc_title')}</button>
+  <button class="btn ghost block" style="margin-bottom:8px" onclick="homeClassicToggle()">🏠 ${t('home_layout')} · <b>${localStorage.getItem('pp_home_classic')==='1'?t('home_layout_old'):t('home_layout_new')}</b></button>
   <div class="dl-hd" style="padding:12px 2px 6px">${t('sg_people')}</div>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();staffMaster()">👥 ${t('st_title')}</button>
   <div class="dl-hd" style="padding:12px 2px 6px">${t('sg_money')}</div>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();manageExpHeads()">⚙️ ${t('eh_title')}</button>
+  ${/* v280 — his own rule is six visible controls; MONEY had nine under one heading, with
+       two near-identical "Opening balances" rows sitting next to each other. That is what
+       made him ask which was which. Split where the meaning splits: what he sets once when
+       the books start, and the tools he opens from time to time. */''}
+  <div class="dl-hd" style="padding:12px 2px 6px">${t('sg_open')}</div>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();openingBulk()">📒 ${t('ob_title')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();openBSEdit()">🏦 ${t('ob_shop')}</button>
+  <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();rentSetup()">🏪 ${t('rc_title')}${rentOn()?' · <b>'+rentCfg().pct+'%</b>':''}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="pinSetup()">${pinOn()?'🔒':'🔓'} ${t('pin_title')} · <b>${pinOn()?t('pin_on'):t('pin_off')}</b></button>
-  <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();karigarBook()">👷 ${t('kb_title')}</button>
+  ${/* v280: two rows, same word, same icon, one under the other. The ledger is reached
+       from inside the master, which is where a man looks for it anyway. */''}
+  <div class="dl-hd" style="padding:12px 2px 6px">${t('sg_tools')}</div>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();karigarMaster()">👷 ${t('karigar_master')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();paymentQR()">💳 ${t('qr_title')}</button>
     <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();numberingEdit()">🔢 ${t('num_title')}</button>
@@ -19101,18 +19548,21 @@ function manageExpHeads(){
   const rows=cats.map((c,i)=>{ const hc=expHeadCfg(c);
     return `<div class="card" style="padding:10px 12px;margin-bottom:8px">
       <b>${esc(c)}</b>
-      <div class="row" style="gap:8px;margin-top:8px">
-        <div class="field" style="margin:0"><label>${t('eh_who')}</label>
+      ${/* v278: three dropdowns crammed into one row clipped every option on a phone.
+           Wrapping lets the third drop to its own line when there is no room, and the
+           minimum width stops any of them being squeezed thin enough to cut a word. */''}
+      <div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap">
+        <div class="field" style="margin:0;min-width:140px;flex:1"><label>${t('eh_who')}</label>
           <select data-ehw="${i}" onchange="expHeadSet(${i},'who',this.value)">
             ${whoOpts.map(([v,k])=>`<option value="${v}" ${hc.who===v?'selected':''}>${v?t(k):'—'}</option>`).join('')}
           </select></div>
-        <div class="field" style="margin:0"><label>${t('eh_kind')}</label>
+        <div class="field" style="margin:0;min-width:150px;flex:1"><label>${t('eh_kind')}</label>
           <select onchange="expHeadSet(${i},'kind',this.value)">
             <option value="direct" ${hc.kind==='direct'?'selected':''}>${t('eh_direct')}</option>
             <option value="indirect" ${(hc.kind!=='direct'&&hc.kind!=='drawing')?'selected':''}>${t('eh_indirect')}</option>
             <option value="drawing" ${hc.kind==='drawing'?'selected':''}>${t('eh_drawing')}</option>
           </select></div>
-        ${hc.who==='staff'?`<div class="field" style="margin:0"><label>${t('eh_pay')}</label>
+        ${hc.who==='staff'?`<div class="field" style="margin:0;min-width:150px;flex:1"><label>${t('eh_pay')}</label>
           <select onchange="expHeadSet(${i},'pay',this.value)">
             <option value="" ${!hc.pay?'selected':''}>${t('eh_pay_none')}</option>
             <option value="adv" ${hc.pay==='adv'?'selected':''}>${t('eh_pay_adv')}</option>
@@ -19122,7 +19572,21 @@ function manageExpHeads(){
       </div></div>`;}).join('')||`<p class="hint">${t('eh_none')}</p>`;
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin:0 0 2px">⚙️ ${t('eh_title')}</h2>
-    <p class="hint" style="margin:0 0 12px">${t('eh_sub')}</p>
+    <p class="hint" style="margin:0 0 4px">${t('eh_sub')}</p>
+    ${/* v278: "Direct · cost of goods" was cut to "Direct · cost of g" inside a phone
+         dropdown, which teaches him nothing. The option is short enough to read now and the
+         meaning is spelled out here, once, where there is room. */''}
+    <p class="hint" style="margin:0 0 4px">${t('eh_kind_hint')}</p>
+    ${/* v278 — HIS 23 Aug: "kisi bhi page me data fill karne ke baad save karne ka option
+         nahi hai, auto save hota hai, aur yahin confusion hota hai."
+         He is right, and the fix is not a Save button. These two screens are settings, not
+         forms: one dropdown, one decision, done. A Save button here would mean he could
+         change four heads, walk away, and lose all four — worse than what he has.
+         What was missing is that nothing SAID so. He filled it in, looked for Save, found
+         none, and could not tell whether his work had stuck. The toast that fires on each
+         change is easy to miss and gone in a second. This line stays on the screen the
+         whole time, so he knows before he starts. */''}
+    <p class="hint" style="margin:0 0 12px;color:var(--ok)">\u2705 ${t('autosave')}</p>
     ${/* v253: the tagging he asked me to do, offered as one button instead of a hunt */''}
     ${ehUntagged().length?`<div class="card" style="border-color:var(--saffron);padding:10px 12px;margin-bottom:12px">
       <b>🏷️ ${t('eh_setup_title')}</b>
@@ -19172,8 +19636,25 @@ function openBS(){
    total. So the app can work this out exactly, and he does not have to guess anything.
    Readymade is deliberately left out — he said those pieces are not counted yet, and a
    number that pretends to include them would be worse than one that says it does not. */
+/* ══════════ v282 — CLOSING STOCK COUNTS ITSELF ══════════
+   The one weakness I had flagged from the start: the balance sheet carried whatever stock
+   figure he typed once, for ever, and the P&L treated every purchase as if it had been
+   consumed the day it arrived. So a month where he bought heavily looked unprofitable, and
+   a month where he sold off old cloth looked better than it was — the two errors do not
+   even cancel.
+   Nothing new has to be entered. The app already knows what is on the shelf: 1,266 rolls
+   with their own rate and balance metres, and readymade pieces with their cost. Closing
+   stock is that, read fresh every time. Opening stock stays a typed figure because the
+   books have to start somewhere, and only there.
+   Cost of goods sold then falls out the way it always should have:
+       opening stock + purchases − closing stock
+   Valuation basis: every roll at ITS OWN rate, which is what the app has recorded on each
+   cut all along, and is the more accurate of the two choices open to him. */
 function stockNowValue(){
-  return r2((DB.thaans||[]).reduce((a,th)=>a+thaanValue(th),0));
+  const fab=r2((DB.thaans||[]).reduce((a,th)=>a+thaanValue(th),0));
+  let rdy=0;
+  try{ rdy=r2(readyItems().reduce((a,m)=>a+readyTotal(m)*(+m.cost||+m.rate||0),0)); }catch(e){}
+  return r2(fab+rdy);
 }
 function fabricCutSince(from){
   let v=0;
@@ -19196,6 +19677,35 @@ function fabricBoughtSince(from){
   });
   return r2(v);
 }
+/* v285 — HIS 24 Aug: "opening stock ka mere paas khud hi koi jawab nahi hai, maine stock
+   hi abhi liya hai. Kuch estimated ya adjustment entry pass karne se approx picture dikh
+   jaye to vo bhi kar sakte hain."
+   The right answer is not to invent a number and not to leave it blank either. Take today's
+   count as the opening figure — it is the only figure that is actually TRUE of the shop —
+   and mark it plainly as an estimate so nobody, him or his CA, ever mistakes it for a
+   counted one. The effect is understood and stated: the stretch between April and today
+   will show a gross profit that is too high, because goods sold in that stretch were never
+   taken out of stock. Every month after today is right.
+   And it is one field to correct later, which is the whole point of keeping it a field. */
+function obsEstimate(){
+  const now=stockNowValue();
+  modal('\u{1F9FE} '+t('ob_est_t'),
+    `<p style="color:var(--txt2);font-size:14px;line-height:1.6">${t('ob_est_why')}</p>
+     <div class="il" style="margin-top:10px;font-weight:800">
+       <span>${t('ob_stock_now')}</span><b>${money(now)}</b></div>
+     <p class="hint" style="margin-top:10px">${t('ob_est_note')}</p>`,
+    [{label:t('cancel'),cls:'ghost',fn:closeModal},
+     {label:t('ob_est_use'),cls:'primary',fn:()=>{
+        const o=openBS(); o.stock=now; o.stockEst=1; save(); closeModal();
+        openBSEdit(); toast(t('ob_est_on'),'ok'); }}]);
+}
+function obsEstToggle(){
+  const o=openBS(); o.stockEst=o.stockEst?0:1; save(); openBSEdit();
+  toast(t(o.stockEst?'ob_est_on':'ob_est_off'),'ok');
+}
+function obsUseNow(){
+  obsCap(); openBS().stock=stockNowValue(); save(); openBSEdit(); toast(t('t_saved'),'ok');
+}
 function obsCalcOpening(){
   obsCap();
   const from=openBS().date||fyStartISO();
@@ -19217,6 +19727,59 @@ function obsCalcOpening(){
         openBS().stock=res; save(); closeModal(); openBSEdit(); toast(t('t_saved'),'ok'); }}:null
     ].filter(Boolean));
 }
+/* the setup, and the report, on one screen — he only ever wants both together */
+function rentSetup(){
+  sheetAt(rentSetup);
+  const c=rentCfg();
+  const {from,to}=rpRange();
+  const earned=rentEarned(from,to), paid=rentPaid(from,to), owed=r2(earned-paid);
+  const heads=(DB.expCats||[]);
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:2px"><h2 style="margin:0">\u{1F3EA} ${t('rc_title')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
+    <p class="hint" style="margin:0 0 12px">${t('rc_sub')}</p>
+    <div class="field"><label>${t('rc_who')} *</label>
+      <input id="rc_who" value="${esc(c.who||'')}" placeholder="${t('rc_who_ph')}"></div>
+    <div class="row" style="gap:8px;margin-top:8px">
+      <div class="field" style="margin:0"><label>${t('rc_pct')} *</label>
+        <input id="rc_pct" type="number" inputmode="decimal" value="${c.pct?esc(c.pct):''}" placeholder="15"></div>
+      <div class="field" style="margin:0"><label>${t('rc_on')}</label>
+        <select id="rc_on">
+          <option value="gross" ${c.on!=='net'?'selected':''}>${t('rc_gross')}</option>
+          <option value="net" ${c.on==='net'?'selected':''}>${t('rc_net')}</option></select></div></div>
+    <div class="field" style="margin-top:8px"><label>${t('rc_head')}</label>
+      <select id="rc_head"><option value="">\u2014</option>
+        ${heads.map(h=>`<option value="${esc(h)}" ${c.head===h?'selected':''}>${esc(h)}</option>`).join('')}</select>
+      <p class="hint" style="margin-top:4px">${t('rc_head_hint')}</p></div>
+    ${rentOn()?`<div class="card pos-total" style="padding:12px 14px;margin-top:14px">
+      <p class="hint" style="margin:0 0 6px">${fmtDate(from)} \u2192 ${fmtDate(to)}</p>
+      ${(()=>{ const bs2=rentBase(from,to);
+        return `<div class="il"><span class="hint">${t('rc_base')}</span><b>${money(bs2.gross)}</b></div>
+        ${bs2.ret?`<div class="il"><span class="hint">${t('rc_ret')}</span><b style="color:var(--ok)">− ${money(bs2.ret)}</b></div>`:''}`; })()}
+      <div class="il"><span>${t('rc_earned')}</span><b>${money(earned)}</b></div>
+      <div class="il"><span>${t('rc_paid')}</span><b style="color:var(--ok)">${money(paid)}</b></div>
+      <div class="il" style="font-weight:800;border-top:1px solid var(--line);margin-top:4px;padding-top:6px">
+        <span>${t('rc_owed')}</span>
+        <b style="color:${owed>0?'var(--bad)':'var(--ok)'}">${money(Math.abs(owed))}</b></div></div>`:''}
+    <p class="hint" style="margin-top:10px">${t('rc_note')}</p>
+    <div class="modal-actions">
+      ${rentOn()?`<button class="btn danger" onclick="rentRemove()">${t('rc_remove')}</button>`:''}
+      <button class="btn primary" onclick="rentSave()">\u{1F4BE} ${t('save')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function rentSave(){
+  const g=id=>(($('#'+id)||{}).value||'').trim();
+  const who=g('rc_who'), pct=+g('rc_pct')||0;
+  if(!who||!(pct>0)){ toast(t('rc_need'),'bad'); return; }
+  const c=rentCfg();
+  c.who=who; c.pct=pct; c.on=g('rc_on')||'gross'; c.head=g('rc_head')||'';
+  save(); toast(t('rc_saved'),'ok'); rentSetup();
+}
+function rentRemove(){
+  confirmModal(t('rc_remove'), t('confirm_del_msg'), ()=>{
+    DB.rentComm={}; save(); closeModal(); rentSetup(); toast(t('t_deleted'),'ok'); });
+}
 function openBSEdit(){
   sheetAt(openBSEdit);
   const o=openBS();
@@ -19227,13 +19790,23 @@ function openBSEdit(){
     <p class="hint" style="margin:0 0 12px">${t('ob_shop_sub')}</p>
     <div class="field"><label>${t('ob_date')}</label>${dateField('obs_date',o.date)}</div>
     <div class="field" style="margin-top:8px"><label>${t('ob_stock_v')}</label>${g('obs_stock',o.stock)}
-      <button class="btn sm ghost block" style="margin-top:6px" onclick="obsCalcOpening()">\u{1F9EE} ${t('ob_calc')}</button></div>
+      <p class="hint" style="margin-top:4px">${t('ob_stock_open_only')}</p>
+      <div class="kv" style="margin-top:6px"><span class="hint">${t('ob_stock_now')}</span>
+        <b>${money(stockNowValue())}</b></div>
+      <div class="row" style="gap:6px;margin-top:6px">
+        <button class="btn sm ghost" style="flex:1" onclick="obsCalcOpening()">\u{1F9EE} ${t('ob_calc')}</button>
+        <button class="btn sm ghost" style="flex:1" onclick="obsUseNow()">\u{1F4E6} ${t('ob_stock_use_now')}</button></div>
+      <button class="btn sm ghost block" style="margin-top:6px" onclick="obsEstimate()">\u2753 ${t('ob_est')}</button>
+      ${o.stockEst?`<label class="hint" style="display:flex;gap:6px;align-items:center;margin-top:8px;color:var(--saffron2);cursor:pointer"
+        onclick="obsEstToggle()">\u26A0\uFE0F ${t('ob_est_flag')} \u00B7 <u>${t('ob_est_off')}</u></label>`:''}</div>
     <div class="field" style="margin-top:8px"><label>${t('ob_fixed_v')}</label>${g('obs_fixed',o.fixed)}</div>
     <div class="field" style="margin-top:8px"><label>${t('ob_cap')}</label>${g('obs_cap',o.capital)}</div>
     <div class="section-h" style="margin-top:14px">\u{1F3E6} ${t('bs_loans')}</div>
     <div id="obsLoans">${obsLoanRows()}</div>
     <button class="btn ghost block" style="margin-top:8px" onclick="obsLoanAdd()">\u2795 ${t('ob_loan_add')}</button>
-    <button class="btn primary block" style="margin-top:14px" onclick="obsSave()">\u{1F4BE} ${t('save')}</button>
+    ${/* v276: this one had its Save as a loose block button, so the sticky rule above could
+         not reach it. Put in the same action row as every other form. */''}
+    <div class="modal-actions"><button class="btn primary" onclick="obsSave()">\u{1F4BE} ${t('save')}</button></div>
     <div class="fab-pad"></div>`;
   showSheet();
 }
@@ -19918,7 +20491,8 @@ function staffSettings(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:2px"><h2 style="margin:0">\u2699\uFE0F ${t('scfg_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
-    <p class="hint" style="margin:0 0 14px">${t('scfg_sub')}</p>
+    <p class="hint" style="margin:0 0 4px">${t('scfg_sub')}</p>
+    <p class="hint" style="margin:0 0 14px;color:var(--ok)">\u2705 ${t('autosave')}</p>
     <div class="card" style="padding:12px 14px;margin-bottom:10px">
       <label>${t('att_weekoff')}</label>
       <div class="gtags" style="margin-top:6px">
@@ -20705,6 +21279,15 @@ async function blobBytes(b){ return new Uint8Array(await b.arrayBuffer()); }
 /* Reading the zip back. A backup you cannot restore is not a backup, so this is written
    against the same STORED-only format we produce — anything deflated is reported, never
    silently skipped. */
+/* v279: inflate a DEFLATE entry. DecompressionStream is in every browser he runs. */
+async function zipEntryBytes(e){
+  if(!e)return null;
+  if(e.method===0)return e.data;
+  if(e.method!==8)throw new Error('zip method '+e.method);
+  const ds=new DecompressionStream('deflate-raw');
+  const buf=await new Response(new Blob([e.data]).stream().pipeThrough(ds)).arrayBuffer();
+  return new Uint8Array(buf);
+}
 function zipRead(u8){
   const dv=new DataView(u8.buffer,u8.byteOffset,u8.byteLength);
   // find End Of Central Directory, scanning back from the tail
@@ -20721,22 +21304,38 @@ function zipRead(u8){
     const nameLen=dv.getUint16(p+28,true), extraLen=dv.getUint16(p+30,true), cmtLen=dv.getUint16(p+32,true);
     const lho=dv.getUint32(p+42,true);
     const name=dec.decode(u8.subarray(p+46,p+46+nameLen));
-    if(method!==0) throw new Error('compressed entry: '+name);
+    /* v279 — HIS 23 Aug, a real restore failure: he put the backup on Drive, brought it
+       back, and nothing came in. This line was why. The app writes its own zips with no
+       compression, so the reader only ever handled that — anything that had passed through
+       Drive, a PC, or any re-zip comes back DEFLATE, and restore refused it outright with a
+       toast he could easily miss. A backup he cannot open is not a backup.
+       The compression method is carried through now and inflated where it is used. */
+    const cSize=dv.getUint32(p+20,true);
     const lNameLen=dv.getUint16(lho+26,true), lExtraLen=dv.getUint16(lho+28,true);
     const dataStart=lho+30+lNameLen+lExtraLen;
-    out.push({name, data:u8.subarray(dataStart,dataStart+size)});
+    out.push({name, method, size,
+      data:u8.subarray(dataStart, dataStart+(method===0?size:cSize))});
     p += 46+nameLen+extraLen+cmtLen;
   }
   return out;
 }
+let _zrStop=false;
 async function zipRestore(file){
+  const mb=Math.round((file.size||0)/1048576);
+  /* v279: 716MB read whole into memory is where a phone gives up. Say so before he waits
+     ten minutes for nothing, and name the way out. */
+  if(mb>250)toast(t('zr_big',{n:mb}),'bad');
   let entries;
   try{ entries=zipRead(new Uint8Array(await file.arrayBuffer())); }
-  catch(err){ toast('🗜️ '+t('zr_bad')+' ('+(err&&err.message||'')+')','bad'); return; }
+  catch(err){
+    const m=String((err&&err.message)||'');
+    toast('🗜️ '+(/alloc|memory|length/i.test(m)?t('zr_oom'):t('zr_bad')+' ('+m+')'),'bad');
+    return; }
   const core=entries.find(x=>/parampara-data\.json$/i.test(x.name));
   if(!core){ toast(t('zr_nodata'),'bad'); return; }
   let pack;
-  try{ pack=JSON.parse(new TextDecoder().decode(core.data)); }catch(e){ toast(t('zr_bad'),'bad'); return; }
+  try{ pack=JSON.parse(new TextDecoder().decode(await zipEntryBytes(core))); }
+  catch(e){ toast(t('zr_bad')+' ('+((e&&e.message)||'')+')','bad'); return; }
   const d=(pack&&pack.db)||pack;
   if(!d||!d.orders){ toast(t('zr_bad'),'bad'); return; }
   const media=entries.filter(x=>x.name.indexOf('media/')===0);
@@ -20745,12 +21344,19 @@ async function zipRestore(file){
       +'\n\n'+t('restore_msg'),
     async ()=>{
       closeModal();
+      /* v279: this used to open with NO actions at all. If anything went wrong inside the
+         loop the modal stayed for ever, over the whole screen, and every tap after that
+         hit the scrim instead of a button — which is exactly what he described: "restore
+         backup ka button bhi ab kaam nahi kar raha". A long job always gets a way out. */
+      _zrStop=false;
       modal('🗜️ '+t('zr_working'),`<p class="hint" id="zrSub">…</p>
-        <div class="prog"><div id="zrBar" class="bar" style="width:0%"></div></div>`,[]);
+        <div class="prog"><div id="zrBar" class="bar" style="width:0%"></div></div>`,
+        [{label:t('zr_stop'),cls:'ghost',fn:()=>{ _zrStop=true; closeModal(); toast(t('zr_stopped'),'bad'); }}]);
       let i=0;
       for(const m of media){
+        if(_zrStop)return;                       /* nothing has touched DB yet */
         const key=m.name.replace(/^media\//,'');
-        try{ await mPut(key, new Blob([m.data])); }catch(e){}
+        try{ await mPut(key, new Blob([await zipEntryBytes(m)])); }catch(e){}
         i++;
         if(i%10===0){ const bar=$('#zrBar'); if(bar)bar.style.width=Math.round(i*100/media.length)+'%';
           const sub=$('#zrSub'); if(sub)sub.textContent=t('zb_progress',{a:i,b:media.length});
