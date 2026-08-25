@@ -749,7 +749,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v319</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v333</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1265,6 +1265,8 @@ const T={
   im_new_part:'New part name',
   im_part_ph:'e.g. waistcoat',
   manage_meas:'Manage fields',
+  ms_file_upd:'{g} measurements updated on his file',
+  sm_card:'Saved measurements', sm_card_hint:'filled in when you pick a piece', sm_more:'more',
   ms_saved:'Saved measurements', ms_use:'Use these', ms_used:'{n} filled in from file — check them', ms_none_saved:'Nothing saved for this piece',
 
   manage_meas_desc:'Turn a field off to hide it from this garment. Custom fields can be deleted.',
@@ -1503,7 +1505,7 @@ const T={
   zb_progress:'{a} of {b} files', zb_done:'Saved — {n} MB, everything in one file',
   zb_failed:'Could not build the file', zb_too_big:'Too large for one file — saving in parts instead',
   zb_one:'Backup everything (one file)',
-  sg_shop:'The shop', sg_people:'People', sg_money:'Money', sg_things:'Items & stock',
+  sg_shop:'The shop', sg_people:'People', sg_money:'Money & opening balances', sg_things:'Items & stock',
   srp_title:'Staff report', sr_late:'Late', sr_min:'min', sr_extra:'Extra hours', sr_hrs:'hrs',
   sr_cut:'Cut for days off', sr_earned:'Earned', sr_loan:'Advance / loan outstanding',
   sr_clean:'A clean month — the extra day is due',
@@ -1515,6 +1517,14 @@ const T={
   exp_tag_head:'Pick the name this money went to — the list is just above',
   exp_find_name:'Type a name — karigar, staff, supplier, anyone',
   cb_none:'No account yet', cb_account:'Account',
+  pur_near_t:'Is this the same one?', pur_near_msg:'This name is very close to one you already have. Two spellings mean two separate ledgers.',
+  pur_typed:'You typed', pur_onfile:'Already on file', pur_use_saved:'Use the saved one',
+  pur_keep_typed:'No, this is different — save as typed', pur_line_n:'Item line {n}',
+  pur_near_fixed:'Changed to {n}',
+  nm_sup_t:'Similar supplier already saved', nm_item_t:'Similar item already saved',
+  nm_existing:'Existing', nm_use:'Use existing', nm_new:'No, this is new',
+  nm_used:'Using {n}',
+  pur_sup_saved:'Saved supplier', pur_sup_new:'New supplier — added with this bill',
   pur_is_saved:'Already saved', pur_is_new:'New item',
   pur_or_pick:'or pick one of the {n} below',
   kb_bulk:'Bulk entry',
@@ -1529,6 +1539,8 @@ const T={
   kb_bulk_ask:'Save {n} payments totalling {a} to his ledger? The money comes out of the account chosen above.',
   kb_bulk_done:'{n} payments saved',
   pu_nostock:'Goods already counted in opening stock',
+  pu_extra:'Bill photo & notes', pu_adjust:'Discount, courier & round off',
+
   pu_nostock_hint:'Records the bill, the supplier and the GST — but does NOT add to stock. Leave it ticked when the roll was already entered in Stock as the cloth arrived. Untick it only if this bill\'s cloth is not in Stock yet.',
   rp_stk_diff:'Stock valuation difference',
   pur_rate_title:'Two different rates',
@@ -1678,6 +1690,13 @@ const T={
   ms_min:'Least', ms_max:'Most', ms_reset:'Back to normal', ms_flag:'outside the usual range',
   ph_one_more:'One more', ph_more_hint:'Take the next photo without leaving this screen.',
   bk_one_file_note:'One file — orders, measurements, stock, tailor accounts and photos together.',
+  bk_remind_t:'Remind me after', bk_remind_hint:'Days without a backup before the warning appears',
+  bk_remind_set:'Warning will appear after {n} days',
+  pb_parts_left:'{n} of {of} parts still to restore — part {list}',
+  pb_parts_all:'All {of} parts restored',
+  bk_found_photos:'Photos only — part {p} · {n} photos in this file',
+  restore_photos_msg:'These photos go back into their orders. Nothing else is touched — no orders, bills or balances change.',
+  bk_photos_back:'{n} photos restored',
   bk_file_empty:'This file is empty — it holds no data. Take the backup again and choose "Save to Files".',
   bk_found:'Found in this file: {o} orders · {c} customers · {r} fabric rolls · {p} photos',
   /* v187 — the mic used to fail with no word said. Now every reason says itself out loud. */
@@ -1848,6 +1867,9 @@ const T={
   urgent:'Urgent', urgent_on:'Urgent — tap to clear', urgent_off:'Mark urgent',
   urgent_marked:'marked urgent', urgent_cleared:'Urgent cleared', ab_urgent:'Marked urgent',
   pb_title:'Photos backup', pb_hint:'Photos go out in parts, so a large collection never crashes the app.',
+  pb_done_of:'{a} of {b} photos backed up', pb_left:'{n} still to save · {p} parts in all',
+  pb_left_one:'{n} still to save · one part',
+  pb_all_done:'Everything is saved',
   pb_sub:'{n} photos and voice notes, in {p} parts. Save one part at a time.',
   pb_part:'Part {n} of {of}', pb_files:'files {a} – {b}', pb_files_n:'{n} files', pb_again:'Save again', pb_planning:'Checking file sizes…',
   pb_none:'No photos or voice notes yet.', pb_busy:'One part is still being prepared.',
@@ -2223,12 +2245,14 @@ const T={
   sales_nav_off:'Salesman Mode off — tabs show the list',
   contact_no_num:'That contact has no phone number saved — type it in',
   acc_add:'Add bank account',
+  acc_primary_set:'{n} is now the main account',
   acc_name:'Account name',
   acc_name_req:'Give the account a name',
   acc_opening:'Opening balance ₹',
   acc_added:'Bank account added',
   acc_into:'Into account',
   stk_left:'left',
+  pur_new_typed:'New item: {n} — add quantity and rate', pur_new_hint:'New item — it joins your list when the bill is saved.',
   pur_type_name:'Type the item name first',
   stk_in:'in stock',
   stk_none:'no stock',
@@ -2791,6 +2815,8 @@ const T={
   im_new_part:'नए हिस्से का नाम',
   im_part_ph:'जैसे वेस्टकोट',
   manage_meas:'फ़ील्ड सँभालें',
+  ms_file_upd:'{g} का नाप उसकी फ़ाइल में अपडेट हुआ',
+  sm_card:'सेव किए हुए नाप', sm_card_hint:'पीस चुनते ही भर जाएंगे', sm_more:'और',
   ms_saved:'सेव किए हुए नाप', ms_use:'ये लें', ms_used:'{n} नाप फ़ाइल से भरे — जाँच लें', ms_none_saved:'इस पीस का कोई नाप सेव नहीं है',
   manage_meas_desc:'किसी फ़ील्ड को बंद करके इस कपड़े से हटा सकते हैं। अपनी बनाई फ़ील्ड हटाई भी जा सकती है।',
   mm_on:'चालू',
@@ -2857,6 +2883,7 @@ const T={
   cb_jv_adj:'जर्नल एडजस्टमेंट', cb_jv_adj_hint:'कैश / बैंक पर मैनुअल एंट्री — देखने के लिए दबाएँ',
   cb_total:'कैश + बैंक', cb_balance:'बैलेंस', cb_opening:'ओपनिंग', cb_open_date:'इस तारीख को',
   cb_open_hint:'उस तारीख का बैलेंस डालें। उसके बाद का हिसाब अपने-आप बनेगा।',
+  acc_primary_set:'{n} अब मुख्य खाता है',
   cb_add_bank:'बैंक खाता जोड़ें', cb_acc_name:'खाते का नाम', cb_acc_ph:'जैसे ICICI करंट',
   cb_bank_name:'बैंक', cb_accno:'खाता नंबर', cb_ifsc:'IFSC',
   cb_need_name:'खाते का नाम डालें', cb_del_msg:'खाता “{n}” हटाएँ?',
@@ -3028,7 +3055,7 @@ const T={
   zb_progress:'{b} में से {a} फ़ाइल', zb_done:'सेव हो गया — {n} MB, सब एक ही फ़ाइल में',
   zb_failed:'फ़ाइल नहीं बन पाई', zb_too_big:'एक फ़ाइल के लिए बहुत बड़ा — हिस्सों में सेव कर रहे हैं',
   zb_one:'सब कुछ बैकअप (एक फ़ाइल)',
-  sg_shop:'दुकान', sg_people:'लोग', sg_money:'पैसा', sg_things:'सामान और स्टॉक',
+  sg_shop:'दुकान', sg_people:'लोग', sg_money:'पैसा और शुरुआती बकाया', sg_things:'सामान और स्टॉक',
   srp_title:'स्टाफ़ रिपोर्ट', sr_late:'देर', sr_min:'मिनट', sr_extra:'ज़्यादा घंटे', sr_hrs:'घंटे',
   sr_cut:'ग़ैर-हाज़िरी की कटौती', sr_earned:'बनता है', sr_loan:'एडवांस / क़र्ज़ बाकी',
   sr_clean:'पूरा महीना साफ़ — एक दिन का इनाम बनता है',
@@ -3040,6 +3067,14 @@ const T={
   exp_tag_head:'किसे दिया, वह नाम ऊपर से चुन लीजिए',
   exp_find_name:'नाम लिखिए — कारीगर, स्टाफ़, सप्लायर, कोई भी',
   cb_none:'अभी कोई खाता नहीं', cb_account:'खाता',
+  pur_near_t:'क्या यह वही है?', pur_near_msg:'यह नाम आपके पास पहले से मौजूद नाम से मिलता-जुलता है। दो स्पेलिंग मतलब दो अलग खाते।',
+  pur_typed:'आपने लिखा', pur_onfile:'पहले से मौजूद', pur_use_saved:'पुराना वाला लें',
+  pur_keep_typed:'नहीं, यह अलग है — ऐसे ही सेव करें', pur_line_n:'आइटम लाइन {n}',
+  pur_near_fixed:'{n} कर दिया',
+  nm_sup_t:'मिलता-जुलता सप्लायर पहले से है', nm_item_t:'मिलता-जुलता आइटम पहले से है',
+  nm_existing:'पहले से', nm_use:'पुराना ही लें', nm_new:'नहीं, ये नया है',
+  nm_used:'{n} लिया गया',
+  pur_sup_saved:'सेव किया हुआ सप्लायर', pur_sup_new:'नया सप्लायर — इस बिल के साथ जुड़ेगा',
   pur_is_saved:'पहले से सेव है', pur_is_new:'नया आइटम',
   pur_or_pick:'या नीचे के {n} में से चुनिए',
   kb_bulk:'थोक एंट्री',
@@ -3054,6 +3089,8 @@ const T={
   kb_bulk_ask:'{n} पेमेंट, कुल {a}, इनके खाते में सेव करें? पैसा ऊपर चुने खाते से निकलेगा।',
   kb_bulk_done:'{n} पेमेंट सेव हो गए',
   pu_nostock:'माल पहले से ओपनिंग स्टॉक में गिना जा चुका है',
+  pu_extra:'बिल फ़ोटो और नोट', pu_adjust:'छूट, कूरियर और राउंड ऑफ़',
+
   pu_nostock_hint:'बिल, सप्लायर और GST दर्ज होंगे — स्टॉक नहीं बढ़ेगा। जब थान माल आते ही Stock में चढ़ा दिया हो, तब टिक लगी रहने दें। सिर्फ़ तब हटाएँ जब इस बिल का कपड़ा अभी Stock में नहीं है।',
   rp_stk_diff:'स्टॉक वैल्यूएशन का फ़र्क़',
   pur_rate_title:'दो अलग रेट',
@@ -3203,6 +3240,13 @@ const T={
   ms_min:'कम से कम', ms_max:'ज़्यादा से ज़्यादा', ms_reset:'सामान्य पर लाएँ', ms_flag:'आम सीमा से बाहर',
   ph_one_more:'एक और', ph_more_hint:'यहीं से अगली फ़ोटो लीजिए, पीछे जाने की ज़रूरत नहीं।',
   bk_one_file_note:'एक ही फ़ाइल — ऑर्डर, नाप, स्टॉक, करीगर हिसाब और फ़ोटो सब साथ।',
+  bk_remind_t:'याद दिलाएँ', bk_remind_hint:'इतने दिन बैकअप न लेने पर चेतावनी दिखेगी',
+  bk_remind_set:'{n} दिन बाद चेतावनी दिखेगी',
+  pb_parts_left:'{of} में से {n} हिस्से अभी बाकी — हिस्सा {list}',
+  pb_parts_all:'सभी {of} हिस्से वापस आ गए',
+  bk_found_photos:'सिर्फ़ फोटो — हिस्सा {p} · इस फ़ाइल में {n} फोटो',
+  restore_photos_msg:'ये फोटो अपने ऑर्डर में वापस चले जाएंगे। बाकी कुछ नहीं बदलेगा — कोई ऑर्डर, बिल या बकाया नहीं।',
+  bk_photos_back:'{n} फोटो वापस आ गईं',
   bk_file_empty:'यह फ़ाइल ख़ाली है — इसमें कोई डेटा नहीं है। दोबारा बैकअप लीजिए और "Save to Files" चुनिए।',
   bk_found:'इस फ़ाइल में मिला: {o} ऑर्डर · {c} ग्राहक · {r} थान · {p} फ़ोटो',
   vm_insecure:'माइक बंद है क्योंकि ऐप फ़ाइल से खुला है। यह ऐप के अंदर से ठीक नहीं हो सकता।',
@@ -3372,6 +3416,9 @@ const T={
   urgent:'ज़रूरी', urgent_on:'ज़रूरी — हटाने के लिए दबाएँ', urgent_off:'ज़रूरी मार्क करें',
   urgent_marked:'ज़रूरी मार्क किया', urgent_cleared:'ज़रूरी हटाया', ab_urgent:'ज़रूरी मार्क किए हुए',
   pb_title:'फोटो बैकअप', pb_hint:'फोटो हिस्सों में जाती हैं, इसलिए बड़ा कलेक्शन ऐप को नहीं गिराता।',
+  pb_done_of:'{b} में से {a} फोटो हो चुके', pb_left:'{n} अभी बाकी · कुल {p} हिस्से',
+  pb_left_one:'{n} अभी बाकी · एक ही हिस्सा',
+  pb_all_done:'सब सेव हो चुका है',
   pb_sub:'{n} फोटो और वॉइस नोट, {p} हिस्सों में। एक बार में एक हिस्सा सेव करें।',
   pb_part:'हिस्सा {n} / {of}', pb_files:'फ़ाइल {a} – {b}', pb_files_n:'{n} फ़ाइलें', pb_again:'दोबारा सेव करें', pb_planning:'फ़ाइल साइज़ जाँची जा रही है…',
   pb_none:'अभी कोई फोटो या वॉइस नोट नहीं।', pb_busy:'एक हिस्सा अभी तैयार हो रहा है।',
@@ -3753,6 +3800,7 @@ const T={
   acc_added:'बैंक खाता जुड़ गया',
   acc_into:'किस खाते में',
   stk_left:'बचा',
+  pur_new_typed:'नया आइटम: {n} — मात्रा और रेट डालें', pur_new_hint:'नया आइटम — बिल सेव होते ही यह आपकी सूची में आ जाएगा।',
   pur_type_name:'पहले आइटम का नाम लिखें',
   stk_in:'स्टॉक में',
   stk_none:'स्टॉक नहीं',
@@ -4322,6 +4370,24 @@ function autoSnapshot(s){ if(!idb)return; try{
     while(snaps.length>SNAP_KEEP){ mDel(snaps.shift()); }
   }).catch(()=>{});
 }catch(e){} }
+/* v333 — P1. Restoring the wrong file used to be final: the current data was gone and
+   there was nothing to step back to. autoSnapshot() already keeps twelve rolling copies,
+   but it declines if one was taken in the last three hours — precisely the case when a
+   restore is about to happen. This takes one regardless, right before the overwrite, so
+   the way back always exists. It lands in the same snapshot store the "Restore auto-backup"
+   screen already reads, so nothing new has to be learnt to use it. */
+async function preRestorePoint(){
+  if(!idb)return false;
+  try{
+    if(!(DB&&((DB.orders||[]).length||(DB.customers||[]).length)))return false;   // nothing worth keeping
+    const stamp=new Date().toISOString().slice(0,16).replace('T','_').replace(':','-');
+    await mPut('snap_'+stamp+'_before-restore', dbSerialize());
+    const keys=await mKeys();
+    const snaps=keys.filter(k=>String(k).indexOf('snap_')===0).sort();
+    while(snaps.length>SNAP_KEEP+2){ await mDel(snaps.shift()); }
+    return true;
+  }catch(e){ return false; }
+}
 const urlCache={};
 async function mURL(id){ if(urlCache[id])return urlCache[id]; const b=await mGet(id); if(!b)return null; const u=URL.createObjectURL(b); urlCache[id]=u; return u; }
 
@@ -4558,7 +4624,9 @@ function invGroupItems(keys){
   gids.forEach(g=>{if(!used.has(g)){used.add(g);const gg=G(g);groups.push({label:gg?gg.n:g,members:[g]});}});
   return groups;
 }
-const custById=id=>DB.customers.find(c=>c.id===id);
+let _custPending=null;                 /* v330: a New customer being filled in, not yet saved */
+const custById=id=>DB.customers.find(c=>c.id===id)
+  || ((_custPending&&_custPending.id===id)?_custPending:undefined);
 function todayISO(){return new Date().toISOString().slice(0,10);}
 function isoToDMY(iso){ if(!iso)return ''; const p=String(iso).slice(0,10).split('-'); return p.length===3?(p[2]+'/'+p[1]+'/'+p[0]):''; }
 /* A date field that always DISPLAYS dd/mm/yyyy, whatever the device locale.
@@ -6655,6 +6723,12 @@ function primaryAcc(){
 function setPrimaryAcc(id){
   (DB.accounts||[]).forEach(a=>{ a.primary=(a.id===id); });   // exactly one primary
   save();
+  /* v322 — the one action in this sweep that changed something real and showed nothing at
+     all: it neither redrew the screen nor said a word, so tapping "make this the main
+     account" looked broken even though it had worked. Which account new receipts and
+     payments default to is worth confirming out loud. */
+  const a=ACC(id);
+  if(a)toast(t('acc_primary_set',{n:a.name}),'ok');
 }
 function defaultAcc(){ return primaryAcc(); }
 function addBankQuick(cb){
@@ -8646,7 +8720,11 @@ function dueGroups(){
     g.age=ageSplit(rows);
   });
   // a return held as credit lowers what the customer owes — same figure as their chip
-  Object.values(map).forEach(g=>{ if(g.custId)g.due=r2(Math.max(0,g.due-customerCredit(g.custId))); });
+  /* v322 — the credit was being taken off TWICE here: once by custCreditMap() above (v316,
+     which nets it for every screen at once) and once again by this older per-customer line.
+     A ₹3,000 credit note took ₹6,000 off what the reminder list said he owed — ₹11,000 on
+     that screen against ₹14,000 on the statement, the receivables and the balance sheet.
+     The v316 pass is the one every other screen reads, so this second subtraction goes. */
   return Object.values(map).filter(g=>g.due>0).sort((a,b)=>b.due-a.due);
 }
 /* v247 - HIS 22 Aug pending list: receivable and payable ageing. One figure of "38,100 to
@@ -10331,7 +10409,7 @@ function renderOrders(){
   // same top action row the Sale tab has, so New Order is never hidden behind the + only
   const head=`<div class="row" style="margin-bottom:12px;gap:8px">
     <button class="btn primary" style="flex:2" onclick="openOrderForm()">+ ${t('new_order')}</button>
-    <button class="btn ghost simple-hide" style="flex:1" onclick="orderReports()">📊 ${t('reports')}</button></div>`;
+    <button class="btn ghost simple-hide" style="flex:1" onclick="orderReports()">📊 ${t('or_title')}</button></div>`;
   if(!list.length){el.innerHTML=head+remind+bar+banner+dcard+`<div class="empty"><div class="big">📋</div><p><b>${q?t('nothing'):(delFilter==='all'?t('no_orders'):t('no_deliveries'))}</b></p><p style="font-size:13px">${q?t('try_other'):(delFilter==='all'?t('no_orders_sub'):'')}</p></div>`;return;}
   const _pg=pageSlice('orders',list);
   el.innerHTML=head+remind+bar+banner+dcard+_pg.map(o=>{
@@ -10618,6 +10696,7 @@ function openCustomer(id){
     ${c.phone?`<button class="btn sm ghost block" style="margin-top:8px"
       onclick="saveToPhone('${jq(c.name||'')}','${jq(c.phone)}',t('vc_role_cust'))">📇 ${t('vc_save')}</button>`:''}
     ${(DB.orders||[]).some(o=>o.customerId===id&&!orderDelivered(o))?`<button class="btn ghost block" style="margin-top:10px" onclick="custStatus('${id}')">📞 ${t('se_title')}</button>`:''}
+    <button class="btn ghost block" style="margin-top:10px" onclick="closeSheet();partyStatement('${jq(id)}','customer')">📒 ${t('pty_stmt')}</button>
     <div class="card" style="padding:12px 14px;margin:10px 0">
       <div class="il"><span>${t('cust_business')}</span><b>${money(sm.spent)}</b></div>
       <div class="il"><span>${t('baaki')}</span>
@@ -10670,11 +10749,25 @@ function cuDelGarment(cid,gid){
   });
 }
 function newCustomer(){
+  /* v330 — HIS 25 Aug, found in the live audit: tapping New customer and pressing Save
+     with nothing typed left a nameless customer on file for ever. It showed in the list
+     as "📞 —", survived a reload, and — the part that could actually damage a bill — was
+     offered in the order form's customer search and could be picked for a real order.
+
+     The record itself has to exist the moment the screen opens: editCustomer(), the photo
+     pickers and custById() all read it by id. What it does NOT need is to be WRITTEN.
+     save() is the only thing that puts it on disk, so the blank now lives in memory until
+     a real name is entered, and the Save button below is what commits it. Cancel already
+     removed the blank and still does; nothing about that changes. */
   const c={id:uid(),name:'',phone:'',created:new Date().toISOString(),m:{}};
-  DB.customers.push(c); save(); editCustomer(c.id,true);
+  _custPending=c;                      /* held aside — pushed only once it has a name */
+  editCustomer(c.id,true);
 }
 function custCancelNew(id){
-  const c=custById(id);
+  if(_custPending && _custPending.id===id)_custPending=null;
+  /* older builds could already have pushed a blank one — clear that too, but only the
+     record this screen is on, never anything already in his data */
+  const c=(DB.customers||[]).find(x=>x.id===id);
   if(c && !(c.name||'').trim() && !(c.phone||'').trim()){ DB.customers=DB.customers.filter(x=>x.id!==id); save(); }
   closeSheet(); renderCustomers();
 }
@@ -10694,7 +10787,7 @@ function delCustomer(id){
 }
 function editCustomer(id,isNew){
   sheetAt(editCustomer);const c=custById(id); _custPhotoId=id;
-  $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h3 style="margin:0">${t('cust_edit')}</h3><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
+  $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h3 style="margin:0">${t('cust_edit')}</h3><button class="btn sm ghost" onclick="${isNew?`custCancelNew('${id}')`:'closeSheet()'}">✕</button></div>
     <div class="field"><label>${t('customer')}</label><input id="ec_name" value="${esc(c.name)}"></div>
     <div class="field"><label>${t('phone')}</label><input id="ec_phone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" value="${esc(c.phone)}"></div>
     <div class="section-h">🧍 ${t('bp_title')}</div>
@@ -10782,7 +10875,16 @@ function custRelink(id,name,phone){
 }
 function saveCustEdit(id){
   const c=custById(id); if(!c)return;
-  const name=$('#ec_name').value.trim()||c.name;
+  /* v330: a name is what makes a customer findable — without one the record is unusable
+     and, worse, still selectable on an order. Whitespace counts as blank. Phone stays
+     optional: a walk-in often has no number and that is fine. */
+  const typed=String(($('#ec_name')||{}).value||'').trim();
+  if(!typed && !String(c.name||'').trim()){
+    toast(t('cust_type_name'),'bad');
+    const el=$('#ec_name'); if(el){ el.style.borderColor='var(--bad)'; el.focus(); }
+    return;
+  }
+  const name=typed||c.name;
   const phone=$('#ec_phone').value.trim();
   const dq=ph10(phone);
   const clash=dq?(DB.customers||[]).find(x=>x.id!==id&&ph10(x.phone)===dq):null;
@@ -10794,6 +10896,9 @@ function saveCustEdit(id){
     return;
   }
   c.name=name; c.phone=phone;
+  /* v330: a named new customer joins the list here, at the moment of saving, and only
+     then is written. Nothing about editing an existing customer changes. */
+  if(_custPending && _custPending.id===id){ DB.customers.push(_custPending); _custPending=null; }
   custRelink(id,c.name,c.phone);
   save(); openCustomer(id); toast(t('t_cust_updated'),'ok');
 }
@@ -11362,6 +11467,41 @@ function itemStep(key,dir){
   const i=list.indexOf(key); if(i<0)return;
   ordStage(2,list[(i+dir+list.length)%list.length]);
 }
+/* v324 — HIS 25 Aug, in his own words: "saved measurement sabse niche, keyboard me chhup
+   ja rahe the, to pata hi nahi chalta tha. Start measuring upar aata hai to hum wahi se
+   lena chalu kar dete hain." The naap WAS being carried over correctly — v319 marked the
+   carried figures so they can be told apart — but the only place a repeat customer's file
+   was visible was the Lengths list at the very bottom of the pick screen, under the
+   keypad. So the man who has been coming for years looked, on screen, exactly like a
+   stranger, and staff re-measured him.
+   This says it where the customer is named, before a single piece is picked: which
+   garments are already on file and what they say. It reads only — the copying is still
+   done by prefillGarment when a piece is picked, so nothing is overwritten and nothing
+   changes about how a measurement is saved. */
+function savedMeasCard(f){
+  if(!f.customerId)return '';
+  const c=custById(f.customerId); if(!c)return '';
+  const gids=Object.keys(c.m||{}).filter(g=>{
+    const v=c.m[g]||{}; return Object.keys(v).some(k=>String(v[k]||'').trim()!=='');
+  });
+  if(!gids.length)return '';
+  const rows=gids.slice(0,4).map(g=>{
+    const gg=G(g)||{n:g,ico:'📏'};
+    const v=c.m[g]||{}, cols=vcols(gg);
+    const nm=k=>((cols.find(x=>x.k===k)||{}).n)||k;
+    const peek=Object.keys(v).filter(k=>String(v[k]||'').trim()!=='')
+      .slice(0,3).map(k=>esc(nm(k))+' '+esc(v[k])).join(' · ');
+    return `<div class="il" style="padding:5px 0" onclick="event.stopPropagation();openCustomer('${jq(f.customerId)}')">
+      <span style="min-width:0"><b style="font-size:13px">${gg.ico||''} ${esc(gg.n||g)}</b>
+        <div class="hint" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${peek}</div></span>
+      <span class="hint">›</span></div>`;
+  }).join('');
+  const more=gids.length>4?`<div class="hint" style="margin-top:2px">+${gids.length-4} ${t('sm_more')}</div>`:'';
+  return `<div class="card" style="padding:9px 12px;margin-bottom:10px;border-color:var(--saffron)">
+    <div class="kv" style="margin-bottom:2px"><b style="font-size:13px">📏 ${t('sm_card')}</b>
+      <span class="hint">${t('sm_card_hint')}</span></div>
+    ${rows}${more}</div>`;
+}
 function measCardHTML(f,key){
   const g=G(key); if(!g)return '';
   const cols=vcols(g), vals=f.m[key]||{};
@@ -11674,7 +11814,8 @@ function renderForm(){
   const rc = f.customerId
     ? `<div class="cust-result" style="margin-bottom:10px"><div><b>${esc(f.customerName)}</b>
          <div class="hint">${esc(f.phone||'')}${rcHas?' · ✅ '+t('rc_has_meas',{n:rcHas}):''}</div></div>
-         <button class="btn sm ghost" onclick="clearCustomer()">${t('change')}</button></div>`
+         <button class="btn sm ghost" onclick="clearCustomer()">${t('change')}</button></div>
+       ${savedMeasCard(f)}`
     : `<div class="field" style="margin-bottom:10px">
          <input id="f_cname" placeholder="${t('name_ph')} *" autocomplete="off"
            oninput="custSearch(this.value)" onfocus="custSearch(this.value)" value="${esc(f.customerName||'')}">
@@ -12396,11 +12537,28 @@ function saveOrder(){
   // only the main member's measurements belong to this customer's own profile —
   // a brother's or father's body must never overwrite the customer's saved naap
   const mainMid=(f.members&&f.members[0])?f.members[0].id:'';
+  /* v324 — this write-back is deliberate and right: the naap taken today becomes the
+     customer's file, so next time it is current. What was wrong is that it happened in
+     complete silence — a figure the shop had held for years could be replaced and nobody
+     was told, which is exactly what "never silently overwrite saved measurements" is
+     about. The values written are unchanged; the shop is simply told which garments were
+     re-measured, so a wrong number typed in a hurry can be caught the same day. */
+  const _mChanged=[];
   f.items.forEach(key=>{
     if(memberOf(key)!==mainMid)return;
     const gid=garmentOf(key);
-    if(f.m[key]&&Object.keys(f.m[key]).length)c.m[gid]=Object.assign({},c.m[gid],f.m[key]);
+    if(f.m[key]&&Object.keys(f.m[key]).length){
+      const old=c.m[gid]||{};
+      const differs=Object.keys(f.m[key]).some(k=>{
+        const nv=String(f.m[key][k]||'').trim(), ov=String(old[k]||'').trim();
+        return nv!=='' && ov!=='' && nv!==ov;
+      });
+      if(differs){ const g=G(gid); _mChanged.push((g&&g.n)||gid); }
+      c.m[gid]=Object.assign({},c.m[gid],f.m[key]);
+    }
   });
+  if(_mChanged.length)setTimeout(()=>{ try{
+    toast(t('ms_file_upd',{g:_mChanged.slice(0,3).join(', ')}),'ok'); }catch(e){} },1400);
   // learn design tokens per item type for reuse
   DB.designLib=DB.designLib||{};
   f.items.forEach(key=>{const gid=garmentOf(key);const toks=(f.design[key]||'').split('/').map(s=>s.trim()).filter(Boolean);
@@ -13292,8 +13450,8 @@ function renderPurchases(keepFocus){
   const el=$('#purchList');
   const all=(DB.purchases||[]);
   const addBtn=`<div class="row" style="margin-bottom:12px;gap:8px">
-    <button class="btn primary" style="flex:1" onclick="openPurchaseForm()">+ ${t('new_purchase')}</button>
-    <button class="btn ghost" style="flex:1" onclick="go('reports')">📊 ${t('reports')}</button></div>`
+    <button class="btn primary block" onclick="openPurchaseForm()">+ ${t('new_purchase')}</button>
+    </div>`
     + (all.length?`<div class="row" style="margin-bottom:10px;gap:8px">
       <button class="btn ${_purSelMode?'primary':'ghost'}" style="flex:1" onclick="purSelToggle()">${_purSelMode?'✕ '+t('cancel'):'☑️ '+t('fab_select')}</button>
       ${_purSelMode?`<button class="btn ghost" style="flex:1" onclick="purSelAll()">${t('pur_sel_all')}</button>`:''}</div>`:'');
@@ -14623,10 +14781,15 @@ function altCustSearch(q){const box=$('#altCustResults'); if(!box)return;
   box.innerHTML=sugHead('saved_customers','altNewCustomer()')
     +(hits.length?hits.map(c=>custRowHTML(c,`altPickCustomer('${c.id}')`)).join('')
       :`<p class="hint" style="margin:6px 0 0">${q?t('cust_none_q'):t('cust_none')}</p>`);}
+/* v321 — HIS 25 Aug: tapping New here cleared the list, moved the cursor and said nothing,
+   so a new employee had no way of knowing whether it had registered. The order and the
+   bill both say it; this now says the same thing, in the same words. */
 function altNewCustomer(){
-  const box=$('#altCustResults'); if(box)box.innerHTML='';
+  const nm=(($('#a_cname')||{}).value||'').trim();
+  const box=$('#altCustResults'); if(box)box.innerHTML=`<p class="hint" style="padding:6px 0">${t('cust_new_hint')}</p>`;
   if(altForm)altForm.customerId=null;
-  const ph=$('#a_cphone'); if(ph)ph.focus();}
+  const ph=$('#a_cphone'); if(ph)ph.focus();
+  toast(nm?t('cust_new_typed',{n:nm}):t('cust_type_name'), nm?'ok':'bad');}
 function altPickCustomer(id){
   const c=custById(id); if(!c)return;
   const n=$('#a_cname'); if(n)n.value=c.name||'';
@@ -16015,8 +16178,8 @@ function renderInvoices(keepFocus){
   const el=$('#invList');
   const all=allInvoices();
   const head=`<div class="row" style="margin-bottom:12px;gap:8px">
-    <button class="btn primary" style="flex:2" onclick="openSaleForm()">+ ${t('new_sale')}</button>
-    <button class="btn ghost simple-hide" style="flex:1" onclick="go('reports')">📊 ${t('reports')}</button></div>`;
+    <button class="btn primary block" onclick="openSaleForm()">+ ${t('new_sale')}</button>
+    </div>`;
 
   if(!all.length){ el.innerHTML=head+`<div class="empty"><div class="big">🧾</div><p><b>${t('no_invoices')}</b></p><p style="font-size:13px">${t('no_invoices_sub2')}</p></div>`; return; }
 
@@ -16237,7 +16400,17 @@ function purchTotalsBoxHTML(comp){
   const bal=r2(Math.max(0,comp.total-puPrior()-(+paid||0)));
   const ln='display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)';
   const lnStack='display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:7px 0;border-bottom:1px solid var(--line)';
-  return `<div style="${ln}"><span>${t('discount')}</span>
+  /* v320: discount, courier and round-off are the three lines most bills leave at zero, so
+     they fold together. Opened on their own whenever any of them carries a figure, and the
+     header says so — nothing can hide a number that is actually affecting the total. */
+  const adjOn = _puAdj || !!(+f.discValue) || !!(+f.courier) || !!(+comp.roundOff);
+  const adjBits=[]; if(+f.discValue)adjBits.push(t('discount'));
+  if(+f.courier)adjBits.push(t('courier')); if(+comp.roundOff)adjBits.push(t('round_off'));
+  return `<div style="${ln};cursor:pointer" onclick="puAdjToggle()">
+      <span>⚙️ ${t('pu_adjust')}${adjBits.length?' · '+esc(adjBits.join(', ')):''}</span>
+      <span class="hint">${adjOn?'▴':'▾'}</span></div>
+    <div style="${adjOn?'':'display:none'}">
+    <div style="${ln}"><span>${t('discount')}</span>
       <span style="display:flex;gap:6px;align-items:center">
         <button class="btn sm ghost" id="puDiscTog" style="min-width:40px;padding:4px 8px" onclick="puToggleDisc()">${pct?'%':'₹'}</button>
         <input id="pu_discval" type="number" inputmode="numeric" value="${f.discValue?esc(f.discValue):''}" placeholder="0"
@@ -16246,6 +16419,7 @@ function purchTotalsBoxHTML(comp){
     <div style="${ln}"><span>🚚 ${t('courier')}</span>
       <input id="pu_courier" type="number" inputmode="numeric" value="${f.courier?esc(f.courier):''}" placeholder="0"
         style="width:112px;text-align:right;margin:0" oninput="updatePurchTotal()"></div>
+    </div>
     <div style="${ln}"><span>${t('taxable')}</span><b>${money(comp.taxable)}</b></div>
     <div style="${ln}">
       <span style="display:flex;gap:8px;align-items:center">${t('gst')}
@@ -16257,7 +16431,7 @@ function purchTotalsBoxHTML(comp){
       <b id="puTaxAmt">${money(comp.tax)}</b></div>
     ${comp.tax?`<div style="${ln}"><span class="hint">${comp.igst?'IGST':'CGST + SGST'}</span>
       <span class="hint">${comp.igst?money(comp.igst):money(comp.cgst)+' + '+money(comp.sgst)}</span></div>`:''}
-    <div style="${ln}">
+    <div style="${ln};${adjOn?'':'display:none'}">
       <span style="display:flex;gap:8px;align-items:center">
         <input type="checkbox" id="pu_roundon" style="width:16px;height:16px;margin:0"
           ${f.roundOn===false?'':'checked'} onchange="puRoundToggle(this.checked)">
@@ -16293,6 +16467,7 @@ function updatePurchTotal(){
   const comp=purchCompute(purchForm);
   const paid=+purchForm.paidNow||0;
   const a=$('#puTotalAmt'); if(a)a.textContent=money(comp.total);
+  const dk=$('#puDockTotal'); if(dk)dk.textContent=money(comp.total);   /* v323: pinned copy */
   const tx=$('#puTaxAmt'); if(tx)tx.textContent=money(comp.tax);
   const due=r2(Math.max(0,comp.total-puPrior()));
   const b=$('#puBalDue'); if(b)b.textContent=money(r2(Math.max(0,due-paid)));
@@ -16405,9 +16580,16 @@ function puPickSup(name){
 }
 function puSupChanged(){
   const el=$('#pu_supplier'), box=$('#puPartyBal'); if(!el||!box)return;
-  box.innerHTML=supBalHTML(el.value);
-  const s=pastSuppliers().find(x=>x.name.toLowerCase()===el.value.trim().toLowerCase());
+  const typed=String(el.value||'').trim();
+  const s=pastSuppliers().find(x=>x.name.toLowerCase()===typed.toLowerCase());
+  /* v327: which of the two is happening, said in the field's own line */
+  const mark = !typed ? ''
+    : (s ? '<span style="color:var(--ok)">✅ '+t('pur_sup_saved')+'</span>'
+         : '<span style="color:var(--saffron2)">🆕 '+t('pur_sup_new')+'</span>');
+  const bal=supBalHTML(el.value);
+  box.innerHTML = mark + (mark&&bal?' · ':'') + bal;
   const ph=$('#pu_phone'); if(s&&s.phone&&ph&&!ph.value)ph.value=s.phone;
+  puSupNear();                     /* v328 */
 }
 const PUR_UNITS=['Mtr','Pcs'];
 let _purD={unit:'Mtr',hsn:'',design:'',colour:'',showExtra:false};
@@ -16444,6 +16626,7 @@ function purDraftHTML(){
          new, so the one thing he needs to know is whether this one already exists. This
          line sits directly under the box and answers it in a glance, keyboard or no. */''}
     <div id="puDState" class="hint" style="margin:6px 0 0;min-height:16px"></div>
+    <div id="puDWarn"></div>
     ${/* v229 — HIS 20 Aug: "add to bill, add new item se pehle hai, tumhara system
          confusing hai." He was right: the saved-item list sat BELOW the Add button, so the
          order on screen was type → add → and only then "is it already saved?" — backwards.
@@ -16543,6 +16726,114 @@ function purDCalc(){
   const q=qv===''?1:(+qv||0), r=+(($('#pu_drate')||{}).value)||0;
   const el=$('#puDAmt'); if(el)el.textContent=money(r2(q*r));
 }
+/* ═══════════ NEAR-MATCH GUARD ═══════════
+   v328 — HIS 25 Aug. This app has no supplier or item master and deliberately so: a
+   supplier IS the name written on a purchase bill, and an item becomes real when the bill
+   saves. That keeps backlog entry fast and stops half-finished bills leaving junk records
+   behind, and it must not change.
+
+   But it leaves one real hole. Type "Mohan Synthex" when the shop's supplier is "Mohan
+   Synthetics" and the app cheerfully makes a SECOND supplier — his ledger silently splits
+   in two and nobody finds out for months. On the item side it is worse: "Suting Wool"
+   against "Suiting Wool" splits the stock of one cloth across two records.
+
+   So the guard is not a gate. Nothing is blocked, no extra tap is added when the name is
+   plainly new. Only when a typed name sits within a character or two of one already on
+   file does the app stop and ask which he meant — the same shape as the duplicate-phone
+   question on the customer screen. */
+/* nameNorm() already exists beside nameClose(), which is where the save-time guard lives —
+   reusing it keeps both guards normalising names identically. */
+function nameDist(a,b){
+  a=nameNorm(a); b=nameNorm(b);
+  if(a===b)return 0;
+  if(Math.abs(a.length-b.length)>3)return 99;      // too different in length to be a typo
+  const m=a.length,n=b.length;
+  if(!m||!n)return 99;
+  let prev=[]; for(let j=0;j<=n;j++)prev[j]=j;
+  for(let i=1;i<=m;i++){
+    const cur=[i];
+    for(let j=1;j<=n;j++)
+      cur[j]=Math.min(prev[j]+1, cur[j-1]+1, prev[j-1]+(a[i-1]===b[j-1]?0:1));
+    prev=cur;
+  }
+  return prev[n];
+}
+/* Two ways a typo shows up, and edit distance alone only catches one of them.
+   A slip of the finger — "Suting" for "Suiting" — is one or two characters out, so a
+   distance test finds it. But a name half-remembered, "Mohan Synthex" for "Mohan
+   Synthetics", is four edits apart and sails straight past that test while being obviously
+   the same firm. What gives it away is the long shared beginning. Eight characters of
+   identical prefix is a lot of coincidence; "Mohan Textiles" and "Mohan Traders" only
+   share six, so two genuinely different firms with the same family name are left alone.
+   Below four characters nothing is checked at all — "Raj" and "Ram" are two men. */
+function nearNameHit(typed,names){
+  const t=nameNorm(typed); if(t.length<4)return null;
+  let best=null;
+  (names||[]).forEach(nm=>{
+    const n=nameNorm(nm);
+    const d=nameDist(t,n);
+    if(d===0)return;                                  // exact — nothing to ask
+    const lim=t.length>=8?2:1;
+    let hit = (d!==99 && d<=lim);
+    if(!hit && t.length>=8 && n.length>=8){
+      let i=0; while(i<t.length && i<n.length && t[i]===n[i])i++;
+      if(i>=8)hit=true;                               // same long beginning
+    }
+    if(hit && (!best||d<best.d))best={name:nm,d};
+  });
+  return best;
+}
+let _nearOK={};                                   /* names he has confirmed are genuinely new */
+function nearOK(kind,v){ return !!_nearOK[kind+':'+nameNorm(v)]; }
+function nearAccept(kind,v){ _nearOK[kind+':'+nameNorm(v)]=1; }
+function nearWarnHTML(kind,hit,useFn){
+  return `<div class="card" style="padding:8px 10px;margin-top:6px;border-color:var(--saffron2)">
+    <div><b style="font-size:13px">\u26A0\uFE0F ${t(kind==='sup'?'nm_sup_t':'nm_item_t')}</b>
+      <div class="hint">${t('nm_existing')}: <b>${esc(hit.name)}</b></div></div>
+    <div class="row" style="gap:6px;margin-top:6px">
+      <button class="btn sm primary" style="flex:1" onclick="${useFn}">${t('nm_use')}</button>
+      <button class="btn sm ghost" style="flex:1" onclick="${kind==='sup'?'puSupKeepNew()':'purDKeepNew()'}">${t('nm_new')}</button>
+    </div></div>`;
+}
+function puSupNear(){
+  const box=$('#puSupWarn'), el=$('#pu_supplier'); if(!box||!el)return;
+  const v=String(el.value||'').trim();
+  const names=pastSuppliers().map(x=>x.name);
+  if(!v || names.some(n=>nameNorm(n)===nameNorm(v)) || nearOK('sup',v)){ box.innerHTML=''; return; }
+  const hit=nearNameHit(v,names);
+  box.innerHTML = hit ? nearWarnHTML('sup',hit,`puSupUseExisting('${jq(hit.name).replace(/'/g,"\\'")}')`) : '';
+}
+function puSupUseExisting(name){
+  const el=$('#pu_supplier'); if(el)el.value=name;
+  const w=$('#puSupWarn'); if(w)w.innerHTML='';
+  const sg=$('#puSupSug'); if(sg)sg.innerHTML='';
+  puSupChanged();
+  toast(t('nm_used',{n:name}),'ok');
+}
+function puSupKeepNew(){
+  const el=$('#pu_supplier'); if(el)nearAccept('sup',el.value);
+  const w=$('#puSupWarn'); if(w)w.innerHTML='';
+  puSupChanged();
+}
+function purDNear(){
+  const box=$('#puDWarn'), el=$('#pu_dname'); if(!box||!el)return;
+  const v=String(el.value||'').trim();
+  const names=[...new Set((purSugList('')||[]).map(o=>o.val.label).filter(Boolean))];
+  if(!v || names.some(n=>nameNorm(n)===nameNorm(v)) || nearOK('item',v)){ box.innerHTML=''; return; }
+  const hit=nearNameHit(v,names);
+  box.innerHTML = hit ? nearWarnHTML('item',hit,`purDUseExisting('${jq(hit.name).replace(/'/g,"\\'")}')`) : '';
+}
+function purDUseExisting(name){
+  const el=$('#pu_dname'); if(el)el.value=name;
+  const w=$('#puDWarn'); if(w)w.innerHTML='';
+  purDSug();
+  toast(t('nm_used',{n:name}),'ok');
+}
+function purDKeepNew(){
+  const el=$('#pu_dname'); if(el)nearAccept('item',el.value);
+  const w=$('#puDWarn'); if(w)w.innerHTML='';
+  purDSug();
+}
 function purDSug(){
   const box=$('#puDSug'), inp=$('#pu_dname'); if(!box||!inp)return;
   const q=(inp.value||'').trim();
@@ -16554,6 +16845,7 @@ function purDSug(){
   if(!q){ box.innerHTML=''; purDState('',[]); return; }
   const list=purSugList(q);
   purDState(q,list); _purSug.d=list;
+  purDNear();                      /* v328 */
   const norm=v=>String(v||'').toLowerCase().replace(/[^a-z0-9]/g,'');
   const exact=q&&list.some(o=>norm(o.val.label)===norm(q));
   // "Saved items | Add new" — the add action is always on the header, never hidden
@@ -16635,12 +16927,17 @@ function purAssignSerial(){
   purDSug();
   toast('🔢 '+sr.join(', '),'ok');
 }
+/* v321: declaring a NEW item said nothing either — the list just vanished. It now names
+   the item and says plainly when it becomes real, which is when the bill is saved, so a
+   half-finished bill can never leave a stray item behind in the shop's list. */
 function purDNew(){
   const n=$('#pu_dname');
-  if(n && !(n.value||'').trim()){ toast(t('pur_type_name'),'bad'); n.focus(); return; }
-  const box=$('#puDSug'); if(box)box.innerHTML='';
+  const nm=n?(n.value||'').trim():'';
+  if(!nm){ toast(t('pur_type_name'),'bad'); if(n)n.focus(); return; }
+  const box=$('#puDSug'); if(box)box.innerHTML=`<p class="hint" style="padding:6px 0">${t('pur_new_hint')}</p>`;
   _purD.hsn='';
   const q=$('#pu_dqty'); if(q){q.focus();q.select&&q.select();}
+  toast(t('pur_new_typed',{n:nm}),'ok');
 }
 /* the serial line: what it will get, or what he has already pinned to it */
 function purSerialHTML(){
@@ -16673,6 +16970,11 @@ function purDPick(k){
   const r=$('#pu_drate'); if(r&&o.val.rate!=='')r.value=o.val.rate;
   _purD.hsn=o.val.hsn||''; if(o.val.unit)purDUnit(o.val.unit);
   const box=$('#puDSug'); if(box)box.innerHTML='';
+  /* v327: say plainly that a SAVED item was just picked. purDState() reads the list to
+     decide, and the list has just been cleared, so it is told directly. */
+  const st=$('#puDState');
+  if(st)st.innerHTML='<span style="color:var(--ok)">✅ '+t('pur_is_saved')+'</span>'
+    + (sugFacts(o)?' · '+esc(sugFacts(o)):'');
   purDCalc();
   const q=$('#pu_dqty'); if(q){q.focus();q.select&&q.select();}
 }
@@ -16831,6 +17133,7 @@ function renderPurchaseForm(){
       <input id="pu_supplier" value="${esc(f.supplier)}" placeholder="${t('supplier_ph')}"
         autocomplete="off" onfocus="puSupSug()" oninput="puSupChanged();puSupSug()" style="margin:0">
       <div id="puSupSug"></div>
+      <div id="puSupWarn"></div>
       <div class="row" style="margin-top:8px;gap:8px">
         <input id="pu_phone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" placeholder="${t('phone')}" value="${esc(f.phone)}" style="margin:0">
         ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost" style="flex:0 0 auto" onclick="puPickContact()">📇</button>`:''}
@@ -16854,18 +17157,43 @@ function renderPurchaseForm(){
     <div id="puBilledSummary">${purBilledSummary(comp0)}</div>
     ${purDraftHTML()}
     ${/* v233: the cloth is already on the shelf — record the bill, leave stock alone */''}
-    <label class="card" style="padding:10px 14px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start;cursor:pointer">
-      <input type="checkbox" id="pu_nostock" style="width:18px;height:18px;margin:2px 0 0"
+    ${/* v320: same tick, same meaning — the long explanation moved behind ⓘ so it stops
+         eating a third of the screen on every bill he writes. */''}
+    <label class="card" style="padding:9px 12px;margin-bottom:8px;display:flex;gap:9px;align-items:center;cursor:pointer">
+      <input type="checkbox" id="pu_nostock" style="width:18px;height:18px;margin:0;flex:0 0 auto"
         ${f.noStock?'checked':''} onchange="capturePurchForm()">
-      <span><b>${t('pu_nostock')}</b><div class="hint" style="margin-top:2px">${t('pu_nostock_hint')}</div></span>
+      <b style="flex:1;font-size:14px">${t('pu_nostock')}</b>
+      <span class="btn sm ghost" style="flex:0 0 auto;padding:2px 9px"
+        onclick="event.preventDefault();event.stopPropagation();modal('📦 '+t('pu_nostock'),'<p class=&quot;hint&quot;>'+t('pu_nostock_hint')+'</p>',[{label:t('close'),cls:'ghost',fn:closeModal}])">ⓘ</span>
     </label>
     <div class="card" id="puTotalsBox" style="padding:12px 14px">${purchTotalsBoxHTML(comp0)}</div>
     ${f.editId&&p?`<p class="hint" style="margin:0 0 10px">${t('received')}: ${money(orderReceived(p))} · ${t('baaki')}: <b style="color:var(--saffron2)">${money(orderBaaki(p))}</b></p>`:''}
-    <div class="field"><label>🧾 ${t('bill_photo')}</label><div id="pu_photos" style="display:flex;gap:8px;flex-wrap:wrap"></div>
-      <div class="row" style="margin-top:8px"><button class="btn sm ghost" onclick="pickPurchPhoto('cam')">📷 ${t('camera')}</button><button class="btn sm ghost" onclick="pickPurchPhoto('lib')">🖼️ ${t('gallery')}</button></div></div>
-    <div class="field"><label>${t('notes')}</label><textarea id="pu_notes" placeholder="${t('notes_ph')}">${esc(f.notes)}</textarea></div>
-    <div class="modal-actions"><button class="btn ghost" onclick="savePurchaseNew()">${t('pur_save_new')}</button>
-      <button class="btn primary" onclick="savePurchase()">${t('save')}</button></div>
+    ${/* v320 — HIS 25 Aug: the bill was four screenfuls tall on a phone. Nothing is gone;
+         the photo and the note, which most bills never carry, now sit behind one line that
+         says whether there is anything in them. Opened automatically when there is. */''}
+    ${(()=>{
+      const nPh=(f.photos||[]).length, hasNote=!!String(f.notes||'').trim();
+      const open=_puExtra||nPh||hasNote;
+      const bits=[]; if(nPh)bits.push('📷 '+nPh); if(hasNote)bits.push('📝');
+      return `<button class="btn ghost block" style="margin-bottom:8px;text-align:left"
+          onclick="puExtraToggle()">📎 ${t('pu_extra')}${bits.length?' · '+bits.join(' '):''} ${open?'▴':'▾'}</button>
+        <div style="${open?'':'display:none'}">
+          <div class="field"><label>🧾 ${t('bill_photo')}</label>
+            <div id="pu_photos" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+            <div class="row" style="margin-top:8px">
+              <button class="btn sm ghost" onclick="pickPurchPhoto('cam')">📷 ${t('camera')}</button>
+              <button class="btn sm ghost" onclick="pickPurchPhoto('lib')">🖼️ ${t('gallery')}</button></div></div>
+          <div class="field"><label>${t('notes')}</label>
+            <textarea id="pu_notes" placeholder="${t('notes_ph')}">${esc(f.notes)}</textarea></div>
+        </div>`;
+    })()}
+    ${/* v320: the Save pair is sticky now, so an open keypad can never sit on top of it */''}
+    <div class="save-dock" style="flex-direction:column;gap:6px;align-items:stretch">
+      <div class="kv" style="padding:0 2px"><span class="hint">${t('grand_total')}</span>
+        <b id="puDockTotal" style="font-size:17px">${money(comp0.total)}</b></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn ghost" style="flex:1" onclick="savePurchaseNew()">${t('pur_save_new')}</button>
+        <button class="btn primary" style="flex:2" onclick="savePurchase()">💾 ${t('save')}</button></div></div>
     <p class="hint" id="puDraftHint" style="text-align:center;opacity:.6;margin:8px 0 0">${(!f.editId&&purHasContent(f))?('✅ '+t('draft_saved')+' · <a onclick="discardPurDraft()" style="color:var(--bad);cursor:pointer">'+t('draft_discard')+'</a>'):('💾 '+t('draft_auto'))}</p>
     <div class="fab-pad"></div>`;
   showSheet();renderPurchPhotos();
@@ -16888,6 +17216,9 @@ function renderPurchaseForm(){
   if(sh && !f.editId){ sh.addEventListener('input',purDraftSoon); sh.addEventListener('change',purDraftSoon); }
 }
 let _purDraftT=null;
+let _puExtra=false, _puAdj=false;
+function puAdjToggle(){ capturePurchForm(); _puAdj=!_puAdj; renderPurchaseForm(); }
+function puExtraToggle(){ capturePurchForm(); _puExtra=!_puExtra; renderPurchaseForm(); }
 function discardPurDraft(){
   clearPurDraft();
   purchForm={editId:null,supplier:'',phone:'',billNo:'',date:_dateLock.pur||todayISO(),
@@ -17029,6 +17360,81 @@ function purApplyStock(pur){
    SECOND tap after the first has already gone through, not a concurrent one. That needs a
    cooldown, not a lock. */
 let _purLastSave=0;
+/* how close two shop names are, ignoring case, spacing and punctuation */
+function nameNorm(v){ return String(v||'').toLowerCase().replace(/[^a-z0-9]/g,''); }
+function nameClose(a,b){
+  const x=nameNorm(a), y=nameNorm(b);
+  if(!x||!y||x===y)return false;
+  if(Math.abs(x.length-y.length)>3)return false;
+  if(x.length<4||y.length<4)return false;
+  if(x.startsWith(y)||y.startsWith(x))return true;      // "Mohan Synthetic" vs "…Synthetics"
+  /* v329 — live check found the two guards disagreeing. The one at the field caught
+     "Mohan Synthex" against "Mohan Synthetics"; this one, the net at Save, did not — four
+     edits apart and neither is a prefix of the other. So a man who ignored the warning
+     still ended up with the duplicate ledger the whole feature exists to prevent. Same
+     rule in both places now: eight identical leading characters is too much coincidence
+     to be two different firms, while "Mohan Textiles" and "Mohan Traders" share only six
+     and are left alone. */
+  if(x.length>=8&&y.length>=8){
+    let i=0; while(i<x.length&&i<y.length&&x[i]===y[i])i++;
+    if(i>=8)return true;
+  }
+  /* one or two letters different is a typo; more is a different party */
+  const m=x.length, n=y.length; const d=[];
+  for(let i=0;i<=m;i++){ d[i]=[i]; }
+  for(let j=0;j<=n;j++){ d[0][j]=j; }
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)
+    d[i][j]=Math.min(d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1]+(x[i-1]===y[j-1]?0:1));
+  return d[m][n]<=2;
+}
+/* every name on this bill that is suspiciously close to one already on file */
+/* v328: the save-time guard and the new inline one must not ask the same question twice.
+   Answering "no, this is new" at the field is a decision, and it is honoured here — the
+   save no longer stops to ask again about a name he has already ruled on. Anything he has
+   NOT ruled on is still caught at save, which is the safety net for a bill filled in
+   quickly without looking at the field. */
+function purNearMiss(f){
+  const out=[];
+  const sup=String(f.supplier||'').trim();
+  if(sup && !nearOK('sup',sup) && !pastSuppliers().some(x=>nameNorm(x.name)===nameNorm(sup))){
+    const hit=pastSuppliers().find(x=>nameClose(sup,x.name));
+    if(hit)out.push({kind:'sup', typed:sup, found:hit.name});
+  }
+  const known=[...new Set([].concat(
+    (DB.fabItems||[]).map(x=>x.name),
+    (DB.itemMaster||[]).map(x=>x.name)).filter(Boolean))];
+  (f.items||[]).forEach((it,i)=>{
+    const lbl=String(it.label||'').trim(); if(!lbl)return;
+    if(nearOK('item',lbl))return;                       /* v328: already ruled on at the field */
+    if(known.some(k=>nameNorm(k)===nameNorm(lbl)))return;
+    const hit=known.find(k=>nameClose(lbl,k));
+    if(hit)out.push({kind:'item', idx:i, typed:lbl, found:hit});
+  });
+  return out;
+}
+let _purNameOK=false;
+function purNearAsk(list){
+  const rows=list.map((x,i)=>`<div class="il" style="align-items:flex-start">
+    <span style="min-width:0"><b style="font-size:13px">${x.kind==='sup'?t('supplier'):t('pur_line_n',{n:x.idx+1})}</b>
+      <div class="hint">${t('pur_typed')}: <b>${esc(x.typed)}</b></div>
+      <div class="hint">${t('pur_onfile')}: <b style="color:var(--saffron2)">${esc(x.found)}</b></div></span>
+    <button class="btn sm primary" style="flex:0 0 auto" onclick="purNearUse(${i})">${t('pur_use_saved')}</button></div>`).join('');
+  _purNear=list;
+  modal('⚠️ '+t('pur_near_t'),
+    `<p class="hint" style="margin-bottom:8px">${t('pur_near_msg')}</p>
+     <div class="card" style="padding:10px 12px">${rows}</div>`,
+    [{label:t('pur_keep_typed'),cls:'ghost',fn:()=>{ _purNameOK=true; closeModal(); savePurchase(); }},
+     {label:t('cancel'),cls:'ghost',fn:closeModal}]);
+}
+let _purNear=[];
+function purNearUse(i){
+  const x=_purNear[i]; if(!x)return;
+  if(x.kind==='sup'){ purchForm.supplier=x.found;
+    const el=$('#pu_supplier'); if(el)el.value=x.found; }
+  else if(purchForm.items[x.idx]) purchForm.items[x.idx].label=x.found;
+  save(); closeModal(); renderPurchaseForm();
+  toast(t('pur_near_fixed',{n:esc(x.found)}),'ok');
+}
 function savePurchase(){
   purDraftAdd(true);              // an item still sitting in the entry line counts
   capturePurchForm();const f=purchForm;
@@ -17037,6 +17443,22 @@ function savePurchase(){
   if(!f.supplier){toast(t('t_no_supplier'),'bad');return;}
   if(!(f.billNo||'').trim()){toast(t('t_no_billno'),'bad');return;}
   if(!total){toast(t('t_no_amount'),'bad');return;}
+  /* v328 — the real unresolved case in this app, found by probing v327: a supplier or an
+     item that is ONE LETTER off an existing one. "Mohan Synthetic" against the saved
+     "Mohan Synthetics" saved happily and split his ledger across two names; "Suting Wool"
+     made a second item and burned a second serial. Nobody was told, and by the time it
+     shows up in a statement the two halves are weeks apart.
+     There is deliberately no separate "add supplier" step to enforce here — this app has
+     no supplier master, the name on the bill IS the supplier, and demanding an extra tap
+     for every genuinely new party would cost him a tap on every one of the back-dated
+     bills he is entering. So the block goes exactly where the damage is: a name that is
+     nearly, but not exactly, one he already has. A name that resembles nothing is left
+     alone and saves as it always did. */
+  if(!_purNameOK){
+    const near=purNearMiss(f);
+    if(near.length){ purNearAsk(near); return; }
+  }
+  _purNameOK=false;
   /* only once every real validation has passed does a repeat tap become a genuine risk —
      checked here, not at the top, so fixing a typo and tapping Save again right away is
      never mistaken for the same double-tap this guards against. */
@@ -18754,7 +19176,12 @@ function renderReports(){
       <button class="btn ghost" style="flex:1" onclick="staffReport()">👥 ${t('srp_title')}</button>
       <button class="btn ghost" style="flex:1" onclick="expenses()">💸 ${t('exp_title')}</button>
     </div>
-    <button class="btn ghost block" style="margin-bottom:12px" onclick="openPurchaseForm()">📦 + ${t('new_purchase')}</button>
+    ${/* v325 — writing a purchase bill is not analysis, and it already has three homes of
+         its own: the + button (which is where this app creates everything), the Purchases
+         screen's own full-width button, and the Home shortcut. Sitting here as well made
+         Reports read like a place you enter transactions, and put a create action in the
+         one screen a person opens to look rather than to type. Removed from here only —
+         nothing about purchase entry itself changes. */''}
     <div class="section-h" style="margin-top:4px">💰 ${t('sales_report')}</div>
     <div class="gtags" style="margin-bottom:10px">${chip('week',t('rp_week'))}${chip('month',t('rp_month'))}${chip('custom',t('rp_custom'))}</div>
     ${rpPeriod==='custom'?`<div class="row" style="margin-bottom:10px"><div class="field"><label>${t('rp_from')}</label><input id="rp_from" type="date" value="${esc(rpFrom||from)}"></div>
@@ -19287,13 +19714,15 @@ function settingsMenu(){modal(t('settings'),`
   <button class="btn ghost block" style="margin-bottom:8px" onclick="homeClassicToggle()">🏠 ${t('home_layout')} · <b>${localStorage.getItem('pp_home_classic')==='1'?t('home_layout_old'):t('home_layout_new')}</b></button>
   <div class="dl-hd" style="padding:12px 2px 6px">${t('sg_people')}</div>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();staffMaster()">👥 ${t('st_title')}</button>
-  <div class="dl-hd" style="padding:12px 2px 6px">${t('sg_money')}</div>
-  <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();manageExpHeads()">⚙️ ${t('eh_title')}</button>
+  ${/* v326: the tailor master moved up from Setup — staff and karigars are both people the
+       shop keeps records of, and this is where a new user looks for either. */''}
+  <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();karigarMaster()">👷 ${t('karigar_master')}</button>
   ${/* v280 — his own rule is six visible controls; MONEY had nine under one heading, with
        two near-identical "Opening balances" rows sitting next to each other. That is what
        made him ask which was which. Split where the meaning splits: what he sets once when
        the books start, and the tools he opens from time to time. */''}
-  <div class="dl-hd" style="padding:12px 2px 6px">${t('sg_open')}</div>
+  <div class="dl-hd" style="padding:12px 2px 6px">${t('sg_money')}</div>
+  <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();manageExpHeads()">⚙️ ${t('eh_title')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();openingBulk()">📒 ${t('ob_title')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();openBSEdit()">🏦 ${t('ob_shop')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();rentSetup()">🏪 ${t('rc_title')}${rentOn()?' · <b>'+rentCfg().pct+'%</b>':''}</button>
@@ -19301,7 +19730,6 @@ function settingsMenu(){modal(t('settings'),`
   ${/* v280: two rows, same word, same icon, one under the other. The ledger is reached
        from inside the master, which is where a man looks for it anyway. */''}
   <div class="dl-hd" style="padding:12px 2px 6px">${t('sg_tools')}</div>
-  <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();karigarMaster()">👷 ${t('karigar_master')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();paymentQR()">💳 ${t('qr_title')}</button>
     <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();numberingEdit()">🔢 ${t('num_title')}</button>
     <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();importVyapar()">📥 ${t('imp_title')}</button>
@@ -22209,6 +22637,12 @@ function hasAnyData(){
     || (DB.customers||[]).length || (DB.thaans||[]).length || (DB.alterations||[]).length
     || (DB.itemMaster||[]).length || (DB.ledger||[]).length);
 }
+/* v333 — P2. Vyapar lets a shop say "remind me every N days"; here the nag simply
+   hard-coded three. Same card, same behaviour, only the threshold is his. */
+function bkRemindDays(){ const n=+((DB.settings||{}).bkRemindDays); return (n>=1&&n<=90)?n:3; }
+function bkRemindSet(v){ DB.settings=DB.settings||{}; const n=Math.max(1,Math.min(90,+v||3));
+  DB.settings.bkRemindDays=n; save(); toast(t('bk_remind_set',{n}),'ok');
+  try{ renderHome(); }catch(e){} }
 function daysSinceBackup(){
   const d=localStorage.getItem('pb_ob_lastbackup');
   if(!d)return null;                                   // never backed up
@@ -22220,7 +22654,7 @@ function backupNagHTML(){
   const n=daysSinceBackup();
   if(n===0)return '';
   const never=(n===null);
-  const loud=never||n>=3;
+  const loud=never||n>=bkRemindDays();   /* v333: his number, not a fixed 3 */
   const msg=never?t('bk_never'):t(n===1?'bk_day_1':'bk_days',{n});
   return `<div class="card" style="border-color:${loud?'#7a2f28':'#5a4a1a'};background:${loud?'#2a1614':'#241d10'};margin-bottom:10px">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
@@ -22357,6 +22791,15 @@ function backupMenu(){
     <div id="bkMore" style="display:none;margin-top:10px">
       <div class="card" style="padding:10px 12px"><div class="kv"><span class="hint">${t('bk_stored')}</span><b id="bkSize">…</b></div></div>
       <div id="bkSafety"></div>
+      ${/* v333: how many days of silence before the card starts warning */''}
+      <div class="card" style="padding:9px 12px;margin-top:8px">
+        <div class="kv"><span style="min-width:0"><b style="font-size:13px">🔔 ${t('bk_remind_t')}</b>
+          <div class="hint">${t('bk_remind_hint')}</div></span>
+          <span style="display:flex;gap:6px;align-items:center;flex:0 0 auto">
+            <input id="bkRemindN" type="number" inputmode="numeric" min="1" max="90"
+              value="${bkRemindDays()}" style="width:64px;text-align:right;margin:0">
+            <button class="btn sm ghost" onclick="bkRemindSet(document.getElementById('bkRemindN').value)">${t('save')}</button>
+          </span></div></div>
       <div id="bkFile"></div>
       <button class="btn ghost block" style="margin-top:8px" onclick="shareBackup(true)">📨 ${t('bk_data_only')}</button>
       <p class="hint" style="margin:2px 0 8px">${t('bk_data_only_hint')}</p>
@@ -22407,8 +22850,9 @@ async function bkShowSize(){
 let _bkCancel=false;
 function bkStop(){ _bkCancel=true; }
 const bkYield=()=>new Promise(r=>setTimeout(r,0));
+let _bkWhat='';                 /* v331: which part is being written, shown while it runs */
 function bkProgress(done,total){
-  const el=$('#bkProg'); if(el)el.textContent=t('bk_progress',{a:done,b:total});
+  const el=$('#bkProg'); if(el)el.textContent=(_bkWhat?_bkWhat+' — ':'')+t('bk_progress',{a:done,b:total});
 }
 function bkBusyModal(){
   modal(t('bk_building'),`<p class="hint" id="bkProg" style="text-align:center;padding:10px 0">…</p>`,
@@ -22427,7 +22871,13 @@ function blobToB64(b){return new Promise(res=>{const r=new FileReader();r.onload
    photos that is well over a gigabyte of strings held at once, and iPad Safari kills the
    tab — the white screen. Photos now go out in PARTS: each part is built only when he
    taps Save, handed over, and released before the next one. Peak memory is one part. */
-const PB_BUDGET_MB=25;                          // per-part RAW byte budget — small on purpose
+const PB_BUDGET_MB=50;   /* v331 — HIS 25 Aug: "pata nahi chalta kaunsa file chal raha hai,
+   kitne aa gaye, kaunsa lena baaki." On his shop's data — 1,402 files, 741 MB, so about
+   541 KB each — a 25 MB helping meant roughly 45 photos per part and THIRTY-ONE presses,
+   with thirty-one files landing in Downloads and no way to tell which was which. 25 MB
+   was chosen back when the iPad was running out of memory in the middle of a backup;
+   the flush fix in v294 removed that, so the helping can double. Fifteen presses instead
+   of thirty-one, same safety. */
 let _pbKeys=null, _pbBusy=false, _pbParts=null;
 /* ── ONE FILE: a real .zip, built here, no library ──────────────────────────────
    v206 — HIS 16 Aug: "mera iPad me back kaise lun, koi easiest tareeka khojo jisme photo
@@ -22615,6 +23065,7 @@ async function zipRestore(file){
          it straight back, and only if that check fails does a raw legacy copy go to
          __db as a second net — so a device with no history of its own still has
          somewhere to land. */
+      await preRestorePoint();                 /* v333: the way back, taken first */
       DB=d;
       (d.orders||[]).forEach(o=>{ try{ touchOrder(o.id); }catch(e){} });
       _coreDirty=true; _dbDirty=true;
@@ -22867,14 +23318,27 @@ async function photoBackup(){
   showSheet();
   const parts=await photoBackupPlan();
   const done=JSON.parse(localStorage.getItem('pb_ob_pbdone')||'[]');
-  const sub=$('#pbSub'); if(sub)sub.textContent=t('pb_sub',{n:keys.length,p:parts.length});
+  /* v331: the count he actually wants — how far along the whole job is, in photos, not in
+     parts. Worked out from the parts already ticked so the two can never disagree. */
+  const doneFiles=parts.reduce((n,grp,i)=>n+(done.indexOf(i)>=0?grp.length:0),0);
+  let szc={}; try{ szc=JSON.parse(localStorage.getItem('pb_ob_szcache')||'{}'); }catch(e){}
+  const left=Math.max(0,keys.length-doneFiles);
+  const sub=$('#pbSub');
+  if(sub)sub.innerHTML=`<b style="color:var(--txt);font-size:15px">${t('pb_done_of',{a:doneFiles,b:keys.length})}</b>`
+    +`<br>${left?(parts.length===1?t('pb_left_one',{n:left}):t('pb_left',{n:left,p:parts.length})):t('pb_all_done')}`;
   const list=$('#pbList'); if(!list)return;
   list.innerHTML=parts.length?parts.map((grp,i)=>{
     const ok=done.indexOf(i)>=0;
+    const mb=(grp.reduce((n,k)=>n+(+szc[k]||0),0)/1048576).toFixed(0);
+    /* the exact file name this button will produce, so a file sitting in Downloads can be
+       matched to a part without guessing */
+    const fname='PARAMPARA-photos-part'+(i+1)+'.txt';
     return `<div class="card" style="padding:11px 13px;margin-bottom:8px;${ok?'border-color:var(--ok)':''}">
-      <div class="kv"><span><b>${t('pb_part',{n:i+1,of:parts.length})}</b>
-        <div class="hint">${t('pb_files_n',{n:grp.length})}</div></span>
-        <button class="btn sm ${ok?'ghost':'primary'}" onclick="photoBackupPart(${i})">${ok?'✓ '+t('pb_again'):t('save')}</button></div></div>`;
+      <div class="kv"><span style="min-width:0">
+        <b>${ok?'✅ ':'⏳ '}${t('pb_part',{n:i+1,of:parts.length})}</b>
+        <div class="hint">${t('pb_files_n',{n:grp.length})} · ${mb} MB</div>
+        <div class="hint" style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${fname}</div></span>
+        <button class="btn sm ${ok?'ghost':'primary'}" style="flex:0 0 auto" onclick="photoBackupPart(${i})">${ok?t('pb_again'):t('save')}</button></div></div>`;
   }).join(''):`<p class="hint" style="padding:16px 0;text-align:center">${t('pb_none')}</p>`;
 }
 async function photoBackupPart(i){
@@ -22883,8 +23347,11 @@ async function photoBackupPart(i){
   try{
     const parts0=await photoBackupPlan();
     const slice=parts0[i]||[];
+    _bkWhat=t('pb_part',{n:i+1,of:parts0.length});
     bkBusyModal();
-    let parts=['{"__v":2,"photosOnly":true,"part":'+(i+1)+',"media":{'];
+    /* v333: "of" lets a restore say which parts are still missing. Older files without
+       it are still restored, they just cannot report the gap. */
+    let parts=['{"__v":2,"photosOnly":true,"part":'+(i+1)+',"of":'+parts0.length+',"media":{'];
     let wrote=0;
     for(let j=0;j<slice.length;j++){
       if(_bkCancel)break;
@@ -22909,7 +23376,7 @@ async function photoBackupPart(i){
     bkMarkSent(slice);                     /* v237: these photos have left the building */
     closeSheet(); toast(t('pb_saved',{n:wrote}),'ok');
     _pbParts=null; photoBackup();
-  }finally{ _pbBusy=false; }
+  }finally{ _pbBusy=false; _bkWhat=''; }
 }
 const FLUSH_BYTES=8*1024*1024;      // how much base64 may sit in JS memory at one time
 async function buildBackupBlob(dataOnly){
@@ -23034,6 +23501,47 @@ function doImport(){const inp=document.createElement('input');inp.type='file';in
       const txt=String(r.result||'');
       if(txt.trim().length<200){ toast('📄 '+t('bk_file_empty'),'bad'); return; }
       try{const raw=JSON.parse(txt);
+      /* v332 AUDIT — a photo PART file could not be restored at all. The parts screen
+         writes {"__v":2,"photosOnly":true,"part":n,"media":{…}} — deliberately no "db",
+         because a part carries photos and nothing else. Restore, however, only ever
+         looked for orders: anything without them was thrown out as "Wrong file". So a
+         shop that had carefully saved fifteen part files and kept them safe would find,
+         on the day it mattered, that not one of them could be put back — 741 MB of
+         customer photos unreachable. The parts were being written correctly the whole
+         time; only the door at the other end refused to open.
+         Recognised here and sent to the media path that already exists. Photos go back,
+         business data is not touched, and the count is stated before anything is written
+         so he can see what the file holds. */
+      if(raw && raw.photosOnly && raw.media && !raw.db){
+        const nPh=mediaCount(raw);
+        if(!nPh){ toast('📄 '+t('bk_file_empty'),'bad'); return; }
+        confirmModal(t('restore_title'),
+          t('bk_found_photos',{n:nPh, p:raw.part||'?'})+'\n\n'+t('restore_photos_msg'),
+          async ()=>{
+            closeModal(); bkBusyModal();
+            let n=0; try{ n=await restoreMedia(raw.media); }catch(e){}
+            closeSheet(); closeModal();
+            /* v333 — P1 from the audit: restoring parts 1 and 3 and skipping 2 used to pass
+               in silence. The photos that arrived were always correct; what was missing was
+               any word that more were owed. Said in the SAME message as the count, because
+               a separate timed message raced the restore itself and lost on a big part. */
+            let tail='', good=true;
+            try{
+              const of=+raw.of||0, pn=+raw.part||0;
+              if(of&&pn){
+                let seen={}; try{ seen=JSON.parse(localStorage.getItem('pb_ob_restored')||'{}'); }catch(e){}
+                seen[pn]=1; localStorage.setItem('pb_ob_restored',JSON.stringify(seen));
+                const left=[]; for(let i=1;i<=of;i++)if(!seen[i])left.push(i);
+                if(left.length){ good=false;
+                  tail=' · '+t('pb_parts_left',{n:left.length,list:left.join(', '),of}); }
+                else tail=' · '+t('pb_parts_all',{of});
+              }
+            }catch(e){}
+            toast(t('bk_photos_back',{n})+tail, good?'ok':'bad');
+            try{ renderOrders(); }catch(e){}
+          }, closeModal, {yes:t('restore_backup'), no:t('cancel'), cls:'primary'});
+        return;
+      }
       const pack = (raw && raw.db && raw.__v) ? raw : {db:raw, media:{}};
       const d=pack.db; if(!d||!d.orders)throw 0;
       const nMedia=mediaCount(pack);
@@ -23044,6 +23552,7 @@ function doImport(){const inp=document.createElement('input');inp.type='file';in
            the per-order store had nothing to write and the next boot found none of them.
            Fixed the same way: touch every order, write, verify by reading it back, and
            fall back to a raw legacy copy if that check doesn't pass. */
+        await preRestorePoint();               /* v333 */
         DB=d;if(!DB.customers)DB.customers=[];if(!DB.designLib)DB.designLib={};if(!DB.karigars)DB.karigars=[];
         (DB.orders||[]).forEach(o=>{ try{ touchOrder(o.id); }catch(e){} });
         _coreDirty=true; _dbDirty=true;
@@ -23175,6 +23684,7 @@ async function restoreSnapshot(key){
   let data=await mGet(key); if(!data){toast(t('t_wrong'),'bad');return;}
   if(data instanceof Blob)data=await data.text();
   confirmModal(t('restore_title'),t('restore_msg'),async()=>{try{const d=JSON.parse(data);if(!d.orders)throw 0;
+    await preRestorePoint();               /* v333: stepping back must itself be reversible */
     /* v290: the same fix as the other two restore paths — see zipRestore's note. */
     DB=d;if(!DB.customers)DB.customers=[];if(!DB.designLib)DB.designLib={};if(!DB.karigars)DB.karigars=[];
     (DB.orders||[]).forEach(o=>{ try{ touchOrder(o.id); }catch(e){} });
@@ -23581,7 +24091,7 @@ function doUndo(){
 /* ====================== INIT ====================== */
 function updateHeadStat(){const due=receivableTotal();   /* v254: was orders-only */
   /* v271: the header carries the same figure, so it hides with the rest */
-  const hs=$('#headStat');if(hs)hs.innerHTML=`<b>${DB.orders.length}</b> ${t('orders_word')} · <b onclick="${(pinOn()&&!_moneyShown)?'moneyReveal()':"statDetail('collect')"}" style="cursor:pointer;text-decoration:underline dotted">${moneyMask(money(due))}</b> ${t('due')}<br><span onclick="backupMenu()" style="text-decoration:underline;cursor:pointer">💾 ${t('backup')}</span>`;}
+  const hs=$('#headStat');if(hs)hs.innerHTML=`<b>${DB.orders.length}</b> ${t('orders_word')} · <b onclick="${(pinOn()&&!_moneyShown)?'moneyReveal()':"statDetail('collect')"}" style="cursor:pointer;text-decoration:underline dotted">${moneyMask(money(due))}</b> ${t('due')}`;}
 /* Boot must never come up EMPTY while readable data still exists somewhere.
    Each candidate is parsed before it is accepted; the first one that is both readable
    and actually contains records wins. Order: live copy, previous good copy, newest
