@@ -749,7 +749,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v333</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v338</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1304,6 +1304,7 @@ const T={
   members_hint:'One bill, one delivery — but each person has their own measurements.',
   add_member:'+ Add another person',
   add_member_first:'Add another person (family / group order)',
+  mem_added_next:'Next person added — name him and pick his pieces',
   add_member_next:'Add next person', add_member_hint:'For a family or group order — measurements for the first person are done.',
   home_layout:'Home layout', home_layout_new:'New', home_layout_old:'Old',
   ontime_title:'Delivery record', ontime_sub:'Kept or missed, against the date promised.',
@@ -1496,6 +1497,7 @@ const T={
   unstick:'Screen freed — try again',
   pur_supplier_first:'Type the supplier name first',
   inv_draft_found:'An unfinished bill was saved',
+  inv_drafts_found:'Unfinished bills', inv_draft_ttl:'kept 2 hours',
   pur_draft_found:'An unfinished purchase was saved',
   pt_new:'New party', pt_name:'Name', gstin:'GSTIN', address:'Address',
   pt_no_bal:'Nothing outstanding yet', pt_profile:'Party details',
@@ -2853,6 +2855,7 @@ const T={
   members_hint:'एक बिल, एक डिलीवरी — पर हर व्यक्ति का अपना नाप।',
   add_member:'+ और व्यक्ति जोड़ें',
   add_member_first:'और व्यक्ति जोड़ें (परिवार / ग्रुप ऑर्डर)',
+  mem_added_next:'अगला व्यक्ति जुड़ा — नाम लिखें और उसके पीस चुनें',
   add_member_next:'और व्यक्ति जोड़ें', add_member_hint:'परिवार या ग्रुप ऑर्डर के लिए — पहले व्यक्ति की नाप हो चुकी है।',
   home_layout:'होम का लेआउट', home_layout_new:'नया', home_layout_old:'पुराना',
   ontime_title:'Delivery record', ontime_sub:'Kept or missed, against the date promised.',
@@ -3046,6 +3049,7 @@ const T={
   unstick:'स्क्रीन खुल गई — दोबारा कोशिश कीजिए',
   pur_supplier_first:'पहले सप्लायर का नाम लिखिए',
   inv_draft_found:'एक अधूरा बिल सेव है',
+  inv_drafts_found:'अधूरे बिल', inv_draft_ttl:'2 घंटे तक',
   pur_draft_found:'एक अधूरी खरीद सेव है',
   pt_new:'नई पार्टी', pt_name:'नाम', gstin:'जीएसटीआईएन', address:'पता',
   pt_no_bal:'अभी कोई बकाया नहीं', pt_profile:'पार्टी की जानकारी',
@@ -5275,7 +5279,7 @@ function fabricBody(keepFocus){
       <button class="btn primary" style="flex:1" onclick="thaanEdit()">➕ ${t('stk_add_thaan')}</button>
       <button class="btn ghost" style="flex:0 0 auto;padding:0 12px" onclick="bulkFabOpen()">📋 ${t('stk_bulk')}</button>
       ${list.length?`<button class="btn ${_fabSelMode?'primary':'ghost'}" style="flex:0 0 auto;padding:0 12px" onclick="fabSelToggle()">${_fabSelMode?'✕ '+t('cancel'):'☑️ '+t('fab_select')}</button>`:''}
-      ${(DB.fabItems||[]).length?`<button class="btn ghost" style="flex:0 0 auto;padding:0 14px" onclick="fabSetupMenu()">⚙️</button>`:''}</div>
+      ${(DB.fabItems||[]).length?`<button class="btn ghost" style="flex:0 0 auto;padding:0 14px" title="${t('stk_setup')}" onclick="fabSetupMenu()">⚙️</button>`:''}</div>
     <div class="kv" style="margin-bottom:8px">
       <span class="hint">${t('stk_n_thaans',{n:list.length})}${finN?` · ${t('stk_fin_n',{n:finN})}`:''}</span>
       <span class="gtags">
@@ -5902,7 +5906,7 @@ function readyBody(keepFocus){
     <div class="row" style="gap:6px;margin-bottom:6px"><button class="btn primary" style="flex:1" onclick="readyEdit()">➕ ${t('stk_add_ready')}</button><button class="btn ghost" style="flex:0 0 auto;padding:0 12px" onclick="readyBulkOpen()">📋 ${t('rb_bulk')}</button></div>
     <div class="row" style="margin-bottom:10px;gap:6px">
       <button class="btn ghost" style="flex:1" onclick="sizeCfg()">📐 ${t('stk_sizes')}</button>
-      <button class="btn ghost" style="flex:0 0 auto;padding:0 14px" onclick="manageSizes()">⚙️</button></div>
+      <button class="btn ghost" style="flex:0 0 auto;padding:0 14px" title="${t('stk_sizes')}" onclick="manageSizes()">⚙️</button></div>
     <div class="kv" style="margin-bottom:8px"><span class="hint">${list.length}</span>
       <span class="gtags">
         <span class="gtag ${_rdySort==='new'?'on-tag':''}" style="cursor:pointer" onclick="setRdySort('new')">${t('stk_sort_new')}</span>
@@ -10404,7 +10408,7 @@ function renderOrders(){
     <div style="display:flex;justify-content:space-between;align-items:center"><div><b style="font-size:18px;color:var(--saffron2)">${list.length}</b> ${t('deliveries')} · ${delLabel()}</div></div>
     <div class="row" style="margin-top:10px;gap:6px"><button class="btn sm ghost" onclick="printDeliveries()">🖨️ ${t('print')}</button><button class="btn sm ghost" onclick="waDeliveries()">💬 ${t('whatsapp')}</button></div></div>`:'';
   const el=$('#ordersList');
-  const remind=backupNagHTML();
+  const remind='';   /* v334: the backup warning belongs on Home only — see backupNagHTML */
   const dcard=draftCardHTML();
   // same top action row the Sale tab has, so New Order is never hidden behind the + only
   const head=`<div class="row" style="margin-bottom:12px;gap:8px">
@@ -11260,8 +11264,15 @@ function addMember(){
   if(form.members[0] && !form.members[0].ono)form.members[0].ono=form.orderNo||'';
   form.members.push({id:'m'+n+'_'+Math.random().toString(36).slice(2,6), name:'', rel:'',
     ono:nextOrderNoAfter(base,used)});
-  renderForm();
-  setTimeout(()=>{const els=document.querySelectorAll('.mem-name');const last=els[els.length-1];if(last)last.focus();},80);
+  /* v337: the new person needs a name and his own pieces, and both of those live on the
+     pick screen — so go there instead of leaving him on the last step wondering what
+     happened. */
+  if(typeof _ordStage!=='undefined' && _ordStage!==1)ordStage(1);
+  else renderForm();
+  setTimeout(()=>{const els=document.querySelectorAll('.mem-name');const last=els[els.length-1];
+    if(last){ try{ last.focus(); }catch(e){}
+      if(last.scrollIntoView)try{ last.scrollIntoView({block:'center'}); }catch(e){} }},120);
+  toast(t('mem_added_next'),'ok');
 }
 function delMember(mid){
   captureForm();
@@ -11737,6 +11748,12 @@ function renderForm(){
           <div id="custResults"></div>
           <input id="f_cphone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" placeholder="${t('phone')}" value="${esc(f.phone)}" style="margin-top:8px">
           ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost" style="margin-top:8px" onclick="pickContact()">📇 ${t('from_contacts')}</button>`:''}</div></div>
+      ${/* v337: the order number and its date sit with the customer, at the top, where he
+           reads them. Only the two promises to the customer — delivery and trial — are
+           left for the end of the form. */''}
+      <div class="row" style="margin-top:10px"><div class="field"><label>${t('order_no')} *</label>
+          <input id="f_ono" value="${esc(f.orderNo||nextOrderNo())}" placeholder="2481"></div>
+        <div class="field"><label>${t('order_date')}</label>${dateField("f_odate",f.orderDate)}</div></div>
       ${mems.map(m=>quickLenHTML(f,itemsOfMember(f,m.id))).join('')}
       ${smpPickHTML(f)}
       ${/* v252 — HIS PENDING LIST and the master doc both: keep the trial apart from the
@@ -11753,11 +11770,6 @@ function renderForm(){
            another person he knows it by now. */''}
       ${(modOn('family')&&!multi)?`<button class="btn ghost block" style="margin-top:14px" onclick="addMember()">👥 ${t('add_member_next')}</button>
         <p class="hint" style="margin:4px 0 0">${t('add_member_hint')}</p>`:''}
-      ${/* v187: both moved off stage 1. They are filled in for him and rarely touched,
-           but they must stay reachable — the number is how the shop finds the garment. */''}
-      <div class="row"><div class="field"><label>${t('order_no')} *</label>
-          <input id="f_ono" value="${esc(f.orderNo||nextOrderNo())}" placeholder="2481"></div>
-        <div class="field"><label>${t('order_date')}</label>${dateField("f_odate",f.orderDate)}</div></div>
       ${ordBillBlockHTML(f)}
       ${ordExtrasHTML(f)}
       <div class="save-dock">${cancelBtn}
@@ -12443,7 +12455,14 @@ function measStep(e,dir){ e.preventDefault();
 
 let _noPhoneOK=false, _dupPhOK=false, _newPersonOK=false;
 let _pastDelivOK=false;
+let _ordLastSave=0;
 function saveOrder(){
+  /* v338 — HIS 26 Aug: three quick taps produced ONE order, which is right, but the second
+     and third taps still reported "This order number already exists" — a frightening
+     message right after a save that had in fact succeeded, and the exact thing that made
+     him tap again in the first place. The bill screen has had this guard since v292; the
+     order screen never did. A tap inside a second of the last one is the same tap. */
+  if(Date.now()-_ordLastSave<1200)return;
   captureForm();const f=form; f.items=sortItems(f.items);
   if(_vmOn)vmStop(true);            // v215: the work is done, the mic goes off with it
   if(!f.orderNo)f.orderNo=nextOrderNo();          // v193: the number is earned at save
@@ -12577,7 +12596,10 @@ function saveOrder(){
       status:'new',itemStatus:(function(){const o={};f.items.forEach(g=>o[g]='new');return o;})(),log:[{id:uid(),ts:new Date().toISOString(),text:t('t_status',{s:sLabel('new')}),voiceId:null}]};
     _pastDelivOK=false;                        /* v258: the question is asked per order */
     numHWCommitOrder(f);                       /* v257: burned here, and only here */
-    DB.orders.push(o);clearDraft();save(o.id);closeSheet();toast(t('t_created',{n:o.orderNo}),'ok');
+    DB.orders.push(o);clearDraft();
+    _ordLastSave=Date.now();                 /* v338: a repeat tap now falls through */
+    try{ if(form)form._saved=1; }catch(e){}   /* v337: saved, so closeSheet must not ask */
+    save(o.id);closeSheet();toast(t('t_created',{n:o.orderNo}),'ok');
     go('orders');
     // customer is still standing there — bill it now, but only on an install that HAS billing
     if(modOn('billing')){
@@ -14485,6 +14507,42 @@ function posPushItem(o){
   toast('\u2795 '+(String(it.label||'').trim()||t('pos_added'))+' \u00B7 '+t('rp_items')+' '+invForm.items.length,'ok');
   posFocusLine(invForm.items.length-1);
 }
+/* v336 — HIS 25 Aug: "item add karo to pata hi nahi chalta ki add hua ya nahi." Measured
+   before touching anything: on a 844px screen the freshly added line landed with its
+   bottom at 528px, and an Android keyboard starts around 464px — so the new line, and the
+   rate box on it that had just been focused, sat 64px BEHIND the keyboard. He was looking
+   at a screen that had not visibly changed, so he tapped Add again.
+
+   The cause is that scrollIntoView({block:'center'}) centres inside the LAYOUT viewport,
+   which on Android does not shrink when the keyboard opens; only the VISUAL viewport does.
+   Nothing in this file read that. One helper does it now, and every add path goes through
+   it — no scattered timers.
+
+   It also re-runs once when the keyboard actually appears, because focus() opens the
+   keyboard AFTER this code has finished measuring. */
+function posEnsureVisible(el,gap){
+  if(!el)return;
+  const sh=document.getElementById('sheet'); if(!sh)return;
+  const pad=(gap==null?18:gap);
+  const put=()=>{
+    const vv=window.visualViewport;
+    const top=vv?vv.offsetTop:0;
+    const bottom=top+(vv?vv.height:window.innerHeight);
+    const r=el.getBoundingClientRect();
+    if(r.bottom>bottom-pad)      sh.scrollTop += (r.bottom-(bottom-pad));
+    else if(r.top<top+pad)       sh.scrollTop -= ((top+pad)-r.top);
+  };
+  /* two frames so the row has been laid out before it is measured */
+  requestAnimationFrame(()=>requestAnimationFrame(put));
+  const vv=window.visualViewport;
+  if(vv){
+    let done=false;
+    const again=()=>{ if(done)return; done=true;
+      vv.removeEventListener('resize',again); setTimeout(put,60); };
+    vv.addEventListener('resize',again);
+    setTimeout(()=>{ done=true; try{vv.removeEventListener('resize',again);}catch(e){} },1200);
+  }
+}
 /* Put the caret where the next keystroke belongs on the line just added. */
 function posFocusLine(i){
   setTimeout(()=>{
@@ -14492,8 +14550,11 @@ function posFocusLine(i){
     const sel=(it.label&&!it.rate)?'[data-irate="'+i+'"]':(it.label?'[data-irate="'+i+'"]':'[data-iin="'+i+'"]');
     const el=document.querySelector('#posLines '+sel); if(!el)return;
     const card=document.getElementById('posLine'+i);
-    if(card&&card.scrollIntoView)try{card.scrollIntoView({block:'center'});}catch(e){}
+    /* focus first — the keyboard opens on focus, and the helper below waits for it.
+       preventScroll keeps the browser from doing its own unaware jump. */
     try{ el.focus({preventScroll:true}); if(el.select)el.select(); }catch(e){}
+    posEnsureVisible(el);              /* the field being typed into must be clear */
+    if(card)posEnsureVisible(card,24); /* and the line it belongs to */
   },0);
 }
 /* v215 — HIS 17 Aug: "item do baar alag alag rate me hai, add karne ka option to hai per
@@ -14503,7 +14564,9 @@ function posFocusLine(i){
 function posSearchNote(name){
   const n=((invForm&&invForm.items)||[]).length;
   const el=$('#posSearchAdded'); if(el)el.innerHTML='✅ <b>'+esc(name)+'</b> — '+t('inv_items_n',{n});
-  toast('✅ '+name+' · '+t('inv_items_n',{n}),'ok');
+  /* v336: the toast that used to be here fired a moment after posPushItem's, saying the
+     same thing in different words and replacing it. The line inside the modal stays —
+     that is where he is looking — and the single toast comes from the add itself. */
   const q=$('#posSearchQ'); if(q){q.value='';q.focus();} posSearchRun(''); }
 function posAddTyped(){ const inp=$('#posSearchQ'); if(!inp)return; const v=(inp.value||'').trim(); if(!v)return; posPushItem({label:v}); posSearchNote(v); }
 function posAddMaster(mid){ const m=(DB.itemMaster||[]).find(x=>x.id===mid); if(!m)return;
@@ -15154,7 +15217,7 @@ function posDoneListHTML(){
         <div class="hint" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.customerName||'—')}${due>0?` · <span style="color:var(--bad)">${money(due)} ${t('baaki_sub')}</span>`:''}</div>
       </div>
       <b style="flex:0 0 auto;margin:0 8px">${money(invCompute(r.invoice).total)}</b>
-      <button class="btn sm ${r.phone?'primary':'ghost'}" style="flex:0 0 auto" onclick="event.stopPropagation();waInvoiceText('${jq(id)}')">💬</button></div>`;
+      <button class="btn sm ${r.phone?'primary':'ghost'}" style="flex:0 0 auto" title="${t('whatsapp')}" onclick="event.stopPropagation();waInvoiceText('${jq(id)}')">💬</button></div>`;
   }).join('');
   if(!rows)return '';
   return `<div class="card" style="margin-top:14px">
@@ -16280,46 +16343,105 @@ function openPurchaseForm(editId){
    work was gone with nothing to go back to, in front of a guest. Same shape as the
    purchase draft: it saves as he types, it is offered back when he returns, and it is
    cleared the moment the bill is really saved. */
-const INV_DRAFT_KEY='pb_ob_invdraft';
+const INV_DRAFT_KEY='pb_ob_invdraft';        /* the old single-draft key, migrated below */
+const INV_DRAFTS_KEY='pb_ob_invdrafts';
+/* v335 — HIS 25 Aug, confirmed by reproducing it: he starts a bill for one customer, that
+   customer steps away, he starts a bill for the next one — and the first bill vanishes
+   without a word. The order form has never had this problem because its drafts live in a
+   MAP; the bill form kept exactly one, under one key, so the second bill overwrote the
+   first the moment a name was typed into it.
+   Same map, same shape, so there is no second draft system to learn or maintain.
+   And his own rule on how long they should live: "1-2 hr se zyada nahi" — a half-made bill
+   older than that belongs to a customer who has gone home, and keeping it only clutters
+   the screen with something he will never finish. */
+const INV_DRAFT_TTL_MS=2*3600000;
+function invDrafts(){
+  let m={};
+  try{ m=JSON.parse(localStorage.getItem(INV_DRAFTS_KEY)||'{}')||{}; }catch(e){ m={}; }
+  /* carry over a draft written by an older build so nothing in progress is lost */
+  try{
+    const old=localStorage.getItem(INV_DRAFT_KEY);
+    if(old){ const d=JSON.parse(old);
+      if(d&&invHasContent(d))m['i'+Date.now()]={ts:Date.now(),form:d};
+      localStorage.removeItem(INV_DRAFT_KEY);
+      localStorage.setItem(INV_DRAFTS_KEY,JSON.stringify(m));
+    }
+  }catch(e){}
+  const now=Date.now(); let changed=false;
+  Object.keys(m).forEach(k=>{
+    const e=m[k];
+    if(!e||!e.form||!invHasContent(e.form)||(now-(+e.ts||0))>INV_DRAFT_TTL_MS){ delete m[k]; changed=true; }
+  });
+  if(changed){ try{ localStorage.setItem(INV_DRAFTS_KEY,JSON.stringify(m)); }catch(e){} }
+  return m;
+}
+function invDraftList(){
+  const m=invDrafts();
+  return Object.keys(m).map(id=>({id,ts:m[id].ts,form:m[id].form})).sort((a,b)=>b.ts-a.ts);
+}
+function invDraftPut(id,form){
+  const m=invDrafts(); m[id]={ts:Date.now(),form:form};
+  try{ localStorage.setItem(INV_DRAFTS_KEY,JSON.stringify(m)); }catch(e){}
+}
+function invDraftDropId(id){
+  const m=invDrafts(); delete m[id];
+  try{ localStorage.setItem(INV_DRAFTS_KEY,JSON.stringify(m)); }catch(e){}
+}
 function invHasContent(f){
   return !!(f && ((f.items||[]).some(it=>it&&(it.label||+it.price)) ||
     (f.customerName||'').trim() || (f.phone||'').trim() || (f.notes||'').trim()));
 }
-function getInvDraft(){
-  try{ const d=JSON.parse(localStorage.getItem(INV_DRAFT_KEY)||'null');
-    return (d&&invHasContent(d))?d:null; }catch(e){ return null; }
-}
+function getInvDraft(){ const l=invDraftList(); return l.length?l[0].form:null; }
 function saveInvDraft(){
   if(!invForm || invForm.saved)return;
   try{ captureInvoiceForm(); }catch(e){}
-  if(!invHasContent(invForm)){ try{localStorage.removeItem(INV_DRAFT_KEY);}catch(e){} return; }
-  try{ localStorage.setItem(INV_DRAFT_KEY, JSON.stringify(invForm)); }catch(e){}
+  /* v335: each bill in progress owns its own slot, so a second bill can never write over
+     a first one that is still open. */
+  if(!invForm._draftId)invForm._draftId='i'+Date.now()+Math.random().toString(36).slice(2,6);
+  if(!invHasContent(invForm)){ invDraftDropId(invForm._draftId); return; }
+  invDraftPut(invForm._draftId, invForm);
   const h=document.getElementById('invDraftHint');
   if(h){ h.textContent='✅ '+t('draft_saved'); h.style.opacity='1'; }
 }
-function clearInvDraft(){ try{ localStorage.removeItem(INV_DRAFT_KEY); }catch(e){} }
+function clearInvDraft(){
+  try{ if(invForm&&invForm._draftId)invDraftDropId(invForm._draftId); }catch(e){}
+  try{ localStorage.removeItem(INV_DRAFT_KEY); }catch(e){}
+}
 let _invDraftT=null;
 function invDraftSoon(){ clearTimeout(_invDraftT); _invDraftT=setTimeout(saveInvDraft,600); }
 /* offered on the bill screen itself, so it can never be lost behind a menu */
 function invDraftHTML(){
-  const d=getInvDraft();
-  if(!d || (invForm && invForm._fromDraft))return '';
-  const who=(d.customerName||'').trim()||t('dft_no_name');
-  const n=(d.items||[]).filter(it=>it&&(it.label||+it.price)).length;
+  /* v335: every bill still open is listed, not just the newest — the whole point of the
+     change is that a second bill no longer hides the first. The one being worked on now
+     is left out of its own list. */
+  const cur=(invForm&&invForm._draftId)||'';
+  const list=invDraftList().filter(d=>d.id!==cur);
+  if(!list.length)return '';
+  const rows=list.slice(0,3).map(d=>{
+    const who=(d.form.customerName||'').trim()||t('dft_no_name');
+    const n=(d.form.items||[]).filter(it=>it&&(it.label||+it.price)).length;
+    return `<div class="kv" style="padding:6px 0;border-top:1px solid var(--line)">
+      <span style="min-width:0"><b style="font-size:13px">${esc(who)}</b>
+        <div class="hint">${t('inv_items_n',{n})} · ${draftAge(d.ts)}</div></span>
+      <span style="display:flex;gap:6px;flex:0 0 auto">
+        <button class="btn sm primary" onclick="invDraftResume('${jq(d.id)}')">${t('draft_continue')}</button>
+        <button class="btn sm ghost" onclick="invDraftDrop('${jq(d.id)}')">🗑️</button></span></div>`;
+  }).join('');
+  const more=list.length>3?`<div class="hint" style="margin-top:4px">+${list.length-3}</div>`:'';
   return `<div class="card" style="border-color:var(--saffron);padding:10px 12px;margin-bottom:10px">
-    <div class="kv"><b>📝 ${t('inv_draft_found')}</b></div>
-    <p class="hint" style="margin:4px 0 8px">${esc(who)} · ${t('inv_items_n',{n})}</p>
-    <div class="row" style="gap:6px">
-      <button class="btn sm primary" style="flex:1" onclick="invDraftResume()">${t('draft_continue')}</button>
-      <button class="btn sm ghost" onclick="invDraftDrop()">${t('draft_discard')}</button></div></div>`;
+    <div class="kv"><b>📝 ${t(list.length>1?'inv_drafts_found':'inv_draft_found')}</b>
+      <span class="hint">${t('inv_draft_ttl')}</span></div>
+    ${rows}${more}</div>`;
 }
-function invDraftResume(){
-  const d=getInvDraft(); if(!d)return;
-  invForm=d; invForm._fromDraft=1; renderInvoiceForm();
+function invDraftResume(id){
+  const l=invDraftList();
+  const d=id?l.find(x=>x.id===id):l[0];
+  if(!d)return;
+  invForm=d.form; invForm._fromDraft=1; invForm._draftId=d.id; renderInvoiceForm();
 }
-function invDraftDrop(){
+function invDraftDrop(id){
   confirmModal(t('draft_discard'), t('draft_disc_msg'),
-    ()=>{ clearInvDraft(); closeModal(); renderInvoiceForm(); });
+    ()=>{ if(id)invDraftDropId(id); else clearInvDraft(); closeModal(); renderInvoiceForm(); });
 }
 const PUR_DRAFT_KEY='pb_ob_purdraft';
 function purHasContent(f){ return !!(f && (f.supplier || f.phone || (f.items||[]).length || (f.notes||'').trim() || (f.photos||[]).length)); }
@@ -19145,7 +19267,7 @@ function renderReports(){
   const debRows=debtors.map(d=>`<div class="card" style="padding:10px 12px;display:flex;justify-content:space-between;align-items:center">
     <div><b>${esc(d.name)}</b><div class="hint">${esc(d.phone||'')} · ${d.count} ${t('rp_items')}</div></div>
     <div style="display:flex;align-items:center;gap:10px"><b style="color:var(--saffron2);font-size:16px">${money(r2(d.total))}</b>
-    ${d.phone?`<button class="btn sm ghost" onclick="event.stopPropagation();waSend('${jq(d.phone)}','Namaste ${esc(d.name)} ji 🙏\\n\\nAapka ${money(r2(d.total))} balance pending hai PARAMPARA me. Kripya jald se jald clear karein. Dhanyawad!')">💬</button>`:''}</div></div>`).join('');
+    ${d.phone?`<button class="btn sm ghost" onclick="event.stopPropagation();waSend('${jq(d.phone)}','Namaste ${esc(d.name)} ji 🙏\\n\\nAapka ${money(r2(d.total))} balance pending hai PARAMPARA me. Kripya jald se jald clear karein. Dhanyawad!')" title="${t('whatsapp')}">💬</button>`:''}</div></div>`).join('');
 
   /* purchases in period */
   const purch=(DB.purchases||[]).filter(p=>{const d=String(p.date||'');return d>=from&&d<=to;}).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
@@ -22805,7 +22927,6 @@ function backupMenu(){
       <p class="hint" style="margin:2px 0 8px">${t('bk_data_only_hint')}</p>
       <button class="btn ghost block" onclick="closeModal();zipBackup()">🗜️ ${t('bk_take')}</button>
       <button class="btn ghost block" onclick="photoBackup()">🖼️ ${t('pb_title')}</button>
-      <button class="btn ghost block" onclick="doExport()">⬇️ ${t('download_backup')}</button>
       <button class="btn ghost block" onclick="restoreSnapshotMenu()">🕑 ${t('restore_auto')}</button>
       <button class="btn ghost block" onclick="stockAudit()">🩺 ${t('au_title')}</button>
     </div>
@@ -23866,7 +23987,10 @@ function closeSheet(){
      than a stray draft. So it asks, once, and he decides. */
   if(formIsOpen() && !_draftAsked){
     try{ captureForm(); }catch(e){}
-    if(form && !form.editId && formHasContent(form)){
+    /* v337 — HIS 26 Aug, reproduced: an order saved, the form did not close, and the app
+       then offered to keep the very order it had just written as a draft. */
+    if(form && form._saved){ /* already written — nothing to rescue */ }
+    else if(form && !form.editId && formHasContent(form)){
       _draftAsked=true;
       /* the flag MUST stay up while we call closeSheet() again — confirmModal's own
          buttons call closeSheet(), so clearing it first would re-ask forever. The
