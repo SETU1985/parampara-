@@ -25,7 +25,11 @@
         window.PB_SW=reg;
         /* v217: an older copy may already be installed on this device — pull the new one
            in straight away rather than waiting for the browser to notice. */
-        try{ reg.update(); }catch(e){}
+        /* v339 — HIS 26 Aug: "Failed to update a ServiceWorker for scope …" shown as a
+           screen-drawing failure. reg.update() is a promise; the try/catch around it never
+           caught its rejection. Offline caching is a convenience — when its update fails
+           the app is completely fine, so this must stay silent. */
+        try{ const up=reg.update(); if(up&&up.catch)up.catch(function(){}); }catch(e){}
         if(!navigator.serviceWorker.controller){
           /* first ever install — say it once, so he knows it is safe to lose the net */
           navigator.serviceWorker.addEventListener('controllerchange',function(){
@@ -489,7 +493,10 @@
   .scrim{position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:90; display:none; align-items:flex-end; justify-content:center}
   .scrim.show{display:flex; animation:fade .15s}
   .sheet{background:var(--card); border:1px solid var(--line); border-top-left-radius:20px; border-top-right-radius:20px;
-    width:100%; max-width:760px; max-height:90vh; overflow-y:auto; padding:18px 18px calc(18px + var(--safe-b)); animation:slideup .22s ease}
+    width:100%; max-width:760px; overflow-y:auto; padding:18px 18px calc(18px + var(--safe-b)); animation:slideup .22s ease;
+    /* v340: --kb is the height the keyboard has taken. vh never shrinks on Android, so the
+       sheet has to be told, or its lower half stays behind the keys. */
+    max-height:calc(90vh - var(--kb, 0px)); margin-bottom:var(--kb, 0px)}
   @keyframes slideup{from{transform:translateY(100%)} to{transform:none}}
   /* One close button for EVERY sheet. It lives outside #sheet, so no render can wipe it. */
   /* Give-work detail: measurements in a tight grid so a full set fits without scrolling. */
@@ -537,7 +544,15 @@
   .grip{width:56px; height:5px; border-radius:5px; background:var(--line2); margin:0 auto 14px;
     cursor:grab; touch-action:none; position:relative}
   .grip::after{content:''; position:absolute; left:-40px; right:-40px; top:-14px; bottom:-14px}
-  .modal-actions{display:flex; gap:10px; margin-top:18px} .modal-actions .btn{flex:1}
+  /* v340 — the keyboard sweep found four forms where the Save button itself sat behind an
+     open keyboard: Payment in, Payment out, Journal entry and Opening balances. He would
+     fill the form and have nothing to press. Pinning the action row to the bottom of its
+     own sheet fixes those four and every other modal at once, and costs nothing on a short
+     form because a sticky row only starts holding when there is something to scroll. */
+  .modal-actions{display:flex; gap:10px; margin-top:18px;
+    position:sticky; bottom:0; z-index:5; padding:10px 0 4px;
+    background:linear-gradient(180deg,transparent,var(--card) 30%)}
+  .modal-actions .btn{flex:1}
   /* v276 — HIS 23 Aug: "form fill karne ke baad Save ka option kahin nahi dikhta, isse
      confusion hoti hai."
      Measured it rather than guessed: on a 390px screen the Save button sat at 868px in the
@@ -749,7 +764,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v338</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v340</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -4920,8 +4935,13 @@ try{
   window.addEventListener('error',e=>{ try{ if(_crashShown)return; _crashShown=1;
     toast((t('crash_title')+': '+(e.message||'')).slice(0,110),'bad');
     setTimeout(()=>{_crashShown=0;},4000); }catch(x){} });
-  window.addEventListener('unhandledrejection',e=>{ try{ if(_crashShown)return; _crashShown=1;
-    toast((t('crash_title')+': '+((e.reason&&e.reason.message)||e.reason||'')).slice(0,110),'bad');
+  window.addEventListener('unhandledrejection',e=>{ try{
+    const msg=String((e.reason&&e.reason.message)||e.reason||'');
+    /* v339: the offline-cache worker failing to update says nothing about the screen he is
+       looking at. Alarming him about it teaches him to ignore real errors. */
+    if(/ServiceWorker|service worker|sw\.js/i.test(msg))return;
+    if(_crashShown)return; _crashShown=1;
+    toast((t('crash_title')+': '+msg).slice(0,110),'bad');
     setTimeout(()=>{_crashShown=0;},4000); }catch(x){} });
 }catch(e){}
 let _crashShown=0;
@@ -14520,9 +14540,18 @@ function posPushItem(o){
 
    It also re-runs once when the keyboard actually appears, because focus() opens the
    keyboard AFTER this code has finished measuring. */
-function posEnsureVisible(el,gap){
+/* v340 — HIS 26 Aug: "kabhi kabhi keyboard khulne per jaruri activity ya information chhup
+   jate hai, ye poora app me check karna hoga." Measured across fourteen forms against a
+   typical Android keyboard: thirteen had at least one field sitting under it once focused,
+   and on four the Save button itself was behind the keyboard.
+   The helper written for the bill screen in v336 already knew how to do this properly —
+   read the VISUAL viewport, which is the only thing that shrinks when the keyboard opens.
+   It is now the app's single rule, applied to whatever the person is typing into, on every
+   form there is and every form added later. No second system, no per-screen timers. */
+function kbEnsureVisible(el,gap){
   if(!el)return;
-  const sh=document.getElementById('sheet'); if(!sh)return;
+  const sh=el.closest('#sheet, #msheet') || document.getElementById('sheet');
+  if(!sh)return;
   const pad=(gap==null?18:gap);
   const put=()=>{
     const vv=window.visualViewport;
@@ -14543,6 +14572,33 @@ function posEnsureVisible(el,gap){
     setTimeout(()=>{ done=true; try{vv.removeEventListener('resize',again);}catch(e){} },1200);
   }
 }
+/* How much of the screen the keyboard is covering, published as a CSS variable so the
+   sheets can shrink out of its way. Zero on a desktop, and zero the moment it closes. */
+try{
+  const vv=window.visualViewport;
+  if(vv){
+    const setKb=()=>{
+      const gap=Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+      document.documentElement.style.setProperty('--kb', (gap>80?gap:0)+'px');
+    };
+    vv.addEventListener('resize', setKb);
+    vv.addEventListener('scroll', setKb);
+    setKb();
+  }
+}catch(e){}
+/* the bill screen keeps its old name so nothing there has to change */
+function posEnsureVisible(el,gap){ return kbEnsureVisible(el,gap); }
+/* Whatever he taps into, anywhere, is brought clear of the keyboard. One listener. */
+try{
+  document.addEventListener('focusin',function(e){
+    const el=e.target;
+    if(!el||!el.matches)return;
+    if(!el.matches('input,textarea,select'))return;
+    if(el.type==='hidden'||el.type==='checkbox')return;
+    if(!el.closest('#sheet, #msheet'))return;      // only inside a form sheet
+    kbEnsureVisible(el,20);
+  },true);
+}catch(e){}
 /* Put the caret where the next keystroke belongs on the line just added. */
 function posFocusLine(i){
   setTimeout(()=>{
