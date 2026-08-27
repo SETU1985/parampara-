@@ -781,7 +781,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v364</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v368</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1468,7 +1468,7 @@ const T={
   make_bill:'Make the bill',
   quoted:'Amount quoted',
   billed:'Billed amount',
-  pur_search_ph:'Search supplier, bill no, item...',
+  pur_search_ph:'Search supplier, bill no, item, amount...',
   pur_count:'{n} purchases',
   pur_spent:'Spent',
   pm_bank:'Bank transfer',
@@ -1679,6 +1679,7 @@ const T={
   sb_none:'Nothing in production', sb_pieces:'{n} pieces', sb_empty_stage:'nothing here',
   ex_csv:'CSV', ex_pdf:'PDF / print', ex_done:'{n} rows exported', ex_nothing:'Nothing to export',
   stk_cat_all:'All categories', stk_cat_pick:'Category',
+  pty_cred:'Creditors — I have to pay', pty_debt:'Debtors — they have to pay me', pty_flat:'No balance',
   pty_title:'Creditors & debtors', pty_sub:'Who the shop owes, and who owes the shop — openings, payments and balance',
   pty_search:'Search a name…', pty_add:'Add a party', pty_none:'Nobody yet',
   pty_open:'Opening', pty_open_left:'Opening still open', pty_open_none:'No opening entered',
@@ -2380,10 +2381,13 @@ const T={
   cust_del_busy:'This customer has {n} orders/bills/alterations. Deleting removes the customer only — that history stays.',
   simple_mode:'Simple mode (for staff)',
   simple_mode_desc:'Bigger buttons, hides billing & GST — good for handing the phone to staff.',
+  inv_edit:'Edit invoice', cust_not_listed:'Not in the list?',
   new_sale:'New invoice',
   received_now:'Received now ₹',
   inv_all:'All invoices',
-  inv_search_ph:'Search invoice no, customer, order no...',
+  inv_search_ph:'Search invoice no, customer, order no, amount...',
+  ord_search_ph:'Search order no, customer, mobile, amount...',
+  hub_more:'More',
   inv_count:'{n} invoices',
   inv_none_match:'No invoice matches that search',
   inv_tag_direct:'Direct',
@@ -3092,7 +3096,7 @@ const T={
   make_bill:'बिल बनाएँ',
   quoted:'बताई गई राशि',
   billed:'बिल की राशि',
-  pur_search_ph:'सप्लायर, बिल नं., आइटम खोजें…',
+  pur_search_ph:'सप्लायर, बिल नं., आइटम, रकम खोजें…',
   pur_count:'{n} ख़रीद',
   pur_spent:'ख़र्च',
   pm_bank:'बैंक ट्रांसफ़र',
@@ -3303,6 +3307,7 @@ const T={
   sb_none:'बनने को कुछ नहीं है', sb_pieces:'{n} पीस', sb_empty_stage:'कुछ नहीं',
   ex_csv:'CSV', ex_pdf:'PDF / प्रिंट', ex_done:'{n} लाइन एक्सपोर्ट हुईं', ex_nothing:'एक्सपोर्ट करने को कुछ नहीं',
   stk_cat_all:'सभी कैटेगरी', stk_cat_pick:'कैटेगरी',
+  pty_cred:'लेनदार — इनको देना है', pty_debt:'देनदार — इनसे लेना है', pty_flat:'कोई बकाया नहीं',
   pty_title:'लेनदार और देनदार', pty_sub:'किसका देना है और किससे लेना है — शुरुआती बकाया, भुगतान और बैलेंस',
   pty_search:'नाम ढूंढें…', pty_add:'पार्टी जोड़ें', pty_none:'अभी कोई नहीं',
   pty_open:'शुरुआती बकाया', pty_open_left:'शुरुआती बकाया बचा है', pty_open_none:'कोई शुरुआती बकाया नहीं',
@@ -4002,10 +4007,13 @@ const T={
   cust_del_busy:'इस ग्राहक के {n} ऑर्डर/बिल/अल्टरेशन हैं। सिर्फ़ ग्राहक हटेगा — वह हिसाब बना रहेगा।',
   simple_mode:'सरल मोड (स्टाफ़ के लिए)',
   simple_mode_desc:'बड़े बटन, बिलिंग और GST छिपे — कारीगर/स्टाफ़ को फ़ोन देने के लिए अच्छा।',
+  inv_edit:'बिल बदलें', cust_not_listed:'सूची में नहीं है?',
   new_sale:'नया इनवॉइस',
   received_now:'अभी मिला ₹',
   inv_all:'सभी इनवॉइस',
-  inv_search_ph:'इनवॉइस नं., ग्राहक, ऑर्डर नं. खोजें…',
+  inv_search_ph:'इनवॉइस नं., ग्राहक, ऑर्डर नं., रकम खोजें…',
+  ord_search_ph:'ऑर्डर नं., ग्राहक, मोबाइल, रकम खोजें…',
+  hub_more:'और',
   inv_count:'{n} इनवॉइस',
   inv_none_match:'इस खोज से कोई इनवॉइस नहीं मिला',
   inv_tag_direct:'डायरेक्ट',
@@ -5055,6 +5063,7 @@ function receivableTotal(){
   Object.keys(cm).forEach(k=>{ per[k]=r2(Math.max(0,(per[k]||0)-cm[k])); });
   let v=Object.values(per).reduce((a,x)=>r2(a+x),0);
   v=r2(v+openingPartyTotal('customer','in'));
+  v=r2(v+openingPartyTotal('other','in'));   /* v366: a debtor is a debtor, whatever the label */
   return r2(v);
 }
 const orderStatus=o=>o.status||'new';
@@ -5153,7 +5162,7 @@ function go(tab){
      never came back on Home, so the way he finds anything simply vanished.
      The bar belongs on Home too — that is where he starts — and typing now takes him to
      the results instead of drawing them where he cannot see them. */
-  $('#searchWrap').style.display=(tab==='orders'||tab==='home')?'':'none';
+  $('#searchWrap').style.display=(tab==='home')?'':'none';
   window.scrollTo(0,0);
   if(tab==='home')safeRender('Home',renderHome); if(tab==='orders')safeRender('Orders',renderOrders); if(tab==='customers')safeRender('Customers',renderCustomers); if(tab==='alterations')safeRender('Alterations',renderAlterations); if(tab==='invoices')safeRender('Invoices',renderInvoices); if(tab==='reports')safeRender('Reports',renderReports); if(tab==='purchases')safeRender('Purchases',renderPurchases);
 }
@@ -5182,6 +5191,16 @@ function deliveryList(){
 function delLabel(){return delFilter==='date'?(delDate?fmtDate(delDate):t('f_date')):t('f_'+delFilter);}
 function setDelFilter(f){delFilter=f;if(f!=='date')delDate='';pageReset('orders');renderOrders();}
 function setDelDate(v){delDate=v;delFilter='date';pageReset('orders');renderOrders();}
+/* v368 — the Orders list was the only one of the three whose search box sat in the page
+   header instead of inside the list, so the same job looked like a different screen from
+   Sales and Purchases. It now carries its own box in exactly the same place as theirs.
+   The header bar still works as the way IN from Home, and both write to this one ordQ —
+   so a name half-typed on Home is still there, cursor and all, when the list opens. */
+let ordQ='';
+function setOrdQ(v){ ordQ=v; const g=$('#search'); if(g)g.value=v;
+  pageReset('orders'); renderOrders(true); }
+function focusOrdSearch(){ const el=$('#ordSearch');
+  if(el){ const v=el.value; el.focus(); try{el.setSelectionRange(v.length,v.length);}catch(e){} } }
 /* ================= PAGINATION =================
    Long lists used to be written into the DOM in one go. At a few hundred orders that
    is already a heavy paint on an iPad, and at a few thousand it locks the screen up.
@@ -7743,6 +7762,9 @@ function expRender(){
   showSheet();
   fastForm('#sheet',{onLast:()=>expSave(true)}); renderExpPhotos();
 }
+/* every caller of expRender gets the caret kept for free */
+const _expRenderRaw=expRender;
+expRender=function(){ keepCaret(()=>_expRenderRaw.apply(this,arguments)); };
 function expCapture(){ const d=_exp; if(!d)return;
   if($('#ex_amt'))d.amt=$('#ex_amt').value;
   if($('#ex_date'))d.date=$('#ex_date').value;
@@ -8721,7 +8743,6 @@ function saleHub(){
   sheetAt(saleHub); if(!modOn('billing')){toast(t('mod_off'),'bad');return;}
   $('#sheet').innerHTML=hubHTML('🧾 '+t('hub_sale'), t('hub_sale_sub'), [
     ['➕', t('new_sale'), "closeSheet();openSaleForm()"],
-    ['📋', t('home_invoices'), "closeSheet();go('invoices')"],
     ['↩️', t('sr_menu'), "closeSheet();salesReturnPick()"],
     ['📄', t('estimate'), "closeSheet();estimateList()"],
   ]);
@@ -8735,7 +8756,6 @@ function saleHub(){
 function ordersHub(){
   sheetAt(ordersHub);
   $('#sheet').innerHTML=hubHTML('📋 '+t('nav_orders'), t('hub_orders_sub'), [
-    ['📋', t('nav_orders'), "closeSheet();go('orders')"],
     ['🧵', t('sb_title'), "closeSheet();statusBoard()"],
     ['👗', t('trial_due'), "closeSheet();trialBoard()"],
     ['🔍', t('of_title'), "closeSheet();orderFilter()"],
@@ -8750,7 +8770,6 @@ function purchaseHub(){
   sheetAt(purchaseHub); if(!modOn('billing')){toast(t('mod_off'),'bad');return;}
   $('#sheet').innerHTML=hubHTML('🚚 '+t('hub_purchase'), t('hub_purchase_sub'), [
     ['➕', t('new_purchase'), "closeSheet();openPurchaseForm()"],
-    ['📋', t('purchases_list'), "closeSheet();go('purchases')"],
     ['↪️', t('pr_menu'), "closeSheet();purchaseReturnPick()"],
     ['📝', t('purchase_order'), "closeSheet();poList()"],
   ]);
@@ -8767,14 +8786,16 @@ function creditors(){
     if(!map[k].phone&&p.phone)map[k].phone=p.phone;});
   /* v249: an opening payable is money owed exactly as a bill is. It was invisible here
      before, so anything he typed on the opening screen could never be seen or chased. */
-  peopleAll().filter(p=>p.kind==='supplier').forEach(p=>{
-    const left=openingLeft(p.name,'supplier','out'); if(!left)return;
+  /* v366: 'other' belongs here too — see the note in bsFigures. He owes the money either way. */
+  peopleAll().filter(p=>p.kind==='supplier'||p.kind==='other').forEach(p=>{
+    const left=openingLeft(p.name,p.kind,'out'); if(!left)return;
     const k=p.name;
     map[k]=map[k]||{name:k,phone:(partyByName(k)||{}).phone||'',recs:[],due:0};
     map[k].due=r2(map[k].due+left); map[k]._open=left;
   });
   /* openings typed against a name that never had a purchase bill still belong here */
-  (DB.ledger||[]).filter(l=>l.refKind==='opening'&&pkNorm(l.partyKind)==='supplier'&&l.dir==='out').forEach(l=>{
+  (DB.ledger||[]).filter(l=>l.refKind==='opening'
+      &&(pkNorm(l.partyKind)==='supplier'||pkNorm(l.partyKind)==='other')&&l.dir==='out').forEach(l=>{
     const k=String(l.party||'').trim(); if(!k||map[k])return;
     const left=openingLeft(k,'supplier','out'); if(!left)return;
     map[k]={name:k,phone:(partyByName(k)||{}).phone||'',recs:[],due:left,_open:left};
@@ -10994,12 +11015,17 @@ function menuHome(){
          JOBWORKER / EMPLOYEE is sequence me rakho, jyada buttons nahi." So the list is his
          working order now, one line per thing, and everything that belongs to a subject
          lives inside that subject's own screen instead of being spread across the menu. */''}
+    ${/* v368 — HIS 27 Aug: "sales me click karte hi new invoice hai aur uske neeche search
+         bar hai jahan invoices aate hain. simple aur useful. order aur purchase me bhi
+         waisa hi chahiye." Tapping a subject now lands on that subject's LIST — new button,
+         search, records — with no screen of doors in between. Everything the hub held is
+         still one tap away, behind ⋯ on that same list. */''}
     ${modOn('billing')?sec('🧾 '+t('hub_sale'),[
-      row('🧾',t('hub_sale'),"saleHub()",t('mnu_sale_sub'))]):''}
+      row('🧾',t('hub_sale'),"go('invoices')",t('mnu_sale_sub'))]):''}
     ${modOn('billing')?sec('🚚 '+t('hub_purchase'),[
-      row('🚚',t('hub_purchase'),"purchaseHub()",t('mnu_pur_sub'))]):''}
+      row('🚚',t('hub_purchase'),"go('purchases')",t('mnu_pur_sub'))]):''}
     ${sec('📋 '+t('nav_orders'),[
-      row('📋',t('nav_orders'),"ordersHub()",t('hub_orders_sub'))])}
+      row('📋',t('nav_orders'),"go('orders')",t('hub_orders_sub'))])}
     ${modOn('stock')?sec('📦 '+t('stk_title'),[
       row('📦',t('stk_title'),"stockHome()")]):''}
     ${modOn('accounts')?sec('💸 '+t('exp_title'),[
@@ -11348,16 +11374,24 @@ function discardDraft(id){
    tab panes, so switching tab does not touch what he is typing or where the cursor is. */
 function searchType(){
   const q=($('#search').value||'').trim();
+  ordQ=q;
   pageReset('orders');
-  if(q && _curTab!=='orders'){ go('orders'); return; }
+  /* v368 LIVE TEST — typing "Cust 3" into the Home box landed as "Cst 3": the first
+     keystroke hides this bar and moves to Orders, and for the 60ms until the handover
+     fired there was no focused input at all, so the next letter went nowhere. go() paints
+     the list synchronously, so the box already exists on the line below — take the cursor
+     there in the same keystroke and nothing can fall in the gap. */
+  if(q && _curTab!=='orders'){ go('orders'); focusOrdSearch(); return; }
   if(!q && _curTab==='orders'){ go('home'); return; }
-  renderOrders();
+  renderOrders(true);
 }
-function renderOrders(){
-  const q=($('#search').value||'').toLowerCase().trim();
+function renderOrders(keepFocus){
+  const q=(ordQ||'').toLowerCase().trim();
   let list=deliveryList();
   if(q)list=list.filter(o=>(o.customerName||'').toLowerCase().includes(q)||(o.phone||'').includes(q)
     ||String(o.orderNo).toLowerCase().includes(q)
+    /* v368: he hunts a bill by the figure he remembers as often as by the name */
+    ||String(Math.round(+orderTotal(o)||0)).includes(q)
     ||(o.members||[]).some(m=>String(m.ono||'').toLowerCase().includes(q))
     ||(o.members||[]).some(m=>String(m.name||'').toLowerCase().includes(q)));
   const chips=[['all','f_all'],['pending','f_pending'],['today','f_today'],['tomorrow','f_tomorrow'],['week','f_week']]
@@ -11374,10 +11408,15 @@ function renderOrders(){
   // same top action row the Sale tab has, so New Order is never hidden behind the + only
   const head=`<div class="row" style="margin-bottom:12px;gap:8px">
     <button class="btn primary" style="flex:2" onclick="openOrderForm()">+ ${t('new_order')}</button>
-    <button class="btn ghost simple-hide" style="flex:1" onclick="orderReports()">📊 ${t('or_title')}</button></div>`;
-  if(!list.length){el.innerHTML=head+remind+bar+banner+dcard+`<div class="empty"><div class="big">📋</div><p><b>${q?t('nothing'):(delFilter==='all'?t('no_orders'):t('no_deliveries'))}</b></p><p style="font-size:13px">${q?t('try_other'):(delFilter==='all'?t('no_orders_sub'):'')}</p></div>`;return;}
+    <button class="btn ghost simple-hide" style="flex:1" onclick="orderReports()">📊 ${t('or_title')}</button>
+    <button class="btn ghost" style="flex:0 0 48px" title="${t('hub_more')}" onclick="ordersHub()">⋯</button></div>`;
+  /* the same box, in the same place, as the Sales and Purchase lists */
+  const searchBox=`<div class="field" style="margin-bottom:10px">
+    <input id="ordSearch" value="${esc(ordQ)}" placeholder="🔍 ${t('ord_search_ph')}" oninput="setOrdQ(this.value)"></div>`;
+  if(!list.length){el.innerHTML=head+remind+searchBox+bar+banner+dcard+`<div class="empty"><div class="big">📋</div><p><b>${q?t('nothing'):(delFilter==='all'?t('no_orders'):t('no_deliveries'))}</b></p><p style="font-size:13px">${q?t('try_other'):(delFilter==='all'?t('no_orders_sub'):'')}</p></div>`;
+    if(keepFocus)focusOrdSearch(); return;}
   const _pg=pageSlice('orders',list);
-  el.innerHTML=head+remind+bar+banner+dcard+_pg.map(o=>{
+  el.innerHTML=head+remind+searchBox+bar+banner+dcard+_pg.map(o=>{
     const dl=daysLeft(o.deliveryDate),baaki=orderBaaki(o),st=orderSummaryStatus(o);
     let dcls='',dtxt=fmtDate(o.deliveryDate);
     if(st!=='delivered'&&dl!==null&&dl<0){dcls='soon';dtxt=Math.abs(dl)+'d '+t('late');}
@@ -11398,6 +11437,7 @@ function renderOrders(){
       <div class="botrow"><span class="pill st-${st}">${sLabel(st)}</span><span style="font-size:12px;color:var(--txt2)">${rc}/${tot} ${t('ready_word').toLowerCase()}${baaki>0?` · <span style="color:var(--saffron2);font-weight:700">${money(baaki)}</span>`:''}</span></div>
     </div>`;
   }).join('');
+  if(keepFocus)focusOrdSearch();
 }
 /* ---- print / whatsapp the delivery list (for staff / wall) ---- */
 function deliveriesText(){
@@ -13112,8 +13152,17 @@ function balArrow(net){
 }
 /* "Saved X | ➕ New" header used on every name picker, so the add-new action is
    always visible and the list feels like Vyapar's. */
+/* v367 — measured while tracing his edit: typing "Dimple" listed "➕ New" ABOVE the
+   existing "Dimple Ji", so the first thing under his thumb created a SECOND customer of
+   almost the same name and linked the bill to the wrong one. That is how phantom records
+   get made. The header keeps its label; the add link moves below the matches, where it is
+   the fallback rather than the default. */
 function sugHead(labelKey,addOnclick){
-  return `<div class="sug-head"><span>${t(labelKey)}</span>
+  return `<div class="sug-head"><span>${t(labelKey)}</span></div>`;
+}
+function sugAddFoot(addOnclick){
+  return `<div class="sug-head" style="margin-top:6px;border-top:1px solid var(--line);padding-top:8px">
+    <span class="hint">${t('cust_not_listed')}</span>
     <a onclick="${addOnclick}">➕ ${t('add_new')}</a></div>`;
 }
 function custRowHTML(c,onclick){
@@ -13143,7 +13192,8 @@ function custSearch(q){const box=$('#custResults'); if(!box)return;
   const hits=custHits(q);
   box.innerHTML=sugHead('saved_customers','orderNewCustomer()')
     +(hits.length?hits.map(c=>custRowHTML(c,`pickCustomer('${c.id}')`)).join('')
-      :`<p class="hint" style="margin:6px 0 0">${q?t('cust_none_q'):t('cust_none')}</p>`);}
+      :`<p class="hint" style="margin:6px 0 0">${q?t('cust_none_q'):t('cust_none')}</p>`)
+    +sugAddFoot('orderNewCustomer()');}
 function orderNewCustomer(){
   captureForm();
   const nm=($('#f_cname')&&$('#f_cname').value.trim())||'';
@@ -14432,10 +14482,15 @@ function setPurSort(v){purSort=v;renderPurchases();}
 function renderPurchases(keepFocus){
   const el=$('#purchList');
   const all=(DB.purchases||[]);
+  /* v368 — HIS 27 Aug: Sales reads as "+ New, then search, then the list", and he wants the
+     other two to read the same. Here the ☑️ Select row sat BETWEEN the new button and the
+     search box, so the eye met a bulk-edit tool before it met the list. Select is still
+     here, one line lower, under the search where it belongs. */
   const addBtn=`<div class="row" style="margin-bottom:12px;gap:8px">
-    <button class="btn primary block" onclick="openPurchaseForm()">+ ${t('new_purchase')}</button>
-    </div>`
-    + (all.length?`<div class="row" style="margin-bottom:10px;gap:8px">
+    <button class="btn primary" style="flex:1" onclick="openPurchaseForm()">+ ${t('new_purchase')}</button>
+    <button class="btn ghost" style="flex:0 0 48px" title="${t('hub_more')}" onclick="purchaseHub()">⋯</button>
+    </div>`;
+  const selRow=(all.length?`<div class="row" style="margin-bottom:10px;gap:8px">
       <button class="btn ${_purSelMode?'primary':'ghost'}" style="flex:1" onclick="purSelToggle()">${_purSelMode?'✕ '+t('cancel'):'☑️ '+t('fab_select')}</button>
       ${_purSelMode?`<button class="btn ghost" style="flex:1" onclick="purSelAll()">${t('pur_sel_all')}</button>`:''}</div>`:'');
   if(!all.length){el.innerHTML=addBtn+`<div class="empty"><div class="big">📦</div><p><b>${t('no_purchases')}</b></p><p style="font-size:13px">${t('no_purchases_sub')}</p></div>`;return;}
@@ -14445,6 +14500,7 @@ function renderPurchases(keepFocus){
       String(p.supplier||'').toLowerCase().includes(q)
       ||String(p.billNo||'').toLowerCase().includes(q)
       ||String(p.desc||'').toLowerCase().includes(q)
+      ||String(Math.round(+p.total||0)).includes(q)      /* v368: search by the figure too */
       ||String(p.phone||'').includes(q)):all.slice();
   list=applySort(list,purSort,p=>p.date,p=>+p.total||0);
 
@@ -14457,7 +14513,7 @@ function renderPurchases(keepFocus){
     <span class="hint">${t('pur_count',{n:list.length})}</span>
     <span class="hint">${t('pur_spent')}: <b style="color:var(--txt)">${money(spent)}</b>${due>0?` · ${t('baaki')}: <b style="color:var(--bad)">${money(due)}</b>`:''}</span></div>`;
 
-  if(!list.length){el.innerHTML=addBtn+searchBox+`<div class="empty"><p>${t('inv_none_match')}</p></div>`;
+  if(!list.length){el.innerHTML=addBtn+searchBox+selRow+`<div class="empty"><p>${t('inv_none_match')}</p></div>`;
     if(keepFocus)focusPurSearch(); return;}
 
   const _pgAll=list; list=pageSlice('pur',list);
@@ -14475,10 +14531,25 @@ function renderPurchases(keepFocus){
       <b style="color:var(--bad)">${money(r2(sumDue))}</b></div>`:
       `<div class="kv" style="margin-top:2px"><span class="hint">${t('pur_sum_clear')}</span>
       <b style="color:var(--ok)">✓</b></div>`}</div>`:'';
-  el.innerHTML=addBtn+searchBox+summary+title+list.map(p=>{
-    const baaki=orderBaaki(p);
-    const sel=_purSel.has(p.id);
-    return `<div class="card ocard" style="${_purSelMode&&sel?'border-color:var(--saffron2);border-width:2px':''}" onclick="${_purSelMode?`purSelPick('${jq(p.id)}')`:`purchMenu('${jq(p.id)}')`}">
+  /* v368: the bill list now falls into months with a month total, exactly the way the
+     Sales list already reads — the same question ("what did I buy in June") answered the
+     same way in both places. Only on the two date sorts; by amount a month heading is
+     meaningless. */
+  el.innerHTML=addBtn+searchBox+selRow+summary+title
+    +((purSort==='new'||purSort==='old')?purMonthsHTML(list):list.map(purCardHTML).join(''))
+    +pageMoreBtn('pur',_pgAll.length)
+  + (_purSelMode&&_purSel.size?`<div class="save-dock">
+      <span class="hint" style="flex:1;padding-left:4px"><b>${_purSel.size}</b> ${t('fab_selected')}</span>
+      <button class="btn primary" onclick="purSelOpening()">📦 ${t('pur_mark_opening')}</button></div>`:'');
+  if(keepFocus)focusPurSearch();
+}
+function monthLabel(mk){ if(!mk||mk==='—')return '—';
+  const [y,m]=mk.split('-');
+  return new Date(+y,+m-1,1).toLocaleDateString('en-IN',{month:'long',year:'numeric'}); }
+function purCardHTML(p){
+  const baaki=orderBaaki(p);
+  const sel=_purSel.has(p.id);
+  return `<div class="card ocard" style="${_purSelMode&&sel?'border-color:var(--saffron2);border-width:2px':''}" onclick="${_purSelMode?`purSelPick('${jq(p.id)}')`:`purchMenu('${jq(p.id)}')`}">
       <div class="top"><div style="display:flex;gap:8px;align-items:flex-start;min-width:0">
         ${_purSelMode?`<span style="font-size:20px;line-height:1">${sel?'☑️':'⬜'}</span>`:''}
         <div style="min-width:0"><div class="ono">📦 ${esc(p.supplier)}</div>
@@ -14487,11 +14558,19 @@ function renderPurchases(keepFocus){
         <div class="deliv">${fmtDate(p.date)}</div></div>
       <div class="botrow"><span style="font-weight:800">${money(p.total)}</span>${p.noStock?`<span class="pill" style="background:var(--card2);color:var(--txt2)">📦 ${t('pur_opening_tag')}</span>`:''}${baaki>0?`<span style="font-size:12px;color:var(--bad);font-weight:700">${t('baaki')}: ${money(baaki)}</span>`:`<span class="pill st-delivered">✓ ${t('inv_paid')}</span>`}</div>
     </div>`;
-  }).join('')+pageMoreBtn('pur',_pgAll.length)
-  + (_purSelMode&&_purSel.size?`<div class="save-dock">
-      <span class="hint" style="flex:1;padding-left:4px"><b>${_purSel.size}</b> ${t('fab_selected')}</span>
-      <button class="btn primary" onclick="purSelOpening()">📦 ${t('pur_mark_opening')}</button></div>`:'');
-  if(keepFocus)focusPurSearch();
+}
+function purMonthsHTML(list){
+  const groups={};
+  (list||[]).forEach(p=>{ const mk=String(p.date||'').slice(0,7)||'—';
+    (groups[mk]=groups[mk]||[]).push(p); });
+  const keys=Object.keys(groups).sort(); if(purSort!=='old')keys.reverse();
+  return keys.map(mk=>{
+    const rows=groups[mk];
+    const tot=r2(rows.reduce((a,x)=>a+(+x.total||0),0));
+    return `<div class="section-h" style="display:flex;justify-content:space-between;align-items:baseline">${esc(monthLabel(mk))}
+      <span style="font-size:12px;font-weight:600;color:var(--txt2)">${t('pur_spent')}: <b style="color:var(--txt)">${money(tot)}</b></span></div>`
+      +rows.map(purCardHTML).join('');
+  }).join('');
 }
 /* v299 — HIS 24 Aug: "sabka pehle stock le raha hun, uske baad purchase bill bana raha
    hun, bill me quantity phir daal raha hun." Every bill in this shop is entered that way,
@@ -14884,10 +14963,11 @@ function estCustSearch(q){const box=$('#estCustResults'); if(!box)return;
   const hits=custHits(q);
   box.innerHTML=sugHead('saved_customers','estNewCust()')
     +(hits.length?hits.map(c=>custRowHTML(c,`estPickCust('${c.id}')`)).join('')
-      :`<p class="hint" style="margin:6px 0 0">${q?t('cust_none_q'):t('cust_none')}</p>`);}
+      :`<p class="hint" style="margin:6px 0 0">${q?t('cust_none_q'):t('cust_none')}</p>`)
+    +sugAddFoot('estNewCust()');}
 function estPickCust(id){const c=custById(id);if(!c)return;estCapture();_est.customerId=id;_est.customerName=c.name;_est.phone=c.phone;estimateRender();}
 function estNewCust(){estCapture();_est.customerId=null;const box=$('#estCustResults');if(box)box.innerHTML='';const p=$('#est_cphone');if(p)p.focus();}
-function estCapture(){const e=_est;if(!e)return;
+function estCapture(){const e=_est;if(!e)return
   if($('#est_cname'))e.customerName=$('#est_cname').value.trim();
   if($('#est_cphone'))e.phone=$('#est_cphone').value.trim();
   if($('#est_note'))e.note=$('#est_note').value.trim();}
@@ -14956,8 +15036,13 @@ function invNormItems(items){
   });
   return items;
 }
+/* v367: is this bill already a real bill, or the blank one a counter run just opened?
+   Everything about what happens AFTER save turns on that, so it is decided here, once,
+   from the record itself — not guessed at later. */
+let _invWasEdit=false;
 function openInvoiceForm(kind,id){
   if(!modOn('billing')){ toast(t('mod_off'),'bad'); return; }
+  { const r0=invRecOf(kind,id); _invWasEdit=!!(r0&&r0.invoice); }
   _place=null;   // v188: a bill opening after an order must never inherit its scroll
   const rec=invRecOf(kind,id); if(!rec)return;
   if(rec.invoice){ invForm=JSON.parse(JSON.stringify(rec.invoice)); invForm.kind=kind; invForm.id=id;
@@ -15048,7 +15133,20 @@ function renderInvoiceForm(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <datalist id="invStockList">${[...(DB.itemMaster||[]).map(m=>m.name),...(DB.fabItems||[]).map(f=>f.name)].filter(Boolean).map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
     <div class="pos-head">
-      <h2 style="margin:0">🧾 ${f.kind==='sale'?t('new_sale'):t('invoice')}</h2>
+      ${/* v367 — HIS 27 Aug, Phase 4: "invoice edit karna hai to... edit karne ka process
+           bahut hi weak hai." Measured, and the record itself was never in danger — the same
+           bill, same number, same payment, no duplicate. What was wrong is that the screen
+           said NEW INVOICE while he was editing #2853, so every edit felt like it was about
+           to make a second bill. It now says which bill he is changing. */''}
+      <h2 style="margin:0">🧾 ${(()=>{
+        /* v367: "editing" means a bill that is already saved with an invoice on it — not
+           merely a form that carries an id, because a fresh draft carries one too. */
+        const arr=f.kind==='order'?DB.orders:(f.kind==='alt'?DB.alterations:DB.sales);
+        const rec=f.id?(arr||[]).find(x=>x.id===f.id):null;
+        const editing=!!(rec&&rec.invoice);
+        return editing?(t('inv_edit')+(f.no?' #'+esc(f.no):''))
+                      :(f.kind==='sale'?t('new_sale'):t('invoice'));
+      })()}</h2>
       <span style="display:flex;align-items:center;gap:10px">
         <span class="hint">${f.kind==='sale'?'':'#'+esc(f.no)+' · '+fmtDate(f.date)}</span>
         <button class="btn sm ghost" onclick="invClose()">✕</button></span>
@@ -15906,7 +16004,8 @@ function invCustSearch(q){const box=$('#invCustResults'); if(!box)return;
   const hits=custHits(q);
   box.innerHTML=sugHead('saved_customers','invNewCustomer()')
     +(hits.length?hits.map(c=>custRowHTML(c,`invPickCustomer('${c.id}')`)).join('')
-      :`<p class="hint" style="margin:6px 0 0">${q?t('cust_none_q'):t('cust_none')}</p>`);}
+      :`<p class="hint" style="margin:6px 0 0">${q?t('cust_none_q'):t('cust_none')}</p>`)
+    +sugAddFoot('invNewCustomer()');}
 function invNewCustomer(){
   captureInvoiceForm();
   const nm=($('#inv_cname')&&$('#inv_cname').value.trim())||'';
@@ -15918,12 +16017,13 @@ function altCustSearch(q){const box=$('#altCustResults'); if(!box)return;
   const hits=custHits(q);
   box.innerHTML=sugHead('saved_customers','altNewCustomer()')
     +(hits.length?hits.map(c=>custRowHTML(c,`altPickCustomer('${c.id}')`)).join('')
-      :`<p class="hint" style="margin:6px 0 0">${q?t('cust_none_q'):t('cust_none')}</p>`);}
+      :`<p class="hint" style="margin:6px 0 0">${q?t('cust_none_q'):t('cust_none')}</p>`)
+    +sugAddFoot('altNewCustomer()');}
 /* v321 — HIS 25 Aug: tapping New here cleared the list, moved the cursor and said nothing,
    so a new employee had no way of knowing whether it had registered. The order and the
    bill both say it; this now says the same thing, in the same words. */
 function altNewCustomer(){
-  const nm=(($('#a_cname')||{}).value||'').trim();
+  const nm=(($('#a_cname')||{}).value||'').trim()
   const box=$('#altCustResults'); if(box)box.innerHTML=`<p class="hint" style="padding:6px 0">${t('cust_new_hint')}</p>`;
   if(altForm)altForm.customerId=null;
   const ph=$('#a_cphone'); if(ph)ph.focus();
@@ -16263,7 +16363,19 @@ function saveInvoice(){
      A bill opened FROM an order or an alteration is a one-off, not a run, so those keep
      the old preview — there is no next bill to rush to. */
   toast(t('t_invoice_saved'),'ok');
-  if(f.kind==='sale'){ posDone(f.id); saleFormNext(); return; }
+  /* v367 — HIS 27 Aug, Phase 4: "invoice #2853, Mahesh Ji ko Dimple Ji kiya... no blank New
+     Invoice screen should be opened after Save."
+     Measured, and he was describing a real one. A counter run wants the next blank bill the
+     instant this one is saved — that is what saleFormNext does, and it is right for a run.
+     But it also PUSHES a fresh empty sale row into DB.sales to hold that next bill, and it
+     was running after an EDIT too. So correcting a customer's name left a phantom record
+     behind every single time, and dropped him on a blank form instead of the bill he had
+     just corrected. Editing an existing bill is not a run. It ends where it started. */
+  if(f.kind==='sale' && !_invWasEdit){ posDone(f.id); saleFormNext(); return; }
+  if(f.kind==='sale'){                      /* an edit: go back to the bill he was fixing */
+    closeSheet(); invQ=''; invSort='new'; go('invoices');
+    openInvoicePreview('sale',f.id); return;
+  }
   closeSheet();
   invQ=''; invSort='new';
   go('invoices');                       // the new bill is right there when you close the preview
@@ -17352,7 +17464,8 @@ function renderInvoices(keepFocus){
   const el=$('#invList');
   const all=allInvoices();
   const head=`<div class="row" style="margin-bottom:12px;gap:8px">
-    <button class="btn primary block" onclick="openSaleForm()">+ ${t('new_sale')}</button>
+    <button class="btn primary" style="flex:1" onclick="openSaleForm()">+ ${t('new_sale')}</button>
+    <button class="btn ghost" style="flex:0 0 48px" title="${t('hub_more')}" onclick="saleHub()">⋯</button>
     </div>`;
 
   if(!all.length){ el.innerHTML=head+`<div class="empty"><div class="big">🧾</div><p><b>${t('no_invoices')}</b></p><p style="font-size:13px">${t('no_invoices_sub2')}</p></div>`; return; }
@@ -17363,7 +17476,8 @@ function renderInvoices(keepFocus){
     const nm=String(x.rec.customerName||'').toLowerCase();
     const ph=String(x.rec.phone||'');
     const ref=String(x.rec.orderNo||x.rec.altNo||'').toLowerCase();
-    return no.includes(q)||nm.includes(q)||ph.includes(q)||ref.includes(q);
+    const amt=String(Math.round(invCompute(x.inv).total||0));   /* v368: search by figure */
+    return no.includes(q)||nm.includes(q)||ph.includes(q)||ref.includes(q)||amt.includes(q);
   }):all;
 
   const searchBox=`<div class="field" style="margin-bottom:10px">
@@ -17806,10 +17920,11 @@ function puSupSug(){
   list=list.slice(0,6);
   if(q&&list.length===1&&list[0].name.toLowerCase()===q){box.innerHTML='';return;}
   box.innerHTML=sugHead('saved_suppliers','puNewSupplier()')
-    +(list.length?list.map(x=>{const b=supBalance(x.name);
+    +(list.length?list.map(x=>{const b=supBalance(x.name)
     return `<div class="cust-result" style="margin-top:7px" onclick="puPickSup('${jq(x.name).replace(/'/g,"\\'")}')">
       <div><b>${esc(x.name)}</b><div class="hint">${esc(x.phone||'')}${b?` · ${balArrow(-b)}`:''}</div></div>
-      <span class="btn sm primary">${t('select')}</span></div>`;}).join('')
+      <span class="btn sm primary">${t('select')}</span></div>`
+    +sugAddFoot('puNewSupplier()');}).join('')
       :`<p class="hint" style="margin:6px 0 0">${q?t('sup_none_q'):t('sup_none')}</p>`);
 }
 function puNewSupplier(){
@@ -18900,10 +19015,11 @@ function poSupSearch(q){
     +(list.length?list.map(x=>`<div class="cust-result" style="margin-top:7px" onclick="poPickSup('${esc1(x.name)}','${esc1(x.phone||'')}')">
         <div><b>${esc(x.name)}</b><div class="hint">${esc(x.phone||'')}</div></div>
         <span class="btn sm primary">${t('select')}</span></div>`).join('')
-      :`<p class="hint" style="margin:6px 0 0">${q?t('sup_none_q'):t('sup_none')}</p>`);}
+      :`<p class="hint" style="margin:6px 0 0">${q?t('sup_none_q'):t('sup_none')}</p>`)
+    +sugAddFoot('poNewSup()');}
 function poPickSup(name,phone){poCapture();_po.supplier=name;if(phone)_po.phone=phone;poRender();}
 function poNewSup(){poCapture();const box=$('#poSupResults');if(box)box.innerHTML='';const p=$('#po_phone');if(p)p.focus();}
-function poCapture(){const p=_po;if(!p)return;
+function poCapture(){const p=_po;if(!p)return
   if($('#po_sup'))p.supplier=$('#po_sup').value.trim();
   if($('#po_phone'))p.phone=$('#po_phone').value.trim();
   if($('#po_note'))p.note=$('#po_note').value.trim();}
@@ -19459,6 +19575,14 @@ function bsFigures(from,to){
   (DB.purchases||[]).forEach(pu=>{ creditors=r2(creditors+orderBaaki(pu)); });
   creditors=r2(creditors+openingPartyTotal('supplier','out'));   /* v312: see the note on
     openingPartyTotal — this used to depend on the supplier having a purchase bill */
+  /* v366 — HIS 27 Aug: "₹2,20,798 I have to pay... paisa pata hi nahi kahan se aaya, kya
+     aaya." Meghraj Parasmal's old balance had been filed under the kind 'other', and only
+     'supplier' was ever counted here. So the shop owed him two and a quarter lakh, the party
+     card said so plainly, and the balance sheet and the payables list both showed nothing.
+     Money that is owed is owed whatever label the row carries. An opening that says money
+     goes OUT is a creditor; one that says it comes IN is a debtor. Karigar and staff keep
+     their own lines below, so they are left out of this one. */
+  creditors=r2(creditors+openingPartyTotal('other','out'));
   /* v305: a debit note the supplier has not yet settled reduces what is owed him */
   creditors=r2(creditors-purRetFigures('',to).unref);
   /* v305: once the debit notes exceed what is still owed — he had paid up front and then
@@ -22926,8 +23050,8 @@ function obsCapGap(){
     (DB.ledger||[]).filter(l=>l.refKind==='opening'&&pkNorm(l.partyKind)===pkNorm(kind)&&l.dir===dir)
       .forEach(l=>{ const nm=pkNorm(l.party); if(!nm||seen[nm])return; seen[nm]=1; v=r2(v+(+l.amt||0)); });
     return v; };
-  assets=r2(assets+raw('customer','in'));
-  liabs=r2(liabs+raw('supplier','out'));
+  assets=r2(assets+raw('customer','in')+raw('other','in'));
+  liabs=r2(liabs+raw('supplier','out')+raw('other','out'));
   liabs=r2(liabs+(o.loans||[]).filter(x=>x.kind!=='personal').reduce((a,x)=>r2(a+(+x.amt||0)),0));
   const should=r2(assets-liabs);
   return {should, gap:r2(should-(+o.capital||0))};
@@ -23149,22 +23273,61 @@ function partiesHome(){
   showSheet();
 }
 function ptySearch(v){ _ptyQ=String(v||''); const el=$('#ptyList'); if(el)el.innerHTML=partiesRows(); }
+/* v366 — HIS 27 Aug: "creditors hone chahiye neeche... creditors me jisko paisa dena hai
+   unka ledger dikhna chahiye, debtors me jinse paisa lena hai unka."
+   Right — an accountant does not keep one list of everybody. Two headings, the money owed
+   and the money owing, each name under the correct one, and anyone with no balance at the
+   foot. Same rows, same taps, same data: only sorted the way the books are read. */
 function partiesRows(){
   const q=pkNorm(_ptyQ);
   let who=peopleAll();
   if(q)who=who.filter(p=>pkNorm(p.name).indexOf(q)>=0);
   if(!who.length)return `<p class="hint" style="padding:20px 4px;text-align:center">${t('pty_none')}</p>`;
+  /* One man can sit in the books under more than one hat — an opening typed as 'supplier',
+     a bill raised as 'customer'. Which side of the ledger he lands on is decided by his
+     name across all of them, not by whichever single hat this row happens to carry. */
+  const net=p=>{
+    let v=0;
+    ['supplier','customer','other','karigar','staff'].forEach(k=>{
+      const st=openingState(p.name,k);
+      if(st&&st.left)v=r2(v+((st.dir==='out')?-st.left:st.left));
+      v=r2(v+partyBalance(p,k)+partyBillFlow(p,k));
+    });
+    return v; };                                  /* minus = I owe, plus = owed to me */
+  const cred=who.filter(p=>net(p)<0).sort((a,b)=>net(a)-net(b));
+  const debt=who.filter(p=>net(p)>0).sort((a,b)=>net(b)-net(a));
+  const flat=who.filter(p=>!net(p));
+  const sum=list=>list.reduce((a,p)=>a+Math.abs(net(p)),0);
+  const head=(ico,lbl,n,amt,col)=>`<div class="kv" style="padding:10px 2px 4px">
+    <span class="dl-hd" style="padding:0">${ico} ${lbl} <span class="hint">(${n})</span></span>
+    <b style="color:${col}">${money(r2(amt))}</b></div>`;
+  const block=(list)=>list.map(rowOf).join('');
+  const out=[];
+  if(cred.length)out.push(head('📤',t('pty_cred'),cred.length,sum(cred),'var(--bad)')+block(cred));
+  if(debt.length)out.push(head('📥',t('pty_debt'),debt.length,sum(debt),'var(--ok)')+block(debt));
+  if(flat.length)out.push(head('▫️',t('pty_flat'),flat.length,0,'var(--mut)')+block(flat));
+  return out.join('');
+}
+function rowOf(p){
+  return (function(who){
   return who.map(p=>{
-    const st=openingState(p.name,p.kind);
-    const bal=r2(partyBalance(p,p.kind)+partyBillFlow(p,p.kind));
+    /* v366: the row said "No opening" for a man who plainly had one, because it looked
+       under one hat only. Same rule as the sorting above — go by his name. */
     const bits=[];
-    if(st&&st.left)bits.push(`<span style="color:${st.dir==='out'?'var(--bad)':'var(--ok)'}">${t('pty_open')} ${money(st.left)}</span>`);
+    let bal=0, openLeft=0, openDir='';
+    ['supplier','customer','other','karigar','staff'].forEach(k=>{
+      const st=openingState(p.name,k);
+      if(st&&st.left && !openLeft){ openLeft=st.left; openDir=st.dir; }
+      bal=r2(bal+partyBalance(p,k)+partyBillFlow(p,k));
+    });
+    if(openLeft)bits.push(`<span style="color:${openDir==='out'?'var(--bad)':'var(--ok)'}">${t('pty_open')} ${money(openLeft)}</span>`);
     if(bal)bits.push(`${money(Math.abs(bal))} ${bal<0?t('ob_pay'):t('ob_get')}`);
     return `<div class="cust-result" style="margin-bottom:6px" onclick="partyCard('${jq(p.name)}','${jq(p.kind)}')">
       <div style="min-width:0;flex:1"><b>${PK_ICON[p.kind]||''} ${esc(p.name)}</b>
         <div class="hint">${bits.join(' \u00B7 ')||t('pty_open_none')}</div></div>
       <span style="color:var(--saffron2)">\u203A</span></div>`;
   }).join('');
+  })([p]);
 }
 
 /* ── one person, one hat ── */
@@ -25541,6 +25704,21 @@ let _undo=null, _undoT=null;
    One helper, wired into the forms he actually lives in. It never steals focus from a
    filled form (re-opening a saved bill must not throw a keyboard in his face) and never
    fires on a screen he only came to read. */
+/* v365 — the second half of his cursor problem. Stopping fastForm from grabbing focus was
+   not enough: expRender() rewrites the whole sheet, so the box he is typing in is destroyed
+   and a fresh one put in its place. Focus can be handed back, but the caret starts at zero —
+   which is why his letters came out reversed: "Cre" then "d" inserted at the front gave
+   "dCre". Remember where he was, and put him back exactly there. */
+function keepCaret(fn){
+  const a=document.activeElement;
+  const id=a&&a.id, s=(a&&a.selectionStart), e=(a&&a.selectionEnd);
+  const wasField=!!(a&&/^(INPUT|TEXTAREA)$/.test(a.tagName||'')&&id);
+  fn();
+  if(!wasField)return;
+  const el=document.getElementById(id); if(!el)return;
+  try{ el.focus({preventScroll:true});
+    if(typeof s==='number' && el.setSelectionRange)el.setSelectionRange(s,e); }catch(x){}
+}
 function fastForm(rootSel, opts){
   opts=opts||{};
   setTimeout(()=>{
@@ -25563,6 +25741,19 @@ function fastForm(rootSel, opts){
       });
     });
     if(opts.noFocus)return;
+    /* v365 — HIS 27 Aug: "cursor idhar udhar bhaag raha hai, stable hi nahi... kuch item
+       apne aap select ho ja raha hai... spelling hi nahi aa rahi."
+       This was it. fastForm is called from the bottom of expRender, and expRender runs from
+       twenty-three places — every chip tap, every head change, every party pick. Each run
+       waited 120ms and then took the cursor to the first empty box and SELECTED its text.
+       So while he was typing a head name, a re-render would fire underneath him, the caret
+       would jump, his text would come up highlighted, and the next letter would wipe what
+       he had typed. That is exactly the mess he described, and it is mine.
+       The opening cursor is a convenience for a form that has just opened. If he is already
+       typing in that form, it must not touch him. */
+    const busy=document.activeElement;
+    if(busy && root.contains(busy) &&
+       /^(INPUT|TEXTAREA|SELECT)$/.test(busy.tagName||''))return;   /* he is already typing */
     const first=fields.find(e=>!String(e.value||'').trim() && e.type!=='date');
     if(first){ first.focus(); if(first.select)try{first.select();}catch(x){} }
   }, opts.delay||120);
