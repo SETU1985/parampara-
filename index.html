@@ -134,6 +134,9 @@
      199px, and the pair ran to 430px on a 390px screen. min-width:0 was set on the wrapper
      but never on the field inside it, so each input kept its intrinsic width and the row
      simply overflowed. */
+  /* v357: a door, not a statistic — big enough for a thumb on a busy morning */
+  .home-big{display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:4px;padding:16px 12px;margin-bottom:10px;border-color:var(--saffron2)}
   .cust-2col{display:flex;gap:8px}
   .cust-2col>div{flex:1;min-width:0}
   .cust-2col input{width:100%;min-width:0;box-sizing:border-box}
@@ -141,6 +144,9 @@
   .bold-in{font-weight:700}
   .linked-chip{display:inline-block;background:rgba(224,138,26,.12);border:1px solid var(--saffron);
     color:var(--saffron2);font-size:12.5px;font-weight:800;padding:6px 12px;border-radius:20px;margin-bottom:10px}
+  /* v358: a tile that is already on the bill says so, and says how many */
+  .pos-tile.picked{border-color:var(--saffron);background:rgba(224,150,58,.10)}
+  .pos-on{position:absolute;top:3px;left:5px;font-size:10px;font-weight:800;color:var(--saffron2)}
   .pos-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:7px;margin-bottom:6px}
   .bf-l1{display:flex;gap:6px;margin-bottom:6px}
   .bf-l1 input{width:100%;min-width:0}
@@ -149,7 +155,7 @@
   .bf-cam.has{border-color:var(--saffron);color:var(--saffron2)}
   .pos-tile{background:var(--card2);border:1px solid var(--line2);border-radius:10px;padding:7px 8px;text-align:center;
     cursor:pointer;user-select:none;transition:transform .08s,background .15s;min-height:42px;
-    display:flex;flex-direction:column;justify-content:center;gap:2px}
+    display:flex;flex-direction:column;justify-content:center;gap:2px;position:relative}
   .pos-tile:active{transform:scale(.95);background:var(--saffron);color:#1a1206}
   .pos-tile b{font-size:12px;font-weight:700;line-height:1.2}
   .pos-tile span{font-size:10px;color:var(--saffron2);font-weight:700}
@@ -775,7 +781,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v356</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v360</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1071,6 +1077,10 @@ const T={
   sr_saved:'Sales return saved — stock updated',
   sr_capped:'Reduced to what the bill still has left to return',
   sr_nothing_left:'This bill has already been returned in full',
+  del_has_pay:'This bill has {n} payment(s) on it — {amt} received.',
+  del_has_pay_how:'Remove the payment first, then the bill can be deleted. Open the bill to do that.',
+  del_has_order:'This bill belongs to order #{n}.',
+  del_has_order_how:'Unlink the order on the bill first, then it can be deleted.',
   del_with_returns:'This bill has {n} return(s). Deleting removes those too, and stock is set right.',
   pr_menu:'Purchase return',
   pr_title:'Purchase return',
@@ -1337,6 +1347,11 @@ const T={
   add_member_next:'Add next person', add_member_hint:'For a family or group order — measurements for the first person are done.',
   home_layout:'Home layout', home_layout_new:'New', home_layout_old:'Old',
   ontime_title:'Delivery record', ontime_sub:'Kept or missed, against the date promised.',
+  hb_report:'Reports to send', td_perf:"Today's performance",
+  rp_no_one:'No number for this report', rp_sent:'Opening WhatsApp for {n}',
+  rp_no_one_msg:'Save a number first — then this button sends it in one tap.',
+  hb_send:'Send', hb_send_to:'One tap to {n}', hb_no_number:'No number saved — tap Send to add one',
+  hb_add_number:'Add a number first',
   hb_title:'What shows on Home', hb_money:'Money tiles', hb_backup:'Backup reminder',
   hb_shown:'On', hb_hidden:'Off',
   hb_hint:'Tap a block to put it on Home or take it off. Nothing is deleted — everything stays reachable from All screens.',
@@ -2182,6 +2197,7 @@ const T={
   mod_saved:'Modules updated',
   bk_never:'No backup taken yet — your data lives only on this device',
   kpi_cash:'Cash + bank', kpi_due_today:'Due today', kpi_debtors:'To collect', kpi_today_sale:'Today\'s sale',
+  qr_newsale:'New bill',
   qr_payout:'Payment out',
   qr_payin:'Payment in', qr_exp:'Expense', qr_status:'Status',
   home_classic:'Old home', home_new_view:'New home',
@@ -2673,6 +2689,10 @@ const T={
   sr_saved:'बिक्री वापसी सहेजी — स्टॉक अपडेट',
   sr_capped:'बिल में जितना बचा था उतना ही लिया गया',
   sr_nothing_left:'इस बिल का पूरा माल पहले ही वापस हो चुका है',
+  del_has_pay:'इस बिल पर {n} भुगतान है — {amt} मिला हुआ।',
+  del_has_pay_how:'पहले भुगतान हटाएँ, फिर बिल मिटेगा। बिल खोलकर हटा सकते हैं।',
+  del_has_order:'यह बिल ऑर्डर #{n} का है।',
+  del_has_order_how:'पहले बिल से ऑर्डर हटाएँ, फिर यह मिट सकेगा।',
   del_with_returns:'इस बिल की {n} वापसी हैं। हटाने पर वे भी हटेंगी, और स्टॉक ठीक हो जाएगा।',
   pr_menu:'खरीद वापसी',
   pr_title:'खरीद वापसी (Purchase Return)',
@@ -2938,6 +2958,11 @@ const T={
   add_member_next:'और व्यक्ति जोड़ें', add_member_hint:'परिवार या ग्रुप ऑर्डर के लिए — पहले व्यक्ति की नाप हो चुकी है।',
   home_layout:'होम का लेआउट', home_layout_new:'नया', home_layout_old:'पुराना',
   ontime_title:'Delivery record', ontime_sub:'Kept or missed, against the date promised.',
+  hb_report:'भेजने वाली रिपोर्ट', td_perf:'आज का काम',
+  rp_no_one:'इस रिपोर्ट के लिए कोई नंबर नहीं', rp_sent:'{n} के लिए व्हाट्सएप खुल रहा है',
+  rp_no_one_msg:'पहले नंबर सेव करें — फिर ये बटन एक टैप में भेज देगा।',
+  hb_send:'भेजें', hb_send_to:'एक टैप में {n} को', hb_no_number:'कोई नंबर नहीं — भेजें दबाकर जोड़ें',
+  hb_add_number:'पहले एक नंबर जोड़ें',
   hb_title:'होम पर क्या दिखे', hb_money:'पैसे के टाइल', hb_backup:'बैकअप याद दिलाना',
   hb_shown:'चालू', hb_hidden:'बंद',
   hb_hint:'किसी हिस्से को दबाकर होम पर लगाएँ या हटाएँ। कुछ मिटता नहीं — सब कुछ All screens से मिलता रहेगा।',
@@ -3783,6 +3808,7 @@ const T={
   mod_saved:'मॉड्यूल अपडेट हुए',
   bk_never:'अभी तक बैकअप नहीं लिया — डेटा सिर्फ़ इसी डिवाइस में है',
   kpi_cash:'कैश + बैंक', kpi_due_today:'आज देना है', kpi_debtors:'वसूली बाकी', kpi_today_sale:'आज की बिक्री',
+  qr_newsale:'नया बिल',
   qr_payout:'पैसा गया',
   qr_payin:'पैसा आया', qr_exp:'ख़र्च', qr_status:'स्टेटस',
   home_classic:'पुराना होम', home_new_view:'नया होम',
@@ -7349,7 +7375,7 @@ function payEntry(dir,skipAsk){
 }
 
 /* ---------------- EXPENSES ---------------- */
-let _exp=null, _expFrom='', _expTo='';
+let _exp=null, _expFrom='', _expTo='', _expOldFirst=false;
 /* v232 — HIS 20 Aug: "ye kya hai, kitna scroll karun? Kyon karun? Mujhe lagta hai ek
    search bar hone se hi kaam ho jayega."
    He is right, and the fault was mine: this screen opened with fourteen head totals and
@@ -7378,7 +7404,13 @@ function expenses(keepQ){
   if(!keepQ){ _expQ=''; _expFrom=null; _expTo=null; _expCatsAll=false; }
   const from=_expFrom||monthStart(), to=_expTo||todayISO();
   const all=(DB.ledger||[]).filter(l=>l.refKind==='expense'&&l.date>=from&&l.date<=to)
-    .sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+    /* v360 — HIS 27 Aug: "bank ka statement 1 April se aaj tak dikha raha hai aur mera
+       expense aaj se 1 April — baar baar scroll karna padta hai." He is reconciling two
+       lists side by side; they have to run the same way. Newest-first is right for a quick
+       look at today, oldest-first is right for tying out a statement, so he picks. */
+    .sort((a,b)=>_expOldFirst
+      ? String(a.date).localeCompare(String(b.date))
+      : String(b.date).localeCompare(String(a.date)));
   const list=all.filter(l=>expMatch(l,_expQ));
   const total=r2(list.reduce((s,l)=>s+l.amt,0));
   const byCat={};
@@ -7400,7 +7432,13 @@ function expenses(keepQ){
         <input type="date" value="${to}" onchange="_expTo=this.value;expenses(true)"></div></div>
     <button class="btn primary block" style="margin-bottom:10px" onclick="expEdit()">➕ ${t('exp_add')}</button>
     <input id="expQ" value="${esc(_expQ)}" placeholder="🔍 ${t('exp_search_ph')}"
-      autocomplete="off" oninput="expSearch(this.value)" style="margin-bottom:10px">
+      autocomplete="off" oninput="expSearch(this.value)" style="margin-bottom:8px">
+    <div class="gtags" style="margin-bottom:10px">
+      <span class="gtag" style="cursor:pointer" onclick="_expOldFirst=!_expOldFirst;expenses(true)">
+        ${_expOldFirst?'🕐 '+t('srt_old'):'🕐 '+t('srt_new')} ⇅</span>
+      ${(!_expFrom&&!_expTo)?`<span class="gtag" style="cursor:pointer"
+        onclick="_expFrom=fyStart();_expTo=todayISO();expenses(true)">${t('bs_fy')}</span>`:''}
+    </div>
     <div class="card pos-total" style="margin-bottom:12px">
       <div class="sum-row grand" style="border-top:none;padding-top:0">
         <span>${t('exp_total')}${_expQ?' · '+list.length:''}</span>
@@ -7573,7 +7611,7 @@ function expRender(){
          keeps the date, the head and the account — only the amount, name and note change —
          so an old book goes in at the speed he can read it. */''}
     <div class="modal-actions">
-      <button class="btn ghost" onclick="expenses()">${t('cancel')}</button>
+      <button class="btn ghost" onclick="expenses(true)">${t('cancel')}</button>
       ${d.id?`<button class="btn danger" onclick="expDel('${d.id}')">🗑️</button>`:''}
       ${d.id?'':`<button class="btn ghost" style="flex:1" onclick="expSave(true)">➕ ${t('exp_save_next')}</button>`}
       <button class="btn primary" style="flex:2" onclick="expSave()">${t('save')}</button></div>
@@ -7884,7 +7922,11 @@ function expSave(next){ expCapture(); const d=_exp;
     toast('✅ '+t('t_saved'),'ok');
     return;
   }
-  toast(t('t_saved'),'ok'); expenses();
+  /* v360 — HIS 27 Aug: he sets 1–30 April to tie the expenses to a bank statement, fixes a
+     wrong head, saves — and the range snaps back to this month, so he has to set it again
+     before every single correction. expenses() clears the filter unless it is told to keep
+     it; saving is exactly the moment it must be kept. */
+  toast(t('t_saved'),'ok'); expenses(true);
 }
 /* v222 — HIS 19 Aug: "kharche ki entry maar raha hun to yahin se ho jaye aur uske ledger
    par chala jaye." Right, and it was half-broken: an expense against Waseem carried his
@@ -7919,7 +7961,7 @@ function expSaveMulti(next){
   if(next){ _expML=[{name:'',amt:''},{name:'',amt:''}];
     _exp={...d, id:null, amt:'', note:''}; expRender();
     setTimeout(()=>{const e=$('#eml_n0'); if(e)e.focus();},60); return; }
-  _expML=[]; _expMLOn=false; expenses();
+  _expML=[]; _expMLOn=false; expenses(true);
 }
 function expSyncKarigar(lid){
   if(!lid)return;
@@ -7935,7 +7977,7 @@ function expSyncKarigar(lid){
 function expDel(id){ confirmModal(t('confirm_del'),t('confirm_del_msg'),()=>{
   DB.ledger=(DB.ledger||[]).filter(l=>l.id!==id);
   DB.karigarPays=(DB.karigarPays||[]).filter(p=>p.id!=='exp:'+id);   // v222: mirror goes with it
-  save(); expenses(); toast(t('t_deleted'));});}
+  save(); expenses(true); toast(t('t_deleted'));});}
 function pickExpPhoto(src){ expCapture(); photoTarget={type:'exp'};
   const inp=src==='cam'?$('#filePickCam'):$('#filePick'); inp.value=''; inp.click(); }
 async function renderExpPhotos(){ const el=$('#ex_photos'); if(!el)return; el.innerHTML='';
@@ -8280,6 +8322,67 @@ function salesCommText(from,to){
   L.push('');
   L.push(pct+'% '+t('td_comm')+': '+money(amt));
   return L.join('\n');
+}
+/* v357 — one tap when there is one person to send to, a short pick when there is more
+   than one. Sending the day's takings to the wrong number is not a mistake worth risking
+   for the sake of saving a tap, so it only goes straight through when the choice is
+   unambiguous. */
+function sendReport(kind){
+  const list=(DB.reportTo||[]).filter(x=>x&&x.phone&&(x.kind||'daily')===kind);
+  if(!list.length){
+    confirmModal(t('rp_no_one'), t('rp_no_one_msg'), ()=>{ closeModal(); reportToEdit(); },
+      closeModal, {yes:t('td_manage_numbers'), no:t('cancel')});
+    return;
+  }
+  if(list.length===1){ todayWAsend(list[0], kind); return; }
+  modal('📤 '+t('td_send'),
+    list.map((x,i)=>`<button class="btn ghost block" style="margin-bottom:8px;text-align:left"
+      onclick="closeModal();todayWAsend((DB.reportTo||[]).filter(function(y){return y&&y.phone&&(y.kind||'daily')==='${kind}';})[${i}],'${kind}')">
+      <b>${esc(x.name||x.phone)}</b><div class="hint">${esc(x.phone)}</div></button>`).join(''), []);
+}
+function todayWAsend(x,kind){
+  if(!x)return;
+  let txt;
+  if(kind==='sales'){ txt=salesCommText(monthStart(),todayISO()); }
+  else if(kind==='salesday'){ txt=salesDayText(); }
+  else txt=todayText();
+  const ph=String(x.phone||'').replace(/[^0-9]/g,'');
+  const num=ph.length===10?('91'+ph):ph;
+  try{ window.open('https://wa.me/'+num+'?text='+encodeURIComponent(txt),'_blank');
+    toast(t('rp_sent',{n:x.name||x.phone}),'ok'); }
+  catch(e){ toast(t('wa_fail'),'bad'); }
+}
+/* Reading the same sheet before it goes out. */
+function salesDayView(){
+  sheetAt(salesDayView);
+  const d=todayISO();
+  const inv=allInvoices().filter(x=>String(x.inv.date||'')===d)
+    .sort((a,b2)=>String(a.inv.no||'').localeCompare(String(b2.inv.no||''),undefined,{numeric:true}));
+  let tot=0,got=0,due=0;
+  const rows=inv.map(x=>{
+    const k=invCompute(x.inv), amt=r2(k.total||0);
+    const paid=r2(orderReceived(x.rec)), bal=r2(Math.max(0,amt-paid));
+    tot=r2(tot+amt); got=r2(got+paid); due=r2(due+bal);
+    return `<div class="il" style="cursor:pointer" onclick="closeSheet();openInvoicePreview('${x.kind}','${jq(x.rec.id)}')">
+      <span><b>#${esc(x.inv.no||'—')}</b>
+        <div class="hint">${esc(x.rec.customerName||'—')}</div></span>
+      <span style="text-align:right"><b>${money(amt)}</b>
+        <div class="hint">${paid?t('td_got')+' '+money(paid):''}${bal?' · '+t('td_due')+' '+money(bal):''}</div></span></div>`;
+  }).join('');
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">🧾 ${t('td_sales_day')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
+    <p class="hint" style="margin-bottom:12px">${fmtDate(d)}</p>
+    ${inv.length?`<div class="card" style="padding:12px 14px;margin-bottom:10px">${rows}
+      <div class="il" style="font-weight:800;border-top:1px solid var(--line);margin-top:4px;padding-top:6px">
+        <span>${t('td_bills_n',{n:inv.length})}</span><span>${money(tot)}</span></div>
+      <div class="il"><span class="hint">${t('td_got')}</span><span>${money(got)}</span></div>
+      <div class="il"><span class="hint">${t('td_due')}</span>
+        <span style="color:${due?'var(--bad)':'var(--ok)'}">${money(due)}</span></div>
+    </div>`:`<div class="empty" style="padding:26px 10px"><p>${t('td_no_bills')}</p></div>`}
+    <button class="btn primary block" onclick="sendReport('salesday')">📤 ${t('td_send')}</button>
+    <div class="fab-pad"></div>`;
+  showSheet();
 }
 function todaySend(){
   const list=(DB.reportTo||[]).filter(x=>x&&x.phone);
@@ -10619,7 +10722,12 @@ function homeClassicToggle(){
    tap away on the manage screen, so a wrong edit is never a trap. */
 const QR_ALL=[
   ['order','👔','qr_order',"openOrderForm()",null],
-  ['sale','🧾','qr_sale',"openSaleForm()",'billing'],
+  /* v359 — HIS 27 Aug: "home screen par sale par click kiya to sale ke saare bill khul
+     jayein... roz dekhna hi hota hai, edit karna hai, print karwana hai." The chip opened a
+     blank new bill, so the list — the thing he goes to every day — had no door on Home at
+     all. The list opens; the list's own "+ New sale" button makes a bill. */
+  ['sale','🧾','qr_sale',"go('invoices')",'billing'],
+  ['newsale','➕','qr_newsale',"openSaleForm()",'billing'],
   ['purchase','🚚','qr_purchase',"openPurchaseForm()",'billing'],
   ['payin','💵','qr_payin',"payEntry('in')",null],
   /* v350: Expense is no longer its own door. Every rupee leaving the shop now goes through
@@ -10811,8 +10919,11 @@ const HOME_BLOCKS=[
   ['deliver','🚚','hd_deliver'],
   ['work','🧵','hd_work'],
   ['attend','👥','pn_title'],
+  ['report','📤','hb_report'],
   ['backup','🛟','hb_backup']
 ];
+/* One row: open the report, or send it. If exactly one person is set up for that report
+   the send goes straight to him; if several, he picks. */
 function homeCfg(){
   DB.homeCfg=DB.homeCfg||{};
   /* v356 — HIS 27 Aug: "mera home mere hisab se set karna, usko blank mat kar dena. Hum
@@ -10821,7 +10932,11 @@ function homeCfg(){
      left the work we did behind a switch. The default IS the considered layout — every
      block we argued out and built, attendance included. A shop that wants less can now
      take blocks off; nobody has to go hunting for what was already decided. */
-  if(!Array.isArray(DB.homeCfg.hidden))DB.homeCfg.hidden=[];
+  /* v357 — HIS 27 Aug: "work in hand ko home screen par nahi bhi denge to chalega, uski
+     jagah attendance ka bada sa de den. Work in hand vagairah job worker me chala jaye."
+     Off by default, still one tap away in Job work and on the Today → Work tab, and one
+     tap to put back. */
+  if(!Array.isArray(DB.homeCfg.hidden))DB.homeCfg.hidden=['work'];
   return DB.homeCfg;
 }
 function homeOn(k){ return homeCfg().hidden.indexOf(k)<0; }
@@ -10937,6 +11052,7 @@ function renderHome(){
            earns its place instead of holding it: it appears only while something is
            actually pending and disappears at zero. Starting one still belongs where the
            garment is — inside the order, or on the + menu for a walk-in. */
+        if(!homeOn('alterations'))return '';
         const pend=(DB.alterations||[]).filter(a=>(a.status||'received')!=='delivered').length;
         if(!pend)return '';
         return `<div class="card dl-card">
@@ -10954,15 +11070,32 @@ function renderHome(){
       </div>`:''}
       ${/* v355: attendance is back — off by default, on the moment he wants it, and the
            count is live rather than the stale one v215 had to fix. */''}
-      ${(homeOn('attend')&&modOn('staff')&&staffAll().filter(x=>!x.left).length)?(()=>{
-        const stf=staffAll().filter(x=>!x.left), d2=todayISO();
-        const inN=stf.filter(x=>{const a=attGet(x.id,d2);return a&&a.in;}).length;
-        return `<div class="card dl-card">
-          <div class="dl-hd">👥 ${t('pn_title')}</div>
-          <div class="dl-row tappable" onclick="staffPunch()">
-            <span class="dl-ico">👥</span><span class="dl-lbl">${t('pn_came')}</span>
-            <span class="dl-n">${inN}/${stf.length}</span><span class="dl-go">›</span></div>
-        </div>`; })():''}
+      ${/* v357 — HIS 27 Aug: "attendance ke attempt me jo kuch likha hua hai wo nahi chahiye.
+           Khali attendance ko click karo to saare staff ka punching aa jaye." He is right —
+           a count of who has clocked in is not a thing to read on Home, it is a thing to
+           DO, and reading it there only made him tap it to change it anyway. One big plain
+           door to the punch sheet, no figure to interpret. */''}
+      ${(homeOn('attend')&&modOn('staff')&&staffAll().filter(x=>!x.left).length)?`
+        <button class="btn ghost block home-big" onclick="staffPunch()">
+          <span style="font-size:22px">👥</span>
+          <span style="font-size:16px;font-weight:800">${t('pn_title')}</span></button>`:''}
+      ${/* v357: the two reports he actually sends, and the button that sends them, on the
+           screen he starts from. They were built in v352 but parked inside Today → 📤,
+           which is three taps from here and he never found them. */''}
+      ${homeOn('report')?`
+      <div class="card dl-card" style="margin-bottom:10px">
+        <div class="dl-hd">📤 ${t('hb_report')}</div>
+        <div class="dl-row">
+          <span class="dl-ico">🧾</span>
+          <span class="dl-lbl tappable" onclick="salesDayView()">${t('td_kind_salesday')}</span>
+          <button class="btn sm primary" style="flex:0 0 auto;padding:4px 12px"
+            onclick="event.stopPropagation();sendReport('salesday')">📤</button></div>
+        <div class="dl-row">
+          <span class="dl-ico">📊</span>
+          <span class="dl-lbl tappable" onclick="todayScreen()">${t('td_kind_daily')}</span>
+          <button class="btn sm primary" style="flex:0 0 auto;padding:4px 12px"
+            onclick="event.stopPropagation();sendReport('daily')">📤</button></div>
+      </div>`:''}
       `;
     })()}
 
@@ -14763,11 +14896,19 @@ function renderInvoiceForm(){
       const isR=m.kind==='ready';
       const tot=isR?readyTotal(m):0;
       const out=isR&&tot<=0;
-      return `<div class="pos-tile ${out?'out':''}"
+      /* v358: how many of this are already on the bill. His "plus kya turant added? to
+         fast bhi kaam ho aur pata bhi chale add hua ki nahi" — the answer sits on the tile
+         he just pressed, which is where he is already looking, instead of only in a toast
+         at the far end of the screen. */
+      const onBill=((invForm&&invForm.items)||[])
+        .filter(it=>String(it.label||'')===String(m.name||''))
+        .reduce((a,it)=>a+(+it.qty||1),0);
+      return `<div class="pos-tile ${out?'out':''} ${onBill?'picked':''}"
         onclick="tileTap('${m.id}',${out?1:0})"
         ontouchstart="tileHoldStart('${m.id}')" ontouchend="tileHoldEnd()" ontouchmove="tileHoldEnd()" ontouchcancel="tileHoldEnd()"
         oncontextmenu="event.preventDefault();tileEdit('${m.id}');return false;">
         ${isR?`<span class="pos-badge ${tot<=2?'low':''}">${tot}</span>`:''}
+        ${onBill?`<span class="pos-on">✓ ${onBill}</span>`:''}
         <b>${esc(m.name)}</b>${m.rate?`<span>₹${esc(m.rate)}</span>`:''}</div>`;}).join('')
     || `<p class="hint" style="grid-column:1/-1;margin:0">${t('pos_no_items')}</p>`;
 
@@ -14823,13 +14964,23 @@ function renderInvoiceForm(){
          arrive already filled from an order. So the whole launcher steps aside once the
          first line lands, and all that is left is a thin add strip where the list ends. */''}
     ${invDraftHTML()}
-    <div id="posChrome" style="${(f.items||[]).length?'display:none':''}">
+    ${/* v358 — HIS 27 Aug, and he had been telling me for days: "multiple item select nahi
+         ho raha." Measured at last, and it was not a missing feature — the whole shortcut
+         block carried display:none the moment the first item landed. The tiles were still
+         in the page and still clickable in code, which is why my tests kept passing; they
+         were simply 0×0 and he could not see a thing to tap. A bill with one Sherwani is
+         the moment he most needs the tiles, not the moment to take them away.
+         They stay. The list of what is on the bill sits below them. */''}
+    <div id="posChrome">
       <div class="tap-mini" style="display:flex;justify-content:space-between;align-items:center">
         <span>⚡ ${t('pos_tap_add')} — ${t('pos_shortcut')}</span>
         <button class="btn sm ghost" style="padding:3px 12px;font-size:12px" onclick="posManageItems()">✏️ ${t('edit')}</button>
       </div>
       <div class="pos-tiles">${tiles}<div class="pos-tile add" onclick="posNewItem()"><b>➕ New</b></div></div>
-      <div class="pos-addbar"><button class="btn primary block" onclick="posAddMenu()">🔎 ${t('pos_add_item')}</button></div>
+      ${/* outline, not a slab of orange — his "side lines orange rahta aur neeche search
+           likha rahta" */''}
+      <div class="pos-addbar"><button class="btn ghost block" style="border-color:var(--saffron);color:var(--saffron2);font-weight:700"
+        onclick="posAddMenu()">🔎 ${t('pos_add_item')}</button></div>
     </div>
     <div class="billed-bar" style="${(f.items||[]).length?'':'display:none'}" id="posBilledBar"><span>🧾 ${t('pur_billed')}</span>
       <span class="hint" id="posCount" style="color:inherit">${t('inv_items_n',{n:(f.items||[]).length})}
@@ -15012,9 +15163,34 @@ function posRefresh(){
 /* v187 — posRefresh redraws only the lines, so the launcher above and the add strip below
    have to be told the count changed too. Emptying the last line brings the launcher back. */
 function posChromeSync(){
+  /* v358: this hid the shortcuts the moment a bill had one item on it — the same rule as
+     the markup, applied again after every add. Both are gone. The tiles are how he puts
+     the SECOND, third and fourth garment on a bill, so they stay up throughout. */
   const n=((invForm&&invForm.items)||[]).length;
-  const ch=$('#posChrome'); if(ch)ch.style.display=n?'none':'';
-  const sm=$('#posAddSmall'); if(sm)sm.style.display=n?'':'none';
+  const ch=$('#posChrome'); if(ch)ch.style.display='';
+  const sm=$('#posAddSmall'); if(sm)sm.style.display='none';
+  posTilesMark();
+}
+/* v358: the tick and count on each tile, refreshed in place. Re-rendering the whole form
+   after every tap would be slower and would take the keyboard away from him mid-bill. */
+function posTilesMark(){
+  const items=((invForm&&invForm.items)||[]);
+  document.querySelectorAll('.pos-tile').forEach(el=>{
+    const oc=el.getAttribute('onclick')||'';
+    const m=oc.match(/tileTap\('([^']+)'/); if(!m)return;
+    const mst=(DB.itemMaster||[]).find(x=>x.id===m[1]); if(!mst)return;
+    const nOn=items.filter(it=>String(it.label||'')===String(mst.name||''))
+      .reduce((a,it)=>a+(+it.qty||1),0);
+    let tag=el.querySelector('.pos-on');
+    if(nOn){
+      if(!tag){ tag=document.createElement('span'); tag.className='pos-on'; el.insertBefore(tag,el.firstChild); }
+      tag.textContent='✓ '+nOn;
+      el.classList.add('picked');
+    }else{
+      if(tag)tag.remove();
+      el.classList.remove('picked');
+    }
+  });
 }
 /* v220 — HIS 19 Aug: when a bill opens from an order the item name and quantity are
    already there, so the only thing left to do is type rates. The cursor sat nowhere and
@@ -16182,6 +16358,35 @@ function unwindReturnsFor(kind,parentId){
   return mine.length;
 }
 function delSale(id){
+  /* v359 — HIS 27 Aug: "delete karne me agar sale me cash ya payment kuch liya hua hai to
+     us payment ko pehle delete karna padega, order attach hai to usko delete karna padega,
+     phir sale delete hoga."
+     He is describing the safe order of work, and he is right. Deleting a bill that has
+     money against it would take a receipt out of the books with it, and deleting one tied
+     to an order would leave that order pointing at nothing. So it is refused, and it says
+     which thing is in the way — rather than deleting quietly and leaving him to find the
+     hole in his cash weeks later. Nothing is deleted for him behind his back. */
+  const rec=(DB.sales||[]).find(x=>x.id===id);
+  if(rec){
+    const nPay=(rec.payments||[]).filter(pp=>+pp.amt).length;
+    const got=orderReceived(rec);
+    if(nPay&&got>0){
+      modal('🗑️ '+t('confirm_del'),
+        `<p>${t('del_has_pay',{n:nPay,amt:money(got)})}</p>
+         <p class="hint" style="margin-top:8px">${t('del_has_pay_how')}</p>`,
+        [{label:t('close'),fn:closeModal},
+         {label:'✏️ '+t('edit'),cls:'primary',fn:()=>{closeModal();openInvoiceForm('sale',id);}}]);
+      return;
+    }
+    if(rec.orderNo){
+      modal('🗑️ '+t('confirm_del'),
+        `<p>${t('del_has_order',{n:esc(rec.orderNo)})}</p>
+         <p class="hint" style="margin-top:8px">${t('del_has_order_how')}</p>`,
+        [{label:t('close'),fn:closeModal},
+         {label:'✏️ '+t('edit'),cls:'primary',fn:()=>{closeModal();openInvoiceForm('sale',id);}}]);
+      return;
+    }
+  }
   const nRet=(DB.salesReturns||[]).filter(r=>r.saleId===id).length;
   confirmModal(t('confirm_del'), nRet?t('del_with_returns',{n:nRet}):t('confirm_del_msg'),()=>{
   unwindReturnsFor('sale',id);
@@ -17072,6 +17277,17 @@ function invCardHTML(x){
       <div class="meta">${ref} · ${fmtDate(x.inv.date)}${x.rec.deliveryDate?' · 📅 '+fmtDate(x.rec.deliveryDate):''}</div></div>
       <div style="text-align:right"><div style="font-weight:800;font-size:16px">${money(c.total)}</div>
       ${due>0?`<div style="font-size:11px;color:var(--bad);font-weight:700">${t('baaki_sub')} ${money(due)}</div>`:`<div style="font-size:11px;color:var(--ok);font-weight:700">✓ ${t('inv_paid')}</div>`}</div></div>
+    ${/* v359 — HIS 27 Aug: "invoice par click kiya to itne saare option aa jaate hain.
+         Ya to edit karna hoga, ya delete, ya kisi ko bhejna hoga... teen chhote chhote
+         button rahe har invoice ke bagal me to kaam ho jaye."
+         Right: seven choices for three jobs. The three he actually does sit on the row
+         itself, one tap each. Tapping the card still opens the full bill, where print and
+         the payment QR live — nothing has been taken away, only moved off the hot path. */''}
+    <div class="row" style="gap:6px;margin-top:8px" onclick="event.stopPropagation()">
+      <button class="btn sm ghost" style="flex:1" onclick="openInvoiceForm('${x.kind}','${jq(x.rec.id)}')">✏️ ${t('edit')}</button>
+      <button class="btn sm ghost" style="flex:1" title="${t('whatsapp')}" onclick="waInvoice('${x.kind}','${jq(x.rec.id)}')">💬</button>
+      ${x.kind==='sale'?`<button class="btn sm ghost" style="flex:0 0 auto;color:var(--bad)" title="${t('delete')}" onclick="delSale('${jq(x.rec.id)}')">🗑️</button>`:''}
+    </div>
   </div>`;
 }
 function focusInvSearch(){const el=$('#invSearch');if(el){const v=el.value;el.focus();el.setSelectionRange(v.length,v.length);}}
