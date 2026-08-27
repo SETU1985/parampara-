@@ -764,7 +764,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v340</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v349</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -863,6 +863,8 @@ const T={
   jv_grp_a:'Assets', jv_grp_l:'Liabilities', jv_grp_c:'Capital', jv_grp_i:'Income', jv_grp_e:'Expenses',
   jv_note:'Journal entries move the trial balance and the balance sheet. They do not move cash or bank — use Payment or Expense for that.',
   jv_effect:'Effect on the books',
+  bs_quarter:'This quarter', bs_fy:'Full year', bs_drcr:'Dr / Cr',
+  bs_debit:'Debit — what the shop owns', bs_credit:'Credit — what the shop owes',
   bs_assets:'Assets', bs_liab:'Liabilities', bs_cap:'Capital',
   bs_cash:'Cash in hand', bs_bank:'Bank', bs_debtors:'Receivable from customers',
   cb_iscc:'Cash credit / overdraft', cb_iscc_hint:'A bank limit, not your money. What is drawn shows as owed, and only interest is charged — there is no EMI.',
@@ -892,6 +894,7 @@ const T={
   bs_creditors:'Payable to suppliers', bs_karigar:'Payable to karigars',
   bs_karadv:'Advance to karigars', bs_custcredit:'Customer credit notes',
   bs_gstcredit:'GST credit carried forward', bs_supadv:'Advance with suppliers',
+  bs_ordadv:'Advance taken on unbilled orders',
   bs_custadv:'Customer advances', bs_loans:'Loans', bs_gst:'GST payable',
   bs_opencap:'Opening capital', bs_profit:'Profit this period', bs_draw:'Less drawings',
   bs_total_a:'Total assets', bs_total_l:'Total liabilities & capital',
@@ -1363,6 +1366,7 @@ const T={
   db_title:'Day book', db_sub:'Opening balance, everything in and out, closing balance.',
   db_opening:'Opening balance', db_closing:'Closing balance', db_in:'Money in', db_out:'Money out',
   db_entries:'Entries', db_none:'Nothing moved in this period', db_today:'Today', db_yest:'Yesterday',
+  or_pending_all:'All pending orders', or_period_hd:'For the period',
   or_title:'Order reports', or_sub:'What was ordered, what is made, what is still running.',
   or_orders:'Orders', or_pending:'Pending', or_done:'Delivered', or_late:'Overdue orders',
   or_value:'Order value', or_pieces:'Garments', or_due:'Still to collect',
@@ -1426,6 +1430,7 @@ const T={
   stk_none_match:'Nothing matches this search or filter.',
   stk_add_thaan:'Add fabric',
   pur_sel_all:'Select all',
+  pur_sum_bills:'{n} bills', pur_sum_due:'Still to pay', pur_sum_clear:'All paid',
   pur_opening_tag:'Opening stock',
   pur_mark_opening:'Mark as opening stock',
   pur_mark_go:'Mark and take back',
@@ -1621,6 +1626,8 @@ const T={
   trial:'Trial', trial_date:'Trial date', trial_hint:'The day he comes to try it on. Leave blank if there is no trial.',
   trial_due:'Trial due', trial_today:'Trial today', trial_late:'Trial overdue by {n}d', trial_none:'No trial fitting',
   fu_log:'Follow-up', fu_out:'What happened', fu_next:'Call again on', fu_why:'Why',
+  op_search_ph:'Search name, order no. or bill no.',
+  op_unbilled_n:'{n} orders not billed yet', op_unbilled_why:'No bill means no sale — so no profit to show. Tap to see them.',
   op_title:'Order profit', op_sub:'What each order really left behind, after the cloth and the karigar',
   op_net:'Net sale', op_fab:'Fabric used', op_kar:'Karigar work', op_gross:'Gross contribution', op_margin:'margin',
   op_nocost:'No cloth or karigar cost recorded', op_none:'No orders in this period',
@@ -1673,6 +1680,9 @@ const T={
   sl_open:'opening', sl_none:'Nothing against this name yet',
   sl_note:'Money given adds, money returned or cut subtracts. Fresh advances are entered from Expenses.',
   st_title:'Staff', st_desc:'Pay, timing and commission live here. Attendance uses them.',
+  st_is_owner:'This is me — the owner', st_owner_tag:'owner',
+  st_owner_hint:'Money paid to you is drawings, not a shop cost. Expenses in your name will default to the drawings head.',
+  st_owner_draw:'Paid to the owner — set as drawings',
   st_none:'No staff yet', st_add:'Add a person', st_name:'Name', st_role:'Role',
   st_hist_t:'This person has a history', st_hist:'{name} has {d} days of attendance and {n} money entries. Deleting would erase them from every past report. Marking him as left keeps all of it and takes him off the list.',
   st_del_clean:'Nothing is recorded against {name}, so nothing will be lost.',
@@ -1688,7 +1698,7 @@ const T={
   pn_ontime:'on time', pn_late_by:'{n} min late',
   att_month:'This month', att_tap_hint:'Tap a day to change it: present, half, absent, weekly off, blank.',
   att_p:'P', att_h:'Half', att_a:'Absent',
-  hd_deliver:'To deliver', hd_work:'Work in hand',
+  hd_deliver:'Delivery schedule', hd_work:'Work in hand',
   hd_late:'Overdue', hd_today:'Today', hd_tomorrow:'Tomorrow', hd_week:'This week',
   hd_nokar:'Not given to a tailor yet', hd_ready:'Ready to hand over',
   hd_tomorrow_sub:'Due tomorrow. Chase anything not ready today.',
@@ -2095,7 +2105,7 @@ const T={
   naap_start:'Start measuring ({n} pieces)',
   it_next:'Next item opened',
   it_all_done:'All items filled',
-  qr_order:'New order', qr_sale:'Sale', qr_purchase:'Purchase', qr_karigar:'Tailor', qr_daybook:'Day book',
+  qr_order:'New order', qr_sale:'Sale', qr_purchase:'Purchase', qr_karigar:'Job work', qr_daybook:'Day book',
   db_bal_now:'Cash & bank now',
   t_order_gone:'This order no longer exists — nothing was saved.',
   pur_edit_nostock:'Bill updated. Stock was NOT changed — correct the roll or piece in Stock.',
@@ -2415,6 +2425,8 @@ const T={
   jv_grp_a:'Assets', jv_grp_l:'Liabilities', jv_grp_c:'Capital', jv_grp_i:'Income', jv_grp_e:'Expenses',
   jv_note:'Journal entries move the trial balance and the balance sheet. They do not move cash or bank — use Payment or Expense for that.',
   jv_effect:'Effect on the books',
+  bs_quarter:'इस तिमाही', bs_fy:'पूरा साल', bs_drcr:'डेबिट / क्रेडिट',
+  bs_debit:'डेबिट — दुकान की संपत्ति', bs_credit:'क्रेडिट — दुकान की देनदारी',
   bs_assets:'Assets', bs_liab:'Liabilities', bs_cap:'Capital',
   bs_cash:'Cash in hand', bs_bank:'Bank', bs_debtors:'Receivable from customers',
   cb_iscc:'कैश क्रेडिट / ओवरड्राफ्ट', cb_iscc_hint:'बैंक की लिमिट है, आपका पैसा नहीं। जितना निकाला वह देना है, और सिर्फ ब्याज लगता है — EMI नहीं।',
@@ -2444,6 +2456,7 @@ const T={
   bs_creditors:'Payable to suppliers', bs_karigar:'Payable to karigars',
   bs_karadv:'Advance to karigars', bs_custcredit:'Customer credit notes',
   bs_gstcredit:'GST credit carried forward', bs_supadv:'Advance with suppliers',
+  bs_ordadv:'बिना बिल के ऑर्डर पर लिया अग्रिम',
   bs_custadv:'Customer advances', bs_loans:'Loans', bs_gst:'GST payable',
   bs_opencap:'Opening capital', bs_profit:'Profit this period', bs_draw:'Less drawings',
   bs_total_a:'Total assets', bs_total_l:'Total liabilities & capital',
@@ -2915,6 +2928,7 @@ const T={
   db_title:'रोज़नामचा', db_sub:'ओपनिंग बैलेंस, सारा आना-जाना, क्लोज़िंग बैलेंस।',
   db_opening:'ओपनिंग बैलेंस', db_closing:'क्लोज़िंग बैलेंस', db_in:'पैसा आया', db_out:'पैसा गया',
   db_entries:'एंट्री', db_none:'इस अवधि में कुछ नहीं हुआ', db_today:'आज', db_yest:'कल',
+  or_pending_all:'सारे बाकी ऑर्डर', or_period_hd:'इस अवधि का',
   or_title:'ऑर्डर रिपोर्ट', or_sub:'क्या ऑर्डर हुआ, क्या बन गया, क्या चल रहा है।',
   or_orders:'ऑर्डर', or_pending:'बाकी', or_done:'डिलीवर', or_late:'देर से चल रहे ऑर्डर',
   or_value:'ऑर्डर की क़ीमत', or_pieces:'कपड़े', or_due:'वसूली बाकी',
@@ -2978,6 +2992,7 @@ const T={
   stk_none_match:'इस खोज या फ़िल्टर से कुछ नहीं मिला।',
   stk_add_thaan:'कपड़ा जोड़ें',
   pur_sel_all:'सभी चुनें',
+  pur_sum_bills:'{n} बिल', pur_sum_due:'देना बाकी', pur_sum_clear:'सब चुका दिया',
   pur_opening_tag:'ओपनिंग स्टॉक',
   pur_mark_opening:'ओपनिंग स्टॉक मार्क करें',
   pur_mark_go:'मार्क करें और वापस लें',
@@ -3173,6 +3188,8 @@ const T={
   trial:'ट्रायल', trial_date:'ट्रायल की तारीख़', trial_hint:'जिस दिन वह पहन कर देखने आएगा। ट्रायल नहीं है तो खाली छोड़ दें।',
   trial_due:'ट्रायल बाकी', trial_today:'आज ट्रायल', trial_late:'ट्रायल {n} दिन लेट', trial_none:'कोई ट्रायल नहीं',
   fu_log:'फॉलो-अप', fu_out:'क्या हुआ', fu_next:'अगली बार कब', fu_why:'किस लिए',
+  op_search_ph:'नाम, ऑर्डर नं. या बिल नं. खोजें',
+  op_unbilled_n:'{n} ऑर्डर का बिल नहीं बना', op_unbilled_why:'बिल नहीं तो बिक्री नहीं — मुनाफ़ा दिखे भी कैसे। देखने के लिए दबाएँ।',
   op_title:'ऑर्डर पर मुनाफ़ा', op_sub:'कपड़ा और कारीगर निकालने के बाद हर ऑर्डर से क्या बचा',
   op_net:'नेट सेल', op_fab:'कपड़ा लगा', op_kar:'कारीगर का काम', op_gross:'ग्रॉस कंट्रिब्यूशन', op_margin:'मार्जिन',
   op_nocost:'कपड़े या कारीगर का खर्च दर्ज नहीं', op_none:'इस अवधि में कोई ऑर्डर नहीं',
@@ -3225,6 +3242,9 @@ const T={
   sl_open:'शुरुआती', sl_none:'इस नाम पर अभी कुछ नहीं',
   sl_note:'दिया हुआ जुड़ता है, वापस आया या कटा हुआ घटता है। नया एडवांस ख़र्च से ही दर्ज होता है।',
   st_title:'स्टाफ़', st_desc:'तनख़्वाह, समय और कमीशन यहीं रहते हैं। हाज़िरी इन्हीं से चलती है।',
+  st_is_owner:'यह मैं हूँ — मालिक', st_owner_tag:'मालिक',
+  st_owner_hint:'आपको दिया पैसा निकासी है, दुकान का खर्च नहीं। आपके नाम का खर्च अपने आप निकासी वाले हेड में जाएगा।',
+  st_owner_draw:'मालिक को दिया — निकासी में डाला',
   st_none:'अभी कोई स्टाफ़ नहीं', st_add:'नया आदमी जोड़ें', st_name:'नाम', st_role:'काम',
   st_hist_t:'इस आदमी का रिकॉर्ड है', st_hist:'{name} की {d} दिन की हाज़िरी और {n} पैसे की एंट्री दर्ज है। डिलीट करने से वह हर पुरानी रिपोर्ट से मिट जाएगा। “छोड़ गया” करने से सब बचा रहेगा और नाम लिस्ट से हट जाएगा।',
   st_del_clean:'{name} के नाम पर कुछ दर्ज नहीं है, कुछ नहीं खोएगा।',
@@ -3240,7 +3260,7 @@ const T={
   pn_ontime:'समय पर', pn_late_by:'{n} मिनट देर',
   att_month:'इस महीने', att_tap_hint:'दिन पर टैप कीजिए: आया, आधा दिन, नहीं आया, छुट्टी, ख़ाली।',
   att_p:'आया', att_h:'आधा', att_a:'नहीं आया',
-  hd_deliver:'देना है', hd_work:'काम बाकी',
+  hd_deliver:'डिलीवरी शेड्यूल', hd_work:'काम बाकी',
   hd_late:'तारीख़ निकल गई', hd_today:'आज', hd_tomorrow:'कल', hd_week:'इस हफ़्ते',
   hd_nokar:'करीगर को दिया ही नहीं', hd_ready:'तैयार — देने को',
   hd_tomorrow_sub:'कल देना है। जो तैयार नहीं, आज ही देखिए।',
@@ -3646,7 +3666,7 @@ const T={
   naap_start:'नाप शुरू करें ({n} आइटम)',
   it_next:'अगला आइटम खुला',
   it_all_done:'सभी आइटम भर गए',
-  qr_order:'नया ऑर्डर', qr_sale:'बिल', qr_purchase:'ख़रीद', qr_karigar:'कारीगर', qr_daybook:'डे बुक',
+  qr_order:'नया ऑर्डर', qr_sale:'बिल', qr_purchase:'ख़रीद', qr_karigar:'कारीगर का काम', qr_daybook:'डे बुक',
   db_bal_now:'अभी कैश और बैंक',
   t_order_gone:'ये ऑर्डर अब मौजूद नहीं है — कुछ सेव नहीं हुआ।',
   pur_edit_nostock:'बिल अपडेट हो गया। स्टॉक नहीं बदला — थान/पीस को Stock में खुद ठीक करें।',
@@ -4853,9 +4873,20 @@ function openingPartyTotal(kind,dir){
       v=r2(v+openingLeft(String(l.party||'').trim(),kind,dir)); });
   return r2(v);
 }
+/* v343 — HIS 27 Aug, his decision: "bina bill wala order receivable hai hi nahi."
+   He is right, and it was breaking the balance sheet. An order with no invoice was
+   counted as money owed, while the sale behind it was not counted as income — so the
+   sheet was out by the value of every unbilled order sitting in the shop. Ten of them
+   in his data, none even given to a tailor yet: work promised, not a debt.
+   A cloth order becomes a debt when it is billed. Until then it is only an order, and
+   any money already taken on it is an ADVANCE — see the liability added in bsFigures.
+   Alterations are left alone deliberately: v304 already counts an unbilled alteration
+   as income, so its balance is a real receivable with a matching credit. */
+function ordIsBillable(r){ return !!(r && r.invoice); }
 function receivableTotal(){
   const per={};
   [DB.orders,DB.alterations,DB.sales].forEach(arr=>(arr||[]).forEach(r=>{
+    if(arr===DB.orders && !ordIsBillable(r))return;    /* not billed → not a debt */
     const bal=orderBaaki(r); if(!bal)return;
     const k=custKeyOf(r); per[k]=r2((per[k]||0)+bal); }));
   const cm=custCreditMap();
@@ -7120,7 +7151,9 @@ function expenses(keepQ){
         <b>${esc(l.cat||t('exp_other'))}</b>
         ${l.note?`<div class="hint">${esc(l.note)}</div>`:''}
         <div class="hint">${fmtDate(l.date)} · ${esc(accName(l.acc))}${(l.photos||[]).length?' · 📷':''}</div>
-      </div><b style="color:var(--bad);font-size:16px">${money(l.amt)}</b></div></div>`).join('')
+      </div><div style="display:flex;gap:8px;align-items:center;flex:0 0 auto">
+        <b style="color:var(--bad);font-size:16px">${money(l.amt)}</b>
+        <span class="hint" style="font-size:15px">\u270F\uFE0F</span></div></div></div>`).join('')
       ||`<div class="empty" style="padding:24px 10px"><p>${t('exp_none')}</p></div>`}
     
     <div class="fab-pad"></div>`;
@@ -7351,6 +7384,24 @@ function expPickParty(pid){ expCapture();
   const fromMaster=(partyList(hc.who)||[]).find(x=>x.id===pid);
   _exp.partyId=pid;
   _exp.partyName=fromMaster ? fromMaster.name : ((partyById(pid)||{}).name||'');
+  /* v347: money paid to the owner is drawings, not a shop cost. If the person picked is
+     the one ticked as owner on the staff list, the head switches to his drawings head —
+     and says so, because a head changing under him without a word is exactly the kind of
+     silent move this app does not make. He can change it back on this entry like any
+     other. */
+  try{
+    const me=(DB.staff||[]).find(x=>x.owner && (x.id===pid || nameNorm(x.name)===nameNorm(_exp.partyName)));
+    if(me){
+      /* heads live as keys of DB.expHeadCfg, not as an array */
+      const drawHead=Object.keys(DB.expHeadCfg||{}).find(h=>expHeadCfg(h).kind==='drawing');
+      const cur=expHeadCfg(_exp.cat).kind;
+      if(drawHead && cur!=='drawing'){
+        _exp.cat=drawHead;
+        const el=$('#ex_cat'); if(el)el.value=drawHead;
+        toast(t('st_owner_draw'),'ok');
+      }
+    }
+  }catch(e){}
   expRender(); }
 let _expShowAll=false, _expHold=null, _expHeld=false, _expWantName=false;
 /* long-press a head to park it — the same gesture everywhere else in this app */
@@ -7809,6 +7860,41 @@ function orderFilter(){
 }
 function addDaysISO(n){ const d=new Date(); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
 
+/* v346 — HIS 27 Aug: "Combine Overdue, Work in Hand, Not Given to Tailor and Ready to
+   Handover into one clear Order Report tab." They were four separate rows scattered down
+   Home, each opening its own list, so answering "what is actually pending in my shop" meant
+   four taps and four screens with nothing tying them together. One board now, counts on
+   top, each still opening the same list it always did — nothing about how an order is
+   counted changes, only where he looks. */
+function orderBoardHTML(){
+  const pend=(DB.orders||[]).filter(o=>!orderDelivered(o));
+  const late=pend.filter(o=>daysLeft(o.deliveryDate)<0).length;
+  const today=pend.filter(o=>daysLeft(o.deliveryDate)===0).length;
+  const tom=pend.filter(o=>daysLeft(o.deliveryDate)===1).length;
+  const week=pend.filter(o=>{const d=daysLeft(o.deliveryDate);return d>=0&&d<=7;}).length;
+  let noKar=0, ready=0;
+  pend.forEach(o=>{
+    const items=(o.items||[]);
+    if(items.length && items.every(k=>!((o.assign||{})[k])))noKar++;
+    if(items.length && items.every(k=>{const st=itemStatusOf(o,k);return st==='ready';}))ready++;
+  });
+  const cell=(ico,lbl,n,fn,col)=>`<div class="dl-row tappable" onclick="closeSheet();${fn}">
+    <span class="dl-ico">${ico}</span><span class="dl-lbl">${lbl}</span>
+    <span class="dl-n"${col?` style="color:${col}"`:''}>${n}</span><span class="dl-go">›</span></div>`;
+  return `<div class="card dl-card" style="margin-bottom:10px">
+      <div class="dl-hd">🚚 ${t('hd_deliver')}</div>
+      ${cell('⏰',t('hd_today'),today,"statDetail('duetoday')",'var(--saffron2)')}
+      ${cell('📅',t('hd_tomorrow'),tom,"statDetail('tomorrow')",'')}
+      ${cell('🗓️',t('hd_week'),week,"statDetail('week')",'')}
+      ${late?cell('🔴',t('hd_late'),late,"statDetail('late')",'var(--bad)'):''}
+    </div>
+    <div class="card dl-card" style="margin-bottom:10px">
+      <div class="dl-hd">🧵 ${t('hd_work')}</div>
+      ${cell('⚠️',t('hd_nokar'),noKar,"actionList('nokar')",'var(--saffron2)')}
+      ${cell('✅',t('hd_ready'),ready,"statDetail('ready')",'var(--ok)')}
+      ${cell('📋',t('or_pending_all'),pend.length,"go('orders')",'')}
+    </div>`;
+}
 function orderReports(){
   sheetAt(orderReports);
   const from=_orFrom||fyStart(), to=_orTo||todayISO();
@@ -7845,6 +7931,10 @@ function orderReports(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">📊 ${t('or_title')}</h2>
     <p class="hint" style="margin-bottom:12px">${t('or_sub')}</p>
+    ${/* v346: what is pending right now, before the period figures below — those look
+         back, this looks at the shop as it stands today. */''}
+    ${orderBoardHTML()}
+    <div class="dl-hd" style="padding:6px 2px">${t('or_period_hd')}</div>
     <div class="gtags" style="margin-bottom:10px">
       <span class="gtag" style="cursor:pointer" onclick="_orFrom=monthStart();_orTo=todayISO();orderReports()">${t('rp_month')}</span>
       <span class="gtag" style="cursor:pointer" onclick="_orFrom=fyStart();_orTo=todayISO();orderReports()">${t('or_fy')}</span>
@@ -9155,14 +9245,32 @@ function ontimeReport(){
     <div class="fab-pad"></div>`;
   showSheet();
 }
-function orderProfitReport(){
+/* v348 — HIS 27 Aug: "In Order Profit add a search bar (by name, order/bill number) and
+   link profit to Sales Invoices rather than Orders."
+   His screen showed nine rows of "#2 Alok — ₹0 — 0% margin — no cloth or karigar cost".
+   Every one of them was an order nobody had billed yet: there is no sale, so there can be
+   no profit, and nine such rows push the orders that DO have a figure off the screen.
+   Billed orders come first now, the unbilled ones are counted but folded away, and a
+   search box finds a customer, an order number or a bill number without scrolling. */
+let _opQ='', _opUnb=false;
+function opSetQ(v){ _opQ=v; orderProfitReport(true); }
+function orderProfitReport(keepFocus){
   sheetAt(orderProfitReport);
   const {from,to}=rpRange();
-  const list=(DB.orders||[]).filter(o=>{
+  const q=String(_opQ||'').trim().toLowerCase();
+  const all=(DB.orders||[]).filter(o=>{
     const d=String(o.orderDate||(o.created||'').slice(0,10));
-    return d>=from && d<=to;
-  }).map(o=>({o,p:ordProfitOf(o)}))
-    .sort((a,b)=>a.p.pct-b.p.pct || b.p.net-a.p.net);
+    if(!(d>=from && d<=to))return false;
+    if(!q)return true;
+    const inv=(o.invoice&&o.invoice.no)||'';
+    return String(o.customerName||'').toLowerCase().includes(q)
+      || String(o.orderNo||'').toLowerCase().includes(q)
+      || String(inv).toLowerCase().includes(q)
+      || (o.members||[]).some(m=>String(m.ono||'').toLowerCase().includes(q));
+  }).map(o=>({o,p:ordProfitOf(o)}));
+  /* a bill is what turns work into a sale, so the billed ones lead */
+  const list=all.filter(x=>x.p.billed).sort((a,b)=>a.p.pct-b.p.pct || b.p.net-a.p.net);
+  const unbilled=all.filter(x=>!x.p.billed);
   const T=list.reduce((s2,x)=>({net:r2(s2.net+x.p.net),fab:r2(s2.fab+x.p.fabric),
     kar:r2(s2.kar+x.p.karigar),gr:r2(s2.gr+x.p.gross)}),{net:0,fab:0,kar:0,gr:0});
   const line=(l,v,col,bold)=>`<div class="il"${bold?' style="font-weight:800"':''}>
@@ -9181,7 +9289,10 @@ function orderProfitReport(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F4B0} ${t('op_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
-    <p class="hint" style="margin-bottom:12px">${t('op_sub')} \u00B7 ${fmtDate(from)} \u2192 ${fmtDate(to)}</p>
+    <p class="hint" style="margin-bottom:8px">${t('op_sub')} \u00B7 ${fmtDate(from)} \u2192 ${fmtDate(to)}</p>
+    ${/* v348: find one order without scrolling past the rest */''}
+    <div class="field" style="margin-bottom:10px"><input id="opSearch" value="${esc(_opQ)}"
+      placeholder="\u{1F50D} ${t('op_search_ph')}" oninput="opSetQ(this.value)"></div>
     ${list.length?`<div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
       ${line('\u{1F9FE} '+t('op_net'),T.net)}
       ${line('\u{1F9F5} '+t('op_fab'),T.fab,'var(--bad)')}
@@ -9192,6 +9303,17 @@ function orderProfitReport(){
       head:[t('order_no'),t('customer'),t('pay_date'),t('op_net'),t('op_fab'),t('op_kar'),t('op_gross'),t('op_margin')],
       rows:list.map(({o,p})=>[o.orderNo||'',o.customerName||'',fmtDate(o.orderDate||''),p.net,p.fabric,p.karigar,p.gross,p.pct+'%'])}))}`:''}
     ${list.length?body:`<div class="empty" style="padding:30px 10px"><p>${t('op_none')}</p></div>`}
+    ${/* the ones with no bill yet: counted, named, but not padding the list with zeros */''}
+    ${unbilled.length?`<div class="card" style="padding:10px 12px;margin-top:10px">
+      <div class="kv" style="cursor:pointer" onclick="_opUnb=!_opUnb;orderProfitReport()">
+        <span><b style="font-size:13px">\u{1F4CB} ${t('op_unbilled_n',{n:unbilled.length})}</b>
+          <div class="hint">${t('op_unbilled_why')}</div></span>
+        <span class="hint">${_opUnb?'\u25B4':'\u25BE'}</span></div>
+      ${_opUnb?unbilled.map(({o})=>`<div class="il" style="cursor:pointer"
+          onclick="closeSheet();orderMenu('${jq(o.id)}')">
+          <span>#${esc(o.orderNo||'')} \u00B7 ${esc(o.customerName||'\u2014')}</span>
+          <span class="hint">${fmtDate(o.orderDate||(o.created||'').slice(0,10))} \u203A</span></div>`).join(''):''}
+      </div>`:''}
     <p class="hint" style="margin-top:10px">${t('op_note')}</p>
     <div class="fab-pad"></div>`;
   showSheet();
@@ -9995,8 +10117,9 @@ function kpiCardsHTML(){
   const hid=pinOn()&&!_moneyShown;
   const tapM=hid?'moneyReveal()':null;
   return `<div class="kpi-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-    ${card('💰 '+t('kpi_cash'), moneyMask(money(r2(cash))), 'var(--saffron2)', tapM||"cashBank()")}
-    ${card('🚚 '+t('kpi_due_today'), nDue, nDue?'var(--bad)':'var(--ok)', "statDetail('duetoday')")}
+    ${/* v341 — HIS 27 Aug: "Remove Cash, Bank and Due Today." Both are still one tap away —
+         Cash + bank from All screens, Due today from the delivery list below — but they no
+         longer take half of the first thing he sees each morning. */''}
     ${card('🔔 '+t('kpi_debtors'), moneyMask(money(r2(due))), '', tapM||"followUps()")}
     ${card('🧾 '+t('kpi_today_sale'), moneyMask(money(r2(todaySale))), '', tapM||"go('invoices')")}
   </div>
@@ -10025,7 +10148,12 @@ const QR_ALL=[
   ['payin','💵','qr_payin',"payEntry('in')",null],
   ['expense','💸','qr_exp',"expEdit()",'accounts'],
   ['karigar','🧵','qr_karigar',"jobWork()",null],
-  ['status','📞','qr_status',"statusEnquiry('')",null]
+  ['status','📞','qr_status',"statusEnquiry('')",null],
+  /* v349 — HIS 27 Aug: "Attendance should be a main tab." Marking who came in is a job he
+     does once every morning and it sat three taps deep behind Settings → Staff. It goes in
+     the catalogue rather than being hard-wired into the row, so it can be moved or hidden
+     from the same long-press menu as every other shortcut. */
+  ['attend','👥','pn_title',"staffPunch()",'staff']
 ];
 function qrCfg(){
   DB.qrCfg=DB.qrCfg||{};
@@ -10246,10 +10374,12 @@ function renderHome(){
       return `
       <div class="card dl-card">
         <div class="dl-hd">🚚 ${t('hd_deliver')}</div>
-        ${nLate?line('🔴',t('hd_late'),nLate,"statDetail('late')",'var(--bad)'):''}
+        ${/* v341 — HIS 27 Aug: today first, then tomorrow, then the week, and overdue
+             last. What is due now is what he acts on; overdue is what he chases after. */''}
         ${line('⏰',t('hd_today'),nToday,"statDetail('duetoday')",'var(--saffron2)')}
         ${line('📅',t('hd_tomorrow'),nTom,"statDetail('tomorrow')",'')}
         ${line('🗓️',t('hd_week'),nWeek,"statDetail('week')",'')}
+        ${nLate?line('🔴',t('hd_late'),nLate,"statDetail('late')",'var(--bad)'):''}
         ${/* v252: the trial line joins the delivery card only when a fitting is actually
              due, so a week with no trials never grows a row he has to look past. */''}
         ${(()=>{ const td=trialsDue(); if(!td.length)return '';
@@ -10265,15 +10395,11 @@ function renderHome(){
            the clock, so at 8:56 it announced "1 still to come · 0/1" while six people were
            on the sheet — a sentence nobody could act on and a number that looked wrong.
            A morning line needs one fact: how many of my people are in. */
-        const d=todayISO();
-        const inN=stf.filter(x=>{const a=attGet(x.id,d);return a&&a.in;}).length;
-        return `<div class="card dl-card">
-          <div class="dl-hd">👥 ${t('pn_title')}</div>
-          <div class="dl-row tappable" onclick="staffPunch()">
-            <span class="dl-ico">👥</span>
-            <span class="dl-lbl">${t('pn_came')}</span>
-            <span class="dl-n">${inN}/${stf.length}</span><span class="dl-go">›</span></div>
-        </div>`; })()}
+        /* v349 — HIS 27 Aug: "Remove Came Today: 06." v341 hid only the heading and left
+           the row itself sitting on Home, which is not what he asked for. The whole card
+           goes; marking attendance now has its own button on the shortcut row above, which
+           is a shorter walk than this row ever was. */
+        return ''; })()}
       ${(()=>{ /* v215 — HIS 17 Aug: "alterations ka tab samne nahi hone se dhyan hi nahi
            rahta, per app thoosa hua bhi nahi lagna chahiye." Both are right, so the row
            earns its place instead of holding it: it appears only while something is
@@ -10322,7 +10448,11 @@ function renderHome(){
          one tap away. Home got SHORTER and started answering the harder question.
          It reads plFigures(), the same function the P&L report uses, so the two can never
          disagree. Cash + Bank is still tappable — from its card at the top. */''}
+    ${/* v341 — HIS 27 Aug: "Remove This Month Sales." The month's profit is a report, not
+         a thing to glance at while a customer waits — and until his opening stock figure
+         is entered it reads wrong anyway. Reports → Profit & loss is unchanged. */''}
     ${(()=>{
+      if(true)return '';
       const mFrom=todayISO().slice(0,7)+'-01', mTo=todayISO();
       let f; try{ f=plFigures(mFrom,mTo); }catch(e){ return ''; }
       const cost=r2(f.netPurch+f.expTotal);
@@ -13520,7 +13650,21 @@ function renderPurchases(keepFocus){
     if(keepFocus)focusPurSearch(); return;}
 
   const _pgAll=list; list=pageSlice('pur',list);
-  el.innerHTML=addBtn+searchBox+title+list.map(p=>{
+  /* v345 — HIS 27 Aug: "purchase layout samajh nahi aaya." The screen listed forty bills
+     and told him nothing about them as a whole: not what he had bought, not what he still
+     owed. Two numbers he can act on, read off the bills already filtered on screen, and
+     the unpaid one opens the supplier list. */
+  const sumTot=_pgAll.reduce((a,x)=>a+(+x.total||0),0);
+  const sumDue=_pgAll.reduce((a,x)=>a+orderBaaki(x),0);
+  const summary=_pgAll.length?`<div class="card" style="padding:9px 12px;margin-bottom:8px">
+    <div class="kv"><span class="hint">${t('pur_sum_bills',{n:_pgAll.length})}</span>
+      <b>${money(r2(sumTot))}</b></div>
+    ${sumDue>0?`<div class="kv tappable" style="cursor:pointer;margin-top:2px" onclick="closeSheet();creditors()">
+      <span class="hint">${t('pur_sum_due')} ›</span>
+      <b style="color:var(--bad)">${money(r2(sumDue))}</b></div>`:
+      `<div class="kv" style="margin-top:2px"><span class="hint">${t('pur_sum_clear')}</span>
+      <b style="color:var(--ok)">✓</b></div>`}</div>`:'';
+  el.innerHTML=addBtn+searchBox+summary+title+list.map(p=>{
     const baaki=orderBaaki(p);
     const sel=_purSel.has(p.id);
     return `<div class="card ocard" style="${_purSelMode&&sel?'border-color:var(--saffron2);border-width:2px':''}" onclick="${_purSelMode?`purSelPick('${jq(p.id)}')`:`purchMenu('${jq(p.id)}')`}">
@@ -16277,12 +16421,19 @@ let invQ='', invSort='new';
 function setInvQ(v){invQ=v;renderInvoices(true);}
 function setInvSort(v){invSort=v;renderInvoices();}
 const SORTS=[['new','↓ '],['old','↑ '],['hi','₹↓ '],['lo','₹↑ ']];
+/* v345: four sort chips sat across the top of the purchase and bill lists at all times,
+   for a choice he changes rarely. Only the one in force is shown; tapping it offers the
+   other three. Nothing is removed. */
+let _srtOpen=false;
+function srtToggle(){ _srtOpen=!_srtOpen; try{ renderPurchases(); }catch(e){}
+  try{ renderInvoices(); }catch(e){} }
 function sortChips(cur,fn){
+  const L={new:'🕐 '+t('srt_new'), old:'🕐 '+t('srt_old'), hi:'₹ '+t('srt_hi'), lo:'₹ '+t('srt_lo')};
+  if(!_srtOpen)return `<div class="gtags" style="margin-bottom:10px">
+    <span class="gtag" style="cursor:pointer" onclick="srtToggle()">${L[cur]||L.new} ▾</span></div>`;
   return `<div class="gtags" style="margin-bottom:10px">
-    <span class="gtag ${cur==='new'?'on-tag':''}" style="cursor:pointer" onclick="${fn}('new')">🕐 ${t('srt_new')}</span>
-    <span class="gtag ${cur==='old'?'on-tag':''}" style="cursor:pointer" onclick="${fn}('old')">🕐 ${t('srt_old')}</span>
-    <span class="gtag ${cur==='hi'?'on-tag':''}" style="cursor:pointer" onclick="${fn}('hi')">₹ ${t('srt_hi')}</span>
-    <span class="gtag ${cur==='lo'?'on-tag':''}" style="cursor:pointer" onclick="${fn}('lo')">₹ ${t('srt_lo')}</span>
+    ${Object.keys(L).map(k=>`<span class="gtag ${cur===k?'on-tag':''}" style="cursor:pointer"
+      onclick="_srtOpen=false;${fn}('${k}')">${L[k]}</span>`).join('')}
   </div>`;
 }
 function applySort(arr,mode,dateOf,amtOf){
@@ -18429,12 +18580,21 @@ function bsFigures(from,to){
   {
     const per={};
     [DB.orders,DB.alterations,DB.sales].forEach(arr=>(arr||[]).forEach(r=>{
+      if(arr===DB.orders && !ordIsBillable(r))return;   /* v343 */
       const bal=orderBaaki(r); if(!bal)return;
       const k=custKeyOf(r); per[k]=r2((per[k]||0)+bal); }));
     const cm=custCreditMap();
     Object.keys(cm).forEach(k=>{ custCredit=r2(custCredit+Math.max(0,r2(cm[k]-(per[k]||0)))); });
   }
   add(L,'custcredit', custCredit);
+  /* v343: what he has already taken against orders he has not yet billed. Cash went up
+     when it came in; without this the sheet would simply be short by that much. */
+  {
+    let ordAdv=0;
+    (DB.orders||[]).forEach(o2=>{ if(ordIsBillable(o2))return;
+      const got=orderReceived(o2); if(got>0)ordAdv=r2(ordAdv+got); });
+    add(L,'ordadv', ordAdv);
+  }
   /* v313: incentive earned but not yet handed over is money owed to staff */
   let incOwed=0;
   staffAll().forEach(st=>{ const d=incDue(st.id,to); if(d>0)incOwed=r2(incOwed+d); });
@@ -18657,31 +18817,118 @@ function jvDel(){
     DB.journal=(DB.journal||[]).filter(v=>v.id!==id);
     save(); closeModal(); toast(t('t_deleted'),'ok'); _jv=null; journalBook(); });
 }
+/* v342 — HIS 27 Aug: "Balance Sheet: proper Debit/Credit views, Cash in Hand and Bank
+   clickable to open their ledgers, custom date range (quarterly, full financial year)."
+   Nothing about how a single figure is worked out changes here — bsFigures() is untouched.
+   What changes is that the sheet can be asked for a date, read the way an accountant reads
+   it, and opened up line by line. */
+let _bsDrCr=false;
+function bsDrCrToggle(){ _bsDrCr=!_bsDrCr; balanceSheet(); }
+function bsSetPeriod(p){
+  const today=new Date(), iso=d=>d.toISOString().slice(0,10);
+  const fyStart=()=>{ const y=today.getMonth()>=3?today.getFullYear():today.getFullYear()-1;
+    return y+'-04-01'; };
+  if(p==='fy'){ rpPeriod='custom'; rpFrom=fyStart(); rpTo=iso(today); }
+  else if(p==='q'){ rpPeriod='custom';
+    const qs=Math.floor(today.getMonth()/3)*3;
+    rpFrom=iso(new Date(today.getFullYear(),qs,1)); rpTo=iso(today); }
+  else { rpPeriod=p; }
+  balanceSheet();
+}
+function bsApplyCustom(){
+  const a=$('#bs_from'), b=$('#bs_to');
+  if(a&&b){ rpPeriod='custom'; rpFrom=a.value; rpTo=b.value; }
+  balanceSheet();
+}
+/* Where each line comes from, so tapping it opens the record behind the number rather
+   than leaving him to hunt for it. */
+function bsOpenLine(key){
+  try{
+    switch(key){
+      case 'bs_cash': case 'bs_bank': return (closeSheet(),cashBank());
+      case 'bs_debtors': return (closeSheet(),followUps());
+      case 'bs_creditors': return (closeSheet(),creditors());
+      case 'bs_stock': return (closeSheet(),stockHome('fabric'));
+      case 'bs_karigar': case 'bs_karadv': return (closeSheet(),karigarBook());
+      case 'bs_staffadv': return (closeSheet(),staffReport());
+      case 'bs_loans': case 'bs_fixed': case 'bs_cap': return (closeSheet(),openBSEdit());
+      case 'bs_gst': case 'bs_gstcredit': return (closeSheet(),gstReport&&gstReport());
+      default: return;
+    }
+  }catch(e){ toast(t('ps_open_fail'),'bad'); }
+}
 function balanceSheet(){
   sheetAt(balanceSheet);
   const {from,to}=rpRange();
   const f=bsFigures(from,to);
-  const row=(k,v,col)=>v?`<div class="il"><span>${t(k)}</span><b style="${col?'color:'+col:''}">${money(v)}</b></div>`:'';
+  const OPEN={bs_cash:1,bs_bank:1,bs_debtors:1,bs_creditors:1,bs_stock:1,bs_karigar:1,
+    bs_karadv:1,bs_staffadv:1,bs_loans:1,bs_fixed:1,bs_gst:1,bs_gstcredit:1};
+  const row=(k,v,col)=>{ if(!v)return '';
+    const tap=OPEN[k];
+    return `<div class="il"${tap?` onclick="bsOpenLine('${k}')" style="cursor:pointer"`:''}>
+      <span>${t(k)}${tap?' <span class="hint">›</span>':''}</span>
+      <b style="${col?'color:'+col:''}">${money(v)}</b></div>`; };
   const tot=(l,v,col)=>`<div class="il" style="font-weight:800;border-top:1px solid var(--line);margin-top:4px;padding-top:6px">
       <span>${l}</span><b style="${col?'color:'+col:''}">${money(v)}</b></div>`;
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F3E6} ${t('bs_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
-    <p class="hint" style="margin-bottom:12px">${fmtDate(f.startDate)} \u2192 ${fmtDate(to)}</p>
-    <div class="card" style="padding:12px 14px;margin-bottom:10px">
+    <p class="hint" style="margin-bottom:8px">${fmtDate(f.startDate)} \u2192 ${fmtDate(to)}</p>
+    ${/* v342: the period, and the two ways of reading the sheet */''}
+    <div class="gtags" style="margin-bottom:8px">
+      ${[['month','rp_month'],['q','bs_quarter'],['fy','bs_fy'],['custom','rp_custom']]
+        .map(([p,k])=>`<span class="gtag" style="cursor:pointer;${(p==='custom'?rpPeriod==='custom':rpPeriod===p)?'background:var(--saffron);color:#1a1206;border-color:var(--saffron)':''}"
+          onclick="bsSetPeriod('${p}')">${t(k)}</span>`).join('')}
+      <span class="gtag" style="cursor:pointer;${_bsDrCr?'background:var(--saffron);color:#1a1206;border-color:var(--saffron)':''}"
+        onclick="bsDrCrToggle()">${t('bs_drcr')}</span>
+    </div>
+    ${rpPeriod==='custom'?`<div class="row" style="margin-bottom:10px">
+      <div class="field"><label>${t('rp_from')}</label><input id="bs_from" type="date" value="${esc(rpFrom||from)}"></div>
+      <div class="field"><label>${t('rp_to')}</label><input id="bs_to" type="date" value="${esc(rpTo||to)}"></div></div>
+      <button class="btn sm primary block" style="margin-bottom:10px" onclick="bsApplyCustom()">${t('rp_apply')}</button>`:''}
+    ${_bsDrCr
+      ? /* v342: the accountant's reading — liabilities and capital on the left as credits,
+           assets on the right as debits, one line each, side by side. Same figures. */
+        (()=>{
+          const L=[['bs_creditors',f.L.creditors],['bs_karigar',f.L.karigar],
+            ['bs_incentive',f.L.incentive],['bs_custadv',f.L.custadv],
+            ['bs_ordadv',f.L.ordadv],['bs_custcredit',f.L.custcredit],['bs_cc',f.L.cc],['bs_rentcomm',f.L.rentcomm],
+            ['bs_loans',f.L.loans],['bs_gst',f.L.gst],['bs_opencap',f.cap.opening],
+            ['bs_profit',f.cap.profit]].filter(x=>x[1]);
+          if(f.cap.drawings)L.push(['bs_draw',-f.cap.drawings]);
+          const A=[['bs_cash',f.A.cash],['bs_bank',f.A.bank],['bs_debtors',f.A.debtors],
+            ['bs_stock',f.A.stock],['bs_fixed',f.A.fixed],['bs_staffadv',f.A.staffadv],
+            ['bs_karadv',f.A.karadv],['bs_supadv',f.A.supadv],
+            ['bs_gstcredit',f.A.gstcredit]].filter(x=>x[1]);
+          const side=(list,head,total,totLbl)=>`<div style="flex:1;min-width:0">
+            <div class="dl-hd">${head}</div>
+            ${list.map(([k,v])=>`<div class="il" style="padding:5px 0"
+                ${OPEN[k]?`onclick="bsOpenLine('${k}')" style="padding:5px 0;cursor:pointer"`:''}>
+              <span style="font-size:12px;min-width:0;overflow:hidden;text-overflow:ellipsis">${t(k)}</span>
+              <b style="font-size:12px;white-space:nowrap">${money(v)}</b></div>`).join('')}
+            <div class="il" style="font-weight:800;border-top:1px solid var(--line);margin-top:4px;padding-top:6px">
+              <span style="font-size:12px">${totLbl}</span><b style="font-size:12px">${money(total)}</b></div></div>`;
+          return `<div class="card" style="padding:12px 10px;margin-bottom:10px">
+            <div style="display:flex;gap:12px;align-items:flex-start">
+              ${side(L,t('bs_credit'),f.totL,t('bs_total_l'))}
+              <div style="width:1px;background:var(--line);align-self:stretch"></div>
+              ${side(A,t('bs_debit'),f.totA,t('bs_total_a'))}
+            </div></div>`;
+        })()
+      : `<div class="card" style="padding:12px 14px;margin-bottom:10px">
       <div class="dl-hd">${t('bs_assets')}</div>
       ${row('bs_cash',f.A.cash)}${row('bs_bank',f.A.bank)}${row('bs_debtors',f.A.debtors)}
       ${row('bs_stock',f.A.stock)}${row('bs_fixed',f.A.fixed)}${row('bs_staffadv',f.A.staffadv)}${row('bs_karadv',f.A.karadv)}${row('bs_supadv',f.A.supadv)}${row('bs_gstcredit',f.A.gstcredit)}
       ${tot(t('bs_total_a'),f.totA)}</div>
     <div class="card" style="padding:12px 14px;margin-bottom:10px">
       <div class="dl-hd">${t('bs_liab')}</div>
-      ${row('bs_creditors',f.L.creditors)}${row('bs_karigar',f.L.karigar)}${row('bs_incentive',f.L.incentive)}${row('bs_custadv',f.L.custadv)}${row('bs_custcredit',f.L.custcredit)}
+      ${row('bs_creditors',f.L.creditors)}${row('bs_karigar',f.L.karigar)}${row('bs_incentive',f.L.incentive)}${row('bs_custadv',f.L.custadv)}${row('bs_ordadv',f.L.ordadv)}${row('bs_custcredit',f.L.custcredit)}
       ${row('bs_cc',f.L.cc)}${row('bs_rentcomm',f.L.rentcomm)}${row('bs_loans',f.L.loans)}${row('bs_gst',f.L.gst)}
       <div class="dl-hd" style="margin-top:10px">${t('bs_cap')}</div>
       ${row('bs_opencap',f.cap.opening)}
       <div class="il"><span>${t('bs_profit')}</span><b style="color:${f.cap.profit>=0?'var(--ok)':'var(--bad)'}">${money(f.cap.profit)}</b></div>
       ${f.cap.drawings?`<div class="il"><span>${t('bs_draw')}</span><b style="color:var(--bad)">\u2212 ${money(f.cap.drawings)}</b></div>`:''}
-      ${tot(t('bs_total_l'),f.totL)}</div>
+      ${tot(t('bs_total_l'),f.totL)}</div>`}
     ${Math.abs(f.diff)>1
       ? `<div class="card" style="border-color:var(--bad);padding:12px 14px;margin-bottom:10px">
           <div class="il"><span><b>\u26A0\uFE0F ${t('bs_diff')}</b></span><b style="color:var(--bad)">${money(Math.abs(f.diff))}</b></div>
@@ -18843,36 +19090,60 @@ function gstReport(){
     <div class="fab-pad"></div>`;
   showSheet();
 }
+/* v344 — HIS 27 Aug: "Make P&L clickable — drill down into ledgers like Job Work, GST,
+   Purchases." A figure he cannot open is a figure he has to take on trust, and after the
+   5930% margin he has no reason to. Nothing about how a line is worked out changes; each
+   line simply knows which book it came out of. Same shape as the balance sheet, so there
+   is one way of doing this in the app, not two. */
+function plOpenLine(key){
+  try{
+    switch(key){
+      case 'sales':   return (closeSheet(),go('invoices'));
+      case 'gst':     return (closeSheet(),gstReport&&gstReport());
+      case 'purch':   return (closeSheet(),go('purchases'));
+      case 'stock':   return (closeSheet(),stockHome('fabric'));
+      case 'direct':  return (closeSheet(),karigarBook());
+      case 'running': return (closeSheet(),expenses());
+      case 'incent':  return (closeSheet(),staffReport());
+      case 'jv':      return (closeSheet(),journalBook&&journalBook());
+      case 'open':    return (closeSheet(),openBSEdit());
+      default: return;
+    }
+  }catch(e){ toast(t('ps_open_fail'),'bad'); }
+}
 function plReport(){
   sheetAt(plReport);
   const {from,to}=rpRange(), f=plFigures(from,to);
-  const row=(lbl,val,opt)=>`<div class="il" style="${opt&&opt.bold?'font-weight:800':''}">
-    <span>${lbl}</span><b style="${opt&&opt.col?'color:'+opt.col:''};${opt&&opt.big?'font-size:18px':''}">${opt&&opt.neg?'− ':''}${money(Math.abs(val))}</b></div>`;
+  const row=(lbl,val,opt)=>{
+    const k=opt&&opt.open;
+    return `<div class="il" style="${opt&&opt.bold?'font-weight:800':''}${k?';cursor:pointer':''}"
+      ${k?`onclick="plOpenLine('${k}')"`:''}>
+    <span>${lbl}${k?' <span class="hint">›</span>':''}</span><b style="${opt&&opt.col?'color:'+opt.col:''};${opt&&opt.big?'font-size:18px':''}">${opt&&opt.neg?'− ':''}${money(Math.abs(val))}</b></div>`; };
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">📈 ${t('rp_pl')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     <p class="hint" style="margin-bottom:12px">${fmtDate(from)} → ${fmtDate(to)}</p>
     <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
-      ${row('🧾 '+t('rp_sales_gross'),f.sales)}
-      ${row(t('rp_gst_out'),f.gst,{neg:1})}
+      ${row('🧾 '+t('rp_sales_gross'),f.sales,{open:'sales'})}
+      ${row(t('rp_gst_out'),f.gst,{neg:1,open:'gst'})}
       ${row(t('rp_net_sales'),f.netSales,{bold:1})}
     </div>
     <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
       ${/* v282: purchases alone never was the cost of what he sold. The three lines that
            make it are shown, so the figure can be checked rather than believed. */''}
-      ${row(t('rp_open_stk')+((DB.openBS||{}).stockEst?' \u26A0\uFE0F':''),f.openStk,{})}
-      ${row('📦 '+t('rp_purch_net'),f.netPurch,{})}
-      ${row(t('rp_close_stk'),f.closeStk,{neg:1})}
+      ${row(t('rp_open_stk')+((DB.openBS||{}).stockEst?' \u26A0\uFE0F':''),f.openStk,{open:'open'})}
+      ${row('📦 '+t('rp_purch_net'),f.netPurch,{open:'purch'})}
+      ${row(t('rp_close_stk'),f.closeStk,{neg:1,open:'stock'})}
       ${row('🧾 '+t('rp_cogs'),f.cogs,{neg:1,bold:1})}
-      ${f.direct?row('👷 '+t('rp_direct'),f.direct,{neg:1}):''}
+      ${f.direct?row('👷 '+t('rp_direct'),f.direct,{neg:1,open:'direct'}):''}
       ${f.stkDiff?row('⚖️ '+t('rp_stk_diff'),f.stkDiff,{neg:1}):''}
       ${row(t('rp_gross_profit'),f.gross,{bold:1,big:1,col:f.gross>=0?'var(--ok)':'var(--bad)'})}
       <div class="hint" style="text-align:right;margin-top:2px">${f.netSales?Math.round(f.gross/f.netSales*100):0}% ${t('rp_margin')}</div>
     </div>
     <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
-      ${row('💸 '+t('rp_running'),f.indirect,{neg:1})}
-      ${f.incent?row('🎯 '+t('rp_incentive'),f.incent,{neg:1}):''}
-      ${f.jvPL?row('📓 '+t('rp_jv_adj'),f.jvPL,{neg:f.jvPL<0?0:0}):''}
+      ${row('💸 '+t('rp_running'),f.indirect,{neg:1,open:'running'})}
+      ${f.incent?row('🎯 '+t('rp_incentive'),f.incent,{neg:1,open:'incent'}):''}
+      ${f.jvPL?row('📓 '+t('rp_jv_adj'),f.jvPL,{neg:f.jvPL<0?0:0,open:'jv'}):''}
       ${row(t('rp_net_profit'),f.net,{bold:1,big:1,col:f.net>=0?'var(--ok)':'var(--bad)'})}
     </div>
     <p class="hint" style="margin-bottom:12px">${t('rp_pl_note')}</p>
@@ -22433,7 +22704,7 @@ function staffMaster(){
          nine months of it is worse than no report. He shows as left, and can come back. */''}
     ${ks.map(k=>`<div class="cust-result" style="align-items:center">
       <div style="flex:1;min-width:0;cursor:pointer" onclick="staffEdit('${k.id}')">
-        <b>${k.left?'⚪ ':'🧑‍💼 '}${esc(k.name)}${k.left?' · '+t('st_gone'):''}</b>
+        <b>${k.left?'⚪ ':(k.owner?'👑 ':'🧑‍💼 ')}${esc(k.name)}${k.left?' · '+t('st_gone'):(k.owner?' · '+t('st_owner_tag'):'')}</b>
         <div class="hint">${esc(k.role||'')}${k.salary?' · '+money(k.salary):''}${k.startTime?' · 🕘 '+esc(k.startTime):''}</div></div>
       <button class="btn sm ghost" style="flex:0 0 auto" onclick="event.stopPropagation();staffEdit('${k.id}')">✏️</button>
       <button class="btn sm ghost" style="flex:0 0 auto" title="${t('st_left_hint')}"
@@ -22475,6 +22746,19 @@ function staffEdit(id){
         <input id="stIn" value="${esc(V('startTime', ex?(ex.startTime||c.openTime):c.openTime))}" placeholder="10:30"></div>
       <div class="field"><label>${t('st_out')}</label>
         <input id="stOut" value="${esc(V('endTime', ex?(ex.endTime||c.closeTime):c.closeTime))}" placeholder="21:30"></div></div>
+    ${/* v347 — HIS 27 Aug: "owner entries ko drawings me le jao." The drawings head and
+         the balance-sheet line have existed since v264; what was missing was any way to
+         say which person on the list is HIM. Money a shopkeeper takes out is not a wage —
+         it does not belong in the shop's costs, and counting it there quietly understates
+         his profit. Ticked here, and the expense form then defaults his payments to the
+         drawings head instead of a salary head. It is a default, not a rewrite: the head
+         is still his to change on any single entry. */''}
+    <label class="card" style="padding:9px 12px;margin-top:8px;display:flex;gap:9px;align-items:center;cursor:pointer">
+      <input type="checkbox" id="stOwner" style="width:18px;height:18px;margin:0;flex:0 0 auto"
+        ${(ex&&ex.owner)?'checked':''}>
+      <span style="flex:1"><b style="font-size:14px">${t('st_is_owner')}</b>
+        <div class="hint" style="margin-top:2px">${t('st_owner_hint')}</div></span>
+    </label>
     <div class="field" style="margin-top:8px"><label>${t('st_joined')}</label>
       ${dateField('stJoin', ex?(ex.joined||''):'', '', true)}</div>
     ${/* v214 — HIS 17 Aug: "advance ka opening profile me dalna chahiye ya nahi." Yes —
@@ -22503,6 +22787,7 @@ function staffSave(id){
   const g=i=>(($('#'+i)||{}).value||'').trim();
   const rec={ name, role:g('stRole'), phone:g('stPhone'),
     salary:+g('stSal')||0, commPct:+g('stComm')||0,
+    owner:!!(($('#stOwner')||{}).checked),        /* v347 */
     startTime:g('stIn')||staffCfg().openTime, endTime:g('stOut')||staffCfg().closeTime,
     joined:g('stJoin') };
   const openAmt=r2(+((($('#stAdvOpen')||{}).value)||0)||0);
@@ -22836,6 +23121,7 @@ function backupNagHTML(){
   const msg=never?t('bk_never'):t(n===1?'bk_day_1':'bk_days',{n});
   return `<div class="card" style="border-color:${loud?'#7a2f28':'#5a4a1a'};background:${loud?'#2a1614':'#241d10'};margin-bottom:10px">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+      ${/* v341: the sentence went; the colour of the button says it now. */''}
       <div style="font-size:13px"><b>${loud?'⚠️':'🛟'} ${esc(msg)}</b></div>
       <div style="display:flex;gap:6px">
         <button class="btn sm primary" onclick="backupMenu()">${t('backup_now')}</button>

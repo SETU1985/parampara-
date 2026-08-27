@@ -1,98 +1,76 @@
-/* PARAMPARA Orderbook — offline keeper.
-   Ek hi kaam: app ka PAGE iPad/phone ke andar rakhna, taaki net na hone par bhi khule.
+/* PARAMPARA Orderbook — offline worker
+   v349, 27 Aug 2026.
 
-   ── v2, 18 Aug — GALTI SUDHAAR ──────────────────────────────────────────────
-   Pehli version har same-origin request ko pakadti thi. Backup ek badi file banakar
-   use download karta hai, aur uska pata bhi isi origin ka hota hai (blob:https://...).
-   To backup ki poori file bhi "app ka hissa" samajh kar copy karke andar rakhi ja rahi
-   thi — poori file do baar memory me. iPad ne tab hi band kar diya.
+   Why this file exists at all: the app has been asking the browser to register 'sw.js'
+   since the PWA work, and the file was never put on the site. So every load asked for
+   something that was not there, the update promise rejected, and — until v339 caught it —
+   that rejection surfaced to him as "This screen could not be drawn" across a perfectly
+   healthy app.
 
-   Ab ye sirf PAGE khulne wali request dekhti hai. Backup, download, photo, awaaz,
-   koi bhi file — kuch bhi is se hokar nahi guzarta.
+   What it does is deliberately small. The shop's DATA is not touched here: orders,
+   customers, money and photos live in IndexedDB and are the app's business, not the
+   worker's. All this does is keep a copy of the app FILE, so that when the shutter is up
+   and the internet is not, the app still opens.
 
-   Data ko ye file kabhi haath nahi lagati. Orders, customers, naap, paise — sab
-   pehle se device ke andar IndexedDB aur localStorage me hain aur wahin rehte hain. */
+   Network-first, cache-second. A shop that has signal should always get the newest build
+   the moment it is deployed; the cached copy is the fallback, never the default. Getting
+   this the wrong way round is how a PWA serves a stale app for weeks. */
 
-const CACHE = 'parampara-v3';
-const PAGE  = './index.html';
+var CACHE = 'parampara-v1';
+var SHELL = ['./', './index.html'];
 
-self.addEventListener('install', e => {
+self.addEventListener('install', function (e) {
+  /* take over as soon as the download finishes rather than waiting for every tab to close;
+     on a shop iPad the tab is never closed. */
+  self.skipWaiting();
   e.waitUntil(
-    caches.open(CACHE)
-      .then(c => c.addAll(['./', PAGE]))
-      .catch(() => {})
-      .then(() => self.skipWaiting())
-  );
-});
-
-self.addEventListener('activate', e => {
-  /* purane naam ka cache poora hata do — v1 ne jo bhi galti se rakha tha, sab saaf */
-  e.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(keys.map(k => k === CACHE ? null : caches.delete(k))))
-      .then(() => self.clients.claim())
-  );
-});
-
-self.addEventListener('fetch', e => {
-  const req = e.request;
-
-  /* SIRF page khulne wali request. Aur kuch nahi. Baaki har cheez —
-     backup ki file, download, photo, awaaz, blob — browser khud sambhale,
-     hum beech me aate hi nahi. */
-  if (req.mode !== 'navigate') return;
-  if (req.method !== 'GET') return;
-
-  e.respondWith(
-    caches.match(PAGE).then(hit => {
-      /* peeche se nayi copy laane ki koshish — mil gayi to agli baar wahi khulegi */
-      const fresh = fetch(req).then(res => {
-        if (res && res.ok && res.type === 'basic') {
-          const copy = res.clone();
-          /* v3, 19 Aug — HIS: "baar baar ye kyon aa raha hai." Because the notice fired on
-             every single open, whether or not anything had changed. A message that cries
-             "new version" when the file is identical teaches him to ignore it — and then
-             he ignores the one that matters. Speak only when the file really is different:
-             the server's own tag for the file is compared against the cached one. If the
-             server gives no tag to compare, stay quiet and update silently. */
-          if (hit && changed(hit, res)) notifyUpdate();
-          caches.open(CACHE).then(c => c.put(PAGE, copy)).catch(() => {});
-        }
-        return res;
-      }).catch(() => null);
-
-      if (hit) return hit;                       // andar copy hai → turant, net ka intezaar nahi
-      return fresh.then(res => res || offlineNote());
+    caches.open(CACHE).then(function (c) {
+      return c.addAll(SHELL).catch(function () { /* a miss here must not fail the install */ });
     })
   );
 });
 
-function stamp(r) {
-  if (!r || !r.headers) return '';
-  return r.headers.get('ETag') || r.headers.get('Last-Modified') || r.headers.get('Content-Length') || '';
-}
-function changed(oldRes, newRes) {
-  const a = stamp(oldRes), b = stamp(newRes);
-  return !!(a && b && a !== b);      // no tag on either side → say nothing
-}
-function notifyUpdate() {
-  self.clients.matchAll({ type: 'window' }).then(list => {
-    list.forEach(c => { try { c.postMessage({ pb: 'updated' }); } catch (e) {} });
-  });
-}
-
-/* Pehli hi baar net na ho to saaf batao — khaali safed page kabhi nahi. */
-function offlineNote() {
-  return new Response(
-    '<!doctype html><meta charset="utf-8">' +
-    '<meta name="viewport" content="width=device-width,initial-scale=1">' +
-    '<body style="background:#16130f;color:#f3ead9;font-family:-apple-system,sans-serif;' +
-    'padding:40px 24px;text-align:center;line-height:1.6">' +
-    '<div style="font-size:44px">📴</div>' +
-    '<h2 style="margin:14px 0 8px">App abhi tak save nahi hui</h2>' +
-    '<p style="color:#c9bda6">Ek baar internet se kholiye. Uske baad ye bina net ke bhi chalegi.</p>' +
-    '<p style="color:#c9bda6;font-size:13px;margin-top:18px">आपका data सुरक्षित है — वह इसी device में है।</p>' +
-    '</body>',
-    { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+self.addEventListener('activate', function (e) {
+  e.waitUntil(
+    caches.keys().then(function (keys) {
+      return Promise.all(keys.map(function (k) {
+        return k === CACHE ? null : caches.delete(k);   /* older builds go */
+      }));
+    }).then(function () { return self.clients.claim(); })
   );
-}
+});
+
+self.addEventListener('fetch', function (e) {
+  var req = e.request;
+  if (req.method !== 'GET') return;                       /* only reads are cacheable */
+  var url;
+  try { url = new URL(req.url); } catch (err) { return; }
+  if (url.origin !== self.location.origin) return;        /* leave other sites alone */
+
+  e.respondWith(
+    fetch(req).then(function (res) {
+      /* a good response refreshes the copy we keep */
+      if (res && res.status === 200 && res.type === 'basic') {
+        var copy = res.clone();
+        caches.open(CACHE).then(function (c) { c.put(req, copy).catch(function () {}); });
+      }
+      return res;
+    }).catch(function () {
+      /* offline: hand back whatever we have, and the app itself for a page request */
+      return caches.match(req).then(function (hit) {
+        if (hit) return hit;
+        if (req.mode === 'navigate') return caches.match('./index.html');
+        return new Response('', { status: 504, statusText: 'offline' });
+      });
+    })
+  );
+});
+
+/* the app listens for this and shows "app updated" when a new build has been taken */
+self.addEventListener('message', function (e) {
+  if (e.data === 'pb-check') {
+    self.clients.matchAll().then(function (cs) {
+      cs.forEach(function (c) { c.postMessage({ pb: 'updated' }); });
+    });
+  }
+});
