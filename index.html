@@ -62,6 +62,12 @@
   h1,h2,h3{margin:0; font-weight:700}
   button{font-family:inherit; cursor:pointer; border:none; background:none; color:inherit}
   input,select,textarea{font-family:inherit; font-size:16px}
+  /* v354: he liked the orange ring on "Received now" and asked for it on every box —
+     the name field glowed blue, the phone field not at all, so it was never obvious
+     which one the keyboard was typing into. */
+  input:focus,select:focus,textarea:focus{
+    outline:none; border-color:var(--saffron)!important;
+    box-shadow:0 0 0 2px rgba(224,150,58,.30)}
   /* Base skin for every field. Any input outside .field fell through to the browser
      default and rendered as a WHITE box on iOS — seen on the invoice screen (Received Now,
      Into account). :where() keeps this at ZERO specificity, so every existing class rule
@@ -124,8 +130,13 @@
   .head-grid3 .field label{font-size:10px;letter-spacing:.3px}
   .head-grid3 input{font-size:13px;padding-left:6px;padding-right:6px}
   .head-grid input:disabled{opacity:.55}
+  /* v354 — HIS 27 Aug, measured: the name box ended at 250px and the phone box started at
+     199px, and the pair ran to 430px on a 390px screen. min-width:0 was set on the wrapper
+     but never on the field inside it, so each input kept its intrinsic width and the row
+     simply overflowed. */
   .cust-2col{display:flex;gap:8px}
   .cust-2col>div{flex:1;min-width:0}
+  .cust-2col input{width:100%;min-width:0;box-sizing:border-box}
   .tap-mini{font-size:10.5px;color:var(--mut);letter-spacing:.6px;text-transform:uppercase;margin:2px 0 6px}
   .bold-in{font-weight:700}
   .linked-chip{display:inline-block;background:rgba(224,138,26,.12);border:1px solid var(--saffron);
@@ -764,7 +775,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v349</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v356</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1297,12 +1308,12 @@ const T={
   sm_none_yet:'No salesman yet — add one',
   pos_tap_add:'Tap to add',
   tile_edit_hint:'Edit its name, rate or includes — or delete this shortcut.',
-  pos_empty:'No item yet — tap a shortcut above, or ➕ Add item below',
+  pos_empty:'No item yet — tap a shortcut above, or 🔎 Search item below',
   pos_more:'More options',
   pos_no_items:'No item in your master yet. Tap “+ New item”.',
   pos_from_order:'From order',
   inv_items_n:'{n} items',
-  pos_add_item:'Add item',
+  pos_add_item:'Search item',
   pos_manage_items:'Edit / delete items',
   pos_search_ph:'Search fabric, readymade, saved items…',
   pos_no_results:'Nothing found',
@@ -1326,6 +1337,10 @@ const T={
   add_member_next:'Add next person', add_member_hint:'For a family or group order — measurements for the first person are done.',
   home_layout:'Home layout', home_layout_new:'New', home_layout_old:'Old',
   ontime_title:'Delivery record', ontime_sub:'Kept or missed, against the date promised.',
+  hb_title:'What shows on Home', hb_money:'Money tiles', hb_backup:'Backup reminder',
+  hb_shown:'On', hb_hidden:'Off',
+  hb_hint:'Tap a block to put it on Home or take it off. Nothing is deleted — everything stays reachable from All screens.',
+  hb_shortcut_note:'The shortcut buttons are arranged separately, under Quick shortcuts.',
   qc_title:'Home shortcuts', qc_sub:'Long-press any shortcut on Home to change it. Hidden ones are listed below.',
   rp_cogs:'Cost of goods sold', rp_open_stk:'Opening stock', rp_close_stk:'Closing stock',
   ob_stock_now:'On the shelf right now', ob_stock_open_only:'This is the opening figure only. Closing stock is counted from the rolls and pieces themselves — you never type it again.',
@@ -1347,6 +1362,41 @@ const T={
   estimate:'Estimate', purchase_order:'Purchase order', soon:'SOON', coming_soon:'Coming in the next update',
   qa_title:'What do you want to do?', qa_sub:'Everything you add day to day, in one place.',
   pay_in:'Payment In', pay_out:'Payment out',
+  td_kind_salesday:'Daily sales, bill by bill', td_sales_day:'Sales today',
+  td_got:'Received', td_due:'Due', td_no_bills:'No bills today.',
+  td_title:'Today', td_tab_today:'Today', td_tab_work:'Work',
+  td_money:'Money today', td_shop:'Shop today',
+  td_sales:'Sales', td_purch:'Purchases', td_exp:'Expenses',
+  td_in:'Money in', td_out:'Money out',
+  td_bills_n:'{n} bills', td_delivered:'Delivered', td_nosale:'Nothing sold yet today',
+  td_top:'Sold most', td_send:'Send this report',
+  td_kind_daily:'Daily report', td_kind_sales:'Monthly sales & commission',
+  td_no_numbers:'No number saved yet.', td_manage_numbers:'Who to send to',
+  td_name_ph:'Setu, accountant, Akhil…', td_which_report:'Which report',
+  td_need_phone:'Enter a 10-digit number', td_number_added:'Number saved',
+  td_del_msg:'Remove this number from the send list?',
+  td_sales_report:'Sales report', td_gross:'Bills', td_returns:'Returns',
+  td_netsale:'Net sales', td_comm:'commission', wa_fail:'Could not open WhatsApp',
+  pw_ask:'What is this money for?',
+  pw_expense:'Expense', pw_expense_eg:'Rent, electricity, tea, salary — a cost of running the shop',
+  pw_settle:'Paying a bill', pw_settle_eg:'Supplier or tailor you already owe',
+  pw_draw:'Money I took', pw_draw_eg:'For yourself — not a shop cost',
+  pw_loanpay:'Loan repayment', pw_loanpay_eg:'Instalment or part payment on a loan',
+  pw_move:'Cash to bank / bank to cash', pw_move_eg:'Nothing earned or spent — only moved',
+  pw_fromcust:'Customer paid', pw_fromcust_eg:'Against a bill already made',
+  pw_advance:'Advance / old balance', pw_advance_eg:'Money taken before the bill',
+  pw_loanin:'Loan received', pw_loanin_eg:'Money borrowed — it is owed, not earned',
+  pw_capital:'Money I put in', pw_capital_eg:'Your own money into the shop',
+  ln_which:'Which loan', ln_which_ph:'Home loan, credit card…',
+  ln_amt:'Amount', ln_int:'Of this, interest', ln_int_hint:'Leave blank if there is no interest in this payment. Only the interest is a cost; the rest just reduces what you owe.',
+  ln_out_hint:'This reduces what you owe. Any interest inside it is a cost and goes to the P&L.',
+  ln_in_hint:'Money borrowed is not income — it is recorded as owed.',
+  ln_note_ph:'Instalment for August…', ln_need_amt:'Enter the amount',
+  ln_int_big:'Interest cannot be more than the payment',
+  ln_saved:'Loan payment saved', ln_saved_int:'Saved — {p} off the loan, {i} interest',
+  ln_int_auto:'Interest part of a loan payment', eh_interest:'Loan interest',
+  cap_hint:'Your own money into the shop. This is capital, not a sale.',
+  cap_note_ph:'From savings…', cap_saved:'Capital saved',
   pay_in_hint:'Money received that is not against a bill (advance, old balance…).',
   pay_out_hint:'Money paid out that is not against a purchase bill.',
   cb_title:'Cash & bank', cb_sub:'Where your money sits, and what has moved.',
@@ -2132,6 +2182,7 @@ const T={
   mod_saved:'Modules updated',
   bk_never:'No backup taken yet — your data lives only on this device',
   kpi_cash:'Cash + bank', kpi_due_today:'Due today', kpi_debtors:'To collect', kpi_today_sale:'Today\'s sale',
+  qr_payout:'Payment out',
   qr_payin:'Payment in', qr_exp:'Expense', qr_status:'Status',
   home_classic:'Old home', home_new_view:'New home',
   bk_daily:'Backup — data + new photos',
@@ -2858,12 +2909,12 @@ const T={
   sm_none_yet:'अभी कोई सेल्समैन नहीं — एक जोड़ें',
   pos_tap_add:'दबाकर जोड़ें',
   tile_edit_hint:'नाम, रेट या includes बदलें — या इस शॉर्टकट को हटाएँ।',
-  pos_empty:'अभी कोई आइटम नहीं — ऊपर शॉर्टकट दबाएँ, या नीचे ➕ Add item',
+  pos_empty:'अभी कोई आइटम नहीं — ऊपर से शॉर्टकट दबाएँ, या नीचे 🔎 आइटम खोजें',
   pos_more:'और विकल्प',
   pos_no_items:'मास्टर में अभी कोई आइटम नहीं। “+ नया आइटम” दबाएँ।',
   pos_from_order:'ऑर्डर से',
   inv_items_n:'{n} आइटम',
-  pos_add_item:'आइटम जोड़ें',
+  pos_add_item:'आइटम खोजें',
   pos_manage_items:'आइटम एडिट / डिलीट करें',
   pos_search_ph:'फैब्रिक, रेडीमेड, आइटम खोजें…',
   pos_no_results:'कुछ नहीं मिला',
@@ -2887,6 +2938,10 @@ const T={
   add_member_next:'और व्यक्ति जोड़ें', add_member_hint:'परिवार या ग्रुप ऑर्डर के लिए — पहले व्यक्ति की नाप हो चुकी है।',
   home_layout:'होम का लेआउट', home_layout_new:'नया', home_layout_old:'पुराना',
   ontime_title:'Delivery record', ontime_sub:'Kept or missed, against the date promised.',
+  hb_title:'होम पर क्या दिखे', hb_money:'पैसे के टाइल', hb_backup:'बैकअप याद दिलाना',
+  hb_shown:'चालू', hb_hidden:'बंद',
+  hb_hint:'किसी हिस्से को दबाकर होम पर लगाएँ या हटाएँ। कुछ मिटता नहीं — सब कुछ All screens से मिलता रहेगा।',
+  hb_shortcut_note:'शॉर्टकट बटन अलग से सजते हैं — Quick shortcuts में।',
   qc_title:'होम के शॉर्टकट', qc_sub:'होम पर किसी भी शॉर्टकट को दबाए रखें और बदलें। छिपाए हुए नीचे हैं।',
   rp_cogs:'Cost of goods sold', rp_open_stk:'Opening stock', rp_close_stk:'Closing stock',
   ob_stock_now:'On the shelf right now', ob_stock_open_only:'This is the opening figure only. Closing stock is counted from the rolls and pieces themselves — you never type it again.',
@@ -2908,6 +2963,41 @@ const T={
   estimate:'एस्टिमेट', purchase_order:'परचेज़ ऑर्डर', soon:'जल्द', coming_soon:'अगले अपडेट में आएगा',
   qa_title:'क्या करना है?', qa_sub:'रोज़ का सब कुछ, एक जगह।',
   pay_in:'पैसा आया', pay_out:'पैसा गया',
+  td_kind_salesday:'रोज़ की बिक्री, बिल-दर-बिल', td_sales_day:'आज की बिक्री',
+  td_got:'मिला', td_due:'बाकी', td_no_bills:'आज कोई बिल नहीं।',
+  td_title:'आज', td_tab_today:'आज', td_tab_work:'काम',
+  td_money:'आज का पैसा', td_shop:'आज की दुकान',
+  td_sales:'बिक्री', td_purch:'ख़रीद', td_exp:'ख़र्च',
+  td_in:'पैसा आया', td_out:'पैसा गया',
+  td_bills_n:'{n} बिल', td_delivered:'दिए गए', td_nosale:'आज अभी कुछ नहीं बिका',
+  td_top:'सबसे ज़्यादा बिका', td_send:'ये रिपोर्ट भेजें',
+  td_kind_daily:'रोज़ की रिपोर्ट', td_kind_sales:'महीने की बिक्री और कमीशन',
+  td_no_numbers:'अभी कोई नंबर सेव नहीं।', td_manage_numbers:'किसे भेजनी है',
+  td_name_ph:'सेतु, अकाउंटेंट, अखिल…', td_which_report:'कौन सी रिपोर्ट',
+  td_need_phone:'10 अंकों का नंबर डालें', td_number_added:'नंबर सेव हुआ',
+  td_del_msg:'इस नंबर को भेजने की सूची से हटाएँ?',
+  td_sales_report:'बिक्री रिपोर्ट', td_gross:'बिल', td_returns:'वापसी',
+  td_netsale:'शुद्ध बिक्री', td_comm:'कमीशन', wa_fail:'व्हाट्सएप नहीं खुल पाया',
+  pw_ask:'ये पैसा किस लिए?',
+  pw_expense:'ख़र्च', pw_expense_eg:'किराया, बिजली, चाय, वेतन — दुकान चलाने की लागत',
+  pw_settle:'उधार चुकाया', pw_settle_eg:'सप्लायर या कारीगर जिसका पहले से देना था',
+  pw_draw:'मैंने निकाला', pw_draw_eg:'अपने लिए — दुकान का ख़र्च नहीं',
+  pw_loanpay:'लोन की किस्त', pw_loanpay_eg:'लोन पर किस्त या कुछ रकम',
+  pw_move:'कैश से बैंक / बैंक से कैश', pw_move_eg:'न कमाया न ख़र्चा — सिर्फ़ जगह बदली',
+  pw_fromcust:'ग्राहक ने दिया', pw_fromcust_eg:'बने हुए बिल के बदले',
+  pw_advance:'अग्रिम / पुराना बकाया', pw_advance_eg:'बिल बनने से पहले लिया पैसा',
+  pw_loanin:'लोन आया', pw_loanin_eg:'उधार लिया पैसा — कमाई नहीं',
+  pw_capital:'मैंने डाला', pw_capital_eg:'अपना पैसा दुकान में',
+  ln_which:'कौन सा लोन', ln_which_ph:'होम लोन, क्रेडिट कार्ड…',
+  ln_amt:'रकम', ln_int:'इसमें ब्याज', ln_int_hint:'इस किस्त में ब्याज न हो तो खाली छोड़ दें। सिर्फ़ ब्याज ख़र्च है; बाकी से देनदारी घटती है।',
+  ln_out_hint:'इससे आपकी देनदारी घटेगी। इसमें जो ब्याज है वो ख़र्च है और P&L में जाएगा।',
+  ln_in_hint:'उधार लिया पैसा कमाई नहीं — देनदारी के रूप में दर्ज होगा।',
+  ln_note_ph:'अगस्त की किस्त…', ln_need_amt:'रकम डालें',
+  ln_int_big:'ब्याज किस्त से ज़्यादा नहीं हो सकता',
+  ln_saved:'लोन की किस्त सेव हुई', ln_saved_int:'सेव — {p} लोन से घटा, {i} ब्याज',
+  ln_int_auto:'लोन किस्त का ब्याज हिस्सा', eh_interest:'लोन ब्याज',
+  cap_hint:'अपना पैसा दुकान में। ये पूँजी है, बिक्री नहीं।',
+  cap_note_ph:'बचत से…', cap_saved:'पूँजी सेव हुई',
   pay_in_hint:'जो पैसा किसी बिल के बिना आया (एडवांस, पुराना बकाया…)।',
   pay_out_hint:'जो पैसा किसी ख़रीद बिल के बिना दिया।',
   cb_title:'कैश और बैंक', cb_sub:'पैसा कहाँ पड़ा है, और कहाँ से कहाँ गया।',
@@ -3693,6 +3783,7 @@ const T={
   mod_saved:'मॉड्यूल अपडेट हुए',
   bk_never:'अभी तक बैकअप नहीं लिया — डेटा सिर्फ़ इसी डिवाइस में है',
   kpi_cash:'कैश + बैंक', kpi_due_today:'आज देना है', kpi_debtors:'वसूली बाकी', kpi_today_sale:'आज की बिक्री',
+  qr_payout:'पैसा गया',
   qr_payin:'पैसा आया', qr_exp:'ख़र्च', qr_status:'स्टेटस',
   home_classic:'पुराना होम', home_new_view:'नया होम',
   bk_daily:'बैकअप — डेटा + नई फ़ोटो',
@@ -4182,6 +4273,24 @@ function load(raw){ try{const r=(raw!==undefined&&raw!==null)?raw:localStorage.g
   if(DB.expCats.indexOf('Job Worker')<0)DB.expCats.push('Job Worker');
   DB.expHeadCfg=DB.expHeadCfg||{};
   if(!DB.expHeadCfg['Job Worker'])DB.expHeadCfg['Job Worker']={who:'',kind:'direct'};
+  /* v354 — HIS 27 Aug: "tax payment / accounting fee (CA) / interest on loan etc ka koi head
+     nahi hai — business ke basic kharche hain, unka head bana kar hi rakho." He is right, and
+     a fresh PARAMPARA shipped with exactly one head, so every rent and every chai had to be
+     typed from nothing. These are the costs any shop has, each already sorted into the right
+     place in the P&L: rent and salary run the shop (indirect), job work makes the garment
+     (direct), and drawings are not a cost at all. Only added when missing, so a head he has
+     renamed or re-kinded is never overwritten. */
+  [ ['Rent','indirect',''], ['Electricity','indirect',''], ['Salary','indirect','staff'],
+    ['Tea & food','indirect',''], ['Transport','indirect',''], ['Packing','indirect',''],
+    ['Phone & internet','indirect',''], ['Repairs','indirect',''],
+    ['Tax payment','indirect',''], ['CA / accounting fee','indirect',''],
+    ['Loan interest','indirect',''], ['Bank charges','indirect',''],
+    ['Advertising','indirect',''],
+    [t('eh_drawing'),'drawing','staff']
+  ].forEach(([nm,kind,who])=>{
+    if(DB.expCats.indexOf(nm)<0)DB.expCats.push(nm);
+    if(!DB.expHeadCfg[nm])DB.expHeadCfg[nm]={who:who,kind:kind,pay:''};
+  });
     if(!DB.numCfg)DB.numCfg={invPrefix:'INV',invMode:'fy',invStart:0,ordPrefix:'',ordStart:0};
   if(!DB.fabItems)DB.fabItems=[];      // fabric qualities
   if(!DB.thaans)DB.thaans=[];          // every thaan (roll) with its own serial
@@ -6954,6 +7063,25 @@ function accDel(id){
   confirmModal(t('confirm_del'),t('cb_del_msg',{n:a.name}),()=>{
     DB.accounts=(DB.accounts||[]).filter(x=>x.id!==id); save(); cashBank(); toast(t('t_deleted'));});
 }
+/* Which screen a ledger line belongs to. Returns '' when there is genuinely nothing to
+   open, so a dead tap is never offered. */
+function ledLineOpen(l){
+  if(!l)return '';
+  const q=v=>String(v||'').replace(/'/g,"\\'");
+  switch(l.refKind){
+    case 'expense':  return l.id?`closeSheet();expEdit('${q(l.id)}')`:'';
+    case 'purchase': return l.ref2?`closeSheet();purchMenu('${q(l.ref2)}')`:`closeSheet();go('purchases')`;
+    case 'sale':     return `closeSheet();go('invoices')`;
+    case 'loan':     return `closeSheet();openBSEdit()`;
+    case 'capital':  return `closeSheet();openBSEdit()`;
+    case 'opening':
+    case 'openpay':  return `closeSheet();openBSEdit()`;
+    case 'contra':   return `closeSheet();cashBank()`;
+    default:
+      if(l.partyId)return `closeSheet();partyStatement('${q(l.partyId)}','${q(l.partyKind||'')}')`;
+      return '';
+  }
+}
 function accDetail(id){
   sheetAt(accDetail);
   const a=ACC(id); if(!a)return;
@@ -6962,10 +7090,16 @@ function accDetail(id){
   let run=accBalance(id);
   const rows=lines.map(l=>{
     const bal=run; run = (l.dir==='in') ? r2(run-l.amt) : r2(run+l.amt);
-    return `<div style="padding:9px 0;border-bottom:1px solid var(--line)">
+    /* v351 — HIS 27 Aug: "Home → Cash → Cash Ledger → Transaction → Edit/View". The ledger
+       showed the movement and stopped there; the entry behind it could not be opened. Each
+       line knows which book it came from, so it opens that record — the same routing the
+       balance sheet and P&L already use. */
+    const go=ledLineOpen(l);
+    return `<div style="padding:9px 0;border-bottom:1px solid var(--line)${go?';cursor:pointer':''}"
+      ${go?`onclick="${go}"`:''}>
       <div class="kv"><span style="font-size:13px"><b>${esc(l.party||l.ref)}</b></span>
         <b style="color:${l.dir==='in'?'var(--ok)':'var(--bad)'}">${l.dir==='in'?'+':'−'}${money(l.amt)}</b></div>
-      <div class="kv"><span class="hint">${esc(l.ref)}${l.cat?' · '+esc(l.cat):''} · ${fmtDate(l.date)}</span>
+      <div class="kv"><span class="hint">${esc(l.ref)}${l.cat?' · '+esc(l.cat):''} · ${fmtDate(l.date)}${go?' ›':''}</span>
         <span class="hint">${money(bal)}</span></div></div>`;}).join('')
     ||`<p class="hint">${t('cb_no_moves')}</p>`;
   $('#sheet').innerHTML=`<div class="grip"></div>
@@ -7044,7 +7178,139 @@ function settleParty(dir,party,partyId,amt,date,acc,mode){
   });
   return {left,touched};
 }
-function payEntry(dir){
+/* v350 — HIS 27 Aug. The same ₹10,000 leaving the drawer can be four different things,
+   and the books only come out right if the app is told which. Until now it was never asked:
+   payEntry wrote refKind:'manual' for everything, so a loan taken and a customer's advance
+   sat in the ledger looking identical and the balance sheet could not tell them apart.
+
+   Rather than four buttons on Home — which is the opposite of what he wants — there is one
+   door and a question behind it. The everyday answer sits first and large; the rare ones are
+   small underneath. So the common entry costs one extra tap on a big target, and the rare
+   entry can no longer land in the wrong book.
+
+   Nothing already recorded is touched. Old 'manual' rows stay exactly as they are. */
+function payWhy(dir){
+  const opts = dir==='out'
+    ? [['exp','💸',t('pw_expense'),t('pw_expense_eg'),"expEdit()",1],
+       ['bill','🧾',t('pw_settle'),t('pw_settle_eg'),"creditors()",0],
+       ['draw','👑',t('pw_draw'),t('pw_draw_eg'),"payDrawings()",0],
+       ['loan','🏦',t('pw_loanpay'),t('pw_loanpay_eg'),"payLoan('out')",0],
+       ['move','🔁',t('pw_move'),t('pw_move_eg'),"contraEntry()",0]]
+    : [['cust','💵',t('pw_fromcust'),t('pw_fromcust_eg'),"followUps()",1],
+       ['adv','🧾',t('pw_advance'),t('pw_advance_eg'),"payEntry('in',1)",0],
+       ['loan','🏦',t('pw_loanin'),t('pw_loanin_eg'),"payLoan('in')",0],
+       ['cap','🏛️',t('pw_capital'),t('pw_capital_eg'),"payCapital()",0],
+       ['move','🔁',t('pw_move'),t('pw_move_eg'),"contraEntry()",0]];
+  const big=opts.filter(o=>o[5]), rest=opts.filter(o=>!o[5]);
+  const card=(o,large)=>`<button class="btn ${large?'primary':'ghost'} block"
+      style="margin-bottom:8px;text-align:left;${large?'padding:16px 14px':'padding:11px 14px'}"
+      onclick="closeModal();${o[4]}">
+      <div style="font-size:${large?'16px':'14px'};font-weight:${large?800:600}">${o[1]} ${esc(o[2])}</div>
+      <div class="hint" style="margin-top:2px;white-space:normal">${esc(o[3])}</div></button>`;
+  modal((dir==='out'?'⬆️ '+t('pay_out'):'⬇️ '+t('pay_in')),
+    `<p class="hint" style="margin-bottom:10px">${t('pw_ask')}</p>
+     ${big.map(o=>card(o,1)).join('')}
+     <div style="height:6px"></div>
+     ${rest.map(o=>card(o,0)).join('')}`, []);
+}
+/* Loans. He told me most of his are not on EMI — one home loan and some card loans are —
+   so the split is not forced on him: one amount, and an interest box that stays empty
+   unless the instalment actually carries interest. When it does, the interest is a finance
+   cost and belongs in the P&L; the rest only reduces what he owes. Getting this wrong is
+   the classic small-shop mistake — the whole EMI booked as an expense, which understates
+   profit every single month. */
+function payLoan(dir){
+  const accs=DB.accounts||[];
+  const loans=((openBS()||{}).loans)||[];
+  modal((dir==='out'?'🏦 '+t('pw_loanpay'):'🏦 '+t('pw_loanin')),
+    `<p class="hint" style="margin-bottom:10px">${dir==='out'?t('ln_out_hint'):t('ln_in_hint')}</p>
+     <div class="field"><label>${t('ln_which')}</label>
+       <input id="ln_name" list="lnList" placeholder="${t('ln_which_ph')}"
+         value="${esc((loans[0]&&(loans[0].name||loans[0].who))||'')}">
+       <datalist id="lnList">${loans.map(l=>`<option value="${esc(l.name||l.who||'')}">`).join('')}</datalist></div>
+     <div class="row" style="margin-top:10px">
+       <div class="field"><label>${t('ln_amt')} *</label>
+         <input id="ln_amt" type="number" inputmode="decimal" placeholder="0"></div>
+       <div class="field"><label>${t('pay_date')}</label>${dateField("ln_date",todayISO())}</div></div>
+     ${dir==='out'?`<div class="field" style="margin-top:10px">
+       <label>${t('ln_int')}</label>
+       <input id="ln_int" type="number" inputmode="decimal" placeholder="0">
+       <div class="hint" style="margin-top:3px">${t('ln_int_hint')}</div></div>`:''}
+     <div class="field" style="margin-top:10px"><label>${t('cb_into')}</label>
+       <select id="ln_acc">${accs.map(a=>`<option value="${a.id}">${esc(a.name)}</option>`).join('')}</select></div>
+     <div class="field" style="margin-top:10px"><label>${t('notes')}</label>
+       <input id="ln_note" placeholder="${t('ln_note_ph')}"></div>`,
+    [{label:t('cancel'),fn:closeModal},
+     {label:'💾 '+t('save'),cls:'primary',fn:()=>payLoanSave(dir)}]);
+}
+function payLoanSave(dir){
+  const nm=(($('#ln_name')||{}).value||'').trim();
+  const amt=r2(+(($('#ln_amt')||{}).value||0));
+  const intr=dir==='out'?r2(+(($('#ln_int')||{}).value||0)):0;
+  const acc=(($('#ln_acc')||{}).value||'');
+  const date=(($('#ln_date')||{}).value||todayISO());
+  const note=(($('#ln_note')||{}).value||'').trim();
+  if(!amt||amt<=0){ toast(t('ln_need_amt'),'bad'); return; }
+  if(intr>amt){ toast(t('ln_int_big'),'bad'); return; }
+  DB.ledger=DB.ledger||[];
+  const principal=r2(amt-intr);
+  /* the money that actually moved */
+  DB.ledger.push({id:uid(), refKind:'loan', dir:dir, date, amt, acc,
+    party:nm, partyKind:'loan', loanPrincipal:principal, loanInterest:intr,
+    ref:(dir==='out'?t('pw_loanpay'):t('pw_loanin')), cat:'', note});
+  /* interest is a cost of borrowing, and must reach the P&L like any other */
+  if(intr>0){
+    let h=Object.keys(DB.expHeadCfg||{}).find(k=>/interest|ब्याज/i.test(k));
+    if(!h){ h=t('eh_interest'); DB.expHeadCfg=DB.expHeadCfg||{};
+      DB.expHeadCfg[h]={who:'',kind:'indirect',pay:''}; }
+    DB.ledger.push({id:uid(), refKind:'expense', dir:'out', date, amt:intr, acc:'',
+      cat:h, party:nm, ref:t('ln_int'), note:t('ln_int_auto'), noCash:1});
+  }
+  save(); closeModal();
+  toast(intr>0?t('ln_saved_int',{p:money(principal),i:money(intr)}):t('ln_saved'),'ok');
+  try{ renderHome(); }catch(e){}
+}
+/* Money the owner puts in: capital, not income. */
+function payCapital(){
+  const accs=DB.accounts||[];
+  modal('🏛️ '+t('pw_capital'),
+    `<p class="hint" style="margin-bottom:10px">${t('cap_hint')}</p>
+     <div class="row"><div class="field"><label>${t('ln_amt')} *</label>
+         <input id="cp_amt" type="number" inputmode="decimal" placeholder="0"></div>
+       <div class="field"><label>${t('pay_date')}</label>${dateField("cp_date",todayISO())}</div></div>
+     <div class="field" style="margin-top:10px"><label>${t('cb_into')}</label>
+       <select id="cp_acc">${accs.map(a=>`<option value="${a.id}">${esc(a.name)}</option>`).join('')}</select></div>
+     <div class="field" style="margin-top:10px"><label>${t('notes')}</label>
+       <input id="cp_note" placeholder="${t('cap_note_ph')}"></div>`,
+    [{label:t('cancel'),fn:closeModal},
+     {label:'💾 '+t('save'),cls:'primary',fn:payCapitalSave}]);
+}
+function payCapitalSave(){
+  const amt=r2(+(($('#cp_amt')||{}).value||0));
+  if(!amt||amt<=0){ toast(t('ln_need_amt'),'bad'); return; }
+  DB.ledger=DB.ledger||[];
+  DB.ledger.push({id:uid(), refKind:'capital', dir:'in',
+    date:(($('#cp_date')||{}).value||todayISO()), amt,
+    acc:(($('#cp_acc')||{}).value||''), party:'', ref:t('pw_capital'), cat:'',
+    note:(($('#cp_note')||{}).value||'').trim()});
+  save(); closeModal(); toast(t('cap_saved'),'ok');
+  try{ renderHome(); }catch(e){}
+}
+/* Money the owner takes: the expense form, opened on his drawings head. */
+function payDrawings(){
+  const me=(DB.staff||[]).find(x=>x.owner);
+  expEdit();
+  setTimeout(()=>{ try{
+    let h=Object.keys(DB.expHeadCfg||{}).find(k=>expHeadCfg(k).kind==='drawing');
+    if(!h){ h=t('eh_drawing'); DB.expHeadCfg=DB.expHeadCfg||{};
+      DB.expHeadCfg[h]={who:'staff',kind:'drawing',pay:''}; save(); }
+    const el=$('#ex_cat'); if(el){ el.value=h; el.dispatchEvent(new Event('input',{bubbles:true})); }
+    if(me)expPickParty(me.id);
+  }catch(e){} },260);
+}
+function payEntry(dir,skipAsk){
+  /* v350: the question comes first unless we are already past it */
+  if(!skipAsk){ payWhy(dir); return; }
   _pay={dir,photos:[]};
   const accs=DB.accounts||[];
   const parties = dir==='in'
@@ -7393,7 +7659,17 @@ function expPickParty(pid){ expCapture();
     const me=(DB.staff||[]).find(x=>x.owner && (x.id===pid || nameNorm(x.name)===nameNorm(_exp.partyName)));
     if(me){
       /* heads live as keys of DB.expHeadCfg, not as an array */
-      const drawHead=Object.keys(DB.expHeadCfg||{}).find(h=>expHeadCfg(h).kind==='drawing');
+      /* v350 — the v347 owner rule quietly did nothing on a real shop: a fresh PARAMPARA
+         has no head marked as drawings at all, so there was nothing to switch to and his
+         withdrawals kept landing in the shop's costs. The head is created the first time
+         it is actually needed, rather than sitting in every shop's settings unused. */
+      let drawHead=Object.keys(DB.expHeadCfg||{}).find(h=>expHeadCfg(h).kind==='drawing');
+      if(!drawHead){
+        drawHead=t('eh_drawing');
+        DB.expHeadCfg=DB.expHeadCfg||{};
+        DB.expHeadCfg[drawHead]={who:'staff',kind:'drawing',pay:''};
+        save();
+      }
       const cur=expHeadCfg(_exp.cat).kind;
       if(drawHead && cur!=='drawing'){
         _exp.cat=drawHead;
@@ -7866,6 +8142,201 @@ function addDaysISO(n){ const d=new Date(); d.setDate(d.getDate()+n); return d.t
    four taps and four screens with nothing tying them together. One board now, counts on
    top, each still opening the same list it always did — nothing about how an order is
    counted changes, only where he looks. */
+/* v352 — HIS 27 Aug: one screen for "what happened today", and a second tab for the work
+   still in hand. Two tabs, not two screens, because he asked for it clean and he was right
+   to: these are the two questions a shopkeeper actually asks, and they belong side by side.
+
+   Two things he asked for are deliberately NOT here. Footfall — how many walked in, how
+   many left without buying — cannot be known: nobody records a visitor who does not buy,
+   so the line would read "0 came, 4 bought" every single day. He agreed to leave it. And
+   margin appears only when a garment actually carries a cost; his own point, that the
+   figure means nothing until cloth and karigar are booked against it. A line that cannot
+   be trusted is worse than no line — that is what the 5930% margin taught both of us. */
+let _todayTab='today';
+function todaySetTab(t2){ _todayTab=t2; todayScreen(); }
+function todayFigures(d){
+  d=d||todayISO();
+  const inv=allInvoices().filter(x=>String(x.inv.date||'')===d);
+  let sales=0; const itemQty={};
+  inv.forEach(x=>{ sales=r2(sales+(invCompute(x.inv).total||0));
+    (x.inv.items||[]).forEach(it=>{ const nm=String(it.label||'').trim(); if(!nm)return;
+      itemQty[nm]=r2((itemQty[nm]||0)+(+it.qty||1)); }); });
+  let purch=0, purchN=0;
+  (DB.purchases||[]).forEach(pu=>{ if(String(pu.date||'')!==d)return;
+    purch=r2(purch+(+pu.total||0)); purchN++; });
+  let expense=0, payIn=0, payOut=0;
+  (DB.ledger||[]).forEach(l=>{ if(String(l.date||'')!==d)return;
+    if(l.refKind==='expense'){ if(!l.noCash)expense=r2(expense+(+l.amt||0)); return; }
+    if(l.refKind==='contra')return;
+    if(l.dir==='in')payIn=r2(payIn+(+l.amt||0)); else payOut=r2(payOut+(+l.amt||0)); });
+  /* receipts recorded on a bill or an order also came in today */
+  [DB.orders,DB.sales,DB.alterations].forEach(arr=>(arr||[]).forEach(r=>
+    (r.payments||[]).forEach(pp=>{ if(String(pp.date||'')===d)payIn=r2(payIn+(+pp.amt||0)); })));
+  (DB.purchases||[]).forEach(pu=>(pu.payments||[]).forEach(pp=>{
+    if(String(pp.date||'')===d)payOut=r2(payOut+(+pp.amt||0)); }));
+  const delivered=(DB.orders||[]).filter(x=>orderDelivered(x) &&
+    (String(x.deliveredOn||'').slice(0,10)===d || String(x.deliveryDate||'')===d)).length;
+  const top=Object.keys(itemQty).sort((a,b2)=>itemQty[b2]-itemQty[a]).slice(0,3)
+    .map(k=>({n:k,q:itemQty[k]}));
+  return { sales, bills:inv.length, purch, purchN, expense, payIn, payOut, delivered, top };
+}
+function todayScreen(){
+  sheetAt(todayScreen);
+  const d=todayISO(), f=todayFigures(d);
+  const tab=(k,ico,lbl)=>`<button class="btn ${_todayTab===k?'primary':'ghost'}" style="flex:1"
+    onclick="todaySetTab('${k}')">${ico} ${lbl}</button>`;
+  const line=(ico,lbl,val,fn,col,sub)=>`<div class="dl-row${fn?' tappable':''}"
+      ${fn?`onclick="closeSheet();${fn}"`:''}>
+    <span class="dl-ico">${ico}</span>
+    <span class="dl-lbl">${lbl}${sub?`<div class="hint">${sub}</div>`:''}</span>
+    <span class="dl-n"${col?` style="color:${col}"`:''}>${val}</span>${fn?'<span class="dl-go">›</span>':''}</div>`;
+  const body = _todayTab==='work' ? orderBoardHTML() : `
+    <div class="card dl-card" style="margin-bottom:10px">
+      <div class="dl-hd">💰 ${t('td_money')}</div>
+      ${line('🧾',t('td_sales'),money(f.sales),"go('invoices')",'var(--ok)',
+        f.bills?t('td_bills_n',{n:f.bills}):'')}
+      ${line('🚚',t('td_purch'),money(f.purch),"go('purchases')",'',
+        f.purchN?t('td_bills_n',{n:f.purchN}):'')}
+      ${line('💸',t('td_exp'),money(f.expense),"expenses()",f.expense?'var(--bad)':'')}
+      ${line('⬇️',t('td_in'),money(f.payIn),"cashBank()",'var(--ok)')}
+      ${line('⬆️',t('td_out'),money(f.payOut),"cashBank()",f.payOut?'var(--bad)':'')}
+      ${line('🏦',t('kpi_cash'),money(r2(totalCashBank())),"cashBank()",'var(--saffron2)')}
+    </div>
+    <div class="card dl-card" style="margin-bottom:10px">
+      <div class="dl-hd">📦 ${t('td_shop')}</div>
+      ${line('✅',t('td_delivered'),f.delivered,"statDetail('ready')",'')}
+      ${f.top.length?f.top.map((x,i)=>line(i===0?'🏆':'▫️',esc(x.n),x.q,"go('invoices')",'')).join('')
+        :`<div class="dl-row"><span class="dl-ico">▫️</span>
+           <span class="dl-lbl hint">${t('td_nosale')}</span><span class="dl-n"></span></div>`}
+    </div>
+    <button class="btn ghost block" onclick="todaySend()">📤 ${t('td_send')}</button>`;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">📊 ${t('td_title')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
+    <p class="hint" style="margin-bottom:10px">${fmtDate(d)}</p>
+    <div class="row" style="gap:8px;margin-bottom:12px">
+      ${tab('today','📊',t('td_tab_today'))}${tab('work','📋',t('td_tab_work'))}</div>
+    ${body}
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+/* The message itself. Plain lines, no styling — it has to read well inside WhatsApp. */
+function todayText(d){
+  d=d||todayISO(); const f=todayFigures(d);
+  const L=[];
+  L.push('*'+(DB.shopName||'PARAMPARA')+'* — '+fmtDate(d));
+  L.push('');
+  L.push(t('td_sales')+': '+money(f.sales)+(f.bills?' ('+f.bills+')':''));
+  L.push(t('td_purch')+': '+money(f.purch));
+  L.push(t('td_exp')+': '+money(f.expense));
+  L.push(t('td_in')+': '+money(f.payIn));
+  L.push(t('td_out')+': '+money(f.payOut));
+  L.push(t('kpi_cash')+': '+money(r2(totalCashBank())));
+  L.push('');
+  L.push(t('td_delivered')+': '+f.delivered);
+  if(f.top.length)L.push(t('td_top')+': '+f.top.map(x=>x.n+' ×'+x.q).join(', '));
+  return L.join('\n');
+}
+/* v353 — HIS 27 Aug: Akhil rang up asking for the day's sales, bill by bill. Not the
+   month's commission sheet — that one is about what he is owed; this one is about what
+   was sold today. So it is its own report: one line per bill with what was taken and what
+   is still due, and the three totals at the foot. */
+function salesDayText(d){
+  d=d||todayISO();
+  const inv=allInvoices().filter(x=>String(x.inv.date||'')===d)
+    .sort((a,b2)=>String(a.inv.no||'').localeCompare(String(b2.inv.no||''),undefined,{numeric:true}));
+  const L=[];
+  L.push('*'+(DB.shopName||'PARAMPARA')+'* — '+t('td_sales_day'));
+  L.push(fmtDate(d));
+  L.push('');
+  if(!inv.length){ L.push(t('td_no_bills')); return L.join('\n'); }
+  let tot=0, got=0, due=0;
+  inv.forEach(x=>{
+    const k=invCompute(x.inv), amt=r2(k.total||0);
+    const paid=r2(orderReceived(x.rec)), bal=r2(Math.max(0,amt-paid));
+    tot=r2(tot+amt); got=r2(got+paid); due=r2(due+bal);
+    L.push('#'+((x.inv.no)||'—')+'  '+money(amt)
+      +(paid?('  |  '+t('td_got')+' '+money(paid)):'')
+      +(bal?('  |  '+t('td_due')+' '+money(bal)):''));
+  });
+  L.push('');
+  L.push(t('td_bills_n',{n:inv.length}));
+  L.push(t('td_sales')+': '+money(tot));
+  L.push(t('td_got')+': '+money(got));
+  L.push(t('td_due')+': '+money(due));
+  return L.join('\n');
+}
+/* Akhil's monthly sheet. His words: 15% of the whole bill, GST included, less returns. */
+function salesCommText(from,to){
+  const c=rentCfg(), b=rentBase(from,to);
+  const pct=+c.pct||0, amt=r2(b.net*pct/100);
+  const L=[];
+  L.push('*'+(DB.shopName||'PARAMPARA')+'* — '+t('td_sales_report'));
+  L.push(fmtDate(from)+' → '+fmtDate(to));
+  L.push('');
+  L.push(t('td_gross')+': '+money(b.gross));
+  if(b.ret)L.push(t('td_returns')+': − '+money(b.ret));
+  L.push(t('td_netsale')+': '+money(b.net));
+  L.push('');
+  L.push(pct+'% '+t('td_comm')+': '+money(amt));
+  return L.join('\n');
+}
+function todaySend(){
+  const list=(DB.reportTo||[]).filter(x=>x&&x.phone);
+  const rows=list.map((x,i)=>`<button class="btn ghost block" style="margin-bottom:8px;text-align:left"
+      onclick="closeModal();todayWA(${i},'${esc(x.kind||'daily')}')">
+      <b>${esc(x.name||x.phone)}</b>
+      <div class="hint">${t(x.kind==='sales'?'td_kind_sales':x.kind==='salesday'?'td_kind_salesday':'td_kind_daily')} · ${esc(x.phone)}</div>
+    </button>`).join('');
+  modal('📤 '+t('td_send'),
+    (list.length?rows:`<p class="hint">${t('td_no_numbers')}</p>`)+
+    `<button class="btn ghost block" style="margin-top:6px" onclick="closeModal();reportToEdit()">⚙️ ${t('td_manage_numbers')}</button>`,
+    []);
+}
+function todayWA(i,kind){
+  const x=(DB.reportTo||[])[i]; if(!x)return;
+  let txt;
+  if(kind==='sales'){ const from=monthStart(), to=todayISO(); txt=salesCommText(from,to); }
+  else if(kind==='salesday'){ txt=salesDayText(); }
+  else txt=todayText();
+  const ph=String(x.phone||'').replace(/[^0-9]/g,'');
+  const num=ph.length===10?('91'+ph):ph;
+  try{ window.open('https://wa.me/'+num+'?text='+encodeURIComponent(txt),'_blank'); }
+  catch(e){ toast(t('wa_fail'),'bad'); }
+}
+/* Who the report goes to. Kept in the shop's own data so it travels with a backup —
+   he sets a number once and never types it again. */
+function reportToEdit(){
+  DB.reportTo=DB.reportTo||[];
+  const rows=(DB.reportTo||[]).map((x,i)=>`<div class="card" style="padding:9px 12px;margin-bottom:8px">
+    <div class="kv"><span style="min-width:0"><b>${esc(x.name||'—')}</b>
+      <div class="hint">${esc(x.phone||'')} · ${x.kind==='sales'?t('td_kind_sales'):t('td_kind_daily')}</div></span>
+      <button class="btn sm ghost" onclick="reportToDel(${i})">🗑️</button></div></div>`).join('');
+  modal('📤 '+t('td_manage_numbers'),
+    (rows||`<p class="hint">${t('td_no_numbers')}</p>`)+
+    `<div class="field" style="margin-top:10px"><label>${t('st_name')}</label>
+       <input id="rt_name" placeholder="${t('td_name_ph')}"></div>
+     <div class="field" style="margin-top:8px"><label>${t('phone')}</label>
+       <input id="rt_phone" type="tel" inputmode="tel" placeholder="98xxxxxxxx"></div>
+     <div class="field" style="margin-top:8px"><label>${t('td_which_report')}</label>
+       <select id="rt_kind">
+         <option value="daily">${t('td_kind_daily')}</option>
+         <option value="salesday">${t('td_kind_salesday')}</option>
+         <option value="sales">${t('td_kind_sales')}</option></select></div>`,
+    [{label:t('cancel'),fn:closeModal},{label:'➕ '+t('add'),cls:'primary',fn:reportToAdd}]);
+}
+function reportToAdd(){
+  const nm=(($('#rt_name')||{}).value||'').trim();
+  const ph=(($('#rt_phone')||{}).value||'').replace(/[^0-9]/g,'');
+  if(!ph||ph.length<10){ toast(t('td_need_phone'),'bad'); return; }
+  DB.reportTo=DB.reportTo||[];
+  DB.reportTo.push({name:nm||ph, phone:ph, kind:(($('#rt_kind')||{}).value||'daily')});
+  save(); closeModal(); toast(t('td_number_added'),'ok'); reportToEdit();
+}
+function reportToDel(i){
+  confirmModal(t('confirm_del'), t('td_del_msg'), ()=>{
+    (DB.reportTo||[]).splice(i,1); save(); closeModal(); reportToEdit(); });
+}
 function orderBoardHTML(){
   const pend=(DB.orders||[]).filter(o=>!orderDelivered(o));
   const late=pend.filter(o=>daysLeft(o.deliveryDate)<0).length;
@@ -9277,7 +9748,12 @@ function orderProfitReport(keepFocus){
     <span>${l}</span><b style="${col?'color:'+col:''}">${money(v)}</b></div>`;
   const body=list.map(({o,p})=>`
     <div class="card" style="padding:12px 14px;margin-bottom:8px">
-      <div class="kv" style="cursor:pointer" onclick="closeSheet();orderMenu('${jq(o.id)}')">
+      ${/* v351 — HIS 27 Aug: "Clicking a profit entry should take me to the invoice, not
+           generic Order Options." He is right: the profit on this card comes from the bill,
+           so the bill is what should open. An order with no bill has none of this to show,
+           and those are folded away below anyway — if one is ever tapped it still opens the
+           order, because that is all there is. */''}
+      <div class="kv" style="cursor:pointer" onclick="closeSheet();${p.billed?`openInvoicePreview('order','${jq(o.id)}')`:`orderMenu('${jq(o.id)}')`}">
         <div style="min-width:0;flex:1"><b>#${esc(o.orderNo||'')} \u00B7 ${esc(o.customerName||'\u2014')}</b>
           <div class="hint">${fmtDate(o.orderDate||(o.created||'').slice(0,10))} \u00B7 ${p.billed?t('op_billed'):t('op_unbilled')}</div></div>
         <div style="text-align:right"><b style="font-size:17px;color:${p.gross>=0?'var(--ok)':'var(--bad)'}">${money(p.gross)}</b>
@@ -10146,14 +10622,19 @@ const QR_ALL=[
   ['sale','🧾','qr_sale',"openSaleForm()",'billing'],
   ['purchase','🚚','qr_purchase',"openPurchaseForm()",'billing'],
   ['payin','💵','qr_payin',"payEntry('in')",null],
-  ['expense','💸','qr_exp',"expEdit()",'accounts'],
+  /* v350: Expense is no longer its own door. Every rupee leaving the shop now goes through
+     Payment out, which asks what it was for — so it can never land in the wrong book. The
+     Expenses screen itself, its list, its dates and its edit are all untouched. */
+  ['payout','💸','qr_payout',"payEntry('out')",'accounts'],
   ['karigar','🧵','qr_karigar',"jobWork()",null],
   ['status','📞','qr_status',"statusEnquiry('')",null],
   /* v349 — HIS 27 Aug: "Attendance should be a main tab." Marking who came in is a job he
      does once every morning and it sat three taps deep behind Settings → Staff. It goes in
      the catalogue rather than being hard-wired into the row, so it can be moved or hidden
      from the same long-press menu as every other shortcut. */
-  ['attend','👥','pn_title',"staffPunch()",'staff']
+  ['attend','👥','pn_title',"staffPunch()",'staff'],
+  /* v352: the day's own screen, at the front where he starts */
+  ['today','📊','td_title',"todayScreen()",null]
 ];
 function qrCfg(){
   DB.qrCfg=DB.qrCfg||{};
@@ -10315,6 +10796,53 @@ function menuFilter(q){
     const any=list&&[...list.querySelectorAll('.mnu-row')].some(r=>r.style.display!=='none');
     h.style.display=any?'':'none'; if(list)list.style.display=any?'':'none'; });
 }
+/* v355 — HIS 27 Aug: "kya home screen per rakhna hai ya kya nahi ye shopkeeper apne
+   suvidha ke hisab se khud set kar sake. Jitna customer khud customise kar sakenge utna
+   support per kam mehnat hogi."
+   That is the right instinct, and it settles a run of arguments we have been having one
+   block at a time — he had me take the attendance count off Home in v341 and now wants it
+   back. Neither of us should be deciding this for every shop: a boutique that runs six
+   staff wants attendance first, a one-man shop never wants to see it. The shortcut row has
+   been his to arrange since v270; the sections below it now are too.
+   Defaults reproduce exactly what Home shows today, so nothing changes for anyone until
+   they choose to change it. */
+const HOME_BLOCKS=[
+  ['money','💰','hb_money'],
+  ['deliver','🚚','hd_deliver'],
+  ['work','🧵','hd_work'],
+  ['attend','👥','pn_title'],
+  ['backup','🛟','hb_backup']
+];
+function homeCfg(){
+  DB.homeCfg=DB.homeCfg||{};
+  /* v356 — HIS 27 Aug: "mera home mere hisab se set karna, usko blank mat kar dena. Hum
+     logon ne jo mehnat ki hai... aur baaki customers ko customise karne ka option rahe."
+     Right, and I had it the wrong way round: I defaulted to the older, thinner Home and
+     left the work we did behind a switch. The default IS the considered layout — every
+     block we argued out and built, attendance included. A shop that wants less can now
+     take blocks off; nobody has to go hunting for what was already decided. */
+  if(!Array.isArray(DB.homeCfg.hidden))DB.homeCfg.hidden=[];
+  return DB.homeCfg;
+}
+function homeOn(k){ return homeCfg().hidden.indexOf(k)<0; }
+function homeToggle(k){
+  const c=homeCfg(), i=c.hidden.indexOf(k);
+  if(i<0)c.hidden.push(k); else c.hidden.splice(i,1);
+  save(); homeManage(); try{ renderHome(); }catch(e){}
+}
+function homeManage(){
+  const rows=HOME_BLOCKS.map(([k,ico,lbl])=>{
+    const on=homeOn(k);
+    return `<div class="card" style="padding:10px 12px;margin-bottom:8px;cursor:pointer"
+        onclick="homeToggle('${k}')">
+      <div class="kv"><span><b>${ico} ${t(lbl)}</b></span>
+        <span class="gtag ${on?'on-tag':''}">${on?'✓ '+t('hb_shown'):t('hb_hidden')}</span></div></div>`;
+  }).join('');
+  modal('🏠 '+t('hb_title'),
+    `<p class="hint" style="margin-bottom:10px">${t('hb_hint')}</p>${rows}
+     <p class="hint" style="margin-top:10px">${t('hb_shortcut_note')}</p>`,
+    [{label:t('done'),cls:'primary',fn:closeModal}]);
+}
 function renderHome(){
   if(setupNeeded()){ renderSetup(); return; }
   const el=$('#homePane');
@@ -10332,13 +10860,13 @@ function renderHome(){
   const stat=(label,value,color,onclick)=>`<div class="home-stat${onclick?' tappable':''}" ${onclick?`onclick="${onclick}"`:''}><div class="hs-val" style="${color?'color:'+color:''}">${value}</div><div class="hs-lbl">${label}${onclick?' <span class="hs-go">›</span>':''}</div></div>`;
 
   el.innerHTML=`
-    ${backupNagHTML()}
+    ${homeOn('backup')?backupNagHTML():''}
     <div class="home-hd">
       <div><div class="home-shop">${esc((DB.shopInfo&&DB.shopInfo.name)||t('your_shop'))}</div>
       <div class="home-sub">${new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'short'})}</div></div>
     </div>
 
-    ${kpiCardsHTML()}
+    ${homeOn('money')?kpiCardsHTML():''}
     ${quickRowHTML()}
     ${/* v262: the "Old home" link is retired from this screen. It was a migration escape
          hatch from the bottom-nav rollout and it has done its job — he has been on the new
@@ -10371,7 +10899,11 @@ function renderHome(){
            <span class="dl-lbl">${label}</span>
            <span class="dl-n" style="${col&&n?'color:'+col:''}">${n}</span>
            ${n?'<span class="dl-go">›</span>':''}</div>`;
+      /* v355 fix: an early return here would have taken the blocks BELOW it with it —
+         switching the delivery card off also hid attendance. Each block is asked about
+         on its own. */
       return `
+      ${homeOn('deliver')?`
       <div class="card dl-card">
         <div class="dl-hd">🚚 ${t('hd_deliver')}</div>
         ${/* v341 — HIS 27 Aug: today first, then tomorrow, then the week, and overdue
@@ -10413,12 +10945,25 @@ function renderHome(){
             <span class="dl-ico">🔧</span>
             <span class="dl-lbl">${t('alt_pending')}</span>
             <span class="dl-n" style="color:var(--saffron2)">${pend}</span><span class="dl-go">›</span></div>
-        </div>`; })()}
+        </div>`; })()}`:''}
+      ${homeOn('work')?`
       <div class="card dl-card">
         <div class="dl-hd">🧵 ${t('hd_work')}</div>
         ${line('⚠️',t('hd_nokar'),nNoKar,"actionList('nokar')",'var(--saffron2)')}
         ${line('✅',t('hd_ready'),nReady,"statDetail('ready')",'var(--ok)')}
-      </div>`;
+      </div>`:''}
+      ${/* v355: attendance is back — off by default, on the moment he wants it, and the
+           count is live rather than the stale one v215 had to fix. */''}
+      ${(homeOn('attend')&&modOn('staff')&&staffAll().filter(x=>!x.left).length)?(()=>{
+        const stf=staffAll().filter(x=>!x.left), d2=todayISO();
+        const inN=stf.filter(x=>{const a=attGet(x.id,d2);return a&&a.in;}).length;
+        return `<div class="card dl-card">
+          <div class="dl-hd">👥 ${t('pn_title')}</div>
+          <div class="dl-row tappable" onclick="staffPunch()">
+            <span class="dl-ico">👥</span><span class="dl-lbl">${t('pn_came')}</span>
+            <span class="dl-n">${inN}/${stf.length}</span><span class="dl-go">›</span></div>
+        </div>`; })():''}
+      `;
     })()}
 
 
@@ -14231,7 +14776,7 @@ function renderInvoiceForm(){
     <div class="pos-head">
       <h2 style="margin:0">🧾 ${f.kind==='sale'?t('new_sale'):t('invoice')}</h2>
       <span style="display:flex;align-items:center;gap:10px">
-        <span class="hint">#${esc(f.no)} · ${fmtDate(f.date)}</span>
+        <span class="hint">${f.kind==='sale'?'':'#'+esc(f.no)+' · '+fmtDate(f.date)}</span>
         <button class="btn sm ghost" onclick="invClose()">✕</button></span>
     </div>
     ${f.kind!=='sale'?(()=>{const rec=invRecOf(f.kind,f.id)||{};
@@ -14246,9 +14791,14 @@ function renderInvoiceForm(){
          title line above, so repeating the date here cost a whole field for nothing.
          The two things he reaches for — delivery date and order number — now sit where
          his eye already was. The bill date stays editable, moved into ⚙️ below. */''}
-    <div class="head-grid3">
+    ${/* v354: the bill's own two facts, side by side and both his to change */''}
+    <div class="row" style="margin-bottom:8px">
       <div class="field" style="margin:0"><label>${t('invoice_no')}</label>
-        <input id="inv_no" value="${esc(f.no)}" style="text-align:center"></div>
+        <input id="inv_no" value="${esc(f.no)}"></div>
+      <div class="field" style="margin:0"><label>${t('invoice_date')}</label>
+        ${dateField("inv_date",f.date)}</div>
+    </div>
+    <div class="head-grid3" style="grid-template-columns:1fr 1fr">
       <div class="field" style="margin:0"><label>📅 ${t('inv_delivery')}</label>
         ${dateField("inv_ddate",f.deliveryDate||'','',true)}</div>
       ${f.kind==='sale'?`
@@ -14279,14 +14829,14 @@ function renderInvoiceForm(){
         <button class="btn sm ghost" style="padding:3px 12px;font-size:12px" onclick="posManageItems()">✏️ ${t('edit')}</button>
       </div>
       <div class="pos-tiles">${tiles}<div class="pos-tile add" onclick="posNewItem()"><b>➕ New</b></div></div>
-      <div class="pos-addbar"><button class="btn primary block" onclick="posAddMenu()">➕ ${t('pos_add_item')}</button></div>
+      <div class="pos-addbar"><button class="btn primary block" onclick="posAddMenu()">🔎 ${t('pos_add_item')}</button></div>
     </div>
     <div class="billed-bar" style="${(f.items||[]).length?'':'display:none'}" id="posBilledBar"><span>🧾 ${t('pur_billed')}</span>
       <span class="hint" id="posCount" style="color:inherit">${t('inv_items_n',{n:(f.items||[]).length})}
         ${!f.editId?` · <a onclick="discardPurDraft()" style="color:var(--bad);cursor:pointer">🗑️ ${t('pur_draft_del')}</a>`:''}</span></div>
     <div id="posLines"></div>
     <div id="posAddSmall" class="pos-add-small" style="${(f.items||[]).length?'':'display:none'}"
-      onclick="posAddMenu()">➕ ${t('pos_add_item')}</div>
+      onclick="posAddMenu()">🔎 ${t('pos_add_item')}</div>
     <div id="posBilledSummary">${posBilledSummary()}</div>
     <p class="hint" id="invDraftHint" style="text-align:center;opacity:.6;margin:8px 0 0">💾 ${t('draft_auto')}</p>
 
@@ -14355,21 +14905,37 @@ function renderInvoiceForm(){
 
     <details style="margin-top:14px">
       <summary style="font-size:13px;color:var(--saffron2);cursor:pointer;font-weight:700;padding:6px 0">⚙️ ${t('pos_more')}</summary>
-      <div class="field" style="padding-top:10px;margin:0"><label>${t('invoice_date')}</label>
-        ${dateField("inv_date",f.date)}</div>
+      ${/* v354: the bill date moved to the top of the form where it belongs; it was here
+           as a third copy of the same thing. */''}
       <div class="il"><span>🚚 ${t('courier')}</span>
         <input id="inv_courier" type="number" inputmode="numeric" value="${f.courier?esc(f.courier):''}" placeholder="0"
           style="width:112px;text-align:right;margin:0" oninput="updateInvTotals()"></div>
 
       <div class="field" style="margin-top:10px"><label>🧑‍💼 ${t('salesman')}</label>
         <input type="hidden" id="inv_sm" value="${esc(f.salesmanId||'')}">
-        <div class="gtags">
-          ${salesmenAll().map(k=>{const on=k.id===f.salesmanId;
-            return `<span class="gtag ${on?'on-tag':''}" style="cursor:pointer" onclick="invPickSalesman('${k.id}')">${on?'✓ ':''}${esc(k.name)}${k.phone?' · '+esc(k.phone):''}</span>`;}).join('')
+        ${/* v354 — HIS 27 Aug: "do salesman hain Om Ramesh, uska khula hua ho, phir more."
+             Six names with their phone numbers took six lines of a bill screen for a field
+             touched once. The one in use and the two most likely are open; the rest are one
+             tap away. Phone numbers are gone from the chip — he is picking a person, not
+             ringing him. */''}
+        ${(()=>{
+          const all=salesmenAll();
+          const pick=f.salesmanId;
+          let show=all.slice(0,2);
+          if(pick && !show.some(x=>x.id===pick)){
+            const sel=all.find(x=>x.id===pick); if(sel)show=[sel].concat(all.slice(0,1));
+          }
+          const list=_invSmAll?all:show;
+          const rest=all.length-list.length;
+          return `<div class="gtags">
+          ${list.map(k=>{const on=k.id===f.salesmanId;
+            return `<span class="gtag ${on?'on-tag':''}" style="cursor:pointer" onclick="invPickSalesman('${k.id}')">${on?'✓ ':''}${esc(k.name)}</span>`;}).join('')
             ||`<span class="hint">${t('sm_none_yet')}</span>`}
+          ${rest>0?`<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="_invSmAll=1;renderInvoiceForm()">+${rest} ${t('exp_more_heads')}</span>`:''}
+          ${(_invSmAll&&all.length>2)?`<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="_invSmAll=0;renderInvoiceForm()">${t('exp_less')}</span>`:''}
           <span class="gtag" style="cursor:pointer;border-style:dashed" onclick="invAddSalesman()">➕ ${t('add_salesman')}</span>
-          ${salesmenAll().length?`<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="invManageSalesmen()">⚙️ ${t('sm_manage')}</span>`:''}
-        </div></div>
+          ${all.length?`<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="invManageSalesmen()">⚙️ ${t('sm_manage')}</span>`:''}
+        </div>`; })()}</div>
       <label style="display:flex;align-items:center;gap:8px;margin:10px 0;font-size:13px;color:var(--txt2)">
         <input type="checkbox" id="inv_inter" ${f.interstate?'checked':''} onchange="updateInvTotals()" style="width:18px;height:18px"> ${t('interstate')}</label>
       <p class="hint">${t('invoice_gst_hint')}</p>
@@ -14571,7 +15137,7 @@ function posSearchAdd(){
   _posFilter='all';   // a fresh search never inherits the last bill's sieve
   const fchips=[['all','pos_f_all'],['mto','pos_f_mto'],['rdy','pos_f_rdy'],['fab','pos_f_fab']]
     .map(([k,lbl])=>`<span class="gtag sm ${k==='all'?'on-tag':''}" data-pf="${k}" style="cursor:pointer" onclick="posSetFilter('${k}')">${t(lbl)}</span>`).join('');
-  modal('➕ '+t('pos_add_item'),
+  modal('🔎 '+t('pos_add_item'),
     `<div class="gtags" style="margin:0 0 8px">${fchips}</div>
      <div class="field" style="margin:0 0 8px"><input id="posSearchQ" placeholder="${t('pos_search_ph')}" oninput="posSearchRun(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();posEnter();}" autocomplete="off"></div>
      <div id="posSearchRes"></div>
@@ -15396,7 +15962,7 @@ function saveInvoice(){
 }
 /* the running list of bills saved in this sitting — ids only, the records themselves
    stay in DB.sales where they belong. Cleared when he leaves the billing screen. */
-let _posDone=[];
+let _posDone=[]; let _invSmAll=false;
 function posDone(id){ if(id && _posDone.indexOf(id)<0)_posDone.unshift(id); }
 function saleFormNext(){
   const s={id:uid(),created:new Date().toISOString(),customerId:null,customerName:'',phone:'',payments:[],total:0};
@@ -18605,8 +19171,21 @@ function bsFigures(from,to){
   /* v277: rent earned on sales but not yet handed over is money he owes, exactly like a
      supplier bill. */
   add(L,'rentcomm', Math.max(0, r2(rentEarned(ob.date||from,to)-rentPaid(ob.date||from,to))));
-  add(L,'loans', (ob.loans||[]).filter(x=>x.kind!=='personal')
-    .reduce((s2,x)=>r2(s2+(+x.amt||0)),0));
+  /* v350: a loan is only the opening figure until something is paid against it. Every
+     principal repayment recorded through Payment out reduces it; a new loan taken adds to
+     it. Interest is deliberately NOT here — it is a cost and has already gone to the P&L,
+     and counting it in both places is the mistake this whole flow exists to prevent. */
+  {
+    let loanBal=(ob.loans||[]).filter(x=>x.kind!=='personal')
+      .reduce((s2,x)=>r2(s2+(+x.amt||0)),0);
+    (DB.ledger||[]).forEach(l=>{
+      if(l.refKind!=='loan')return;
+      const d=String(l.date||''); if(d<from||d>to)return;
+      const pr=(l.loanPrincipal!=null)?r2(+l.loanPrincipal||0):r2(+l.amt||0);
+      loanBal = (l.dir==='out') ? r2(loanBal-pr) : r2(loanBal+pr);
+    });
+    add(L,'loans', loanBal);
+  }
   const g=gstFigures(from,to), gi=gstInputTax(from,to);
   /* v301 AUDIT — the balance sheet was out by ₹300 the moment input tax exceeded output
      tax. Math.max(0,…) threw that excess away: in a month where he buys more than he
@@ -18632,6 +19211,13 @@ function bsFigures(from,to){
     const v=jvNet(E,'sys:'+k); if(v)L[k]=r2((L[k]||0)+v); });
   const jvCap=jvNet(E,'sys:capital'), jvDraw=jvNet(E,'sys:drawings');
   cap.opening=r2(cap.opening+jvCap);
+  /* v350: money he puts into the shop is capital, not a sale. It raises what the business
+     owes him, which is exactly why it must never touch the P&L. */
+  (DB.ledger||[]).forEach(l=>{
+    if(l.refKind!=='capital')return;
+    const d=String(l.date||''); if(d<from||d>to)return;
+    cap.opening = (l.dir==='in') ? r2(cap.opening+(+l.amt||0)) : r2(cap.opening-(+l.amt||0));
+  });
   cap.drawings=r2(cap.drawings+jvDraw);
   /* income and expense adjustments move the period's profit */
   /* v308: income/expense adjustments are already inside pl.net above — only the balance
@@ -18824,6 +19410,34 @@ function jvDel(){
    it, and opened up line by line. */
 let _bsDrCr=false;
 function bsDrCrToggle(){ _bsDrCr=!_bsDrCr; balanceSheet(); }
+/* v351: the picker is the same on every report — his words: "the selected date range must
+   consistently control the report data". One markup, one setter. */
+function rpPickerHTML(reRender){
+  const rows=[['month','rp_month'],['q','bs_quarter'],['fy','bs_fy'],['custom','rp_custom']];
+  return `<div class="gtags" style="margin-bottom:8px">
+    ${rows.map(([p,k])=>`<span class="gtag" style="cursor:pointer;${(p==='custom'?rpPeriod==='custom':rpPeriod===p)?'background:var(--saffron);color:#1a1206;border-color:var(--saffron)':''}"
+      onclick="rpSetPeriod2('${p}','${reRender}')">${t(k)}</span>`).join('')}</div>
+    ${rpPeriod==='custom'?`<div class="row" style="margin-bottom:10px">
+      <div class="field"><label>${t('rp_from')}</label><input id="rp_from2" type="date" value="${esc(rpFrom||rpRange().from)}"></div>
+      <div class="field"><label>${t('rp_to')}</label><input id="rp_to2" type="date" value="${esc(rpTo||rpRange().to)}"></div></div>
+      <button class="btn sm primary block" style="margin-bottom:10px" onclick="rpApply2('${reRender}')">${t('rp_apply')}</button>`:''}`;
+}
+function rpSetPeriod2(p,fn){
+  const today=new Date(), iso=d=>d.toISOString().slice(0,10);
+  if(p==='fy'){ rpPeriod='custom';
+    const y=today.getMonth()>=3?today.getFullYear():today.getFullYear()-1;
+    rpFrom=y+'-04-01'; rpTo=iso(today); }
+  else if(p==='q'){ rpPeriod='custom';
+    const qs=Math.floor(today.getMonth()/3)*3;
+    rpFrom=iso(new Date(today.getFullYear(),qs,1)); rpTo=iso(today); }
+  else rpPeriod=p;
+  try{ window[fn] && window[fn](); }catch(e){}
+}
+function rpApply2(fn){
+  const a=$('#rp_from2'), b=$('#rp_to2');
+  if(a&&b){ rpPeriod='custom'; rpFrom=a.value; rpTo=b.value; }
+  try{ window[fn] && window[fn](); }catch(e){}
+}
 function bsSetPeriod(p){
   const today=new Date(), iso=d=>d.toISOString().slice(0,10);
   const fyStart=()=>{ const y=today.getMonth()>=3?today.getFullYear():today.getFullYear()-1;
@@ -19122,7 +19736,9 @@ function plReport(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">📈 ${t('rp_pl')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
-    <p class="hint" style="margin-bottom:12px">${fmtDate(from)} → ${fmtDate(to)}</p>
+    <p class="hint" style="margin-bottom:8px">${fmtDate(from)} → ${fmtDate(to)}</p>
+    ${/* v351: P&L had no way to choose a period at all */''}
+    ${rpPickerHTML('plReport')}
     <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
       ${row('🧾 '+t('rp_sales_gross'),f.sales,{open:'sales'})}
       ${row(t('rp_gst_out'),f.gst,{neg:1,open:'gst'})}
@@ -20159,6 +20775,7 @@ function settingsMenu(){modal(t('settings'),`
   ${/* v280 — HIS 23 Aug: "old home / opening balance shop / garment type... samajh nahi aa
        raha hai." A label a man has to already know the answer to is a failed label. This
        one names the setting and shows which way it is set, like every other toggle here. */''}
+  <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();homeManage()">🏠 ${t('hb_title')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();qrManage()">⚙️ ${t('qc_title')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="homeClassicToggle()">🏠 ${t('home_layout')} · <b>${localStorage.getItem('pp_home_classic')==='1'?t('home_layout_old'):t('home_layout_new')}</b></button>
   <div class="dl-hd" style="padding:12px 2px 6px">${t('sg_people')}</div>
