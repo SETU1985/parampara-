@@ -781,7 +781,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v368</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v374</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -808,7 +808,7 @@
 
 <nav>
   <button class="on" id="nav-home" onclick="go('home')"><span class="nico">🏠</span><span data-t="nav_home"></span></button>
-  <button id="nav-orders" onclick="navQuick('orders')"><span class="nico">📋</span><span data-t="nav_orders"></span></button>
+  <button id="nav-today" onclick="todayScreen()"><span class="nico">📅</span><span data-t="td_title"></span></button>
   <button class="add" onclick="quickAdd()"><span class="nico">+</span></button>
   <button id="nav-invoices" onclick="navQuick('reports')" class="simple-hide mod-billing"><span class="nico">📊</span><span data-t="reports"></span></button>
   <button id="nav-menu" onclick="menuHome()"><span class="nico">☰</span><span data-t="menu_all"></span></button>
@@ -1380,7 +1380,7 @@ const T={
   pay_in:'Payment In', pay_out:'Payment out',
   td_kind_salesday:'Daily sales, bill by bill', td_sales_day:'Sales today',
   td_got:'Received', td_due:'Due', td_no_bills:'No bills today.',
-  td_title:'Today', td_tab_today:'Today', td_tab_work:'Work',
+  td_title:'Daily summary', td_tab_today:'Today', td_tab_work:'Work',
   td_money:'Money today', td_shop:'Shop today',
   td_sales:'Sales', td_purch:'Purchases', td_exp:'Expenses',
   td_in:'Money in', td_out:'Money out',
@@ -1791,7 +1791,10 @@ const T={
   dft_keep_title:'This order is not finished', dft_keep_msg:'Keep it to carry on later, or throw it away?',
   dft_keep:'Keep it', dft_drop:'Throw away',
   vm_out_soft:'{v}? say it again', vm_saved_short:'{v}', vm_next_short:'done — next',
-  ms_title:'Measurement limits', ms_sub:'A number outside these is flagged, never blocked — a child\u2019s measurements are simply smaller.',
+  ms_title:'Measurement limits',
+  upd_row:'Check for a new version', upd_new:'New version {v} is ready',
+  upd_go:'Update now', upd_latest:'You are on the newest version ({v})',
+  upd_fail:'Could not check — no internet', upd_wait:'Updating…', ms_sub:'A number outside these is flagged, never blocked — a child\u2019s measurements are simply smaller.',
   ms_min:'Least', ms_max:'Most', ms_reset:'Back to normal', ms_flag:'outside the usual range',
   ph_one_more:'One more', ph_more_hint:'Take the next photo without leaving this screen.',
   bk_one_file_note:'One file — orders, measurements, stock, tailor accounts and photos together.',
@@ -2183,7 +2186,7 @@ const T={
   naap_start:'Start measuring ({n} pieces)',
   it_next:'Next item opened',
   it_all_done:'All items filled',
-  qr_order:'New order', qr_sale:'Sale', qr_purchase:'Purchase', qr_karigar:'Job work', qr_daybook:'Day book',
+  qr_order:'Orders', qr_neworder:'New order', qr_sale:'Sale', qr_purchase:'Purchase', qr_newpurchase:'New purchase', qr_karigar:'Job work', qr_daybook:'Day book',
   db_bal_now:'Cash & bank now',
   t_order_gone:'This order no longer exists — nothing was saved.',
   pur_edit_nostock:'Bill updated. Stock was NOT changed — correct the roll or piece in Stock.',
@@ -2418,6 +2421,8 @@ const T={
   paid_now:'Paid now ₹',
   purchases_report:'Purchase report',
   rp_total_purchases:'Total purchases',
+  pt_open_dup:'This name already has an opening balance', cr_new:'New creditor', cr_search:'Search name, amount...', cr_loan_tag:'Loan',
+  cr_edit:'Edit', cr_none_match:'Nobody matches that',
   creditors_report:'Payables',
   rp_no_creditors:'Nothing to pay 🎉',
   rp_creditor_total:'Total payable',
@@ -3007,7 +3012,7 @@ const T={
   pay_in:'पैसा आया', pay_out:'पैसा गया',
   td_kind_salesday:'रोज़ की बिक्री, बिल-दर-बिल', td_sales_day:'आज की बिक्री',
   td_got:'मिला', td_due:'बाकी', td_no_bills:'आज कोई बिल नहीं।',
-  td_title:'आज', td_tab_today:'आज', td_tab_work:'काम',
+  td_title:'दिन का हिसाब', td_tab_today:'आज', td_tab_work:'काम',
   td_money:'आज का पैसा', td_shop:'आज की दुकान',
   td_sales:'बिक्री', td_purch:'ख़रीद', td_exp:'ख़र्च',
   td_in:'पैसा आया', td_out:'पैसा गया',
@@ -3419,7 +3424,10 @@ const T={
   dft_keep_title:'यह ऑर्डर अधूरा है', dft_keep_msg:'बाद में पूरा करने के लिए रखें, या हटा दें?',
   dft_keep:'रखिए', dft_drop:'हटा दीजिए',
   vm_out_soft:'{v}? फिर से बोलिए', vm_saved_short:'{v}', vm_next_short:'हो गया — अगला',
-  ms_title:'नाप की सीमा', ms_sub:'इससे बाहर का नंबर सिर्फ़ निशान लगाएगा, रोकेगा नहीं — बच्चे का नाप छोटा ही होता है।',
+  ms_title:'नाप की सीमा',
+  upd_row:'नया वर्ज़न देखें', upd_new:'नया वर्ज़न {v} तैयार है',
+  upd_go:'अभी अपडेट करें', upd_latest:'आप नए वर्ज़न पर ही हैं ({v})',
+  upd_fail:'देख नहीं पाए — इंटरनेट नहीं है', upd_wait:'अपडेट हो रहा है…', ms_sub:'इससे बाहर का नंबर सिर्फ़ निशान लगाएगा, रोकेगा नहीं — बच्चे का नाप छोटा ही होता है।',
   ms_min:'कम से कम', ms_max:'ज़्यादा से ज़्यादा', ms_reset:'सामान्य पर लाएँ', ms_flag:'आम सीमा से बाहर',
   ph_one_more:'एक और', ph_more_hint:'यहीं से अगली फ़ोटो लीजिए, पीछे जाने की ज़रूरत नहीं।',
   bk_one_file_note:'एक ही फ़ाइल — ऑर्डर, नाप, स्टॉक, करीगर हिसाब और फ़ोटो सब साथ।',
@@ -3810,7 +3818,7 @@ const T={
   naap_start:'नाप शुरू करें ({n} आइटम)',
   it_next:'अगला आइटम खुला',
   it_all_done:'सभी आइटम भर गए',
-  qr_order:'नया ऑर्डर', qr_sale:'बिल', qr_purchase:'ख़रीद', qr_karigar:'कारीगर का काम', qr_daybook:'डे बुक',
+  qr_order:'ऑर्डर', qr_neworder:'नया ऑर्डर', qr_sale:'बिल', qr_purchase:'ख़रीद', qr_newpurchase:'नई ख़रीद', qr_karigar:'कारीगर का काम', qr_daybook:'डे बुक',
   db_bal_now:'अभी कैश और बैंक',
   t_order_gone:'ये ऑर्डर अब मौजूद नहीं है — कुछ सेव नहीं हुआ।',
   pur_edit_nostock:'बिल अपडेट हो गया। स्टॉक नहीं बदला — थान/पीस को Stock में खुद ठीक करें।',
@@ -4044,6 +4052,8 @@ const T={
   paid_now:'अभी दिया ₹',
   purchases_report:'ख़रीद रिपोर्ट',
   rp_total_purchases:'कुल ख़रीद',
+  pt_open_dup:'इस नाम का पुराना बकाया पहले से दर्ज है', cr_new:'नया लेनदार', cr_search:'नाम, रकम खोजें…', cr_loan_tag:'क़र्ज़',
+  cr_edit:'बदलें', cr_none_match:'कोई नहीं मिला',
   creditors_report:'देनदारी (देना है)',
   rp_no_creditors:'कुछ देना नहीं 🎉',
   rp_creditor_total:'कुल देना है',
@@ -7489,7 +7499,10 @@ function payEntry(dir,skipAsk){
     `<p class="hint" style="margin-bottom:10px">${dir==='in'?t('pay_in_hint'):t('pay_out_hint')}</p>
      <datalist id="partyList">${parties.map(p=>`<option value="${esc(p)}">`).join('')}</datalist>
      <div class="field"><label>${dir==='in'?t('customer'):t('supplier')} *</label>
-       <input id="py_party" list="partyList" placeholder="${t('name_ph')}"></div>
+       <input id="py_party" list="partyList" placeholder="${t('name_ph')}">
+       ${/* v371: same door as the expense screen — a name with no history gets its type and
+            its opening balance here, before the money moves against it. */''}
+       <button class="btn sm ghost" style="margin-top:6px" onclick="payNewParty()">➕ ${t('pt_new')}</button></div>
      <div class="row"><div class="field"><label>${t('amount')} ₹ *</label>
         <input id="py_amt" type="number" inputmode="numeric" placeholder="0"></div>
        <div class="field"><label>${t('pay_date')}</label>${dateField("py_date",todayISO())}</div></div>
@@ -7515,6 +7528,26 @@ function payEntry(dir,skipAsk){
         toast(r.touched.length?t('pay_settled',{d:r.touched.join(', ')}):t('t_saved'),'ok');
         dayBook();
      }}]);
+}
+
+/* v371 LIVE TEST — the creator and the payment form share the same modal slot, so opening
+   one wiped the other: he came back to an empty Payment out and had to type the amount,
+   the date and the account again. Everything he had already filled is held, the form is
+   drawn again behind the new name, and he carries on from where he was. */
+function payNewParty(){
+  const g=i=>(($('#'+i)||{}).value||'');
+  const keep={dir:(_pay&&_pay.dir)||'out', party:g('py_party').trim(),
+    amt:g('py_amt'), date:g('py_date'), acc:g('py_acc'), note:g('py_note')};
+  partyEdit(null,(nm)=>{
+    save();
+    payEntry(keep.dir,1);
+    setTimeout(()=>{
+      const st=(i,v)=>{ const e=$('#'+i); if(e&&v!=='' && v!=null)e.value=v; };
+      st('py_party',nm||keep.party); st('py_amt',keep.amt);
+      st('py_date',keep.date); st('py_acc',keep.acc); st('py_note',keep.note);
+      const a=$('#py_amt'); if(a && !keep.amt)a.focus();
+    },90);
+  }, keep.party);
 }
 
 /* ---------------- EXPENSES ---------------- */
@@ -7986,20 +8019,27 @@ function expHeadNames(cat){
   return out;
 }
 /* a name typed once becomes a party record, so his ledger builds itself from then on */
+/* v371 — HIS 28 Aug: "abhi entry kar raha hoon, dus hazaar Meghraj Parasmal dikhaya, to
+   turant ek party banani padegi na... wahin par ledger create karne ka option aa gaya,
+   opening balance daalne ka option, creditor ya debtor choose karne ka option."
+   Every piece of that was already built — partyEdit asks the name, the type (creditor /
+   debtor) and the opening balance, and posts the opening the same way the party card
+   does. It simply could not be reached from here. THIS screen, sitting beside the bank
+   statement, is where ninety-five entries out of a hundred are typed, and the ➕ here
+   opened a bare name box: no type, no opening. So a supplier he already owed money to
+   was created flat, and the next payment to him landed in the P&L as a fresh cost.
+   Same creator, opened from where he actually is, with the name he already typed. */
 function expNewParty(pre){
   expCapture();
-  modal('👤 '+t('exp_new_name'),
-    `<div class="field"><input id="expPtName" value="${esc(pre||'')}" placeholder="${t('pt_name')}" autocomplete="off"></div>`,
-    [{label:t('cancel'),cls:'ghost',fn:()=>{closeModal();expRender();}},
-     {label:t('save'),cls:'primary',fn:()=>{
-        const nm=(($('#expPtName')||{}).value||'').trim();
-        if(!nm){ toast(t('pt_name'),'bad'); return; }
-        const hc=expHeadCfg(_exp.cat);
-        const kind=hc.who||'other';
-        const p=partyEnsure(nm,'',kind); save();
-        _exp.partyId=p.id; _exp.partyName=p.name; _exp.partyKind=kind;
-        closeModal(); expRender();
-     }}]);
+  partyEdit(null,(nm)=>{
+    const p=partyByName(nm) || partyEnsure(nm,'',expHeadCfg(_exp.cat).who||'other');
+    /* the hat the opening was filed under is the hat this man wears from now on */
+    const op=(DB.ledger||[]).filter(l=>l.refKind==='opening'
+      && nameNorm(l.party)===nameNorm(nm)).slice(-1)[0];
+    _exp.partyId=p.id; _exp.partyName=p.name||nm;
+    _exp.partyKind=(op&&op.partyKind) || expHeadCfg(_exp.cat).who || 'other';
+    save(); expRender();
+  }, pre);
 }
 /* the two heads that are always somebody's money, in either script */
 function expLooksLikePerson(cat){
@@ -8743,6 +8783,7 @@ function saleHub(){
   sheetAt(saleHub); if(!modOn('billing')){toast(t('mod_off'),'bad');return;}
   $('#sheet').innerHTML=hubHTML('🧾 '+t('hub_sale'), t('hub_sale_sub'), [
     ['➕', t('new_sale'), "closeSheet();openSaleForm()"],
+    ['📥', t('debtors_report'), "closeSheet();followUps()"],
     ['↩️', t('sr_menu'), "closeSheet();salesReturnPick()"],
     ['📄', t('estimate'), "closeSheet();estimateList()"],
   ]);
@@ -8770,6 +8811,7 @@ function purchaseHub(){
   sheetAt(purchaseHub); if(!modOn('billing')){toast(t('mod_off'),'bad');return;}
   $('#sheet').innerHTML=hubHTML('🚚 '+t('hub_purchase'), t('hub_purchase_sub'), [
     ['➕', t('new_purchase'), "closeSheet();openPurchaseForm()"],
+    ['📤', t('creditors_report'), "closeSheet();creditors()"],
     ['↪️', t('pr_menu'), "closeSheet();purchaseReturnPick()"],
     ['📝', t('purchase_order'), "closeSheet();poList()"],
   ]);
@@ -8805,11 +8847,37 @@ function creditors(){
     const rows=g.recs.map(p=>({date:recDateOf(p), amt:orderBaaki(p)}));
     if(g._open){ const o=openingLine(g.name,'supplier'); rows.push({date:(o&&o.date)||'', amt:g._open}); }
     g.age=ageSplit(rows); });
-  const groups=Object.values(map).filter(g=>g.due>0).sort((a,b)=>b.due-a.due);
+  /* v372 — HIS 28 Aug: "jisse paisa liya hai wo creditor hai, jisse maal liya hai wo
+     creditor hai — ye general actual me meri liabilities hai." Goods on credit were here;
+     borrowed money was not, so the one screen that answers "kise kitna dena hai" was
+     short by every loan he has taken. Karigar and salary stay out on his own instruction:
+     those are expenses, not liabilities. */
+  (DB.ledger||[]).filter(l=>l.refKind==='loan').forEach(l=>{
+    const k=String(l.party||'').trim(); if(!k)return;
+    map[k]=map[k]||{name:k,phone:(partyByName(k)||{}).phone||'',recs:[],due:0,_loan:0};
+    const pr=r2(+l.loanPrincipal||+l.amt||0);
+    map[k].due=r2(map[k].due + (l.dir==='in'?pr:-pr));
+    map[k]._loan=r2((map[k]._loan||0) + (l.dir==='in'?pr:-pr));
+  });
+  const _crQ=String(_credQ||'').trim().toLowerCase();
+  let groups=Object.values(map).filter(g=>g.due>0).sort((a,b)=>b.due-a.due);
+  const _crAll=groups.length;
+  if(_crQ)groups=groups.filter(g=>String(g.name).toLowerCase().includes(_crQ)
+    ||String(Math.round(g.due)).includes(_crQ)||String(g.phone||'').includes(_crQ));
   const total=r2(groups.reduce((s,g)=>s+g.due,0));
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">📤 ${t('creditors_report')}</h2>
     <p class="hint" style="margin-bottom:12px">${t('cr_sub')}</p>
+    ${/* v372 — HIS 28 Aug: "creditors me click karun to new creditor aur search bar aur
+         neeche purani entries, wahi sab cheezein usi hisaab se dikhe. To kisi ko entry
+         karna hai to yahan se bhi kar sakta hai." Same shape as the Orders and Purchase
+         lists, and a third door to the ledger creator — if one way is blocked he uses
+         the other. */''}
+    <div class="row" style="margin-bottom:10px;gap:8px">
+      <button class="btn primary block" onclick="credNew()">➕ ${t('cr_new')}</button></div>
+    ${_crAll?`<div class="field" style="margin-bottom:10px">
+      <input id="credSearch" value="${esc(_credQ)}" placeholder="🔍 ${t('cr_search')}"
+        oninput="credSearch(this.value)"></div>`:''}
     ${groups.length?`<div class="card pos-total" style="margin-bottom:14px">
       <div class="sum-row due" style="border-top:none;margin:0;padding:4px 0">
         <span>${t('rp_creditor_total')}</span><b>${money(total)}</b></div>
@@ -8824,17 +8892,32 @@ function creditors(){
         ${g.phone?`<div class="hint">📞 ${esc(g.phone)}</div>`:''}
         ${g.recs.map(p=>`<div class="hint fu-open" onclick="closeSheet();purchMenu('${p.id}')">• ${esc(p.billNo||fmtDate(p.date))} — ${money(orderBaaki(p))} <span style="color:var(--saffron2)">›</span></div>`).join('')}
         ${g._open?`<div class="hint fu-open" onclick="closeSheet();partyCard('${jq(g.name)}','supplier')">• ${t('pty_open')} — ${money(g._open)} <span style="color:var(--saffron2)">›</span></div>`:''}
+        ${g._loan>0?`<div class="hint">• 🏦 ${t('cr_loan_tag')} — ${money(g._loan)}</div>`:''}
       </div><div style="text-align:right"><b style="color:var(--bad);font-size:18px">${money(g.due)}</b>
         <div style="margin-top:4px">${ageChipHTML(g.age)}</div></div></div>
       <div class="row" style="margin-top:10px;gap:6px">
         <button class="btn primary" style="flex:2" onclick="closeSheet();payEntry('out')">⬆️ ${t('pay_out')}</button>
+        <button class="btn ghost" onclick="credEdit('${jq(g.name)}')">✏️</button>
         ${g.phone?`<button class="btn ghost" onclick="event.stopPropagation();callNum('${jq(g.phone)}')">📞</button>`:''}
       </div></div>`).join('')
-      ||`<div class="empty" style="padding:30px 10px"><div class="big">🎉</div><p>${t('rp_no_creditors')}</p></div>`}
+      ||`<div class="empty" style="padding:30px 10px"><div class="big">${_crQ?'🔍':'🎉'}</div><p>${_crQ?t('cr_none_match'):t('rp_no_creditors')}</p></div>`}
     
     <div class="fab-pad"></div>`;
   showSheet();
 }
+let _credQ='';
+function credSearch(v){ _credQ=String(v||''); creditors();
+  setTimeout(()=>{const e=$('#credSearch'); if(e){const x=e.value;e.focus();
+    try{e.setSelectionRange(x.length,x.length);}catch(err){}}},0); }
+/* the same creator the expense screen and Payment out open — one ledger form in the app,
+   not three that drift apart */
+function credNew(){ partyEdit(null,()=>{ save(); creditors(); }); }
+function credEdit(name){
+  const p=partyByName(name);
+  if(p) partyEdit(p.id,()=>{ save(); creditors(); });
+  else partyCard(name,'supplier');
+}
+
 /* ---------------- QUICK ACTIONS (the + button) ---------------- */
 /* Bottom-nav shortcut: one tap = start a NEW entry for that section.
    The list is loaded underneath first, so closing the form leaves you on the list.
@@ -10875,14 +10958,26 @@ function homeClassicToggle(){
    can make a button that does something other than it says. And "Back to default" is one
    tap away on the manage screen, so a wrong edit is never a trap. */
 const QR_ALL=[
-  ['order','👔','qr_order',"openOrderForm()",null],
+  /* v370 — HIS 28 Aug: "Purchase, Sale, Order — teenon ek hi format me upar ki taraf
+     button me rakh do." One rule for all three now: the named tile opens that book's LIST,
+     and a ➕ tile beside it starts a new one. Order was the odd one out — its tile went
+     straight into a blank form, so the orders list had no door on Home at all. */
+  ['order','👔','qr_order',"go('orders')",null],
+  ['neworder','➕','qr_neworder',"openOrderForm()",null],
   /* v359 — HIS 27 Aug: "home screen par sale par click kiya to sale ke saare bill khul
      jayein... roz dekhna hi hota hai, edit karna hai, print karwana hai." The chip opened a
      blank new bill, so the list — the thing he goes to every day — had no door on Home at
      all. The list opens; the list's own "+ New sale" button makes a bill. */
   ['sale','🧾','qr_sale',"go('invoices')",'billing'],
   ['newsale','➕','qr_newsale',"openSaleForm()",'billing'],
-  ['purchase','🚚','qr_purchase',"openPurchaseForm()",'billing'],
+  /* v369 — HIS 28 Aug: "Purchase ka kahin par bhi nahi hai." Right, and it is the same
+     fault v359 fixed for Sale, left half-done. Sale's chip opens the LIST and the list's
+     own "+ New" makes the bill; Purchase's chip opened a blank bill, so the list of what
+     he has bought — the thing he opens to check a rate or edit an old bill — had no door
+     on Home, none on the bottom bar and none in the + menu. It opens the list now, like
+     Sale, and New purchase sits beside it exactly as New bill sits beside Sale. */
+  ['purchase','🚚','qr_purchase',"go('purchases')",'billing'],
+  ['newpurchase','➕','qr_newpurchase',"openPurchaseForm()",'billing'],
   ['payin','💵','qr_payin',"payEntry('in')",null],
   /* v350: Expense is no longer its own door. Every rupee leaving the shop now goes through
      Payment out, which asks what it was for — so it can never land in the wrong book. The
@@ -10895,8 +10990,10 @@ const QR_ALL=[
      the catalogue rather than being hard-wired into the row, so it can be moved or hidden
      from the same long-press menu as every other shortcut. */
   ['attend','👥','pn_title',"staffPunch()",'staff'],
-  /* v352: the day's own screen, at the front where he starts */
-  ['today','📊','td_title',"todayScreen()",null]
+  /* v371 — HIS 28 Aug: "Today do jagah aa gaya." Mine: v370 put it on the bottom bar and
+     left the Home tile standing, so one screen had two doors on the same page. The bar
+     carries it on every screen, the tile only on Home — so the tile goes. Anyone who
+     wants it back adds it from the long-press menu like any other shortcut. */
 ];
 function qrCfg(){
   DB.qrCfg=DB.qrCfg||{};
@@ -10904,6 +11001,17 @@ function qrCfg(){
   if(!Array.isArray(DB.qrCfg.hidden))DB.qrCfg.hidden=[];
   /* a shortcut added by a later version must appear, not vanish because an old saved
      order never heard of it */
+  /* v370 — a shortcut added by a later version used to be pushed onto the END of his saved
+     row. For "New order" and "New purchase" that is the wrong place: they belong beside
+     Order and Purchase, the way New bill sits beside Sale. Placed once, next to their own
+     book; after that his own arrangement is his and this never runs again. */
+  if(!DB.qrCfg.todayOff){ DB.qrCfg.order=DB.qrCfg.order.filter(k=>k!=='today');
+    DB.qrCfg.hidden=DB.qrCfg.hidden.filter(k=>k!=='today'); DB.qrCfg.todayOff=1; }
+  [['neworder','order'],['newpurchase','purchase']].forEach(([add,after])=>{
+    if(DB.qrCfg.order.indexOf(add)>=0)return;
+    const i=DB.qrCfg.order.indexOf(after);
+    if(i<0)DB.qrCfg.order.push(add); else DB.qrCfg.order.splice(i+1,0,add);
+  });
   QR_ALL.forEach(x=>{ if(DB.qrCfg.order.indexOf(x[0])<0)DB.qrCfg.order.push(x[0]); });
   return DB.qrCfg;
 }
@@ -10975,7 +11083,7 @@ function quickRowHTML_OLD(){
      dropped it when it was cut to six. Purchase is a daily job for him, so it sits next to
      Sale where the two bills belong together. Seven chips, not six: taking away something
      he already reaches for costs more than one extra tile on a row that wraps anyway. */
-  if(modOn('billing'))b.push(['🚚',t('qr_purchase'),"openPurchaseForm()"]);
+  if(modOn('billing'))b.push(['🚚',t('qr_purchase'),"go('purchases')"]);
   b.push(['💵',t('qr_payin'),"payEntry('in')"]);
   if(modOn('accounts'))b.push(['💸',t('qr_exp'),"expEdit()"]);
   b.push(['🧵',t('qr_karigar'),"jobWork()"]);
@@ -11607,15 +11715,35 @@ let _expBuild={};
 function exportBarHTML(key,builder){
   _expBuild[key]=builder;
   return `<div class="row" style="gap:8px;margin:10px 0 4px">
-    <button class="btn sm ghost" style="flex:1" onclick="expDo('${jq(key)}','csv')">\u{1F4C4} ${t('ex_csv')}</button>
+    <button class="btn sm ghost" style="flex:1" onclick="expDo('${jq(key)}','wa')">\u{1F4AC} ${t('whatsapp')}</button>
     <button class="btn sm ghost" style="flex:1" onclick="expDo('${jq(key)}','pdf')">\u{1F5A8}\uFE0F ${t('ex_pdf')}</button></div>`;
 }
 function expDo(key,how){
   const b=_expBuild[key]; if(typeof b!=='function'){ toast(t('ex_nothing'),'bad'); return; }
   let d; try{ d=b(); }catch(e){ toast(t('ex_nothing'),'bad'); return; }
   if(!d||!d.rows||!d.rows.length){ toast(t('ex_nothing'),'bad'); return; }
-  if(how==='csv')exportCSV(d.title,d.head,d.rows);
+  if(how==='wa')exportWA(d);
+  else if(how==='csv')exportCSV(d.title,d.head,d.rows);
   else exportPDF(d.title,d.sub||'',d.head,d.rows);
+}
+/* v373 — HIS 28 Aug: "CSV ki jagah WhatsApp kar do na." A spreadsheet on this phone is a
+   file he then has to find, open and forward. A report is sent to a person — his CA, a
+   supplier, himself. So the list goes out as plain readable text, name and amount per
+   line, which reads the same on any phone. */
+function exportWA(d){
+  const L=[d.title||''];
+  if(d.sub)L.push(d.sub);
+  L.push('');
+  const iAmt=(d.head||[]).findIndex(h=>/amount|रकम|₹/i.test(String(h)));
+  d.rows.forEach(r=>{
+    const name=String(r[0]==null?'':r[0]);
+    const amt=iAmt>0 ? money(r[iAmt]) : '';
+    L.push('• '+name+(amt?' — '+amt:''));
+  });
+  L.push(''); L.push(fmtDate(todayISO())+' · '+((DB.shopInfo||{}).name||'PARAMPARA'));
+  const txt=L.join('\n');
+  try{ window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank'); }
+  catch(e){ try{ navigator.clipboard.writeText(txt); toast(t('crash_copied'),'ok'); }catch(e2){} }
 }
 function campCSV(){
   sheetAt(campCSV);
@@ -12535,7 +12663,7 @@ function measCardHTML(f,key){
     const isOdd=!!(val&&(((f.mFlag||{})[key])||{})[col.k]);   // v193: written, but worth a second look
     if(col.type==='select'){const opts=['<option value="">—</option>'].concat((col.options||[]).map(o=>`<option value="${esc(o)}" ${val===o?'selected':''}>${esc(o)}</option>`)).join('');
       return `<div class="mfield"><label>${esc(col.n)}</label><select class="mInput" data-g="${dkey}" data-k="${col.k}" style="width:100%;background:transparent;border:none;color:var(--txt);font-size:15px;font-weight:600;outline:none">${opts}</select></div>`;}
-    return `<div class="mfield ${isLen?'lenhl':''} ${isAuto?'auto-f':''} ${isVoice?'voice-f':''} ${isOdd?'odd-f':''}" ${isOdd?'title="'+esc(t('ms_flag'))+'"':''}><label>${esc(col.n)}${isLen?' ★':''}${isOdd?' ⚠️':''}</label>
+    return `<div class="mfield ${isLen?'lenhl':''} ${isAuto?'auto-f':''} ${isVoice?'voice-f':''} ${isOdd?'odd-f':''}" ${isOdd?'title="'+esc(t('ms_flag'))+'"':''}><label>${esc(col.n)}${isLen?' ★':''}${isOdd?'<span class="odd-w"> ⚠️</span>':''}</label>
       <input class="mInput ${val?'filled':''}" inputmode="${col.type==='text'?'text':'decimal'}" data-g="${dkey}" data-k="${col.k}" value="${esc(val)}" placeholder="—"
         ${isAuto?'data-auto="1"':''} onkeydown="if(event.key==='Enter'){measStep(event,1)}"></div>`;}).join('');
 
@@ -12620,6 +12748,17 @@ function addAnother(key){
   const nk=itemKey(mid,gid,n);
   form.items.push(nk);
   prefillGarment(nk);
+  /* v369 — "One more" exists BECAUSE the next piece is a different length: a short kurta
+     beside a normal one, a second coat cut longer. prefillGarment was handing the new
+     piece the first one's Length, so Coat 2 and Coat 3 arrived already filled with a
+     length nobody had taken. Body naap still carries over — that part is right and saves
+     him the work. Upper pieces only: on lower pieces one length genuinely does serve them
+     all ("length pant me common hi rahta hai") and that rule is untouched. */
+  try{ const _g2=G(nk);
+    if(_g2 && _g2.cat!=='lower' && form.m && form.m[nk]){
+      delete form.m[nk].L;
+      if(form.mAuto&&form.mAuto[nk])delete form.mAuto[nk].L;
+    } }catch(e){}
   renderForm();
   setTimeout(()=>{
     const q=$('#ql_'+cssId(nk));
@@ -12685,6 +12824,7 @@ function memberBlockHTML(f,mem,idx,multi){
 function renderForm(){
   const f=form;
   ensureFormMembers(f);
+  msRecheckAll(f);          /* v369: every figure on the form, however it arrived */
   const mems=f.members;
   const multi=mems.length>1;
   const walk=walkOrder(f);
@@ -13396,7 +13536,7 @@ function bindMeasInputs(){
     inp.addEventListener('input',()=>{const sv=sanitizeMeas(inp.value);if(sv!==inp.value)inp.value=sv;
       inp.dataset.auto=''; markManual(inp);
       const mf=inp.closest&&inp.closest('.mfield'); if(mf)mf.classList.remove('auto-f');
-      inp.classList.toggle('filled',!!inp.value.trim());propagate(inp);});
+      inp.classList.toggle('filled',!!inp.value.trim());propagate(inp);msFlagTyped(inp);});
   });
 }
 /* Body columns must flow to EVERY other piece of this person, not only to the ones whose
@@ -13405,6 +13545,51 @@ function bindMeasInputs(){
    "Body measurements auto-filled" was simply not true in the way he actually works.
    So this writes into the DATA, and updates any visible input as a side effect. */
 /* once he types into a box that value is HIS — it must never be auto-overwritten again */
+/* v369 — HIS 28 Aug: "yeh sab pehle to banaya tha, ab phir se kyun." He is right, and the
+   fault was mine to find, not his to rebuild. ALL of it was already here: the Measurement
+   limits screen, DB.measRange holding his own figures, VM_RANGE_DEF behind it, the ⚠️ on
+   the field, the "outside the usual range" wording in both languages. Only the check was
+   wired to ONE door. It ran inside the voice handler, so a number he SPOKE was flagged and
+   the very same number TYPED went in silently — which is why Neck 90 and Shoulder 80 sat
+   on his screen with nothing to show for it. Same limits, same flag, same words, now on
+   the typed path as well. It marks, it never blocks: a child's naap is simply smaller and
+   that rule does not change. */
+function msIsOdd(k,raw){
+  const v=parseMeas(String(raw==null?'':raw).trim());
+  if(v==null)return false;
+  const rg=vmRange(k);
+  return !!(rg && (v<rg[0]||v>rg[1]));
+}
+function msFlagTyped(inp){
+  if(!form)return;
+  const key=inp.dataset.g, k=inp.dataset.k; if(!key||!k)return;
+  const bad=msIsOdd(k,inp.value);
+  form.mFlag=form.mFlag||{}; form.mFlag[key]=form.mFlag[key]||{};
+  if(bad)form.mFlag[key][k]=1; else delete form.mFlag[key][k];
+  const mf=inp.closest&&inp.closest('.mfield'); if(!mf)return;
+  mf.classList.toggle('odd-f',bad);
+  if(bad)mf.setAttribute('title',t('ms_flag')); else mf.removeAttribute('title');
+  const lb=mf.querySelector('label'); if(!lb)return;
+  const w=lb.querySelector('.odd-w');
+  if(bad&&!w){ const sp=document.createElement('span'); sp.className='odd-w'; sp.textContent=' ⚠️'; lb.appendChild(sp); }
+  else if(!bad&&w)w.remove();
+}
+/* A figure can also arrive without anyone typing it — carried over from his saved file, or
+   propagated to this person's other pieces. Those were never checked either, so one bad
+   number on a customer's card quietly spread across a whole order unmarked. Every value on
+   the form is re-read against the limits at each render, so where the number came from
+   stops mattering. */
+function msRecheckAll(f){
+  if(!f||!f.m)return;
+  f.mFlag=f.mFlag||{};
+  Object.keys(f.m).forEach(key=>{
+    const g=G(key); if(!g)return;
+    const vals=f.m[key]||{};
+    const out={};
+    itemCols(g).forEach(c=>{ if(msIsOdd(c.k,vals[c.k]))out[c.k]=1; });
+    if(Object.keys(out).length)f.mFlag[key]=out; else delete f.mFlag[key];
+  });
+}
 function markManual(inp){
   if(!form)return; const key=inp.dataset.g,k=inp.dataset.k; if(!key||!k)return;
   form.mAuto=form.mAuto||{}; if(form.mAuto[key])delete form.mAuto[key][k];
@@ -14543,6 +14728,69 @@ function renderPurchases(keepFocus){
       <button class="btn primary" onclick="purSelOpening()">📦 ${t('pur_mark_opening')}</button></div>`:'');
   if(keepFocus)focusPurSearch();
 }
+/* v369 — HIS 28 Aug: "refresh karne ka koi option hi nahi, kai baar to 2-3 baar app band
+   karna hota hai." Not his imagination and not the worker's fault. sw.js is network-first,
+   so a new build IS taken the moment the page loads — but on a home-screen PWA the page is
+   suspended, not closed. Tapping the icon resumes the same page: no load event, no update
+   check, nothing fetched. Only when the phone finally evicts it does the new build appear,
+   which is why it took two or three tries and felt random. So: ask the server what version
+   is up there whenever the app comes back to the front, and give him a button that does it
+   on demand. Nothing is decided for him — a bar appears and he taps it. */
+function appVerHere(){
+  try{ const e=document.querySelector('.brand small span'); return e?e.textContent.trim():''; }
+  catch(e){ return ''; }
+}
+function appVerOf(html){
+  const m=String(html||'').match(/>\s*(v\d+)\s*<\/span>/);
+  return m?m[1]:'';
+}
+let _updChk=0, _updBusy=false;
+async function checkNewBuild(manual){
+  if(_updBusy)return; 
+  const here=appVerHere();
+  if(location.protocol!=='https:' && location.hostname!=='localhost'){
+    if(manual)toast(t('upd_latest',{v:here||'—'}),'ok'); return; }
+  const now=Date.now();
+  if(!manual && now-_updChk<120000)return;       /* at most once every two minutes */
+  _updChk=now; _updBusy=true;
+  try{
+    const r=await fetch('index.html?_v='+now,{cache:'no-store'});
+    if(!r.ok)throw new Error('http');
+    const there=appVerOf(await r.text());
+    if(there && here && there!==here) updateBar(there);
+    else if(manual) toast(t('upd_latest',{v:here||'—'}),'ok');
+  }catch(e){ if(manual)toast(t('upd_fail'),'bad'); }
+  _updBusy=false;
+}
+function updateBar(ver){
+  if(document.getElementById('updBar'))return;
+  const d=document.createElement('div');
+  d.id='updBar';
+  d.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:9999;display:flex;gap:10px;'
+    +'align-items:center;padding:12px 14px;background:var(--saffron);color:#231a08;'
+    +'font-weight:800;box-shadow:0 -6px 20px rgba(0,0,0,.45)';
+  d.innerHTML='<span style="flex:1;font-size:14px">🔄 '+esc(t('upd_new',{v:ver}))+'</span>'
+    +'<button class="btn sm" style="background:#231a08;color:#ffd88a;border:none" onclick="updateNow()">'
+    +esc(t('upd_go'))+'</button>';
+  document.body.appendChild(d);
+}
+async function updateNow(){
+  const b=document.getElementById('updBar');
+  if(b)b.innerHTML='<span style="flex:1;font-size:14px">'+esc(t('upd_wait'))+'</span>';
+  /* his data lives in IndexedDB and is NOT touched here — only the cached copy of the app
+     file goes. Anything still unwritten is flushed first, because a reload must never be
+     the thing that loses a naap. */
+  try{ if(typeof flushDBNow==='function')await flushDBNow(); }catch(e){}
+  try{ if(typeof saveDraft==='function')saveDraft(); }catch(e){}
+  try{ if(window.caches){ const ks=await caches.keys();
+    await Promise.all(ks.map(k=>caches.delete(k))); } }catch(e){}
+  try{ if(navigator.serviceWorker){ const rs=await navigator.serviceWorker.getRegistrations();
+    await Promise.all(rs.map(r=>r.unregister())); } }catch(e){}
+  location.replace(location.pathname+'?_r='+Date.now());
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'){ try{ checkNewBuild(false); }catch(e){} }
+});
 function monthLabel(mk){ if(!mk||mk==='—')return '—';
   const [y,m]=mk.split('-');
   return new Date(+y,+m-1,1).toLocaleDateString('en-IN',{month:'long',year:'numeric'}); }
@@ -17919,17 +18167,29 @@ function puSupSug(){
   if(q)list=list.filter(x=>x.name.toLowerCase().includes(q)||String(x.phone||'').includes(q));
   list=list.slice(0,6);
   if(q&&list.length===1&&list[0].name.toLowerCase()===q){box.innerHTML='';return;}
+  /* v374 — HIS 28 Aug, off his own screenshot: "Not in the list? ➕ New" was sitting under
+     EVERY supplier, three names three times, because the foot was built inside the map
+     instead of after it. Every other picker in the app already does it once, at the end.
+     This one now matches them. */
   box.innerHTML=sugHead('saved_suppliers','puNewSupplier()')
-    +(list.length?list.map(x=>{const b=supBalance(x.name)
+    +(list.length?list.map(x=>{const b=supBalance(x.name);
     return `<div class="cust-result" style="margin-top:7px" onclick="puPickSup('${jq(x.name).replace(/'/g,"\\'")}')">
       <div><b>${esc(x.name)}</b><div class="hint">${esc(x.phone||'')}${b?` · ${balArrow(-b)}`:''}</div></div>
-      <span class="btn sm primary">${t('select')}</span></div>`
-    +sugAddFoot('puNewSupplier()');}).join('')
-      :`<p class="hint" style="margin:6px 0 0">${q?t('sup_none_q'):t('sup_none')}</p>`);
+      <span class="btn sm primary">${t('select')}</span></div>`;}).join('')
+      :`<p class="hint" style="margin:6px 0 0">${q?t('sup_none_q'):t('sup_none')}</p>`)
+    +sugAddFoot('puNewSupplier()');
 }
+/* v374 — a brand new supplier is exactly the moment his old balance is known, and this
+   ➕ used to just clear the list and jump to the phone box. Same creator as Expenses,
+   Payment out and Payables: name, creditor or debtor, opening balance. One ledger form
+   in the app, so a name cannot land under one head here and another head there. */
 function puNewSupplier(){
-  const box=$('#puSupSug'); if(box)box.innerHTML='';
-  const b=$('#pu_phone'); if(b)b.focus();
+  const pre=(($('#pu_supplier')||{}).value||'').trim();
+  partyEdit(null,(nm)=>{
+    save();
+    const box=$('#puSupSug'); if(box)box.innerHTML='';
+    puPickSup(nm);
+  }, pre);
 }
 function puPickSup(name){
   const el=$('#pu_supplier'); if(el)el.value=name;
@@ -21269,6 +21529,7 @@ function modulesSave(){
   save(); applyModules(); closeSheet(); renderHome(); toast(t('mod_saved'),'ok');
 }
 function settingsMenu(){modal(t('settings'),`
+  <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();checkNewBuild(true)">🔄 ${t('upd_row')} · <b>${esc(appVerHere())}</b></button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="toggleSTTLang(this)">🎤 ${t('voice_lang')}: <b>${sttLangLabel()}</b></button>
   <div class="dl-hd" style="padding:12px 2px 6px">${t('sg_shop')}</div>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();shopInfoEdit()">🧾 ${t('shop_details')}</button>
@@ -23441,10 +23702,10 @@ function openPayDrop(id,name,kind){
     save(); closeModal(); toast(t('t_deleted'),'ok'); partyCard(name,kind); });
 }
 
-function partyEdit(id,onDone){
+function partyEdit(id,onDone,preName){
   const ex=id?partyById(id):null;
   modal('👤 '+(ex?esc(ex.name):t('pt_new')),
-    `<div class="field"><label>${t('pt_name')} *</label><input id="ptName" value="${ex?esc(ex.name):''}"></div>
+    `<div class="field"><label>${t('pt_name')} *</label><input id="ptName" value="${ex?esc(ex.name):esc(preName||'')}"></div>
      <div class="field" style="margin-top:8px"><label>${t('phone')}</label>
        <input id="ptPhone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" value="${ex?esc(ex.phone||''):''}">
        ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost" style="margin-top:8px" onclick="ptPickContact()">📇 ${t('from_contacts')}</button>`:''}</div>
@@ -23482,14 +23743,32 @@ function partyEdit(id,onDone){
         const g=i=>(($('#'+i)||{}).value||'').trim();
         const nm=g('ptName'); if(!nm){toast(t('pt_name'),'bad');return;}
         const rec={name:nm, phone:g('ptPhone'), gstin:g('ptGstin'), address:g('ptAddr')};
+        /* v373 — HIS 28 Aug: "teen jagah hone se galtiyan hone ka, ek doosre jagah se actual
+           head se mapping hone ka dar rahega... double entry me kahin kuchh aur account me
+           entry na ho jaye." Three doors, but they must all arrive at ONE record. Without
+           this a name typed again from another screen made a SECOND party, his balance
+           split across two, and neither one told the truth. The doors stay; the duplicate
+           does not. An existing name is filled in, never cloned, and never gets a second
+           opening on top of the one it already carries. */
+        let dup=null;
+        if(!ex){ dup=partyAll().find(x=>nameNorm(x.name)===nameNorm(nm)); }
         if(ex)Object.assign(ex,rec);
+        else if(dup){
+          if(rec.phone)dup.phone=rec.phone;
+          if(rec.gstin)dup.gstin=rec.gstin;
+          if(rec.address)dup.address=rec.address;
+        }
         else partyAll().push(Object.assign({id:uid(),kinds:{}},rec));
         /* v363: an opening balance, if he gave one. Written the same way the party card
            writes it, so there is one shape of opening line in the books, not two. */
         let openMsg='';
         if(!ex){
           const kind=g('ptKind'), amt=r2(+g('ptOpen')||0);
-          if(kind && amt>0){
+          /* an opening is the balance he STARTED with — there can only ever be one */
+          const had=(DB.ledger||[]).some(l=>l.refKind==='opening'
+            && nameNorm(l.party)===nameNorm(nm));
+          if(had && amt>0){ toast(t('pt_open_dup'),'bad'); }
+          else if(kind && amt>0){
             const dt=g('ptOpenDate')||fyStart();
             DB.ledger=DB.ledger||[];
             DB.ledger.push({id:uid(), dir:(kind==='supplier'?'out':'in'), date:dt, amt,
