@@ -781,7 +781,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v362</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v364</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -911,6 +911,7 @@ const T={
   bs_creditors:'Payable to suppliers', bs_karigar:'Payable to karigars',
   bs_karadv:'Advance to karigars', bs_custcredit:'Customer credit notes',
   bs_gstcredit:'GST credit carried forward', bs_supadv:'Advance with suppliers',
+  bs_suspense:'Suspense — not yet explained',
   bs_ordadv:'Advance taken on unbilled orders',
   bs_custadv:'Customer advances', bs_loans:'Loans', bs_gst:'GST payable',
   bs_opencap:'Opening capital', bs_profit:'Profit this period', bs_draw:'Less drawings',
@@ -1590,6 +1591,11 @@ const T={
   inv_draft_found:'An unfinished bill was saved',
   inv_drafts_found:'Unfinished bills', inv_draft_ttl:'kept 2 hours',
   pur_draft_found:'An unfinished purchase was saved',
+  pt_open_hd:'Old balance (optional)',
+  pt_open_hint:'If this person already owes you, or you already owe them, put it in now — otherwise a payment later will look like a fresh cost.',
+  pt_type:'They are a', pt_type_none:'— neither —', pt_type_cred:'Creditor — I owe them',
+  pt_type_debt:'Debtor — they owe me',
+  pt_open_cred:'{amt} payable recorded', pt_open_debt:'{amt} receivable recorded',
   pt_new:'New party', pt_name:'Name', gstin:'GSTIN', address:'Address',
   pt_no_bal:'Nothing outstanding yet', pt_profile:'Party details',
   taxable:'Taxable value', gst:'GST', no_gst:'No GST',
@@ -2529,6 +2535,7 @@ const T={
   bs_creditors:'Payable to suppliers', bs_karigar:'Payable to karigars',
   bs_karadv:'Advance to karigars', bs_custcredit:'Customer credit notes',
   bs_gstcredit:'GST credit carried forward', bs_supadv:'Advance with suppliers',
+  bs_suspense:'सस्पेंस — अभी बताया नहीं',
   bs_ordadv:'बिना बिल के ऑर्डर पर लिया अग्रिम',
   bs_custadv:'Customer advances', bs_loans:'Loans', bs_gst:'GST payable',
   bs_opencap:'Opening capital', bs_profit:'Profit this period', bs_draw:'Less drawings',
@@ -3208,6 +3215,11 @@ const T={
   inv_draft_found:'एक अधूरा बिल सेव है',
   inv_drafts_found:'अधूरे बिल', inv_draft_ttl:'2 घंटे तक',
   pur_draft_found:'एक अधूरी खरीद सेव है',
+  pt_open_hd:'पुराना बकाया (ज़रूरी नहीं)',
+  pt_open_hint:'अगर इनका पहले से देना या लेना है तो अभी डाल दें — वरना बाद का भुगतान नया ख़र्च लगेगा।',
+  pt_type:'ये हैं', pt_type_none:'— कोई नहीं —', pt_type_cred:'लेनदार — इनका देना है',
+  pt_type_debt:'देनदार — इनसे लेना है',
+  pt_open_cred:'{amt} देना दर्ज हुआ', pt_open_debt:'{amt} लेना दर्ज हुआ',
   pt_new:'नई पार्टी', pt_name:'नाम', gstin:'जीएसटीआईएन', address:'पता',
   pt_no_bal:'अभी कोई बकाया नहीं', pt_profile:'पार्टी की जानकारी',
   taxable:'कर योग्य राशि', gst:'जीएसटी', no_gst:'जीएसटी नहीं',
@@ -19535,7 +19547,17 @@ function bsFigures(from,to){
 
   /* ---- capital ---- */
   const pl=plFigures(from,to);
-  const cap={opening:+ob.capital||0, profit:pl.net, drawings:pl.drawings||0};
+  /* v364 — HIS 27 Aug: "accounts ka basic cheez dekho... basic cheezen hi tumhari galti hai."
+     He is right and this is the worst of them. Opening capital is not a number a shopkeeper
+     should ever be asked to work out — it IS the balancing figure, by definition: what the
+     business owes its owner is whatever is left after its debts are taken off what it owns.
+     I had him typing it, and then re-typing it every time he entered one more supplier's
+     old balance, and until he did the balance sheet sat visibly wrong. That is not an
+     accounting app; that is homework.
+     If he has typed a figure, it is honoured — some shops carry a real opening capital from
+     a previous set of books. If he has not, it is derived, and the sheet is simply right. */
+  const cap={opening:(+ob.capital||0), profit:pl.net, drawings:pl.drawings||0};
+  if(!(+ob.capital)){ try{ cap.opening=r2(obsCapGap().should); }catch(e){} }
   const capTotal=r2(cap.opening+cap.profit-cap.drawings);
 
   /* v273: journal adjustments land on the same buckets. They are added here, at the end,
@@ -19565,6 +19587,24 @@ function bsFigures(from,to){
     else if(g==='l')L['own_'+c.name]=r2((L['own_'+c.name]||0)+v);
     else if(g==='c')cap.opening=r2(cap.opening+v); });
   const capTotal2=r2(cap.opening+cap.profit-cap.drawings);
+  /* v364 — the second basic failure. A plain "Payment in" or "Payment out" — the ones this
+     app wrote before v350 asked what the money was for — moves cash with nothing on the
+     other side, so every one of them left the balance sheet out by its own amount. He was
+     looking at a sheet that did not balance and had no way to know why.
+     Book-keeping has had an answer to this for two hundred years: a suspense account. The
+     unexplained amount is parked, named, and shown — the sheet balances, and the thing that
+     needs sorting is visible instead of hidden inside a wrong total. It is not a fudge: it
+     says "₹25,000 of movement has not been explained yet", which is the truth. */
+  {
+    let susp=0;
+    (DB.ledger||[]).forEach(l=>{
+      if(l.refKind!=='manual')return;
+      const d2=String(l.date||''); if(d2<from||d2>to)return;
+      susp = (l.dir==='in') ? r2(susp+(+l.amt||0)) : r2(susp-(+l.amt||0));
+    });
+    if(susp>0)add(L,'suspense',susp);        /* money in, not yet explained → owed */
+    else if(susp<0)add(A,'suspense',-susp);  /* money out, not yet explained → held */
+  }
   const totA=r2(Object.values(A).reduce((a,b)=>a+b,0));
   const totL=r2(Object.values(L).reduce((a,b)=>a+b,0)+capTotal2);
   return {A,L,cap,capTotal:capTotal2,totA,totL,diff:r2(totA-totL),from,to,startDate:ob.date,jv:E};
@@ -19804,6 +19844,7 @@ function bsOpenLine(key){
       case 'bs_staffadv': return (closeSheet(),staffReport());
       case 'bs_loans': case 'bs_fixed': case 'bs_cap': return (closeSheet(),openBSEdit());
       case 'bs_gst': case 'bs_gstcredit': return (closeSheet(),gstReport&&gstReport());
+      case 'bs_suspense': return (closeSheet(),dayBook());
       default: return;
     }
   }catch(e){ toast(t('ps_open_fail'),'bad'); }
@@ -19813,7 +19854,7 @@ function balanceSheet(){
   const {from,to}=rpRange();
   const f=bsFigures(from,to);
   const OPEN={bs_cash:1,bs_bank:1,bs_debtors:1,bs_creditors:1,bs_stock:1,bs_karigar:1,
-    bs_karadv:1,bs_staffadv:1,bs_loans:1,bs_fixed:1,bs_gst:1,bs_gstcredit:1};
+    bs_karadv:1,bs_staffadv:1,bs_loans:1,bs_fixed:1,bs_gst:1,bs_gstcredit:1,bs_suspense:1};
   const row=(k,v,col)=>{ if(!v)return '';
     const tap=OPEN[k];
     return `<div class="il"${tap?` onclick="bsOpenLine('${k}')" style="cursor:pointer"`:''}>
@@ -19843,14 +19884,14 @@ function balanceSheet(){
         (()=>{
           const L=[['bs_creditors',f.L.creditors],['bs_karigar',f.L.karigar],
             ['bs_incentive',f.L.incentive],['bs_custadv',f.L.custadv],
-            ['bs_ordadv',f.L.ordadv],['bs_custcredit',f.L.custcredit],['bs_cc',f.L.cc],['bs_rentcomm',f.L.rentcomm],
+            ['bs_ordadv',f.L.ordadv],['bs_suspense',f.L.suspense],['bs_custcredit',f.L.custcredit],['bs_cc',f.L.cc],['bs_rentcomm',f.L.rentcomm],
             ['bs_loans',f.L.loans],['bs_gst',f.L.gst],['bs_opencap',f.cap.opening],
             ['bs_profit',f.cap.profit]].filter(x=>x[1]);
           if(f.cap.drawings)L.push(['bs_draw',-f.cap.drawings]);
           const A=[['bs_cash',f.A.cash],['bs_bank',f.A.bank],['bs_debtors',f.A.debtors],
             ['bs_stock',f.A.stock],['bs_fixed',f.A.fixed],['bs_staffadv',f.A.staffadv],
             ['bs_karadv',f.A.karadv],['bs_supadv',f.A.supadv],
-            ['bs_gstcredit',f.A.gstcredit]].filter(x=>x[1]);
+            ['bs_gstcredit',f.A.gstcredit],['bs_suspense',f.A.suspense]].filter(x=>x[1]);
           const side=(list,head,total,totLbl)=>`<div style="flex:1;min-width:0">
             <div class="dl-hd">${head}</div>
             ${list.map(([k,v])=>`<div class="il" style="padding:5px 0"
@@ -19869,11 +19910,11 @@ function balanceSheet(){
       : `<div class="card" style="padding:12px 14px;margin-bottom:10px">
       <div class="dl-hd">${t('bs_assets')}</div>
       ${row('bs_cash',f.A.cash)}${row('bs_bank',f.A.bank)}${row('bs_debtors',f.A.debtors)}
-      ${row('bs_stock',f.A.stock)}${row('bs_fixed',f.A.fixed)}${row('bs_staffadv',f.A.staffadv)}${row('bs_karadv',f.A.karadv)}${row('bs_supadv',f.A.supadv)}${row('bs_gstcredit',f.A.gstcredit)}
+      ${row('bs_stock',f.A.stock)}${row('bs_fixed',f.A.fixed)}${row('bs_staffadv',f.A.staffadv)}${row('bs_karadv',f.A.karadv)}${row('bs_supadv',f.A.supadv)}${row('bs_gstcredit',f.A.gstcredit)}${row('bs_suspense',f.A.suspense)}
       ${tot(t('bs_total_a'),f.totA)}</div>
     <div class="card" style="padding:12px 14px;margin-bottom:10px">
       <div class="dl-hd">${t('bs_liab')}</div>
-      ${row('bs_creditors',f.L.creditors)}${row('bs_karigar',f.L.karigar)}${row('bs_incentive',f.L.incentive)}${row('bs_custadv',f.L.custadv)}${row('bs_ordadv',f.L.ordadv)}${row('bs_custcredit',f.L.custcredit)}
+      ${row('bs_creditors',f.L.creditors)}${row('bs_karigar',f.L.karigar)}${row('bs_incentive',f.L.incentive)}${row('bs_custadv',f.L.custadv)}${row('bs_ordadv',f.L.ordadv)}${row('bs_suspense',f.L.suspense)}${row('bs_custcredit',f.L.custcredit)}
       ${row('bs_cc',f.L.cc)}${row('bs_rentcomm',f.L.rentcomm)}${row('bs_loans',f.L.loans)}${row('bs_gst',f.L.gst)}
       <div class="dl-hd" style="margin-top:10px">${t('bs_cap')}</div>
       ${row('bs_opencap',f.cap.opening)}
@@ -23249,7 +23290,30 @@ function partyEdit(id,onDone){
          oninput="this.value=this.value.toUpperCase()"></div>
      <div class="field" style="margin-top:8px"><label>${t('address')}</label>
        <textarea id="ptAddr" rows="2">${ex?esc(ex.address||''):''}</textarea></div>
-     ${ex?`<div class="card" style="padding:10px 12px;margin-top:10px">${partyBalHTML(ex)}</div>`:''}`,
+     ${ex?`<div class="card" style="padding:10px 12px;margin-top:10px">${partyBalHTML(ex)}</div>`:`
+     ${/* v363 — HIS 27 Aug: "jab main add kar raha hoon, popup aana chahiye ki Lakshmi Laces
+          creditor hai, loan hai, kya hai, opening balance kitna hai?" He is right, and it
+          cost him a wrong entry: he paid an OLD supplier due, the shop had no record that
+          he owed anything, so the payment landed in the P&L as a fresh cost and understated
+          his profit by ₹13,000. A name typed on the fly carries no history; this is where
+          the history gets in. Both boxes are optional — a one-off rickshaw fare needs
+          neither, and leaving them empty behaves exactly as before. */''}
+     <div class="card" style="padding:10px 12px;margin-top:12px">
+       <div class="dl-hd" style="padding:0 0 6px">${t('pt_open_hd')}</div>
+       <p class="hint" style="margin:0 0 8px">${t('pt_open_hint')}</p>
+       <div class="row">
+         <div class="field" style="margin:0"><label>${t('pt_type')}</label>
+           <select id="ptKind">
+             <option value="">${t('pt_type_none')}</option>
+             <option value="supplier">${t('pt_type_cred')}</option>
+             <option value="customer">${t('pt_type_debt')}</option>
+           </select></div>
+         <div class="field" style="margin:0"><label>${t('ln_amt')}</label>
+           <input id="ptOpen" type="number" inputmode="decimal" placeholder="0"></div>
+       </div>
+       <div class="field" style="margin-top:8px"><label>${t('pty_ason')}</label>
+         ${dateField("ptOpenDate", fyStart())}</div>
+     </div>`}`,
     [{label:t('cancel'),cls:'ghost',fn:closeModal},
      {label:t('save'),cls:'primary',fn:()=>{
         const g=i=>(($('#'+i)||{}).value||'').trim();
@@ -23257,7 +23321,21 @@ function partyEdit(id,onDone){
         const rec={name:nm, phone:g('ptPhone'), gstin:g('ptGstin'), address:g('ptAddr')};
         if(ex)Object.assign(ex,rec);
         else partyAll().push(Object.assign({id:uid(),kinds:{}},rec));
-        save(); closeModal(); toast(t('t_saved'),'ok'); if(onDone)onDone(nm);
+        /* v363: an opening balance, if he gave one. Written the same way the party card
+           writes it, so there is one shape of opening line in the books, not two. */
+        let openMsg='';
+        if(!ex){
+          const kind=g('ptKind'), amt=r2(+g('ptOpen')||0);
+          if(kind && amt>0){
+            const dt=g('ptOpenDate')||fyStart();
+            DB.ledger=DB.ledger||[];
+            DB.ledger.push({id:uid(), dir:(kind==='supplier'?'out':'in'), date:dt, amt,
+              acc:'', party:nm, partyId:null, partyKind:kind,
+              ref:t('ob_ref'), refKind:'opening', cat:'', note:'', opening:true, photos:[]});
+            openMsg=' · '+t(kind==='supplier'?'pt_open_cred':'pt_open_debt',{amt:money(amt)});
+          }
+        }
+        save(); closeModal(); toast(t('t_saved')+openMsg,'ok'); if(onDone)onDone(nm);
      }}]);
 }
 /* his own words: dukaan ka hisaab X, personal hisaab Y — side by side, never added up */
