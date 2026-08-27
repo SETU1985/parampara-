@@ -781,7 +781,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v374</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v376</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -2421,7 +2421,7 @@ const T={
   paid_now:'Paid now ₹',
   purchases_report:'Purchase report',
   rp_total_purchases:'Total purchases',
-  pt_open_dup:'This name already has an opening balance', cr_new:'New creditor', cr_search:'Search name, amount...', cr_loan_tag:'Loan',
+  sv_dup:'Already saved — nothing entered twice', pw_else:'Not this? ', pt_open_dup:'This name already has an opening balance', cr_new:'New creditor', cr_search:'Search name, amount...', cr_loan_tag:'Loan',
   cr_edit:'Edit', cr_none_match:'Nobody matches that',
   creditors_report:'Payables',
   rp_no_creditors:'Nothing to pay 🎉',
@@ -4052,7 +4052,7 @@ const T={
   paid_now:'अभी दिया ₹',
   purchases_report:'ख़रीद रिपोर्ट',
   rp_total_purchases:'कुल ख़रीद',
-  pt_open_dup:'इस नाम का पुराना बकाया पहले से दर्ज है', cr_new:'नया लेनदार', cr_search:'नाम, रकम खोजें…', cr_loan_tag:'क़र्ज़',
+  sv_dup:'पहले ही दर्ज हो चुका — दोबारा नहीं चढ़ा', pw_else:'ये नहीं? ', pt_open_dup:'इस नाम का पुराना बकाया पहले से दर्ज है', cr_new:'नया लेनदार', cr_search:'नाम, रकम खोजें…', cr_loan_tag:'क़र्ज़',
   cr_edit:'बदलें', cr_none_match:'कोई नहीं मिला',
   creditors_report:'देनदारी (देना है)',
   rp_no_creditors:'कुछ देना नहीं 🎉',
@@ -7487,9 +7487,31 @@ function payDrawings(){
     if(me)expPickParty(me.id);
   }catch(e){} },260);
 }
+/* v375 — HIS 28 Aug: he works down a bank statement, and out of a hundred lines about
+   ninety-five are an expense and a handful are a payment against a bill. v350 put a
+   "what is this for?" screen in front of every single one of them, so the common case
+   paid one extra tap a hundred times a day to be asked a question whose answer was almost
+   always the same. The form opens straight away now, and the five other routes sit on it
+   as one small line — there when he needs them, silent when he does not. */
+function payRoutesHTML(dir,here){
+  const all = dir==='out'
+    ? [['exp','💸',t('pw_expense'),"expEdit()"],
+       ['pay','⬆️',t('pay_out'),"payEntry('out',1)"],
+       ['bill','🧾',t('pw_settle'),"creditors()"],
+       ['draw','👑',t('pw_draw'),"payDrawings()"],
+       ['loan','🏦',t('pw_loanpay'),"payLoan('out')"],
+       ['move','🔁',t('pw_move'),"contraEntry()"]]
+    : [['pay','⬇️',t('pay_in'),"payEntry('in',1)"],
+       ['cust','💵',t('pw_fromcust'),"followUps()"],
+       ['loan','🏦',t('pw_loanin'),"payLoan('in')"],
+       ['cap','🏛️',t('pw_capital'),"payCapital()"],
+       ['move','🔁',t('pw_move'),"contraEntry()"]];
+  const rest=all.filter(o=>o[0]!==here);
+  return `<div class="hint" style="margin:12px 0 0;white-space:normal;line-height:2">
+    ${t('pw_else')} ${rest.map(o=>`<a style="cursor:pointer;white-space:nowrap"
+      onclick="closeModal();closeSheet();${o[3]}">${o[1]} ${esc(o[2])}</a>`).join(' · ')}</div>`;
+}
 function payEntry(dir,skipAsk){
-  /* v350: the question comes first unless we are already past it */
-  if(!skipAsk){ payWhy(dir); return; }
   _pay={dir,photos:[]};
   const accs=DB.accounts||[];
   const parties = dir==='in'
@@ -7508,12 +7530,16 @@ function payEntry(dir,skipAsk){
        <div class="field"><label>${t('pay_date')}</label>${dateField("py_date",todayISO())}</div></div>
      <div class="field"><label>${t('cb_into')}</label>${acctSelHTML('py_acc',(defaultAcc()||{}).id)}</div>
      <p class="hint" id="pySettleHint" style="margin:-4px 0 8px"></p>
-     <div class="field"><label>${t('stk_note')}</label><input id="py_note" placeholder="${t('stk_note_ph')}"></div>`,
+     <div class="field"><label>${t('stk_note')}</label><input id="py_note" placeholder="${t('stk_note_ph')}"></div>
+     ${payRoutesHTML(dir,'pay')}`,
     [{label:t('cancel'),cls:'ghost',fn:closeSheet},
      {label:t('save'),cls:'primary',fn:()=>{
         const party=($('#py_party').value||'').trim(), amt=+$('#py_amt').value||0;
         if(!party){toast(t('t_no_name'),'bad');return;}
         if(amt<=0){toast(t('t_no_amount'),'bad');return;}
+        /* v376: same double-tap latch as the expense form */
+        if(!svOnce(['p',dir,party,amt,($('#py_date')||{}).value||'',($('#py_note')||{}).value||''].join('|'),
+          ()=>{})){ toast(t('sv_dup'),'bad'); return; }
         const date=$('#py_date').value||todayISO(), acc=($('#py_acc').value==='__new'?(defaultAcc()||{}).id:$('#py_acc').value);
         const cust=(DB.customers||[]).find(c=>(c.name||'').trim().toLowerCase()===party.toLowerCase());
         // settle the party's open bills first, so their baaki actually comes down
@@ -7791,6 +7817,7 @@ function expRender(){
       ${d.id?`<button class="btn danger" onclick="expDel('${d.id}')">🗑️</button>`:''}
       ${d.id?'':`<button class="btn ghost" style="flex:1" onclick="expSave(true)">➕ ${t('exp_save_next')}</button>`}
       <button class="btn primary" style="flex:2" onclick="expSave()">${t('save')}</button></div>
+    ${d.id?'':payRoutesHTML('out','exp')}
     <div class="fab-pad"></div>`;
   showSheet();
   fastForm('#sheet',{onLast:()=>expSave(true)}); renderExpPhotos();
@@ -8067,7 +8094,31 @@ function partyList(who){
   if(who==='customer')return (DB.customers||[]).map(x=>({id:x.id,name:x.name}));
   return [];
 }
-function expSave(next){ expCapture(); const d=_exp;
+/* v376 — LIVE TEST, found by driving his own April lines: tapping Save twice in quick
+   succession booked the expense TWICE. On a phone, entering a hundred back-dated lines at
+   speed, a double tap is not a rare accident — it is a certainty, and the second copy is
+   invisible until the month's total is wrong. One user action must make one entry, so
+   every save that his entry run touches now refuses a repeat within a second. This is a
+   latch on the BUTTON, not on the data: a genuine second entry of the same amount, typed
+   again, still saves. */
+/* A plain time lock would be wrong: Save-and-next is DESIGNED to fire again immediately,
+   and he enters a hundred lines that way. So the latch is on the CONTENT — the same head,
+   amount, date, name and note saved twice inside three seconds is a double tap, because
+   no one retypes all five that fast. Change any one of them and it saves normally. */
+let _svLast='', _svAt=0;
+function svOnce(sig,fn){
+  const now=Date.now();
+  if(sig===_svLast && now-_svAt<3000) return false;
+  _svLast=sig; _svAt=now;
+  try{ fn(); }catch(e){ _svLast=''; throw e; }
+  return true;
+}
+function expSave(next){
+  expCapture(); const d=_exp||{};
+  const sig=['e',d.id||'',d.cat||'',d.amt||'',d.date||'',d.partyName||'',d.note||''].join('|');
+  if(!svOnce(sig,()=>expSaveDo(next))){ toast(t('sv_dup'),'bad'); return; }
+}
+function expSaveDo(next){ expCapture(); const d=_exp;
   if(_expMLOn)return expSaveMulti(next);
   const amt=+d.amt||0;
   if(amt<=0){toast(t('t_no_amount'),'bad');return;}
@@ -8233,8 +8284,8 @@ function dayBook(){
           day entry". These are the same four editors reached from the ⚡ quick-add menu. */''}
     <div class="qrow qplain" style="margin-bottom:14px">
       <button class="qbtn" onclick="expEdit()"><span class="qi">💸</span><span class="ql">${t('exp_add')}</span></button>
-      <button class="qbtn" onclick="payEntry('in')"><span class="qi">⬇️</span><span class="ql">${t('pay_in')}</span></button>
-      <button class="qbtn" onclick="payEntry('out')"><span class="qi">⬆️</span><span class="ql">${t('pay_out')}</span></button>
+      <button class="qbtn" onclick="payEntry('in',1)"><span class="qi">⬇️</span><span class="ql">${t('pay_in')}</span></button>
+      <button class="qbtn" onclick="expEdit()"><span class="qi">⬆️</span><span class="ql">${t('pay_out')}</span></button>
       <button class="qbtn" onclick="contraEntry()"><span class="qi">🔄</span><span class="ql">${t('cb_contra')}</span></button>
     </div>
 
@@ -8896,7 +8947,7 @@ function creditors(){
       </div><div style="text-align:right"><b style="color:var(--bad);font-size:18px">${money(g.due)}</b>
         <div style="margin-top:4px">${ageChipHTML(g.age)}</div></div></div>
       <div class="row" style="margin-top:10px;gap:6px">
-        <button class="btn primary" style="flex:2" onclick="closeSheet();payEntry('out')">⬆️ ${t('pay_out')}</button>
+        <button class="btn primary" style="flex:2" onclick="closeSheet();payEntry('out',1)">⬆️ ${t('pay_out')}</button>
         <button class="btn ghost" onclick="credEdit('${jq(g.name)}')">✏️</button>
         ${g.phone?`<button class="btn ghost" onclick="event.stopPropagation();callNum('${jq(g.phone)}')">📞</button>`:''}
       </div></div>`).join('')
@@ -8939,9 +8990,9 @@ function quickAdd(){
     items.push(['🧾', t('new_sale'), "closeSheet();openSaleForm()"]);
     items.push(['🚚', t('new_purchase'), "closeSheet();openPurchaseForm()"]);
   }
-  items.push(['⬇️', t('pay_in'), "closeSheet();payEntry('in')"]);   // order advances live here too
+  items.push(['⬇️', t('pay_in'), "closeSheet();payEntry('in',1)"]);   // order advances live here too
   if(modOn('accounts')){
-    items.push(['⬆️', t('pay_out'), "closeSheet();payEntry('out')"]);
+    items.push(['⬆️', t('pay_out'), "closeSheet();payEntry('out',1)"]);
     items.push(['💸', t('exp_add'), "closeSheet();expEdit()"]);
   }
   $('#sheet').innerHTML=hubHTML('⚡ '+t('qa_title'), t('qa_sub'), items);
@@ -10978,11 +11029,11 @@ const QR_ALL=[
      Sale, and New purchase sits beside it exactly as New bill sits beside Sale. */
   ['purchase','🚚','qr_purchase',"go('purchases')",'billing'],
   ['newpurchase','➕','qr_newpurchase',"openPurchaseForm()",'billing'],
-  ['payin','💵','qr_payin',"payEntry('in')",null],
+  ['payin','💵','qr_payin',"payEntry('in',1)",null],
   /* v350: Expense is no longer its own door. Every rupee leaving the shop now goes through
      Payment out, which asks what it was for — so it can never land in the wrong book. The
      Expenses screen itself, its list, its dates and its edit are all untouched. */
-  ['payout','💸','qr_payout',"payEntry('out')",'accounts'],
+  ['payout','💸','qr_payout',"expEdit()",'accounts'],
   ['karigar','🧵','qr_karigar',"jobWork()",null],
   ['status','📞','qr_status',"statusEnquiry('')",null],
   /* v349 — HIS 27 Aug: "Attendance should be a main tab." Marking who came in is a job he
@@ -11084,7 +11135,7 @@ function quickRowHTML_OLD(){
      Sale where the two bills belong together. Seven chips, not six: taking away something
      he already reaches for costs more than one extra tile on a row that wraps anyway. */
   if(modOn('billing'))b.push(['🚚',t('qr_purchase'),"go('purchases')"]);
-  b.push(['💵',t('qr_payin'),"payEntry('in')"]);
+  b.push(['💵',t('qr_payin'),"payEntry('in',1)"]);
   if(modOn('accounts'))b.push(['💸',t('qr_exp'),"expEdit()"]);
   b.push(['🧵',t('qr_karigar'),"jobWork()"]);
   b.push(['📞',t('qr_status'),"statusEnquiry('')"]);
@@ -16453,6 +16504,10 @@ function invClose(){
 }
 function saveInvoice(){
   captureInvoiceForm();const f=invForm;
+  /* v376: same latch — a duplicate invoice takes a number the shop cannot get back.
+     Read AFTER capture, so the signature is what is actually on the form. */
+  if(!svOnce(['i',f.id||'',f.customerName||'',f.no||'',f.date||'',
+      JSON.stringify(f.items||'')].join('|'),()=>{})){ toast(t('sv_dup'),'bad'); return; }
   if(!f.no){toast(t('t_no_invno'),'bad');return;}
   /* v196 — HIS 14 Aug screenshots: the bill for order #2579 and the bill for order #2580
      BOTH read INV/2026-27/2949. The number is worked out when the bill is opened, from the
@@ -19055,6 +19110,10 @@ function purNearUse(i){
   toast(t('pur_near_fixed',{n:esc(x.found)}),'ok');
 }
 function savePurchase(){
+  /* v376: a purchase booked twice moves stock twice — worse than a duplicate expense */
+  {const _f=purchForm||{};
+   if(!svOnce(['b',_f.editId||'',_f.supplier||'',_f.billNo||'',_f.date||'',
+      JSON.stringify(_f.items||'')].join('|'),()=>{})){ toast(t('sv_dup'),'bad'); return; }}
   purDraftAdd(true);              // an item still sitting in the entry line counts
   capturePurchForm();const f=purchForm;
   const comp=purchCompute(f);const total=comp.total;
