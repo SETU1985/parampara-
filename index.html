@@ -781,7 +781,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v383</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v386</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -2433,6 +2433,10 @@ dl_show_hidden:'Show hidden ({n})',
   lg_capital:'Capital Account', lg_drawings:'Drawings', lg_sales:'Sales',
   lg_otherinc:'Other Income', lg_direct:'Direct Expenses', lg_jobwork:'Job Work',
   lg_salary:'Salary & Wages', lg_indirect:'Indirect Expenses',
+  mo_title:'Money out', mo_from:'Paid from', mo_to:'Paid to',
+  mo_ph:'Supplier, expense head, staff, anyone...',
+  mo_notfound:'No ledger by that name yet', mo_pick_first:'Pick a name from the list first',
+  save_next:'Save & next',
   lg_dup:'A ledger with that name already exists', lg_title:'Ledger master', lg_new:'New ledger', lg_group:'Group', lg_name:'Ledger name',
   lg_open:'Opening balance', lg_opendir:'Dr / Cr', lg_opendate:'Opening as on',
   lg_bs:'Balance sheet', lg_pl:'Profit & loss', lg_saved:'Ledger saved', lg_count:'{n} ledgers',
@@ -4084,6 +4088,10 @@ dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
   lg_capital:'Capital Account', lg_drawings:'Drawings', lg_sales:'Sales',
   lg_otherinc:'Other Income', lg_direct:'Direct Expenses', lg_jobwork:'Job Work',
   lg_salary:'Salary & Wages', lg_indirect:'Indirect Expenses',
+  mo_title:'Money out', mo_from:'Paid from', mo_to:'Paid to',
+  mo_ph:'सप्लायर, ख़र्च का नाम, स्टाफ़ — कोई भी…',
+  mo_notfound:'इस नाम का ledger अभी नहीं है', mo_pick_first:'पहले सूची में से नाम चुनिए',
+  save_next:'Save & next',
   lg_dup:'A ledger with that name already exists', lg_title:'Ledger master', lg_new:'New ledger', lg_group:'Group', lg_name:'Ledger name',
   lg_open:'Opening balance', lg_opendir:'Dr / Cr', lg_opendate:'Opening as on',
   lg_bs:'Balance sheet', lg_pl:'Profit & loss', lg_saved:'Ledger saved', lg_count:'{n} ledgers',
@@ -5207,9 +5215,14 @@ try{
 let _crashShown=0;
 
 function go(tab){
+  /* v386 AUDIT — go() threw on any name that is not a real tab, and a throw here leaves
+     EVERY pane deactivated: the whole app goes white with nothing to tap. His rule is that
+     a screen must degrade, never go blank, so an unknown name falls back to Home instead
+     of taking the app down. */
+  if(!$('#tab-'+tab)) tab='home';
   _curTab=tab;
   document.querySelectorAll('.tabpane').forEach(p=>p.classList.remove('active'));
-  $('#tab-'+tab).classList.add('active');
+  const pane=$('#tab-'+tab); if(pane)pane.classList.add('active');
   document.querySelectorAll('nav button').forEach(b=>b.classList.remove('on'));
   const n=$('#nav-'+tab); if(n)n.classList.add('on');
   /* v286 LIVE TEST — found by typing into the box on a running app, not by reading code.
@@ -8361,7 +8374,7 @@ function dayBook(){
     <div class="qrow qplain" style="margin-bottom:14px">
       <button class="qbtn" onclick="expEdit()"><span class="qi">💸</span><span class="ql">${t('exp_add')}</span></button>
       <button class="qbtn" onclick="payEntry('in',1)"><span class="qi">⬇️</span><span class="ql">${t('pay_in')}</span></button>
-      <button class="qbtn" onclick="expEdit()"><span class="qi">⬆️</span><span class="ql">${t('pay_out')}</span></button>
+      <button class="qbtn" onclick="moneyOut()"><span class="qi">⬆️</span><span class="ql">${t('pay_out')}</span></button>
       <button class="qbtn" onclick="contraEntry()"><span class="qi">🔄</span><span class="ql">${t('cb_contra')}</span></button>
     </div>
 
@@ -11181,7 +11194,7 @@ const QR_ALL=[
   /* v350: Expense is no longer its own door. Every rupee leaving the shop now goes through
      Payment out, which asks what it was for — so it can never land in the wrong book. The
      Expenses screen itself, its list, its dates and its edit are all untouched. */
-  ['payout','💸','qr_payout',"expEdit()",'accounts'],
+  ['payout','💸','mo_title',"moneyOut()",'accounts'],
   ['karigar','🧵','qr_karigar',"jobWork()",null],
   ['status','📞','qr_status',"statusEnquiry('')",null],
   /* v349 — HIS 27 Aug: "Attendance should be a main tab." Marking who came in is a job he
@@ -23787,6 +23800,139 @@ function lgSync(){
 }
 function partyById(id){ return partyAll().find(x=>x.id===id); }
 
+/* ══════════════════ v384 — MONEY OUT, ONE SCREEN ══════════════════
+   HIS 28 Aug: "Payment out aur expense bahut clumsy ho gaya hai... kaun si payment out ke
+   through karein, kaun si expense mein? Poora khichdi pak gayi."
+
+   He should never have been asked. In accounting there are only two things money leaving
+   the shop can be — a cost, or the settling of an obligation — and which one it is was
+   never his choice to make: it is decided by WHO the money went to. The old app made him
+   pick the screen first and then tried to work out the accounting afterwards. That is
+   backwards, and it is why the two screens felt tangled.
+
+   So there is now one screen. He types the name. The ledger's GROUP does the rest:
+
+     Indirect / Direct / Salary / Job Work  → a cost, straight to the P&L
+     Sundry Creditors                        → settles what he owes that supplier
+     Sundry Debtors                          → a refund, reduces what that customer owes
+     Drawings / Capital                      → his own money out, never a business cost
+     Loans                                   → opens the loan screen, which needs the
+                                               principal/interest split he must decide
+     Cash / Bank                             → opens the transfer screen, which needs a
+                                               destination account
+
+   The two that hand off do so because they genuinely need a field this form does not have.
+   Everything else posts here, through the SAME writers the old screens used — settleParty
+   for obligations, the same expense row shape for costs. No second accounting engine. */
+function moExpenseGroups(){ return ['indirect','direct','salary','jobwork']; }
+function moPost(d){
+  const g=(lgByName(d.name)||{}).group||'indirect';
+  const amt=r2(+d.amt||0), date=d.date||todayISO();
+  if(!(amt>0)) return {ok:false,msg:t('t_no_amount')};
+  if(!String(d.name||'').trim()) return {ok:false,msg:t('t_no_name')};
+  DB.ledger=DB.ledger||[];
+
+  if(g==='creditors'||g==='debtors'){
+    /* the obligation writer the whole app already uses — bills oldest first, then opening */
+    const dir = g==='creditors' ? 'out' : 'out';
+    const pt=(DB.parties||[]).find(x=>nameNorm(x.name)===nameNorm(d.name));
+    const r=settleParty(dir,d.name,pt?pt.id:null,amt,date,d.acc,'');
+    if(r.left>0){
+      DB.ledger.push({id:uid(),dir:'out',date,amt:r.left,acc:d.acc,party:d.name,
+        partyId:pt?pt.id:null,partyKind:g==='creditors'?'supplier':'customer',
+        ref:t('pay_out'),refKind:'manual',cat:'',note:d.note||'',photos:[]});
+    }
+    return {ok:true,msg:r.touched.length?r.touched.join(' · '):t('t_saved')};
+  }
+  /* a cost, or the owner's own money — both are the same row, told apart by the group,
+     exactly as the expense screen already writes them */
+  const hcKind = g==='drawings'||g==='capital' ? 'drawing'
+               : (g==='direct'||g==='jobwork' ? 'direct' : 'indirect');
+  DB.expCats=DB.expCats||[];
+  if(DB.expCats.indexOf(d.name)<0)DB.expCats.push(d.name);
+  DB.expHeadCfg=DB.expHeadCfg||{};
+  if(!DB.expHeadCfg[d.name])DB.expHeadCfg[d.name]={who:'',kind:hcKind,pay:''};
+  DB.ledger.push({id:uid(),dir:'out',date,amt,acc:d.acc,
+    party:d.name,partyId:null,partyKind:'',expKind:hcKind,
+    ref:t('exp_title'),refKind:'expense',cat:d.name,note:d.note||'',photos:[]});
+  return {ok:true,msg:t('t_saved')};
+}
+
+let _mo={date:'',amt:'',acc:'',name:'',note:'',q:''};
+function moneyOut(keep){
+  sheetAt(moneyOut); lgSync();
+  /* v384 LIVE TEST: opening the screen again brought back the previous name and amount, so
+     the next entry started already half-filled with the last one. Date and account are the
+     two things that DO repeat down a bank statement, so those carry; the name, the amount
+     and the note are cleared every time the screen is opened fresh. Save-and-next passes
+     keep=1 because it is deliberately continuing the same run. */
+  if(!keep){ _mo.name=''; _mo.q=''; _mo.amt=''; _mo.note=''; }
+  if(!_mo.date)_mo.date=todayISO();
+  if(!_mo.acc)_mo.acc=(defaultAcc()||{}).id||'';
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">⬆️ ${t('mo_title')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
+    <div class="row"><div class="field"><label>${t('pay_date')}</label>${dateField('mo_date',_mo.date)}</div>
+      <div class="field"><label>${t('amount')} ₹ *</label>
+        <input id="mo_amt" type="number" inputmode="numeric" value="${esc(_mo.amt)}"></div></div>
+    <div class="field"><label>${t('mo_from')}</label>${acctSelHTML('mo_acc',_mo.acc)}</div>
+    <div class="field"><label>${t('mo_to')} *</label>
+      <input id="mo_q" value="${esc(_mo.name||_mo.q)}" placeholder="${t('mo_ph')}" autocomplete="off"
+        oninput="moFind(this.value)"></div>
+    <div id="mo_hits"></div>
+    <div class="field"><label>${t('stk_note')}</label><input id="mo_note" value="${esc(_mo.note)}"></div>
+    <div class="row" style="gap:8px;margin-top:12px">
+      <button class="btn ghost" style="flex:1" onclick="closeSheet()">${t('cancel')}</button>
+      <button class="btn" style="flex:1" onclick="moSave(true)">${t('save_next')}</button>
+      <button class="btn primary" style="flex:1" onclick="moSave(false)">${t('save')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet(); moFind(_mo.name||_mo.q);
+}
+function moCap(){ const g=i=>(($('#'+i)||{}).value||'');
+  _mo.date=g('mo_date')||_mo.date; _mo.amt=g('mo_amt'); _mo.acc=g('mo_acc');
+  _mo.note=g('mo_note'); _mo.q=g('mo_q'); }
+function moFind(v){
+  _mo.q=String(v||''); const q=_mo.q.trim().toLowerCase();
+  const box=$('#mo_hits'); if(!box)return;
+  let list=lgAll().filter(l=>!l.archived);
+  if(q)list=list.filter(l=>String(l.name).toLowerCase().includes(q));
+  list=list.slice(0,8);
+  const exact=list.some(l=>nameNorm(l.name)===nameNorm(q));
+  box.innerHTML=(q?list.map(l=>{
+    const G=lgGroup(l.group)||{label:''};
+    return `<div class="cust-result" style="margin-top:6px" onclick="moPick('${jq(l.name)}')">
+      <div style="flex:1;min-width:0"><b>${esc(l.name)}</b>
+        <div class="hint">${esc(G.label)}</div></div>
+      <span class="btn sm primary">${t('select')}</span></div>`;}).join(''):'')
+    + ((q&&!exact)?`<div class="kv" style="margin-top:8px">
+        <span class="hint">${t('mo_notfound')}</span>
+        <button class="btn sm ghost" onclick="moNew()">➕ ${t('lg_new')}</button></div>`:'');
+}
+function moPick(name){ moCap(); _mo.name=name; _mo.q=name;
+  const e=$('#mo_q'); if(e)e.value=name; moFind(name);
+  const a=$('#mo_amt'); if(a&&!a.value)a.focus(); }
+function moNew(){ moCap(); const pre=_mo.q;
+  ledgerEdit(null);
+  setTimeout(()=>{ const n=$('#lgName'); if(n)n.value=pre; },110); }
+function moSave(next){
+  moCap();
+  const name=String(_mo.name||_mo.q||'').trim();
+  const lg=lgByName(name);
+  if(!lg){ toast(t('mo_pick_first'),'bad'); return; }
+  const g=lg.group;
+  /* these two need a field this form does not carry, so they go to the screen that does */
+  if(g==='loans'){ closeSheet(); payLoan('out'); return; }
+  if(g==='cash'||g==='bank'){ closeSheet(); contraEntry(); return; }
+  const sig=['mo',name,_mo.amt,_mo.date,_mo.acc,_mo.note].join('|');
+  if(!svOnce(sig,()=>{})){ toast(t('sv_dup'),'bad'); return; }
+  const r=moPost({name,amt:_mo.amt,date:_mo.date,acc:_mo.acc,note:_mo.note});
+  if(!r.ok){ toast(r.msg,'bad'); return; }
+  save(); toast(r.msg,'ok');
+  if(next){ _mo.amt=''; _mo.name=''; _mo.q=''; _mo.note=''; moneyOut(1);
+            setTimeout(()=>{const a=$('#mo_amt'); if(a)a.focus();},80); }
+  else closeSheet();
+}
+
 /* ── the Ledger master screen: every name, its group, its opening ── */
 let _lgQ='';
 function ledgerMaster(){
@@ -26294,6 +26440,16 @@ function closeSheet(){
     }
   }
   _draftAsked=false;
+  /* v385 — HIS 28 Aug: "purchase bhi maine khola to draft purchase bill ke andar aa gaya."
+     Reproduced. The boot-restore flag exists for one case only — iOS killing the page while
+     a form is genuinely open, so he comes back to where he was. But saveDraft() re-arms that
+     flag every time it runs, and closing the form with ✕ runs saveDraft() to park the work.
+     So every deliberate exit left the flag standing, and the NEXT time he opened the app it
+     put him straight back inside the abandoned form — whichever screen he had actually
+     meant to open. The draft itself is untouched and still waiting on the Orders page; only
+     the "throw him back in" instruction is withdrawn, because closing on purpose is not an
+     interruption. */
+  clearFormOpen();
   /* v233 — HIS 20 Aug: "ab zyada hi pages ko ek-ek karke band karna padta hai."
      My own doing. In v226 I made the CROSS walk back one page, which fixed his complaint
      about landing on Home but broke the other half of the rule he set long ago: back undoes
