@@ -781,7 +781,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v387</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v391</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1357,7 +1357,7 @@ const T={
   hb_shown:'On', hb_hidden:'Off',
   hb_hint:'Tap a block to put it on Home or take it off. Nothing is deleted — everything stays reachable from All screens.',
   hb_shortcut_note:'The shortcut buttons are arranged separately, under Quick shortcuts.',
-  qc_title:'Home shortcuts', qc_sub:'Long-press any shortcut on Home to change it. Hidden ones are listed below.',
+  qc_title:'Home shortcuts', qc_sub:'The one at the top shows first on Home. Move any shortcut with the arrows.',
   rp_cogs:'Cost of goods sold', rp_open_stk:'Opening stock', rp_close_stk:'Closing stock',
   ob_stock_now:'On the shelf right now', ob_stock_open_only:'This is the opening figure only. Closing stock is counted from the rolls and pieces themselves — you never type it again.',
   ob_stock_use_now:'Use today’s figure',
@@ -2437,6 +2437,12 @@ dl_show_hidden:'Show hidden ({n})',
   mo_ph:'Supplier, expense head, staff, anyone...',
   mo_notfound:'No ledger by that name yet', mo_pick_first:'Pick a name from the list first',
   save_next:'Save & next',
+  qc_up:'Move up', qc_down:'Move down',
+  qc_rename:'Rename', qc_name:'Show it as', qc_reset_name:'Built-in name', qc_rename_hint:'Only the label changes. The shortcut keeps opening the same screen.',
+  rp_salesman:'Salesman performance', sm_sales:'Billed sales', sm_collected:'Collected',
+  sm_orders:'Orders taken', sm_bills:'{n} bills', sm_avg:'avg', sm_none:'No salesman marked',
+  sm_unbilled:'{n} orders not billed yet ·', sm_none_yet:'No sale or order carries a salesman in this period',
+  qc_arrange:'Arrange',
   lg_dup:'A ledger with that name already exists', lg_title:'Ledger master', lg_new:'New ledger', lg_group:'Group', lg_name:'Ledger name',
   lg_open:'Opening balance', lg_opendir:'Dr / Cr', lg_opendate:'Opening as on',
   lg_bs:'Balance sheet', lg_pl:'Profit & loss', lg_saved:'Ledger saved', lg_count:'{n} ledgers',
@@ -3013,7 +3019,7 @@ dl_show_hidden:'Show hidden ({n})',
   hb_shown:'चालू', hb_hidden:'बंद',
   hb_hint:'किसी हिस्से को दबाकर होम पर लगाएँ या हटाएँ। कुछ मिटता नहीं — सब कुछ All screens से मिलता रहेगा।',
   hb_shortcut_note:'शॉर्टकट बटन अलग से सजते हैं — Quick shortcuts में।',
-  qc_title:'होम के शॉर्टकट', qc_sub:'होम पर किसी भी शॉर्टकट को दबाए रखें और बदलें। छिपाए हुए नीचे हैं।',
+  qc_title:'होम के शॉर्टकट', qc_sub:'सबसे ऊपर वाला होम पर पहले दिखेगा। तीरों से ऊपर-नीचे कीजिए।',
   rp_cogs:'Cost of goods sold', rp_open_stk:'Opening stock', rp_close_stk:'Closing stock',
   ob_stock_now:'On the shelf right now', ob_stock_open_only:'This is the opening figure only. Closing stock is counted from the rolls and pieces themselves — you never type it again.',
   ob_stock_use_now:'Use today’s figure',
@@ -4092,6 +4098,12 @@ dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
   mo_ph:'सप्लायर, ख़र्च का नाम, स्टाफ़ — कोई भी…',
   mo_notfound:'इस नाम का ledger अभी नहीं है', mo_pick_first:'पहले सूची में से नाम चुनिए',
   save_next:'Save & next',
+  qc_up:'Move up', qc_down:'Move down',
+  qc_rename:'Rename', qc_name:'इस नाम से दिखाएँ', qc_reset_name:'मूल नाम', qc_rename_hint:'सिर्फ़ नाम बदलेगा। शॉर्टकट वही स्क्रीन खोलता रहेगा।',
+  rp_salesman:'Salesman performance', sm_sales:'Billed sales', sm_collected:'Collected',
+  sm_orders:'Orders taken', sm_bills:'{n} बिल', sm_avg:'औसत', sm_none:'सेल्समैन दर्ज नहीं',
+  sm_unbilled:'{n} ऑर्डर अभी बिल नहीं हुए ·', sm_none_yet:'इस अवधि में किसी बिल या ऑर्डर पर सेल्समैन दर्ज नहीं है',
+  qc_arrange:'Arrange',
   lg_dup:'A ledger with that name already exists', lg_title:'Ledger master', lg_new:'New ledger', lg_group:'Group', lg_name:'Ledger name',
   lg_open:'Opening balance', lg_opendir:'Dr / Cr', lg_opendate:'Opening as on',
   lg_bs:'Balance sheet', lg_pl:'Profit & loss', lg_saved:'Ledger saved', lg_count:'{n} ledgers',
@@ -11250,16 +11262,52 @@ function qrMove(k,dir){
 let _qrHoldT=null;
 function qrHold(k){ clearTimeout(_qrHoldT); _qrHoldT=setTimeout(()=>qrManage(k),550); }
 function qrHoldEnd(){ clearTimeout(_qrHoldT); }
+/* v389 — HIS 28 Aug: "chips ke naam edit ya delete karne ka option nahi hai kya?" pointing
+   at the Home shortcuts. Delete already existed under a different word — Hide — and that is
+   the right delete for these: a shortcut is not a record he owns, it is a door to a part of
+   the app, and removing the door for good would remove the room. Hiding takes it off Home
+   and parks it below, which is what he actually wants.
+   Renaming was genuinely missing. It is his shop and his staff, and "Money out" may not be
+   the phrase they use. So the NAME is now his — but it is stored apart from the action and
+   the action is never touched. Rename the tile to anything and it still opens exactly the
+   screen it always opened; clear the name and the built-in one comes back. This is why a
+   staff member cannot invent a function by typing: the label is a label. */
+function qrLabel(x){
+  const c=(DB.qrCfg&&DB.qrCfg.labels)||{};
+  const own=String(c[x[0]]||'').trim();
+  return own || t(x[2]);
+}
+function qrRename(k){
+  const x=QR_ALL.find(y=>y[0]===k); if(!x)return;
+  DB.qrCfg=DB.qrCfg||{}; DB.qrCfg.labels=DB.qrCfg.labels||{};
+  modal('\u270F\uFE0F '+t('qc_rename'),
+    `<div class="field"><label>${t('qc_name')}</label>
+       <input id="qrNm" value="${esc(DB.qrCfg.labels[k]||'')}" placeholder="${esc(t(x[2]))}"></div>
+     <p class="hint">${t('qc_rename_hint')}</p>`,
+    [{label:t('cancel'),cls:'ghost',fn:()=>{closeModal();qrManage(k);}},
+     {label:t('qc_reset_name'),cls:'ghost',fn:()=>{
+        delete DB.qrCfg.labels[k]; save(); closeModal(); qrManage(k); renderHome(); }},
+     {label:t('save'),cls:'primary',fn:()=>{
+        const v=(($('#qrNm')||{}).value||'').trim();
+        if(v)DB.qrCfg.labels[k]=v; else delete DB.qrCfg.labels[k];
+        save(); closeModal(); qrManage(k); renderHome(); toast(t('t_saved'),'ok'); }}]);
+}
 function qrManage(focus){
   sheetAt(qrManage);
   const c=qrCfg();
   const row=(x,vis)=>{
     const k=x[0];
     return `<div class="cust-result" style="${focus===k?'border-color:var(--saffron);':''}${vis?'':'opacity:.5;'}">
-      <div style="min-width:0;flex:1"><b>${x[1]} ${t(x[2])}</b></div>
+      <div style="min-width:0;flex:1"><b>${x[1]} ${esc(qrLabel(x))}</b></div>
       <div style="display:flex;gap:6px">
-        ${vis?`<button class="btn sm ghost" onclick="qrMove('${k}',-1)">\u2190</button>
-               <button class="btn sm ghost" onclick="qrMove('${k}',1)">\u2192</button>`:''}
+        ${/* v388 — HIS 28 Aug: "sequence kaise change karun?" He had this screen open and
+             still could not see it. The arrows said \u2190 and \u2192 because the shortcuts sit in a
+             grid on Home — but HERE they are a list running down the page, and he read them
+             as up and down, which is what they actually do to this list. The control should
+             speak the language of the screen it is on. */''}
+        ${vis?`<button class="btn sm ghost" onclick="qrMove('${k}',-1)" title="${t('qc_up')}">\u2191</button>
+               <button class="btn sm ghost" onclick="qrMove('${k}',1)" title="${t('qc_down')}">\u2193</button>`:''}
+        <button class="btn sm ghost" onclick="qrRename('${k}')" title="${t('qc_rename')}">\u270F\uFE0F</button>
         <button class="btn sm ${vis?'ghost':'primary'}" onclick="qrHide('${k}')">${vis?t('qc_hide'):t('qc_show')}</button>
       </div></div>`;
   };
@@ -11279,13 +11327,21 @@ function qrManage(focus){
 }
 function quickRowHTML(){
   if(localStorage.getItem('pp_home_classic')==='1')return quickRowClassicHTML();
-  const b=qrVisible().map(x=>[x[1],t(x[2]),x[3],x[0]]);
+  const b=qrVisible().map(x=>[x[1],qrLabel(x),x[3],x[0]]);
   return `<div class="qrow">${b.map(([i,l,fn,key],ix)=>
     `<button class="qbtn${ix===0?' qmain':''}" onclick="${fn}"
        oncontextmenu="event.preventDefault();qrManage('${key}');return false;"
        ontouchstart="qrHold('${key}')" ontouchend="qrHoldEnd()"
        ontouchmove="qrHoldEnd()" ontouchcancel="qrHoldEnd()"
-       ><span class="qi">${i}</span><span class="ql">${l}</span></button>`).join('')}</div>`;
+       ><span class="qi">${i}</span><span class="ql">${l}</span></button>`).join('')}
+    ${/* v388 — HIS 28 Aug: "in tabs ka sequence upar-neeche karne ka koi option nahi hai kya?"
+         It was there all along — qrManage(), with arrows to reorder and Hide/Show — but the
+         only way in was holding a tile down for half a second. He owns this app and could
+         not find it, which is the whole answer: a hold is not a door. His own rule is that
+         nothing that matters hides in a fold. So the door is now a tile, sitting with the
+         others, saying what it does. The long-press still works for anyone who knows it. */''}
+    <button class="qbtn" onclick="qrManage()" style="opacity:.75"
+      ><span class="qi">\u2699\uFE0F</span><span class="ql">${t('qc_arrange')}</span></button></div>`;
 }
 function quickRowHTML_OLD(){
   const b=[['👔',t('qr_order'),"openOrderForm()"]];
@@ -12586,9 +12642,19 @@ function memberOno(o,mid){
 function addMember(){
   captureForm();
   ensureFormMembers(form);
-  // first-ever member has no id (bare keys) — give it one before adding a second
-  if(form.members.length===1 && form.members[0].id===''){
-    const mid='m1';
+  /* v390 — HIS 28 Aug: "Add another person ka chip kaam hi nahi kar raha hai, items jo main
+     order hai usi ko maan le raha hai."
+     Reproduced, and it happened on EVERY real order. This asked "does the first member have
+     a blank id?" to decide whether his garments still needed tagging. But the form gives
+     member one the id 'm1' the moment it opens — before a single garment is picked — so by
+     the time he picks Coat and Shirt the id is set and the keys are bare, and this test was
+     already false. The tagging never ran. Person one's garments then belonged to nobody, so
+     the second person appeared to inherit them.
+     The question was never about the id. It is about the GARMENTS: if any of them carry no
+     owner and there is only one person so far, they are his. */
+  const untagged=(form.items||[]).some(k=>!memberOf(k));
+  if(form.members.length===1 && (form.members[0].id==='' || untagged)){
+    const mid=form.members[0].id||'m1';
     form.members[0].id=mid;
     form.items=(form.items||[]).map(k=>memberOf(k)?k:itemKey(mid,k));
     const rekey=obj=>{const o2={};Object.keys(obj||{}).forEach(k=>{o2[memberOf(k)?k:itemKey(mid,k)]=obj[k];});return o2;};
@@ -20876,6 +20942,71 @@ function cashflowPrint(){
 }
 
 /* ── EXPENSE BY HEAD — where the money goes, biggest first ── */
+/* ══════════ v391 — SALESMAN REPORT ══════════
+   HIS 28 Aug: "salesman ka ki kisne kitna maal becha... to in chips ka fayda hai."
+   He was right, and it was the sharpest thing he said about the chips. Every order and
+   every bill has carried a salesmanId for a long time, and NOTHING ever read it back. A
+   field the staff fill in that no one can ever see is worse than no field: it costs a tap
+   and returns nothing.
+   This groups what is already recorded — no new entry, no new data. Bills are the sale;
+   orders are what he brought in that has not been billed yet, which is a real part of a
+   salesman's work in a tailoring shop and is kept in its own column so the two can never
+   be confused. Collections are what actually came in against his bills, because a sale
+   that is never collected is not the same achievement as one that is. */
+function smFigures(from,to){
+  const inRange=d=>{const x=String(d||'').slice(0,10);return x&&x>=from&&x<=to;};
+  const map={};
+  const row=id=>{ const k=id||'_none';
+    return map[k]=map[k]||{id:id||'',name:id?((staffById(id)||{}).name||id):t('sm_none'),
+      bills:0,sales:0,collected:0,orders:0,orderVal:0}; };
+  (DB.sales||[]).forEach(sl=>{
+    if(!sl.invoice)return;
+    const d=(sl.invoice||{}).date||sl.date; if(!inRange(d))return;
+    const r=row(sl.salesmanId); r.bills++; r.sales=r2(r.sales+(orderTotal(sl)||0));
+    (sl.payments||[]).forEach(p=>{ if(inRange(p.date))r.collected=r2(r.collected+(+p.amt||0)); });
+  });
+  (DB.orders||[]).forEach(o=>{
+    const d=o.orderDate||(o.created||'').slice(0,10); if(!inRange(d))return;
+    const r=row(o.salesmanId); r.orders++; r.orderVal=r2(r.orderVal+(+orderTotal(o)||0));
+    (o.payments||[]).forEach(p=>{ if(inRange(p.date))r.collected=r2(r.collected+(+p.amt||0)); });
+  });
+  const rows=Object.values(map).filter(r=>r.bills||r.orders)
+    .sort((a,b)=>(b.sales+b.orderVal)-(a.sales+a.orderVal));
+  const tot=rows.reduce((a,r)=>({bills:a.bills+r.bills,sales:r2(a.sales+r.sales),
+    collected:r2(a.collected+r.collected),orders:a.orders+r.orders,
+    orderVal:r2(a.orderVal+r.orderVal)}),{bills:0,sales:0,collected:0,orders:0,orderVal:0});
+  return {rows,tot};
+}
+function salesmanReport(){
+  sheetAt(salesmanReport);
+  const {from,to}=rpRange(), f=smFigures(from,to);
+  const top=f.rows.length?Math.max(1,f.rows[0].sales+f.rows[0].orderVal):1;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">🧑‍💼 ${t('rp_salesman')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
+    <p class="hint" style="margin-bottom:10px">${fmtDate(from)} → ${fmtDate(to)}</p>
+    ${rpPickerHTML('salesmanReport')}
+    <div class="card pos-total" style="padding:12px 14px;margin:10px 0 12px">
+      <div class="il"><span>${t('sm_sales')}</span><b style="font-size:18px">${money(f.tot.sales)}</b></div>
+      <div class="il"><span>${t('sm_collected')}</span><b style="color:var(--ok)">${money(f.tot.collected)}</b></div>
+      <div class="il" style="border-bottom:0"><span>${t('sm_orders')}</span><b>${f.tot.orders} · ${money(f.tot.orderVal)}</b></div></div>
+    ${f.rows.length?f.rows.map(r=>`
+      <div class="card" style="padding:12px;margin-bottom:8px">
+        <div class="kv" style="margin-bottom:6px"><b>${esc(r.name)}</b>
+          <b style="font-size:16px">${money(r.sales)}</b></div>
+        <div style="height:6px;background:var(--line);border-radius:4px;overflow:hidden;margin-bottom:8px">
+          <div style="height:100%;width:${Math.round((r.sales+r.orderVal)/top*100)}%;background:var(--saffron)"></div></div>
+        <div class="hint">${t('sm_bills',{n:r.bills})} · ${t('sm_avg')} ${money(r.bills?r2(r.sales/r.bills):0)}</div>
+        <div class="hint">${t('sm_collected')} ${money(r.collected)}${r.sales?` · ${Math.round(r.collected/r.sales*100)}%`:''}</div>
+        ${r.orders?`<div class="hint">${t('sm_unbilled',{n:r.orders})} ${money(r.orderVal)}</div>`:''}
+      </div>`).join('')
+      :`<div class="empty" style="padding:30px 10px"><div class="big">🧑‍💼</div><p>${t('sm_none_yet')}</p></div>`}
+    ${f.rows.length?exportBarHTML('rp_sm',()=>({title:t('rp_salesman'), sub:fmtDate(from)+' – '+fmtDate(to),
+      head:[t('pt_name'),t('amount'),t('sm_collected')],
+      rows:f.rows.map(r=>[r.name,r.sales,r.collected])})):''}
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
 function expHeadReport(){
   sheetAt(expHeadReport);
   const {from,to}=rpRange(), f=plFigures(from,to);
@@ -21224,7 +21355,10 @@ function renderReports(){
       <button class="btn ghost" style="flex:1" onclick="trialBalance()">📋 ${t('tb_title')}</button></div>
     <div class="row" style="gap:8px;margin-bottom:12px">
       <button class="btn ghost" style="flex:1" onclick="journalBook()">📓 ${t('jv_title')}</button>
-      <button class="btn ghost" style="flex:1" onclick="ontimeReport()">🚚 ${t('ontime_title')}</button></div>`;
+      <button class="btn ghost" style="flex:1" onclick="ontimeReport()">🚚 ${t('ontime_title')}</button></div>
+    <div class="row" style="gap:8px;margin-bottom:12px">
+      <button class="btn ghost" style="flex:1" onclick="salesmanReport()">🧑\u200D💼 ${t('rp_salesman')}</button>
+      <button class="btn ghost" style="flex:1" onclick="staffReport()">👥 ${t('srp_title')}</button></div>`;
   const {from,to}=rpRange();
   const invs=allInvoices().filter(x=>{const d=String(x.inv.date||'');return d>=from&&d<=to;});
   let sales=0,gst=0;
