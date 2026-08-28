@@ -781,7 +781,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v382</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v383</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -2427,6 +2427,20 @@ const T={
   dl_used:'{n} entries are filed under this. Deleting it would leave them with no name, so it can only be hidden: it disappears from every list and the old entries stay exactly as they are.',
   dl_free:'Nothing is filed under this. It can be removed for good.',
 dl_show_hidden:'Show hidden ({n})',
+  lg_cash:'Cash-in-hand', lg_bank:'Bank Accounts', lg_debtors:'Sundry Debtors',
+  lg_stock:'Stock-in-hand', lg_fixed:'Fixed Assets', lg_advances:'Advances (Asset)',
+  lg_creditors:'Sundry Creditors', lg_loans:'Loans (Liability)', lg_taxes:'Duties & Taxes',
+  lg_capital:'Capital Account', lg_drawings:'Drawings', lg_sales:'Sales',
+  lg_otherinc:'Other Income', lg_direct:'Direct Expenses', lg_jobwork:'Job Work',
+  lg_salary:'Salary & Wages', lg_indirect:'Indirect Expenses',
+  lg_dup:'A ledger with that name already exists', lg_title:'Ledger master', lg_new:'New ledger', lg_group:'Group', lg_name:'Ledger name',
+  lg_open:'Opening balance', lg_opendir:'Dr / Cr', lg_opendate:'Opening as on',
+  lg_bs:'Balance sheet', lg_pl:'Profit & loss', lg_saved:'Ledger saved', lg_count:'{n} ledgers',
+  lg_sub:'Every name the shop uses, and the group it belongs to.',
+  lg_search:'Search a ledger or a group...', lg_none:'Nothing matches that',
+  lg_dr:'Dr — the shop owns it / it is a cost',
+  lg_cr:'Cr — the shop owes it / it is income',
+  lg_grp_hint:'The group decides which statement this lands on and which side it sits.',
   sv_dup:'Already saved — nothing entered twice', pw_else:'Not this? ', pt_open_dup:'This name already has an opening balance', cr_new:'New creditor', cr_search:'Search name, amount...', cr_loan_tag:'Loan',
   cr_edit:'Edit', cr_none_match:'Nobody matches that',
   creditors_report:'Payables',
@@ -4064,6 +4078,20 @@ dl_show_hidden:'Show hidden ({n})',
   dl_used:'इसके नीचे {n} entry दर्ज हैं। मिटाने पर वो बेनाम हो जातीं, इसलिए इसे सिर्फ़ छुपाया जा सकता है: हर सूची से हट जाएगा और पुरानी entry ज्यों की त्यों रहेंगी।',
   dl_free:'इसके नीचे कोई entry नहीं है। इसे पूरी तरह मिटाया जा सकता है।',
 dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
+  lg_cash:'Cash-in-hand', lg_bank:'Bank Accounts', lg_debtors:'Sundry Debtors',
+  lg_stock:'Stock-in-hand', lg_fixed:'Fixed Assets', lg_advances:'Advances (Asset)',
+  lg_creditors:'Sundry Creditors', lg_loans:'Loans (Liability)', lg_taxes:'Duties & Taxes',
+  lg_capital:'Capital Account', lg_drawings:'Drawings', lg_sales:'Sales',
+  lg_otherinc:'Other Income', lg_direct:'Direct Expenses', lg_jobwork:'Job Work',
+  lg_salary:'Salary & Wages', lg_indirect:'Indirect Expenses',
+  lg_dup:'A ledger with that name already exists', lg_title:'Ledger master', lg_new:'New ledger', lg_group:'Group', lg_name:'Ledger name',
+  lg_open:'Opening balance', lg_opendir:'Dr / Cr', lg_opendate:'Opening as on',
+  lg_bs:'Balance sheet', lg_pl:'Profit & loss', lg_saved:'Ledger saved', lg_count:'{n} ledgers',
+  lg_sub:'हर नाम जो दुकान में चलता है, और वो किस group में है।',
+  lg_search:'नाम या group खोजें…', lg_none:'कोई नहीं मिला',
+  lg_dr:'Dr — दुकान का है / ख़र्च है',
+  lg_cr:'Cr — दुकान को देना है / आमदनी है',
+  lg_grp_hint:'Group तय करता है कि ये किस statement में जाएगा और किस तरफ़ बैठेगा।',
   sv_dup:'पहले ही दर्ज हो चुका — दोबारा नहीं चढ़ा', pw_else:'ये नहीं? ', pt_open_dup:'इस नाम का पुराना बकाया पहले से दर्ज है', cr_new:'New creditor', cr_search:'Search name, amount...', cr_loan_tag:'Loan',
   cr_edit:'Edit', cr_none_match:'Nobody matches that',
   creditors_report:'देनदारी (देना है)',
@@ -11148,6 +11176,7 @@ const QR_ALL=[
      Sale, and New purchase sits beside it exactly as New bill sits beside Sale. */
   ['purchase','🚚','qr_purchase',"go('purchases')",'billing'],
   ['newpurchase','➕','qr_newpurchase',"openPurchaseForm()",'billing'],
+  ['ledgers','📗','lg_title',"ledgerMaster()",'accounts'],
   ['payin','💵','qr_payin',"payEntry('in',1)",null],
   /* v350: Expense is no longer its own door. Every rupee leaving the shop now goes through
      Payment out, which asks what it was for — so it can never land in the wrong book. The
@@ -23651,7 +23680,198 @@ function obCommit(){
    usko dena hai dukaan ke hisaab me x rs per uske personal hisaab me y rs" — the accounts
    separate, the PERSON in one place. That is what this is. */
 function partyAll(){ DB.parties=DB.parties||[]; return DB.parties; }
+
+/* ══════════════════ v383 — THE LEDGER MASTER ══════════════════
+   HIS 28 Aug: "Tally me koi head ya ledger banate hai to uske details bhi dalne hote hain —
+   Rent, indirect expenses, opening, date. Meghraj Parasmal, creditors, liabilities, opening
+   balance, date. Tally ne accounts ke basics se compromise nahi kiya."
+
+   He is right, and this is the disease under everything else he has been hitting. Until now
+   this app had TWO half-built versions of the same idea and no whole one:
+
+     expense heads   DB.expHeadCfg[name] = {who, kind:'direct'|'indirect'|'drawing'}
+     parties         DB.parties[]        + partyKind 'supplier'|'customer'|'karigar'|…
+
+   Neither is an account group. So every report re-derived its own classification from those
+   scattered flags, which is exactly why one supplier could read three different balances on
+   three screens, and why "is this an Expense or a Payment out?" became a question he had to
+   answer instead of the books answering it.
+
+   A ledger belongs to a GROUP, and the group decides everything: which statement it lands
+   on, which side it sits, whether it touches profit. Name and group — nothing else is asked,
+   because nothing else is needed.
+
+   NOTHING IS MOVED OR DELETED. DB.expCats, DB.expHeadCfg, DB.parties, staff, karigars and
+   accounts all stay exactly where they are and keep working. This master is built ALONGSIDE
+   them and derives its groups from what is already there, so old data reads correctly from
+   the first run and no migration can lose anything. */
+
+const LGROUPS = [
+  /* id            statement  side  nature                          label key */
+  ['cash',         'bs','dr','asset',      'lg_cash'],
+  ['bank',         'bs','dr','asset',      'lg_bank'],
+  ['debtors',      'bs','dr','asset',      'lg_debtors'],
+  ['stock',        'bs','dr','asset',      'lg_stock'],
+  ['fixed',        'bs','dr','asset',      'lg_fixed'],
+  ['advances',     'bs','dr','asset',      'lg_advances'],
+  ['creditors',    'bs','cr','liability',  'lg_creditors'],
+  ['loans',        'bs','cr','liability',  'lg_loans'],
+  ['taxes',        'bs','cr','liability',  'lg_taxes'],
+  ['capital',      'bs','cr','capital',    'lg_capital'],
+  ['drawings',     'bs','dr','capital',    'lg_drawings'],
+  ['sales',        'pl','cr','income',     'lg_sales'],
+  ['otherinc',     'pl','cr','income',     'lg_otherinc'],
+  ['direct',       'pl','dr','expense',    'lg_direct'],
+  ['jobwork',      'pl','dr','expense',    'lg_jobwork'],
+  ['salary',       'pl','dr','expense',    'lg_salary'],
+  ['indirect',     'pl','dr','expense',    'lg_indirect']
+];
+function lgGroup(id){ const g=LGROUPS.find(x=>x[0]===id); return g?{id:g[0],stmt:g[1],side:g[2],nature:g[3],label:t(g[4])}:null; }
+function lgGroupsFor(stmt){ return LGROUPS.filter(g=>!stmt||g[1]===stmt); }
+
+/* Where an existing name already belongs, read off what the app already knows about it.
+   This is the whole migration: no rewrite, no guessing, and it re-runs harmlessly. */
+function lgGuessGroup(name){
+  const n=nameNorm(name);
+  const acc=(DB.accounts||[]).find(a=>nameNorm(a.name)===n);
+  if(acc) return acc.type==='bank'?'bank':'cash';
+  if((DB.karigars||[]).some(k=>nameNorm(k.name)===n)) return 'jobwork';
+  if((DB.staff||[]).some(k=>nameNorm(k.name)===n))    return 'salary';
+  if((DB.customers||[]).some(k=>nameNorm(k.name)===n))return 'debtors';
+  const hc=(DB.expHeadCfg||{})[name];
+  if(hc){ if(hc.kind==='drawing')return 'drawings';
+          if(hc.kind==='direct') return 'direct';
+          return 'indirect'; }
+  const op=(DB.ledger||[]).filter(l=>nameNorm(l.party)===n).slice(-1)[0];
+  if(op){ if(op.partyKind==='loan')return 'loans';
+          if(op.partyKind==='customer')return 'debtors';
+          if(op.partyKind==='karigar')return 'jobwork';
+          if(op.partyKind==='staff')return 'salary';
+          if(op.partyKind==='supplier')return 'creditors'; }
+  if((DB.purchases||[]).some(p=>nameNorm(p.supplier)===n)) return 'creditors';
+  return 'indirect';
+}
+function lgAll(){ DB.ledgers=DB.ledgers||[]; return DB.ledgers; }
+function lgByName(name){ const n=nameNorm(name); return lgAll().find(l=>nameNorm(l.name)===n)||null; }
+function lgById(id){ return lgAll().find(l=>l.id===id)||null; }
+/* Every name the shop already uses, present in the master from the first open. */
+function lgSync(){
+  const have={}; lgAll().forEach(l=>{ have[nameNorm(l.name)]=1; });
+  const put=(name)=>{ const nm=String(name||'').trim(); if(!nm)return;
+    if(have[nameNorm(nm)])return; have[nameNorm(nm)]=1;
+    lgAll().push({id:uid(), name:nm, group:lgGuessGroup(nm), openAmt:0, openDir:'', openDate:''}); };
+  (DB.expCats||[]).forEach(put);
+  (DB.parties||[]).forEach(p=>put(p.name));
+  (DB.accounts||[]).forEach(a=>put(a.name));
+  (DB.karigars||[]).forEach(k=>put(k.name));
+  (DB.staff||[]).forEach(k=>put(k.name));
+  (DB.purchases||[]).forEach(p=>put(p.supplier));
+  /* Customers: only the ones who actually carry a balance. A tailoring shop has thousands
+     of walk-in names and a chart of accounts is not a phone book — a man who paid in full
+     and went home is not a debtor. He appears here the moment he owes something or has an
+     opening, and his own screens keep working either way. */
+  (DB.customers||[]).forEach(c=>{
+    const owes=['sales','orders','alterations'].some(k=>(DB[k]||[])
+      .some(r=>r.customerId===c.id && orderBaaki(r)>0));
+    const hasOpen=(DB.ledger||[]).some(l=>l.refKind==='opening'&&nameNorm(l.party)===nameNorm(c.name));
+    if(owes||hasOpen)put(c.name);
+  });
+  (DB.ledger||[]).forEach(l=>{ if(l.party)put(l.party); });
+  /* an opening already recorded against a name is that ledger's opening — read, not re-keyed */
+  lgAll().forEach(l=>{
+    if(l.openAmt)return;
+    const op=(DB.ledger||[]).find(x=>x.refKind==='opening'&&nameNorm(x.party)===nameNorm(l.name));
+    if(op){ l.openAmt=+op.amt||0; l.openDir=op.dir==='out'?'cr':'dr'; l.openDate=op.date||''; }
+  });
+  return lgAll();
+}
 function partyById(id){ return partyAll().find(x=>x.id===id); }
+
+/* ── the Ledger master screen: every name, its group, its opening ── */
+let _lgQ='';
+function ledgerMaster(){
+  sheetAt(ledgerMaster);
+  lgSync(); save();
+  const q=String(_lgQ||'').trim().toLowerCase();
+  let list=lgAll().filter(l=>!l.archived);
+  if(q)list=list.filter(l=>String(l.name).toLowerCase().includes(q)
+    || String((lgGroup(l.group)||{}).label||'').toLowerCase().includes(q));
+  /* shown under their group, the way a chart of accounts reads */
+  const byG={}; list.forEach(l=>{ (byG[l.group]=byG[l.group]||[]).push(l); });
+  const blocks=LGROUPS.filter(g=>byG[g[0]]&&byG[g[0]].length).map(g=>{
+    const G=lgGroup(g[0]);
+    return `<div class="section-h" style="margin-top:14px">${esc(G.label)}
+        <span class="hint">${G.stmt==='bs'?t('lg_bs'):t('lg_pl')} · ${G.side.toUpperCase()}</span></div>
+      ${byG[g[0]].sort((a,b)=>a.name.localeCompare(b.name)).map(l=>`
+        <div class="kv card" style="padding:10px 12px;margin-bottom:6px;cursor:pointer"
+             onclick="ledgerEdit('${jq(l.id)}')">
+          <div style="flex:1;min-width:0"><b>${esc(l.name)}</b>
+            ${l.openAmt?`<div class="hint">${t('lg_open')} ${money(l.openAmt)} ${String(l.openDir||'').toUpperCase()}${l.openDate?' · '+fmtDate(l.openDate):''}</div>`:''}
+          </div><span style="color:var(--saffron2)">›</span>
+        </div>`).join('')}`;
+  }).join('');
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">📗 ${t('lg_title')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
+    <p class="hint" style="margin-bottom:10px">${t('lg_sub')}</p>
+    <button class="btn primary block" style="margin-bottom:10px" onclick="ledgerEdit(null)">➕ ${t('lg_new')}</button>
+    <div class="field" style="margin-bottom:6px">
+      <input id="lgQ" value="${esc(_lgQ)}" placeholder="🔍 ${t('lg_search')}" oninput="lgSearch(this.value)" autocomplete="off"></div>
+    <p class="hint" style="margin-bottom:4px">${t('lg_count',{n:list.length})}</p>
+    ${blocks||`<div class="empty" style="padding:26px 10px"><p>${t('lg_none')}</p></div>`}
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function lgSearch(v){ _lgQ=String(v||''); ledgerMaster();
+  setTimeout(()=>{const e=$('#lgQ'); if(e){const x=e.value;e.focus();
+    try{e.setSelectionRange(x.length,x.length);}catch(err){}}},0); }
+
+function ledgerEdit(id){
+  const ex=id?lgById(id):null;
+  const gsel=(sel)=>LGROUPS.map(g=>`<option value="${g[0]}" ${sel===g[0]?'selected':''}>${esc(t(g[4]))}</option>`).join('');
+  modal('📗 '+(ex?esc(ex.name):t('lg_new')),
+    `<div class="field"><label>${t('lg_name')} *</label><input id="lgName" value="${ex?esc(ex.name):''}"></div>
+     <div class="field"><label>${t('lg_group')} *</label>
+       <select id="lgGrp">${gsel(ex?ex.group:'indirect')}</select>
+       <p class="hint" style="margin-top:4px">${t('lg_grp_hint')}</p></div>
+     <div class="row"><div class="field"><label>${t('lg_open')} ₹</label>
+        <input id="lgOpen" type="number" inputmode="numeric" value="${ex&&ex.openAmt?esc(ex.openAmt):''}" placeholder="0"></div>
+       <div class="field"><label>${t('lg_opendir')}</label>
+         <select id="lgDir">
+           <option value="" ${!(ex&&ex.openDir)?'selected':''}>—</option>
+           <option value="dr" ${ex&&ex.openDir==='dr'?'selected':''}>${t('lg_dr')}</option>
+           <option value="cr" ${ex&&ex.openDir==='cr'?'selected':''}>${t('lg_cr')}</option>
+         </select></div></div>
+     <div class="field"><label>${t('lg_opendate')}</label>
+       ${dateField('lgDate',(ex&&ex.openDate)||fyStartISO())}</div>`,
+    [{label:t('cancel'),cls:'ghost',fn:()=>{closeModal();ledgerMaster();}},
+     ...(ex?[{label:'🗑️',cls:'danger',fn:()=>ledgerDel(ex.id)}]:[]),
+     {label:t('save'),cls:'primary',fn:()=>{
+        const g=i=>(($('#'+i)||{}).value||'').trim();
+        const nm=g('lgName'); if(!nm){ toast(t('lg_name'),'bad'); return; }
+        const dup=lgAll().find(l=>nameNorm(l.name)===nameNorm(nm) && (!ex||l.id!==ex.id));
+        if(dup){ toast(t('lg_dup'),'bad'); return; }
+        const rec=ex||{id:uid()};
+        rec.name=nm; rec.group=g('lgGrp')||'indirect';
+        rec.openAmt=r2(+g('lgOpen')||0); rec.openDir=g('lgDir'); rec.openDate=g('lgDate')||'';
+        if(!ex)lgAll().push(rec);
+        save(); closeModal(); toast(t('lg_saved'),'ok'); ledgerMaster();
+     }}]);
+}
+/* Same rule the rest of the app follows: nothing filed under it, it goes; something filed
+   under it, it is hidden and every old entry stays readable exactly as it was. */
+function ledgerUse(name){
+  const n=nameNorm(name); let k=0;
+  (DB.ledger||[]).forEach(l=>{ if(nameNorm(l.party)===n||nameNorm(l.cat)===n)k++; });
+  (DB.purchases||[]).forEach(x=>{ if(nameNorm(x.supplier)===n)k++; });
+  return k;
+}
+function ledgerDel(id){
+  const l=lgById(id); if(!l)return;
+  delOrHide(l.name, ledgerUse(l.name),
+    ()=>{ DB.ledgers=lgAll().filter(x=>x.id!==id); save(); ledgerMaster(); },
+    ()=>{ l.archived=1; save(); ledgerMaster(); });
+}
 function partyByName(name){
   const n=String(name||'').trim().toLowerCase(); if(!n)return null;
   return partyAll().find(x=>String(x.name||'').trim().toLowerCase()===n)||null;
