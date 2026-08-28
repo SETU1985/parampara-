@@ -781,7 +781,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v386</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v387</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -15480,7 +15480,9 @@ function openSaleForm(editId){
   _posDone=[];
   let s;
   if(editId){s=(DB.sales||[]).find(x=>x.id===editId);}
-  else{s={id:uid(),created:new Date().toISOString(),customerId:null,customerName:'',phone:'',payments:[],total:0};DB.sales=DB.sales||[];DB.sales.push(s);}
+  else{ invSweepShells(false);                  /* v387: clear any left by an earlier run */
+    s={id:uid(),created:new Date().toISOString(),customerId:null,customerName:'',phone:'',payments:[],total:0};
+    DB.sales=DB.sales||[];DB.sales.push(s);}
   openInvoiceForm('sale',s.id);
 }
 function openOrderInvoice(id){const o=DB.orders.find(x=>x.id===id);if(!o)return;
@@ -15488,6 +15490,34 @@ function openOrderInvoice(id){const o=DB.orders.find(x=>x.id===id);if(!o)return;
 function openAltInvoice(id){const a=altById(id);if(!a)return;
   if(a.invoice)openInvoicePreview('alt',id); else openInvoiceForm('alt',id);}
 function invRecOf(kind,id){return kind==='alt'?altById(id):(kind==='sale'?(DB.sales||[]).find(x=>x.id===id):DB.orders.find(x=>x.id===id));}
+/* v387 — HIS 28 Aug: "invoice mein party ka naam add karte rahe, billing ke time wo party
+   ka naam phir se maang raha hai. Bill save hi nahi ho rahi."
+   Reproduced in one run: opening New invoice WRITES an empty sale into DB.sales straight
+   away, to hold the record the form edits. Saving then writes a second empty one for the
+   next bill of the run. So every abandoned bill, and every finished run, left a nameless,
+   itemless, zero-rupee sale behind in the books. Those shells sit in the invoice list, and
+   reopening one is what asked him for the customer all over again on a bill he thought he
+   had already made.
+   The shell is still how the form works — it is not worth re-plumbing that — but a shell
+   that never became a bill is not a document, and it is swept the moment it is left. Only
+   a record with NO invoice, NO name, NO items and NO money is ever touched. */
+function invIsShell(s){
+  return !!s && !s.invoice && !s.customerId
+    && !String(s.customerName||'').trim()
+    && !((s.items||[]).length) && !((s.payments||[]).length)
+    && !(+s.total||0);
+}
+function invSweepShells(keepId){
+  /* The record under the OPEN form is always spared, whatever state it is in — his work
+     lives in invForm and has not reached the record yet, so sweeping it would pull the
+     bill out from under him mid-entry. Caught by the test, not by reading. */
+  /* keepId===false means the form is being closed, so there is nothing to protect. */
+  let openId = keepId===false ? null : keepId;
+  try{ if(keepId===undefined && typeof invForm!=='undefined' && invForm && invForm.id)openId=invForm.id; }catch(e){}
+  const before=(DB.sales||[]).length;
+  DB.sales=(DB.sales||[]).filter(s=>s.id===openId || !invIsShell(s));
+  return before-(DB.sales||[]).length;
+}
 function invNormItems(items){
   (items||[]).forEach(it=>{
     it.qty=+it.qty||1;
@@ -16850,6 +16880,7 @@ function saveInvoice(){
 let _posDone=[]; let _invSmAll=false;
 function posDone(id){ if(id && _posDone.indexOf(id)<0)_posDone.unshift(id); }
 function saleFormNext(){
+  invSweepShells(false);                         /* v387 */
   const s={id:uid(),created:new Date().toISOString(),customerId:null,customerName:'',phone:'',payments:[],total:0};
   DB.sales=DB.sales||[]; DB.sales.push(s); save();
   openInvoiceForm('sale',s.id);
@@ -26450,6 +26481,7 @@ function closeSheet(){
      the "throw him back in" instruction is withdrawn, because closing on purpose is not an
      interruption. */
   clearFormOpen();
+  try{ if(invSweepShells(false))save(); }catch(e){}  /* v387: an abandoned blank bill is not a bill */
   /* v233 — HIS 20 Aug: "ab zyada hi pages ko ek-ek karke band karna padta hai."
      My own doing. In v226 I made the CROSS walk back one page, which fixed his complaint
      about landing on Home but broke the other half of the rule he set long ago: back undoes
