@@ -781,7 +781,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v376</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v382</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -2421,6 +2421,12 @@ const T={
   paid_now:'Paid now ₹',
   purchases_report:'Purchase report',
   rp_total_purchases:'Total purchases',
+  ml_del_move:'{c} entries are filed under {n}. They must be moved to another name first — pick the name they should go to, and {n} goes with the move.',
+  dl_del:'Delete', dl_arch:'Hide from the list', dl_restore:'Restore',
+  dl_gone:'Deleted', dl_archd:'Hidden — old entries kept',
+  dl_used:'{n} entries are filed under this. Deleting it would leave them with no name, so it can only be hidden: it disappears from every list and the old entries stay exactly as they are.',
+  dl_free:'Nothing is filed under this. It can be removed for good.',
+dl_show_hidden:'Show hidden ({n})',
   sv_dup:'Already saved — nothing entered twice', pw_else:'Not this? ', pt_open_dup:'This name already has an opening balance', cr_new:'New creditor', cr_search:'Search name, amount...', cr_loan_tag:'Loan',
   cr_edit:'Edit', cr_none_match:'Nobody matches that',
   creditors_report:'Payables',
@@ -2500,7 +2506,7 @@ const T={
   home_month_sales:'इस महीने की बिक्री',
   hm_pl:'इस महीने', hm_pl_sales:'बिक्री', hm_pl_cost:'खर्च', hm_pl_profit:'मुनाफ़ा',
   gst_title:'GST', gst_sub:'बिक्री पर लिया टैक्स, खरीद पर दिया टैक्स, और दोनों का फ़र्क।',
-  eh_drawing:'अपना निकाला',
+  eh_drawing:'My own drawings',
   bs_title:'Balance sheet', tb_title:'Trial balance', de_menu:'Accounts',
   jv_title:'Journal', jv_sub:'Adjustment entries — depreciation, closing stock, outstandings, corrections.',
   jv_new:'New entry', jv_edit:'Edit entry', jv_none:'No journal entries yet',
@@ -2513,12 +2519,12 @@ const T={
   jv_grp_a:'Assets', jv_grp_l:'Liabilities', jv_grp_c:'Capital', jv_grp_i:'Income', jv_grp_e:'Expenses',
   jv_note:'Journal entries move the trial balance and the balance sheet. They do not move cash or bank — use Payment or Expense for that.',
   jv_effect:'Effect on the books',
-  bs_quarter:'इस तिमाही', bs_fy:'पूरा साल', bs_drcr:'डेबिट / क्रेडिट',
-  bs_debit:'डेबिट — दुकान की संपत्ति', bs_credit:'क्रेडिट — दुकान की देनदारी',
+  bs_quarter:'This quarter', bs_fy:'Full year', bs_drcr:'Dr / Cr',
+  bs_debit:'Debit — what the shop owns', bs_credit:'Credit — what the shop owes',
   bs_assets:'Assets', bs_liab:'Liabilities', bs_cap:'Capital',
   bs_cash:'Cash in hand', bs_bank:'Bank', bs_debtors:'Receivable from customers',
   cb_iscc:'कैश क्रेडिट / ओवरड्राफ्ट', cb_iscc_hint:'बैंक की लिमिट है, आपका पैसा नहीं। जितना निकाला वह देना है, और सिर्फ ब्याज लगता है — EMI नहीं।',
-  bs_cc:'कैश क्रेडिट लिया', ob_loan_biz:'दुकान का', ob_loan_pers:'निजी',
+  bs_cc:'Cash credit drawn', ob_loan_biz:'Business', ob_loan_pers:'Personal',
   rc_title:'Rent on sales', rc_sub:'Rent paid as a share of sales instead of a fixed amount.',
   rc_who:'Paid to', rc_who_ph:'Landlord’s name', rc_pct:'Share of gross sale %',
   rc_on:'On', rc_gross:'Gross sale (bill total)', rc_net:'Net sale (after GST)',
@@ -2539,30 +2545,30 @@ const T={
   pin_reset_ok:'जवाब सही — नया PIN लगाएँ', pin_reset_bad:'यह जवाब मेल नहीं खाता',
   pin_done:'लॉक सेव हुआ', pin_gone:'लॉक हट गया', pin_tap:'देखने के लिए दबाएँ',
   pin_scope:'लॉक: कैश और बैंक, रिपोर्ट, खर्च, बैलेंस शीट, बैकअप, सेटिंग्स। ऑर्डर, नाप और हाज़िरी स्टाफ के लिए खुले रहेंगे।',
-  ob_loan_kind:'किसका कर्ज़', ob_pers_note:'निजी कर्ज़ दुकान की बैलेंस शीट में नहीं आते — वे कारोबार का कर्ज़ नहीं हैं। दुकान के पैसे से भरें तो उसे “मालिक का निकाला” वाले हेड में लिखें।',
+  ob_loan_kind:'Whose loan', ob_pers_note:'निजी कर्ज़ दुकान की बैलेंस शीट में नहीं आते — वे कारोबार का कर्ज़ नहीं हैं। दुकान के पैसे से भरें तो उसे “मालिक का निकाला” वाले हेड में लिखें।',
   bs_stock:'Stock', bs_fixed:'Fixed assets', bs_staffadv:'Staff advances',
   bs_creditors:'Payable to suppliers', bs_karigar:'Payable to karigars',
   bs_karadv:'Advance to karigars', bs_custcredit:'Customer credit notes',
   bs_gstcredit:'GST credit carried forward', bs_supadv:'Advance with suppliers',
-  bs_suspense:'सस्पेंस — अभी बताया नहीं',
-  bs_ordadv:'बिना बिल के ऑर्डर पर लिया अग्रिम',
+  bs_suspense:'Suspense — not yet explained',
+  bs_ordadv:'Advance taken on unbilled orders',
   bs_custadv:'Customer advances', bs_loans:'Loans', bs_gst:'GST payable',
   bs_opencap:'Opening capital', bs_profit:'Profit this period', bs_draw:'Less drawings',
   bs_total_a:'Total assets', bs_total_l:'Total liabilities & capital',
   bs_diff:'Difference — books do not balance', bs_ok:'Balanced',
   bs_diff_why:'Something is missing from the opening figures. Nothing has been hidden or adjusted — the gap is shown so it can be found.',
-  ob_shop:'शुरुआती बकाया · दुकान, स्टॉक और कर्ज़', ob_shop_sub:'What the shop itself held on the starting day. Party balances are entered separately.',
+  ob_shop:'Opening · shop, stock & loans', ob_shop_sub:'What the shop itself held on the starting day. Party balances are entered separately.',
   ob_date:'Books start on', ob_stock_v:'Stock value', ob_fixed_v:'Furniture, machines, fittings',
-  ob_calc:'मेरे रिकॉर्ड से निकालें', ob_calc_t:'शुरुआती स्टॉक, हिसाब से',
+  ob_calc:'Work it out from my records', ob_calc_t:'Opening stock, worked out',
   ob_est:'I have no figure for that day', ob_est_t:'Opening stock — a working figure',
   ob_est_why:'You counted stock only now, so no true figure exists for the starting day. Rather than leave it blank or invent one, take today’s count as the opening figure and mark it as an estimate. Every month from here is right; only the first stretch carries the guess.',
   ob_est_use:'Use today’s count as opening', ob_est_flag:'Opening stock is an estimate',
   ob_est_note:'Replace it the day your CA gives you the real figure — one field, and the P&L and balance sheet correct themselves. Or pass a journal entry if you want the change on record.',
   ob_est_on:'Marked as an estimate', ob_est_off:'Marked as counted',
-  ob_calc_now:'आज शेल्फ पर कपड़ा', ob_calc_used:'{d} से अब तक ऑर्डर में कटा कपड़ा',
-  ob_calc_buy:'{d} से अब तक खरीदा कपड़ा', ob_calc_res:'{d} को स्टॉक',
+  ob_calc_now:'Fabric on the shelf today', ob_calc_used:'Fabric cut into orders since {d}',
+  ob_calc_buy:'Fabric bought since {d}', ob_calc_res:'Stock on {d}',
   ob_calc_note:'आज जो शेल्फ पर है वह या तो शुरू के दिन था या बाद में खरीदा; और जो कट गया वह शुरू के दिन था। इसलिए: आज + कटा − खरीदा।',
-  ob_calc_use:'यही आंकड़ा लें', ob_calc_neg:'यह शून्य से नीचे आ रहा है — शायद कुछ खरीद शुरू की तारीख़ से पहले की हैं। तारीख़ देखें, या खुद आंकड़ा लिखें।',
+  ob_calc_use:'Use this figure', ob_calc_neg:'यह शून्य से नीचे आ रहा है — शायद कुछ खरीद शुरू की तारीख़ से पहले की हैं। तारीख़ देखें, या खुद आंकड़ा लिखें।',
   ob_calc_ready:'रेडीमेड पीस यहाँ नहीं गिने — गिनने के बाद जोड़ दीजिए।',
   cu_dup_t:'यह नंबर पहले से है', cu_dup_msg:'{n} के पास पहले से यह नंबर है। दो लोग एक फ़ोन रख सकते हैं — पर अगर यह वही आदमी है तो दोनों को जोड़ दें।',
   cu_dup_keep:'दोनों रखें', cu_dup_merge:'जोड़ दें',
@@ -2583,19 +2589,19 @@ const T={
   inc_bad_dates:'खत्म होने की तारीख शुरू से पहले है',
   inc_del_t:'कैंपेन हटाएँ?', inc_del_msg:'{n} हट जाएगा और उसका इंसेंटिव गिनना बंद हो जाएगा।',
   sr_incentive:'इंसेंटिव बना', sr_inc_due:'इंसेंटिव देना बाकी',
-  rp_incentive:'स्टाफ इंसेंटिव', bs_incentive:'स्टाफ को इंसेंटिव देना है',
-  ob_cap_gap:'ओपनिंग शीट {v} से मेल नहीं खा रही', ob_cap_use:'{v} लें', ob_cap_ok:'ओपनिंग शीट बराबर है',
-  ob_cap_fixed:'कैपिटल सेट हो गई — ओपनिंग शीट अब बराबर है',
+  rp_incentive:'Staff incentive', bs_incentive:'Incentive owed to staff',
+  ob_cap_gap:'Opening sheet is out by {v}', ob_cap_use:'Use {v}', ob_cap_ok:'Opening sheet balances',
+  ob_cap_fixed:'Capital set so the opening sheet balances',
   ob_cap:'Capital you had put in', ob_loan_add:'Add a loan', ob_loan_name:'Lender', ob_loan_amt:'Outstanding ₹',
   ob_loan_none:'No loans entered', tb_dr:'Debit', tb_cr:'Credit', tb_acc:'Account',
   de_note:'Built from the entries already in the app. Nothing is re-keyed and nothing is adjusted to make it balance.',
-  gst_out:'बिक्री का टैक्स', gst_in:'खरीद का टैक्स', gst_net:'जमा करना है', gst_net_cr:'क्रेडिट आगे जाएगा',
-  gst_taxable:'टैक्स योग्य राशि', gst_cgst:'CGST', gst_sgst:'SGST', gst_igst:'IGST', gst_rate:'दर',
-  gst_b2b:'B2B · रजिस्टर्ड खरीदार', gst_b2c:'B2C · बाकी सब', gst_bills:'{n} बिल',
-  gst_r1:'GSTR-1 · बिक्री', gst_r3:'GSTR-3B · सारांश', gst_none:'इस अवधि में कोई बिल नहीं',
-  gst_noreg:'पहले शॉप डिटेल्स में अपना GSTIN डालें', gst_by_rate:'दर के हिसाब से',
+  gst_out:'Output tax · sales', gst_in:'Input tax · purchases', gst_net:'Net payable', gst_net_cr:'Credit carried forward',
+  gst_taxable:'Taxable value', gst_cgst:'CGST', gst_sgst:'SGST', gst_igst:'IGST', gst_rate:'Rate',
+  gst_b2b:'B2B · registered buyers', gst_b2c:'B2C · everyone else', gst_bills:'{n} bills',
+  gst_r1:'GSTR-1 · sales', gst_r3:'GSTR-3B · summary', gst_none:'इस अवधि में कोई बिल नहीं',
+  gst_noreg:'पहले शॉप डिटेल्स में अपना GSTIN डालें', gst_by_rate:'By tax rate',
   gst_note:'ये आंकड़े बिलों से बने हैं। फाइल करने से पहले अपने CA से जाँच लें।',
-  gst_nogstin:'GSTIN नहीं',
+  gst_nogstin:'no GSTIN',
   hm_pl_loss:'घाटा', hm_pl_none:'इस महीने अभी कोई बिल नहीं', hm_pl_go:'पूरा प्रॉफिट एंड लॉस',
   orders_word:'ऑर्डर',
   due:'बकाया',
@@ -2691,8 +2697,8 @@ const T={
   back:'वापस',
   sr_menu:'बिक्री वापसी',
   sr_title:'बिक्री वापसी (Sales Return)',
-  rp_payment:'भुगतान', rp_refund:'रिफंड',
-  ps_open_fail:'यह एंट्री नहीं खुल सकी', rp_open_bill:'बिल खोलें', rp_open_purchase:'खरीद बिल खोलें',
+  rp_payment:'Payment', rp_refund:'Refund',
+  ps_open_fail:'यह एंट्री नहीं खुल सकी', rp_open_bill:'Open the bill', rp_open_purchase:'Open the purchase',
 
   sr_pick:'जिस बिल का माल वापस आया उसे चुनें',
   sr_no_sales:'अभी कोई बिक्री नहीं',
@@ -2981,7 +2987,7 @@ const T={
   home_layout:'होम का लेआउट', home_layout_new:'नया', home_layout_old:'पुराना',
   ontime_title:'Delivery record', ontime_sub:'Kept or missed, against the date promised.',
   hb_report:'भेजने वाली रिपोर्ट', td_perf:'आज का काम',
-  rp_no_one:'इस रिपोर्ट के लिए कोई नंबर नहीं', rp_sent:'{n} के लिए व्हाट्सएप खुल रहा है',
+  rp_no_one:'No number for this report', rp_sent:'Opening WhatsApp for {n}',
   rp_no_one_msg:'पहले नंबर सेव करें — फिर ये बटन एक टैप में भेज देगा।',
   hb_send:'भेजें', hb_send_to:'एक टैप में {n} को', hb_no_number:'कोई नंबर नहीं — भेजें दबाकर जोड़ें',
   hb_add_number:'पहले एक नंबर जोड़ें',
@@ -3009,13 +3015,13 @@ const T={
   purchases_list:'ख़रीद सूची', credit_note:'क्रेडिट नोट', debit_note:'डेबिट नोट',
   estimate:'एस्टिमेट', purchase_order:'परचेज़ ऑर्डर', soon:'जल्द', coming_soon:'अगले अपडेट में आएगा',
   qa_title:'क्या करना है?', qa_sub:'रोज़ का सब कुछ, एक जगह।',
-  pay_in:'पैसा आया', pay_out:'पैसा गया',
+  pay_in:'Payment In', pay_out:'Payment out',
   td_kind_salesday:'रोज़ की बिक्री, बिल-दर-बिल', td_sales_day:'आज की बिक्री',
   td_got:'मिला', td_due:'बाकी', td_no_bills:'आज कोई बिल नहीं।',
   td_title:'दिन का हिसाब', td_tab_today:'आज', td_tab_work:'काम',
   td_money:'आज का पैसा', td_shop:'आज की दुकान',
   td_sales:'बिक्री', td_purch:'ख़रीद', td_exp:'ख़र्च',
-  td_in:'पैसा आया', td_out:'पैसा गया',
+  td_in:'Money in', td_out:'Money out',
   td_bills_n:'{n} बिल', td_delivered:'दिए गए', td_nosale:'आज अभी कुछ नहीं बिका',
   td_top:'सबसे ज़्यादा बिका', td_send:'ये रिपोर्ट भेजें',
   td_kind_daily:'रोज़ की रिपोर्ट', td_kind_sales:'महीने की बिक्री और कमीशन',
@@ -3026,15 +3032,15 @@ const T={
   td_sales_report:'बिक्री रिपोर्ट', td_gross:'बिल', td_returns:'वापसी',
   td_netsale:'शुद्ध बिक्री', td_comm:'कमीशन', wa_fail:'व्हाट्सएप नहीं खुल पाया',
   pw_ask:'ये पैसा किस लिए?',
-  pw_expense:'ख़र्च', pw_expense_eg:'किराया, बिजली, चाय, वेतन — दुकान चलाने की लागत',
-  pw_settle:'उधार चुकाया', pw_settle_eg:'सप्लायर या कारीगर जिसका पहले से देना था',
-  pw_draw:'मैंने निकाला', pw_draw_eg:'अपने लिए — दुकान का ख़र्च नहीं',
-  pw_loanpay:'लोन की किस्त', pw_loanpay_eg:'लोन पर किस्त या कुछ रकम',
-  pw_move:'कैश से बैंक / बैंक से कैश', pw_move_eg:'न कमाया न ख़र्चा — सिर्फ़ जगह बदली',
-  pw_fromcust:'ग्राहक ने दिया', pw_fromcust_eg:'बने हुए बिल के बदले',
-  pw_advance:'अग्रिम / पुराना बकाया', pw_advance_eg:'बिल बनने से पहले लिया पैसा',
-  pw_loanin:'लोन आया', pw_loanin_eg:'उधार लिया पैसा — कमाई नहीं',
-  pw_capital:'मैंने डाला', pw_capital_eg:'अपना पैसा दुकान में',
+  pw_expense:'Expense', pw_expense_eg:'किराया, बिजली, चाय, वेतन — दुकान चलाने की लागत',
+  pw_settle:'Paying a bill', pw_settle_eg:'सप्लायर या कारीगर जिसका पहले से देना था',
+  pw_draw:'Money I took', pw_draw_eg:'अपने लिए — दुकान का ख़र्च नहीं',
+  pw_loanpay:'Loan repayment', pw_loanpay_eg:'लोन पर किस्त या कुछ रकम',
+  pw_move:'Cash to bank / bank to cash', pw_move_eg:'न कमाया न ख़र्चा — सिर्फ़ जगह बदली',
+  pw_fromcust:'Customer paid', pw_fromcust_eg:'बने हुए बिल के बदले',
+  pw_advance:'Advance / old balance', pw_advance_eg:'बिल बनने से पहले लिया पैसा',
+  pw_loanin:'Loan received', pw_loanin_eg:'उधार लिया पैसा — कमाई नहीं',
+  pw_capital:'Money I put in', pw_capital_eg:'अपना पैसा दुकान में',
   ln_which:'कौन सा लोन', ln_which_ph:'होम लोन, क्रेडिट कार्ड…',
   ln_amt:'रकम', ln_int:'इसमें ब्याज', ln_int_hint:'इस किस्त में ब्याज न हो तो खाली छोड़ दें। सिर्फ़ ब्याज ख़र्च है; बाकी से देनदारी घटती है।',
   ln_out_hint:'इससे आपकी देनदारी घटेगी। इसमें जो ब्याज है वो ख़र्च है और P&L में जाएगा।',
@@ -3042,7 +3048,7 @@ const T={
   ln_note_ph:'अगस्त की किस्त…', ln_need_amt:'रकम डालें',
   ln_int_big:'ब्याज किस्त से ज़्यादा नहीं हो सकता',
   ln_saved:'लोन की किस्त सेव हुई', ln_saved_int:'सेव — {p} लोन से घटा, {i} ब्याज',
-  ln_int_auto:'लोन किस्त का ब्याज हिस्सा', eh_interest:'लोन ब्याज',
+  ln_int_auto:'लोन किस्त का ब्याज हिस्सा', eh_interest:'Loan interest',
   cap_hint:'अपना पैसा दुकान में। ये पूँजी है, बिक्री नहीं।',
   cap_note_ph:'बचत से…', cap_saved:'पूँजी सेव हुई',
   pay_in_hint:'जो पैसा किसी बिल के बिना आया (एडवांस, पुराना बकाया…)।',
@@ -3051,12 +3057,12 @@ const T={
   cb_jv_adj:'जर्नल एडजस्टमेंट', cb_jv_adj_hint:'कैश / बैंक पर मैनुअल एंट्री — देखने के लिए दबाएँ',
   cb_total:'कैश + बैंक', cb_balance:'बैलेंस', cb_opening:'ओपनिंग', cb_open_date:'इस तारीख को',
   cb_open_hint:'उस तारीख का बैलेंस डालें। उसके बाद का हिसाब अपने-आप बनेगा।',
-  acc_primary_set:'{n} अब मुख्य खाता है',
+  acc_primary_set:'{n} is now the main account',
   cb_add_bank:'बैंक खाता जोड़ें', cb_acc_name:'खाते का नाम', cb_acc_ph:'जैसे ICICI करंट',
   cb_bank_name:'बैंक', cb_accno:'खाता नंबर', cb_ifsc:'IFSC',
   cb_need_name:'खाते का नाम डालें', cb_del_msg:'खाता “{n}” हटाएँ?',
   cb_moves:'लेन-देन', cb_no_moves:'अभी कोई लेन-देन नहीं',
-  cb_contra:'कैश ↔ बैंक ट्रांसफ़र', cb_contra_hint:'अपना ही पैसा कैश से बैंक या बैंक से कैश। यह आमदनी या ख़र्च नहीं है।',
+  cb_contra:'Cash ↔ bank transfer', cb_contra_hint:'अपना ही पैसा कैश से बैंक या बैंक से कैश। यह आमदनी या ख़र्च नहीं है।',
   cb_from:'से', cb_to:'को', cb_same_acc:'दो अलग खाते चुनें', cb_need_two:'पहले एक बैंक खाता जोड़ें',
   brs_title:'बैंक मिलान', brs_sub:'जो बैंक स्टेटमेंट में भी दिख गया उस पर टिक करें। इससे आपका हिसाब नहीं बदलता।',
   brs_books:'हमारी किताब के हिसाब से', brs_less_in:'घटाएँ: आया पैसा जो बैंक में नहीं पहुँचा',
@@ -3065,19 +3071,19 @@ const T={
   brs_all:'सब', brs_pending:'टिक बाकी', brs_ticked:'टिक हुए',
   brs_none:'इस अवधि में कुछ नहीं।', brs_no_bank:'पहले बैंक खाता जोड़ें',
   cb_into:'किसमें आया', cb_paid_from:'किससे दिया',
-  exp_title:'ख़र्च', exp_sub:'दुकान से जाने वाला हर रुपया।',
-  exp_total:'कुल ख़र्च', exp_add:'ख़र्च जोड़ें', exp_cat:'मद', exp_cat_ph:'जैसे किराया, बिजली',
+  exp_title:'Expenses', exp_sub:'दुकान से जाने वाला हर रुपया।',
+  exp_total:'कुल ख़र्च', exp_add:'Add expense', exp_cat:'मद', exp_cat_ph:'जैसे किराया, बिजली',
   exp_new_cat:'नई मद', exp_need_cat:'मद चुनें', exp_none:'इस अवधि में कोई ख़र्च नहीं', exp_other:'अन्य',
-  db_title:'रोज़नामचा', db_sub:'ओपनिंग बैलेंस, सारा आना-जाना, क्लोज़िंग बैलेंस।',
-  db_opening:'ओपनिंग बैलेंस', db_closing:'क्लोज़िंग बैलेंस', db_in:'पैसा आया', db_out:'पैसा गया',
-  db_entries:'एंट्री', db_none:'इस अवधि में कुछ नहीं हुआ', db_today:'आज', db_yest:'कल',
+  db_title:'Day book', db_sub:'ओपनिंग बैलेंस, सारा आना-जाना, क्लोज़िंग बैलेंस।',
+  db_opening:'Opening balance', db_closing:'Closing balance', db_in:'Money in', db_out:'Money out',
+  db_entries:'Entries', db_none:'इस अवधि में कुछ नहीं हुआ', db_today:'Today', db_yest:'Yesterday',
   or_pending_all:'सारे बाकी ऑर्डर', or_period_hd:'इस अवधि का',
   or_title:'ऑर्डर रिपोर्ट', or_sub:'क्या ऑर्डर हुआ, क्या बन गया, क्या चल रहा है।',
   or_orders:'ऑर्डर', or_pending:'बाकी', or_done:'डिलीवर', or_late:'देर से चल रहे ऑर्डर',
   or_value:'ऑर्डर की क़ीमत', or_pieces:'कपड़े', or_due:'वसूली बाकी',
   or_product:'प्रोडक्ट के हिसाब से', or_product_hint:'कितनी शेरवानी, सूट, कुर्ते… और कितने तैयार हैं।',
   or_ready:'तैयार', or_left:'बाकी', or_month:'महीने-दर-महीने', or_fy:'इस वित्त वर्ष',
-  cr_sub:'जिन सप्लायर को देना बाकी है। सबसे बड़ा ऊपर।', cr_from_n:'{n} सप्लायर को',
+  cr_sub:'जिन सप्लायर को देना बाकी है। सबसे बड़ा ऊपर।', cr_from_n:'To {n} suppliers',
   ml_manage:'सँभालें', ml_hint:'जो अब काम नहीं आता उसे हटा दें। ✏️ से हर जगह नाम बदल जाएगा।',
   ml_empty:'अभी कुछ सहेजा नहीं', ml_used:'{n} जगह इस्तेमाल में',
   ml_del_title:'हटाएँ?', ml_del_msg:'“{n}” सहेजी सूची से हट जाएगा।',
@@ -3200,17 +3206,17 @@ const T={
   od_add_remove:'पीस जोड़ें / हटाएँ',
   exp_party:'किसके नाम पर', exp_party_none:'इस सूची में अभी कोई नहीं — पहले जोड़िए',
   exp_need_party:'चुनिए यह किसके खाते में जाएगा',
-  eh_title:'ख़र्च के हेड', eh_sub:'हेड बताता है ख़र्च किसको दिया, और वह माल पर लगा या दुकान पर।',
-  eh_who:'किसको दिया', eh_kind:'ख़र्च किस पर', eh_direct:'माल पर', eh_indirect:'दुकान पर',
-  eh_karigar:'करीगर', eh_supplier:'सप्लायर', eh_customer:'ग्राहक', eh_none:'अभी कोई हेड नहीं',
-  ob_title:'शुरुआती बकाया · ग्राहक और सप्लायर', ob_sub:'शुरू करने के दिन किसका कितना बाकी था, वही लिखिए। इससे नकद या बैंक नहीं हिलेगा।',
-  ob_name:'नाम', ob_name_ph:'राजू टेलर, अशोक कपड़ा…', ob_kind:'किस किस्म का',
-  ob_dir:'किधर', ob_pay:'देना है', ob_get:'लेना है',
-  ob_lender:'जिनसे क़र्ज़ लिया', ob_add_next:'जोड़ें और अगला', ob_empty:'अभी कुछ नहीं जोड़ा',
-  ob_lines:'{n} खाते', ob_save_all:'सब सेव करें',
-  ob_confirm_title:'ये शुरुआती बकाया सेव करें?',
+  eh_title:'Expense heads', eh_sub:'हेड बताता है ख़र्च किसको दिया, और वह माल पर लगा या दुकान पर।',
+  eh_who:'Paid to', eh_kind:'Cost type', eh_direct:'On the goods', eh_indirect:'On the shop',
+  eh_karigar:'Tailors', eh_supplier:'Suppliers', eh_customer:'Customers', eh_none:'अभी कोई हेड नहीं',
+  ob_title:'Opening · customers & suppliers', ob_sub:'शुरू करने के दिन किसका कितना बाकी था, वही लिखिए। इससे नकद या बैंक नहीं हिलेगा।',
+  ob_name:'Name', ob_name_ph:'Raju tailor, Ashok cloth…', ob_kind:'Which kind',
+  ob_dir:'Direction', ob_pay:'I have to pay', ob_get:'I have to receive',
+  ob_lender:'Lender', ob_add_next:'Add & next', ob_empty:'Nothing added yet',
+  ob_lines:'{n} accounts', ob_save_all:'Save all',
+  ob_confirm_title:'Save these openings?',
   ob_confirm_msg:'{n} खाते। देना {p}, लेना {g}। नकद और बैंक नहीं छुए जाएँगे।',
-  ob_done:'शुरुआती बकाया सेव हो गया', ob_ref:'शुरुआती',
+  ob_done:'Opening balances saved', ob_ref:'Opening',
   zr_bad:'यह PARAMPARA का बैकअप नहीं है', zr_nodata:'इस फ़ाइल में कोई डेटा नहीं मिला',
   zr_reading:'बैकअप पढ़ रहे हैं…', zr_reading_msg:'फ़ाइल खोली जा रही है — बड़े बैकअप में एक मिनट लग सकता है। कृपया रुकें, ऐप बंद न करें।',
   zr_deflate:'यह फ़ाइल कंप्रेस्ड है — खोली जा रही है', zr_big:'यह फ़ाइल {n} MB की है। फ़ोन की मेमोरी कम पड़ सकती है — कंप्यूटर या iPad बेहतर रहेगा।',
@@ -3274,7 +3280,7 @@ const T={
   pu_extra:'बिल फ़ोटो और नोट', pu_adjust:'छूट, कूरियर और राउंड ऑफ़',
 
   pu_nostock_hint:'बिल, सप्लायर और GST दर्ज होंगे — स्टॉक नहीं बढ़ेगा। जब थान माल आते ही Stock में चढ़ा दिया हो, तब टिक लगी रहने दें। सिर्फ़ तब हटाएँ जब इस बिल का कपड़ा अभी Stock में नहीं है।',
-  rp_stk_diff:'स्टॉक वैल्यूएशन का फ़र्क़',
+  rp_stk_diff:'Stock valuation difference',
   pur_rate_title:'दो अलग रेट',
   pur_rate_msg:'यह कपड़ा Stock में एक रेट पर है और बिल दूसरा रेट कह रहा है। कौन सा सही है?',
   pur_rate_effect:'बिल का रेट लेने पर स्टॉक की कीमत {v} {d}।',
@@ -3300,11 +3306,11 @@ const T={
   mnu_sale_sub:'बिल, वापसी, किससे लेना है',
   mnu_pur_sub:'सप्लायर के बिल, वापसी, किसे देना है',
   rp_pl:'Profit & Loss', rp_cashflow:'Cash Flow', rp_exp_head:'Expenses by head',
-  rp_party_stmt:'खाता विवरण', rp_pick_party:'किसका खाता देखना है?',
+  rp_party_stmt:'Ledger statement', rp_pick_party:'Whose ledger?',
   rp_sales_gross:'Gross Sales', rp_gst_out:'GST on sales', rp_net_sales:'Net Sales',
   rp_purch_net:'Purchases (net of GST)', rp_direct:'Direct expenses',
   rp_gross_profit:'Gross Profit', rp_margin:'margin', rp_running:'Indirect expenses',
-  rp_jv_adj:'जर्नल एडजस्टमेंट',
+  rp_jv_adj:'Journal adjustments',
   rp_net_profit:'Net Profit', rp_opening:'Opening', rp_closing:'Closing',
   ag_title:'उम्र के हिसाब से', ag_cur:'30 दिन से कम', ag_30:'31-60 दिन', ag_60:'61-90 दिन', ag_90:'90 दिन से ज्यादा',
   ag_oldest:'सबसे पुराना {n} दिन',
@@ -3315,10 +3321,10 @@ const T={
   pty_cred:'लेनदार — इनको देना है', pty_debt:'देनदार — इनसे लेना है', pty_flat:'कोई बकाया नहीं',
   pty_title:'लेनदार और देनदार', pty_sub:'किसका देना है और किससे लेना है — शुरुआती बकाया, भुगतान और बैलेंस',
   pty_search:'नाम ढूंढें…', pty_add:'पार्टी जोड़ें', pty_none:'अभी कोई नहीं',
-  pty_open:'शुरुआती बकाया', pty_open_left:'शुरुआती बकाया बचा है', pty_open_none:'कोई शुरुआती बकाया नहीं',
+  pty_open:'Opening', pty_open_left:'शुरुआती बकाया बचा है', pty_open_none:'कोई शुरुआती बकाया नहीं',
   pty_open_set:'शुरुआती बकाया डालें', pty_open_edit:'शुरुआती बकाया बदलें', pty_open_del:'शुरुआती बकाया हटाएँ',
   pty_ason:'इस तारीख को', pty_ason_hint:'जिस दिन यह बकाया था। आमतौर पर 1 अप्रैल। इससे नकद नहीं हिलता।',
-  pty_settle:'भुगतान दर्ज करें', pty_settled:'शुरुआती बकाये में दिया',
+  pty_settle:'भुगतान दर्ज करें', pty_settled:'Paid against opening',
   pty_settle_in:'शुरुआती बकाये में मिला', pty_settle_hint:'पुराने बकाये के खिलाफ असली भुगतान। इससे नकद/बैंक हिलेगा।',
   pty_stmt:'पूरा खाता', pty_clear:'शुरुआती बकाया पूरा चुका',
   pty_open_saved:'शुरुआती बकाया सेव हुआ', pty_open_removed:'शुरुआती बकाया हटा', pty_settle_saved:'भुगतान दर्ज हुआ',
@@ -3327,7 +3333,7 @@ const T={
   inv_preview:'बिल का प्रीव्यू', inv_prev_print:'प्रिंट / PDF', pos_added:'बिल में जुड़ा',
   att_derived:'निशान नहीं — गैरहाज़िर गिना', att_weekoff:'साप्ताहिक छुट्टी', att_weekoff_hint:'इन दिनों में खाली का मतलब छुट्टी है, गैरहाज़िर नहीं।',
   att_extra:'छुट्टी वाले दिन काम', att_extra_n:'{n} अतिरिक्त दिन', sr_extra_days:'अतिरिक्त दिन काम', sr_extra_pay:'अतिरिक्त दिन का पैसा',
-  eh_pay:'सैलरी या एडवांस', eh_pay_none:'कोई नहीं', eh_pay_adv:'एडवांस दिया', eh_pay_sal:'सैलरी दी', eh_pay_rec:'एडवांस वापस लिया',
+  eh_pay:'Salary or advance', eh_pay_none:'कोई नहीं', eh_pay_adv:'Advance given', eh_pay_sal:'Salary paid', eh_pay_rec:'Advance recovered',
   autosave:'बदलते ही सेव हो जाता है — Save दबाने की ज़रूरत नहीं',
   eh_kind_hint:'माल पर = कपड़ा, कारीगर, पैकिंग, भाड़ा। दुकान पर = किराया, वेतन, बिजली। अपना निकाला = जो आप निकालते हो — दुकान का खर्च नहीं।',
   eh_pay_hint:'सिर्फ “एडवांस दिया” वाले हेड से बकाया बढ़ता है। सैलरी से कभी नहीं।',
@@ -3344,8 +3350,8 @@ const T={
   op_nocost:'कपड़े या कारीगर का खर्च दर्ज नहीं', op_none:'इस अवधि में कोई ऑर्डर नहीं',
   op_note:'दुकान का खर्च यहां नहीं कटा — यह ओवरहेड से पहले का कंट्रिब्यूशन है। नेट प्रॉफिट P&L में है।',
   op_partial:'खर्च अभी जुड़ रहे हैं', op_billed:'बिल हुआ', op_unbilled:'ऑर्डर वैल्यू',
-  eh_setup_title:'स्टाफ के खर्च हेड पर टैग लगाइए', eh_setup_sub:'जब तक टैग नहीं, वह हेड एडवांस बकाये में नहीं गिना जाएगा। देख कर सेव कर दीजिए।',
-  eh_setup_go:'टैग सेव करें', eh_setup_done:'सभी स्टाफ हेड पर टैग लग चुका है',
+  eh_setup_title:'Tag your staff expense heads', eh_setup_sub:'जब तक टैग नहीं, वह हेड एडवांस बकाये में नहीं गिना जाएगा। देख कर सेव कर दीजिए।',
+  eh_setup_go:'Save tags', eh_setup_done:'All staff heads are tagged',
   fu_note_ph:'उसने क्या कहा, एक लाइन में', fu_save:'फॉलो-अप सेव करें', fu_hist:'पिछली बातें', fu_no_hist:'अभी कोई बात दर्ज नहीं',
   fu_due_now:'फोन करना है', fu_planned:'अगली बार {d}', fu_r_pay:'पेमेंट', fu_r_ready:'ऑर्डर तैयार', fu_r_trial:'ट्रायल',
   fu_r_design:'डिज़ाइन पसंद', fu_r_meas:'नाप', fu_r_deliv:'डिलीवरी', fu_r_other:'अन्य',
@@ -3359,7 +3365,7 @@ const T={
   exp_more_heads:'और',
   pt_other:'अन्य',
   kb_paid_total:'कुल दिया', kb_due_total:'अभी बाकी', kb_date:'तारीख़',
-  rp_pdf:'PDF / प्रिंट',
+  rp_pdf:'PDF / print',
   round_off:'राउंड ऑफ',
   qty_multi:'मात्रा  (10, 7.8, 7.8)',
   pur_add_to_bill:'बिल में जोड़ें',
@@ -3563,25 +3569,25 @@ const T={
   stk_photo_hint:'एक नज़र में पता चल जाएगा कौन सा कपड़ा है।',
   stk_karigar_cost:'कारीगर की मज़दूरी ₹ (वैकल्पिक)',
   stk_karigar_hint:'अभी डाल दें — मुनाफ़े की रिपोर्ट सही हो जाएगी।',
-  rp_1m:'1 महीना',
-  rp_3m:'3 महीने',
-  rp_1y:'1 साल',
-  rp_all:'पूरा',
-  rp_what_sells:'क्या बिक रहा है',
+  rp_1m:'1 month',
+  rp_3m:'3 months',
+  rp_1y:'1 year',
+  rp_all:'All time',
+  rp_what_sells:'What is selling',
   rp_sells_hint:'सिलाई वाले और रेडीमेड — दोनों मिलाकर।',
-  rp_avg:'औसत रेट',
-  rp_fab_fast:'कपड़ा — तेज़ चलने वाला',
+  rp_avg:'Avg rate',
+  rp_fab_fast:'Fabric — fast moving',
   rp_fab_hint:'सबसे ज़्यादा खपत ऊपर। ये कभी ख़त्म नहीं होने चाहिए।',
-  rp_dead:'धीमा / रुका स्टॉक',
+  rp_dead:'Slow / dead stock',
   rp_dead_hint:'{n}+ महीने से नहीं हिला। यह पैसा बेकार पड़ा है।',
-  rp_stuck:'फँसा हुआ पैसा',
-  rp_months_idle:'महीने से पड़ा',
-  rp_no_dead:'सब चल रहा है। कुछ बेकार नहीं पड़ा।',
-  rp_profit:'हर ऑर्डर का मुनाफ़ा',
+  rp_stuck:'Money stuck',
+  rp_months_idle:'months idle',
+  rp_no_dead:'Everything is moving. Nothing idle.',
+  rp_profit:'Profit per order',
   rp_profit_hint:'बिक्री में से कपड़ा और कारीगर की लागत घटाकर।',
-  rp_sale:'बिक्री',
-  rp_cost:'लागत',
-  rp_net:'शुद्ध मुनाफ़ा',
+  rp_sale:'Sale',
+  rp_cost:'Cost',
+  rp_net:'Net profit',
   rp_cost_note:'जिन ऑर्डर में लागत नहीं भरी, उनमें पूरी बिक्री मुनाफ़ा दिख रही है। कटिंग के समय कपड़ा जारी करें।',
   blessing:'भगवान का नाम (इनवॉइस के सबसे ऊपर)',
   blessing_hint:'इनवॉइस के सबसे ऊपर बीच में छपेगा। खाली छोड़ें तो नहीं आएगा।',
@@ -3818,8 +3824,8 @@ const T={
   naap_start:'नाप शुरू करें ({n} आइटम)',
   it_next:'अगला आइटम खुला',
   it_all_done:'सभी आइटम भर गए',
-  qr_order:'ऑर्डर', qr_neworder:'नया ऑर्डर', qr_sale:'बिल', qr_purchase:'ख़रीद', qr_newpurchase:'नई ख़रीद', qr_karigar:'कारीगर का काम', qr_daybook:'डे बुक',
-  db_bal_now:'अभी कैश और बैंक',
+  qr_order:'ऑर्डर', qr_neworder:'नया ऑर्डर', qr_sale:'Sale', qr_purchase:'Purchase', qr_newpurchase:'नई ख़रीद', qr_karigar:'कारीगर का काम', qr_daybook:'डे बुक',
+  db_bal_now:'Cash & bank now',
   t_order_gone:'ये ऑर्डर अब मौजूद नहीं है — कुछ सेव नहीं हुआ।',
   pur_edit_nostock:'बिल अपडेट हो गया। स्टॉक नहीं बदला — थान/पीस को Stock में खुद ठीक करें।',
   pur_del_partial_stock:'बिल डिलीट हो गया। थान #{s} में से कुछ कपड़ा पहले ही कट चुका था, इसलिए सिर्फ बचा हुआ हिस्सा वापस लिया गया — थान चेक कर लें।',
@@ -3846,8 +3852,8 @@ const T={
   bk_never:'अभी तक बैकअप नहीं लिया — डेटा सिर्फ़ इसी डिवाइस में है',
   kpi_cash:'कैश + बैंक', kpi_due_today:'आज देना है', kpi_debtors:'वसूली बाकी', kpi_today_sale:'आज की बिक्री',
   qr_newsale:'नया बिल',
-  qr_payout:'पैसा गया',
-  qr_payin:'पैसा आया', qr_exp:'ख़र्च', qr_status:'स्टेटस',
+  qr_payout:'Payment out',
+  qr_payin:'Payment in', qr_exp:'ख़र्च', qr_status:'स्टेटस',
   home_classic:'पुराना होम', home_new_view:'नया होम',
   bk_daily:'बैकअप — डेटा + नई फ़ोटो',
   bk_daily_note:'पूरा डेटा हर बार, और सिर्फ़ वो फ़ोटो जो कभी बैकअप में नहीं गईं। छोटी फ़ाइल, झट से।',
@@ -3986,19 +3992,19 @@ const T={
   sales_nav_on:'सेल्समैन मोड चालू — टैब से नई एंट्री खुलेगी',
   sales_nav_off:'सेल्समैन मोड बंद — टैब से लिस्ट खुलेगी',
   contact_no_num:'उस contact में नंबर सेव नहीं है — टाइप कर दें',
-  acc_add:'बैंक खाता जोड़ें',
-  acc_name:'खाते का नाम',
-  acc_name_req:'खाते का नाम लिखें',
-  acc_opening:'शुरुआती बैलेंस ₹',
-  acc_added:'बैंक खाता जुड़ गया',
-  acc_into:'किस खाते में',
+  acc_add:'Add bank account',
+  acc_name:'Account name',
+  acc_name_req:'Give the account a name',
+  acc_opening:'Opening balance ₹',
+  acc_added:'Bank account added',
+  acc_into:'Into account',
   stk_left:'बचा',
   pur_new_typed:'नया आइटम: {n} — मात्रा और रेट डालें', pur_new_hint:'नया आइटम — बिल सेव होते ही यह आपकी सूची में आ जाएगा।',
   pur_type_name:'पहले आइटम का नाम लिखें',
   stk_in:'स्टॉक में',
   stk_none:'स्टॉक नहीं',
   pur_sug_none_q:'कुछ नहीं मिला — ऊपर ➕ दबाकर जोड़ें',
-  acc_from:'किस खाते से',
+  acc_from:'From account',
   pm_cheque:'चेक',
   pm_ref:'चेक / रेफ़रेंस नं.',
   pm_ref_ph:'जैसे 004512',
@@ -4031,19 +4037,19 @@ const T={
   reports:'रिपोर्ट',
   sales_report:'बिक्री रिपोर्ट',
   debtors_report:'वसूली रिपोर्ट',
-  rp_week:'इस हफ़्ते',
-  rp_month:'इस महीने',
-  rp_custom:'अपनी तारीख',
-  rp_from:'से',
-  rp_to:'तक',
-  rp_apply:'लागू करें',
-  rp_invoices:'इनवॉइस',
-  rp_total_sales:'कुल बिक्री',
-  rp_total_gst:'कुल GST',
-  rp_no_data:'इस अवधि में कोई इनवॉइस नहीं',
-  rp_no_debtors:'कोई बकाया नहीं 🎉',
-  rp_debtor_total:'कुल बकाया',
-  rp_items:'आइटम',
+  rp_week:'This week',
+  rp_month:'This month',
+  rp_custom:'Custom',
+  rp_from:'From',
+  rp_to:'To',
+  rp_apply:'Apply',
+  rp_invoices:'Invoices',
+  rp_total_sales:'Total sales',
+  rp_total_gst:'Total GST',
+  rp_no_data:'No invoices in this period',
+  rp_no_debtors:'No pending balances 🎉',
+  rp_debtor_total:'Total receivable',
+  rp_items:'items',
   purchase:'ख़रीद',
   new_purchase:'ख़रीद एंट्री',
   edit_purchase:'ख़रीद बदलें',
@@ -4051,12 +4057,18 @@ const T={
   supplier_ph:'सप्लायर / पार्टी का नाम',
   paid_now:'अभी दिया ₹',
   purchases_report:'ख़रीद रिपोर्ट',
-  rp_total_purchases:'कुल ख़रीद',
-  sv_dup:'पहले ही दर्ज हो चुका — दोबारा नहीं चढ़ा', pw_else:'ये नहीं? ', pt_open_dup:'इस नाम का पुराना बकाया पहले से दर्ज है', cr_new:'नया लेनदार', cr_search:'नाम, रकम खोजें…', cr_loan_tag:'क़र्ज़',
-  cr_edit:'बदलें', cr_none_match:'कोई नहीं मिला',
+  rp_total_purchases:'Total purchases',
+  ml_del_move:'{n} के नीचे {c} entry दर्ज हैं। पहले उन्हें किसी और नाम पर ले जाना होगा — वो नाम चुनिए, और {n} उसी के साथ हट जाएगा।',
+  dl_del:'मिटाएँ', dl_arch:'सूची से हटाएँ', dl_restore:'वापस लाएँ',
+  dl_gone:'मिट गया', dl_archd:'हटा दिया — पुरानी entry सुरक्षित',
+  dl_used:'इसके नीचे {n} entry दर्ज हैं। मिटाने पर वो बेनाम हो जातीं, इसलिए इसे सिर्फ़ छुपाया जा सकता है: हर सूची से हट जाएगा और पुरानी entry ज्यों की त्यों रहेंगी।',
+  dl_free:'इसके नीचे कोई entry नहीं है। इसे पूरी तरह मिटाया जा सकता है।',
+dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
+  sv_dup:'पहले ही दर्ज हो चुका — दोबारा नहीं चढ़ा', pw_else:'ये नहीं? ', pt_open_dup:'इस नाम का पुराना बकाया पहले से दर्ज है', cr_new:'New creditor', cr_search:'Search name, amount...', cr_loan_tag:'Loan',
+  cr_edit:'Edit', cr_none_match:'Nobody matches that',
   creditors_report:'देनदारी (देना है)',
-  rp_no_creditors:'कुछ देना नहीं 🎉',
-  rp_creditor_total:'कुल देना है',
+  rp_no_creditors:'Nothing to pay 🎉',
+  rp_creditor_total:'Total payable',
   t_purch_saved:'ख़रीद सहेजी गई',
   t_no_supplier:'सप्लायर का नाम डालें',
   t_no_billno:'इनवॉइस नंबर ज़रूरी है',
@@ -4327,8 +4339,16 @@ function load(raw){ try{const r=(raw!==undefined&&raw!==null)?raw:localStorage.g
     DB.salesmenMerged=1;
   }
 
-  if(!DB.expCats)DB.expCats=['किराया / Rent','बिजली / Electricity','वेतन / Salary','कारीगर / Tailor',
-    'चाय-नाश्ता / Tea','ट्रांसपोर्ट / Transport','पैकिंग / Packing','मरम्मत / Repair','अन्य / Other'];
+  /* v381 — HIS 28 Aug: "words (heads) ka selection thoda professional hona chahiye."
+     These are ledger head names that land in his P&L and go in front of his CA, so they
+     read as accounts, not as shop slang: Rent, Electricity, Salary, Job work. English on
+     both sides of the toggle, because a head is an account name, not interface text.
+     ONLY for a shop starting fresh — an existing DB.expCats is his data and is left
+     exactly as it is. To move his live heads onto these names he uses Manage heads →
+     rename, which carries the old entries across instead of orphaning them. */
+  if(!DB.expCats)DB.expCats=['Rent','Electricity','Salary','Job work',
+    'Staff welfare','Transport','Packing','Repairs & maintenance','Bank charges',
+    'Professional fees','General expenses'];
   if(!DB.variantLib)DB.variantLib={kurta:['सामान्य / Normal','शेरवानी के अंदर','जैकेट सेट का','शॉर्ट कुर्ता'],
     pant:['Narrow fit','Bellbottom','सामान्य / Normal']};   // he names these two aloud when an order has both
     if(!DB.relLib)DB.relLib=['Dulha','Bhai','Papa','Jija','Mama','Chacha','Dost','Beta'];
@@ -7355,6 +7375,30 @@ function settleParty(dir,party,partyId,amt,date,acc,mode){
     left=r2(left-take);
     touched.push(d.label+' '+money(take));
   });
+  /* v380 — FOUND BY DRIVING HIS OWN CASE. This settled a payment against BILLS only. But he
+     is entering history from 1 April, and most of the men he owes have no bill in this app
+     at all — only an opening balance. So paying such a supplier matched nothing, and the
+     payment was written as a loose 'manual' row belonging to no document. The result was
+     three screens giving three answers for one man: Payables ignored the payment, the
+     Balance Sheet ignored it, and the party card ADDED it — pay a supplier ₹40,000 and his
+     payable went UP by ₹40,000.
+     The correct row type already existed — refKind:'openpay', written by the party card's
+     own settle button — and every report already understands it. It simply was never
+     reached from Payment out. Bills first, oldest first, exactly as before; whatever is
+     left then comes off the opening balance, and only what is left after THAT stays loose. */
+  const kinds = dir==='out' ? ['supplier','other'] : ['customer','other'];
+  for(const k of kinds){
+    if(left<=0)break;
+    const open=openingLeft(party,k,dir);
+    if(open<=0)continue;
+    const take=r2(Math.min(left,open));
+    DB.ledger=DB.ledger||[];
+    DB.ledger.push({id:uid(), dir, date, amt:take, acc, party, partyId:partyId||null,
+      partyKind:k, ref:t('pty_settled'), refKind:'openpay', cat:'',
+      note:mode||'', photos:[]});
+    left=r2(left-take);
+    touched.push(t('pty_open')+' '+money(take));
+  }
   return {left,touched};
 }
 /* v350 — HIS 27 Aug. The same ₹10,000 leaving the drawer can be four different things,
@@ -7857,8 +7901,8 @@ function peopleAll(){
   karigarsActive().forEach(k=>add(k.id,k.name,'karigar'));   /* v260 */
   (staffAll()||[]).filter(x=>!x.left).forEach(k=>add(k.id,k.name,'staff'));
   (partyList('supplier')||[]).forEach(k=>add(k.id,k.name,'supplier'));
-  (DB.customers||[]).forEach(k=>add(k.id,k.name,'customer'));
-  (DB.parties||[]).forEach(k=>add(k.id,k.name,'other'));
+  (DB.customers||[]).filter(k=>!k.archived).forEach(k=>add(k.id,k.name,'customer'));   /* v377 */
+  (DB.parties||[]).filter(k=>!k.archived).forEach(k=>add(k.id,k.name,'other'));   /* v377 */
   return out;
 }
 const PK_ICON={karigar:'👷',staff:'👤',supplier:'🚚',customer:'🧍',other:'📒'};
@@ -8087,8 +8131,12 @@ function partyList(who){
        bill. So the list is built from the bills themselves, which is also the only place
        it can be right without asking him to type every supplier twice. */
     const seen={}, out=[];
+    /* v377: this list is derived from the bills, not from the party book, so hiding a
+       party did nothing here and the name he had just hidden came straight back. A name
+       he has hidden stays out of every picker; the bills it is on are untouched. */
+    const hid={}; (DB.parties||[]).forEach(x=>{ if(x.archived)hid[nameNorm(x.name)]=1; });
     (DB.purchases||[]).forEach(pu=>{ const n=String(pu.supplier||'').trim();
-      if(n && !seen[n.toLowerCase()]){ seen[n.toLowerCase()]=1; out.push({id:'sup:'+n, name:n}); } });
+      if(n && !hid[nameNorm(n)] && !seen[n.toLowerCase()]){ seen[n.toLowerCase()]=1; out.push({id:'sup:'+n, name:n}); } });
     return out.sort((a,b)=>a.name.localeCompare(b.name));
   }
   if(who==='customer')return (DB.customers||[]).map(x=>({id:x.id,name:x.name}));
@@ -8298,7 +8346,10 @@ function dayBook(){
     </div>
 
     <div class="section-h">${t('db_entries')} <span class="hint">(${lines.length})</span></div>
-    ${lines.map(l=>`<div class="card" style="margin-bottom:6px;padding:11px">
+    ${/* v379 — CAUGHT IN AUDIT: the Day Book is where he checks the day's money, and every
+         line in it was a dead end. He could see "₹40,000 Kanchan Syntex" and had no way to
+         reach the entry to correct it. Each line now opens whatever made it. */''}
+    ${lines.map(l=>`<div class="card" onclick="dbOpen('${jq(l.id||'')}')" style="margin-bottom:6px;padding:11px;cursor:pointer">
       <div class="kv"><div style="flex:1">
         <b style="font-size:14px">${l._contra?('🔄 '+t('cb_contra')):esc(l.party||l.ref)}</b>
         <div class="hint">${esc(l.ref)}${l.cat?' · '+esc(l.cat):''}${l.note?' · '+esc(l.note):''}</div>
@@ -8308,6 +8359,56 @@ function dayBook(){
     
     <div class="fab-pad"></div>`;
   showSheet();
+}
+function dbOpen(id){
+  const l=(DB.ledger||[]).find(x=>x.id===id); if(!l)return;
+  try{
+    if(l.refKind==='manual'||l.refKind==='openpay') return payEdit(l.id);
+    if(l.refKind==='expense') return expEdit(l.id);
+    if(l.refKind==='purchase')return (closeSheet(),purchMenu(l.refId||l.ref2));
+    if(l.refKind==='sale')    return (closeSheet(),go('invoices'));
+    if(l.refKind==='order')   return (closeSheet(),openDetail(l.refId));
+    if(l.refKind==='opening')
+      return (closeSheet(),partyCard(l.party,l.partyKind||'supplier'));
+    if(l.party) return (closeSheet(),partyCard(l.party,l.partyKind||''));
+  }catch(e){}
+}
+/* v379 — CAUGHT IN AUDIT, and he had asked for this himself: "edit, delete ka har jagah
+   option hona chahiye." A payment typed straight into Payment in/out was the one money
+   entry in the app with no way back — wrong amount, wrong name or wrong date and it stood
+   there for good. Same fields as the form that made it, plus a bin. */
+function payEdit(id){
+  /* v380 fix-of-my-own-fix: settleParty now writes 'openpay' for a payment that clears an
+     opening, which is exactly the payment he is making all week. This editor only knew
+     'manual', so those payments became uneditable the moment I made them correct. Both
+     kinds edit here; deleting an openpay simply puts that much back on the opening. */
+  const ex=(DB.ledger||[]).find(l=>l.id===id&&(l.refKind==='manual'||l.refKind==='openpay'));
+  if(!ex)return;
+  const dir=ex.dir==='in'?'in':'out';
+  modal((dir==='in'?'⬇️ ':'⬆️ ')+(dir==='in'?t('pay_in'):t('pay_out')),
+    `<div class="field"><label>${dir==='in'?t('customer'):t('supplier')} *</label>
+       <input id="pe_party" value="${esc(ex.party||'')}"></div>
+     <div class="row"><div class="field"><label>${t('amount')} ₹ *</label>
+       <input id="pe_amt" type="number" inputmode="numeric" value="${esc(ex.amt||'')}"></div>
+       <div class="field"><label>${t('pay_date')}</label>${dateField('pe_date',ex.date||todayISO())}</div></div>
+     <div class="field"><label>${t('cb_into')}</label>${acctSelHTML('pe_acc',ex.acc||(defaultAcc()||{}).id)}</div>
+     <div class="field"><label>${t('stk_note')}</label><input id="pe_note" value="${esc(ex.note||'')}"></div>`,
+    [{label:t('cancel'),cls:'ghost',fn:closeModal},
+     {label:'🗑️',cls:'danger',fn:()=>payDelete(id)},
+     {label:t('save'),cls:'primary',fn:()=>{
+        const g=i=>(($('#'+i)||{}).value||'');
+        const party=g('pe_party').trim(), amt=r2(+g('pe_amt')||0);
+        if(!party){toast(t('t_no_name'),'bad');return;}
+        if(!(amt>0)){toast(t('t_no_amount'),'bad');return;}
+        Object.assign(ex,{party, amt, date:g('pe_date')||ex.date,
+          acc:g('pe_acc')||ex.acc||'', note:g('pe_note').trim()});
+        save(); closeModal(); toast(t('t_updated'),'ok'); dayBook();
+     }}]);
+}
+function payDelete(id){
+  confirmModal(t('confirm_del'),t('confirm_del_msg'),()=>{
+    DB.ledger=(DB.ledger||[]).filter(l=>l.id!==id);
+    save(); closeModal(); toast(t('t_deleted'),'ok'); dayBook(); });
 }
 function yesterdayISO(){ const d=new Date(); d.setDate(d.getDate()-1); return isoOf(d); }
 
@@ -8962,7 +9063,12 @@ function credSearch(v){ _credQ=String(v||''); creditors();
     try{e.setSelectionRange(x.length,x.length);}catch(err){}}},0); }
 /* the same creator the expense screen and Payment out open — one ledger form in the app,
    not three that drift apart */
-function credNew(){ partyEdit(null,()=>{ save(); creditors(); }); }
+/* v378 recheck: the button says New creditor, so the form should already know that.
+   He can still change it — it is a starting point, not a lock. */
+function credNew(){
+  partyEdit(null,()=>{ save(); creditors(); });
+  setTimeout(()=>{ const k=$('#ptKind'); if(k && !k.value)k.value='supplier'; },120);
+}
 function credEdit(name){
   const p=partyByName(name);
   if(p) partyEdit(p.id,()=>{ save(); creditors(); });
@@ -9027,6 +9133,19 @@ function mlRender(){
 function mlDel(i){
   const o=_mlCtx; const v=(o.list()||[])[i]; if(v==null)return;
   const used=o.inUse?o.inUse(v):0;
+  /* v377 — HIS 28 Aug: "delete karne ke baad bhi rah jati hain." Traced: deleting a head
+     took the NAME out of the list but left every entry still filed under it, so the head
+     walked straight back into the expense report as a nameless group he could not manage
+     or get rid of. Deleting a name is not the same as dealing with what is under it.
+     So a name with entries can no longer be deleted on its own — he is sent to the move
+     screen, which carries the entries to another head and then removes this one. That
+     path already existed and is the correct one; it simply was not the one the bin
+     button used. Nothing filed under it, and the bin still deletes outright. */
+  if(used>0 && o.merge){
+    confirmModal(t('ml_del_title'), t('ml_del_move',{n:esc(String(v)),c:used}),
+      ()=>{ closeModal(); mlRename(i,1); });
+    return;
+  }
   const msg = o.delMsg ? o.delMsg(String(v),used)
             : (used ? t('ml_del_used',{n:esc(String(v)),c:used}) : t('ml_del_msg',{n:esc(String(v))}));
   confirmModal(t('ml_del_title'),msg,()=>{ o.remove(v); save(); mlRender(); toast(t('t_deleted')); });
@@ -19035,7 +19154,20 @@ function purApplyStock(pur){
    cooldown, not a lock. */
 let _purLastSave=0;
 /* how close two shop names are, ignoring case, spacing and punctuation */
-function nameNorm(v){ return String(v||'').toLowerCase().replace(/[^a-z0-9]/g,''); }
+/* v379 — CAUGHT IN AUDIT, and it was mine. This stripped everything outside a-z0-9, so
+   every Devanagari name collapsed to the SAME empty string: "मेघराज पारसमल" and
+   "कंचन सिंटेक्स" both became "". Harmless while it only powered a search, but v373 put
+   the party duplicate guard on top of it — so the second party he created with a Hindi
+   name would have been silently folded into the first, and his payment would have landed
+   on the wrong man's ledger. Letters and digits of ANY script now survive; accents are
+   folded so "Alok" and "Álok" still meet, but Devanagari matras are KEPT — drop them and
+   "कमल" and "कमला" become the same man. The old rule stays as a fallback for any engine
+   without Unicode property escapes. */
+function nameNorm(v){
+  try{ return String(v||'').trim().toLocaleLowerCase().normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g,'').replace(/[^\p{L}\p{N}\p{M}]/gu,''); }
+  catch(e){ return String(v||'').trim().toLowerCase().replace(/[^a-z0-9]/g,''); }
+}
 function nameClose(a,b){
   const x=nameNorm(a), y=nameNorm(b);
   if(!x||!y||x===y)return false;
@@ -20039,14 +20171,26 @@ function bsFigures(from,to){
      needs sorting is visible instead of hidden inside a wrong total. It is not a fudge: it
      says "₹25,000 of movement has not been explained yet", which is the truth. */
   {
-    let susp=0;
+    /* v382 — HIS section 13/23 test cases, run for real. Money received from a customer who
+       has no bill yet is not "unexplained" — the app knows whose money it is and that the
+       shop owes him goods. It was landing in Suspense, which is honest but wrong: the right
+       home is Customer advances, a liability, and the same money paid out to a named
+       supplier ahead of his bill is Advance with suppliers, an asset. Both buckets already
+       existed on this sheet and simply were never fed. Suspense keeps only what it is for —
+       money with NO name against it, which really is unexplained. */
+    let susp=0, custAdv=0, supAdv=0;
     (DB.ledger||[]).forEach(l=>{
       if(l.refKind!=='manual')return;
       const d2=String(l.date||''); if(d2<from||d2>to)return;
-      susp = (l.dir==='in') ? r2(susp+(+l.amt||0)) : r2(susp-(+l.amt||0));
+      const amt=+l.amt||0, named=String(l.party||'').trim();
+      if(named && l.dir==='in'){ custAdv=r2(custAdv+amt); return; }
+      if(named && l.dir==='out'){ supAdv=r2(supAdv+amt); return; }
+      susp = (l.dir==='in') ? r2(susp+amt) : r2(susp-amt);
     });
-    if(susp>0)add(L,'suspense',susp);        /* money in, not yet explained → owed */
-    else if(susp<0)add(A,'suspense',-susp);  /* money out, not yet explained → held */
+    if(custAdv>0)add(L,'custadv',custAdv);   /* his money, held against goods not yet billed */
+    if(supAdv>0) add(A,'supadv',supAdv);     /* shop's money, sitting with the supplier */
+    if(susp>0)add(L,'suspense',susp);        /* money in, no name → genuinely unexplained */
+    else if(susp<0)add(A,'suspense',-susp);  /* money out, no name → genuinely unexplained */
   }
   const totA=r2(Object.values(A).reduce((a,b)=>a+b,0));
   const totL=r2(Object.values(L).reduce((a,b)=>a+b,0)+capTotal2);
@@ -23108,6 +23252,38 @@ function manageExpHeads(){
     ${rows}<div class="fab-pad"></div>`;
   showSheet();
 }
+/* v377 — HIS 28 Aug: "kai jagah aisa hai ki item / party / expense / expense head delete
+   karne ke baad bhi rah jati hain." Traced it: expense heads and parties had NO delete at
+   all, so once a name existed it stayed in every picker forever, even after he removed
+   every entry under it. That is the ghost he keeps meeting.
+   The rule is the same one the rest of this app follows — history is never destroyed to
+   tidy a list. So: nothing filed under it, it goes for good. Something filed under it, it
+   is hidden instead — out of every picker, old entries untouched and still readable, and
+   restorable from one place. He is told which of the two happened and why. */
+function partyUse(name,id){
+  const n=nameNorm(name); let k=0;
+  (DB.ledger||[]).forEach(l=>{ if(l.partyId===id||nameNorm(l.party)===n)k++; });
+  (DB.purchases||[]).forEach(x=>{ if(nameNorm(x.supplier)===n)k++; });
+  return k;
+}
+function delOrHide(label,used,onDel,onHide){
+  const body=`<p style="margin:0 0 10px"><b>${esc(label)}</b></p>
+    <p class="hint" style="white-space:normal">${used?t('dl_used',{n:used}):t('dl_free')}</p>`;
+  modal('🗑️ '+t('dl_del'), body,
+    used ? [{label:t('cancel'),cls:'ghost',fn:closeModal},
+            {label:t('dl_arch'),cls:'danger',fn:()=>{onHide();closeModal();toast(t('dl_archd'),'ok');}}]
+         : [{label:t('cancel'),cls:'ghost',fn:closeModal},
+            {label:t('dl_del'),cls:'danger',fn:()=>{onDel();closeModal();toast(t('dl_gone'),'ok');}}]);
+}
+function partyDel(id){
+  const p=partyById(id); if(!p)return;
+  delOrHide(p.name, partyUse(p.name,id),
+    ()=>{ DB.parties=(DB.parties||[]).filter(x=>x.id!==id);
+          DB.ledger=(DB.ledger||[]).filter(l=>!(l.refKind==='opening'&&nameNorm(l.party)===nameNorm(p.name)));
+          save(); partiesHome(); },
+    ()=>{ p.archived=1; save(); partiesHome(); });
+}
+function partyShow(id){ const p=partyById(id); if(p)delete p.archived; save(); partiesHome(); toast(t('t_saved'),'ok'); }
 function expHeadSet(i,k,v){
   const c=(DB.expCats||[])[i]; if(!c)return;
   DB.expHeadCfg=DB.expHeadCfg||{};
@@ -23518,7 +23694,15 @@ function partyBalance(p,kind){
   (DB.ledger||[]).forEach(l=>{
     if(l.partyId!==p.id && String(l.party||'').trim().toLowerCase()!==String(p.name||'').trim().toLowerCase())return;
     if(kind && l.partyKind && l.partyKind!==kind)return;
-    bal += (l.dir==='out'? -(+l.amt||0) : (+l.amt||0));
+    const amt=+l.amt||0;
+    /* v380 — the sign trap this file's own comment warns about, still live here. `dir` is
+       CASH direction: an opening payable is dir:'out' and so is the payment that clears it,
+       so adding both by direction made paying a supplier increase what he owed — the party
+       card read ₹2,60,798 where the true figure was ₹1,80,798. An 'openpay' row is a
+       SETTLEMENT of an opening, so it moves the balance the opposite way to the opening it
+       is paying off. Every other row still goes by cash direction, unchanged. */
+    if(l.refKind==='openpay'){ bal += (l.dir==='out'? amt : -amt); return; }
+    bal += (l.dir==='out'? -amt : amt);
   });
   return r2(bal);
 }
@@ -23589,6 +23773,15 @@ function partiesHome(){
     <input id="ptyQ" value="${esc(_ptyQ)}" placeholder="\u{1F50D} ${t('pty_search')}" oninput="ptySearch(this.value)" autocomplete="off">
     <button class="btn primary block" style="margin:10px 0" onclick="partyEdit(null,()=>partiesHome())">\u2795 ${t('pty_add')}</button>
     <div id="ptyList">${rows}</div>
+    ${/* v377: a hidden name must have a way back, or hiding it is really deleting it */''}
+    ${(()=>{const h=(DB.parties||[]).filter(x=>x.archived);
+      return h.length?`<details style="margin-top:14px">
+        <summary style="font-size:13px;color:var(--saffron2);cursor:pointer;font-weight:700;padding:6px 0">
+          ${t('dl_show_hidden',{n:h.length})}</summary>
+        ${h.map(x=>`<div class="kv card" style="padding:9px 12px;margin-top:6px">
+          <span>${esc(x.name)}</span>
+          <button class="btn sm ghost" onclick="partyShow('${jq(x.id)}')">${t('dl_restore')}</button>
+        </div>`).join('')}</details>`:'';})()}
     <div class="fab-pad"></div>`;
   showSheet();
 }
@@ -23798,6 +23991,7 @@ function partyEdit(id,onDone,preName){
          ${dateField("ptOpenDate", fyStart())}</div>
      </div>`}`,
     [{label:t('cancel'),cls:'ghost',fn:closeModal},
+     ...(ex?[{label:'🗑️',cls:'danger',fn:()=>partyDel(ex.id)}]:[]),
      {label:t('save'),cls:'primary',fn:()=>{
         const g=i=>(($('#'+i)||{}).value||'').trim();
         const nm=g('ptName'); if(!nm){toast(t('pt_name'),'bad');return;}
