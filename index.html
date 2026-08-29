@@ -781,7 +781,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v398</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v401</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -1605,7 +1605,7 @@ const T={
   zb_failed:'Could not build the file', zb_too_big:'Too large for one file — saving in parts instead',
   zb_one:'Backup everything (one file)',
   sg_shop:'The shop', sg_people:'People', sg_money:'Money & opening balances', sg_things:'Items & stock',
-  srp_title:'Staff report', sr_late:'Late', sr_min:'min', sr_extra:'Extra hours', sr_hrs:'hrs',
+  srp_title:'Attendance & salary', sr_late:'Late', sr_min:'min', sr_extra:'Extra hours', sr_hrs:'hrs',
   sr_cut:'Cut for days off', sr_earned:'Earned', sr_loan:'Advance / loan outstanding',
   sr_clean:'A clean month — the extra day is due',
   pn_tap_me:'tap to mark in', pn_bye:'marked out', pn_redo:'Clear today',
@@ -2457,6 +2457,13 @@ dl_show_hidden:'Show hidden ({n})',
   kr_go:'Take back {n} pieces', kr_done:'{n} pieces taken back',
   kr_done_left:'{n} taken back · {r} still with him',
   lg_rename_src:'Rename this on its own screen — account, tailor, staff or customer',
+  pty_kar:'Tailors — I owe them', pty_stf:'Staff — I owe them', pty_more:'Show {n} more',
+  fu_search:'Search name, phone or amount...', fu_more:'{n} more — search to find them',
+  sh_title:'Staff', sh_sub:'Days worked, and what each of them sold.',
+  sh_att_sub:'Present, absent and what the month comes to',
+  sh_perf_sub:'Who sold how much, and how much of it came in',
+  sh_master:'Staff master', sh_master_sub:'Names, salary, joining date',
+  rps_entry:'Daily entry', rps_books:'Books', rps_people:'Parties & bank', rps_floor:'Shop floor', rps_staff:'People',
   lg_all_groups:'All groups', lg_closing:'Closing balance', lg_edit:'Edit ledger',
   lg_no_rows:'Nothing has gone through this ledger yet',
   ki_title:'Issue to a tailor', ki_sub:'Pick the man once, then tick everything going with him.',
@@ -3289,7 +3296,7 @@ dl_show_hidden:'Show hidden ({n})',
   zb_failed:'फ़ाइल नहीं बन पाई', zb_too_big:'एक फ़ाइल के लिए बहुत बड़ा — हिस्सों में सेव कर रहे हैं',
   zb_one:'सब कुछ बैकअप (एक फ़ाइल)',
   sg_shop:'दुकान', sg_people:'लोग', sg_money:'पैसा और शुरुआती बकाया', sg_things:'सामान और स्टॉक',
-  srp_title:'स्टाफ़ रिपोर्ट', sr_late:'देर', sr_min:'मिनट', sr_extra:'ज़्यादा घंटे', sr_hrs:'घंटे',
+  srp_title:'हाज़िरी और तनख़्वाह', sr_late:'देर', sr_min:'मिनट', sr_extra:'ज़्यादा घंटे', sr_hrs:'घंटे',
   sr_cut:'ग़ैर-हाज़िरी की कटौती', sr_earned:'बनता है', sr_loan:'एडवांस / क़र्ज़ बाकी',
   sr_clean:'पूरा महीना साफ़ — एक दिन का इनाम बनता है',
   pn_tap_me:'हाज़िरी के लिए टैप कीजिए', pn_bye:'जाना दर्ज', pn_redo:'आज का मिटाएँ',
@@ -4139,6 +4146,13 @@ dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
   kr_go:'{n} पीस वापस लें', kr_done:'{n} पीस वापस लिए',
   kr_done_left:'{n} वापस लिए · {r} अब भी उसके पास',
   lg_rename_src:'ये नाम इसकी अपनी स्क्रीन से बदलिए — खाता, कारीगर, स्टाफ़ या ग्राहक',
+  pty_kar:'कारीगर — इनका देना है', pty_stf:'स्टाफ़ — इनका देना है', pty_more:'और {n} दिखाएँ',
+  fu_search:'नाम, फ़ोन या रकम खोजें…', fu_more:'{n} और — खोजिए',
+  sh_title:'स्टाफ़', sh_sub:'कितने दिन काम, और किसने कितना बेचा।',
+  sh_att_sub:'हाज़िर, ग़ैरहाज़िर और महीने का हिसाब',
+  sh_perf_sub:'किसने कितना बेचा, और कितना वसूला',
+  sh_master:'स्टाफ़ मास्टर', sh_master_sub:'नाम, तनख़्वाह, जॉइनिंग',
+  rps_entry:'रोज़ की entry', rps_books:'Books', rps_people:'पार्टी और बैंक', rps_floor:'दुकान का काम', rps_staff:'स्टाफ़',
   lg_all_groups:'सभी groups', lg_closing:'Closing balance', lg_edit:'Ledger बदलें',
   lg_no_rows:'इस ledger में अभी कोई entry नहीं गई',
   ki_title:'कारीगर को माल देना', ki_sub:'पहले कारीगर चुनिए, फिर जो-जो जा रहा है उस पर टिक कीजिए।',
@@ -9240,7 +9254,17 @@ function creditors(){
   /* v249: an opening payable is money owed exactly as a bill is. It was invisible here
      before, so anything he typed on the opening screen could never be seen or chased. */
   /* v366: 'other' belongs here too — see the note in bsFigures. He owes the money either way. */
-  peopleAll().filter(p=>p.kind==='supplier'||p.kind==='other').forEach(p=>{
+  /* v399 — HIS 29 Aug: "staff aur karigar sabhi creditors me aa gaye hain."
+     Right, and it is his own rule from the day we settled this: a creditor is a man he
+     bought goods from or borrowed money from. A karigar is a direct cost and a staff
+     member is salary — both have their own screens and their own balances. They arrived
+     here through the back door: paying either of them from Money out creates a party
+     record, and a party with no other label reads as 'other', which this bucket accepted.
+     A name that belongs to a karigar or a staff member is now skipped, whatever label it
+     picked up on the way. */
+  peopleAll().filter(p=>p.kind==='supplier'||p.kind==='other')
+    .filter(p=>!(DB.karigars||[]).some(k=>nameNorm(k.name)===nameNorm(p.name))
+             &&!(DB.staff||[]).some(k=>nameNorm(k.name)===nameNorm(p.name))).forEach(p=>{
     const left=openingLeft(p.name,p.kind,'out'); if(!left)return;
     const k=p.name;
     map[k]=map[k]||{name:k,phone:(partyByName(k)||{}).phone||'',recs:[],due:0};
@@ -9248,7 +9272,9 @@ function creditors(){
   });
   /* openings typed against a name that never had a purchase bill still belong here */
   (DB.ledger||[]).filter(l=>l.refKind==='opening'
-      &&(pkNorm(l.partyKind)==='supplier'||pkNorm(l.partyKind)==='other')&&l.dir==='out').forEach(l=>{
+      &&(pkNorm(l.partyKind)==='supplier'||pkNorm(l.partyKind)==='other')&&l.dir==='out'
+      &&!(DB.karigars||[]).some(k=>nameNorm(k.name)===nameNorm(l.party))
+      &&!(DB.staff||[]).some(k=>nameNorm(k.name)===nameNorm(l.party))).forEach(l=>{
     const k=String(l.party||'').trim(); if(!k||map[k])return;
     const left=openingLeft(k,'supplier','out'); if(!left)return;
     map[k]={name:k,phone:(partyByName(k)||{}).phone||'',recs:[],due:left,_open:left};
@@ -9275,6 +9301,9 @@ function creditors(){
   const _crAll=groups.length;
   if(_crQ)groups=groups.filter(g=>String(g.name).toLowerCase().includes(_crQ)
     ||String(Math.round(g.due)).includes(_crQ)||String(g.phone||'').includes(_crQ));
+  /* v399: biggest first, then stop — the rest are one search away */
+  const _crMore=(!_crQ && groups.length>15) ? groups.length-15 : 0;
+  if(_crMore)groups=groups.slice(0,15);
   const total=r2(groups.reduce((s,g)=>s+g.due,0));
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">📤 ${t('creditors_report')}</h2>
@@ -9286,7 +9315,8 @@ function creditors(){
          the other. */''}
     <div class="row" style="margin-bottom:10px;gap:8px">
       <button class="btn primary block" onclick="credNew()">➕ ${t('cr_new')}</button></div>
-    ${_crAll?`<div class="field" style="margin-bottom:10px">
+    ${_crMore?`<p class="hint" style="margin-bottom:6px">${t('fu_more',{n:_crMore})}</p>`:''}
+    ${_crAll>1?`<div class="field" style="margin-bottom:10px">
       <input id="credSearch" value="${esc(_credQ)}" placeholder="🔍 ${t('cr_search')}"
         oninput="credSearch(this.value)"></div>`:''}
     ${groups.length?`<div class="card pos-total" style="margin-bottom:14px">
@@ -10242,6 +10272,10 @@ function statementText(g){
   if(shop.phone)L.push('📞 '+shop.phone);
   return L.join('\n');
 }
+let _fuQ='';
+function fuSearch(v){ _fuQ=String(v||''); followUps();
+  setTimeout(()=>{const e=$('#fuSearch'); if(e){const x=e.value;e.focus();
+    try{e.setSelectionRange(x.length,x.length);}catch(err){}}},0); }
 function fuAddPhone(key){
   const g=dueGroups().find(x=>x.key===key); if(!g)return;
   modal('📞 '+t('fu_add_phone'),
@@ -10279,6 +10313,13 @@ function followUps(){
   let groups=dueGroups();
   const total=r2(groups.reduce((s,g)=>s+g.due,0));
   groups=groups.slice().sort((a,b)=>(fuDueNow(a.key)?0:1)-(fuDueNow(b.key)?0:1));   /* v252 */
+  const _fq=String(_fuQ||'').trim().toLowerCase();
+  const _fuAll=groups.length;
+  if(_fq)groups=groups.filter(g=>String(g.name).toLowerCase().includes(_fq)
+    ||String(g.phone||'').includes(_fq)||String(Math.round(g.due)).includes(_fq));
+  const _fuShown=groups.length, _CAP=15;
+  const _more=Math.max(0,_fuShown-_CAP);
+  if(!_fq && _more)groups=groups.slice(0,_CAP);
   const rows=groups.map(g=>{
     // every row here points at a real record — make them open it
     const openOf=r=>r._kind==='order'?`openDetail('${r.id}')`:r._kind==='alt'?`openAltDetail('${r.id}')`:`openInvoicePreview('sale','${r.id}')`;
@@ -10313,10 +10354,18 @@ function followUps(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">🔔 ${t('fu_title')}</h2>
     <p class="hint" style="margin-bottom:12px">${t('fu_sub')}</p>
+    ${/* v399 — HIS 29 Aug: "debtors me search bar bhi nahi hai... agar sau do sau honge to
+         kitna bada page ho jayega aur main kaise search karunga." Payables had a search box
+         and this did not, and neither of them had any idea when to stop. Ten names is a
+         list; two hundred is a wall he has to scroll past to reach one man. Same box on
+         both now, and both show the biggest first and stop — the rest are one search away,
+         which is how he actually looks for someone. */''}
+    ${_fuAll>1?`<div class="field" style="margin-bottom:10px">
+      <input id="fuSearch" value="${esc(_fuQ)}" placeholder="🔍 ${t('fu_search')}" oninput="fuSearch(this.value)" autocomplete="off"></div>`:''}
     ${groups.length?`<div class="card pos-total" style="margin-bottom:14px">
       <div class="sum-row due" style="border-top:none;margin:0;padding:4px 0">
         <span>${t('stat_total_due')}</span><b>${money(total)}</b></div>
-      <div class="hint">${t('stat_from_n',{n:groups.length})}</div>
+      <div class="hint">${t('stat_from_n',{n:_fuAll})}${_more?' · '+t('fu_more',{n:_more}):''}</div>
       ${ageBarHTML(ageTotals(groups.map(g=>g.age)))}</div>
     ${exportBarHTML('debtors',()=>({title:t('fu_title'), sub:t('stat_total_due')+': '+money(total),
       head:[t('pt_name'),t('phone'),t('amount'),t('ag_cur'),t('ag_30'),t('ag_60'),t('ag_90'),t('ag_oldest',{n:''}).trim()],
@@ -21525,6 +21574,29 @@ function applyRpCustom(){rpPeriod='custom';rpFrom=$('#rp_from').value;rpTo=$('#r
    not on the punch screen where a morning is. People who have left are kept in the list,
    because a man who worked nine months of the year has to appear in that year's report. */
 let _srMonth=null;
+/* v400 — HIS 29 Aug: "Report me tumne likha hai staff report. To staff report kya, isse
+   laga performance ka report hai. Khola to attendance ka report hai. Staff report ko click
+   kiya to usme aana chahiye attendance hai, performance hai."
+   He is right: one door was carrying two different questions and was named after neither.
+   Staff now opens a small hub — how many days each of them worked and what that comes to,
+   or how much each of them sold. Two clean answers instead of one crowded page with the
+   wrong title on it. */
+function staffHub(){
+  sheetAt(staffHub);
+  const row=(ic,ttl,sub,fn)=>`<div class="kv card" style="padding:13px;margin-bottom:8px;cursor:pointer"
+      onclick="${fn}"><span style="flex:1;min-width:0"><b>${ic} ${esc(ttl)}</b>
+      <div class="hint" style="white-space:normal">${esc(sub)}</div></span>
+      <span style="color:var(--saffron2)">›</span></div>`;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">👥 ${t('sh_title')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
+    <p class="hint" style="margin-bottom:12px">${t('sh_sub')}</p>
+    ${row('🗓️',t('srp_title'),t('sh_att_sub'),"staffReport()")}
+    ${row('🧑‍💼',t('rp_salesman'),t('sh_perf_sub'),"salesmanReport()")}
+    ${row('👤',t('sh_master'),t('sh_master_sub'),"closeSheet();staffSettings()")}
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
 function staffReport(){
   sheetAt(staffReport);
   const mon=_srMonth||todayISO().slice(0,7);
@@ -21598,31 +21670,44 @@ function renderReports(){
   const el=$('#reportsPane');
   /* v228: the four money reports lead, because these are the ones he opens to decide
      something. The lists below them are for looking a number up. */
-  const _mainRp=`<div class="row" style="gap:8px;margin-bottom:8px">
-      <button class="btn ghost" style="flex:1" onclick="plReport()">📈 ${t('rp_pl')}</button>
-      <button class="btn ghost" style="flex:1" onclick="cashflowReport()">💵 ${t('rp_cashflow')}</button></div>
-    <div class="row" style="gap:8px;margin-bottom:8px">
-      <button class="btn ghost" style="flex:1" onclick="expHeadReport()">💸 ${t('rp_exp_head')}</button>
-      <button class="btn ghost" style="flex:1" onclick="partyStatement()">📒 ${t('rp_party_stmt')}</button></div>
-    <div class="row" style="gap:8px;margin-bottom:8px">
-      <button class="btn ghost" style="flex:1" onclick="brsOpen()">🏦 ${t('brs_title')}</button></div>
-    <div class="row" style="gap:8px;margin-bottom:12px">
-      <button class="btn ghost" style="flex:1" onclick="karIssue()">📤 ${t('ki_title')}</button>
-      <button class="btn ghost" style="flex:1" onclick="karReceive()">📥 ${t('kr_title')}</button>
-      <button class="btn ghost" style="flex:1" onclick="bankImport()">📥 ${t('bi_title')}</button>
-      <button class="btn ghost" style="flex:1" onclick="moneyOut()">⬆️ ${t('mo_title')}</button></div>
-    <div class="row" style="gap:8px;margin-bottom:12px">
-      <button class="btn ghost" style="flex:1" onclick="orderProfitReport()">💰 ${t('op_title')}</button>
-      <button class="btn ghost" style="flex:1" onclick="gstReport()">🧾 ${t('gst_title')}</button></div>
-    <div class="row" style="gap:8px;margin-bottom:12px">
-      <button class="btn ghost" style="flex:1" onclick="balanceSheet()">🏦 ${t('bs_title')}</button>
-      <button class="btn ghost" style="flex:1" onclick="trialBalance()">📋 ${t('tb_title')}</button></div>
-    <div class="row" style="gap:8px;margin-bottom:12px">
-      <button class="btn ghost" style="flex:1" onclick="journalBook()">📓 ${t('jv_title')}</button>
-      <button class="btn ghost" style="flex:1" onclick="ontimeReport()">🚚 ${t('ontime_title')}</button></div>
-    <div class="row" style="gap:8px;margin-bottom:12px">
-      <button class="btn ghost" style="flex:1" onclick="salesmanReport()">🧑\u200D💼 ${t('rp_salesman')}</button>
-      <button class="btn ghost" style="flex:1" onclick="staffReport()">👥 ${t('srp_title')}</button></div>`;
+  /* v401 — HIS 29 Aug, with the Vyapar screenshots: "report wala button click karta hoon to
+     pura page bhara hua lagta hai." Seventeen buttons in a grid, every one the same weight,
+     nothing telling him which is which. Vyapar does the obvious thing and it is right — a
+     report list is a LIST: quiet headings, one thin line per report, no colour, no boxes.
+     Same seventeen reports, same functions, nothing removed; they just stop shouting.
+     They are grouped the way a shop thinks about them: the books, the people you deal with,
+     the shop floor, and the two doors he uses for entry. */
+  const _rpRow=(icon,label,fn)=>`<div class="kv" style="padding:11px 2px;border-bottom:1px solid var(--line);cursor:pointer"
+      onclick="${fn}"><span style="flex:1;min-width:0">${icon} ${esc(label)}</span>
+      <span style="color:var(--saffron2)">\u203A</span></div>`;
+  const _rpSec=(title,rows)=>`<div class="card" style="padding:4px 12px 2px;margin-bottom:12px">
+      <div class="section-h" style="margin:8px 0 2px">${esc(title)}</div>
+      ${rows.filter(Boolean).map(r=>_rpRow(r[0],r[1],r[2])).join('')}</div>`;
+  const _mainRp =
+    _rpSec(t('rps_entry'),[
+      ['\u2B06\uFE0F',t('mo_title'),'moneyOut()'],
+      ['\u{1F4E5}',t('bi_title'),'bankImport()']])
+  + _rpSec(t('rps_books'),[
+      ['\u{1F4C8}',t('rp_pl'),'plReport()'],
+      ['\u{1F3E6}',t('bs_title'),'balanceSheet()'],
+      ['\u{1F4CB}',t('tb_title'),'trialBalance()'],
+      ['\u{1F4B5}',t('rp_cashflow'),'cashflowReport()'],
+      ['\u{1F4D3}',t('jv_title'),'journalBook()'],
+      ['\u{1F9FE}',t('gst_title'),'gstReport()']])
+  + _rpSec(t('rps_people'),[
+      ['\u{1F4D2}',t('rp_party_stmt'),'partyStatement()'],
+      ['\u{1F4E4}',t('creditors_report'),'creditors()'],
+      ['\u{1F514}',t('fu_title'),'followUps()'],
+      ['\u{1F3E6}',t('brs_title'),'brsOpen()']])
+  + _rpSec(t('rps_floor'),[
+      ['\u{1F4E4}',t('ki_title'),'karIssue()'],
+      ['\u{1F4E5}',t('kr_title'),'karReceive()'],
+      ['\u{1F69A}',t('ontime_title'),'ontimeReport()'],
+      ['\u{1F4B0}',t('op_title'),'orderProfitReport()'],
+      ['\u{1F4B8}',t('rp_exp_head'),'expHeadReport()']])
+  + _rpSec(t('rps_staff'),[
+      ['\u{1F465}',t('sh_title'),'staffHub()'],
+      ['\u{1F9D1}\u200D\u{1F4BC}',t('rp_salesman'),'salesmanReport()']]);
   const {from,to}=rpRange();
   const invs=allInvoices().filter(x=>{const d=String(x.inv.date||'');return d>=from&&d<=to;});
   let sales=0,gst=0;
@@ -21675,8 +21760,10 @@ function renderReports(){
     <div class="detail-hd"><button class="back" onclick="go('invoices')">←</button><div style="flex:1"><h2>📊 ${t('reports')}</h2></div></div>
     ${_mainRp}
     ${/* v213: every report the shop keeps, reachable from the one place reports live */''}
+    ${/* v399 — HIS 29 Aug, off his own screen: "Staff report" appeared twice on the Reports
+         page. It was added here in v213 and again beside the salesman report; the second
+         one stays, next to the report it belongs with. */''}
     <div class="row" style="gap:6px;margin-bottom:12px">
-      <button class="btn ghost" style="flex:1" onclick="staffReport()">👥 ${t('srp_title')}</button>
       <button class="btn ghost" style="flex:1" onclick="expenses()">💸 ${t('exp_title')}</button>
     </div>
     ${/* v325 — writing a purchase bill is not analysis, and it already has three homes of
@@ -24938,8 +25025,13 @@ function openingLeft(name,kind,dir){
 
 /* ── the Parties screen: one place to add a person and see where he stands ── */
 let _ptyQ='';
-function partiesHome(){
-  sheetAt(partiesHome);
+function partiesHome(keep){
+  /* v400 — his standing rule: a search box is cleared when a screen is opened fresh and
+     held while he is standing on it. Without this he came back to the screen an hour later,
+     saw "Nobody yet", and had no idea an old search was still filtering it. ptySearch()
+     re-renders the rows only, so typing is untouched. */
+  if(!keep){ _ptyQ=''; _ptyOpen={}; }
+  sheetAt(()=>partiesHome(1));
   const rows=partiesRows();
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F4D2} ${t('pty_title')}</h2>
@@ -24966,6 +25058,8 @@ function ptySearch(v){ _ptyQ=String(v||''); const el=$('#ptyList'); if(el)el.inn
    Right — an accountant does not keep one list of everybody. Two headings, the money owed
    and the money owing, each name under the correct one, and anyone with no balance at the
    foot. Same rows, same taps, same data: only sorted the way the books are read. */
+let _ptyOpen={};
+function ptyMore(k){ _ptyOpen[k]=!_ptyOpen[k]; partiesHome(); }
 function partiesRows(){
   const q=pkNorm(_ptyQ);
   let who=peopleAll();
@@ -24974,27 +25068,137 @@ function partiesRows(){
   /* One man can sit in the books under more than one hat — an opening typed as 'supplier',
      a bill raised as 'customer'. Which side of the ledger he lands on is decided by his
      name across all of them, not by whichever single hat this row happens to carry. */
-  const net=p=>{
+  /* v400 — HIS 29 Aug, from his own screen: a supplier with an unpaid bill of ₹72,447 was
+     filed under "No balance", and a staff opening of ₹18,000 was reading ₹36,000.
+     Two faults in one line. partyBillFlow() counts only the PAYMENTS against a bill, never
+     the bill itself, so a purchase nobody has paid yet added nothing at all. And the
+     opening was being counted twice — once by openingState() and again by partyBalance(),
+     which reads the very same opening row out of the ledger.
+     Rebuilt to say plainly what a balance is: what he still owes on openings, plus what is
+     outstanding on bills, plus loose payments that belong to no document. Karigars are
+     asked of karBalance(), the one figure the tailor ledger and the balance sheet already
+     agree on, so this screen can never disagree with them.
+     minus = the shop owes him · plus = he owes the shop */
+  const net=partyNet;
+  const _unused_net=p=>{
+    if((DB.karigars||[]).some(k=>nameNorm(k.name)===nameNorm(p.name))){
+      const kk=(DB.karigars||[]).find(k=>nameNorm(k.name)===nameNorm(p.name));
+      /* karBalance() knows the piece work and the payments against it. An old balance the
+         shop typed in when it started is a separate row and is not in there, so it is
+         added here — otherwise a karigar carrying only an opening reads as settled. */
+      let ko=0;
+      ['karigar','other','supplier'].forEach(k=>{
+        const st=openingState(p.name,k);
+        if(st&&st.left)ko=r2(ko+((st.dir==='out')?st.left:-st.left));
+      });
+      return r2(-(karBalance(kk.id)+ko));
+    }
     let v=0;
-    ['supplier','customer','other','karigar','staff'].forEach(k=>{
+    ['supplier','customer','other','karigar','staff','loan'].forEach(k=>{
       const st=openingState(p.name,k);
       if(st&&st.left)v=r2(v+((st.dir==='out')?-st.left:st.left));
-      v=r2(v+partyBalance(p,k)+partyBillFlow(p,k));
     });
-    return v; };                                  /* minus = I owe, plus = owed to me */
-  const cred=who.filter(p=>net(p)<0).sort((a,b)=>net(a)-net(b));
-  const debt=who.filter(p=>net(p)>0).sort((a,b)=>net(b)-net(a));
+    (DB.purchases||[]).forEach(pu=>{
+      if(nameNorm(pu.supplier)!==nameNorm(p.name))return;
+      v=r2(v-orderBaaki(pu));                       /* what is still unpaid on his bills */
+    });
+    [DB.sales,DB.orders,DB.alterations].forEach(list=>{
+      (list||[]).forEach(r=>{
+        if(r.customerId!==p.id && nameNorm(r.customerName)!==nameNorm(p.name))return;
+        v=r2(v+orderBaaki(r));                      /* what he still owes on his bills */
+      });
+    });
+    /* money handed over or taken that settled no document and no opening */
+    (DB.ledger||[]).forEach(l=>{
+      if(l.refKind!=='manual')return;
+      if(l.partyId!==p.id && nameNorm(l.party)!==nameNorm(p.name))return;
+      const a=r2(+l.amt||0);
+      v=r2(v+(l.dir==='out'?a:-a));
+    });
+    return v; };
+  /* v399 — HIS 29 Aug, off his own screen: Mohan Synthetics twice, Bapulal twice, Kanchan
+     twice, Vicky twice. peopleAll() lists a man once per HAT — supplier from a bill, party
+     from the book — so a name held under two hats printed two rows with the same balance.
+     One man, one row: the hats are already merged in net() below, they must be merged here
+     too. */
+  {const seen={}; who=who.filter(p=>{const k=nameNorm(p.name);
+    if(!k||seen[k])return false; seen[k]=1; return true;});}
+  /* And his rule from 28 Aug, in his words: "karigar to ek tarah se direct expense hai aur
+     salary to expenses me aati hi hai." They are not creditors. They kept appearing here
+     because they carry a balance, so they are shown — under their own headings, where they
+     belong — and out of the creditor and debtor totals. */
+  const isKar=p=>(DB.karigars||[]).some(k=>nameNorm(k.name)===nameNorm(p.name));
+  const isStf=p=>(DB.staff||[]).some(k=>nameNorm(k.name)===nameNorm(p.name));
+  const kar=who.filter(p=>isKar(p)&&net(p)).sort((a,b)=>net(a)-net(b));
+  const stf=who.filter(p=>!isKar(p)&&isStf(p)&&net(p)).sort((a,b)=>net(a)-net(b));
+  const rest=who.filter(p=>!isKar(p)&&!isStf(p));
+  const cred=rest.filter(p=>net(p)<0).sort((a,b)=>net(a)-net(b));
+  const debt=rest.filter(p=>net(p)>0).sort((a,b)=>net(b)-net(a));
   const flat=who.filter(p=>!net(p));
   const sum=list=>list.reduce((a,p)=>a+Math.abs(net(p)),0);
   const head=(ico,lbl,n,amt,col)=>`<div class="kv" style="padding:10px 2px 4px">
     <span class="dl-hd" style="padding:0">${ico} ${lbl} <span class="hint">(${n})</span></span>
     <b style="color:${col}">${money(r2(amt))}</b></div>`;
   const block=(list)=>list.map(rowOf).join('');
+  /* A page with two hundred names on it cannot be read. Each heading shows its first few
+     and says how many more are behind it; searching still looks through every one. */
+  const CUT=8;
+  const blockCut=(list,key)=>{
+    if(q||_ptyOpen[key]||list.length<=CUT)return block(list);
+    return block(list.slice(0,CUT))
+      + `<button class="btn sm ghost block" style="margin:2px 0 10px" onclick="ptyMore('${key}')">
+           ${t('pty_more',{n:list.length-CUT})}</button>`;
+  };
   const out=[];
-  if(cred.length)out.push(head('📤',t('pty_cred'),cred.length,sum(cred),'var(--bad)')+block(cred));
-  if(debt.length)out.push(head('📥',t('pty_debt'),debt.length,sum(debt),'var(--ok)')+block(debt));
-  if(flat.length)out.push(head('▫️',t('pty_flat'),flat.length,0,'var(--mut)')+block(flat));
+  if(cred.length)out.push(head('📤',t('pty_cred'),cred.length,sum(cred),'var(--bad)')+blockCut(cred,'cred'));
+  if(debt.length)out.push(head('📥',t('pty_debt'),debt.length,sum(debt),'var(--ok)')+blockCut(debt,'debt'));
+  if(kar.length)out.push(head('👷',t('pty_kar'),kar.length,sum(kar),'var(--saffron2)')+blockCut(kar,'kar'));
+  if(stf.length)out.push(head('👥',t('pty_stf'),stf.length,sum(stf),'var(--saffron2)')+blockCut(stf,'stf'));
+  if(flat.length && !q){
+    out.push(`<button class="btn sm ghost block" style="margin-top:14px" onclick="ptyMore('flat')">
+      ${_ptyOpen.flat?'▴':'▾'} ${t('pty_flat')} (${flat.length})</button>`);
+    if(_ptyOpen.flat)out.push(block(flat));
+  } else if(flat.length) out.push(head('▫️',t('pty_flat'),flat.length,0,'var(--mut)')+block(flat));
   return out.join('');
+}
+/* v400 — ONE balance for a party, used by the heading, the row and the sorting alike.
+   The heading was reading this and the row was working it out again from a different pair
+   of helpers, so a supplier with ₹70,000 outstanding printed ₹30,000 on his own line while
+   the heading above him said ₹80,000. Two formulas for one number is how a shop stops
+   trusting a screen. There is one now.
+   minus = the shop owes him · plus = he owes the shop */
+function partyNet(p){
+  if((DB.karigars||[]).some(k=>nameNorm(k.name)===nameNorm(p.name))){
+    const kk=(DB.karigars||[]).find(k=>nameNorm(k.name)===nameNorm(p.name));
+    let ko=0;
+    ['karigar','other','supplier'].forEach(k=>{
+      const st=openingState(p.name,k);
+      if(st&&st.left)ko=r2(ko+((st.dir==='out')?st.left:-st.left));
+    });
+    return r2(-(karBalance(kk.id)+ko));
+  }
+  let v=0;
+  ['supplier','customer','other','karigar','staff','loan'].forEach(k=>{
+    const st=openingState(p.name,k);
+    if(st&&st.left)v=r2(v+((st.dir==='out')?-st.left:st.left));
+  });
+  (DB.purchases||[]).forEach(pu=>{
+    if(nameNorm(pu.supplier)!==nameNorm(p.name))return;
+    v=r2(v-orderBaaki(pu));
+  });
+  [DB.sales,DB.orders,DB.alterations].forEach(list=>{
+    (list||[]).forEach(r=>{
+      if(r.customerId!==p.id && nameNorm(r.customerName)!==nameNorm(p.name))return;
+      v=r2(v+orderBaaki(r));
+    });
+  });
+  (DB.ledger||[]).forEach(l=>{
+    if(l.refKind!=='manual')return;
+    if(l.partyId!==p.id && nameNorm(l.party)!==nameNorm(p.name))return;
+    const a=r2(+l.amt||0);
+    v=r2(v+(l.dir==='out'?a:-a));
+  });
+  return v;
 }
 function rowOf(p){
   return (function(who){
@@ -25002,12 +25206,12 @@ function rowOf(p){
     /* v366: the row said "No opening" for a man who plainly had one, because it looked
        under one hat only. Same rule as the sorting above — go by his name. */
     const bits=[];
-    let bal=0, openLeft=0, openDir='';
-    ['supplier','customer','other','karigar','staff'].forEach(k=>{
+    let openLeft=0, openDir='';
+    ['supplier','customer','other','karigar','staff','loan'].forEach(k=>{
       const st=openingState(p.name,k);
       if(st&&st.left && !openLeft){ openLeft=st.left; openDir=st.dir; }
-      bal=r2(bal+partyBalance(p,k)+partyBillFlow(p,k));
     });
+    const bal=partyNet(p);              /* v400: the same figure the heading adds up */
     if(openLeft)bits.push(`<span style="color:${openDir==='out'?'var(--bad)':'var(--ok)'}">${t('pty_open')} ${money(openLeft)}</span>`);
     if(bal)bits.push(`${money(Math.abs(bal))} ${bal<0?t('ob_pay'):t('ob_get')}`);
     return `<div class="cust-result" style="margin-bottom:6px" onclick="partyCard('${jq(p.name)}','${jq(p.kind)}')">
