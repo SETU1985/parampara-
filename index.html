@@ -781,7 +781,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v397</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v398</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -2456,6 +2456,9 @@ dl_show_hidden:'Show hidden ({n})',
   kr_on:'Received on', kr_holding:'{n} pieces with him', kr_none:'He is holding nothing',
   kr_go:'Take back {n} pieces', kr_done:'{n} pieces taken back',
   kr_done_left:'{n} taken back · {r} still with him',
+  lg_rename_src:'Rename this on its own screen — account, tailor, staff or customer',
+  lg_all_groups:'All groups', lg_closing:'Closing balance', lg_edit:'Edit ledger',
+  lg_no_rows:'Nothing has gone through this ledger yet',
   ki_title:'Issue to a tailor', ki_sub:'Pick the man once, then tick everything going with him.',
   ki_search:'Search order, customer, piece...', ki_waiting:'{n} pieces waiting to go out',
   ki_rate:'Rate', ki_none:'Nothing is waiting to be given out', ki_go:'Issue {n} pieces',
@@ -4135,6 +4138,9 @@ dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
   kr_on:'वापस मिला', kr_holding:'{n} पीस उसके पास', kr_none:'उसके पास कुछ नहीं है',
   kr_go:'{n} पीस वापस लें', kr_done:'{n} पीस वापस लिए',
   kr_done_left:'{n} वापस लिए · {r} अब भी उसके पास',
+  lg_rename_src:'ये नाम इसकी अपनी स्क्रीन से बदलिए — खाता, कारीगर, स्टाफ़ या ग्राहक',
+  lg_all_groups:'सभी groups', lg_closing:'Closing balance', lg_edit:'Ledger बदलें',
+  lg_no_rows:'इस ledger में अभी कोई entry नहीं गई',
   ki_title:'कारीगर को माल देना', ki_sub:'पहले कारीगर चुनिए, फिर जो-जो जा रहा है उस पर टिक कीजिए।',
   ki_search:'ऑर्डर, ग्राहक, पीस खोजें…', ki_waiting:'{n} पीस देने को बाक़ी',
   ki_rate:'रेट', ki_none:'देने को कुछ नहीं है', ki_go:'{n} पीस दें',
@@ -24624,37 +24630,122 @@ function moSave(next){
 }
 
 /* ── the Ledger master screen: every name, its group, its opening ── */
-let _lgQ='';
+let _lgQ='', _lgGroup='';
+/* ══════════════════ v398 — LEDGER MASTER IS A DIRECTORY, NOT A LIST ══════════════════
+   HIS 29 Aug, with the screenshot: fifty ledgers under seventeen headings, all on one
+   scroll. He is right and it was my mistake — I built the chart of accounts as a printout
+   when what a shop needs is a way to FIND one name. Fifty is already too many; a year from
+   now it is five hundred.
+   So: a search box, and the groups as one line each with a count. Type and it filters
+   across every ledger; tap a group and you get that group alone. Nothing is hidden that was
+   there before — same ledgers, same groups, same data — it simply stops putting all of it
+   on the screen at once.
+   And tapping a name now opens what has gone through that ledger, not the edit form.
+   Editing is a deliberate act with its own button, because a man looking up a balance
+   should not be one stray tap away from changing the master. */
 function ledgerMaster(){
   sheetAt(ledgerMaster);
   lgSync(); save();
   const q=String(_lgQ||'').trim().toLowerCase();
-  let list=lgAll().filter(l=>!l.archived);
-  if(q)list=list.filter(l=>String(l.name).toLowerCase().includes(q)
-    || String((lgGroup(l.group)||{}).label||'').toLowerCase().includes(q));
-  /* shown under their group, the way a chart of accounts reads */
-  const byG={}; list.forEach(l=>{ (byG[l.group]=byG[l.group]||[]).push(l); });
-  const blocks=LGROUPS.filter(g=>byG[g[0]]&&byG[g[0]].length).map(g=>{
-    const G=lgGroup(g[0]);
-    return `<div class="section-h" style="margin-top:14px">${esc(G.label)}
-        <span class="hint">${G.stmt==='bs'?t('lg_bs'):t('lg_pl')} · ${G.side.toUpperCase()}</span></div>
-      ${byG[g[0]].sort((a,b)=>a.name.localeCompare(b.name)).map(l=>`
-        <div class="kv card" style="padding:10px 12px;margin-bottom:6px;cursor:pointer"
-             onclick="ledgerEdit('${jq(l.id)}')">
-          <div style="flex:1;min-width:0"><b>${esc(l.name)}</b>
-            ${l.openAmt?`<div class="hint">${t('lg_open')} ${money(l.openAmt)} ${String(l.openDir||'').toUpperCase()}${l.openDate?' · '+fmtDate(l.openDate):''}</div>`:''}
-          </div><span style="color:var(--saffron2)">›</span>
-        </div>`).join('')}`;
+  const all=lgAll().filter(l=>!l.archived);
+  const inGroup=g=>all.filter(l=>l.group===g);
+  let body='';
+  if(q){
+    const hits=all.filter(l=>String(l.name).toLowerCase().includes(q)
+      || String((lgGroup(l.group)||{}).label||'').toLowerCase().includes(q))
+      .sort((a,b)=>a.name.localeCompare(b.name)).slice(0,60);
+    body = hits.length ? hits.map(l=>lgRowHTML(l)).join('')
+      : `<div class="empty" style="padding:26px 10px"><div class="big">\u{1F50D}</div><p>${t('lg_none')}</p></div>`;
+  } else if(_lgGroup){
+    const G=lgGroup(_lgGroup)||{label:''};
+    body = `<button class="btn sm ghost" style="margin-bottom:8px" onclick="lgBackToGroups()">\u2190 ${t('lg_all_groups')}</button>
+      <div class="section-h">${esc(G.label)} <span class="hint">${G.stmt==='bs'?t('lg_bs'):t('lg_pl')} \u00B7 ${String(G.side||'').toUpperCase()}</span></div>`
+      + (inGroup(_lgGroup).sort((a,b)=>a.name.localeCompare(b.name)).map(l=>lgRowHTML(l)).join('')
+         || `<p class="hint">${t('lg_none')}</p>`);
+  } else {
+    body = LGROUPS.map(g=>{
+      const n=inGroup(g[0]).length; if(!n)return '';
+      const G=lgGroup(g[0]);
+      return `<div class="kv card" style="padding:11px 13px;margin-bottom:6px;cursor:pointer"
+           onclick="lgOpenGroup('${g[0]}')">
+          <span style="flex:1;min-width:0"><b>${esc(G.label)}</b>
+            <div class="hint">${G.stmt==='bs'?t('lg_bs'):t('lg_pl')} \u00B7 ${String(G.side).toUpperCase()} \u00B7 ${t('lg_count',{n:n})}</div></span>
+          <span style="color:var(--saffron2)">\u203A</span></div>`;
+    }).join('');
+  }
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F4D7} ${t('lg_title')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
+    <p class="hint" style="margin-bottom:10px">${t('lg_sub')}</p>
+    <div class="field" style="margin-bottom:8px">
+      <input id="lgQ" value="${esc(_lgQ)}" placeholder="\u{1F50D} ${t('lg_search')}" oninput="lgSearch(this.value)" autocomplete="off"></div>
+    <button class="btn ghost block" style="margin-bottom:12px" onclick="ledgerEdit(null)">\u2795 ${t('lg_new')}</button>
+    <p class="hint" style="margin-bottom:6px">${t('lg_count',{n:all.length})}</p>
+    ${body}
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function lgRowHTML(l){
+  const G=lgGroup(l.group)||{label:''};
+  return `<div class="kv card" style="padding:10px 12px;margin-bottom:6px;cursor:pointer"
+      onclick="ledgerView('${jq(l.id)}')">
+      <div style="flex:1;min-width:0"><b>${esc(l.name)}</b>
+        <div class="hint">${esc(G.label)}${l.openAmt?` \u00B7 ${t('lg_open')} ${money(l.openAmt)} ${String(l.openDir||'').toUpperCase()}`:''}</div>
+      </div><span style="color:var(--saffron2)">\u203A</span></div>`;
+}
+function lgOpenGroup(g){ _lgGroup=g; _lgQ=''; ledgerMaster(); }
+function lgBackToGroups(){ _lgGroup=''; ledgerMaster(); }
+
+/* One statement for any ledger — supplier, customer, expense head or bank. It reads the
+   SAME rows every other screen reads; nothing is recalculated its own way. */
+function ledgerView(id){
+  const l=lgById(id); if(!l)return;
+  sheetAt(()=>ledgerView(id));
+  const G=lgGroup(l.group)||{label:'',side:'dr'};
+  const n=nameNorm(l.name);
+  const rows=[];
+  if(l.openAmt)rows.push({date:l.openDate||'', ref:t('lg_open'),
+    dr:l.openDir==='dr'?l.openAmt:0, cr:l.openDir==='cr'?l.openAmt:0});
+  (DB.ledger||[]).forEach(x=>{
+    if(x.refKind==='opening')return;
+    if(nameNorm(x.party)!==n && nameNorm(x.cat)!==n)return;
+    const amt=r2(+x.amt||0);
+    rows.push({date:x.date||'', ref:(x.ref||x.cat||'')+(x.note?' \u00B7 '+x.note:''),
+      dr:x.dir==='out'?amt:0, cr:x.dir==='in'?amt:0});
+  });
+  (DB.purchases||[]).forEach(pu=>{ if(nameNorm(pu.supplier)!==n)return;
+    rows.push({date:pu.date||'', ref:t('purchase')+(pu.billNo?' '+pu.billNo:''), dr:0, cr:r2(orderTotal(pu))});
+    (pu.payments||[]).forEach(pp=>rows.push({date:pp.date||'', ref:t('pay_out'), dr:r2(+pp.amt||0), cr:0}));
+  });
+  [DB.sales,DB.orders,DB.alterations].forEach(list=>{
+    (list||[]).forEach(r=>{ if(nameNorm(r.customerName)!==n)return;
+      const tot=r2(orderTotal(r));
+      if(tot)rows.push({date:r.date||r.orderDate||'',
+        ref:((r.invoice&&r.invoice.no)||r.orderNo||r.altNo||''), dr:tot, cr:0});
+      (r.payments||[]).forEach(pp=>rows.push({date:pp.date||'', ref:t('pay_in'), dr:0, cr:r2(+pp.amt||0)}));
+    });
+  });
+  rows.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+  let run=0;
+  const body=rows.map(r=>{ run=r2(run+(r.dr||0)-(r.cr||0));
+    return `<div class="il"><span style="flex:1;min-width:0">${r.date?fmtDate(r.date):'\u2014'}
+        <div class="hint" style="white-space:normal">${esc(r.ref||'')}</div></span>
+      <span style="text-align:right;white-space:nowrap">
+        ${r.dr?`<b>${money(r.dr)}</b> Dr`:''}${r.cr?`<b>${money(r.cr)}</b> Cr`:''}
+        <div class="hint">${money(Math.abs(run))} ${run<0?'Cr':'Dr'}</div></span></div>`;
   }).join('');
   $('#sheet').innerHTML=`<div class="grip"></div>
-    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">📗 ${t('lg_title')}</h2>
-      <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
-    <p class="hint" style="margin-bottom:10px">${t('lg_sub')}</p>
-    <button class="btn primary block" style="margin-bottom:10px" onclick="ledgerEdit(null)">➕ ${t('lg_new')}</button>
-    <div class="field" style="margin-bottom:6px">
-      <input id="lgQ" value="${esc(_lgQ)}" placeholder="🔍 ${t('lg_search')}" oninput="lgSearch(this.value)" autocomplete="off"></div>
-    <p class="hint" style="margin-bottom:4px">${t('lg_count',{n:list.length})}</p>
-    ${blocks||`<div class="empty" style="padding:26px 10px"><p>${t('lg_none')}</p></div>`}
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F4D2} ${esc(l.name)}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
+    <p class="hint" style="margin-bottom:10px">${esc(G.label)} \u00B7 ${G.stmt==='bs'?t('lg_bs'):t('lg_pl')}</p>
+    <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
+      <div class="il" style="border-bottom:0"><span>${t('lg_closing')}</span>
+        <b style="font-size:18px">${money(Math.abs(run))} ${run<0?'Cr':'Dr'}</b></div></div>
+    ${rows.length?`<div class="card" style="padding:8px 12px;margin-bottom:12px">${body}</div>`
+      :`<div class="empty" style="padding:26px 10px"><p>${t('lg_no_rows')}</p></div>`}
+    <div class="row" style="gap:8px">
+      <button class="btn ghost" style="flex:1" onclick="sheetBack()">\u2190 ${t('back')}</button>
+      <button class="btn primary" style="flex:1" onclick="ledgerEdit('${jq(l.id)}')">\u270F\uFE0F ${t('lg_edit')}</button></div>
     <div class="fab-pad"></div>`;
   showSheet();
 }
@@ -24688,6 +24779,34 @@ function ledgerEdit(id){
         const dup=lgAll().find(l=>nameNorm(l.name)===nameNorm(nm) && (!ex||l.id!==ex.id));
         if(dup){ toast(t('lg_dup'),'bad'); return; }
         const rec=ex||{id:uid()};
+        /* v398 LIVE TEST — renaming a ledger brought the OLD name straight back. A ledger
+           called Rent is not only a row in this master: it is also the expense head the
+           entries are filed under, or the party a bill is made out to. Renaming here alone
+           left those untouched, and the next sync rebuilt the old name from them. So the
+           rename now reaches the source and carries the entries with it, exactly as the
+           Manage heads screen does. Names that come from somewhere with its own screen —
+           an account, a karigar, a staff member, a customer — are renamed there, and this
+           says so instead of half-doing it. */
+        if(ex && nameNorm(ex.name)!==nameNorm(nm)){
+          const oldNm=ex.name;
+          const src=(DB.accounts||[]).some(a=>nameNorm(a.name)===nameNorm(oldNm))?'acc'
+            :(DB.karigars||[]).some(k=>nameNorm(k.name)===nameNorm(oldNm))?'kar'
+            :(DB.staff||[]).some(k=>nameNorm(k.name)===nameNorm(oldNm))?'stf'
+            :(DB.customers||[]).some(k=>nameNorm(k.name)===nameNorm(oldNm))?'cus':'';
+          if(src){ toast(t('lg_rename_src'),'bad'); return; }
+          if((DB.expCats||[]).some(c=>nameNorm(c)===nameNorm(oldNm))){
+            DB.expCats=(DB.expCats||[]).map(c=>nameNorm(c)===nameNorm(oldNm)?nm:c);
+            DB.expHeadCfg=DB.expHeadCfg||{};
+            if(DB.expHeadCfg[oldNm]){ DB.expHeadCfg[nm]=DB.expHeadCfg[oldNm]; delete DB.expHeadCfg[oldNm]; }
+            (DB.ledger||[]).forEach(x=>{ if(nameNorm(x.cat)===nameNorm(oldNm))x.cat=nm; });
+          }
+          const pt=(DB.parties||[]).find(x=>nameNorm(x.name)===nameNorm(oldNm));
+          if(pt)pt.name=nm;
+          (DB.ledger||[]).forEach(x=>{ if(nameNorm(x.party)===nameNorm(oldNm))x.party=nm; });
+          (DB.purchases||[]).forEach(x=>{ if(nameNorm(x.supplier)===nameNorm(oldNm))x.supplier=nm; });
+          (DB.bankMap||{}) && Object.keys(DB.bankMap||{}).forEach(k=>{
+            if(nameNorm(DB.bankMap[k])===nameNorm(oldNm))DB.bankMap[k]=nm; });
+        }
         rec.name=nm; rec.group=g('lgGrp')||'indirect';
         rec.openAmt=r2(+g('lgOpen')||0); rec.openDir=g('lgDir'); rec.openDate=g('lgDate')||'';
         if(!ex)lgAll().push(rec);
