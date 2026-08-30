@@ -781,7 +781,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v401</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v403</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
@@ -2464,6 +2464,18 @@ dl_show_hidden:'Show hidden ({n})',
   sh_perf_sub:'Who sold how much, and how much of it came in',
   sh_master:'Staff master', sh_master_sub:'Names, salary, joining date',
   rps_entry:'Daily entry', rps_books:'Books', rps_people:'Parties & bank', rps_floor:'Shop floor', rps_staff:'People',
+  ho_title:'Move work between devices', ho_sub:'Take what the other device MADE and add it here. Nothing here is changed or removed.',
+  ho_send:'Send this device\u2019s work', ho_take:'Bring in the other device\u2019s work',
+  ho_limit:'New work travels \u2014 new orders, new bills, new entries. A change made to something that already exists on both sides does NOT travel. So keep one job on one device: orders here, billing there.',
+  ho_sent:'File saved \u2014 send it to the other device', ho_fail:'Could not make the file',
+  ho_bad_file:'That is not a Parampara handover file', ho_nothing:'Nothing new in that file',
+  ho_ask:'{n} new records are in that file:', ho_safe:'Nothing already here will be changed or deleted.',
+  ho_go:'Bring them in', ho_done:'{n} records added',
+  ho_l_orders:'Orders', ho_l_sales:'Bills', ho_l_purchases:'Purchases', ho_l_customers:'Customers',
+  ho_l_parties:'Parties', ho_l_ledger:'Money entries', ho_l_alterations:'Alterations',
+  ho_l_karigarPays:'Tailor payments', ho_l_ledgers:'Ledgers', ho_l_expCats:'Expense heads',
+  pty_no_match:'Nobody by that name',
+  dir_all:'All', dir_search:'Search a name or a kind...', dir_more:'{n} more — search to find them',
   lg_all_groups:'All groups', lg_closing:'Closing balance', lg_edit:'Edit ledger',
   lg_no_rows:'Nothing has gone through this ledger yet',
   ki_title:'Issue to a tailor', ki_sub:'Pick the man once, then tick everything going with him.',
@@ -4153,6 +4165,18 @@ dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
   sh_perf_sub:'किसने कितना बेचा, और कितना वसूला',
   sh_master:'स्टाफ़ मास्टर', sh_master_sub:'नाम, तनख़्वाह, जॉइनिंग',
   rps_entry:'रोज़ की entry', rps_books:'Books', rps_people:'पार्टी और बैंक', rps_floor:'दुकान का काम', rps_staff:'स्टाफ़',
+  ho_title:'दो device के बीच काम ले जाना', ho_sub:'दूसरे device ने जो बनाया वो यहाँ जोड़ दीजिए। यहाँ का कुछ बदलेगा या हटेगा नहीं।',
+  ho_send:'इस device का काम भेजें', ho_take:'दूसरे device का काम लें',
+  ho_limit:'नया काम जाता है \u2014 नए ऑर्डर, नए बिल, नई entry। जो चीज़ दोनों जगह पहले से है उसमें किया बदलाव नहीं जाता। इसलिए एक काम एक device पर रखिए: ऑर्डर यहाँ, बिलिंग वहाँ।',
+  ho_sent:'फ़ाइल बन गई \u2014 दूसरे device पर भेज दीजिए', ho_fail:'फ़ाइल नहीं बनी',
+  ho_bad_file:'ये PARAMPARA की handover फ़ाइल नहीं है', ho_nothing:'उस फ़ाइल में कुछ नया नहीं है',
+  ho_ask:'उस फ़ाइल में {n} नए record हैं:', ho_safe:'यहाँ जो पहले से है वो न बदलेगा न हटेगा।',
+  ho_go:'ले आइए', ho_done:'{n} record जुड़ गए',
+  ho_l_orders:'ऑर्डर', ho_l_sales:'बिल', ho_l_purchases:'ख़रीद', ho_l_customers:'ग्राहक',
+  ho_l_parties:'पार्टी', ho_l_ledger:'पैसे की entry', ho_l_alterations:'अल्टरेशन',
+  ho_l_karigarPays:'कारीगर पेमेंट', ho_l_ledgers:'Ledgers', ho_l_expCats:'ख़र्च के नाम',
+  pty_no_match:'इस नाम का कोई नहीं मिला',
+  dir_all:'सभी', dir_search:'नाम या किस्म खोजें…', dir_more:'{n} और — खोजिए',
   lg_all_groups:'सभी groups', lg_closing:'Closing balance', lg_edit:'Ledger बदलें',
   lg_no_rows:'इस ledger में अभी कोई entry नहीं गई',
   ki_title:'कारीगर को माल देना', ki_sub:'पहले कारीगर चुनिए, फिर जो-जो जा रहा है उस पर टिक कीजिए।',
@@ -21355,14 +21379,12 @@ function partyStatement(pid,kind){
   sheetAt(()=>partyStatement(pid,kind));
   const who=peopleAll();
   if(!pid){
-    $('#sheet').innerHTML=`<div class="grip"></div>
-      <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">📒 ${t('rp_party_stmt')}</h2>
-        <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
-      <p class="hint" style="margin-bottom:10px">${t('rp_pick_party')}</p>
-      <input id="psQ" placeholder="${t('exp_find_name')}" oninput="psFilter(this.value)" autocomplete="off">
-      <div id="psList" style="margin-top:10px">${psRows(who)}</div>
-      <div class="fab-pad"></div>`;
-    showSheet(); return;
+    /* v403: the screenshot he sent — every name in the shop on one scroll. Same names,
+       same data, now behind the one directory shape. */
+    _dirRedraw=()=>partyStatement();
+    dirPick({key:'ps', icon:'📒', title:t('rp_party_stmt'), sub:t('rp_pick_party'),
+      list:who, onPick:p=>`partyStatement('${jq(p.id)}','${jq(p.kind)}')`});
+    return;
   }
   const p=who.find(x=>x.id===pid&&x.kind===kind)||who.find(x=>x.id===pid);
   if(!p){ toast(t('pt_no_bal'),'bad'); return; }
@@ -21392,6 +21414,70 @@ function partyStatement(pid,kind){
   showSheet();
 }
 const PK_LBL={karigar:'eh_karigar',staff:'st_title',supplier:'eh_supplier',customer:'eh_customer',other:'pt_other'};
+/* ══════════════════ v403 — ONE PATTERN FOR EVERY "PICK A NAME" SCREEN ══════════════════
+   HIS 29 Aug, and he is right: "tumne abhi tak koi solid system nahi banaya hai... sab
+   kuch bikhra hua sa hi hai." I fixed faults and added screens, but I never fixed a SHAPE,
+   so every screen I touched came out looking like its own thing. That is the real
+   complaint and it is fair.
+   From here there is one shape, and it is the one that already worked on the Ledger
+   master: a search box, then the KINDS as one line each with a count, then the names
+   inside a kind — capped, never a scroll of five thousand. Search cuts across everything.
+   dirPick() is that shape. It takes a list of {id,name,kind} and an onPick, and every
+   name-picking screen in the app is meant to call it, so they can never drift apart. */
+const DIR_ORDER=['customer','supplier','karigar','staff','other'];
+let _dir={q:'',kind:'',key:''};
+function dirReset(key){ if(_dir.key!==key){ _dir={q:'',kind:'',key:key}; } }
+function dirPick(o){
+  /* o = {key, title, icon, sub, list, onPick, iconOf, lblOf} */
+  dirReset(o.key);
+  const iconOf=o.iconOf||(p=>PK_ICON[p.kind]||'📒');
+  const lblOf =o.lblOf ||(p=>t(PK_LBL[p.kind]||'pt_other'));
+  const all=(o.list||[]).filter(p=>p&&p.name);
+  const q=String(_dir.q||'').trim().toLowerCase();
+  const CAP=25;
+  const row=p=>`<div class="kv card" style="padding:10px 12px;margin-bottom:6px;cursor:pointer"
+      onclick="${o.onPick(p)}"><span style="flex:1;min-width:0"><b>${iconOf(p)} ${esc(p.name)}</b></span>
+      <span class="hint">${esc(lblOf(p))}</span></div>`;
+  let body='', note='';
+  if(q){
+    const hits=all.filter(p=>String(p.name).toLowerCase().includes(q)
+      || String(lblOf(p)).toLowerCase().includes(q));
+    body = hits.length ? hits.slice(0,60).map(row).join('')
+      : `<div class="empty" style="padding:26px 10px"><div class="big">🔍</div><p>${t('lg_none')}</p></div>`;
+    if(hits.length>60)note=t('dir_more',{n:hits.length-60});
+  } else if(_dir.kind){
+    const inK=all.filter(p=>(p.kind||'other')===_dir.kind).sort((a,b)=>a.name.localeCompare(b.name));
+    body = `<button class="btn sm ghost" style="margin-bottom:8px" onclick="dirBack()">← ${t('dir_all')}</button>`
+      + inK.slice(0,CAP).map(row).join('');
+    if(inK.length>CAP)note=t('dir_more',{n:inK.length-CAP});
+  } else {
+    body = DIR_ORDER.map(k=>{
+      const n=all.filter(p=>(p.kind||'other')===k).length; if(!n)return '';
+      return `<div class="kv card" style="padding:11px 13px;margin-bottom:6px;cursor:pointer"
+          onclick="dirKind('${k}')"><span style="flex:1;min-width:0">
+            <b>${PK_ICON[k]||'📒'} ${esc(t(PK_LBL[k]||'pt_other'))}</b>
+            <div class="hint">${t('lg_count',{n:n})}</div></span>
+          <span style="color:var(--saffron2)">›</span></div>`;
+    }).join('');
+  }
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">${o.icon||'📒'} ${esc(o.title)}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
+    ${o.sub?`<p class="hint" style="margin-bottom:10px">${esc(o.sub)}</p>`:''}
+    <div class="field" style="margin-bottom:8px">
+      <input id="dirQ" value="${esc(_dir.q)}" placeholder="🔍 ${t('dir_search')}"
+        oninput="dirSearch(this.value)" autocomplete="off"></div>
+    ${note?`<p class="hint" style="margin-bottom:6px">${esc(note)}</p>`:''}
+    ${body}
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+let _dirRedraw=null;
+function dirSearch(v){ _dir.q=String(v||''); _dir.kind=''; if(_dirRedraw)_dirRedraw();
+  setTimeout(()=>{const e=$('#dirQ'); if(e){const x=e.value;e.focus();
+    try{e.setSelectionRange(x.length,x.length);}catch(err){}}},0); }
+function dirKind(k){ _dir.kind=k; _dir.q=''; if(_dirRedraw)_dirRedraw(); }
+function dirBack(){ _dir.kind=''; if(_dirRedraw)_dirRedraw(); }
 function psRows(list){
   return list.map(p=>`<div class="card" style="padding:10px 12px;margin-bottom:6px;cursor:pointer"
     onclick="partyStatement('${p.id}','${p.kind}')">
@@ -25030,7 +25116,7 @@ function partiesHome(keep){
      held while he is standing on it. Without this he came back to the screen an hour later,
      saw "Nobody yet", and had no idea an old search was still filtering it. ptySearch()
      re-renders the rows only, so typing is untouched. */
-  if(!keep){ _ptyQ=''; _ptyOpen={}; }
+  if(!keep){ _ptyQ=''; _ptyOpen={}; _ptyAll={}; }
   sheetAt(()=>partiesHome(1));
   const rows=partiesRows();
   $('#sheet').innerHTML=`<div class="grip"></div>
@@ -25058,8 +25144,13 @@ function ptySearch(v){ _ptyQ=String(v||''); const el=$('#ptyList'); if(el)el.inn
    Right — an accountant does not keep one list of everybody. Two headings, the money owed
    and the money owing, each name under the correct one, and anyone with no balance at the
    foot. Same rows, same taps, same data: only sorted the way the books are read. */
-let _ptyOpen={};
-function ptyMore(k){ _ptyOpen[k]=!_ptyOpen[k]; partiesHome(); }
+let _ptyOpen={}, _ptyAll={};
+/* v403 LIVE TEST — tapping a heading did nothing. ptyMore flipped the open flag and then
+   called partiesHome() with no argument, and that call clears _ptyOpen on the way in
+   because opening the screen fresh is supposed to fold everything back up. Opening a
+   section is not opening the screen; it must keep what he has just asked for. */
+function ptyMore(k){ _ptyOpen[k]=!_ptyOpen[k]; if(!_ptyOpen[k])_ptyAll[k]=false; partiesHome(1); }
+function ptyShowAll(k){ _ptyAll[k]=true; partiesHome(1); }
 function partiesRows(){
   const q=pkNorm(_ptyQ);
   let who=peopleAll();
@@ -25143,22 +25234,52 @@ function partiesRows(){
   /* A page with two hundred names on it cannot be read. Each heading shows its first few
      and says how many more are behind it; searching still looks through every one. */
   const CUT=8;
+  /* v403 LIVE TEST — opening a heading poured all forty names out again, because ONE flag
+     was doing two jobs: "this section is open" and "show every row in it". Forty is the
+     same wall he complained about, just one tap later. They are two different things now —
+     opening a section shows the first few, and "N more" inside it shows the rest. */
   const blockCut=(list,key)=>{
-    if(q||_ptyOpen[key]||list.length<=CUT)return block(list);
+    if(q||_ptyAll[key]||list.length<=CUT)return block(list);
     return block(list.slice(0,CUT))
-      + `<button class="btn sm ghost block" style="margin:2px 0 10px" onclick="ptyMore('${key}')">
+      + `<button class="btn sm ghost block" style="margin:2px 0 10px" onclick="ptyShowAll('${key}')">
            ${t('pty_more',{n:list.length-CUT})}</button>`;
   };
+  /* v403 — HIS 29 Aug, with the screenshot: "creditors kahan dikhai de rahe hain? Page
+     poora bhar gaya." He is right, and it is the same thing he has now said three times.
+     Five debtors already pushed the creditors clean off the screen; with two hundred names
+     nobody would ever reach them. A list that opens fully expanded is not a directory.
+     So this screen now behaves like the Ledger master, which he liked: one line per
+     heading with its count and its total, and nothing opened until he asks for it. Tap a
+     heading and only that group opens. Type in the search box and it looks through every
+     name in every group at once, expanded, because then he has told it what he wants.
+     Nothing is removed and nothing is hidden from search — it simply stops showing him two
+     hundred rows he did not ask for. */
   const out=[];
-  if(cred.length)out.push(head('📤',t('pty_cred'),cred.length,sum(cred),'var(--bad)')+blockCut(cred,'cred'));
-  if(debt.length)out.push(head('📥',t('pty_debt'),debt.length,sum(debt),'var(--ok)')+blockCut(debt,'debt'));
-  if(kar.length)out.push(head('👷',t('pty_kar'),kar.length,sum(kar),'var(--saffron2)')+blockCut(kar,'kar'));
-  if(stf.length)out.push(head('👥',t('pty_stf'),stf.length,sum(stf),'var(--saffron2)')+blockCut(stf,'stf'));
-  if(flat.length && !q){
-    out.push(`<button class="btn sm ghost block" style="margin-top:14px" onclick="ptyMore('flat')">
-      ${_ptyOpen.flat?'▴':'▾'} ${t('pty_flat')} (${flat.length})</button>`);
-    if(_ptyOpen.flat)out.push(block(flat));
-  } else if(flat.length) out.push(head('▫️',t('pty_flat'),flat.length,0,'var(--mut)')+block(flat));
+  const SEC=[['cred','📤',t('pty_cred'),cred,'var(--bad)'],
+             ['debt','📥',t('pty_debt'),debt,'var(--ok)'],
+             ['kar','👷',t('pty_kar'),kar,'var(--saffron2)'],
+             ['stf','👥',t('pty_stf'),stf,'var(--saffron2)'],
+             ['flat','▫️',t('pty_flat'),flat,'var(--mut)']];
+  if(q){
+    /* he has typed — show every match, grouped, nothing folded away */
+    SEC.forEach(([key,ico,lbl,list,col])=>{
+      if(!list.length)return;
+      out.push(head(ico,lbl,list.length,sum(list),col)+block(list));
+    });
+    if(!out.length)out.push(`<p class="hint" style="padding:20px 4px;text-align:center">${t('pty_no_match')}</p>`);
+    return out.join('');
+  }
+  SEC.forEach(([key,ico,lbl,list,col])=>{
+    if(!list.length)return;
+    const open=!!_ptyOpen[key];
+    out.push(`<div class="kv card" style="padding:11px 13px;margin-bottom:6px;cursor:pointer"
+        onclick="ptyMore('${key}')">
+        <span style="flex:1;min-width:0"><b>${ico} ${esc(lbl)}</b>
+          <div class="hint">${t('lg_count',{n:list.length})}</div></span>
+        <span style="text-align:right"><b style="color:${col}">${key==='flat'?'':money(r2(sum(list)))}</b>
+          <div class="hint">${open?'▴':'▾'}</div></span></div>`);
+    if(open)out.push(blockCut(list,key));
+  });
   return out.join('');
 }
 /* v400 — ONE balance for a party, used by the heading, the row and the sorting alike.
@@ -26378,6 +26499,7 @@ function backupMenu(){
       <button class="btn ghost block" onclick="closeModal();zipBackup()">🗜️ ${t('bk_take')}</button>
       <button class="btn ghost block" onclick="photoBackup()">🖼️ ${t('pb_title')}</button>
       <button class="btn ghost block" onclick="restoreSnapshotMenu()">🕑 ${t('restore_auto')}</button>
+      <button class="btn ghost block" style="margin-top:8px" onclick="handoverScreen()">🔁 ${t('ho_title')}</button>
       <button class="btn ghost block" onclick="stockAudit()">🩺 ${t('au_title')}</button>
     </div>
     <button class="btn sm ghost block" style="margin-top:10px" id="bkMoreBtn" onclick="bkMoreToggle()">${t('bk_more')}</button>`,
@@ -26950,6 +27072,106 @@ async function photoBackupPart(i){
   }finally{ _pbBusy=false; _bkWhat=''; }
 }
 const FLUSH_BYTES=8*1024*1024;      // how much base64 may sit in JS memory at one time
+/* ══════════════════ v402 — TWO DEVICES, ONE SHOP ══════════════════
+   HIS 29 Aug: "order iPad par, bill laptop par — sync kaise hoga?"
+   The honest answer is that true two-way sync needs every bill and every ledger line to be
+   its own document with its own timestamp, and today they travel together in one block.
+   That is a real piece of work and it is not the thing to start on a day when he has five
+   months of entry to key in.
+   What DOES work today is this: each device creates its OWN records. The iPad writes
+   orders and measurements, the laptop writes bills. Nothing is edited in two places, so
+   nothing has to be reconciled — the two piles only need to be put together.
+   So this brings across what the other device MADE and never touches what this one has.
+   A record already here is left exactly as it is; a record that is missing is added;
+   nothing is ever removed. He is told what is coming before it lands. The limit is stated
+   plainly on the screen: an EDIT made on the other side does not travel, only new work. */
+const HO_LISTS=['orders','sales','purchases','alterations','customers','parties','ledger',
+  'ledgers','karigarPays','estimates','salesReturns','purchaseReturns','journals',
+  'karigars','staff','accounts','items','thaans','salesmen','alterationPays'];
+function hoCount(inc){
+  const out={}; let total=0;
+  HO_LISTS.forEach(k=>{
+    const mine=(DB[k]||[]), theirs=(inc[k]||[]);
+    if(!Array.isArray(theirs)||!theirs.length)return;
+    const have={}; mine.forEach(r=>{ if(r&&r.id)have[r.id]=1; });
+    const add=theirs.filter(r=>r&&r.id&&!have[r.id]).length;
+    if(add){ out[k]=add; total+=add; }
+  });
+  const cats=(inc.expCats||[]).filter(c=>(DB.expCats||[]).indexOf(c)<0).length;
+  if(cats){ out.expCats=cats; total+=cats; }
+  return {out,total};
+}
+function hoApply(inc){
+  let n=0;
+  HO_LISTS.forEach(k=>{
+    const theirs=(inc[k]||[]); if(!Array.isArray(theirs)||!theirs.length)return;
+    DB[k]=DB[k]||[];
+    const have={}; DB[k].forEach(r=>{ if(r&&r.id)have[r.id]=1; });
+    theirs.forEach(r=>{ if(r&&r.id&&!have[r.id]){ DB[k].push(r); have[r.id]=1; n++; } });
+  });
+  (inc.expCats||[]).forEach(c=>{ DB.expCats=DB.expCats||[];
+    if(DB.expCats.indexOf(c)<0){ DB.expCats.push(c); n++; } });
+  DB.expHeadCfg=DB.expHeadCfg||{};
+  Object.keys(inc.expHeadCfg||{}).forEach(k=>{ if(!DB.expHeadCfg[k])DB.expHeadCfg[k]=inc.expHeadCfg[k]; });
+  /* the running serial must never step backwards on either machine */
+  if(inc.numHW && (!DB.numHW || inc.numHW>DB.numHW))DB.numHW=inc.numHW;
+  return n;
+}
+function handoverScreen(){
+  sheetAt(handoverScreen);
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F501} ${t('ho_title')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
+    <p class="hint" style="margin-bottom:10px;white-space:normal">${t('ho_sub')}</p>
+    <button class="btn primary block" style="margin-bottom:10px" onclick="handoverSend()">\u{1F4E4} ${t('ho_send')}</button>
+    <label class="btn ghost block" style="margin-bottom:14px;text-align:center;cursor:pointer">
+      \u{1F4E5} ${t('ho_take')}
+      <input type="file" accept=".json,application/json" style="display:none"
+        onchange="handoverTake(this.files&&this.files[0])"></label>
+    <div class="card" style="padding:12px"><p class="hint" style="white-space:normal;margin:0">
+      \u26A0\uFE0F ${t('ho_limit')}</p></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+async function handoverSend(){
+  try{
+    await flushDBNow();
+    const blob=new Blob([JSON.stringify({__ho:1, ts:Date.now(), db:DB})],{type:'application/json'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='parampara-handover-'+todayISO()+'.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    toast(t('ho_sent'),'ok');
+  }catch(e){ toast(t('ho_fail'),'bad'); }
+}
+function handoverTake(file){
+  if(!file)return;
+  const fr=new FileReader();
+  fr.onload=()=>{
+    let inc=null;
+    try{ const raw=JSON.parse(String(fr.result||''));
+      inc=(raw&&raw.db)?raw.db:raw; }catch(e){ toast(t('ho_bad_file'),'bad'); return; }
+    if(!inc||typeof inc!=='object'||!(inc.orders||inc.sales||inc.ledger)){ toast(t('ho_bad_file'),'bad'); return; }
+    const {out,total}=hoCount(inc);
+    if(!total){ toast(t('ho_nothing'),'ok'); return; }
+    const lines=Object.keys(out).map(k=>`<div class="il"><span>${esc(t('ho_l_'+k)!=='ho_l_'+k?t('ho_l_'+k):k)}</span><b>+${out[k]}</b></div>`).join('');
+    modal('\u{1F4E5} '+t('ho_take'),
+      `<p class="hint" style="white-space:normal;margin-bottom:8px">${t('ho_ask',{n:total})}</p>
+       <div class="card" style="padding:8px 12px">${lines}</div>
+       <p class="hint" style="white-space:normal;margin-top:8px">${t('ho_safe')}</p>`,
+      [{label:t('cancel'),cls:'ghost',fn:closeModal},
+       {label:t('ho_go'),cls:'primary',fn:()=>{
+          const n=hoApply(inc);
+          try{ lgSync(); }catch(e){}
+          _coreDirty=true; _dbDirty=true;
+          (DB.orders||[]).forEach(o=>{ try{ touchOrder(o.id); }catch(e){} });
+          save(); closeModal(); toast(t('ho_done',{n:n}),'ok');
+          go('home'); renderHome();
+       }}]);
+  };
+  fr.readAsText(file);
+}
 async function buildBackupBlob(dataOnly){
   _bkCancel=false;
   let parts=['{"__v":2,"db":', JSON.stringify(DB), ',"media":{'];
