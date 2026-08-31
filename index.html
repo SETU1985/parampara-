@@ -709,6 +709,29 @@
   .home-stat{flex:1;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:12px 8px;text-align:center}
   .hs-val{font-size:20px;font-weight:800;color:var(--txt)}
   .hs-lbl{font-size:11px;color:var(--txt2);margin-top:3px}
+  /* v419 — HIS 31 Aug: "to collect aur today's sale ko thoda chhota kar do." Two figures he
+     glances at, taking the height of a full card each. Trimmed, not removed: the same taps,
+     the same drill-downs, about a third less of the first screen. What that room is for is
+     directly below — the attendance strip. */
+  .kpi-grid .home-stat{padding:7px 6px}
+  .kpi-grid .hs-val{font-size:15px}
+  .kpi-grid .hs-lbl{font-size:10px;margin-top:1px}
+  /* the attendance strip: one chip per person, tap to mark in, tap again to mark out */
+  /* v421: the add confirmation inside the item search */
+  .pos-added-bar{background:rgba(30,122,52,.16);border:1px solid var(--ok);color:var(--txt);
+    border-radius:10px;padding:8px 11px;font-size:13.5px;font-weight:700}
+  .pos-pop{animation:posPop .18s ease-out}
+  @keyframes posPop{from{transform:scale(.94);opacity:.4}to{transform:scale(1);opacity:1}}
+  .att-strip{display:flex;gap:6px;overflow-x:auto;padding:2px 0 6px;margin-bottom:12px;
+    -webkit-overflow-scrolling:touch}
+  .att-chip{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:2px;
+    padding:7px 11px;border:1px solid var(--line);border-radius:999px;background:var(--card);
+    font-size:12px;font-weight:700;color:var(--txt);cursor:pointer;
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
+  .att-chip .ac-t{font-size:10px;font-weight:600;color:var(--txt2)}
+  .att-chip.in{border-color:var(--ok)}
+  .att-chip.done{border-color:var(--line);opacity:.62}
+  .att-chip:active{transform:scale(.95)}
   .home-sec-title{font-size:14px;font-weight:700;color:var(--txt2);margin:18px 0 10px;text-transform:uppercase;letter-spacing:.5px}
   .home-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .home-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:22px 10px;cursor:pointer;transition:.15s;color:var(--txt)}
@@ -786,7 +809,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v414</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v424</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -1335,6 +1358,7 @@ const T={
   pos_more:'More options',
   pos_no_items:'No item in your master yet. Tap “+ New item”.',
   pos_from_order:'From order',
+  inv_items_1:'1 item',
   inv_items_n:'{n} items',
   pos_add_item:'Search item',
   pos_manage_items:'Edit / delete items',
@@ -1494,6 +1518,19 @@ const T={
   pur_unpaid_ask:'Remove the payment recorded on {n} bill(s)? They go back to being unpaid.',
   pur_unpaid_back:'Goes back into cash / bank', pur_unpaid_done:'{n} bill(s) marked unpaid \u00B7 {a} returned',
   pur_unpaid_note:'The bill, its items, stock and tax are untouched. Only the receipt that never happened is removed.',
+  ki_k_silai:'Stitching', ki_k_emb:'Embroidery',
+  ki_emb_hint:'Embroidery is priced on the work \u2014 fill the rate when it comes back.',
+  jr_title:'This piece so far', jr_now:'with {n} now', jr_since:'{n}d',
+  pos_added_in:'added to the bill',
+  sr_ot_days:'days', sr_ot_worth:'Overtime is worth',
+  pn_ask_in:'Mark arrival at {t}?', pn_ask_out:'Mark leaving at {t}?',
+  pn_day_done:'Already marked \u2014 {i} to {o}. Hold the name to correct it.',
+  pn_out_auto:'No out time was marked, so the shop closing time {t} is filled in. Change it if he left earlier.',
+  pt_rename_title:'Rename everywhere?',
+  pt_rename_msg:'{c} saved records still say \u201C{o}\u201D \u2014 bills, opening balance and payments. Change them all to \u201C{n}\u201D? No amount changes.',
+  pt_renamed:'Renamed on {c} records', pt_rename_clash:'Another party already has that name',
+  jv_neg:'A voucher cannot carry a minus \u2014 put the amount on the other side instead',
+  jv_nomove:'This entry moves nothing \u2014 the same account is on both sides',
   pay_this_month:'Earned this month',
   pay_title:'Payroll', pay_sub:'What each person has earned, drawn, and what is left between you.',
   pay_earned:'Earned', pay_drawn:'Drawn', pay_baaki:'You owe him', pay_owes_shop:'He owes the shop',
@@ -3074,6 +3111,7 @@ dl_show_hidden:'Show hidden ({n})',
   pos_more:'और विकल्प',
   pos_no_items:'मास्टर में अभी कोई आइटम नहीं। “+ नया आइटम” दबाएँ।',
   pos_from_order:'ऑर्डर से',
+  inv_items_1:'1 आइटम',
   inv_items_n:'{n} आइटम',
   pos_add_item:'आइटम खोजें',
   pos_manage_items:'आइटम एडिट / डिलीट करें',
@@ -3234,6 +3272,19 @@ dl_show_hidden:'Show hidden ({n})',
   pur_unpaid_ask:'{n} बिल पर दर्ज भुगतान हटा दें? वे फिर से उधार हो जाएँगे।',
   pur_unpaid_back:'नकद / बैंक में वापस', pur_unpaid_done:'{n} बिल उधार किए \u00B7 {a} वापस',
   pur_unpaid_note:'बिल, उसके आइटम, स्टॉक और टैक्स पर कोई असर नहीं। सिर्फ़ वह भुगतान हटेगा जो हुआ ही नहीं था।',
+  ki_k_silai:'सिलाई', ki_k_emb:'कढ़ाई',
+  ki_emb_hint:'कढ़ाई का रेट काम देखकर बनता है \u2014 वापस आने पर भर दीजिए।',
+  jr_title:'इस पीस का अब तक का सफ़र', jr_now:'अभी {n} के पास', jr_since:'{n} दिन',
+  pos_added_in:'बिल में जुड़ गया',
+  sr_ot_days:'दिन', sr_ot_worth:'ओवरटाइम का मूल्य',
+  pn_ask_in:'{t} पर आया हुआ लगा दें?', pn_ask_out:'{t} पर गया हुआ लगा दें?',
+  pn_day_done:'पहले से लगा है \u2014 {i} से {o}। ठीक करना हो तो नाम दबाए रखिए।',
+  pn_out_auto:'जाने का समय नहीं लगा था, इसलिए दुकान बंद होने का समय {t} भर दिया है। जल्दी गया हो तो बदल दीजिए।',
+  pt_rename_title:'हर जगह नाम बदलें?',
+  pt_rename_msg:'{c} रिकॉर्ड में अब भी \u201C{o}\u201D लिखा है \u2014 बिल, शुरुआती बाकी और भुगतान। सबको \u201C{n}\u201D कर दें? कोई रकम नहीं बदलेगी।',
+  pt_renamed:'{c} रिकॉर्ड में नाम बदला', pt_rename_clash:'यह नाम पहले से किसी और पार्टी का है',
+  jv_neg:'वाउचर में माइनस नहीं चलता \u2014 रकम दूसरी तरफ़ लिखिए',
+  jv_nomove:'इस एंट्री से कुछ हिलता नहीं \u2014 एक ही खाता दोनों तरफ़ है',
   pay_this_month:'इस महीने बना',
   pay_title:'वेतन', pay_sub:'हर आदमी ने कितना कमाया, कितना उठाया, और अब कितना बाकी है।',
   pay_earned:'बना', pay_drawn:'उठाया', pay_baaki:'आपको देना है', pay_owes_shop:'उसे देना है',
@@ -8741,8 +8792,26 @@ function expSyncKarigar(lid){
   DB.karigarPays=DB.karigarPays||[];
   const tag='exp:'+lid;
   DB.karigarPays=DB.karigarPays.filter(p=>p.id!==tag);          // rebuild, never duplicate
-  if(l.partyKind==='karigar' && l.partyId){
-    DB.karigarPays.push({id:tag, karigarId:l.partyId, date:l.date, amt:r2(+l.amt||0),
+  /* ══════════ v423 — HIS 31 Aug: "kahin se bhi karigar ka naam daal kar payment diya to
+     uske LEDGER me dikhna chahiye" ══════════
+     Reproduced: an expense on the Job Worker head carrying the name "Samsul" but no party
+     picked from the list. ₹500 left the drawer, the cash book was right, and his balance
+     did not move by a paisa. Next Saturday the shop would have believed it still owed him
+     that ₹500 — or, seen from his side, he would have been paid twice for it.
+     The link was by id alone. An id is only there when the name was chosen from the list;
+     type it by hand, or bring it in from an older record or a handover, and there is no id
+     at all. So when the head says karigar and the id is missing, the NAME is matched
+     against the tailor master — the same normalised match the rest of the app uses for
+     parties. An id, when present, still wins. If the name matches nobody, nothing is
+     invented: it stays an ordinary expense, exactly as before. */
+  let kid=l.partyId||'';
+  if(!kid && pkNorm(l.partyKind)==='karigar'){
+    const n=nameNorm(l.party);
+    const hit=n?(DB.karigars||[]).find(k=>nameNorm(k.name)===n):null;
+    if(hit)kid=hit.id;
+  }
+  if(pkNorm(l.partyKind)==='karigar' && kid){
+    DB.karigarPays.push({id:tag, karigarId:kid, date:l.date, amt:r2(+l.amt||0),
       settled:0, acc:l.acc||'', note:l.note||l.cat||'', fromExpense:true});
   }
 }
@@ -11624,6 +11693,42 @@ function setupSave(){
    and a "purana home" link keeps the old layout reachable until his hands trust the new
    one — the golden rule was never to move a thing and burn the bridge in the same
    release. */
+/* ── the Home attendance strip ─────────────────────────────────────────────
+   Marking is the same punchTap the sheet uses, so there is one way in and one way out and
+   they can never drift apart. Holding a chip opens the same correction dialog. */
+function attStripHTML(){
+  const d=todayISO(), all=staffAll().filter(x=>!x.left);
+  let inN=0;
+  const chips=all.map(st=>{
+    const a=attGet(st.id,d)||{};
+    const cls=a.out?'done':(a.in?'in':'');
+    if(a.in&&!a.out)inN++;
+    const sub=a.out?(esc(a.in)+'\u2013'+esc(a.out)):(a.in?esc(a.in):t('pn_tap_me'));
+    return `<div class="att-chip ${cls}" onclick="attChipTap('${st.id}')"
+      ontouchstart="punchHoldStart('${st.id}')" ontouchend="punchHoldEnd()"
+      ontouchmove="punchHoldEnd()" ontouchcancel="punchHoldEnd()"
+      oncontextmenu="event.preventDefault();punchFixAsk('${st.id}');return false;"
+      ><span>${esc(st.name.split(' ')[0])}</span><span class="ac-t">${sub}</span></div>`;
+  }).join('');
+  return `<div class="kv" style="margin:0 0 6px">
+      <span class="home-sec-title" style="margin:0">\u{1F465} ${t('pn_title')}</span>
+      <span class="hint" style="cursor:pointer" onclick="staffPunch()">${inN}/${all.length} \u203A</span></div>
+    <div class="att-strip">${chips}</div>`;
+}
+/* v419: the chip asks before it writes. He was explicit — "ten thirty AM hai, ok kiya,
+   attendance ho gaya" — so the time is SHOWN and agreed, never stamped behind him. One tap
+   marks in, the next marks out; a day already closed says so instead of doing nothing. */
+function attChipTap(sid){
+  const st=staffById(sid); if(!st)return;
+  const d=todayISO(), a=attGet(sid,d)||{}, now=nowHHMM();
+  if(a.in&&a.out){ toast(t('pn_day_done',{i:a.in,o:a.out}),'ok'); return; }
+  const going=!!a.in;
+  confirmModal('\u{1F465} '+esc(st.name),
+    (going?t('pn_ask_out',{t:now}):t('pn_ask_in',{t:now})),
+    ()=>{ closeModal(); punchTap(sid); },
+    ()=>closeModal(),
+    {yes:t('ok'), no:t('cancel')});
+}
 function kpiCardsHTML(){
   if(localStorage.getItem('pp_home_classic')==='1')return '';
   let cash=0; (DB.accounts||[]).forEach(a=>{ cash+=accBalance(a.id); });
@@ -11916,8 +12021,14 @@ function menuHome(){
       row('👤',t('st_title'),"staffMaster()"),
       row('👥',t('pn_title'),"staffPunch()"),
       row('📄',t('srp_title'),"staffReport()")])}
-    ${sec('📖 '+t('cat_title'),[
-      row('📖',t('cat_title'),"catalogue()"),
+    ${/* v421 — HIS 31 Aug: "catalog hata do, app me kahin catalogue nahi chahiye mere ko.
+         filhaal, baad me dekhenge." So the door is closed, not the room demolished. This
+         was the only way into it in the whole app, so removing this one row takes it off
+         every screen. Every catalogue function, every folder and every photo he has already
+         saved stays exactly where it is and is still in the backup — putting the row back
+         is a one-line change on the day he wants it. Customers keeps its own row, since it
+         only shared this heading. */''}
+    ${sec('👥 '+t('nav_customers'),[
       row('👥',t('nav_customers'),"go('customers')")])}
     ${modOn('billing')?sec('📊 '+t('reports'),[
       row('📊',t('reports'),"go('reports')"),
@@ -12029,10 +12140,15 @@ function renderHome(){
            opened that screen. It was the only use of modOn('staff') in the whole app: a
            lock with no key, and attendance sat behind it invisible.
            The right test is the plain one — are there any staff to mark? */''}
-      ${(homeOn('attend')&&staffAll().filter(x=>!x.left).length)?`
-        <button class="btn ghost block home-big" onclick="staffPunch()">
-          <span style="font-size:22px">👥</span>
-          <span style="font-size:16px;font-weight:800">${t('pn_title')}</span></button>`:''}
+      ${/* v419 — HIS 31 Aug: "attendance bhi saare staff ka chip ho gaya. Ramesh ne apna
+           click kiya, ten thirty AM hai, ok kiya, attendance ho gaya."
+           The big button was one more tap on the way to the thing itself. Six people, six
+           chips, right on Home: tap your name and the time on the chip is the time on the
+           clock. Tap again when you leave. The chip carries its own state — plain before
+           you arrive, green while you are in, faded once you have gone — so the whole shop
+           can be read at a glance without opening anything. The full sheet is still there
+           for corrections, one tap away on the count at the end. */''}
+      ${(homeOn('attend')&&staffAll().filter(x=>!x.left).length)?attStripHTML():''}
     ${/* v262: the "Old home" link is retired from this screen. It was a migration escape
          hatch from the bottom-nav rollout and it has done its job — he has been on the new
          Home for twenty versions. A permanent link back to a layout nobody uses is one more
@@ -12280,6 +12396,14 @@ function renderOrders(keepFocus){
     ||String(o.orderNo).toLowerCase().includes(q)
     /* v368: he hunts a bill by the figure he remembers as often as by the name */
     ||String(Math.round(+orderTotal(o)||0)).includes(q)
+    /* v418 — FOUND BY TESTING EVERY IDENTIFIER AGAINST EVERY LIST: a purchase can be found
+       by its bill number, an order could not. A customer rings holding the bill and reads
+       out INV/2026-27/019; the order carrying that invoice did not come up on any search,
+       here or from the Home box. The number is printed on the paper in his hand and on the
+       WhatsApp message the shop sent him, so it is one of the few things he can be relied
+       on to quote. Matched on the whole number and on the running part alone, because
+       nobody reads out the year. */
+    ||String((o.invoice&&o.invoice.no)||'').toLowerCase().includes(q)
     ||(o.members||[]).some(m=>String(m.ono||'').toLowerCase().includes(q))
     ||(o.members||[]).some(m=>String(m.name||'').toLowerCase().includes(q)));
   const chips=[['all','f_all'],['pending','f_pending'],['today','f_today'],['tomorrow','f_tomorrow'],['week','f_week']]
@@ -15347,8 +15471,34 @@ async function openDetail__inner(id,focusGid){
       return `<span class="stage ${now?'now':(done?'done':'')}" onclick="setItemStatus('${o.id}','${gid}','${s}')">${done?'✓ ':''}${sLabel(s)}</span>`
         + (i<STATUS.length-1?`<span class="stage-arw">›</span>`:'');
     }).join('')}</div>`;
+    /* ══════════ v422 — THE PIECE'S OWN JOURNEY ══════════
+       HIS 31 Aug, describing how the shop really runs: a coat goes to the master to be cut
+       and marked, comes back, goes to the embroidery man, comes back, goes to the master
+       again to be stitched and finished. Three trips, two men, one piece. Every one of
+       those legs was already being recorded in o.jobs — who, out, in, how much — and none
+       of it was shown. The line here said "Samsul ✓ → Iqbal ✓" and nothing else: no dates,
+       no amounts, no what-for, and no word on where the piece is standing right now.
+       In October, with thirty pieces out and a customer on the phone asking where his
+       sherwani is, that line has to answer. So it does: every leg with its date, its kind
+       of work and what it cost, and the open leg at the bottom saying who is holding it
+       and for how many days. Nothing new is stored — this is the record finally read out. */
     const legs=((o.jobs&&o.jobs[gid])||[]);
-    const legLine=legs.length?`<div class="hint" style="margin-top:4px">🧵 ${legs.map(l=>esc(karigarName(l.kid))+' ✓').join(' → ')}</div>`:'';
+    const _kNow=(o.assign&&o.assign[gid])||'';
+    const _outOn=(o.issued&&o.issued[gid])||'';
+    const _backOn=karRecvDate(o,gid);
+    const _kindOf=k=>k==='emb'?('\u2728 '+t('ki_k_emb')):('\u{1F9F5} '+t('ki_k_silai'));
+    const _row=(who,kind,a,bDate,amt,open)=>`<div class="kv" style="padding:3px 0;font-size:12px">
+        <span>${open?'\u25CF ':''}<b>${esc(who)}</b> <span class="hint">${kind}</span></span>
+        <span class="hint">${a?fmtDate(a):''}${bDate?(' \u2192 '+fmtDate(bDate)):(open?(' \u2192 '+t('jr_since',{n:a?Math.max(0,-daysLeft(a)):0})):'')}${amt?(' \u00B7 '+money(amt)):''}</span></div>`;
+    let _jr='';
+    if(legs.length||_kNow){
+      _jr=`<div class="card" style="padding:8px 11px;margin-top:6px">
+        <div class="hint" style="margin-bottom:2px">${t('jr_title')}</div>
+        ${legs.map(l=>_row(karigarName(l.kid),_kindOf(l.kind),l.issued,l.recv,l.amt,false)).join('')}
+        ${_kNow?_row(karigarName(_kNow),_kindOf((o.karKind||{})[gid]),_outOn,_backOn,karRateFor(o,gid),!_backOn):''}
+      </div>`;
+    }
+    const legLine=_jr;
     const qcOn=!!((o.qc||{})[gid]);
     const sQc=(ist==='ready'||ist==='delivered')?`<div class="row" style="margin-top:8px;align-items:center;gap:8px">
       <span class="hint">🔍 ${t('qc_label')}</span>
@@ -15374,7 +15524,16 @@ async function openDetail__inner(id,focusGid){
     const _nm=cols.filter(col=>v[col.k]).length;
     return `<div class="mcard${urg?' mcard-urg':''}"><div class="mh mh-tap" onclick="odItemToggle('${gid}')">
         <b>${g.ico} ${esc(itemTitle(o,gid))}${_who?` <span class="who-tag">${esc(_who)}</span>`:''}${urg?` <span class="urg-tag">🔴 ${t('urgent')}</span>`:''}</b>
-        <span class="hint">${v.L?('L '+esc(v.L)+' · '):''}${_nm} ${t('meas')} · ${sLabel(itemStatusOf(o,gid))} ${_open?'▴':'▾'}</span></div><div class="mb">
+        <span class="hint">${v.L?('L '+esc(v.L)+' · '):''}${_nm} ${t('meas')} · ${sLabel(itemStatusOf(o,gid))} ${_open?'▴':'▾'}</span></div>
+      ${/* v422: the one line that answers the phone. The full journey lives inside
+           Production, which is right — it is a record, not a headline. But "where is my
+           sherwani" cannot be two folds deep, and his own rule is that what matters is
+           visible where the work happens. So the head of the card says who is holding the
+           piece right now and for how many days, and nothing more. */''}
+      ${(_kNow&&!_backOn)?`<div class="hint" style="padding:0 12px 8px;color:var(--saffron2)">
+        \u{1F477} ${t('jr_now',{n:esc(karigarName(_kNow))})} \u00B7 ${_kindOf((o.karKind||{})[gid])}
+        ${_outOn?(' \u00B7 '+t('jr_since',{n:Math.max(0,-daysLeft(_outOn))})):''}</div>`:''}
+      <div class="mb">
       ${_open?`
       <div class="ki-mgrid">${cells||`<span class="hint">—</span>`}</div>${dn}
       <div class="row" style="margin-top:10px;gap:8px;align-items:center">
@@ -16805,7 +16964,7 @@ function posSearchAdd(){
     `<div class="gtags" style="margin:0 0 8px">${fchips}</div>
      <div class="field" style="margin:0 0 8px"><input id="posSearchQ" placeholder="${t('pos_search_ph')}" oninput="posSearchRun(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();posEnter();}" autocomplete="off"></div>
      <div id="posSearchRes"></div>
-     <div id="posSearchAdded" class="hint" style="margin:8px 0 2px;min-height:16px"></div>
+     <div id="posSearchAdded" style="margin:8px 0 2px;min-height:18px"></div>
      <div class="row" style="gap:6px;margin-top:6px">
        <button class="btn sm ghost" style="flex:1" onclick="closeModal();invLoadFromOrder()">📋 ${t('pos_from_order')}</button>
      </div>`,
@@ -16884,12 +17043,52 @@ function posAddReadySize(mid,size){
   posPushItem({masterId:m.id,label:m.name+' ('+size+')',hsn:m.hsn||'',qty:1,unit:'Pcs',size:size,rate:(m.sell||''),incl:[],includes:''});
   posSearchNote(m.name+' '+size);
 }
-function posPick(i){ const it=_posItems[i]; if(it&&it.act)it.act(); }
+/* ══════════ v421 — HIS 31 Aug: "plus dabaya, added — ekdam fast pata chale" ══════════
+   The only sign was a small grey line at the FOOT of the modal, and the results list
+   redrew in the same instant, so the whole thing read as a blink. He is looking at the row
+   his thumb is on, not at the bottom of a sheet.
+   So the row answers first, in the same frame as the touch: its + turns into a green ✓
+   before any redraw is allowed to happen. The confirmation underneath is then a solid
+   green bar with the garment named, not grey small print. Nothing about what gets added
+   changes — only how fast he is told. */
+function posPick(i){
+  const it=_posItems[i]; if(!it||!it.act)return;
+  try{
+    const row=document.querySelectorAll('#posSearchRes .cust-result')[i];
+    const btn=row&&row.querySelector('.btn');
+    if(btn){ btn.textContent='\u2713'; btn.classList.remove('ghost');
+             btn.classList.add('primary'); btn.style.background='var(--ok)';
+             btn.style.borderColor='var(--ok)'; btn.style.color='#fff'; }
+  }catch(e){}
+  it.act();
+}
 function posEnter(){ if(_posTopFn)_posTopFn(); else posAddTyped(); }
 
 function posPushItem(o){
   captureInvoiceForm();
   invForm.items=(invForm.items||[]).filter(it=>it.label||+it.rate);
+  /* ══════════ v420 — HIS 31 Aug: TAPPING KURTA TWICE MADE TWO KURTAS ══════════
+     Reproduced: Kurta, Pajama, Jacket added cleanly, then Kurta tapped again — the bill
+     came out as four lines, "Kurta x1, Pajama x1, Jacket x1, Kurta x1". His words were that
+     repeated tapping must not quietly create duplicate items, and that if the quantity goes
+     up it must be visible. Two lines of the same garment at the same rate is not a bill
+     anyone can read back to a customer, and it is the shape of thing nobody notices until
+     the total is wrong.
+     The same catalogue item at the same rate now adds to the line already there. Different
+     rate, or a typed one-off with no master behind it, still gets its own line — those are
+     genuinely different lines on a real bill. The toast says which happened, so the tap
+     always answers back. */
+  const mid=String(o&&o.masterId||'').trim();
+  const same=mid?(invForm.items||[]).find(it=>String(it.masterId||'')===mid
+      && r2(+it.rate||0)===r2(+(o.rate)||0)):null;
+  if(same){
+    same.qty=(+same.qty||1)+(+o.qty||1);
+    same.price=r2((+same.rate||0)*same.qty);
+    posRefresh();
+    toast('\u2795 '+(String(same.label||'').trim())+' \u00D7'+same.qty,'ok');
+    posFocusLine((invForm.items||[]).indexOf(same));
+    return;
+  }
   invForm.items.push(Object.assign({masterId:'',label:'',hsn:'',qty:1,unit:'Pcs',rate:'',price:'',disc:0,incl:[],includes:''},o));
   posRefresh();
   /* v250 — HIS 22 Aug: "shirt add kiya, add button click kar diya, per pata hi nahi chala
@@ -16993,7 +17192,14 @@ function posFocusLine(i){
    app confirms with a toast; so does this now, with the running count. */
 function posSearchNote(name){
   const n=((invForm&&invForm.items)||[]).length;
-  const el=$('#posSearchAdded'); if(el)el.innerHTML='✅ <b>'+esc(name)+'</b> — '+t('inv_items_n',{n});
+  const el=$('#posSearchAdded');
+  if(el){
+    /* v421: named, green, and big enough to read without looking for it. The count comes
+       along so he knows how many are on the bill without closing the search. */
+    el.innerHTML=`<div class="pos-added-bar">\u2705 <b>${esc(name)}</b> ${t('pos_added_in')}
+      <span style="opacity:.85">\u00B7 ${n===1?t('inv_items_1'):t('inv_items_n',{n})}</span></div>`;
+    el.classList.remove('pos-pop'); void el.offsetWidth; el.classList.add('pos-pop');
+  }
   /* v336: the toast that used to be here fired a moment after posPushItem's, saying the
      same thing in different words and replacing it. The line inside the modal stays —
      that is where he is looking — and the single toast comes from the add itself. */
@@ -20348,6 +20554,14 @@ function poDelete(id){confirmModal(t('confirm_del'),t('confirm_del_msg'),()=>{
 function poConvert(){
   if(!poSave(true))return;
   const p=_po;
+  /* v415 AUDIT — the screen already hides Convert once a PO has been received, and that is
+     why this was never reachable by hand. But the guard lived only in poRender's markup, so
+     calling this a second time made a second purchase: two bills, 33,600, against one 27,000
+     order. A rule about not buying the same goods twice belongs in the function that does
+     the buying, not in the paint. */
+  if(p.convertedPurId && (DB.purchases||[]).some(x=>x.id===p.convertedPurId)){
+    toast(t('po_already'),'bad'); return;
+  }
   // use received qty where filled, else the ordered qty
   const lines=p.items.map(it=>({label:it.label,qty:(it.recv===''||it.recv==null)?(+it.qty||0):(+it.recv||0),rate:+it.rate||0,unit:'Mtr'}))
     .filter(it=>it.qty>0);
@@ -21222,6 +21436,25 @@ function jvSave(){
   const lines=(d.lines||[]).filter(L=>L.acc && (+L.dr||+L.cr))
     .map(L=>({acc:L.acc, dr:r2(+L.dr||0), cr:r2(+L.cr||0)}));
   if(lines.length<2){ toast(t('jv_need2'),'bad'); return; }
+  /* ══════════ v415 AUDIT — A MINUS IS NOT A NUMBER IN A VOUCHER ══════════
+     Found by posting Cash Dr −500 / Bank Cr −500. It went straight in, because the balance
+     check only asks whether the two sides are equal and −500 equals −500. But a negative
+     debit IS a credit: that voucher silently reverses itself, and a month later nobody
+     reading the book can tell it apart from a real entry. Every other money box in the app
+     was closed to a minus in v408; the journal, which is the one place an accountant can
+     write anything he likes, was the one still open.
+     A voucher says which side the money went on. If it went the other way, he swaps the
+     column — he does not put a minus in front. */
+  const neg=lines.find(L=>L.dr<0||L.cr<0);
+  if(neg){ toast(t('jv_neg'),'bad'); return; }
+  /* v415: the same account on both sides — Cash Dr 100, Cash Cr 100 — posted happily. It
+     harms no balance because it nets to nothing, which is exactly why it is worth refusing:
+     a voucher that moves nothing is either a typo or a half-finished entry, and leaving it
+     in the book gives a future reader something to puzzle over for no reason. */
+  const nets={};
+  lines.forEach(L=>{ nets[L.acc]=r2((nets[L.acc]||0)+L.dr-L.cr); });
+  const moved=Object.keys(nets).filter(k=>Math.abs(nets[k])>0.001);
+  if(!moved.length){ toast(t('jv_nomove'),'bad'); return; }
   if(!String(d.narration||'').trim()){ toast(t('jv_need_narr'),'bad'); return; }
   const tDr=r2(lines.reduce((a,L)=>a+L.dr,0)), tCr=r2(lines.reduce((a,L)=>a+L.cr,0));
   if(Math.abs(r2(tDr-tCr))>0.01){ toast(t('jv_unbal',{n:money(Math.abs(r2(tDr-tCr)))}),'bad'); return; }
@@ -22378,8 +22611,15 @@ function staffReport(){
         <b>${r.sum.present} · ${r.sum.half} · ${r.sum.absent}</b></div>
       ${r.sum.lateN?`<div class="kv"><span class="hint">⏰ ${t('sr_late')}</span>
         <b>${r.sum.lateN} · ${r.sum.lateMin} ${t('sr_min')}</b></div>`:''}
+      ${/* v419: an hour figure alone tells him nothing he can pay against. The day rate is
+             already known, so the hour rate follows from it (day rate over the shop's own
+             open-to-close span) and the month's overtime is shown with what it is worth.
+             Nothing is paid automatically — it is a figure to look at before he decides,
+             exactly like the extra Sunday. */''}
       ${r.sum.extraMin?`<div class="kv"><span class="hint">🌙 ${t('sr_extra')}</span>
-        <b>${Math.round(r.sum.extraMin/60)} ${t('sr_hrs')}</b></div>`:''}
+        <b>${r.sum.otHrs} ${t('sr_hrs')}${r.sum.otDays?(' \u00B7 '+r.sum.otDays+' '+t('sr_ot_days')):''}</b></div>
+        ${otRate(r.st)?`<div class="kv"><span class="hint">${t('sr_ot_worth')}</span>
+          <b style="color:var(--saffron2)">${money(r2(otRate(r.st)*r.sum.otHrs))}</b></div>`:''}`:''}
       ${r.sum.extraDays?`<div class="kv"><span class="hint">➕ ${t('sr_extra_days')}</span>
         <b>${r.sum.extraDays}${r.day?' · '+t('sr_extra_pay')+' '+money(r2(r.day*r.sum.extraDays)):''}</b></div>`:''}
       ${r.st.salary?`<div class="kv" style="margin-top:6px"><span class="hint">${t('st_salary')}</span><b>${money(r.st.salary)}</b></div>
@@ -22971,7 +23211,17 @@ function setItemKarAmt(oid,gid,v){
 function setItemKarigar(oid,gid,kid){const o=DB.orders.find(x=>x.id===oid);if(!o)return;
   if(kid==='__new__'){ _karAfterAdd={oid,gid}; karigarEdit(); return; }
   o.assign=o.assign||{};
-  if(kid)o.assign[gid]=kid; else delete o.assign[gid]; touchOrder(o.id);
+  /* v423: the bulk path stamps the day the piece went out and the kind of work; this one —
+     the single piece handed over from inside the order — set only the name. So the journey
+     line on that piece read "with Samsul now" with no date and no days, and the same piece
+     issued the other way read properly. One handover, one record, whichever door it came
+     through. Stitching is assumed here because that is what a hand-over from the order
+     screen is; embroidery is chosen on the issue screen, which has the chips. */
+  if(kid){ o.assign[gid]=kid;
+    o.issued=o.issued||{}; if(!o.issued[gid])o.issued[gid]=todayISO();
+    o.karKind=o.karKind||{}; if(!o.karKind[gid])o.karKind[gid]='silai';
+  } else { delete o.assign[gid]; }
+  touchOrder(o.id);
   o.log=o.log||[];const g=G(gid);o.log.push({id:uid(),ts:new Date().toISOString(),text:(g?g.n+' → ':'')+(kid?('👷 '+karigarName(kid)):t('karigar_none')),voiceId:null});
   // same helper as the bulk path, so the two can never drift apart
   if(kid) advanceStatus(o,gid,'stitching');
@@ -23412,14 +23662,15 @@ function karJobsCalc(kid){
     // different masters each earn on the same garment, so history must be paid too
     ((o.jobs&&o.jobs[gid])||[]).forEach(leg=>{
       if((leg.kid||'')!==kid || !leg.recv)return;
-      out.push({kind:'order',id:o.id,gid,date:leg.recv,leg:(o.jobs[gid]||[]).indexOf(leg),
+      out.push({kind:'order',id:o.id,gid,date:leg.recv,out:leg.issued||'',
+        leg:(o.jobs[gid]||[]).indexOf(leg),
         ono:memberOno(o,memberOf(gid))||o.orderNo||'',
         label:`#${memberOno(o,memberOf(gid))||o.orderNo||'—'} · ${(g&&g.n)||''}`,
         who:o.customerName||'',amt:+leg.amt||0});
     });
     if(((o.assign&&o.assign[gid])||'')!==kid)return;
     const d=karRecvDate(o,gid); if(!d)return;                 // not handed back yet
-    out.push({kind:'order',id:o.id,gid,date:d,leg:-1,
+    out.push({kind:'order',id:o.id,gid,date:d,out:(o.issued&&o.issued[gid])||'',leg:-1,
       ono:memberOno(o,memberOf(gid))||o.orderNo||'',
       label:`#${memberOno(o,memberOf(gid))||o.orderNo||'—'} · ${(g&&g.n)||''}`,
       who:o.customerName||'',amt:karRateFor(o,gid)});
@@ -23498,6 +23749,7 @@ function karPieceStats(kid){
    is true when he returns a bundle from several orders. So both directions are done
    from one screen: tick many items across many orders, one date, one action. */
 let _kiSel=new Set(), _kiOnlyHis=true, _kiTypeFilter=null, _kiQ='', _kiGroup=true;
+let _kiKind='silai';   /* v422: which of the two kinds of work this handover is */
 function setKiQ(kid,mode,v){ _kiQ=v; pageReset('ki:'+kid+':'+mode); karigarIssue(kid,mode,true); }
 function kiGroupToggle(kid,mode){ _kiGroup=!_kiGroup; pageReset('ki:'+kid+':'+mode); karigarIssue(kid,mode); }
 /* tick every piece of one order in a single tap — a wedding order is 5–20 pieces */
@@ -23513,8 +23765,17 @@ function kiVisibleList(kid,mode){
   const raw=give?kiItemsFree(kid):kiItemsWith(kid);
   const typeMap={}; raw.forEach(x=>{typeMap[x.g.id]=typeMap[x.g.id]||{g:x.g,n:0};typeMap[x.g.id].n++;});
   const types=Object.values(typeMap);
-  if(!_kiTypeFilter)_kiTypeFilter=new Set(types.map(x=>x.g.id));
-  let list=raw.filter(x=>_kiTypeFilter.has(x.g.id));
+  /* ══════════ v423 — HIS 31 Aug: "item me coat aur waist coat select kar diya, filter me
+     wo saare order number aa gaye" ══════════
+     Reproduced: tapping the "Waist Coat (3)" chip left Pant, Kurta and Coat on screen and
+     took the waistcoats AWAY. The set started with every garment already in it, so a chip
+     was a hide-this-one switch, not a show-me-this-one — the opposite of what a chip means
+     everywhere else in the app and the opposite of what he described.
+     Empty now means show everything, and a chip he taps is a chip he wants: tap Coat and
+     only coats are left; tap Waist Coat as well and both are listed; tap them off and the
+     whole pile comes back. */
+  if(!_kiTypeFilter)_kiTypeFilter=new Set();
+  let list=_kiTypeFilter.size?raw.filter(x=>_kiTypeFilter.has(x.g.id)):raw.slice();
   const q=(_kiQ||'').trim().toLowerCase();
   if(q)list=list.filter(x=>(String(x.o.orderNo||'')+' '+String(x.o.customerName||'')+' '+
     String(x.o.phone||'')+' '+(x.o.members||[]).map(m=>(m.ono||'')+' '+(m.name||'')).join(' ')
@@ -23734,6 +23995,21 @@ function karigarIssue(kid,mode,keepFocus){
       <button class="btn sm ghost" onclick="_kiSel.clear();_kiTypeFilter=null;_kiQ='';karMaster('${kid}')" title="Back">←</button></div>
     <p class="hint" style="margin-bottom:10px">👷 ${esc(k.name)} · ${give?t('ki_give_sub'):t('ki_take_sub')}</p>
     <div class="field"><label>${t('pay_date')}</label>${dateField('ki_date',todayISO())}</div>
+    ${give?`${/* ══ v422 — HIS 31 Aug: "kaam do hi tarah ka hota hai" ══
+         One master takes the piece and does cutting, stitching, buttons and finishing —
+         the whole garment — and his rate per garment is settled and steady. The other is
+         embroidery, where the man quotes on the material and the hours he put in, so the
+         first time a design goes out the rate is not known at all; after that it holds.
+         Two kinds, so two chips and nothing more. The choice rides on the piece, so the
+         journey below can say WHY it went out, not just to whom, and so the embroidery
+         legs can be told apart when he is settling on Saturday. */''}
+      <div class="gtags" style="margin:10px 0 4px">
+        <span class="gtag ${_kiKind==='silai'?'on-tag':''}" style="cursor:pointer"
+          onclick="_kiKind='silai';karigarIssue('${kid}','give',true)">\u{1F9F5} ${t('ki_k_silai')}</span>
+        <span class="gtag ${_kiKind==='emb'?'on-tag':''}" style="cursor:pointer"
+          onclick="_kiKind='emb';karigarIssue('${kid}','give',true)">\u2728 ${t('ki_k_emb')}</span>
+      </div>
+      ${_kiKind==='emb'?`<p class="hint" style="margin:0 0 8px">${t('ki_emb_hint')}</p>`:''}`:''}
     ${give&&(k.specialties||[]).length?`<label style="display:flex;align-items:center;gap:8px;margin:10px 0;cursor:pointer">
       <input type="checkbox" ${_kiOnlyHis?'checked':''} onchange="_kiOnlyHis=this.checked;_kiTypeFilter=null;pageReset('ki:${kid}:give');karigarIssue('${kid}','give')" style="width:20px;height:20px">
       <span class="hint">${t('ki_only_his')}</span></label>`:''}
@@ -23765,12 +24041,14 @@ function kiApply(kid,mode){
       const prevRecv=karRecvDate(o,gid);
       if(prev && prevRecv){                       // close the finished leg before reassigning
         o.jobs=o.jobs||{}; o.jobs[gid]=o.jobs[gid]||[];
-        o.jobs[gid].push({kid:prev,issued:(o.issued&&o.issued[gid])||'',recv:prevRecv,amt:karRateFor(o,gid)});
+        o.jobs[gid].push({kid:prev,issued:(o.issued&&o.issued[gid])||'',recv:prevRecv,
+          amt:karRateFor(o,gid), kind:(o.karKind&&o.karKind[gid])||'silai'});
         if(o.recv)delete o.recv[gid];
         if(o.karAmt)delete o.karAmt[gid];
       }
       o.assign=o.assign||{}; o.assign[gid]=kid; touchOrder(o.id);
       o.issued=o.issued||{}; o.issued[gid]=d;
+      o.karKind=o.karKind||{}; o.karKind[gid]=_kiKind||'silai';   /* v422 */
       // the piece is now WITH a master, so the order page must say so — the same rule the
       // one-by-one assign already used. Only ever move FORWARD; never drag a piece back.
       advanceStatus(o,gid,'stitching');
@@ -24189,7 +24467,11 @@ function karigarLedger(kid,tab){
     :`<p class="hint" style="padding:14px 0;text-align:center">${t('kb_no_pieces')}</p>`}`;
 
   const made=`${allJobs.length?allJobs.slice(0,60).map(j=>`<div class="cust-result" style="margin-bottom:6px">
-      <div style="min-width:0"><b>${esc(j.label)}</b><div class="hint">${esc(j.who)} · ${fmtDate(j.date)}</div></div>
+      ${/* v424 — HIS 31 Aug: the ledger must say "kab issue hua, kab return hua". The row
+           carried only the day it came back, so a piece that sat with a tailor for nine
+           days and one that came back the same afternoon read exactly alike. Both dates
+           now, and nothing new is stored — the issue date was already on the leg. */''}
+      <div style="min-width:0"><b>${esc(j.label)}</b><div class="hint">${esc(j.who)} · ${j.out?(fmtDate(j.out)+' \u2192 '):''}${fmtDate(j.date)}</div></div>
       <b>${money(j.amt)}</b></div>`).join('')
     :`<p class="hint" style="padding:14px 0;text-align:center">${t('kb_none_sub')}</p>`}`;
 
@@ -26202,6 +26484,28 @@ function openPayDrop(id,name,kind){
     save(); closeModal(); toast(t('t_deleted'),'ok'); partyCard(name,kind); });
 }
 
+/* v416: every place a party is held by NAME rather than by id. Kept in one function so a
+   rename and the count he is shown can never disagree with each other. Karigars and staff
+   are deliberately NOT included — they are their own masters with their own ids, and the
+   party screen does not rename them. */
+function partyRenameScan(oldNm){
+  const n=nameNorm(oldNm); if(!n)return {total:0};
+  const pur=(DB.purchases||[]).filter(p=>nameNorm(p.supplier)===n).length;
+  const led=(DB.ledger||[]).filter(l=>nameNorm(l.party)===n
+    && !['karigar','staff'].includes(pkNorm(l.partyKind))).length;
+  const pret=(DB.purchaseReturns||[]).filter(r=>nameNorm(r.supplier)===n).length;
+  const po=(DB.purchaseOrders||[]).filter(o=>nameNorm(o.supplier)===n).length;
+  return {pur,led,pret,po,total:pur+led+pret+po};
+}
+function partyRenameApply(oldNm,newNm){
+  const n=nameNorm(oldNm); if(!n)return 0; let c=0;
+  (DB.purchases||[]).forEach(p=>{ if(nameNorm(p.supplier)===n){p.supplier=newNm;c++;} });
+  (DB.ledger||[]).forEach(l=>{ if(nameNorm(l.party)===n
+      && !['karigar','staff'].includes(pkNorm(l.partyKind))){l.party=newNm;c++;} });
+  (DB.purchaseReturns||[]).forEach(r=>{ if(nameNorm(r.supplier)===n){r.supplier=newNm;c++;} });
+  (DB.purchaseOrders||[]).forEach(o=>{ if(nameNorm(o.supplier)===n){o.supplier=newNm;c++;} });
+  return c;
+}
 function partyEdit(id,onDone,preName){
   const ex=id?partyById(id):null;
   modal('👤 '+(ex?esc(ex.name):t('pt_new')),
@@ -26253,6 +26557,35 @@ function partyEdit(id,onDone,preName){
            opening on top of the one it already carries. */
         let dup=null;
         if(!ex){ dup=partyAll().find(x=>nameNorm(x.name)===nameNorm(nm)); }
+        /* ══════════ v416 FINAL AUDIT — A RENAME THAT ONLY RENAMED THE LABEL ══════════
+           Reproduced through this very screen: a supplier with a 25,000 opening and a bill
+           with 25,000 still owed was renamed from "Mohan Textiles" to "Mohan Fabrics". The
+           party master took the new name. The opening ledger row and the purchase bill kept
+           the old one, because both store the supplier as a NAME, not an id. Nothing broke
+           that day — Payables still showed one supplier and the right 50,000, since all the
+           transactions still agreed with each other under the old name.
+           It broke on the next bill. Entered under the new name, Payables then listed
+           "Mohan Textiles 50,000" and "Mohan Fabrics 30,000" as two separate suppliers.
+           The total, 80,000, was right; the man was in two places. Pay one and the other
+           still stands against you.
+           So the rename now carries to every record that named him. Not one rupee moves —
+           only the name written on rows that were already his. And because this touches
+           saved records, he is told exactly how many and asked first; his rule is that
+           nothing changes behind him. */
+        if(ex && nameNorm(ex.name)!==nameNorm(nm)){
+          const oldNm=ex.name;
+          const hits=partyRenameScan(oldNm);
+          if(hits.total){
+            const clash=partyAll().find(x=>x.id!==ex.id && nameNorm(x.name)===nameNorm(nm));
+            if(clash){ toast(t('pt_rename_clash'),'bad'); return; }
+            return confirmModal('\u270F\uFE0F '+t('pt_rename_title'),
+              t('pt_rename_msg',{o:esc(oldNm), n:esc(nm), c:hits.total}),
+              ()=>{ partyRenameApply(oldNm,nm); Object.assign(ex,rec);
+                    save(); closeModal(); toast(t('pt_renamed',{c:hits.total}),'ok');
+                    if(onDone)onDone(nm); },
+              ()=>closeModal(), {yes:t('save'), no:t('cancel')});
+          }
+        }
         if(ex)Object.assign(ex,rec);
         else if(dup){
           if(rec.phone)dup.phone=rec.phone;
@@ -26508,12 +26841,29 @@ function punchFixAsk(sid,day){
 function punchFix(sid,day){
   const st=staffById(sid); if(!st)return;
   const d=day||todayISO(), a=attGet(sid,d)||{};
+  /* ══════════ v417 — HIS 31 Aug: "edit karna bahut tough hai" ══════════
+     He was right, and the save was refusing him without saying why. Both boxes were plain
+     TEXT with a "10:30" placeholder, and hhmmToMin only accepts exactly HH:MM — so 2000,
+     20.00, "8 PM", "8:00pm" and a bare 9 were all rejected. On a phone that means opening
+     the numeric keyboard, hunting for a colon, and getting a red toast if the shape is a
+     character out. There was also nowhere that said whether 9 meant morning or night, so
+     an evening punch keyed as 9:00 was stored as nine in the morning.
+     A time box is a solved problem: type="time" gives the phone's own clock picker, with
+     AM/PM in his own locale, and it can only ever hand back a valid HH:MM. No colon to
+     type, no format to remember, nothing to reject.
+     And his second point: "out mandatory nahi hai, out agar nahi ho raha hai to time se
+     apne aap le le." So when a day has an arrival but no departure, the box opens already
+     filled with the shop's closing time. It is filled in FRONT of him, not behind him — he
+     can change it or clear it, and clearing the arrival still wipes the day as before. */
+  const closeT=(staffCfg().closeTime)||'21:00';
+  const outVal=a.out || (a.in ? closeT : '');
   modal('👥 '+esc(st.name)+(d!==todayISO()?(' \u00B7 '+fmtDate(d)):''),
     `<div class="row" style="gap:8px">
        <div class="field"><label>${t('st_in')}</label>
-         <input id="pnFixIn" value="${esc(a.in||'')}" placeholder="10:30"></div>
+         <input id="pnFixIn" type="time" value="${esc(a.in||'')}"></div>
        <div class="field"><label>${t('st_out')}</label>
-         <input id="pnFixOut" value="${esc(a.out||'')}" placeholder="21:00"></div></div>
+         <input id="pnFixOut" type="time" value="${esc(outVal)}"></div></div>
+     ${(a.in&&!a.out)?`<p class="hint" style="margin-top:8px;color:var(--saffron2)">${t('pn_out_auto',{t:closeT})}</p>`:''}
      <p class="hint" style="margin-top:8px">${t('pn_fix_note')}</p>`,
     [{label:t('cancel'),cls:'ghost',fn:()=>{ closeModal(); staffPunch(); }},
      {label:t('save'),cls:'primary',fn:()=>punchFixSave(sid,d)}]);
@@ -26677,8 +27027,18 @@ function attStatusOf(sid,dd){
   if(isWeekOff(dd))return {st:ATT_OFF, derived:true, rec:null};
   return {st:ATT_ABSENT, derived:true, rec:null};
 }
+/* v419: what one hour of his time is worth, from figures already in the app — his day rate
+   divided by the shop's own working span. Used to price overtime for him to look at; it
+   pays nothing by itself. */
+function otRate(st){
+  if(!st||!st.salary)return 0;
+  const day=r2(st.salary/((staffCfg().dayDiv)||30));
+  const o=hhmmToMin(staffCfg().openTime), c=hhmmToMin(staffCfg().closeTime);
+  const span=(o!=null&&c!=null&&c>o)?((c-o)/60):9;
+  return r2(day/span);
+}
 function attSummary(sid,mon,days){
-  let present=0,half=0,absent=0,off=0,lateN=0,lateMin=0,extraMin=0;
+  let present=0,half=0,absent=0,off=0,lateN=0,lateMin=0,extraMin=0,otDays=0;
   const st=staffById(sid)||{};
   const closeM=hhmmToMin(staffCfg().closeTime);
   let extraDays=0;
@@ -26693,9 +27053,23 @@ function attSummary(sid,mon,days){
        is COUNTED and shown; nothing is paid automatically — that stays his decision. */
     if(a && a.in && isWeekOff(dd) && s!==ATT_ABSENT)extraDays++;
     if(a && a.in){ const lm=lateMins(st,a.in); if(lm>0){lateN++; lateMin+=lm;} }
-    if(a && a.out){ const o=hhmmToMin(a.out); if(o!=null&&closeM!=null&&o>closeM)extraMin+=(o-closeM); }
+    /* v419 — HIS 31 Aug: "out agar nahi karta hai to automatically out kar le", and then
+       "saade nau baje uska working hour hai, wo baarah baje out kar raha hai — do dhai
+       ghanta — month me kitna extra kaam kiya, uske ledger me report rahna chahiye."
+       Both halves live here. A past day with an arrival and no departure is READ as having
+       ended at closing time — derived, never written into his records, so the day still
+       shows as unmarked on the sheet and can still be corrected. Closing time earns no
+       overtime, which is right: nobody has proved he stayed later.
+       Overtime is only counted from a departure he actually marked, and it is now returned
+       as its own monthly total so the report can put a figure against it. */
+    if(a && a.in){
+      const outAt = a.out || ((dd<todayISO()&&closeM!=null)?staffCfg().closeTime:'');
+      const o=hhmmToMin(outAt);
+      if(o!=null&&closeM!=null&&o>closeM){ extraMin+=(o-closeM); if(a.out)otDays++; }
+    }
   }
-  return {present,half,absent,off,lateN,lateMin,extraMin,extraDays};
+  return {present,half,absent,off,lateN,lateMin,extraMin,extraDays,otDays,
+          otHrs:Math.round((extraMin/60)*100)/100};
 }
 /* ── the profile: everything about one person in one place ─────────────────── */
 function staffMaster(){
