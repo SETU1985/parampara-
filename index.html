@@ -786,7 +786,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v413</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v414</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -11708,7 +11708,11 @@ const QR_ALL=[
      does once every morning and it sat three taps deep behind Settings → Staff. It goes in
      the catalogue rather than being hard-wired into the row, so it can be moved or hidden
      from the same long-press menu as every other shortcut. */
-  ['attend','👥','pn_title',"staffPunch()",'staff'],
+  /* v414 — HIS 31 Aug: "attendance kahin par nahi hai screen me." Mine again, and it is the
+     same dead flag as v405. That fix removed modOn('staff') from the Home attendance BLOCK
+     and left it standing HERE, on the shortcut tile — so the tile could still never appear.
+     DB.modules.staff is written nowhere in the app; this was the last place asking for it. */
+  ['attend','👥','pn_title',"staffPunch()",null],
   /* v371 — HIS 28 Aug: "Today do jagah aa gaya." Mine: v370 put it on the bottom bar and
      left the Home tile standing, so one screen had two doors on the same page. The bar
      carries it on every screen, the tile only on Home — so the tile goes. Anyone who
@@ -11953,8 +11957,7 @@ const HOME_BLOCKS=[
      so the one block he could never switch off was the one he never chose to switch on.
      Every block on Home is his to keep or hide — that was the whole point of v356. */
   ['alterations','🔧','alt_pending'],
-  ['report','📤','hb_report'],
-  ['backup','🛟','hb_backup']
+  ['report','📤','hb_report']
 ];
 /* One row: open the report, or send it. If exactly one person is set up for that report
    the send goes straight to him; if several, he picks. */
@@ -12012,7 +12015,6 @@ function renderHome(){
     <div class="home-hd">
       <div style="min-width:0"><div class="home-shop">${esc((DB.shopInfo&&DB.shopInfo.name)||t('your_shop'))}</div>
       <div class="home-sub">${new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'short'})}</div></div>
-      ${homeOn('backup')?backupNagHTML():''}
     </div>
 
     ${homeOn('money')?kpiCardsHTML():''}
@@ -27140,6 +27142,12 @@ function bkTopPaint(){
   b.style.color       = loud?'#e8a49c':'';
   b.style.fontWeight  = loud?'900':'';
 }
+/* v414 — HIS 31 Aug: "backup ka button do jagah saamne screen me hai, right side me thoda
+   weird lag raha hai." Right — v411 put the pill beside the shop name AND the button beside
+   the gear, so once it was overdue the same warning shouted twice on one screen. The top-bar
+   button is already ON the main screen, which is what he asked for; the pill was the extra.
+   This is kept because the Home block list still offers a "backup" row and an older saved
+   layout may call it, but Home no longer draws it. */
 function backupNagHTML(){
   if(!hasAnyData()||backupDismissed)return '';
   const n=daysSinceBackup();
