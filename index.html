@@ -670,7 +670,12 @@
      is still in hand, then the money. Rows, not tiles, because a row can carry a label
      long enough to be honest and still be tapped with one thumb. */
   .pn-row{display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--line);
-    border-radius:12px;margin-bottom:8px;background:var(--card)}
+    border-radius:12px;margin-bottom:8px;background:var(--card);
+    /* v410 — HIS 31 Aug: "attendance me edit ka option nahi dikh raha." The hold WAS built
+       and the hint was on screen; it could never fire. Holding a name on Android starts
+       Chrome's text selection, and the touchmove that follows cancelled the 500ms timer
+       every single time. The row is a button, not a paragraph. */
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
   .sr-bar{height:6px;background:var(--bg2);border-radius:4px;overflow:hidden;margin-top:8px}
   .sr-bar>div{height:100%;background:var(--saffron)}
   .pn-row{cursor:pointer}
@@ -781,9 +786,16 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v409</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v413</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
+      <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
+           STATIC HTML, not a template literal — the JS comment I put here and the unicode
+           escape were both printed on screen as plain text, right across the top of his app.
+           A JS comment only works inside a template string; here it needs an HTML comment and
+           a real character. bkTopPaint() sets the icon and the colour on every render. -->
+      <button class="langtog" id="bkTop" onclick="backupMenu()" style="padding:5px 9px"
+        title="">🛟</button>
       <button class="langtog" onclick="settingsMenu()" style="padding:5px 9px">⚙️</button>
       <div class="stat" id="headStat"></div>
     </div>
@@ -1482,6 +1494,21 @@ const T={
   pur_unpaid_ask:'Remove the payment recorded on {n} bill(s)? They go back to being unpaid.',
   pur_unpaid_back:'Goes back into cash / bank', pur_unpaid_done:'{n} bill(s) marked unpaid \u00B7 {a} returned',
   pur_unpaid_note:'The bill, its items, stock and tax are untouched. Only the receipt that never happened is removed.',
+  pay_this_month:'Earned this month',
+  pay_title:'Payroll', pay_sub:'What each person has earned, drawn, and what is left between you.',
+  pay_earned:'Earned', pay_drawn:'Drawn', pay_baaki:'You owe him', pay_owes_shop:'He owes the shop',
+  pay_give:'Pay him', pay_amt:'Amount', pay_from:'From', pay_paidon:'Paid on', pay_cycle:'For the month of',
+  pay_cycle_help:'The day the money left and the month it was for are not the same thing.',
+  pay_note:'Note', pay_note_ph:'salary, advance, wedding\u2026', pay_full:'Pay the whole {a}',
+  pay_done:'{n} paid {a} for {m}', pay_head:'Salary paid',
+  pay_opening:'Opening balance', pay_earned_for:'Earned for {m}', pay_for_month:'For {m}',
+  pay_running:'Running', pay_dr:'Dr', pay_no_lines:'Nothing on his account yet',
+  pay_khata_sub:'His whole account \u2014 every month earned, every rupee drawn.',
+  pay_earned_all:'Earned so far',
+  pay_blank_n:'{n} days unmarked', pay_blank_top:'{n} days have no attendance mark',
+  pay_blank_help:'A day with no mark counts as absent and cuts pay. Fix them before payday.',
+  pay_lock_title:'No PIN set', pay_lock_msg:'Correcting a past day should need your PIN, so nobody can mark himself present for a day gone by. Set one now?',
+  pay_lock_set:'Set a PIN', pay_lock_skip:'Not now',
   num_title:'Order & bill numbers',
   num_sub:'Control how invoice and order numbers are generated.',
   num_inv:'Invoice number',
@@ -2233,6 +2260,13 @@ const T={
   bk_fresh_0:'Every photo is already backed up — today\'s file will be data only',
   bk_inc_done:'Backup done · {n} new photos went with it',
   bk_inc_more:'{n} photos sent · {left} still waiting — press Backup again',
+  skip_title:'Some stages are being skipped',
+  skip_msg:'{f} \u2192 {s}, without {k}. Mark it anyway?',
+  skip_yes:'Yes, mark it',
+  dup_pay_title:'The same payment is already there',
+  dup_pay_msg:'{a} on {d} is already recorded against this. Add it again?',
+  dup_pay_yes:'Yes, add it',
+  bk_today:'Backed up today',
   bk_days_short:'{n}d', bk_never_short:'Backup',
   bk_days:'{n} days since your last backup',
   bk_day_1:'1 day since your last backup',
@@ -3200,6 +3234,21 @@ dl_show_hidden:'Show hidden ({n})',
   pur_unpaid_ask:'{n} बिल पर दर्ज भुगतान हटा दें? वे फिर से उधार हो जाएँगे।',
   pur_unpaid_back:'नकद / बैंक में वापस', pur_unpaid_done:'{n} बिल उधार किए \u00B7 {a} वापस',
   pur_unpaid_note:'बिल, उसके आइटम, स्टॉक और टैक्स पर कोई असर नहीं। सिर्फ़ वह भुगतान हटेगा जो हुआ ही नहीं था।',
+  pay_this_month:'इस महीने बना',
+  pay_title:'वेतन', pay_sub:'हर आदमी ने कितना कमाया, कितना उठाया, और अब कितना बाकी है।',
+  pay_earned:'बना', pay_drawn:'उठाया', pay_baaki:'आपको देना है', pay_owes_shop:'उसे देना है',
+  pay_give:'पैसा दें', pay_amt:'रकम', pay_from:'कहाँ से', pay_paidon:'किस दिन दिया', pay_cycle:'किस महीने का',
+  pay_cycle_help:'पैसा जिस दिन गया और जिस महीने का है — दोनों एक बात नहीं है।',
+  pay_note:'टिप्पणी', pay_note_ph:'सैलरी, एडवांस, शादी\u2026', pay_full:'पूरा {a} दे दें',
+  pay_done:'{n} को {m} का {a} दिया', pay_head:'सैलरी दी',
+  pay_opening:'शुरुआती बाकी', pay_earned_for:'{m} का बना', pay_for_month:'{m} का',
+  pay_running:'चलता बाकी', pay_dr:'देना', pay_no_lines:'अभी उसके खाते में कुछ नहीं',
+  pay_khata_sub:'उसका पूरा खाता \u2014 हर महीने का बना, हर उठाव।',
+  pay_earned_all:'अब तक बना',
+  pay_blank_n:'{n} दिन बिना निशान', pay_blank_top:'{n} दिन पर हाज़िरी का कोई निशान नहीं',
+  pay_blank_help:'बिना निशान वाला दिन गैरहाज़िर गिना जाता है और पैसा कटता है। सैलरी से पहले ठीक कर लें।',
+  pay_lock_title:'PIN नहीं लगा है', pay_lock_msg:'पिछले दिन को बदलने के लिए PIN चाहिए, ताकि कोई चुपचाप बीते दिन की हाज़िरी न बना ले। अभी लगा दें?',
+  pay_lock_set:'PIN लगाएँ', pay_lock_skip:'अभी नहीं',
   num_title:'ऑर्डर और बिल के नंबर',
   num_sub:'इनवॉइस और ऑर्डर के नंबर कैसे बनें, यहाँ से तय करें।',
   num_inv:'इनवॉइस नंबर',
@@ -3950,6 +3999,13 @@ dl_show_hidden:'Show hidden ({n})',
   bk_fresh_0:'हर फ़ोटो बैकअप हो चुकी है — आज की फ़ाइल में सिर्फ़ डेटा जाएगा',
   bk_inc_done:'बैकअप हो गया · {n} नई फ़ोटो साथ गईं',
   bk_inc_more:'{n} फ़ोटो गईं · {left} अभी बाकी — बैकअप फिर दबाइए',
+  skip_title:'बीच की स्टेज छूट रही है',
+  skip_msg:'{f} \u2192 {s}, बिना {k} के। फिर भी लगा दें?',
+  skip_yes:'हाँ, लगा दें',
+  dup_pay_title:'यही भुगतान पहले से दर्ज है',
+  dup_pay_msg:'{d} को {a} पहले से इसी पर दर्ज है। दोबारा जोड़ें?',
+  dup_pay_yes:'हाँ, जोड़ दें',
+  bk_today:'आज बैकअप हो गया',
   bk_days_short:'{n}द', bk_never_short:'बैकअप',
   bk_days:'पिछले बैकअप को {n} दिन हो गए',
   bk_day_1:'पिछले बैकअप को 1 दिन हो गया',
@@ -5298,6 +5354,7 @@ function orderSummaryStatus(o){ const its=(o.items||[]); if(!its.length)return o
 /* ---- apply static labels + language ---- */
 function applyLang(){
   document.documentElement.lang=lang;
+  try{ bkTopPaint(); }catch(e){}
   $('#search').placeholder=t('search_ph');
   document.querySelectorAll('[data-t]').forEach(el=>el.textContent=t(el.dataset.t));
   $('#langTog').innerHTML = lang==='en' ? 'EN · <b>हिं</b>' : 'हिं · <b>EN</b>';
@@ -8838,6 +8895,15 @@ function payEdit(id){
 function payDelete(id){
   confirmModal(t('confirm_del'),t('confirm_del_msg'),()=>{
     DB.ledger=(DB.ledger||[]).filter(l=>l.id!==id);
+    /* v411 AUDIT — a payment to a tailor lives in two places: the ledger row, and a mirror
+       in DB.karigarPays that his outstanding is worked out from. expDel() has removed both
+       since v222. THIS path — the one the Day book uses — removed only the ledger row, so
+       deleting Samsul's ₹4,000 here took the money out of the books and left "paid ₹4,000"
+       standing against his name for ever. Proven by running it: after the delete the ledger
+       held 0 rows for him and his balance still read ₹6,000 instead of ₹10,000. Understating
+       what a tailor is owed is the kind of error nobody catches until he asks for his money.
+       One deletion, both halves — the same as expDel. */
+    DB.karigarPays=(DB.karigarPays||[]).filter(p=>p.id!=='exp:'+id);
     save(); closeModal(); toast(t('t_deleted'),'ok'); dayBook(); });
 }
 function yesterdayISO(){ const d=new Date(); d.setDate(d.getDate()-1); return isoOf(d); }
@@ -15078,11 +15144,30 @@ function openPayment(id){ const o=DB.orders.find(x=>x.id===id); if(!o)return; co
   modal(t('add_payment'),`<div class="field"><label>${t('pay_amount')} ₹</label><input id="p_amt" type="number" inputmode="numeric" placeholder="${bk||''}"></div>
     <div class="field" style="margin-top:10px"><label>${t('pay_date')}</label>${dateField("p_date",todayISO())}</div>`,
     [{label:t('cancel'),cls:'ghost',fn:closeSheet},{label:t('add'),cls:'primary',fn:()=>savePayment(id)}]); }
+/* ══════════════ v412 — THE SAME PAYMENT TWICE ══════════════
+   HIS 31 Aug: "chetavni zaroori hai."
+   A shop really can take ₹5,000 from the same man twice in one day, so this must never
+   BLOCK anything — it only asks. What it catches is the accident that actually happens:
+   the phone did not seem to respond, so the amount was entered again. Same money, same
+   day, same person, entered twice. Once it is in, nobody spots it until the customer says
+   he has already paid.
+   The question is asked once, it names what is already there, and Yes goes straight
+   through. Nothing is prevented and nothing is decided for him. */
+function dupPayAsk(list,amt,date,then){
+  const a=r2(+amt||0), d=String(date||todayISO());
+  const hit=(list||[]).find(p=>p&&r2(+p.amt||0)===a&&String(p.date||'')===d);
+  if(!hit){ then(); return; }
+  confirmModal('\u26A0\uFE0F '+t('dup_pay_title'), t('dup_pay_msg',{a:money(a), d:fmtDate(d)}),
+    ()=>{ closeModal(); then(); }, ()=>closeModal(),
+    {yes:t('dup_pay_yes'), no:t('cancel')});
+}
 function savePayment(id){ const o=DB.orders.find(x=>x.id===id); if(!o)return; migratePayments(o);
   const amt=+(($('#p_amt')&&$('#p_amt').value)||0); const date=($('#p_date')&&$('#p_date').value)||todayISO();
   if(!amt||amt<=0){toast(t('pay_amount'),'bad');return;}
-  o.payments.push({id:'pay_'+uid(),amt,date}); o.payments.sort((a,b)=>String(a.date).localeCompare(String(b.date))); touchOrder(o.id);
-  save(id);closeSheet();openDetail(id);toast('✔️','ok'); }
+  dupPayAsk(o.payments, amt, date, ()=>{
+    o.payments.push({id:'pay_'+uid(),amt,date}); o.payments.sort((a,b)=>String(a.date).localeCompare(String(b.date))); touchOrder(o.id);
+    save(id);closeSheet();openDetail(id);toast('✔️','ok'); });
+}
 function delPayment(id,i){ const o=DB.orders.find(x=>x.id===id); if(!o||!o.payments)return;
   confirmModal(t('del_pay'),'',()=>{
     const rec=o.payments[i]; if(!rec)return;
@@ -15957,8 +16042,9 @@ function openAltPayment(id){const a=altById(id);if(!a)return;const bk=orderBaaki
 function saveAltPayment(id){const a=altById(id);if(!a)return;migratePayments(a);
   const amt=+(($('#p_amt')&&$('#p_amt').value)||0);const date=($('#p_date')&&$('#p_date').value)||todayISO();
   if(!amt||amt<=0){toast(t('pay_amount'),'bad');return;}
-  a.payments.push({id:'pay_'+uid(),amt,date});a.payments.sort((x,y)=>String(x.date).localeCompare(String(y.date)));
-  save();closeSheet();openAltDetail(id);toast('✔️','ok');}
+  dupPayAsk(a.payments, amt, date, ()=>{                       /* v412: same guard here */
+    a.payments.push({id:'pay_'+uid(),amt,date});a.payments.sort((x,y)=>String(x.date).localeCompare(String(y.date)));
+    save();closeSheet();openAltDetail(id);toast('✔️','ok');});}
 function delAltPayment(id,i){const a=altById(id);if(!a||!a.payments)return;
   confirmModal(t('del_pay'),'',()=>{a.payments.splice(i,1);save();closeSheet();openAltDetail(id);});}
 function addAltUpdate(id){const a=altById(id);const txt=$('#upTextA').value.trim();if(!txt)return;
@@ -21995,6 +22081,267 @@ function staffHub(){
     <div class="fab-pad"></div>`;
   showSheet();
 }
+
+/* ══════════════════════ v410 — PAYROLL: ONE RUNNING ACCOUNT PER MAN ═══════════════════
+   HIS 31 Aug: "bees hazaar ki salary hai, kabhi pandrah uthata hai kabhi pachees. Advance
+   me automatically adjust ho jaye. Aur agar shaadi hai to pachaas hazaar bhi chahiye."
+   Three situations, and they are all the same situation. A man does not have a "salary
+   account" and a separate "advance account" — he has ONE balance with the shop, and it
+   moves both ways. So nothing here decides what a payment "is". What he earns each month
+   goes to his credit; what he draws goes against it; the difference IS the answer.
+     earned 18,461, drawn 12,000   →  baaki  6,461   the shop owes him
+     earned 20,000, drawn 25,000   →  baaki −5,000   he owes the shop
+     earned 20,000, drawn 50,000   →  baaki −30,000  the wedding, carried forward
+   Next month opens on that same balance, so the recovery he described happens by itself:
+   draw less than you earn and the hole fills; draw the full amount and it simply stays.
+   Nobody has to decide "how much to cut this month" — the account has already done it.
+   Nothing is ever PAID automatically. Money leaves only when he taps Pay and types a
+   figure. Only the earning is automatic, and it is shown, never hidden. */
+function payMonthLabel(mon){ const [Y,M]=String(mon).split('-').map(Number);
+  return new Date(Y,(M||1)-1,1).toLocaleDateString('en-IN',{month:'long',year:'numeric'}); }
+function payPrevMonth(mon){ const [Y,M]=String(mon).split('-').map(Number);
+  const d=new Date(Y,(M||1)-2,1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+/* what one man earned in one month — the same arithmetic the staff report has always
+   used, pulled out so the hub and the report can never drift apart */
+function payEarnedIn(sid,mon){
+  const st=staffById(sid)||{}; if(!st.salary)return 0;
+  const [Y,M]=mon.split('-').map(Number);
+  const sum=attSummary(sid,mon,new Date(Y,M,0).getDate());
+  const day=r2(st.salary/((staffCfg().dayDiv)||30));
+  return r2(st.salary - r2(day*sum.absent + day*sum.half/2));
+}
+/* days in the month with no punch and no marking at all — the thing that quietly eats a
+   man's pay. PagarBook's own July slip showed 13 such days and ₹8,647 instead of ₹20,000.
+   It is surfaced at the TOP of the hub so it is caught during the month, not on payday. */
+function payBlankDays(sid,mon){
+  const [Y,M]=mon.split('-').map(Number);
+  const days=new Date(Y,M,0).getDate(); const today=todayISO();
+  let n=0;
+  for(let i=1;i<=days;i++){
+    const dd=`${mon}-${String(i).padStart(2,'0')}`;
+    if(dd>=today)continue;
+    const r=attStatusOf(sid,dd);
+    if(r.before || r.st===ATT_OFF)continue;
+    if(!r.rec && r.derived && r.st===ATT_ABSENT)n++;
+  }
+  return n;
+}
+/* every month this man has earned in, up to and including the one being viewed */
+function payMonthsUpto(sid,mon){
+  const st=staffById(sid)||{};
+  let first=String(st.joined||'').slice(0,7);
+  if(!first){
+    let m=null;
+    Object.keys(attAll()||{}).forEach(k=>{ if(String(k).indexOf(sid+'|')===0){
+      const d=String(k).split('|')[1]||''; if(d&&(!m||d<m))m=d; }});
+    first=(m||mon).slice(0,7);
+  }
+  const out=[]; let c=first;
+  while(c<=mon && out.length<120){ out.push(c); c=payNextMonth(c); }
+  return out;
+}
+function payNextMonth(mon){ const [Y,M]=String(mon).split('-').map(Number);
+  const d=new Date(Y,(M||1),1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+/* the running balance: everything earned up to this month, less everything drawn.
+   "drawn" means every rupee that left the shop against his name — salary, advance, the
+   wedding money, all of it. That is the whole point: one balance, not three. */
+function payBalance(sid,mon){
+  let earned=0;
+  payMonthsUpto(sid,mon).forEach(m=>{ earned=r2(earned+payEarnedIn(sid,m)); });
+  earned=r2(earned + (+((staffById(sid)||{}).openingDue)||0));
+  let drawn=0;
+  staffAdvLines(sid).forEach(l=>{
+    if(String(l.date||'').slice(0,7)>mon)return;
+    if(l.opening)return;                       /* the opening figure is handled above */
+    if(l.dir==='out')drawn=r2(drawn+(+l.amt||0));
+    else if(l.dir==='in')drawn=r2(drawn-(+l.amt||0));   /* money he gave back */
+  });
+  return {earned, drawn, bal:r2(earned-drawn)};
+}
+function payrollHub(mon){
+  sheetAt(()=>payrollHub(_payMon));
+  _payMon = mon || _payMon || payPrevMonth(todayISO().slice(0,7));
+  const m=_payMon;
+  const all=staffAll().filter(x=>!x.left);
+  let blanks=0; all.forEach(st=>{ blanks+=payBlankDays(st.id,m); });
+  const rows=all.map(st=>{
+    const b=payBalance(st.id,m), e=payEarnedIn(st.id,m), bd=payBlankDays(st.id,m);
+    const col=b.bal>0?'var(--saffron2)':(b.bal<0?'var(--bad)':'var(--txt2)');
+    return `<div class="card" style="padding:12px 14px;margin-bottom:10px">
+      <div class="kv" style="cursor:pointer" onclick="staffKhata('${st.id}')">
+        <b>${esc(st.name)}</b><span class="hint">${bd?('\u26A0\uFE0F '+t('pay_blank_n',{n:bd})+' \u00B7 '):''}\u203A</span></div>
+      ${/* v410: the three figures must add up on the page. Showing this month's earning
+            above a running total of drawings made the row look wrong even when it was
+            right. The month is stated as the month; everything under it is the account. */''}
+      <div class="kv" style="margin-top:7px"><span class="hint">${t('pay_this_month')}</span><b>${money(e)}</b></div>
+      <div class="kv" style="border-top:1px solid var(--line);margin-top:6px;padding-top:6px">
+        <span class="hint">${t('pay_earned_all')}</span><b>${money(b.earned)}</b></div>
+      <div class="kv"><span class="hint">${t('pay_drawn')}</span><b>${money(b.drawn)}</b></div>
+      <div class="kv" style="border-top:1px solid var(--line);margin-top:6px;padding-top:6px">
+        <span class="hint">${b.bal<0?t('pay_owes_shop'):t('pay_baaki')}</span>
+        <b style="color:${col};font-size:16px">${money(Math.abs(b.bal))}</b></div>
+      <button class="btn primary block" style="margin-top:9px" onclick="payStaffOpen('${st.id}')">\u{1F4B8} ${t('pay_give')}</button>
+    </div>`;
+  }).join('')||`<p class="hint">${t('st_none')}</p>`;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F4B0} ${t('pay_title')}</h2></div>
+    <p class="hint" style="margin-bottom:10px">${t('pay_sub')}</p>
+    <div class="kv" style="margin:0 0 12px">
+      <button class="btn sm ghost" onclick="payrollHub('${payPrevMonth(m)}')">\u2039</button>
+      <b>${esc(payMonthLabel(m))}</b>
+      <button class="btn sm ghost" onclick="payrollHub('${payNextMonth(m)}')">\u203A</button></div>
+    ${blanks?`<div class="card" style="padding:10px 12px;margin-bottom:12px;border-color:var(--saffron2)">
+      <b style="color:var(--saffron2)">\u26A0\uFE0F ${t('pay_blank_top',{n:blanks})}</b>
+      <div class="hint" style="white-space:normal;margin-top:4px">${t('pay_blank_help')}</div>
+      <button class="btn ghost block" style="margin-top:8px" onclick="attSheet()">\u{1F4CB} ${t('att_month')}</button></div>`:''}
+    ${rows}
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+
+/* ── paying him ──────────────────────────────────────────────────────────────
+   Two dates, and they are not the same date — this is the one thing PagarBook gets
+   right and it matters here too. RECORD DATE is the day the money left the drawer;
+   CYCLE is the month it was against. On 3 September he pays August's salary: cash book
+   says 3 Sep, the man's account says August. Without the second one, "has August been
+   paid?" has no answer once a few months have gone by.
+   The amount is his to type. The balance is offered as a suggestion and nothing more —
+   he pays 5, 7 or 10 at a time and the account does not care. */
+let _payMon=null, _payDraft=null;
+function payStaffOpen(sid){
+  const st=staffById(sid); if(!st)return;
+  const m=_payMon||payPrevMonth(todayISO().slice(0,7));
+  const b=payBalance(sid,m);
+  _payDraft={sid, amt:'', date:todayISO(), cycle:m, acc:(cashAcc()||{}).id, note:''};
+  payStaffRender();
+}
+function payStaffRender(){
+  if(!_payDraft){ toast(t('scr_lost'),'bad'); try{sheetBack();}catch(e){closeSheet();} return; }
+  sheetAt(payStaffRender);
+  const d=_payDraft, st=staffById(d.sid)||{};
+  const b=payBalance(d.sid,d.cycle);
+  const cycles=[]; let c=todayISO().slice(0,7);
+  for(let i=0;i<14;i++){ cycles.push(c); c=payPrevMonth(c); }
+  const accs=(DB.accounts||[]).filter(a=>a.type==='cash'||a.type==='bank');
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:2px"><h2 style="margin:0">\u{1F4B8} ${esc(st.name||'')}</h2></div>
+    <p class="hint" style="margin-bottom:12px">${b.bal<0?t('pay_owes_shop'):t('pay_baaki')}: <b>${money(Math.abs(b.bal))}</b></p>
+    <div class="field"><label>${t('pay_amt')}</label>
+      <input id="py_amt" type="number" min="0" inputmode="numeric" value="${esc(d.amt)}"
+        placeholder="0" oninput="_payDraft.amt=this.value"></div>
+    ${b.bal>0?`<button class="btn ghost block" style="margin:-4px 0 12px"
+      onclick="_payDraft.amt='${b.bal}';payStaffRender()">${t('pay_full',{a:money(b.bal)})}</button>`:''}
+    <div class="field"><label>${t('pay_from')}</label>
+      <select id="py_acc" onchange="_payDraft.acc=this.value">
+        ${accs.map(a=>`<option value="${a.id}" ${a.id===d.acc?'selected':''}>${esc(a.name)}</option>`).join('')}
+      </select></div>
+    <div class="field"><label>${t('pay_paidon')}</label>
+      <input type="date" value="${esc(d.date)}" onchange="_payDraft.date=this.value"></div>
+    <div class="field"><label>${t('pay_cycle')}</label>
+      <select onchange="_payDraft.cycle=this.value;payStaffRender()">
+        ${cycles.map(x=>`<option value="${x}" ${x===d.cycle?'selected':''}>${esc(payMonthLabel(x))}</option>`).join('')}
+      </select>
+      <p class="hint" style="margin-top:6px">${t('pay_cycle_help')}</p></div>
+    <div class="field"><label>${t('pay_note')}</label>
+      <input value="${esc(d.note)}" placeholder="${t('pay_note_ph')}" oninput="_payDraft.note=this.value"></div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="_payDraft=null;payrollHub()">${t('cancel')}</button>
+      <button class="btn primary" onclick="payStaffSave()">${t('save')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+/* the payment is written as an ordinary expense against his name, on the head he has
+   tagged "Salary paid" in Settings. One entry, and it shows in BOTH places he expects —
+   Cash & Bank and Expenses see an expense, his account sees a drawing. He asked for
+   exactly this: "expense me jaakar bees hazaar payment kar diya to uske ledger me dikh
+   jaana chahiye." Nothing is written twice and nothing has to be reconciled by hand. */
+function payStaffSave(){
+  const d=_payDraft; if(!d)return;
+  const amt=r2(Math.max(0,+d.amt||0));
+  if(!amt){ toast(t('t_no_amount'),'bad'); return; }
+  /* v412: the same guard the order and alteration screens use. Paying a man the same
+     figure twice on one day is almost always the second tap, not a second payment. */
+  const already=staffAdvLines(d.sid).filter(l=>l.dir==='out')
+    .map(l=>({amt:l.amt,date:l.date}));
+  return dupPayAsk(already, amt, d.date||todayISO(), ()=>payStaffCommit());
+}
+function payStaffCommit(){
+  const d=_payDraft; if(!d)return;
+  const amt=r2(Math.max(0,+d.amt||0));
+  const st=staffById(d.sid)||{};
+  const cat=paySalaryHead();
+  DB.ledger=DB.ledger||[];
+  DB.ledger.push({id:uid(), dir:'out', date:d.date||todayISO(), amt, acc:d.acc||'',
+    party:st.name||'', partyId:d.sid, partyKind:'staff',
+    expKind:'indirect', refKind:'expense', cat,
+    cycle:d.cycle||'',                        /* which month this pay was against */
+    note:String(d.note||'').trim(), voucher:uid(), photos:[]});
+  save();
+  _payDraft=null;
+  toast(t('pay_done',{n:esc(st.name||''), a:money(amt), m:payMonthLabel(d.cycle)}),'ok');
+  payrollHub();
+}
+/* the head salary is booked under. His own expense heads are used, never a new hidden
+   one: the first head he has tagged "Salary paid" wins; if he has tagged none yet, a
+   plainly-named head is created and tagged, so the figure can never land somewhere the
+   advance balance would misread it. */
+function paySalaryHead(){
+  DB.expHeadCfg=DB.expHeadCfg||{};
+  const tagged=Object.keys(DB.expHeadCfg).find(k=>(DB.expHeadCfg[k]||{}).pay==='sal');
+  if(tagged)return tagged;
+  const nm=t('pay_head');
+  DB.expCats=DB.expCats||[];
+  if(DB.expCats.indexOf(nm)<0)DB.expCats.push(nm);
+  DB.expHeadCfg[nm]={who:'staff', kind:'indirect', pay:'sal'};
+  return nm;
+}
+/* ── his account, month by month ─────────────────────────────────────────────
+   Not a report — a passbook. Every month he earned, every rupee he drew, in date order,
+   with the balance carried down the page the way a ledger reads. This is where the
+   answer to "kitna baaki hai" is proved, not just stated. */
+function staffKhata(sid){
+  sheetAt(()=>staffKhata(sid));
+  const st=staffById(sid); if(!st){ toast(t('scr_lost'),'bad'); return payrollHub(); }
+  const upto=_payMon||todayISO().slice(0,7);
+  const months=payMonthsUpto(sid,upto);
+  const lines=[];
+  const open=+st.openingDue||0;
+  if(open)lines.push({d:(st.joined||'').slice(0,10)||months[0]+'-01', txt:t('pay_opening'), cr:open});
+  months.forEach(m=>{ const e=payEarnedIn(sid,m);
+    if(e)lines.push({d:m+'-'+String(new Date(+m.split('-')[0],+m.split('-')[1],0).getDate()).padStart(2,'0'),
+      txt:t('pay_earned_for',{m:payMonthLabel(m)}), cr:e}); });
+  staffAdvLines(sid).forEach(l=>{
+    if(String(l.date||'').slice(0,7)>upto)return;
+    if(l.opening)return;
+    const lbl=(l.cycle?t('pay_for_month',{m:payMonthLabel(l.cycle)}):(l.cat||t('pay_drawn')))
+      +(l.note?' \u00B7 '+l.note:'');
+    if(l.dir==='out')lines.push({d:l.date, txt:lbl, dr:+l.amt||0});
+    else lines.push({d:l.date, txt:lbl, cr:+l.amt||0});
+  });
+  lines.sort((a,b)=>String(a.d).localeCompare(String(b.d)));
+  let run=0;
+  const body=lines.map(l=>{ run=r2(run+(+l.cr||0)-(+l.dr||0));
+    return `<div style="border-bottom:1px solid var(--line);padding:9px 0">
+      <div class="kv"><span style="min-width:0">${esc(l.txt)}</span>
+        <b style="color:${l.cr?'var(--ok)':'var(--bad)'}">${l.cr?'+':'\u2212'}${money(l.cr||l.dr)}</b></div>
+      <div class="kv"><span class="hint">${fmtDate(l.d)}</span>
+        <span class="hint">${t('pay_running')} ${money(Math.abs(run))}${run<0?' '+t('pay_dr'):''}</span></div>
+    </div>`; }).join('')||`<p class="hint">${t('pay_no_lines')}</p>`;
+  const b=payBalance(sid,upto);
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:2px"><h2 style="margin:0">\u{1F4D2} ${esc(st.name)}</h2></div>
+    <p class="hint" style="margin-bottom:12px">${t('pay_khata_sub')}</p>
+    <div class="card pos-total" style="margin-bottom:12px;padding:12px 14px">
+      <div class="kv"><span class="hint">${t('pay_earned_all')}</span><b>${money(b.earned)}</b></div>
+      <div class="kv"><span class="hint">${t('pay_drawn')}</span><b>${money(b.drawn)}</b></div>
+      <div class="kv" style="border-top:1px solid var(--line);margin-top:6px;padding-top:6px">
+        <span><b>${b.bal<0?t('pay_owes_shop'):t('pay_baaki')}</b></span>
+        <b style="font-size:17px;color:${b.bal<0?'var(--bad)':'var(--saffron2)'}">${money(Math.abs(b.bal))}</b></div></div>
+    ${body}
+    <button class="btn primary block" style="margin-top:12px" onclick="payStaffOpen('${sid}')">\u{1F4B8} ${t('pay_give')}</button>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
 function staffReport(){
   sheetAt(staffReport);
   const mon=_srMonth||todayISO().slice(0,7);
@@ -22052,7 +22399,8 @@ function staffReport(){
       <button class="btn sm ghost" onclick="srMonth(1)">›</button></div>
     ${rows.length?exportBarHTML('rp_staff',srExport):''}
 ${body}
-    <button class="btn ghost block" onclick="attSheet()">📋 ${t('att_month')}</button>
+    <button class="btn primary block" onclick="payrollHub()">\u{1F4B0} ${t('pay_title')}</button>
+    <button class="btn ghost block" style="margin-top:8px" onclick="attSheet()">📋 ${t('att_month')}</button>
     <button class="btn ghost block" style="margin-top:8px" onclick="incBook()">🎯 ${t('inc_title')}</button>
     <div class="fab-pad"></div>`;
   showSheet();
@@ -22371,7 +22719,29 @@ function refreshDetail(oid){
   openDetail(oid);
   setTimeout(()=>{ const s2=$('#sheet'); if(s2)s2.scrollTop=y; },40);
 }
-function setItemStatus(oid,gid,s){const o=DB.orders.find(x=>x.id===oid);if(!o)return;  o.itemStatus=o.itemStatus||{}; if(o.itemStatus[gid]===s)return; o.itemStatus[gid]=s;
+/* ══════════════ v412 — JUMPING STRAIGHT TO READY OR DELIVERED ══════════════
+   The audit showed a piece going from Stitching to Delivered in one tap, skipping Checking
+   and Ready without a word. Blocking that would be wrong — a shop is not a factory, and
+   plenty of pieces are genuinely checked by hand and handed over on the spot. Made to fight
+   the app, staff stop using it, which is the thing he already warned me about.
+   But Ready and Delivered are not ordinary stages. They are the two where the garment and
+   the money leave the shop, and where a customer gets told something. His own rule: never
+   tell a customer an order is ready unless the production status supports it.
+   So the middle of the run stays free, and only a jump of more than one stage INTO ready or
+   delivered asks — once, naming what is being skipped. Yes goes straight through. */
+function setItemStatus(oid,gid,s){const o=DB.orders.find(x=>x.id===oid);if(!o)return;
+  o.itemStatus=o.itemStatus||{}; if(o.itemStatus[gid]===s)return;
+  const from=itemStatusOf(o,gid), fi=STATUS.indexOf(from), si=STATUS.indexOf(s);
+  if((s==='ready'||s==='delivered') && fi>=0 && si-fi>1){
+    const skipped=STATUS.slice(fi+1,si).map(x=>sLabel(x)).join(', ');
+    return confirmModal('\u26A0\uFE0F '+t('skip_title'),
+      t('skip_msg',{f:sLabel(from), s:sLabel(s), k:skipped}),
+      ()=>{ closeModal(); setItemStatusGo(oid,gid,s); }, ()=>closeModal(),
+      {yes:t('skip_yes'), no:t('cancel')});
+  }
+  setItemStatusGo(oid,gid,s);
+}
+function setItemStatusGo(oid,gid,s){const o=DB.orders.find(x=>x.id===oid);if(!o)return;  o.itemStatus=o.itemStatus||{}; o.itemStatus[gid]=s;
   if(s==='delivered' && orderDelivered(o))stampDelivered(o);    /* v281 */
   const _wasCut = (s==='cut') && !((o.cost&&o.cost[gid]&&(o.cost[gid].cuts||[]).length));
   const g=G(gid); o.log=o.log||[];
@@ -25826,6 +26196,7 @@ function openSettleAsk(name,kind){
 function openPayDrop(id,name,kind){
   confirmModal('\u{1F5D1}\uFE0F '+t('pty_settled'), t('confirm_del_msg'), ()=>{
     DB.ledger=(DB.ledger||[]).filter(l=>l.id!==id);
+    DB.karigarPays=(DB.karigarPays||[]).filter(p=>p.id!=='exp:'+id);   /* v411: same pair */
     save(); closeModal(); toast(t('t_deleted'),'ok'); partyCard(name,kind); });
 }
 
@@ -26081,7 +26452,7 @@ function staffPunch(){
     return `<div class="pn-row ${cls}" onclick="punchTap('${st.id}')"
       ontouchstart="punchHoldStart('${st.id}')" ontouchend="punchHoldEnd()"
       ontouchmove="punchHoldEnd()" ontouchcancel="punchHoldEnd()"
-      oncontextmenu="event.preventDefault();punchFix('${st.id}');return false;">
+      oncontextmenu="event.preventDefault();punchFixAsk('${st.id}');return false;">
       <div class="pn-who"><b>${esc(st.name)}</b><div class="hint">${sub}</div></div>
       <span class="pn-mark">${a.out?'✓':(a.in?'🟢':'')}</span></div>`;}).join('');
   $('#sheet').innerHTML=`<div class="grip"></div>
@@ -26108,12 +26479,34 @@ let _pnHold=null,_pnHeld=false;
 function punchHoldStart(sid){ _pnHeld=false; if(_pnHold)clearTimeout(_pnHold);
   _pnHold=setTimeout(function(){ _pnHold=null;_pnHeld=true;
     try{ if(navigator.vibrate)navigator.vibrate(15); }catch(e){}
-    punchFix(sid); },500); }
+    punchFixAsk(sid); },500); }
 function punchHoldEnd(){ if(_pnHold){ clearTimeout(_pnHold); _pnHold=null; } }
-function punchFix(sid){
+/* ══════════════ v410 — CORRECTING A DAY, WITHOUT OPENING A BACK DOOR ══════════════
+   HIS 31 Aug: "do din nahi banaya to attendance edit kar lo — lekin kuch aisa control hona
+   chahiye ki misuse na kar sake, chupchaap aakar bana de."
+   The two are not the same act and must not carry the same permission:
+     TODAY  — anyone may tap his own name. That is the whole design; it stays open.
+     A PAST DAY — only the owner, behind the PIN already in Settings, because marking
+     yourself present for last Tuesday is not attendance, it is money.
+   And a correction is never silent. Every edited day keeps who/when/what-it-was-before on
+   the record and shows a mark on the month grid for ever, so a day that was changed can
+   always be told apart from a day that was worked. Nothing is deleted to make it tidy. */
+function punchFixAsk(sid,day){
+  const d=day||todayISO();
+  if(d>=todayISO()){ punchFix(sid,d); return; }
+  if(!pinOn()){
+    confirmModal('\u{1F512} '+t('pay_lock_title'), t('pay_lock_msg'),
+      ()=>{ closeModal(); pinSetup&&pinSetup(); },
+      ()=>{ closeModal(); punchFix(sid,d); },
+      {yes:t('pay_lock_set'), no:t('pay_lock_skip')});
+    return;
+  }
+  pinAsk(()=>punchFix(sid,d));
+}
+function punchFix(sid,day){
   const st=staffById(sid); if(!st)return;
-  const d=todayISO(), a=attGet(sid,d)||{};
-  modal('👥 '+esc(st.name),
+  const d=day||todayISO(), a=attGet(sid,d)||{};
+  modal('👥 '+esc(st.name)+(d!==todayISO()?(' \u00B7 '+fmtDate(d)):''),
     `<div class="row" style="gap:8px">
        <div class="field"><label>${t('st_in')}</label>
          <input id="pnFixIn" value="${esc(a.in||'')}" placeholder="10:30"></div>
@@ -26121,17 +26514,26 @@ function punchFix(sid){
          <input id="pnFixOut" value="${esc(a.out||'')}" placeholder="21:00"></div></div>
      <p class="hint" style="margin-top:8px">${t('pn_fix_note')}</p>`,
     [{label:t('cancel'),cls:'ghost',fn:()=>{ closeModal(); staffPunch(); }},
-     {label:t('save'),cls:'primary',fn:()=>punchFixSave(sid)}]);
+     {label:t('save'),cls:'primary',fn:()=>punchFixSave(sid,d)}]);
 }
-function punchFixSave(sid){
-  const d=todayISO(), a=attGet(sid,d)||{};
+function punchFixSave(sid,day){
+  const d=day||todayISO(), a=attGet(sid,d)||{};
   const gi=(($('#pnFixIn')||{}).value||'').trim();
   const go=(($('#pnFixOut')||{}).value||'').trim();
-  if(!gi){ attSet(sid,d,null); closeModal(); staffPunch(); renderHome(); toast(t('pn_cleared'),'ok'); return; }
+  /* what it was before the correction, kept on the record so the change stays visible */
+  const was=a.in?(a.in+(a.out?('\u2013'+a.out):'')):'';
+  if(!gi){
+    if(was){ DB.attFix=DB.attFix||[];
+      DB.attFix.push({sid,d,was,now:'',at:new Date().toISOString()}); }
+    attSet(sid,d,null); save(); closeModal(); staffPunch(); renderHome();
+    toast(t('pn_cleared'),'ok'); return; }
   if(hhmmToMin(gi)==null||(go&&hhmmToMin(go)==null)){ toast(t('pn_fix_bad'),'bad'); return; }
   a.in=gi; a.out=go||''; if(!a.out)delete a.out;
-  a.st=a.st||ATT_PRESENT; a.edited=new Date().toISOString();
-  attSet(sid,d,a); closeModal(); staffPunch(); renderHome(); toast(t('t_saved'),'ok');
+  a.st=a.st||ATT_PRESENT;
+  a.edited=new Date().toISOString(); a.was=was;      /* the trail lives on the day itself */
+  DB.attFix=DB.attFix||[];
+  DB.attFix.push({sid,d,was,now:gi+(go?('\u2013'+go):''),at:a.edited});
+  attSet(sid,d,a); save(); closeModal(); staffPunch(); renderHome(); toast(t('t_saved'),'ok');
 }
 function punchIn(sid){
   const st=staffById(sid); if(!st)return;
@@ -26321,6 +26723,7 @@ function staffMaster(){
          already finished. Once somebody is on the list, the daily job takes the weight. */''}
     ${staffAll().length
       ? `<button class="btn primary block" style="margin-top:10px" onclick="staffPunch()">👥 ${t('pn_title')}</button>
+         <button class="btn ghost block" style="margin-top:8px" onclick="payrollHub()">\u{1F4B0} ${t('pay_title')}</button>
          <div class="od-addpiece" onclick="staffEdit()">+ ${t('st_add')}</div>`
       : `<button class="btn primary block" style="margin-top:10px" onclick="staffEdit()">+ ${t('st_add')}</button>`}
     <div class="fab-pad"></div>`;
@@ -26708,7 +27111,7 @@ function hasAnyData(){
 }
 /* v333 — P2. Vyapar lets a shop say "remind me every N days"; here the nag simply
    hard-coded three. Same card, same behaviour, only the threshold is his. */
-function bkRemindDays(){ const n=+((DB.settings||{}).bkRemindDays); return (n>=1&&n<=90)?n:3; }
+function bkRemindDays(){ const n=+((DB.settings||{}).bkRemindDays); return (n>=1&&n<=90)?n:7; }   /* v411: his number — a week */
 function bkRemindSet(v){ DB.settings=DB.settings||{}; const n=Math.max(1,Math.min(90,+v||3));
   DB.settings.bkRemindDays=n; save(); toast(t('bk_remind_set',{n}),'ok');
   try{ renderHome(); }catch(e){} }
@@ -26725,12 +27128,28 @@ function daysSinceBackup(){
    the first thing on the screen, still red when it is overdue, still one tap to Backup —
    but it costs a corner instead of a band. The ✕ to dismiss goes with it; tapping the
    pill opens Backup, and if he has just backed up the pill is not there at all. */
+/* v411: the top-bar button wears the state — quiet normally, loud once it is overdue. */
+function bkTopPaint(){
+  const b=$('#bkTop'); if(!b)return;
+  const n=daysSinceBackup(), never=(n===null);
+  const loud=never||(n>=bkRemindDays());
+  b.textContent = loud?'\u26A0\uFE0F':'\u{1F6DF}';
+  b.title = never?t('bk_never'):(n===0?t('bk_today'):t(n===1?'bk_day_1':'bk_days',{n}));
+  b.style.borderColor = loud?'#7a2f28':'';
+  b.style.background  = loud?'#2a1614':'';
+  b.style.color       = loud?'#e8a49c':'';
+  b.style.fontWeight  = loud?'900':'';
+}
 function backupNagHTML(){
   if(!hasAnyData()||backupDismissed)return '';
   const n=daysSinceBackup();
   if(n===0)return '';
   const never=(n===null);
   const loud=never||n>=bkRemindDays();
+  /* v411: below the reminder day the top-bar button carries it quietly; Home stays clear.
+     The band only comes back when it is actually overdue, which is what makes it mean
+     something when it does. */
+  if(!loud)return '';
   const short=never?t('bk_never_short'):t('bk_days_short',{n});
   const full=never?t('bk_never'):t(n===1?'bk_day_1':'bk_days',{n});
   return `<button class="btn sm" title="${esc(full)}" onclick="backupMenu()"
@@ -28379,6 +28798,7 @@ function doUndo(){
 
 /* ====================== INIT ====================== */
 function updateHeadStat(){const due=receivableTotal();   /* v254: was orders-only */
+  try{ bkTopPaint(); }catch(e){}   /* v411: the backup button is repainted with the header */
   /* v271: the header carries the same figure, so it hides with the rest */
   const hs=$('#headStat');if(hs)hs.innerHTML=`<b>${DB.orders.length}</b> ${t('orders_word')} · <b onclick="${(pinOn()&&!_moneyShown)?'moneyReveal()':"statDetail('collect')"}" style="cursor:pointer;text-decoration:underline dotted">${moneyMask(money(due))}</b> ${t('due')}`;}
 /* Boot must never come up EMPTY while readable data still exists somewhere.
