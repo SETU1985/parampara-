@@ -809,7 +809,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v424</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v425</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -1518,6 +1518,7 @@ const T={
   pur_unpaid_ask:'Remove the payment recorded on {n} bill(s)? They go back to being unpaid.',
   pur_unpaid_back:'Goes back into cash / bank', pur_unpaid_done:'{n} bill(s) marked unpaid \u00B7 {a} returned',
   pur_unpaid_note:'The bill, its items, stock and tax are untouched. Only the receipt that never happened is removed.',
+  bk_word:'BACKUP',
   ki_k_silai:'Stitching', ki_k_emb:'Embroidery',
   ki_emb_hint:'Embroidery is priced on the work \u2014 fill the rate when it comes back.',
   jr_title:'This piece so far', jr_now:'with {n} now', jr_since:'{n}d',
@@ -3272,6 +3273,7 @@ dl_show_hidden:'Show hidden ({n})',
   pur_unpaid_ask:'{n} बिल पर दर्ज भुगतान हटा दें? वे फिर से उधार हो जाएँगे।',
   pur_unpaid_back:'नकद / बैंक में वापस', pur_unpaid_done:'{n} बिल उधार किए \u00B7 {a} वापस',
   pur_unpaid_note:'बिल, उसके आइटम, स्टॉक और टैक्स पर कोई असर नहीं। सिर्फ़ वह भुगतान हटेगा जो हुआ ही नहीं था।',
+  bk_word:'बैकअप',
   ki_k_silai:'सिलाई', ki_k_emb:'कढ़ाई',
   ki_emb_hint:'कढ़ाई का रेट काम देखकर बनता है \u2014 वापस आने पर भर दीजिए।',
   jr_title:'इस पीस का अब तक का सफ़र', jr_now:'अभी {n} के पास', jr_since:'{n} दिन',
@@ -11845,8 +11847,16 @@ function qrCfg(){
 }
 function qrVisible(){
   const c=qrCfg();
+  /* v425: the attendance chip strip sits on Home directly below this row and does the same
+     job as the Attendance tile, only better — it names every person and marks them in one
+     tap. Two doors to the same room, side by side, is the duplication he pointed at. While
+     the strip is showing the tile steps aside; switch the strip off in "What shows on Home",
+     or let the last person leave, and the tile is back. Nothing is deleted from his row —
+     his own arrangement is untouched. */
+  const stripOn = homeOn('attend') && staffAll().filter(x=>!x.left).length>0;
   return c.order.map(k=>QR_ALL.find(x=>x[0]===k))
-    .filter(x=>x && c.hidden.indexOf(x[0])<0 && (!x[4]||modOn(x[4])));
+    .filter(x=>x && c.hidden.indexOf(x[0])<0 && (!x[4]||modOn(x[4]))
+      && !(stripOn && x[0]==='attend'));
 }
 function qrReset(){ DB.qrCfg={order:QR_ALL.map(x=>x[0]),hidden:[]}; save();
   toast(t('qc_reset_done'),'ok'); qrManage(); renderHome(); }
@@ -12148,6 +12158,10 @@ function renderHome(){
            you arrive, green while you are in, faded once you have gone — so the whole shop
            can be read at a glance without opening anything. The full sheet is still there
            for corrections, one tap away on the count at the end. */''}
+      ${/* v425: the strip and the shortcut tile are the same door. Once the strip is on
+           Home the tile is a second copy of it in the row above, which is the duplicate he
+           spotted. The tile hides itself while the strip is showing — see qrVisible — and
+           comes back the moment the strip is switched off or the last person leaves. */''}
       ${(homeOn('attend')&&staffAll().filter(x=>!x.left).length)?attStripHTML():''}
     ${/* v262: the "Old home" link is retired from this screen. It was a migration escape
          hatch from the bottom-nav rollout and it has done its job — he has been on the new
@@ -27505,16 +27519,26 @@ function daysSinceBackup(){
    but it costs a corner instead of a band. The ✕ to dismiss goes with it; tapping the
    pill opens Backup, and if he has just backed up the pill is not there at all. */
 /* v411: the top-bar button wears the state — quiet normally, loud once it is overdue. */
+/* v425 — HIS 31 Aug: "backup ka button to bahar kahin bhi nahi dikh raha hai."
+   It was there all along, beside the gear — but overdue it REPLACED its own icon with a
+   warning triangle, so the one thing on that bar that says "backup" stopped saying it at
+   exactly the moment it mattered most. He looked straight at it and read an error.
+   An icon is a name. It does not change. The ring turns red and the word BACKUP is written
+   under it, so the button always tells him what it is and the colour tells him whether it
+   is overdue. */
 function bkTopPaint(){
   const b=$('#bkTop'); if(!b)return;
   const n=daysSinceBackup(), never=(n===null);
   const loud=never||(n>=bkRemindDays());
-  b.textContent = loud?'\u26A0\uFE0F':'\u{1F6DF}';
+  b.innerHTML = '\u{1F6DF}<span style="font-size:8px;font-weight:800;letter-spacing:.3px;'
+    + 'display:block;line-height:1;margin-top:1px">'+esc(t('bk_word'))+'</span>';
   b.title = never?t('bk_never'):(n===0?t('bk_today'):t(n===1?'bk_day_1':'bk_days',{n}));
-  b.style.borderColor = loud?'#7a2f28':'';
+  b.style.borderColor = loud?'#b0463a':'';
   b.style.background  = loud?'#2a1614':'';
   b.style.color       = loud?'#e8a49c':'';
   b.style.fontWeight  = loud?'900':'';
+  b.style.lineHeight  = '1.05';
+  b.style.padding     = '4px 8px';
 }
 /* v414 — HIS 31 Aug: "backup ka button do jagah saamne screen me hai, right side me thoda
    weird lag raha hai." Right — v411 put the pill beside the shop name AND the button beside
