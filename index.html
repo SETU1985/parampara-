@@ -728,6 +728,17 @@
     border-radius:10px;padding:8px 11px;font-size:13.5px;font-weight:700}
   .pos-pop{animation:posPop .18s ease-out}
   @keyframes posPop{from{transform:scale(.94);opacity:.4}to{transform:scale(1);opacity:1}}
+  /* v440: the party statement, set out as a book */
+  .ps-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .ps-tbl{width:100%;border-collapse:collapse;font-size:13px}
+  .ps-tbl th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;
+    color:var(--txt2);padding:6px 8px;border-bottom:1px solid var(--saffron)}
+  .ps-tbl td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  .ps-tbl tbody tr:active{background:var(--bg2)}
+  .ps-tbl .ps-n{text-align:right;white-space:nowrap}
+  .ps-tbl .ps-d{white-space:nowrap;color:var(--txt2)}
+  .ps-tbl .ps-p{min-width:110px}
+  .ps-tbl tfoot td{border-bottom:0;border-top:2px solid var(--saffron);padding-top:10px}
   .att-strip{display:flex;gap:6px;overflow-x:auto;padding:2px 0 6px;margin-bottom:12px;
     -webkit-overflow-scrolling:touch}
   .att-chip{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:2px;
@@ -815,7 +826,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v437</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v441</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -2615,6 +2626,10 @@ dl_show_hidden:'Show hidden ({n})',
   purch_item_ph:'e.g. suiting fabric, buttons, lining',
   master:'Master',
   bill_no:'Invoice No',
+  ps_date:'Date', ps_part:'Particulars', ps_dr:'Debit', ps_cr:'Credit',
+  ps_bal:'Balance', ps_closing:'Closing balance',
+  pt_open_cleared:'old balance removed',
+  pt_open_paid:'A payment is already recorded against this old balance \u2014 remove that first',
   pt_saved_named:'\u201C{n}\u201D is now a saved party',
   pur_pend_ok:'This line goes on the bill when you Save',
   pur_sug_head:'Saved items — tap to fill',
@@ -4379,6 +4394,10 @@ dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
   purch_item_ph:'जैसे सूटिंग कपड़ा, बटन, लाइनिंग',
   master:'मास्टर',
   bill_no:'इनवॉइस नं.',
+  ps_date:'तारीख़', ps_part:'विवरण', ps_dr:'डेबिट', ps_cr:'क्रेडिट',
+  ps_bal:'बाकी', ps_closing:'अंतिम बाकी',
+  pt_open_cleared:'पुराना बाकी हटा दिया',
+  pt_open_paid:'इस पुराने बाकी पर भुगतान दर्ज है \u2014 पहले वह हटाइए',
   pt_saved_named:'\u201C{n}\u201D अब सेव पार्टी है',
   pur_pend_ok:'Save दबाते ही यह लाइन बिल में जुड़ जाएगी',
   pur_sug_head:'सेव किए आइटम — भरने के लिए टैप करें',
@@ -5466,12 +5485,28 @@ document.addEventListener('focusin',function(e){
         if(br.height>4 && br.top>0 && br.top<vh) vh=br.top; }
       if(r.bottom>vh-10 || r.top<8){
         el.scrollIntoView({block:'nearest',behavior:'smooth'});
-        /* nearest stops the moment the box touches the edge; nudge it clear of the bar */
+        /* ══════════ v441 — THE NUDGE ONLY KNEW ONE SCREEN ══════════
+           HIS 1 Sep: "jab main party add kar raha hoon to party ka name bahut upar bhaag ja
+           raha hai, keyboard aane par name dikhai nahi de raha ki maine kya name type kiya
+           hai."
+           v435 gave every focused box a push clear of the sticky Save bar — and pushed
+           #sheet, the only scroller I had in mind. The party form is a MODAL, and a modal
+           scrolls in its own box, so on that screen the nudge moved nothing at all and the
+           name he had just typed stayed hidden above the fold.
+           The scroller is found from the box itself now: whichever ancestor actually
+           scrolls is the one that gets moved, so a sheet, a modal and anything added later
+           all behave the same. */
         setTimeout(function(){ try{
           const r2=el.getBoundingClientRect();
           if(r2.bottom>vh-10){
-            const sh=document.querySelector('#sheet');
-            if(sh)sh.scrollTop += (r2.bottom-(vh-10))+8;
+            let sc=el.parentElement;
+            while(sc && sc!==document.body){
+              const st=getComputedStyle(sc);
+              if(sc.scrollHeight>sc.clientHeight+4 && /auto|scroll/.test(st.overflowY))break;
+              sc=sc.parentElement;
+            }
+            if(!sc||sc===document.body)sc=document.querySelector('#sheet');
+            if(sc)sc.scrollTop += (r2.bottom-(vh-10))+8;
           }
         }catch(y){} },260);
       }
@@ -22467,25 +22502,48 @@ function partyStatement(pid,kind){
   }
   const p=who.find(x=>x.id===pid&&x.kind===kind)||who.find(x=>x.id===pid);
   if(!p){ toast(t('pt_no_bal'),'bad'); return; }
+  /* ══════════════════ v440 — A STATEMENT THAT READS LIKE A LEDGER ══════════════════
+     HIS 1 Sep, after opening Kanchan Syntex: "full statement pe click karne pe opening
+     balance turant dikhna chahiye, jaise ek proper ledger me hota hai. Purchase itne ka is
+     bill number pe, purchase utne ka us bill number pe, payment itna, phir itna, phir
+     bacha hua closing balance. Aise hi to account ledger hote hain na?"
+     He is right and the fault was entirely in the presentation. psLines() has always
+     assembled the correct events — the opening, each bill, each payment, each return — but
+     they were drawn as a stack of loose cards, each with a plus or a minus and a bare
+     number underneath, and the running balance shown without saying which side it was on.
+     Read as a card, "− 7,43,021 / 7,43,021" tells him nothing about what he owes.
+     So the same events are now set out the way a ledger is written: date, what it was,
+     Debit, Credit, and the balance carried down after every line, with Dr or Cr said
+     plainly. Opening on top, closing at the foot. Nothing new is computed — this is the
+     book finally written the way a book is written. */
   const lines=psLines(p);
   let run=0;
-  const rows=lines.map(l=>{ run=r2(run+(l.dir==='in'?l.amt:-l.amt));
-    const tap=l._src&&l._id?`onclick="psOpen('${jq(l._src)}','${jq(l._id)}')" style="padding:10px 12px;margin-bottom:6px;cursor:pointer"`
-      :`style="padding:10px 12px;margin-bottom:6px"`;
-    return `<div class="card" ${tap}>
-      <div class="kv"><div style="min-width:0"><b>${esc(l.ref||l.note||'—')}</b>
-        <div class="hint">${fmtDate(l.date)}${l.acc?' · '+esc(accName(l.acc)):''}</div></div>
-      <div style="text-align:right"><b style="color:${l.dir==='in'?'var(--ok)':'var(--bad)'}">
-        ${l.dir==='in'?'+':'−'} ${money(l.amt)}</b>
-        <div class="hint">${money(Math.abs(run))}${l._src&&l._id?' ›':''}</div></div></div></div>`; }).join('');
+  const side=v=>v<0?t('ps_cr'):t('ps_dr');
+  const rows=lines.map(l=>{
+    const dr=(l.dir==='in')?l.amt:0, cr=(l.dir==='in')?0:l.amt;
+    run=r2(run+dr-cr);
+    const tap=l._src&&l._id?`onclick="psOpen('${jq(l._src)}','${jq(l._id)}')" style="cursor:pointer"`:'';
+    return `<tr ${tap}>
+      <td class="ps-d">${fmtDate(l.date)}</td>
+      <td class="ps-p">${esc(l.ref||l.note||'—')}${l.acc?`<div class="hint">${esc(accName(l.acc))}</div>`:''}</td>
+      <td class="ps-n">${dr?money(dr):''}</td>
+      <td class="ps-n">${cr?money(cr):''}</td>
+      <td class="ps-n"><b>${money(Math.abs(run))}</b> <span class="hint">${side(run)}</span></td>
+    </tr>`; }).join('');
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">${PK_ICON[p.kind]||'📒'} ${esc(p.name)}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
-    <p class="hint" style="margin-bottom:12px">${t(PK_LBL[p.kind]||'pt_other')} · ${lines.length} ${t('rp_items')}</p>
-    <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
-      <div class="il" style="border-bottom:0"><span>${t('rp_balance')}</span>
-        <b style="font-size:18px;color:${run<0?'var(--bad)':'var(--ok)'}">${money(Math.abs(run))} ${run<0?t('ob_pay'):t('ob_get')}</b></div></div>
-    ${rows||`<p class="hint">${t('pt_no_bal')}</p>`}
+    <p class="hint" style="margin-bottom:10px">${t(PK_LBL[p.kind]||'pt_other')} · ${lines.length} ${t('rp_items')}</p>
+    ${rows?`<div class="ps-wrap"><table class="ps-tbl">
+      <thead><tr><th>${t('ps_date')}</th><th>${t('ps_part')}</th>
+        <th class="ps-n">${t('ps_dr')}</th><th class="ps-n">${t('ps_cr')}</th>
+        <th class="ps-n">${t('ps_bal')}</th></tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr><td colspan="4"><b>${t('ps_closing')}</b></td>
+        <td class="ps-n"><b style="color:${run<0?'var(--bad)':'var(--ok)'}">${money(Math.abs(run))} ${side(run)}</b></td></tr></tfoot>
+    </table></div>
+    <p class="hint" style="margin:8px 0 0">${run<0?t('ob_pay'):t('ob_get')} \u00B7 ${money(Math.abs(run))}</p>`
+    :`<p class="hint">${t('pt_no_bal')}</p>`}
     <div class="modal-actions">
       <button class="btn ghost" style="flex:1" onclick="partyStatement()">${t('back')}</button>
       <button class="btn primary" style="flex:1" onclick="psPrint('${pid}','${p.kind}')">🖨️ ${t('rp_pdf')}</button></div>
@@ -22605,8 +22663,10 @@ function psLines(p){
     ref:t('ob_title'),note:'',_src:'opening'});
   (DB.ledger||[]).filter(l=>l.refKind==='openpay'
     && (l.partyId===p.id || String(l.party||'').trim().toLowerCase()===nm))
-    .forEach(l=>out.push({date:l.date,dir:isSup?'out':'in',amt:r2(+l.amt||0),acc:l.acc,
-      ref:l.ref||t('ob_title'),note:l.note||'',_src:'openpay'}));
+    .forEach(l=>out.push({date:l.date,dir:(l.dir==='out'?'in':'out'),amt:r2(+l.amt||0),acc:l.acc,
+      /* v440: this row was labelled with the opening's own name, so a settlement read as a
+         second opening. It is a payment against the opening and now says so. */
+      ref:t('rp_payment')+' \u00B7 '+t('ob_title'),note:l.note||'',_src:'openpay'}));
 
   const addDoc=(rec,label,total,kind)=>{
     if(total)out.push({date:rec.date||rec.orderDate||(rec.invoice&&rec.invoice.date)||rec.created,
@@ -22616,28 +22676,55 @@ function psLines(p){
       amt:r2(+pay.amt||0),acc:payAcc(rec,pay),ref:t('rp_payment')+' · '+label,note:'',_src:'pay',_id:rec.id}));
   };
 
-  if(isSup){
-    (DB.purchases||[]).filter(mine).forEach(pu=>
-      addDoc(pu, t('purchase')+' '+(pu.billNo||''), +pu.total||0, 'purchase'));
-    (DB.purchaseReturns||[]).forEach(r=>{
-      const pu=(DB.purchases||[]).find(x=>x.id===r.purId); if(!pu||!mine(pu))return;
-      out.push({date:r.date,dir:'in',amt:r2(+r.total||0),acc:'',
-        ref:t('pr_title')+' '+(r.no||''),note:'',_src:'pret',_id:r.id});
-      if(+r.refunded)out.push({date:r.date,dir:'out',amt:r2(+r.refunded||0),acc:r.acc||'',
-        ref:t('rp_refund'),note:'',_src:'pretpay',_id:r.id});
-    });
-  }else{
-    [['order',DB.orders],['alt',DB.alterations],['sale',DB.sales]].forEach(([k,list])=>
-      (list||[]).filter(mine).forEach(rec=>addDoc(rec, recLabelPlain(Object.assign({_kind:k},rec)),
-        orderTotal(rec), k)));
-    (DB.salesReturns||[]).forEach(r=>{
-      const sv=(DB.sales||[]).find(x=>x.id===r.saleId); if(!sv||!mine(sv))return;
-      out.push({date:r.date,dir:'out',amt:r2(+r.total||0),acc:'',
-        ref:t('sr_title')+' '+(r.no||''),note:'',_src:'sret',_id:r.id});
-      if(+r.refunded)out.push({date:r.date,dir:'in',amt:r2(+r.refunded||0),acc:r.acc||'',
-        ref:t('rp_refund'),note:'',_src:'sretpay',_id:r.id});
-    });
-  }
+  /* ══════════ v440 — THE STATEMENT ASKED THE WRONG QUESTION ══════════
+     Found while rebuilding this screen. peopleAll() can return the SAME man twice: once as
+     a supplier derived from his bills, and once as the party-master record, which carries
+     no role of its own and so reads as "other". Open the statement from the master row and
+     isSup came back false, the purchase branch was skipped entirely, and Kanchan Syntex —
+     with two bills and a payment against his name — showed only his opening balance.
+     A ledger is not a role, it is a name. Everything booked under that name belongs on it,
+     whichever hat it was entered under; a man who both sells to the shop and buys from it
+     has one account, not two half-accounts. Both sides are gathered now, and each document
+     decides its own direction: a purchase is always money owed OUT, a sale always money
+     owed IN, and its payments flip accordingly. */
+  const addSup=rec=>{
+    if(!rec)return;
+    const total=+rec.total||0;
+    if(total)out.push({date:rec.date||rec.created,dir:'out',amt:r2(total),acc:'',
+      ref:t('purchase')+' '+(rec.billNo||''),note:'',_src:'purchase',_id:rec.id});
+    migratePayments(rec);
+    (rec.payments||[]).forEach(pay=>out.push({date:pay.date,dir:'in',
+      amt:r2(+pay.amt||0),acc:payAcc(rec,pay),
+      ref:t('rp_payment')+' \u00B7 '+t('purchase')+' '+(rec.billNo||''),note:'',_src:'pay',_id:rec.id}));
+  };
+  (DB.purchases||[]).filter(mine).forEach(addSup);
+  (DB.purchaseReturns||[]).forEach(r=>{
+    const pu=(DB.purchases||[]).find(x=>x.id===r.purId); if(!pu||!mine(pu))return;
+    out.push({date:r.date,dir:'in',amt:r2(+r.total||0),acc:'',
+      ref:t('pr_title')+' '+(r.no||''),note:'',_src:'pret',_id:r.id});
+    if(+r.refunded)out.push({date:r.date,dir:'out',amt:r2(+r.refunded||0),acc:r.acc||'',
+      ref:t('rp_refund'),note:'',_src:'pretpay',_id:r.id});
+  });
+  const addCust=(rec,k)=>{
+    const total=orderTotal(rec);
+    if(total)out.push({date:rec.date||rec.orderDate||(rec.invoice&&rec.invoice.date)||rec.created,
+      dir:'in',amt:r2(total),acc:'',ref:recLabelPlain(Object.assign({_kind:k},rec)),
+      note:'',_src:k,_id:rec.id});
+    migratePayments(rec);
+    (rec.payments||[]).forEach(pay=>out.push({date:pay.date,dir:'out',
+      amt:r2(+pay.amt||0),acc:payAcc(rec,pay),
+      ref:t('rp_payment')+' \u00B7 '+recLabelPlain(Object.assign({_kind:k},rec)),
+      note:'',_src:'pay',_id:rec.id}));
+  };
+  [['order',DB.orders],['alt',DB.alterations],['sale',DB.sales]].forEach(([k,list])=>
+    (list||[]).filter(mine).forEach(rec=>addCust(rec,k)));
+  (DB.salesReturns||[]).forEach(r=>{
+    const sv=(DB.sales||[]).find(x=>x.id===r.saleId); if(!sv||!mine(sv))return;
+    out.push({date:r.date,dir:'out',amt:r2(+r.total||0),acc:'',
+      ref:t('sr_title')+' '+(r.no||''),note:'',_src:'sret',_id:r.id});
+    if(+r.refunded)out.push({date:r.date,dir:'in',amt:r2(+r.refunded||0),acc:r.acc||'',
+      ref:t('rp_refund'),note:'',_src:'sretpay',_id:r.id});
+  });
   /* anything he entered by hand against this party that is not tied to a document */
   (DB.ledger||[]).forEach(l=>{
     if(l.dir!=='in'&&l.dir!=='out')return;
@@ -26765,16 +26852,31 @@ function partiesRows(){
     if(!out.length)out.push(`<p class="hint" style="padding:20px 4px;text-align:center">${t('pty_no_match')}</p>`);
     return out.join('');
   }
+  /* ══════════ v438 — A HEADING THAT OPENS A DRAWER, NOT A SCREEN ══════════
+     HIS 1 Sep: "creditors ko click karta hoon to phir creditors aa jaata hai... jabki
+     creditors ko click karne par direct creditors ki list kholni chahiye thi, aur add
+     party, search — yeh sab."
+     Tapping "Creditors — I have to pay" unfolded the names underneath it, inside this
+     screen. Fine as far as it goes, but the app already HAS a proper Creditors screen —
+     ageing, bill by bill, openings, its own search — and this heading was the natural way
+     in and did not go there. So he tapped it, got a fold, and had to find the real screen
+     some other way.
+     The two headings that own a full screen now open it. The rest keep folding, because
+     tailors, staff and the settled names have no separate screen to go to. */
+  /* the two that own a full screen: money owed out goes to Creditors, money owed in goes to
+     the reminder list, which is the debtors screen under its shop-floor name. */
+  const OWNS={cred:'creditors', debt:'followUps'};
   SEC.forEach(([key,ico,lbl,list,col])=>{
     if(!list.length)return;
+    const goes=OWNS[key] && typeof window[OWNS[key]]==='function';
     const open=!!_ptyOpen[key];
     out.push(`<div class="kv card" style="padding:11px 13px;margin-bottom:6px;cursor:pointer"
-        onclick="ptyMore('${key}')">
+        onclick="${goes?(OWNS[key]+'()'):`ptyMore('${key}')`}">
         <span style="flex:1;min-width:0"><b>${ico} ${esc(lbl)}</b>
           <div class="hint">${t('lg_count',{n:list.length})}</div></span>
         <span style="text-align:right"><b style="color:${col}">${key==='flat'?'':money(r2(sum(list)))}</b>
-          <div class="hint">${open?'▴':'▾'}</div></span></div>`);
-    if(open)out.push(blockCut(list,key));
+          <div class="hint">${goes?'›':(open?'▴':'▾')}</div></span></div>`);
+    if(!goes && open)out.push(blockCut(list,key));
   });
   return out.join('');
 }
@@ -26973,6 +27075,15 @@ function partyRenameApply(oldNm,newNm){
   (DB.purchaseOrders||[]).forEach(o=>{ if(nameNorm(o.supplier)===n){o.supplier=newNm;c++;} });
   return c;
 }
+/* v439: what opening is already on the books for this man, so his own form can show it */
+function _ptyOpenPre(ex){
+  if(!ex)return {amt:'',kind:'',date:''};
+  const n=nameNorm(ex.name);
+  const row=(DB.ledger||[]).find(l=>l.refKind==='opening'&&nameNorm(l.party)===n);
+  if(!row)return {amt:'',kind:'',date:''};
+  return {amt:(+row.amt||0)||'', date:row.date||'',
+          kind:(row.dir==='out')?'supplier':'customer'};
+}
 function partyEdit(id,onDone,preName){
   const ex=id?partyById(id):null;
   modal('👤 '+(ex?esc(ex.name):t('pt_new')),
@@ -26985,7 +27096,24 @@ function partyEdit(id,onDone,preName){
          oninput="this.value=this.value.toUpperCase()"></div>
      <div class="field" style="margin-top:8px"><label>${t('address')}</label>
        <textarea id="ptAddr" rows="2">${ex?esc(ex.address||''):''}</textarea></div>
-     ${ex?`<div class="card" style="padding:10px 12px;margin-top:10px">${partyBalHTML(ex)}</div>`:`
+     ${/* ══════════ v439 — ONE PLACE FOR A PARTY, NOT TWO ══════════
+          HIS 1 Sep, on Bapulal's card: "party details, change opening alag alag hai. Add
+          party details ya edit party details rehta hai usi me jaakar saara kuch change karne
+          ka option rehna chahiye."
+          He is right. A NEW party got name, phone, GSTIN, address AND the opening balance in
+          one form. An EXISTING one got the first four and a read-only balance card — the
+          opening could only be touched through a separate "Change opening" button sitting on
+          his ledger. Same fact about the same man, two doors, and no reason for it.
+          The opening block now shows on both. On an existing party it opens with what is
+          already recorded, so he can see it and correct it here. If nothing has ever been
+          entered it starts empty, exactly as it does for a new name. */''}
+     ${/* v440 — HIS 1 Sep: "jab main basic information input kar raha hoon, usme purchase
+          details kyun daal rahe ho?" Fair. This form is where a man's NAME, phone, GSTIN,
+          address and opening balance are written. What he currently owes is the ledger's
+          answer, not this form's, and it was sitting here in the middle of the boxes he was
+          filling. Removed — the balance lives on his card and in his statement, which is
+          one tap away and is where he goes to read it. */''}
+     ${`
      ${/* v363 — HIS 27 Aug: "jab main add kar raha hoon, popup aana chahiye ki Lakshmi Laces
           creditor hai, loan hai, kya hai, opening balance kitna hai?" He is right, and it
           cost him a wrong entry: he paid an OLD supplier due, the shop had no record that
@@ -26999,15 +27127,16 @@ function partyEdit(id,onDone,preName){
        <div class="row">
          <div class="field" style="margin:0"><label>${t('pt_type')}</label>
            <select id="ptKind">
-             <option value="">${t('pt_type_none')}</option>
-             <option value="supplier">${t('pt_type_cred')}</option>
-             <option value="customer">${t('pt_type_debt')}</option>
+             <option value="" ${ex&&!_ptyOpenPre(ex).kind?'selected':''}>${t('pt_type_none')}</option>
+             <option value="supplier" ${ex&&_ptyOpenPre(ex).kind==='supplier'?'selected':''}>${t('pt_type_cred')}</option>
+             <option value="customer" ${ex&&_ptyOpenPre(ex).kind==='customer'?'selected':''}>${t('pt_type_debt')}</option>
            </select></div>
          <div class="field" style="margin:0"><label>${t('ln_amt')}</label>
-           <input id="ptOpen" type="number" inputmode="decimal" placeholder="0"></div>
+           <input id="ptOpen" type="number" inputmode="decimal" placeholder="0"
+             value="${ex?esc(_ptyOpenPre(ex).amt||''):''}"></div>
        </div>
        <div class="field" style="margin-top:8px"><label>${t('pty_ason')}</label>
-         ${dateField("ptOpenDate", fyStart())}</div>
+         ${dateField("ptOpenDate", (ex&&_ptyOpenPre(ex).date)||fyStart())}</div>
      </div>`}`,
     [{label:t('cancel'),cls:'ghost',fn:closeModal},
      ...(ex?[{label:'🗑️',cls:'danger',fn:()=>partyDel(ex.id)}]:[]),
@@ -27062,16 +27191,31 @@ function partyEdit(id,onDone,preName){
         else partyAll().push(Object.assign({id:uid(),kinds:{}},rec));
         /* v363: an opening balance, if he gave one. Written the same way the party card
            writes it, so there is one shape of opening line in the books, not two. */
+        /* v439: showing the opening on an existing party was only half the job — he must be
+           able to CHANGE it here too, which is the whole point of one screen instead of two.
+           There is still only ever ONE opening line for a man: an existing one is edited in
+           place, never added to, so a correction cannot quietly become a second balance. */
         let openMsg='';
-        if(!ex){
+        {
           const kind=g('ptKind'), amt=r2(+g('ptOpen')||0);
-          /* an opening is the balance he STARTED with — there can only ever be one */
-          const had=(DB.ledger||[]).some(l=>l.refKind==='opening'
-            && nameNorm(l.party)===nameNorm(nm));
-          if(had && amt>0){ toast(t('pt_open_dup'),'bad'); }
-          else if(kind && amt>0){
-            const dt=g('ptOpenDate')||fyStart();
-            DB.ledger=DB.ledger||[];
+          const dt=g('ptOpenDate')||fyStart();
+          DB.ledger=DB.ledger||[];
+          const row=(DB.ledger||[]).find(l=>l.refKind==='opening'
+            && nameNorm(l.party)===nameNorm(ex?ex.name:nm));
+          if(row){
+            if(!(kind&&amt>0)){
+              /* cleared to nothing — the opening goes, but only if nothing was paid on it */
+              const paid=openingPays(row.party,row.partyKind).length;
+              if(paid){ toast(t('pt_open_paid'),'bad'); }
+              else { DB.ledger=(DB.ledger||[]).filter(l=>l.id!==row.id);
+                     openMsg=' · '+t('pt_open_cleared'); }
+            } else if(r2(+row.amt||0)!==amt || row.date!==dt
+                      || row.dir!==(kind==='supplier'?'out':'in')){
+              row.amt=amt; row.date=dt; row.party=nm;
+              row.dir=(kind==='supplier'?'out':'in'); row.partyKind=kind;
+              openMsg=' · '+t(kind==='supplier'?'pt_open_cred':'pt_open_debt',{amt:money(amt)});
+            }
+          } else if(kind && amt>0){
             DB.ledger.push({id:uid(), dir:(kind==='supplier'?'out':'in'), date:dt, amt,
               acc:'', party:nm, partyId:null, partyKind:kind,
               ref:t('ob_ref'), refKind:'opening', cat:'', note:'', opening:true, photos:[]});
