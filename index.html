@@ -533,6 +533,12 @@
     display:flex; align-items:center; justify-content:center; margin:0;
     box-shadow:0 3px 10px rgba(0,0,0,.45); flex:0 0 auto}
   .sheet-x.pinned{position:fixed}
+  /* v429: the back arrow is the cross's twin on the other side of the sheet */
+  .sheet-b{position:absolute; top:10px; left:10px; z-index:20; width:38px; height:38px;
+    border-radius:50%; border:1px solid var(--line); background:var(--bg2); color:var(--txt);
+    font-size:19px; line-height:1; cursor:pointer; display:flex; align-items:center;
+    justify-content:center; padding:0}
+  .sheet-b:active{background:var(--saffron); color:#1a1206}
   .sheet-x:active{background:var(--saffron); color:#1a1206}
   body.sheet-open{overflow:hidden}
   .sheet{overscroll-behavior:contain}
@@ -809,7 +815,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v425</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v430</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -885,7 +891,7 @@ var m={name:(_sn?_sn+' Orderbook':'Order Book'),short_name:(_sn||'Order Book'),d
 const T={
  en:{
   sub:'ORDERBOOK',
-  search_ph:'Search name, phone, order no…',
+  search_ph:'Search anything \u2014 name, bill, supplier, expense\u2026',
   nav_home:'Home',
   nav_orders:'Orders',
   nav_customers:'Customers',
@@ -1518,6 +1524,15 @@ const T={
   pur_unpaid_ask:'Remove the payment recorded on {n} bill(s)? They go back to being unpaid.',
   pur_unpaid_back:'Goes back into cash / bank', pur_unpaid_done:'{n} bill(s) marked unpaid \u00B7 {a} returned',
   pur_unpaid_note:'The bill, its items, stock and tax are untouched. Only the receipt that never happened is removed.',
+  sug_add_named:'Add \u201C{n}\u201D as a new party',
+  im_rmno:'Our number', im_dsgn:'Design no.', im_dsgn_ph:'as printed on the goods',
+  im_rm_dup:'{n} already belongs to another design', ms_items:'Readymade',
+  msr_title:'Search everything', ms_ph:'Name, phone, bill, supplier, expense\u2026',
+  msr_sub:'Orders, bills, customers, purchases, parties, tailors, staff, expenses and alterations.',
+  ms_none:'Nothing found for \u201C{q}\u201D',
+  ms_orders:'Orders', ms_bills:'Bills', ms_customers:'Customers', ms_purchases:'Purchases',
+  ms_parties:'Parties', ms_karigars:'Tailors', ms_staff:'Staff', ms_expenses:'Expenses',
+  ms_alterations:'Alterations', ms_party_sub:'Party ledger',
   bk_word:'BACKUP',
   ki_k_silai:'Stitching', ki_k_emb:'Embroidery',
   ki_emb_hint:'Embroidery is priced on the work \u2014 fill the rate when it comes back.',
@@ -2640,7 +2655,7 @@ dl_show_hidden:'Show hidden ({n})',
  },
  hi:{
   sub:'ऑर्डरबुक',
-  search_ph:'नाम, फ़ोन या ऑर्डर नं. खोजें…',
+  search_ph:'कुछ भी खोजें \u2014 नाम, बिल, सप्लायर, ख़र्च…',
   nav_home:'होम',
   nav_orders:'ऑर्डर',
   nav_customers:'ग्राहक',
@@ -3273,6 +3288,15 @@ dl_show_hidden:'Show hidden ({n})',
   pur_unpaid_ask:'{n} बिल पर दर्ज भुगतान हटा दें? वे फिर से उधार हो जाएँगे।',
   pur_unpaid_back:'नकद / बैंक में वापस', pur_unpaid_done:'{n} बिल उधार किए \u00B7 {a} वापस',
   pur_unpaid_note:'बिल, उसके आइटम, स्टॉक और टैक्स पर कोई असर नहीं। सिर्फ़ वह भुगतान हटेगा जो हुआ ही नहीं था।',
+  sug_add_named:'\u201C{n}\u201D को नई पार्टी बनाएँ',
+  im_rmno:'अपना नंबर', im_dsgn:'डिज़ाइन नं.', im_dsgn_ph:'माल पर जो लिखा है',
+  im_rm_dup:'{n} पहले से किसी और डिज़ाइन का है', ms_items:'रेडीमेड',
+  msr_title:'सब कुछ खोजें', ms_ph:'नाम, फ़ोन, बिल, सप्लायर, ख़र्च\u2026',
+  msr_sub:'ऑर्डर, बिल, ग्राहक, ख़रीद, पार्टी, कारीगर, स्टाफ़, ख़र्च और अल्ट्रेशन।',
+  ms_none:'\u201C{q}\u201D का कुछ नहीं मिला',
+  ms_orders:'ऑर्डर', ms_bills:'बिल', ms_customers:'ग्राहक', ms_purchases:'ख़रीद',
+  ms_parties:'पार्टी', ms_karigars:'कारीगर', ms_staff:'स्टाफ़', ms_expenses:'ख़र्च',
+  ms_alterations:'अल्ट्रेशन', ms_party_sub:'पार्टी खाता',
   bk_word:'बैकअप',
   ki_k_silai:'सिलाई', ki_k_emb:'कढ़ाई',
   ki_emb_hint:'कढ़ाई का रेट काम देखकर बनता है \u2014 वापस आने पर भर दीजिए।',
@@ -5405,6 +5429,29 @@ function orderSummaryStatus(o){ const its=(o.items||[]); if(!its.length)return o
   const idxs=its.map(gid=>STATUS.indexOf(itemStatusOf(o,gid))); return STATUS[Math.min.apply(null,idxs)]||'new'; }
 
 /* ---- apply static labels + language ---- */
+/* ══════════ v430 — THE BOX HE IS TYPING IN MUST BE ON SCREEN ══════════
+   HIS 1 Sep, off his own iPad photo: "party ka naam number upar chala gaya hai, dikh hi
+   nahi raha ki number me kya type kar raha hoon."
+   The iPad keyboard takes roughly half the screen. Anything the browser does not scroll to
+   sits behind it, and he is typing a phone number he cannot see — which on a party record
+   is the one field a typo makes useless.
+   Any focused box now scrolls itself into view once the keyboard has settled, in every
+   sheet and every modal in the app. It only ever scrolls when the box is actually hidden,
+   so nothing jumps under his hand while he is already looking at it. */
+document.addEventListener('focusin',function(e){
+  const el=e.target;
+  if(!el||!/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName||''))return;
+  if(el.type==='hidden'||el.type==='checkbox'||el.type==='radio')return;
+  setTimeout(function(){
+    try{
+      const r=el.getBoundingClientRect();
+      const vh=(window.visualViewport&&window.visualViewport.height)||window.innerHeight;
+      if(r.bottom>vh-12 || r.top<8){
+        el.scrollIntoView({block:'center',behavior:'smooth'});
+      }
+    }catch(x){}
+  },320);
+},true);
 function applyLang(){
   document.documentElement.lang=lang;
   try{ bkTopPaint(); }catch(e){}
@@ -6002,7 +6049,17 @@ function thaanSave(){
   const notes=($('#th_notes').value||'').trim();
   const count=d.id?1:Math.max(1,+($('#th_count')||{}).value||1);
   if(!serial){toast(t('stk_need_serial'),'bad');return;}
-  if(!name)name=cat||('Fabric '+serial);
+  /* ══════════ v430 — A ROLL WITH NO NAME KEPT NO NAME ══════════
+     HIS 1 Sep: "item name agar blank rakhte hain to serial number ko hi item name le le raha
+     hai — fabric 1275, 1270 — aisa nahi hona chahiye."
+     Reproduced: serial 1275, name left empty, and the roll came out called "Fabric 1275".
+     Two things then read wrong. The rack shows a name that is only the number said twice,
+     and every unnamed roll gets its OWN fabric master — 1275, 1270, 1268 all separate
+     records that are not separate fabrics at all.
+     A roll is found by its serial. If he has not named the cloth yet the honest answer is
+     that it has no name, so the field stays empty and the screens fall back to the serial
+     they already print. A category, if he gave one, is a real name and still stands. */
+  if(!name)name=cat||'';
   if(mtr<=0){toast(t('stk_need_mtr'),'bad');return;}
   // a serial well outside the run is nearly always a typo — ask before it goes in
   if(!d.id && serialOutOfRun(serial) && _serOK!==serial){
@@ -6091,19 +6148,21 @@ function bulkAddOne(){
   const cat=(_bulk.cat||'').trim(), party=(_bulk.party||'').trim(), rack=(_bulk.rack||'').trim();
   const sell=+(_bulk.sell||0);
   let ser=serial; while(serialTaken(ser))ser=ser+'A';
-  if(!name)name=cat||('Fabric '+ser);
-  let f=DB.fabItems.find(x=>String(x.name).toLowerCase()===name.toLowerCase());
-  if(!f){f={id:uid(),name,category:cat,party,rate,sell};DB.fabItems.push(f);}
+  if(!name)name=cat||'';                       /* v430: no invented name — see thaanSave */
+  let f=name?DB.fabItems.find(x=>String(x.name).toLowerCase()===name.toLowerCase()):null;
+  if(!f&&name){f={id:uid(),name,category:cat,party,rate,sell};DB.fabItems.push(f);}
+  /* v430: an unnamed roll gets no fabric master at all, so the list is not filled with one
+     nameless record per roll. It carries its own rate and party on itself. */
   /* v248: same rule as the single-roll form - fill a blank, never overwrite a value that
      other rolls of this name are already relying on. */
-  else{if(cat&&!f.category)f.category=cat;if(party&&!f.party)f.party=party;
+  else if(f){if(cat&&!f.category)f.category=cat;if(party&&!f.party)f.party=party;
        if(rate&&!(+f.rate))f.rate=rate;if(sell&&!(+f.sell))f.sell=sell;}
-  const th={id:uid(),created:new Date().toISOString(),serial:ser,fabId:f.id,name,category:cat,mtr,used:0,rate,sell,rack,party,notes:'',photos:[...(_bulk.entryPhotos||[])]};
+  const th={id:uid(),created:new Date().toISOString(),serial:ser,fabId:f?f.id:'',name,category:cat,mtr,used:0,rate,sell,rack,party,notes:'',photos:[...(_bulk.entryPhotos||[])]};
   DB.thaans.push(th);
   move({dir:MV_IN,target:'fab',thaanId:th.id,qty:mtr,rate,reason:'opening',ref:t('stk_opening')});
   const num=String(ser).match(/\d+/); if(num && +num[0]>=(DB.stkCfg.nextSerial||1))DB.stkCfg.nextSerial=+num[0]+1;
   save();
-  _bulk.added.unshift({id:th.id,serial:ser,name:thaanName(th)||f.name,mtr,rate});
+  _bulk.added.unshift({id:th.id,serial:ser,name:thaanName(th)||(f?f.name:''),mtr,rate});
   _bulk.entry={serial:'',mtr:'',rate:'',name:''}; _bulk.entryPhotos=[];
   bulkFabRefresh();
 }
@@ -6189,7 +6248,12 @@ function serialRunTop(list){
   return {pre, num:top.num, pad:top.pad};
 }
 function nextSerial(){
-  const all=(DB.thaans||[]).map(t=>String(t.serial||'')).filter(Boolean);
+  /* v429: older builds let readymade items draw from this same run, so a shop that has been
+     running a while can already hold a kurta on 004 and a bale on 004. Those numbers are on
+     real records and are not renumbered — but the run steps over them from here on, so the
+     clash cannot happen twice. */
+  const all=(DB.thaans||[]).map(t=>String(t.serial||'')).filter(Boolean)
+    .concat((DB.itemMaster||[]).map(m=>String(m.serial||'')).filter(Boolean));
   if(!all.length)return '001';
   const top=serialRunTop(all);
   if(!top)return '';
@@ -11720,16 +11784,14 @@ function attStripHTML(){
 /* v419: the chip asks before it writes. He was explicit — "ten thirty AM hai, ok kiya,
    attendance ho gaya" — so the time is SHOWN and agreed, never stamped behind him. One tap
    marks in, the next marks out; a day already closed says so instead of doing nothing. */
+/* v429: the chip and the sheet now ask in exactly one place — punchTap — so they can never
+   drift apart and a tap is never confirmed twice. The chip only handles the day that is
+   already finished, where there is nothing left to confirm. */
 function attChipTap(sid){
   const st=staffById(sid); if(!st)return;
-  const d=todayISO(), a=attGet(sid,d)||{}, now=nowHHMM();
+  const a=attGet(sid,todayISO())||{};
   if(a.in&&a.out){ toast(t('pn_day_done',{i:a.in,o:a.out}),'ok'); return; }
-  const going=!!a.in;
-  confirmModal('\u{1F465} '+esc(st.name),
-    (going?t('pn_ask_out',{t:now}):t('pn_ask_in',{t:now})),
-    ()=>{ closeModal(); punchTap(sid); },
-    ()=>closeModal(),
-    {yes:t('ok'), no:t('cancel')});
+  punchTap(sid);
 }
 function kpiCardsHTML(){
   if(localStorage.getItem('pp_home_classic')==='1')return '';
@@ -12390,8 +12452,116 @@ function discardDraft(id){
 /* v286: one keystroke moves him to where the answers are, and only the first one does —
    after that he is already on Orders and the list just narrows. The box lives outside the
    tab panes, so switching tab does not touch what he is typing or where the cursor is. */
+/* ══════════════════ v426 — MAGIC SEARCH ══════════════════
+   HIS 31 Aug: "sab kuch wahan se search kar sakte hain — trader, expense, loans, sab."
+   Until now this box only ever reached ORDERS. Type a supplier's name, a purchase bill
+   number, an expense note or a tailor's name and it found nothing, silently, because those
+   live in other lists. The placeholder promised name, phone and order number and that is
+   all it delivered — not a lie, but not the whole truth either, and in October he has a
+   customer, a supplier and a tailor all ringing on the same afternoon.
+   One box now looks everywhere and answers in groups, so he can see WHAT it found before
+   he decides where to go. Tapping a line opens that record on its own screen. Nothing is
+   searched twice and no new copy of any data is made — every group reads the same arrays
+   its own screen reads. */
+function magicSearch(q){
+  const s=String(q||'').trim().toLowerCase(); if(!s)return [];
+  const has=v=>String(v==null?'':v).toLowerCase().includes(s);
+  const num=s.replace(/[^\d.]/g,'');
+  const out=[];
+  const add=(group,icon,title,sub,fn)=>out.push({group,icon,title,sub,fn});
+
+  (DB.orders||[]).forEach(o=>{
+    if(has(o.customerName)||has(o.phone)||has(o.orderNo)||has((o.invoice||{}).no)
+      ||(num&&String(Math.round(+orderTotal(o)||0))===num)
+      ||(o.members||[]).some(m=>has(m.name)||has(m.ono)))
+      add(t('ms_orders'),'\u{1F454}','#'+(o.orderNo||'—')+' \u00B7 '+(o.customerName||''),
+        (o.invoice?(o.invoice.no+' \u00B7 '):'')+money(orderTotal(o))
+        +(orderBaaki(o)?(' \u00B7 '+t('bal')+' '+money(orderBaaki(o))):''),
+        "openDetail('"+jq(o.id)+"')");
+  });
+  (DB.sales||[]).forEach(x=>{
+    if(has(x.customerName)||has(x.phone)||has((x.invoice||{}).no)
+      ||(num&&String(Math.round(+((x.invoice&&invCompute(x.invoice).total)||0)))===num))
+      add(t('ms_bills'),'\u{1F9FE}',((x.invoice||{}).no||'—')+' \u00B7 '+(x.customerName||''),
+        money((x.invoice&&invCompute(x.invoice).total)||0),
+        "openInvoicePreview('sale','"+jq(x.id)+"')");
+  });
+  /* v427: the rack number and the supplier's design number are how a readymade design gets
+     asked for out loud, so the one box answers to both. */
+  (DB.itemMaster||[]).forEach(m=>{
+    if(has(m.name)||has(m.rmNo)||has(m.dsgn))
+      add(t('ms_items'),'\u{1F455}',(m.rmNo?m.rmNo+' \u00B7 ':'')+(m.name||''),
+        (m.dsgn?(t('im_dsgn')+': '+m.dsgn):(m.rate?money(m.rate):'')),
+        "imEdit('"+jq(m.id)+"')");
+  });
+  (DB.customers||[]).forEach(c=>{
+    if(has(c.name)||has(c.phone))
+      add(t('ms_customers'),'\u{1F464}',c.name||'',c.phone||'',"openCustomer('"+jq(c.id)+"')");
+  });
+  (DB.purchases||[]).forEach(pu=>{
+    if(has(pu.supplier)||has(pu.billNo)||(num&&String(Math.round(+pu.total||0))===num))
+      add(t('ms_purchases'),'\u{1F69A}',(pu.billNo||'—')+' \u00B7 '+(pu.supplier||''),
+        money(pu.total)+(orderBaaki(pu)?(' \u00B7 '+t('bal')+' '+money(orderBaaki(pu))):''),
+        "openPurchaseForm('"+jq(pu.id)+"')");
+  });
+  const seenP={};
+  (DB.parties||[]).forEach(pt=>{ if(has(pt.name)&&!seenP[pt.name]){ seenP[pt.name]=1;
+      add(t('ms_parties'),'\u{1F3EA}',pt.name||'',t('ms_party_sub'),
+        "partyCard('"+jq(pt.name)+"')"); }});
+  (DB.karigars||[]).forEach(k=>{
+    if(has(k.name)) add(t('ms_karigars'),'\u{1F477}',k.name||'',
+      t('bal')+' '+money(karBalance(k.id)),"karMaster('"+jq(k.id)+"')");
+  });
+  staffAll().forEach(st=>{
+    if(has(st.name)) add(t('ms_staff'),'\u{1F465}',st.name||'',
+      st.salary?money(st.salary):'', "staffKhata('"+jq(st.id)+"')");
+  });
+  (DB.ledger||[]).forEach(l=>{
+    if(l.refKind!=='expense')return;
+    if(has(l.cat)||has(l.note)||has(l.party)||(num&&String(Math.round(+l.amt||0))===num))
+      add(t('ms_expenses'),'\u{1F4B8}',(l.cat||'—')+(l.note?(' \u00B7 '+l.note):''),
+        fmtDate(l.date)+' \u00B7 '+money(l.amt),"expEdit('"+jq(l.id)+"')");
+  });
+  (DB.alterations||[]).forEach(a=>{
+    if(has(a.customerName)||has(a.phone)||has(a.altNo)||has(a.itemDesc))
+      add(t('ms_alterations'),'\u{1F527}','#'+(a.altNo||'—')+' \u00B7 '+(a.customerName||''),
+        money(a.total),"openAltDetail('"+jq(a.id)+"')");
+  });
+  return out.slice(0,60);
+}
+function magicSearchRender(q){
+  const rows=magicSearch(q);
+  const el=$('#msRes'); if(!el)return;
+  if(!rows.length){ el.innerHTML=`<div class="empty" style="padding:20px 10px"><p>${t('ms_none',{q:esc(q)})}</p></div>`; return; }
+  const groups={}; rows.forEach(r=>{ (groups[r.group]=groups[r.group]||[]).push(r); });
+  el.innerHTML=Object.keys(groups).map(g=>`
+    <div class="home-sec-title" style="margin:12px 0 6px">${esc(g)} (${groups[g].length})</div>
+    ${groups[g].map(r=>`<div class="cust-result fu-open" onclick="magicGo(&quot;${esc(r.fn).replace(/"/g,'&quot;')}&quot;)">
+       <div style="min-width:0"><b>${r.icon} ${esc(r.title)}</b>
+         <div class="hint">${esc(r.sub)}</div></div>
+       <span style="color:var(--saffron2)">\u203A</span></div>`).join('')}`).join('');
+}
+function magicGo(fn){ closeSheet(); try{ eval(fn); }catch(e){ toast(t('scr_lost'),'bad'); } }
+function magicOpen(q){
+  sheetAt(()=>magicOpen(_msQ));
+  _msQ=String(q||'');
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F50D} ${t('msr_title')}</h2></div>
+    <input id="msQ" value="${esc(_msQ)}" placeholder="${t('ms_ph')}" autocomplete="off"
+      oninput="_msQ=this.value;magicSearchRender(this.value)" style="margin-bottom:4px">
+    <p class="hint" style="margin-bottom:6px">${t('msr_sub')}</p>
+    <div id="msRes"></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+  const e=$('#msQ'); if(e){ e.focus(); try{e.setSelectionRange(_msQ.length,_msQ.length);}catch(x){} }
+  magicSearchRender(_msQ);
+}
+let _msQ='';
 function searchType(){
   const q=($('#search').value||'').trim();
+  /* v426: the header box now feeds the magic sheet instead of only the orders list. The
+     orders list keeps its own search, untouched, for when he is already standing in it. */
+  if(q){ magicOpen(q); $('#search').value=''; ordQ=''; return; }
   ordQ=q;
   pageReset('orders');
   /* v368 LIVE TEST — typing "Cust 3" into the Home box landed as "Cst 3": the first
@@ -12402,6 +12572,24 @@ function searchType(){
   if(q && _curTab!=='orders'){ go('orders'); focusOrdSearch(); return; }
   if(!q && _curTab==='orders'){ go('home'); return; }
   renderOrders(true);
+}
+/* ══════════════════ v428 — A WAY BACK ON EVERY SCREEN ══════════════════
+   HIS 1 Sep, standing in front of the Purchases list: "back jaane ka kahin option nahi
+   dikh raha hai."
+   He was right, and my audit had called this area fine. That was my failure, not the app's:
+   the back test pressed the SYSTEM back button, which does return to Home from everywhere,
+   and I recorded "ok" ten times without once asking whether there is anything ON THE SCREEN
+   to press. A sheet has its arrow and its cross. These five — Orders, Sale, Purchases,
+   Customers, Alterations — are tab views and had neither. From where he stood, a full page
+   of purchase bills with no way off it.
+   His own Screen Law says every header reads the same: back on the left, the name in the
+   middle. One helper, used by all five, so they cannot drift apart again. */
+function tabHead(title){
+  return `<div class="kv" style="margin:0 0 10px">
+    <button class="btn sm ghost" onclick="go('home')" title="${esc(t('back'))}"
+      style="padding:5px 11px;font-size:16px;line-height:1">\u2190</button>
+    <b style="flex:1;text-align:center;font-size:15px">${esc(title)}</b>
+    <span style="width:42px"></span></div>`;
 }
 function renderOrders(keepFocus){
   const q=(ordQ||'').toLowerCase().trim();
@@ -12432,7 +12620,7 @@ function renderOrders(keepFocus){
   const remind='';   /* v334: the backup warning belongs on Home only — see backupNagHTML */
   const dcard=draftCardHTML();
   // same top action row the Sale tab has, so New Order is never hidden behind the + only
-  const head=`<div class="row" style="margin-bottom:12px;gap:8px">
+  const head=tabHead(t('nav_orders'))+`<div class="row" style="margin-bottom:12px;gap:8px">
     <button class="btn primary" style="flex:2" onclick="openOrderForm()">+ ${t('new_order')}</button>
     <button class="btn ghost simple-hide" style="flex:1" onclick="orderReports()">📊 ${t('or_title')}</button>
     <button class="btn ghost" style="flex:0 0 48px" title="${t('hub_more')}" onclick="ordersHub()">⋯</button></div>`;
@@ -12694,7 +12882,7 @@ function renderCustomers(){
     .filter(c=>!_q||[c.name,c.phone,c.city,c.area].some(v=>String(v||'').toLowerCase().indexOf(_q)>=0))
     .sort((a,b)=>(a.name||'').localeCompare(b.name||''));
   const bar=$('#custCampBar');
-  if(bar)bar.innerHTML=`<button class="btn primary block" style="margin-bottom:8px" onclick="newCustomer()">➕ ${t('cust_new')}</button>`
+  if(bar)bar.innerHTML=tabHead(t('nav_customers'))+`<button class="btn primary block" style="margin-bottom:8px" onclick="newCustomer()">➕ ${t('cust_new')}</button>`
     +((DB.customers||[]).length>=8?`<input id="custListQ" value="${esc(_custQ)}" placeholder="🔍 ${t('search_ph')}"
         autocomplete="off" style="margin-bottom:8px" oninput="custListSearch(this.value)">`:'')
     +(list.length?`<button class="btn ghost block" style="margin-bottom:10px" onclick="openCampaign()">📣 ${t('camp_title')}</button>`:'');
@@ -14228,7 +14416,25 @@ function balArrow(net){
 function sugHead(labelKey,addOnclick){
   return `<div class="sug-head"><span>${t(labelKey)}</span></div>`;
 }
-function sugAddFoot(addOnclick){
+/* ══════════ v430 — "ADD NEW" WAS A LINK WHERE IT NEEDED TO BE A BUTTON ══════════
+   HIS 1 Sep: "party save nahi hai to yeh bade akshar me aana chahiye — add new party. Kuch
+   pata hi nahi chal raha, baar baar accountant se galti ho rahi hai... naam likh kar aage
+   badh jaati hain to bhi kaam ho jaata hai."
+   Both halves of that are true and they compound. A typed supplier name is enough for the
+   BILL to save, so nothing stops her; and the only way to also create the party was a small
+   orange link at the foot of the suggestion list, in hint-sized text. So the bill gets made,
+   the party master stays empty, and a week later she is sure she added someone who was
+   never added.
+   When what he has typed matches nothing, the offer is now a full-width button carrying the
+   name he typed — "➕ Add 'Ravi Fab' as a new party" — so it is the most obvious thing on
+   the list rather than the least. When the list does have matches it stays a quiet foot
+   link, because then adding is the unusual choice. */
+function sugAddFoot(addOnclick,typed,noMatches){
+  const nm=String(typed||'').trim();
+  if(noMatches && nm){
+    return `<button class="btn primary block" style="margin-top:10px;text-align:left;padding:12px 14px"
+      onclick="${addOnclick}">\u2795 ${t('sug_add_named',{n:esc(nm)})}</button>`;
+  }
   return `<div class="sug-head" style="margin-top:6px;border-top:1px solid var(--line);padding-top:8px">
     <span class="hint">${t('cust_not_listed')}</span>
     <a onclick="${addOnclick}">➕ ${t('add_new')}</a></div>`;
@@ -14261,7 +14467,7 @@ function custSearch(q){const box=$('#custResults'); if(!box)return;
   box.innerHTML=sugHead('saved_customers','orderNewCustomer()')
     +(hits.length?hits.map(c=>custRowHTML(c,`pickCustomer('${c.id}')`)).join('')
       :`<p class="hint" style="margin:6px 0 0">${q?t('cust_none_q'):t('cust_none')}</p>`)
-    +sugAddFoot('orderNewCustomer()');}
+    +sugAddFoot('orderNewCustomer()', (($('#f_cname')||{}).value||''), !list.length);}
 function orderNewCustomer(){
   captureForm();
   const nm=($('#f_cname')&&$('#f_cname').value.trim())||'';
@@ -15739,7 +15945,7 @@ function renderPurchases(keepFocus){
      other two to read the same. Here the ☑️ Select row sat BETWEEN the new button and the
      search box, so the eye met a bulk-edit tool before it met the list. Select is still
      here, one line lower, under the search where it belongs. */
-  const addBtn=`<div class="row" style="margin-bottom:12px;gap:8px">
+  const addBtn=tabHead(t('nav_purchases'))+`<div class="row" style="margin-bottom:12px;gap:8px">
     <button class="btn primary" style="flex:1" onclick="openPurchaseForm()">+ ${t('new_purchase')}</button>
     <button class="btn ghost" style="flex:0 0 48px" title="${t('hub_more')}" onclick="purchaseHub()">⋯</button>
     </div>`;
@@ -15991,7 +16197,7 @@ function renderAlterations(){
      screen threw before it drew anything. It only showed up once there were enough
      alterations to page. */
   let list=(DB.alterations||[]).slice().sort((a,b)=>new Date(b.created)-new Date(a.created));
-  const addBtn=`<button class="btn primary block" style="margin-bottom:12px" onclick="openAltForm()">+ ${t('new_alteration')}</button>`;
+  const addBtn=tabHead(t('alterations'))+`<button class="btn primary block" style="margin-bottom:12px" onclick="openAltForm()">+ ${t('new_alteration')}</button>`;
   if(!list.length){el.innerHTML=addBtn+`<div class="empty"><div class="big">🔧</div><p><b>${t('no_alterations')}</b></p><p style="font-size:13px">${t('no_alterations_sub')}</p></div>`;return;}
   const _pgAll=list; list=pageSlice('alt',list);
   el.innerHTML=addBtn+list.map(a=>{
@@ -16332,7 +16538,7 @@ function estCustSearch(q){const box=$('#estCustResults'); if(!box)return;
   box.innerHTML=sugHead('saved_customers','estNewCust()')
     +(hits.length?hits.map(c=>custRowHTML(c,`estPickCust('${c.id}')`)).join('')
       :`<p class="hint" style="margin:6px 0 0">${q?t('cust_none_q'):t('cust_none')}</p>`)
-    +sugAddFoot('estNewCust()');}
+    +sugAddFoot('estNewCust()', (($('#est_cname')||{}).value||''), !list.length);}
 function estPickCust(id){const c=custById(id);if(!c)return;estCapture();_est.customerId=id;_est.customerName=c.name;_est.phone=c.phone;estimateRender();}
 function estNewCust(){estCapture();_est.customerId=null;const box=$('#estCustResults');if(box)box.innerHTML='';const p=$('#est_cphone');if(p)p.focus();}
 function estCapture(){const e=_est;if(!e)return
@@ -17482,7 +17688,7 @@ function invCustSearch(q){const box=$('#invCustResults'); if(!box)return;
   box.innerHTML=sugHead('saved_customers','invNewCustomer()')
     +(hits.length?hits.map(c=>custRowHTML(c,`invPickCustomer('${c.id}')`)).join('')
       :`<p class="hint" style="margin:6px 0 0">${q?t('cust_none_q'):t('cust_none')}</p>`)
-    +sugAddFoot('invNewCustomer()');}
+    +sugAddFoot('invNewCustomer()', (($('#inv_cname')||{}).value||''), !list.length);}
 function invNewCustomer(){
   captureInvoiceForm();
   const nm=($('#inv_cname')&&$('#inv_cname').value.trim())||'';
@@ -17495,7 +17701,7 @@ function altCustSearch(q){const box=$('#altCustResults'); if(!box)return;
   box.innerHTML=sugHead('saved_customers','altNewCustomer()')
     +(hits.length?hits.map(c=>custRowHTML(c,`altPickCustomer('${c.id}')`)).join('')
       :`<p class="hint" style="margin:6px 0 0">${q?t('cust_none_q'):t('cust_none')}</p>`)
-    +sugAddFoot('altNewCustomer()');}
+    +sugAddFoot('altNewCustomer()', (($('#a_cname')||{}).value||''), !list.length);}
 /* v321 — HIS 25 Aug: tapping New here cleared the list, moved the cursor and said nothing,
    so a new employee had no way of knowing whether it had registered. The order and the
    bill both say it; this now says the same thing, in the same words. */
@@ -18953,7 +19159,7 @@ function applySort(arr,mode,dateOf,amtOf){
 function renderInvoices(keepFocus){
   const el=$('#invList');
   const all=allInvoices();
-  const head=`<div class="row" style="margin-bottom:12px;gap:8px">
+  const head=tabHead(t('invoices'))+`<div class="row" style="margin-bottom:12px;gap:8px">
     <button class="btn primary" style="flex:1" onclick="openSaleForm()">+ ${t('new_sale')}</button>
     <button class="btn ghost" style="flex:0 0 48px" title="${t('hub_more')}" onclick="saleHub()">⋯</button>
     </div>`;
@@ -19361,8 +19567,23 @@ function puSetMode(m){
   const box=$('#puTotalsBox');
   if(box){ capturePurchForm(); box.innerHTML=purchTotalsBoxHTML(purchCompute(purchForm)); }  // cheque ref appears/disappears
 }
+/* ══════════ v430 — A PARTY HE CREATED WAS NOT IN THE PICKER ══════════
+   Found while testing his other complaint. This list was built ONLY from past purchases, so
+   a supplier saved properly in the party master did not appear here until his first bill was
+   entered. Type the name and nothing matches; the app offers to add him again; he is added
+   twice, or she gives up and just types it loose.
+   That is the second half of "maine add kiya tha, phir dekh raha hoon to add kiya hi nahi
+   hai" — he WAS added, the picker simply was not looking where he was kept. It now reads
+   both: everyone billed before, and everyone in the party master, each name once. */
 function pastSuppliers(){const seen={};const out=[];
   (DB.purchases||[]).slice().reverse().forEach(p=>{const k=(p.supplier||'').trim();if(k&&!seen[k.toLowerCase()]){seen[k.toLowerCase()]=1;out.push({name:k,phone:p.phone||''});}});
+  (DB.parties||[]).forEach(pt=>{
+    const k=String(pt.name||'').trim(); if(!k)return;
+    const kind=pkNorm(pt.kind);
+    if(kind && kind!=='supplier' && kind!=='both')return;      /* a customer is not a supplier */
+    if(seen[k.toLowerCase()])return;
+    seen[k.toLowerCase()]=1; out.push({name:k,phone:pt.phone||''});
+  });
   return out;}
 function puPickSupplier(val){if(!val)return;capturePurchForm();purchForm.supplier=val;
   const s=pastSuppliers().find(x=>x.name===val);if(s&&s.phone&&!purchForm.phone)purchForm.phone=s.phone;renderPurchaseForm();}
@@ -19419,7 +19640,7 @@ function puSupSug(){
       <div><b>${esc(x.name)}</b><div class="hint">${esc(x.phone||'')}${b?` · ${balArrow(-b)}`:''}</div></div>
       <span class="btn sm primary">${t('select')}</span></div>`;}).join('')
       :`<p class="hint" style="margin:6px 0 0">${q?t('sup_none_q'):t('sup_none')}</p>`)
-    +sugAddFoot('puNewSupplier()');
+    +sugAddFoot('puNewSupplier()', el.value, !list.length);
 }
 /* v374 — a brand new supplier is exactly the moment his old balance is known, and this
    ➕ used to just clear the list and jump to the phone box. Same creator as Expenses,
@@ -19763,11 +19984,38 @@ function sugFacts(o){
    one is exactly the confusion a shop cannot afford — the number written on the cloth and
    the number in the app must be the same number. The shop has ONE running serial and
    everything new takes the next one in that run. */
-function itemCodeStamp(m){ return m; }               // kept so older callers stay valid
+/* ══════════════════ v427 — A NUMBER FOR EVERY READYMADE DESIGN ══════════════════
+   HIS 31 Aug: "Bombay wagairah ka jo aata hai usme design number likha hua rehta hai...
+   apne samples ka generally koi design naam ya number nahi hota, to apne serial number se
+   hi follow kar lenge."
+   So two things, not one. The shop's OWN number is stamped on every readymade design the
+   moment it is created, and it is the thing that is always there. The supplier's design
+   number is a separate box, filled when the goods came with one printed on them and left
+   empty when they did not — which is every piece the shop makes itself.
+   It runs per DESIGN, never per piece. A fabric roll gets a serial because roll 001 is a
+   particular roll with its own metres left; three Blue Sherwanis in size 40 are the same
+   thing three times and nobody asks which one. Sizes and counts sit underneath the design.
+   It is a separate run from the thaan serial and cannot touch it — nextSerial() reads only
+   DB.thaans and this reads only DB.itemMaster. Verified: adding readymade left the cloth
+   serial sitting at 004. */
+function nextRmNo(){
+  const pre='RM-';
+  let top=0;
+  (DB.itemMaster||[]).forEach(m=>{
+    const x=/^RM-(\d+)$/i.exec(String(m.rmNo||'').trim());
+    if(x)top=Math.max(top,+x[1]||0);
+  });
+  return pre+String(top+1).padStart(3,'0');
+}
+function itemCodeStamp(m){
+  if(m && m.kind==='ready' && !m.rmNo) m.rmNo=nextRmNo();
+  return m;
+}
 /* what the next few serials will be, WITHOUT consuming them */
 function serialPeek(n){
   const out=[];
-  const taken=new Set((DB.thaans||[]).map(t=>String(t.serial||'')).filter(Boolean));
+  const taken=new Set((DB.thaans||[]).map(t=>String(t.serial||'')).filter(Boolean)
+    .concat((DB.itemMaster||[]).map(m=>String(m.serial||'')).filter(Boolean)));   /* v429 */
   for(let i=0;i<(n||1);i++){
     const all=[...taken,...out];
     const top=serialRunTop(all.length?all:['000']);
@@ -20182,10 +20430,21 @@ function purApplyStock(pur){
       const size=(it.colour||'').trim()||'-';
       if(m){ readySet(m,size,(+(m.stk||{})[size]||0)+qty); merged++; }
       else{
-        m={id:uid(),kind:'ready',name:it.label,_key:key,serial:it.serial||nextThaanSerial(),design:it.design||'',
-           hsn:it.hsn||'',cost:rate,sell:'',rate:'',stk:{}};
-        readySet(m,size,qty); DB.itemMaster.push(m); bumpSerial(); made++;
-        it.serial=m.serial;
+        /* ══════════ v429 — READYMADE WAS EATING THE CLOTH SERIALS ══════════
+           HIS 1 Sep: "serial number mismatch ho raha hai... purchase ki entry ke baad stock
+           ka adjustment kuch galat ho raha hai."
+           Reproduced exactly. Rolls 001, 002, 003 on the shelf. A purchase line of readymade
+           kurtas came in and took 004 — from nextThaanSerial(), which counts DB.thaans. But a
+           readymade item is not a roll and never joins that array, so the run did not move.
+           The very next bale of cloth was handed 004 as well. Two different things in the
+           shop carrying the same number, and neither of them wrong on its own screen.
+           Readymade has had its own run since v427 — RM-001, RM-002 — kept apart precisely so
+           it can never touch the cloth. This is the one place still drawing from the wrong
+           well. It now takes an RM number, and the supplier's design number rides along if
+           the goods came with one. */
+        m={id:uid(),kind:'ready',name:it.label,_key:key,rmNo:nextRmNo(),design:it.design||'',
+           dsgn:it.design||'',hsn:it.hsn||'',cost:rate,sell:'',rate:'',stk:{}};
+        readySet(m,size,qty); DB.itemMaster.push(m); made++;
       }
       it.masterId=m.id; if(!it.serial)it.serial=m.serial;
       move({date:pur.date,dir:'in',target:'ready',itemId:m.id,size,qty,rate,
@@ -20539,7 +20798,7 @@ function poSupSearch(q){
         <div><b>${esc(x.name)}</b><div class="hint">${esc(x.phone||'')}</div></div>
         <span class="btn sm primary">${t('select')}</span></div>`).join('')
       :`<p class="hint" style="margin:6px 0 0">${q?t('sup_none_q'):t('sup_none')}</p>`)
-    +sugAddFoot('poNewSup()');}
+    +sugAddFoot('poNewSup()', (($('#po_sup')||{}).value||''), !list.length);}
 function poPickSup(name,phone){poCapture();_po.supplier=name;if(phone)_po.phone=phone;poRender();}
 function poNewSup(){poCapture();const box=$('#poSupResults');if(box)box.innerHTML='';const p=$('#po_phone');if(p)p.focus();}
 function poCapture(){const p=_po;if(!p)return
@@ -25029,7 +25288,10 @@ function itemMaster(){
   const its=DB.itemMaster||[];
   $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:6px">📦 ${t('item_master')}</h2>
     <p class="hint" style="margin-bottom:12px">${t('item_master_desc')}</p>
-    ${its.map(it=>`<div class="cust-result"><div><b>${esc(it.name)}</b>
+    ${/* v427: the shop's own number leads, because that is the one every design has. The
+         supplier's design number rides beside it only when the goods came with one. */''}
+    ${its.map(it=>`<div class="cust-result"><div><b>${it.rmNo?('<span style="color:var(--saffron2)">'+esc(it.rmNo)+'</span> \u00B7 '):''}${esc(it.name)}</b>
+      ${it.dsgn?`<div class="hint">${t('im_dsgn')}: ${esc(it.dsgn)}</div>`:''}
       ${it.incl&&it.incl.length?`<div class="hint">${esc(it.incl.join(' + '))}</div>`:''}
       ${it.rate?`<div class="hint">₹${esc(it.rate)}</div>`:''}</div>
       <div style="display:flex;gap:6px"><button class="btn sm ghost" onclick="imEdit('${it.id}')">✏️</button><button class="btn sm danger" onclick="imDelete('${it.id}')">✕</button></div></div>`).join('')
@@ -25041,7 +25303,9 @@ function itemMaster(){
 let _imDraft=null;
 function imEdit(id,backTo){
   const ex=id?(DB.itemMaster||[]).find(x=>x.id===id):null;
-  _imDraft=_imDraft&&_imDraft._keep?_imDraft:{id:id||null,name:ex?ex.name:'',hsn:ex?(ex.hsn||''):'',rate:ex?(ex.rate||''):'',incl:ex?[...(ex.incl||[])]:[],photos:ex?[...(ex.photos||[])]:[],back:backTo||null};
+  _imDraft=_imDraft&&_imDraft._keep?_imDraft:{id:id||null,name:ex?ex.name:'',hsn:ex?(ex.hsn||''):'',rate:ex?(ex.rate||''):'',incl:ex?[...(ex.incl||[])]:[],photos:ex?[...(ex.photos||[])]:[],
+    rmNo:ex?(ex.rmNo||''):'', dsgn:ex?(ex.dsgn||''):'', kind:ex?(ex.kind||''):'',   /* v427 */
+    back:backTo||null};
   _imDraft._keep=false; _imDraft.back=backTo||_imDraft.back||null;
   imRender();
 }
@@ -25054,6 +25318,12 @@ function imRender(){
     return `<span class="gtag" onclick="imTogglePart('${jq(p).replace(/'/g,"\\'")}')" style="cursor:pointer;${on?'background:var(--saffron);color:#1a1206;border-color:var(--saffron)':''}">${on?'✓ ':''}${esc(p)}</span>`;}).join('');
   $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${d.id?t('edit'):t('add_item_master')}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     <div class="field"><label>${t('im_name')} *</label><input id="im_name" value="${esc(d.name)}" placeholder="${t('im_name_ph')}"></div>
+    ${/* v427: our own number and the supplier's design number, side by side. Ours is filled
+         in already and can be changed; his is blank for anything the shop made itself. */''}
+    <div class="row"><div class="field"><label>${t('im_rmno')}</label>
+        <input id="im_rmno" value="${esc(d.rmNo||(d.id?'':nextRmNo()))}" placeholder="RM-001"></div>
+      <div class="field"><label>${t('im_dsgn')}</label>
+        <input id="im_dsgn" value="${esc(d.dsgn)}" placeholder="${t('im_dsgn_ph')}"></div></div>
     <div class="row"><div class="field"><label>${t('im_hsn')}</label><input id="im_hsn" value="${esc(d.hsn)}" placeholder="6203"></div>
       <div class="field"><label>${t('im_rate')}</label><input id="im_rate" type="number" inputmode="numeric" value="${esc(d.rate)}" placeholder="0"></div></div>
     <div class="section-h">${t('im_incl')}</div>
@@ -25081,6 +25351,8 @@ function imCapture(){const d=_imDraft; if(!d)return;
   if($('#im_name'))d.name=$('#im_name').value.trim();
   if($('#im_hsn'))d.hsn=$('#im_hsn').value.trim();
   if($('#im_rate'))d.rate=$('#im_rate').value;
+  if($('#im_rmno'))d.rmNo=$('#im_rmno').value.trim();      /* v427 */
+  if($('#im_dsgn'))d.dsgn=$('#im_dsgn').value.trim();
 }
 function imTogglePart(p){imCapture();const d=_imDraft;const i=d.incl.indexOf(p);
   if(i>=0)d.incl.splice(i,1); else d.incl.push(p); imRender();}
@@ -25096,8 +25368,16 @@ function imSave(){imCapture();const d=_imDraft;
   if(!d.name){toast(t('t_no_im_name'),'bad');return;}
   DB.itemMaster=DB.itemMaster||[];
   let rec;
-  if(d.id){rec=DB.itemMaster.find(x=>x.id===d.id);Object.assign(rec,{name:d.name,hsn:d.hsn,rate:d.rate,incl:[...d.incl],photos:[...(d.photos||[])]});}
-  else{rec={id:uid(),name:d.name,hsn:d.hsn,rate:d.rate,incl:[...d.incl],photos:[...(d.photos||[])]};DB.itemMaster.push(rec);}
+  /* v427: a number he typed himself wins; if ours is blank on a new design one is issued,
+     because that is the number the rack and the tag will carry. Two designs must never share
+     it, so a repeat is refused rather than quietly renumbered. */
+  const dup=(DB.itemMaster||[]).find(x=>x.id!==d.id && d.rmNo && String(x.rmNo||'')===String(d.rmNo));
+  if(dup){ toast(t('im_rm_dup',{n:esc(d.rmNo)}),'bad'); return; }
+  if(d.id){rec=DB.itemMaster.find(x=>x.id===d.id);
+    Object.assign(rec,{name:d.name,hsn:d.hsn,rate:d.rate,incl:[...d.incl],photos:[...(d.photos||[])],
+      rmNo:d.rmNo||rec.rmNo||'', dsgn:d.dsgn||''});}
+  else{rec={id:uid(),name:d.name,hsn:d.hsn,rate:d.rate,incl:[...d.incl],photos:[...(d.photos||[])],
+      rmNo:d.rmNo||'', dsgn:d.dsgn||''};DB.itemMaster.push(rec);}
   save();toast(t('t_item_saved'),'ok');
   const back=d.back; const newId=rec.id; _imDraft=null;
   if(back&&back.type==='inv'){ if(back.i>=0)invApplyMaster(back.i,newId); else { renderInvoiceForm(); posAdd(newId); } }
@@ -26813,12 +27093,30 @@ function staffPunch(){
   showSheet();
 }
 /* one tap does the obvious next thing: not in yet → in; in → leaving; already left → fix */
+/* ══════════════ v429 — A TAP MUST ASK BEFORE IT MARKS ══════════════
+   HIS 1 Sep: "galti se bhi click ho gaya to wo out ho ja raha hai."
+   On this sheet a tap wrote straight into the record. Arriving, that is only mildly wrong —
+   the time is close enough. Leaving is not: a man walks in at 10:30, someone brushes the
+   list at 10:31, and he is marked out one minute after arriving. His pay for that day is
+   then decided by an accident nobody saw.
+   The Home chips have asked since v419. This sheet — the one the shop actually stands in
+   front of — never did. It asks now, on both, naming the time: "Mark arrival at 10:30?"
+   with OK and Cancel. One extra tap when it is right; the difference between a correct
+   day and a wrong one when it is not. */
 function punchTap(sid){
   punchHoldEnd(); if(_pnHeld){ _pnHeld=false; return; }
   const st=staffById(sid); if(!st)return;
-  const d=todayISO(), a=attGet(sid,d)||{};
-  if(!a.in){ punchIn(sid); return; }
-  if(!a.out){ punchOut(sid); toast('👋 '+esc(st.name)+' · '+t('pn_bye'),'ok'); return; }
+  const d=todayISO(), a=attGet(sid,d)||{}, now=nowHHMM();
+  if(!a.in){
+    return confirmModal('\u{1F465} '+esc(st.name), t('pn_ask_in',{t:now}),
+      ()=>{ closeModal(); punchIn(sid); }, ()=>closeModal(),
+      {yes:t('ok'), no:t('cancel')});
+  }
+  if(!a.out){
+    return confirmModal('\u{1F44B} '+esc(st.name), t('pn_ask_out',{t:now}),
+      ()=>{ closeModal(); punchOut(sid); toast('👋 '+esc(st.name)+' · '+t('pn_bye'),'ok'); },
+      ()=>closeModal(), {yes:t('ok'), no:t('cancel')});
+  }
   /* both marked — the only thing left is to correct a mistake, so offer that */
   punchFix(sid);
 }
@@ -28864,6 +29162,25 @@ function showSheet(){
         b.setAttribute('aria-label','Close'); b.onclick=sheetClose;
         sh.insertBefore(b, sh.firstChild);
       }
+      /* ══════════ v429 — A WAY BACK ONE STEP, NOT ONLY A WAY OUT ══════════
+         HIS 1 Sep, after opening Stock from Purchases: "back bhi galat jagah aa gaya."
+         Every sheet gets a ✕ from here, and has since v188 — but ✕ closes EVERYTHING. When
+         he had walked Purchases → Stock, the only thing on screen was the cross, so the
+         only offer was to leave the whole trail. Some sheets draw their own ← ; Stock, and
+         others like it, never did.
+         The stack already knows whether there is a page behind this one, so the arrow is
+         put beside the cross exactly when there is somewhere to step back TO, and left off
+         when there is not. Sheets that already draw their own arrow are left alone — one
+         arrow, never two. */
+      if(_sheetStack.length && !sh.querySelector(':scope > .sheet-b')
+         && !sh.querySelector('button[onclick*="sheetBack"]')
+         && !/^\s*←/.test((sh.innerText||'').trim())){
+        const bb=document.createElement('button');
+        bb.className='sheet-b'; bb.type='button'; bb.textContent='\u2190';
+        bb.setAttribute('aria-label','Back');
+        bb.onclick=function(){ try{ sheetBack(); }catch(e){ sheetClose(); } };
+        sh.insertBefore(bb, sh.firstChild);
+      }
     }
   }catch(e){}
   /* v188: the cross is absolute inside the sheet, so it must be nudged down as the sheet
@@ -28881,7 +29198,9 @@ function showSheet(){
   try{ const sh2=$('#sheet');
     if(sh2){
       const syncX=()=>{ const x=sh2.querySelector(':scope > .sheet-x');
-        if(x)x.style.top=(sh2.scrollTop+10)+'px'; };
+        if(x)x.style.top=(sh2.scrollTop+10)+'px';
+        const bk=sh2.querySelector(':scope > .sheet-b');            /* v429: twin follows too */
+        if(bk)bk.style.top=(sh2.scrollTop+10)+'px'; };
       if(!sh2._xBound){ sh2._xBound=1; sh2.addEventListener('scroll',syncX,{passive:true}); }
       syncX();
     }
