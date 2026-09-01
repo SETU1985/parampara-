@@ -815,7 +815,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v435</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v437</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -19444,8 +19444,17 @@ function capturePurchForm(){const f=purchForm;if(!f)return;
   if($('#pu_supplier'))f.supplier=$('#pu_supplier').value.trim();
   if($('#pu_phone'))f.phone=$('#pu_phone').value.trim();
   if($('#pu_billno'))f.billNo=$('#pu_billno').value.trim();
-  if($('#pu_gstpct'))f.gstPct=$('#pu_gstpct').value===''?null:(+$('#pu_gstpct').value||0);
+  if($('#pu_gstpct')){
+    const v=$('#pu_gstpct').value;
+    /* v437: a rate he typed is his and is kept. A rate that merely matches what the slab
+       would have said is left free, so adding a readymade line to a cloth bill still moves
+       it — otherwise the first render would freeze the number for ever. */
+    if(v===''){ f.gstPct=null; }
+    else { const n=+v||0; const slab=puSlabRate(f);
+           f.gstPct=(slab!=null && n===slab)?null:n; }
+  }
   if($('#pu_nogst'))f.noGst=$('#pu_nogst').checked;
+  if($('#pu_inter'))f.interstate=$('#pu_inter').checked;      /* v436 */
   if($('#pu_nostock'))f.noStock=$('#pu_nostock').checked;
   if($('#pu_datelock'))_dateLock.pur=$('#pu_datelock').checked?f.date:'';
   if($('#pu_date'))f.date=$('#pu_date').value;
@@ -19463,9 +19472,36 @@ function capturePurchForm(){const f=purchForm;if(!f)return;
    rate — while a sale is inclusive. So a purchase adds tax after the discount, exactly as
    the supplier's own bill does, and the two now agree to the rupee. The rates live in
    Settings because they change and because the next shop will have its own. */
+/* ══════════════ v437 — THE PURCHASE RATE IGNORED THE SLAB ══════════════
+   HIS 1 Sep: "GST ka maine kaha tha automatically badalna chahiye. Kapde me hamesha paanch
+   percent. Readymade me pachchees sau se upar atharah percent hoga — yeh maine tumko bataya
+   tha. Maine readymade select kiya tha usme bhi paanch percent hi hai."
+   He did tell me, and the SALE side has followed that rule since v263 — invRate() prices
+   cloth at 5 whatever it costs and readymade at 18 once it passes 2,500. The purchase side
+   never learned it. It carried one number for the whole bill and that number came from a
+   setting, so a readymade bill at 7,950 a piece went in at 5% — which is what the Senso
+   entry was doing while their own paper said 18.
+   A supplier bill carries ONE rate across its lines, so the slab is read off the lines and
+   applied to the bill, not line by line — that keeps it matching the paper in his hand. All
+   cloth reads 5, all readymade over 2,500 reads 18, and a mixed bill leaves the box alone
+   because only he knows how the supplier split it. Whatever he types himself always wins. */
+function puSlabRate(f){
+  const its=((f&&f.items)||[]).filter(it=>it && it.label && (+it.qty||0)>0);
+  if(!its.length)return null;
+  const rates=its.map(it=>{
+    const fab=!!(it.thaanId||it.fabId||String(it.unit||'')==='Mtr');
+    if(fab)return 5;
+    const each=(+it.rate||0)||((+it.amount||0)/((+it.qty||1)||1));
+    return each>2500?18:5;
+  });
+  const first=rates[0];
+  return rates.every(r=>r===first)?first:null;     /* mixed bill — his call, not mine */
+}
 function puGstRate(f){
   const c=(DB.gstCfg||{});
   if(f && f.gstPct!=null && f.gstPct!=='') return +f.gstPct||0;
+  const slab=puSlabRate(f);
+  if(slab!=null)return slab;
   return (c.purchaseDefault!=null)?+c.purchaseDefault:5;
 }
 function purchCompute(f){
@@ -19530,7 +19566,22 @@ function purchTotalsBoxHTML(comp){
           style="width:56px;text-align:right;margin:0" oninput="updatePurchTotal()"> %
         <label style="display:flex;gap:4px;align-items:center;font-size:12px;color:var(--mut)">
           <input type="checkbox" id="pu_nogst" style="width:16px;height:16px;margin:0" ${f.noGst?'checked':''}
-            onchange="updatePurchTotal()"> ${t('no_gst')}</label></span>
+            onchange="updatePurchTotal()"> ${t('no_gst')}</label>
+        ${/* ══════════ v436 — OUT-OF-STATE BILLS WERE BOOKED AS CGST + SGST ══════════
+             HIS 1 Sep, holding the Senso bill: "yeh Bombay ka bill hai."
+             Senso Ethnic is in Maharashtra, the shop is in West Bengal, so their paper says
+             IGST 18% — one tax, 16,784.10 on 93,245. purchCompute has split IGST correctly
+             all along; what was missing was any way to TELL it. The purchase form had no
+             interstate control at all, so f.interstate was false on every bill ever entered
+             and every Mumbai purchase went into the books as CGST + SGST. The total was
+             right and the two halves were wrong, which is the sort of thing that only
+             surfaces when a return is filed.
+             The supplier's own GSTIN says where he is — the first two digits are his state.
+             So it is set from that the moment the supplier is picked, and left on screen for
+             him to overrule, because a GSTIN can be missing or mistyped. */''}
+        <label style="display:flex;gap:4px;align-items:center;font-size:12px;color:var(--mut)">
+          <input type="checkbox" id="pu_inter" style="width:16px;height:16px;margin:0" ${f.interstate?'checked':''}
+            onchange="updatePurchTotal()"> IGST</label></span>
       <b id="puTaxAmt">${money(comp.tax)}</b></div>
     ${comp.tax?`<div style="${ln}"><span class="hint">${comp.igst?'IGST':'CGST + SGST'}</span>
       <span class="hint">${comp.igst?money(comp.igst):money(comp.cgst)+' + '+money(comp.sgst)}</span></div>`:''}
@@ -19709,6 +19760,19 @@ function puPickSup(name){
   puSupChanged();
   const b=$('#pu_billno'); if(b)b.focus();
 }
+/* v436: the first two digits of a GSTIN are the state. Ours against theirs decides whether
+   a bill is one tax or two. Anything missing or malformed answers "don't know" and the box
+   is left exactly as he set it. */
+function gstState(g){ const m=/^(\d{2})/.exec(String(g||'').trim()); return m?m[1]:''; }
+function puIsInterstate(supplierName){
+  const mine=gstState((DB.shopInfo||{}).gstin);
+  if(!mine)return null;
+  const nm=nameNorm(supplierName);
+  const pt=nm?(DB.parties||[]).find(x=>nameNorm(x.name)===nm):null;
+  const theirs=gstState(pt&&pt.gstin);
+  if(!theirs)return null;
+  return theirs!==mine;
+}
 function puSupChanged(){
   const el=$('#pu_supplier'), box=$('#puPartyBal'); if(!el||!box)return;
   const typed=String(el.value||'').trim();
@@ -19719,6 +19783,12 @@ function puSupChanged(){
          : '<span style="color:var(--saffron2)">🆕 '+t('pur_sup_new')+'</span>');
   const bal=supBalHTML(el.value);
   box.innerHTML = mark + (mark&&bal?' · ':'') + bal;
+  /* v436: his state decides the tax, so the box follows the supplier he just named */
+  const inter=puIsInterstate(typed);
+  if(inter!==null){
+    const cb=$('#pu_inter');
+    if(cb && cb.checked!==inter){ cb.checked=inter; try{updatePurchTotal();}catch(e){} }
+  }
   const ph=$('#pu_phone'); if(s&&s.phone&&ph&&!ph.value)ph.value=s.phone;
   puSupNear();                     /* v328 */
 }
@@ -20065,17 +20135,25 @@ function sugFacts(o){
    It is a separate run from the thaan serial and cannot touch it — nextSerial() reads only
    DB.thaans and this reads only DB.itemMaster. Verified: adding readymade left the cloth
    serial sitting at 004. */
-function nextRmNo(){
-  const pre='RM-';
+/* v437 — HIS 1 Sep: "teen series bhi chalega, tum dekh lo."
+   Cloth already runs on its own numbers because a roll is a physical thing. Readymade got
+   RM- in v427. Accessories — buttons, laces, linings, zips — are the third kind of thing on
+   his shelves, bought by the piece or the packet and never cut by the metre, and mixing
+   them into RM- would make the readymade run jump every time a box of buttons arrived.
+   So AC-. Three runs, each counting only its own, none able to touch another. */
+function nextCodeNo(pre,field){
   let top=0;
   (DB.itemMaster||[]).forEach(m=>{
-    const x=/^RM-(\d+)$/i.exec(String(m.rmNo||'').trim());
+    const x=new RegExp('^'+pre+'(\\d+)$','i').exec(String(m[field]||'').trim());
     if(x)top=Math.max(top,+x[1]||0);
   });
   return pre+String(top+1).padStart(3,'0');
 }
+function nextRmNo(){ return nextCodeNo('RM-','rmNo'); }
+function nextAcNo(){ return nextCodeNo('AC-','rmNo'); }
+function nextCodeFor(kind){ return kind==='acc'?nextAcNo():nextRmNo(); }
 function itemCodeStamp(m){
-  if(m && m.kind==='ready' && !m.rmNo) m.rmNo=nextRmNo();
+  if(m && !m.rmNo && (m.kind==='ready'||m.kind==='acc')) m.rmNo=nextCodeFor(m.kind);
   return m;
 }
 /* what the next few serials will be, WITHOUT consuming them */
