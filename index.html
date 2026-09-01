@@ -826,7 +826,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v441</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v442</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -2626,6 +2626,12 @@ dl_show_hidden:'Show hidden ({n})',
   purch_item_ph:'e.g. suiting fabric, buttons, lining',
   master:'Master',
   bill_no:'Invoice No',
+  pur_add_items:'Add items', pur_edit_item:'Edit item', pur_no_items_yet:'No items on this bill yet',
+  pur_tot_qty:'Total qty', pur_rate:'Rate (price per unit)', pur_rate_x_qty:'rate \u00D7 qty',
+  pur_more_item:'HSN, design, colour, note', pur_design:'Design', pur_colour:'Colour',
+  pur_save_new_item:'Save & add another', pur_drop_line:'Remove \u201C{n}\u201D from this bill?',
+  pur_new_item:'Add a new item', pur_saved_item:'Saved item',
+  pur_new_item_note:'New item \u2014 saved with this bill', pur_qty_ph:'10  or  10, 7.8, 7.8',
   ps_date:'Date', ps_part:'Particulars', ps_dr:'Debit', ps_cr:'Credit',
   ps_bal:'Balance', ps_closing:'Closing balance',
   pt_open_cleared:'old balance removed',
@@ -4394,6 +4400,12 @@ dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
   purch_item_ph:'जैसे सूटिंग कपड़ा, बटन, लाइनिंग',
   master:'मास्टर',
   bill_no:'इनवॉइस नं.',
+  pur_add_items:'आइटम जोड़ें', pur_edit_item:'आइटम बदलें', pur_no_items_yet:'इस बिल में अभी कोई आइटम नहीं',
+  pur_tot_qty:'कुल मात्रा', pur_rate:'रेट (प्रति यूनिट)', pur_rate_x_qty:'रेट \u00D7 मात्रा',
+  pur_more_item:'HSN, डिज़ाइन, रंग, नोट', pur_design:'डिज़ाइन', pur_colour:'रंग',
+  pur_save_new_item:'सेव करके अगला', pur_drop_line:'\u201C{n}\u201D को इस बिल से हटाएँ?',
+  pur_new_item:'नया आइटम जोड़ें', pur_saved_item:'सेव किया आइटम',
+  pur_new_item_note:'नया आइटम \u2014 इसी बिल के साथ सेव होगा', pur_qty_ph:'10  या  10, 7.8, 7.8',
   ps_date:'तारीख़', ps_part:'विवरण', ps_dr:'डेबिट', ps_cr:'क्रेडिट',
   ps_bal:'बाकी', ps_closing:'अंतिम बाकी',
   pt_open_cleared:'पुराना बाकी हटा दिया',
@@ -15684,6 +15696,7 @@ async function storePhoto(file){
     const old=c.bodyPhotos[_cbodySlot]; if(old)await mDel(old);
     c.bodyPhotos[_cbodySlot]=id; save(); renderCustBody(); renderBodySlots(_custPhotoId,'btPhotos',true); renderBodySlots(_custPhotoId,'cv_body',false); } }
   else if(photoTarget.type==='puritem'){ _purD.photos=_purD.photos||[]; _purD.photos.push(id); purItemPhotoBadge(); }
+  else if(photoTarget.type==='pitem'){ if(_puIt){_puIt.photos=(_puIt.photos||[]).concat([id]); puItemPhotoPaint();} }
   else if(photoTarget.type==='imaster'){ if(_imDraft){_imDraft.photos=_imDraft.photos||[];_imDraft.photos.push(id);imRender();} }
   else if(photoTarget.type==='oditem'){ const o=(DB.orders||[]).find(x=>x.id===photoTarget.oid);
     if(o){o.itemPhotos=o.itemPhotos||{}; o.itemPhotos[photoTarget.gid]=o.itemPhotos[photoTarget.gid]||[];
@@ -19481,12 +19494,18 @@ function capturePurchForm(){const f=purchForm;if(!f)return;
   if($('#pu_billno'))f.billNo=$('#pu_billno').value.trim();
   if($('#pu_gstpct')){
     const v=$('#pu_gstpct').value;
-    /* v437: a rate he typed is his and is kept. A rate that merely matches what the slab
-       would have said is left free, so adding a readymade line to a cloth bill still moves
-       it — otherwise the first render would freeze the number for ever. */
-    if(v===''){ f.gstPct=null; }
-    else { const n=+v||0; const slab=puSlabRate(f);
-           f.gstPct=(slab!=null && n===slab)?null:n; }
+    /* ══════════ v442 — THE SLAB WAS FROZEN BEFORE THE BILL HAD ANY LINES ══════════
+       v437 read the box back and, if the number did not match what the slab would say,
+       took it as his choice. But the box is painted the moment the form opens — with no
+       lines on the bill yet, so the slab has nothing to read and the box shows the plain
+       default of 5. Add six readymade lines at 7,950 and the slab becomes 18, the box still
+       says 5, they disagree, and 5 gets locked in as "his". Senso's bill came out at 5%
+       when their own paper says 18.
+       Whether a number is his is not something to infer from its value. It is his only if
+       he typed in that box, so the box says so itself now. */
+    if(v===''){ f.gstPct=null; f.gstTouched=0; }
+    else if(f.gstTouched){ f.gstPct=+v||0; }
+    else { f.gstPct=null; }
   }
   if($('#pu_nogst'))f.noGst=$('#pu_nogst').checked;
   if($('#pu_inter'))f.interstate=$('#pu_inter').checked;      /* v436 */
@@ -19598,7 +19617,8 @@ function purchTotalsBoxHTML(comp){
     <div style="${ln}">
       <span style="display:flex;gap:8px;align-items:center">${t('gst')}
         <input id="pu_gstpct" type="number" inputmode="decimal" value="${f.gstPct!=null&&f.gstPct!==''?esc(f.gstPct):puGstRate(f)}"
-          style="width:56px;text-align:right;margin:0" oninput="updatePurchTotal()"> %
+          style="width:56px;text-align:right;margin:0"
+          oninput="purchForm.gstTouched=1;updatePurchTotal()"> %
         <label style="display:flex;gap:4px;align-items:center;font-size:12px;color:var(--mut)">
           <input type="checkbox" id="pu_nogst" style="width:16px;height:16px;margin:0" ${f.noGst?'checked':''}
             onchange="updatePurchTotal()"> ${t('no_gst')}</label>
@@ -19852,63 +19872,257 @@ function purDraftDrop(){
   confirmModal(t('draft_discard'), t('draft_disc_msg'),
     ()=>{ clearPurDraft(); closeModal(); renderPurchaseForm(); });
 }
+/* ══════════════════ v442 — THE BILL AND THE ENTRY WERE THE SAME SCREEN ══════════════════
+   HIS 1 Sep, after showing me Vyapar side by side: "vyapar me mujhe ek din bhi accountant
+   ko samjhana nahi pada, wo kaam kar pa rahi hai. Aur mera app maine banaya hai, mujhe hi
+   samajh nahi aa raha ki ho kya raha hai."
+   The difference is one thing and it is structural, not cosmetic. In Vyapar the bill is a
+   bill: party, a button that says Add Items, the lines that are ON it, and the totals. The
+   place where you TYPE an item is a different screen. So there are only ever two states —
+   either you are looking at the bill, or you are filling a line — and both are obvious.
+   Mine had the typing line sitting inside the bill, above the very list it feeds. "Add to
+   bill" then means nothing: he is already in the bill, so what is he adding, and to where?
+   That is the question the accountant kept asking, and it was a fair one.
+   So the entry line moves out to its own sheet. What stays here is what a bill is made of:
+   the button, the lines, and the money. */
 function purDraftHTML(){
-  return `<div class="card" id="puDraft" style="padding:12px 14px;margin-bottom:10px;border-color:var(--saffron)">
-    <input id="pu_dname" placeholder="${t('pur_name_ph2')}" autocomplete="off"
-      onfocus="purDSug()" oninput="purDSug()" onblur="purDBlur()" onkeydown="if(event.key==='Enter'){event.preventDefault();purDraftAdd();}" style="margin:0">
-    ${/* v229 — HIS 20 Aug: "item name daal raha hun to vo already save hai ki nahi dikh
-         nahi raha, keyboard aa ja raha hai." The saved list sits below the fold and the
-         keyboard covers it, so he was typing blind — and on a purchase bill most items ARE
-         new, so the one thing he needs to know is whether this one already exists. This
-         line sits directly under the box and answers it in a glance, keyboard or no. */''}
-    <div id="puDState" class="hint" style="margin:6px 0 0;min-height:16px"></div>
-    <div id="puDWarn"></div>
-    ${/* v229 — HIS 20 Aug: "add to bill, add new item se pehle hai, tumhara system
-         confusing hai." He was right: the saved-item list sat BELOW the Add button, so the
-         order on screen was type → add → and only then "is it already saved?" — backwards.
-         The answer to that question now sits directly under the name, where he is looking
-         while he types, and Add to bill stays where an action belongs: last. */''}
-    <div id="puDPend" class="hint" style="margin:2px 0 0;color:var(--ok)"></div>
-    <div id="puDSug"></div>
-    <div class="pu-qty-row">
-      ${/* v213 — HIS 17 Aug: "cursor uske left aa raha hai... ya qty likha ho aur cursor
-           aate hi number daalna ho." Right: a box holding 1 with the caret before it turns
-           "5" into "15". The box now starts empty with Qty written in it, so whatever he
-           types IS the quantity. A blank is read as 1 where a quantity is required. */''}
-      ${/* v221 — HIS Kanchan bill has PW 304 three times: #5 of 10m, #3 of 7.80m, #1 of
-           7.80m. Three separate rolls, one design, one rate. Typing them as three lines
-           means typing the design and rate three times, and forgetting the colour once
-           silently merges them into a single 25.6m roll that does not exist.
-           So the quantity box takes them together — 10, 7.8, 7.8 — and makes one thaan
-           per number, each with its own serial. 11 lines of that bill become 6 entries.
-           A plain single number behaves exactly as before. */''}
-      <input id="pu_dqty" type="text" inputmode="decimal" placeholder="${t('qty_multi')}"
-        oninput="purDCalc()" style="margin:0;text-align:center">
-      <span class="gtags" id="puDUnits">${PUR_UNITS.map(u=>
-        `<span class="gtag sm ${_purD.unit===u?'on-tag':''}" data-u="${u}" style="cursor:pointer" onclick="purDUnit('${u}')">${u}</span>`).join('')}</span>
-      <input id="pu_drate" type="number" inputmode="decimal" placeholder="${t('purch_rate')}"
-        oninput="purDCalc()" onkeydown="if(event.key==='Enter'){event.preventDefault();purDraftAdd();}" style="margin:0;text-align:right"></div>
-    <div id="puDExtra" style="display:${_purD.showExtra?'block':'none'}">
-      <div class="row" style="margin-top:8px;gap:6px">
-        <input id="pu_ddesign" placeholder="${t('pur_design_ph')}" value="${esc(_purD.design||'')}" autocomplete="off" style="margin:0">
-        <input id="pu_dcolour" placeholder="${t('pur_colour_ph')}" value="${esc(_purD.colour||'')}" autocomplete="off" style="margin:0"></div>
-    </div>
-    <div class="kv" style="margin-top:8px">
-      <span style="display:flex;gap:10px;align-items:center">
-        <b id="puDAmt" style="font-size:16px">₹0</b>
-        <span class="hint" style="cursor:pointer" onclick="purDExtra()">${_purD.showExtra?'▴':'▾'} ${t('pur_more_fields')}</span></span>
-      <span style="display:flex;gap:6px;align-items:center">
-        <button class="btn sm ghost" onclick="pickPurItemPhoto('cam')" title="${t('photo_label')}">📷</button>
-        <button class="btn sm ghost" onclick="pickPurItemPhoto('lib')">🖼️</button>
-        ${/* v221 — HIS 19 Aug: "add item click karunga to naya item add karna hai ya saved
-             items select karna hai — confusion rehta hai." The word Add answered neither.
-             This button puts the typed line ON THE BILL; the box above already searches
-             saved items as he types. Vyapar wins here only because its buttons are named
-             for what happens next, so these are too. */''}
-        <button class="btn primary sm" style="padding:7px 18px;font-weight:800"
-          onclick="purDraftAdd()">➕ ${t('pur_add_to_bill')}</button></span></div>
+  const f=purchForm||{}, its=(f.items||[]).filter(it=>it&&(it.label||+it.rate));
+  const rows=its.map((it,i)=>{
+    const q=+it.qty||0, r=+it.rate||0, amt=r2(q*r);
+    return `<div class="cust-result" style="align-items:flex-start"
+        onclick="puItemSheet(${i})">
+      <div style="min-width:0;flex:1">
+        <b>#${i+1} ${esc(it.label||'—')}</b>
+        <div class="hint">${q} ${esc(it.unit||'Mtr')} \u00D7 ${money(r)}${it.serials&&it.serials.length?(' \u00B7 \u{1F522} '+esc([].concat(it.serials).join(', '))):''}</div>
+        ${it.photos&&it.photos.length?`<div class="hint">\u{1F4F7} ${it.photos.length}</div>`:''}
+      </div>
+      <div style="text-align:right;white-space:nowrap">
+        <b>${money(amt)}</b>
+        <div class="hint" style="margin-top:4px">
+          <span onclick="event.stopPropagation();puItemSheet(${i})">\u270F\uFE0F</span>
+          &nbsp;<span onclick="event.stopPropagation();puItemDrop(${i})">\u{1F5D1}\uFE0F</span></div>
+      </div></div>`;
+  }).join('');
+  const addBtn=`<button class="btn primary block" style="padding:14px;font-weight:800;font-size:15px"
+      onclick="puItemSheet(-1)">\u2795 ${t('pur_add_items')}</button>`;
+  if(!its.length){
+    return `<div id="puDraft" style="margin-bottom:12px">${addBtn}
+      <p class="hint" style="margin:8px 2px 0;text-align:center">${t('pur_no_items_yet')}</p></div>`;
+  }
+  const qty=its.reduce((a,it)=>a+(+it.qty||0),0);
+  const sub=its.reduce((a,it)=>a+r2((+it.qty||0)*(+it.rate||0)),0);
+  return `<div id="puDraft" style="margin-bottom:12px">
+    <div class="billed-bar" style="margin-bottom:6px"><span>\u{1F9FE} ${t('pur_billed')}</span>
+      <span class="hint" style="color:inherit">${t('inv_items_n',{n:its.length})}</span></div>
+    ${rows}
+    <div class="kv" style="padding:8px 2px 10px;border-bottom:1px solid var(--line);margin-bottom:10px">
+      <span class="hint">${t('pur_tot_qty')} ${qty}</span>
+      <b>${money(sub)}</b></div>
+    ${addBtn}</div>`;
+}
+/* ── the item sheet: one line at a time, and nothing else on screen ────────────────── */
+let _puIt=null, _puItIdx=-1;
+function puItemSheet(idx){
+  capturePurchForm();                 /* whatever he typed on the bill is kept */
+  savePurDraft();
+  _puItIdx=(idx==null?-1:idx);
+  const src=(_puItIdx>=0)?((purchForm.items||[])[_puItIdx]||{}):{};
+  _puIt=Object.assign({label:'',qty:'',unit:(_purD&&_purD.unit)||'Mtr',rate:'',
+    hsn:'',design:'',colour:'',serials:[],photos:[],note:''}, JSON.parse(JSON.stringify(src)));
+  sheetAt(()=>puItemSheet(_puItIdx));
+  puItemRender();
+}
+function puItemCap(){
+  const d=_puIt; if(!d)return;
+  const g=id=>{const e=$('#'+id); return e?e.value:undefined;};
+  if(g('pit_name')!==undefined)d.label=g('pit_name').trim();
+  if(g('pit_qty')!==undefined)d.qty=g('pit_qty');
+  if(g('pit_rate')!==undefined)d.rate=g('pit_rate');
+  if(g('pit_hsn')!==undefined)d.hsn=g('pit_hsn').trim();
+  if(g('pit_design')!==undefined)d.design=g('pit_design').trim();
+  if(g('pit_colour')!==undefined)d.colour=g('pit_colour').trim();
+  if(g('pit_note')!==undefined)d.note=g('pit_note').trim();
+}
+function puItemUnit(u){ puItemCap(); _puIt.unit=u; puItemRender(); }
+function puItemCalc(){
+  puItemCap();
+  const d=_puIt, amt=r2((+d.qty||0)*(+d.rate||0));
+  const el=$('#pitSub'); if(el)el.textContent=money(amt);
+  const s=$('#pitSerial'); if(s)s.innerHTML=puItemSerialHTML();
+}
+function puItemSerialHTML(){
+  const d=_puIt||{};
+  if(d.serials&&d.serials.length)
+    return '\u{1F522} <b style="color:var(--ok)">'+esc([].concat(d.serials).join(', '))+'</b>';
+  if(purchForm.noStock)return '';
+  if(d.unit==='Pcs')return t('pur_will_ser')+' <b style="color:var(--saffron2)">'+esc(nextRmNo())+'</b>';
+  const qs=purQtyList(d.qty);
+  const nxt=serialPeek(qs.length).filter(Boolean);
+  return nxt.length?(t('pur_will_ser')+' <b style="color:var(--saffron2)">'+esc(nxt.join(', '))+'</b>'):'';
+}
+function puItemRender(){
+  const d=_puIt||{};
+  const amt=r2((+d.qty||0)*(+d.rate||0));
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:2px"><h2 style="margin:0">\u{1F4E6} ${t(_puItIdx>=0?'pur_edit_item':'pur_add_items')}</h2></div>
+    <p class="hint" style="margin-bottom:10px">${esc(purchForm.supplier||t('supplier'))}${purchForm.billNo?(' \u00B7 '+esc(purchForm.billNo)):''}</p>
 
-  </div>`;
+    <div class="field"><label>${t('item_name')} *</label>
+      <input id="pit_name" value="${esc(d.label||'')}" placeholder="${t('pur_name_ph2')}"
+        autocomplete="off" oninput="puItemSug()" onfocus="puItemSug()"></div>
+    <div id="pitState" class="hint" style="margin:2px 0 0"></div>
+    <div id="pitSug"></div>
+
+    <div class="row" style="gap:8px;margin-top:10px">
+      <div class="field" style="margin:0;flex:1"><label>${t('qty')} *</label>
+        <input id="pit_qty" inputmode="decimal" value="${esc(d.qty||'')}"
+          placeholder="${t('pur_qty_ph')}" oninput="puItemCalc()"></div>
+      <div class="field" style="margin:0"><label>${t('unit')}</label>
+        <div class="gtags" style="margin:0" id="pitUnits">
+          <span class="gtag ${d.unit!=='Pcs'?'on-tag':''}" data-u="Mtr" onclick="puItemUnit('Mtr')">Mtr</span>
+          <span class="gtag ${d.unit==='Pcs'?'on-tag':''}" data-u="Pcs" onclick="puItemUnit('Pcs')">Pcs</span>
+        </div></div>
+    </div>
+    <div class="field" style="margin-top:10px"><label>${t('pur_rate')} *</label>
+      <input id="pit_rate" inputmode="decimal" value="${esc(d.rate||'')}" placeholder="0"
+        oninput="puItemCalc()"></div>
+
+    <div class="card pos-total" style="padding:12px 14px;margin:12px 0">
+      <div class="il" style="border-bottom:0"><span>${t('pur_subtotal')} <span class="hint">(${t('pur_rate_x_qty')})</span></span>
+        <b id="pitSub" style="font-size:18px">${money(amt)}</b></div></div>
+    <div id="pitSerial" class="hint" style="margin:-4px 0 10px">${puItemSerialHTML()}</div>
+
+    <details style="margin-bottom:10px" ${(d.hsn||d.design||d.colour||d.note)?'open':''}>
+      <summary class="hint" style="cursor:pointer;padding:6px 0">\u2699\uFE0F ${t('pur_more_item')}</summary>
+      <div class="row" style="gap:8px;margin-top:6px">
+        <div class="field" style="margin:0;flex:1"><label>${t('im_hsn')}</label>
+          <input id="pit_hsn" value="${esc(d.hsn||'')}" placeholder="6203"></div>
+        <div class="field" style="margin:0;flex:1"><label>${t('pur_design')}</label>
+          <input id="pit_design" value="${esc(d.design||'')}"></div>
+      </div>
+      <div class="row" style="gap:8px;margin-top:8px">
+        <div class="field" style="margin:0;flex:1"><label>${t('pur_colour')}</label>
+          <input id="pit_colour" value="${esc(d.colour||'')}"></div>
+        <div class="field" style="margin:0;flex:1"><label>${t('notes')}</label>
+          <input id="pit_note" value="${esc(d.note||'')}"></div>
+      </div>
+    </details>
+
+    ${/* v442 — HIS 1 Sep: "vyapar me camera/gallery ka option tha, yahan bhi add karo."
+         A cloth is recognised by its face, not its name. The photo belongs to the LINE, so
+         it is taken here beside the rate, and it travels with the line onto the bill. */''}
+    <div class="row" style="gap:8px;margin-bottom:12px">
+      <button class="btn ghost" style="flex:1" onclick="puItemPhoto('cam')">\u{1F4F7} ${t('camera')}</button>
+      <button class="btn ghost" style="flex:1" onclick="puItemPhoto('lib')">\u{1F5BC}\uFE0F ${t('gallery')}</button>
+    </div>
+    <div id="pitPhotos">${puItemPhotosHTML()}</div>
+
+    <div class="modal-actions">
+      <button class="btn ghost" style="flex:1" onclick="puItemSave(true)">${t('pur_save_new_item')}</button>
+      <button class="btn primary" style="flex:1.4" onclick="puItemSave(false)">\u{1F4BE} ${t('save')}</button>
+    </div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+  const n=$('#pit_name');
+  if(n && !d.label){ n.focus(); }
+  else { const q=$('#pit_qty'); if(q&&!d.qty)q.focus(); }
+  puItemState();
+}
+/* v442: photos are kept as media ids, the same as every other photo in this app, and are
+   painted by the same hydrator. Nothing new is invented for storage. */
+function puItemPhotosHTML(){
+  const ph=(_puIt&&_puIt.photos)||[];
+  if(!ph.length)return '';
+  return `<div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:10px">`
+    + ph.map((id,i)=>`<div style="position:relative">
+        <img class="stk-thumb" data-pid="${esc(id)}"
+          style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--line)">
+        <span onclick="puItemPhotoDrop(${i})" style="position:absolute;top:-6px;right:-6px;background:var(--bad);
+          color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;
+          justify-content:center;font-size:12px;cursor:pointer">\u2715</span></div>`).join('')
+    + `</div>`;
+}
+function puItemPhotoPaint(){
+  const w=$('#pitPhotos'); if(w)w.innerHTML=puItemPhotosHTML();
+  try{ loadStockThumbs(); }catch(e){}
+}
+function puItemPhoto(kind){
+  puItemCap();
+  photoTarget={type:'pitem'};
+  const inp=kind==='cam'?$('#filePickCam'):$('#filePick');
+  if(inp){ inp.value=''; inp.click(); }
+}
+function puItemPhotoDrop(i){
+  puItemCap(); (_puIt.photos||[]).splice(i,1); puItemPhotoPaint();
+}
+function puItemDrop(i){
+  const it=((purchForm.items||[])[i])||{};
+  confirmModal('\u{1F5D1}\uFE0F '+t('confirm_del'),
+    t('pur_drop_line',{n:esc(it.label||'—')}),
+    ()=>{ (purchForm.items||[]).splice(i,1); savePurDraft(); closeModal(); renderPurchaseForm(); },
+    ()=>closeModal(), {yes:t('delete'), no:t('cancel')});
+}
+function puItemSave(andNew){
+  puItemCap();
+  const d=_puIt;
+  if(!String(d.label||'').trim()){ toast(t('pur_need_name'),'bad'); const n=$('#pit_name'); if(n)n.focus(); return; }
+  if(!(+d.qty>0)){ toast(t('pur_need_qty'),'bad'); const q=$('#pit_qty'); if(q)q.focus(); return; }
+  const line=Object.assign({},d);
+  line.qty=+d.qty||0; line.rate=+d.rate||0; line.amount=r2(line.qty*line.rate);
+  purchForm.items=purchForm.items||[];
+  if(_puItIdx>=0)purchForm.items[_puItIdx]=line; else purchForm.items.push(line);
+  savePurDraft();
+  toast('\u2705 '+esc(line.label)+' \u00B7 '+money(line.amount),'ok');
+  if(andNew){ _puItIdx=-1;
+    _puIt={label:'',qty:'',unit:line.unit,rate:'',hsn:line.hsn||'',design:'',colour:'',
+      serials:[],photos:[],note:''};
+    puItemRender(); return; }
+  sheetBack();
+  renderPurchaseForm();
+}
+/* the saved-item list, with what is in stock and what it last cost */
+function puItemSug(){
+  const box=$('#pitSug'), inp=$('#pit_name'); if(!box||!inp)return;
+  puItemCap();
+  const q=(inp.value||'').trim();
+  const list=purSugList(q).slice(0,8);
+  box.innerHTML = (list.length?`<div class="sug-head" style="margin-top:8px">
+      <span class="hint">${t('pur_sug_head')}</span></div>`+list.map((o,i)=>
+      `<div class="cust-result" style="margin-top:6px" onclick="puItemPick(${i})">
+        <div style="min-width:0"><b>${esc(o.title)}</b><div class="hint">${esc(o.sub||'')}</div></div>
+        <span class="btn sm primary">${t('select')}</span></div>`).join('')
+    :'')
+    + `<button class="btn ghost block" style="margin-top:8px" onclick="puItemNewMaster()">\u2795 ${t('pur_new_item')}</button>`;
+  _puSug=list;
+  puItemState();
+}
+let _puSug=[];
+function puItemPick(i){
+  const o=_puSug[i]; if(!o)return;
+  const v=o.val||{};
+  _puIt.label=v.label||o.title||'';
+  if(v.unit)_puIt.unit=v.unit;
+  if(v.rate&&!(+_puIt.rate))_puIt.rate=v.rate;
+  if(v.hsn&&!_puIt.hsn)_puIt.hsn=v.hsn;
+  if(v.serial)_puIt.serials=[v.serial];
+  puItemRender();
+  const q=$('#pit_qty'); if(q)q.focus();
+}
+/* v442: the item master screen takes (id, backTo). Handing it the way back means Save
+   there returns HERE with the line still filled, instead of dropping him somewhere else. */
+function puItemNewMaster(){
+  puItemCap();
+  imEdit(null, ()=>puItemRender());
+}
+function puItemState(){
+  const el=$('#pitState'); if(!el)return;
+  const q=String((_puIt&&_puIt.label)||'').trim();
+  if(!q){ el.innerHTML=''; return; }
+  const norm=v=>String(v||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const hit=purSugList(q).find(o=>norm(o.val&&o.val.label)===norm(q));
+  el.innerHTML = hit
+    ? `<span style="color:var(--ok)">\u2705 ${t('pur_saved_item')}</span>`
+    : `<span style="color:var(--saffron2)">\u{1F195} ${t('pur_new_item_note')}</span>`;
 }
 /* v221 — HIS 19 Aug: "save karo to pata hi nahi chalta ki save hua ya nahi." The line
    WAS being added, to a list he could not see because it sits above the fold. A toast at
