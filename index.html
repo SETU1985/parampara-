@@ -845,7 +845,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v456</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v461</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -2654,6 +2654,14 @@ dl_show_hidden:'Show hidden ({n})',
   kb_amb_edit:'This is an older payment and {n} ledger rows match it exactly. Nothing was changed \u2014 correct it from the Day book instead.',
   db_search_ph:'\u{1F50D} Search a name, head, note or amount\u2026',
   db_found:'{n} of {all} entries',
+  sh_tap_keep:'\u270F\uFE0F Kept \u2014 use Cancel or \u2715 to leave',
+  sh_leave_t:'Leave this screen?', sh_leave_m:'You have typed something here. Leaving now loses it.',
+  sh_leave_yes:'Leave', sh_stay:'Stay here',
+  kr_title:'Tailor payments to check', kr_sub:'Older payments whose ledger entry is missing. Put these beside your own cash book.',
+  kr_found:'{n} to check', kr_line:'{p} payment(s) \u00B7 {l} ledger row(s) found',
+  kr_none:'Nothing to check', kr_none_sub:'Every older tailor payment still has its ledger entry.',
+  kr_foot:'Nothing has been changed or added. This only lists what the app can see.',
+  cr_new_named:'Add \u201C{n}\u201D as a new creditor',
   cr_settled:'Settled',
   stk_next_ser:'Next number', stk_unnamed:'no name',
   stk_ser_dup_t:'That number is already on the shelf',
@@ -4450,6 +4458,14 @@ dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
   kb_amb_edit:'यह पुराना भुगतान है और {n} लेजर पंक्तियाँ इससे मेल खाती हैं। कुछ नहीं बदला \u2014 डे बुक से ठीक कीजिए।',
   db_search_ph:'\u{1F50D} नाम, हेड, नोट या रकम खोजें\u2026',
   db_found:'{all} में से {n} एंट्री',
+  sh_tap_keep:'\u270F\uFE0F बचा लिया \u2014 जाने के लिए Cancel या \u2715 दबाइए',
+  sh_leave_t:'यह स्क्रीन छोड़ें?', sh_leave_m:'आपने यहाँ कुछ लिखा है। अभी जाने पर वह चला जाएगा।',
+  sh_leave_yes:'छोड़ दें', sh_stay:'यहीं रहें',
+  kr_title:'जाँचने लायक कारीगर भुगतान', kr_sub:'पुराने भुगतान जिनकी लेजर एंट्री नहीं मिल रही। इन्हें अपनी रोकड़ बही से मिलाइए।',
+  kr_found:'{n} जाँचने हैं', kr_line:'{p} भुगतान \u00B7 {l} लेजर पंक्ति मिली',
+  kr_none:'कुछ जाँचना नहीं है', kr_none_sub:'हर पुराने कारीगर भुगतान की लेजर एंट्री मौजूद है।',
+  kr_foot:'कुछ बदला या जोड़ा नहीं गया। यह सिर्फ़ वही दिखाता है जो ऐप को दिख रहा है।',
+  cr_new_named:'\u201C{n}\u201D को नया लेनदार बनाएँ',
   cr_settled:'चुक गया',
   stk_next_ser:'अगला नंबर', stk_unnamed:'बिना नाम',
   stk_ser_dup_t:'यह नंबर पहले से शेल्फ़ पर है',
@@ -10020,17 +10036,25 @@ function creditors(){
          karna hai to yahan se bhi kar sakta hai." Same shape as the Orders and Purchase
          lists, and a third door to the ledger creator — if one way is blocked he uses
          the other. */''}
-    <div class="row" style="margin-bottom:10px;gap:8px">
-      <button class="btn primary block" onclick="credNew()">➕ ${t('cr_new')}</button></div>
-    ${_crMore?`<p class="hint" style="margin-bottom:6px">${t('fu_more',{n:_crMore})}</p>`:''}
-    ${_crAll>1?`<div class="field" style="margin-bottom:10px">
+    ${/* ══════════════ v461 — THE SEARCH SAT UNDER THE ADD BUTTON ══════════════
+         HIS 3 Sep: "search bar 'Add New Creditor' ke neeche aata hai — wo sabse upar hona
+         chahiye. Add New ko badi jagah lene ki jagah main cheez search honi chahiye, aur
+         agar search me kuch na mile tabhi Add ka option aaye. Aur 'Total Payable' upar
+         itni badi jagah header banke kyun bethi hai."
+         He opens this screen to find one supplier out of sixteen. Finding is the job; adding
+         a new one happens once a month. So the box he types in is now the first thing on the
+         screen, the full-width Add button is gone, and adding appears where it is actually
+         needed — under a search that found nothing. The total is still there, in one line
+         instead of a card the height of a thumb. */''}
+    ${_crAll>1?`<div class="field" style="margin-bottom:8px">
       <input id="credSearch" value="${esc(_credQ)}" placeholder="🔍 ${t('cr_search')}"
-        oninput="credSearch(this.value)"></div>`:''}
-    ${groups.length?`<div class="card pos-total" style="margin-bottom:14px">
-      <div class="sum-row due" style="border-top:none;margin:0;padding:4px 0">
-        <span>${t('rp_creditor_total')}</span><b>${money(total)}</b></div>
-      <div class="hint">${t('cr_from_n',{n:groups.length})}</div>
-      ${ageBarHTML(ageTotals(groups.map(g=>g.age)))}</div>
+        autocomplete="off" oninput="credSearch(this.value)"></div>`:''}
+    ${(_crQ && !groups.length)?`<button class="btn primary block" style="margin-bottom:10px"
+        onclick="credNew()">➕ ${t('cr_new_named',{n:esc(_credQ)})}</button>`:''}
+    ${_crMore?`<p class="hint" style="margin-bottom:6px">${t('fu_more',{n:_crMore})}</p>`:''}
+    ${groups.length?`<div class="kv" style="margin:0 2px 10px;padding:6px 0;border-bottom:1px solid var(--line)">
+      <span class="hint">${t('rp_creditor_total')} · ${t('cr_from_n',{n:groups.length})}</span>
+      <b style="color:var(--bad);font-size:17px">${money(total)}</b></div>
     ${exportBarHTML('creditors',()=>({title:t('creditors_report'), sub:t('rp_creditor_total')+': '+money(total),
       head:[t('supplier'),t('phone'),t('amount'),t('ag_cur'),t('ag_30'),t('ag_60'),t('ag_90'),t('ag_oldest',{n:''}).trim()],
       rows:groups.map(g=>[g.name,ph10(g.phone),r2(g.due),g.age.cur,g.age.b30,g.age.b60,g.age.b90,g.age.oldest])}))}`:''}
@@ -10045,6 +10069,7 @@ function creditors(){
          saari details aaye." The account already exists in the Ledger master, with its
          groups, its opening, its entries and its running balance. The name now opens THAT —
          one account, one ledger, reached from wherever he happens to be standing. */''}
+    ${(!_crQ)?`<div class="od-addpiece" style="margin-bottom:10px" onclick="credNew()">➕ ${t('cr_new')}</div>`:''}
     ${groups.map(g=>`<div class="card" style="margin-bottom:8px">
       <div class="kv"><div style="flex:1;min-width:0;cursor:pointer"
           onclick="acctOpen('${jq(g.name)}','supplier')">
@@ -12462,7 +12487,11 @@ function menuHome(){
       modOn('billing')?row('🔔',t('debtors_report'),"followUps()"):'',
       modOn('billing')?row('📥',t('creditors_report'),"creditors()"):'']):''}
     ${sec('🧵 '+t('jw_title'),[
-      row('🧵',t('jw_title'),"jobWork()")])}
+      row('🧵',t('jw_title'),"jobWork()"),
+      /* v461: the check only appears when there is something to check, so it does not sit
+         in his menu forever once the old payments are reconciled. */
+      (typeof karPayAtRisk==='function' && karPayAtRisk().length)
+        ? row('🔎',t('kr_title'),"karPayRiskReport()",t('kr_found',{n:karPayAtRisk().length})) : ''])}
     ${sec('👤 '+t('st_title'),[
       row('👤',t('st_title'),"staffMaster()"),
       row('👥',t('pn_title'),"staffPunch()"),
@@ -13933,13 +13962,30 @@ function walkOrder(f){
      a garment could leave the shop unmeasured. Two guards: f.items is de-duplicated here,
      and quickLenHTML now takes its rows FROM this same function. The list and the button
      read one source, so they cannot disagree again whatever caused it. */
-  const rank={}; orderedItems().forEach((g,i)=>rank[g.id]=i);
+  /* ══════════════ v458 — THE ARROWS WALKED A DIFFERENT ORDER ══════════════
+     HIS 3 Sep, mid-order with Dimple Singhi at the counter: "coat, pant, bandi select kiye,
+     coat ka naap bhara, bandi pe gaya, wapas coat pe aana tha — arrow dabaya to Pant aaya,
+     left dabaya to Pant phir Bandi, aur Coat bilkul gayab tha."
+     Coat was never gone. Traced with all three on screen: form.items stayed at three the
+     whole way through. What moved was the ORDER.
+         he picked      coat · pant · bandi
+         the walk gave  coat · bandi · pant
+     The sort below regrouped his pieces by garment category — upper, then lower — so the
+     arrows stepped one sequence while the All-items list and the "1 / 3" counter showed
+     another. From Bandi the back arrow led to Coat, but the counter said he was somewhere
+     else entirely, so he kept pressing and kept landing on the wrong garment. A tidy
+     sequence is worth nothing if it is not the sequence in his head.
+     The pick order IS the order now. He chose coat, pant, bandi and that is what the
+     arrows, the list, the counter and Done all follow. Only two things still sort: pieces
+     stay grouped by the person they belong to in a family order, and repeats of one garment
+     stay in the order they were added. The de-duplication that v-earlier added is kept —
+     that guard was for a real bug and is untouched. */
   const mems=(f.members||[]).map(m=>m.id);
   const memR=k=>{const i=mems.indexOf(memberOf(k));return i<0?999:i;};
-  const catR=k=>{const g=G(k),c=g?g.cat:'';return c==='upper'?0:(c==='lower'?1:2);};
-  const itmR=k=>{const r=rank[garmentOf(k)];return r==null?999:r;};
-  return [...new Set(f.items||[])].sort((a,b)=>
-    memR(a)-memR(b) || catR(a)-catR(b) || itmR(a)-itmR(b) || instOf(a)-instOf(b));
+  const picked=[...new Set(f.items||[])];
+  const pickR={}; picked.forEach((k,i)=>pickR[k]=i);
+  return picked.sort((a,b)=>
+    memR(a)-memR(b) || pickR[a]-pickR[b]);
 }
 /* the piece after this one, or null if this is the last */
 function walkNext(f,key){
@@ -14841,7 +14887,7 @@ function custSearch(q){const box=$('#custResults'); if(!box)return;
   box.innerHTML=sugHead('saved_customers','orderNewCustomer()')
     +(hits.length?hits.map(c=>custRowHTML(c,`pickCustomer('${c.id}')`)).join('')
       :`<p class="hint" style="margin:6px 0 0">${q?t('cust_none_q'):t('cust_none')}</p>`)
-    +sugAddFoot('orderNewCustomer()', (($('#f_cname')||{}).value||''), !list.length);}
+    +sugAddFoot('orderNewCustomer()', (($('#f_cname')||{}).value||''), !hits.length);}
 function orderNewCustomer(){
   captureForm();
   const nm=($('#f_cname')&&$('#f_cname').value.trim())||'';
@@ -16913,7 +16959,7 @@ function estCustSearch(q){const box=$('#estCustResults'); if(!box)return;
   box.innerHTML=sugHead('saved_customers','estNewCust()')
     +(hits.length?hits.map(c=>custRowHTML(c,`estPickCust('${c.id}')`)).join('')
       :`<p class="hint" style="margin:6px 0 0">${q?t('cust_none_q'):t('cust_none')}</p>`)
-    +sugAddFoot('estNewCust()', (($('#est_cname')||{}).value||''), !list.length);}
+    +sugAddFoot('estNewCust()', (($('#est_cname')||{}).value||''), !hits.length);}
 function estPickCust(id){const c=custById(id);if(!c)return;estCapture();_est.customerId=id;_est.customerName=c.name;_est.phone=c.phone;estimateRender();}
 function estNewCust(){estCapture();_est.customerId=null;const box=$('#estCustResults');if(box)box.innerHTML='';const p=$('#est_cphone');if(p)p.focus();}
 function estCapture(){const e=_est;if(!e)return
@@ -18058,12 +18104,23 @@ function invCustomerPickedHTML(){
   }
   return `<div class="cust-result"><div><b>${esc(invForm.customerName)}</b><div class="hint">${esc(invForm.phone||'')}${bal}</div></div><button class="btn sm ghost" onclick="invClearCustomer()">${t('change')}</button></div>`;}
 function invClearCustomer(){captureInvoiceForm();invForm.customerId=null;invForm.customerName='';invForm.phone='';renderInvoiceForm();}
+/* ══════════════ v461 — SIX SEARCHES THAT DIED ON THE LAST LINE ══════════════
+   HIS 3 Sep: "customer ka naam/number search kiya to kuch result hi nahi aaya."
+   Reproduced, and it is one typo repeated six times. Each of these builds its results and
+   then, on the closing line, asks !list.length — and there is no `list` in any of them; the
+   variable holding the matches is `hits`. The ReferenceError is thrown while assigning
+   box.innerHTML, so the assignment never lands: the results box stays empty and the search
+   looks like it found nothing, whatever he typed.
+   This is also the "list is not defined" error that Phase 3 and Phase 4 both saw and could
+   not reproduce — it only fires while typing a name into one of these boxes, which no
+   automated pass had done. Six functions: order, estimate, invoice, alteration, purchase
+   supplier and PO supplier. All six were blind. */
 function invCustSearch(q){const box=$('#invCustResults'); if(!box)return;
   const hits=custHits(q);
   box.innerHTML=sugHead('saved_customers','invNewCustomer()')
     +(hits.length?hits.map(c=>custRowHTML(c,`invPickCustomer('${c.id}')`)).join('')
       :`<p class="hint" style="margin:6px 0 0">${q?t('cust_none_q'):t('cust_none')}</p>`)
-    +sugAddFoot('invNewCustomer()', (($('#inv_cname')||{}).value||''), !list.length);}
+    +sugAddFoot('invNewCustomer()', (($('#inv_cname')||{}).value||''), !hits.length);}
 function invNewCustomer(){
   captureInvoiceForm();
   const nm=($('#inv_cname')&&$('#inv_cname').value.trim())||'';
@@ -18076,7 +18133,7 @@ function altCustSearch(q){const box=$('#altCustResults'); if(!box)return;
   box.innerHTML=sugHead('saved_customers','altNewCustomer()')
     +(hits.length?hits.map(c=>custRowHTML(c,`altPickCustomer('${c.id}')`)).join('')
       :`<p class="hint" style="margin:6px 0 0">${q?t('cust_none_q'):t('cust_none')}</p>`)
-    +sugAddFoot('altNewCustomer()', (($('#a_cname')||{}).value||''), !list.length);}
+    +sugAddFoot('altNewCustomer()', (($('#a_cname')||{}).value||''), !hits.length);}
 /* v321 — HIS 25 Aug: tapping New here cleared the list, moved the cursor and said nothing,
    so a new employee had no way of knowing whether it had registered. The order and the
    bill both say it; this now says the same thing, in the same words. */
@@ -18246,12 +18303,40 @@ function captureInvoiceForm(){const f=invForm;
   if($('#inv_ddate'))f.deliveryDate=$('#inv_ddate').value;
   if($('#pos_ono'))f.orderNo=($('#pos_ono').value||'').trim();
   if($('#inv_sm'))f.salesmanId=$('#inv_sm').value;
-  document.querySelectorAll('[data-iin]').forEach(inp=>{f.items[+inp.dataset.iin].label=inp.value.trim();});
-  document.querySelectorAll('[data-ihsn]').forEach(inp=>{f.items[+inp.dataset.ihsn].hsn=inp.value.trim();});
-  document.querySelectorAll('[data-iqty]').forEach(inp=>{f.items[+inp.dataset.iqty].qty=(+inp.value||1);});
-  document.querySelectorAll('[data-irate]').forEach(inp=>{f.items[+inp.dataset.irate].rate=+inp.value||0;});
+  /* ══════════════ v459 — THE BILL BLANKED ITSELF ON SAVE ══════════════
+     HIS 3 Sep, with Dimple Singhi waiting: "Indo Western select kiya, amount daala, advance
+     daala, save kiya — save hi nahi hua. Dobara save kiya to bola amount blank nahi ho
+     sakta. Dekha to sab blank kaise ho gaya!"
+     Traced to the two lines below. The line total was rebuilt from the RATE box every time
+     this ran — and it ran on every save. A row whose rate box was not on screen at that
+     moment (an item carried in from the order, which stores a price and no rate; a row
+     scrolled out of a re-rendered form) fell to rate 0, and price followed it to zero. The
+     first save refused because the total was now nothing, and by the time he looked, the
+     form he had just filled was empty. His money was never wrong — it was erased a
+     fraction of a second before it was checked.
+     A row is only recomputed if its rate box was actually read. A row that was not on
+     screen keeps the figures it already had, and if it holds a price but no rate the rate
+     is worked back out of it. Nothing about GST, discount or printing changes — they still
+     read .price exactly as before. */
+  const _seenRate={};
+  document.querySelectorAll('[data-iin]').forEach(inp=>{const i=+inp.dataset.iin;
+    if(f.items[i])f.items[i].label=inp.value.trim();});
+  document.querySelectorAll('[data-ihsn]').forEach(inp=>{const i=+inp.dataset.ihsn;
+    if(f.items[i])f.items[i].hsn=inp.value.trim();});
+  document.querySelectorAll('[data-iqty]').forEach(inp=>{const i=+inp.dataset.iqty;
+    if(f.items[i])f.items[i].qty=(+inp.value||1);});
+  document.querySelectorAll('[data-irate]').forEach(inp=>{const i=+inp.dataset.irate;
+    if(f.items[i]){ f.items[i].rate=+inp.value||0; _seenRate[i]=1; }});
   // line amount = qty x rate ; keep .price (line total) for GST engine & printing
-  (f.items||[]).forEach(it=>{ it.qty=+it.qty||1; it.rate=+it.rate||0; it.price=r2(it.qty*it.rate);
+  (f.items||[]).forEach((it,i)=>{
+    it.qty=+it.qty||1;
+    if(_seenRate[i]){ it.rate=+it.rate||0; it.price=r2(it.qty*it.rate); }
+    else {
+      const price=+it.price||0, rate=+it.rate||0;
+      if(rate>0){ it.rate=rate; it.price=r2(it.qty*rate); }
+      else if(price>0){ it.rate=r2(price/(it.qty||1)); it.price=r2(price); }
+      else { it.rate=0; it.price=0; }
+    }
     it.incl=Array.isArray(it.incl)?it.incl:[]; it.includes=it.incl.join(', '); });
 }
 /* Leaving the bill unsaved must feel safe: the ORDER is already stored, so nothing is
@@ -20102,7 +20187,7 @@ function puSupSug(){
       <div><b>${esc(x.name)}</b><div class="hint">${esc(x.phone||'')}${b?` · ${balArrow(-b)}`:''}</div></div>
       <span class="btn sm primary">${t('select')}</span></div>`;}).join('')
       :`<p class="hint" style="margin:6px 0 0">${q?t('sup_none_q'):t('sup_none')}</p>`)
-    +sugAddFoot('puNewSupplier()', el.value, !list.length);
+    +sugAddFoot('puNewSupplier()', el.value, !list.length);   /* v461: this one's own list */
 }
 /* v374 — a brand new supplier is exactly the moment his old balance is known, and this
    ➕ used to just clear the list and jump to the phone box. Same creator as Expenses,
@@ -21537,7 +21622,7 @@ function poSupSearch(q){
         <div><b>${esc(x.name)}</b><div class="hint">${esc(x.phone||'')}</div></div>
         <span class="btn sm primary">${t('select')}</span></div>`).join('')
       :`<p class="hint" style="margin:6px 0 0">${q?t('sup_none_q'):t('sup_none')}</p>`)
-    +sugAddFoot('poNewSup()', (($('#po_sup')||{}).value||''), !list.length);}
+    +sugAddFoot('poNewSup()', (($('#po_sup')||{}).value||''), !list.length);}   /* v461 */
 function poPickSup(name,phone){poCapture();_po.supplier=name;if(phone)_po.phone=phone;poRender();}
 function poNewSup(){poCapture();const box=$('#poSupResults');if(box)box.innerHTML='';const p=$('#po_phone');if(p)p.focus();}
 function poCapture(){const p=_po;if(!p)return
@@ -24223,6 +24308,14 @@ function waSend(phone,text,allowNoNumber){
   // exact failure he described. Say it plainly instead. (Lists meant for a group he
   // picks himself pass allowNoNumber.)
   if(!allowNoNumber && !waNum(phone)){ toast(t('wa_no_number'),'bad'); return; }
+  /* ══════════════ v461 — WHATSAPP TOOK THE APP DOWN WITH IT ══════════════
+     HIS 3 Sep: "WhatsApp bhej raha tha, WhatsApp band ho gaya. Dobara khola aur bheja, tab
+     gaya." Measured first: the link is 343 characters for a bill, so it is not a length
+     problem, and iOS killing a backgrounded PWA is not something this code can prevent.
+     What it CAN do is make sure nothing is lost when that happens. pagehide already flushes,
+     but the anchor click leaves in the same gesture and the debounce timer may not have run.
+     The write is forced out first, so an app that never comes back still has every rupee. */
+  try{ if(typeof flushDBNow==='function')flushDBNow(); }catch(e){}
   const url=waLink(phone,text);
   try{
     const a=document.createElement('a');
@@ -25971,6 +26064,55 @@ function karPayIsExp(pid){ return String(pid||'').indexOf('exp:')===0; }
    is precisely the case that used to destroy both — nothing is removed and the caller is
    told, because guessing between two real payments is how the damage happened in the first
    place. No historical row is invented, reconstructed or rewritten. */
+/* ══════════════ v461 — WHICH OLD PAYMENTS THE BUG MAY HAVE DAMAGED ══════════════
+   HIS 3 Sep, and he was right to say I fell short here: I warned that the old date+amount
+   delete may already have destroyed a ledger row belonging to a different payment, and then
+   left him to work out which ones on his own. He cannot check what he has not been shown.
+   This finds them. A pre-v454 payment has no lgId, so the only way to tell whether its
+   ledger row still exists is to look for one of the same date and amount. Where a payment
+   has NO matching row, the row is missing — either it was never written, or the old bug
+   took it while deleting a twin. Where several payments share a date and amount but fewer
+   rows remain than payments, the difference is what was lost.
+   Nothing is repaired here and nothing is invented. It reports what can be seen, so he can
+   put it beside his own cash book. */
+function karPayAtRisk(){
+  const pays=(DB.karigarPays||[]).filter(p=>!p.lgId);
+  const rows=(DB.ledger||[]).filter(l=>l.refKind==='karigar_pay');
+  const key=x=>String(x.date||'')+'|'+r2(+x.amt||0);
+  const rowCount={}; rows.forEach(l=>{ const k=key(l); rowCount[k]=(rowCount[k]||0)+1; });
+  const payCount={}; pays.forEach(p=>{ const k=key(p); payCount[k]=(payCount[k]||0)+1; });
+  const out=[];
+  Object.keys(payCount).forEach(k=>{
+    const want=payCount[k], have=rowCount[k]||0;
+    if(have>=want)return;
+    const [date,amt]=k.split('|');
+    const who=pays.filter(p=>key(p)===k)
+      .map(p=>((DB.karigars||[]).find(x=>x.id===p.karigarId)||{}).name||'—');
+    out.push({date, amt:+amt, payments:want, ledgerRows:have, missing:want-have, who});
+  });
+  return out.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+}
+function karPayRiskReport(){
+  sheetAt(karPayRiskReport);
+  const list=karPayAtRisk();
+  const tot=r2(list.reduce((s,x)=>s+x.amt*x.missing,0));
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin:0 0 4px">\u{1F50E} ${t('kr_title')}</h2>
+    <p class="hint" style="margin-bottom:12px">${t('kr_sub')}</p>
+    ${list.length?`<div class="kv" style="margin:0 2px 10px;padding:6px 0;border-bottom:1px solid var(--line)">
+        <span class="hint">${t('kr_found',{n:list.length})}</span>
+        <b style="color:var(--bad)">${money(tot)}</b></div>`
+      :`<div class="empty" style="padding:26px 10px"><div class="big">\u2705</div>
+        <p><b>${t('kr_none')}</b></p><p style="font-size:13px">${t('kr_none_sub')}</p></div>`}
+    ${list.map(x=>`<div class="card" style="margin-bottom:8px">
+      <div class="kv"><div style="flex:1;min-width:0">
+        <b>${esc(x.who.join(', '))}</b>
+        <div class="hint">${fmtDate(x.date)} \u00B7 ${t('kr_line',{p:x.payments,l:x.ledgerRows})}</div>
+      </div><b style="color:var(--bad)">${money(x.amt*x.missing)}</b></div></div>`).join('')}
+    <p class="hint" style="margin-top:10px">${t('kr_foot')}</p>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
 function karPayUnhook(pay){
   if(!pay)return {removed:0, ambiguous:false};
   if(pay.lgId){
@@ -26145,7 +26287,10 @@ function itemMaster(){
     <p class="hint" style="margin-bottom:12px">${t('item_master_desc')}</p>
     ${/* v427: the shop's own number leads, because that is the one every design has. The
          supplier's design number rides beside it only when the goods came with one. */''}
-    ${its.map(it=>`<div class="cust-result"><div><b>${it.rmNo?('<span style="color:var(--saffron2)">'+esc(it.rmNo)+'</span> \u00B7 '):''}${esc(it.name)}</b>
+    ${/* v460 — the sweep across every list found one row whose NAME did nothing on tap: this
+         one. Only the pencil at the far right opened it. The name is the part a thumb lands on;
+         it opens the same edit the pencil does. */''}
+    ${its.map(it=>`<div class="cust-result"><div style="flex:1;min-width:0;cursor:pointer" onclick="imEdit('${it.id}')"><b>${it.rmNo?('<span style="color:var(--saffron2)">'+esc(it.rmNo)+'</span> \u00B7 '):''}${esc(it.name)}</b>
       ${it.dsgn?`<div class="hint">${t('im_dsgn')}: ${esc(it.dsgn)}</div>`:''}
       ${it.incl&&it.incl.length?`<div class="hint">${esc(it.incl.join(' + '))}</div>`:''}
       ${it.rate?`<div class="hint">₹${esc(it.rate)}</div>`:''}</div>
@@ -27080,9 +27225,26 @@ function ledgerView(id){
   const rows=[];
   if(l.openAmt)rows.push({date:l.openDate||'', ref:t('lg_open'),
     dr:l.openDir==='dr'?l.openAmt:0, cr:l.openDir==='cr'?l.openAmt:0});
+  /* ══════════════ v457 — THE LEDGER SHOWED ONLY THE OPENING ══════════════
+     HIS 3 Sep: "payment jo entry ki hai party ke ledger me update nahi dikh rahi hai, sabka
+     opening hi dikh raha hai."
+     Reproduced. The opening comes off the ledger record itself, so it always shows. Every
+     other row had to match on NAME — and a row carrying only a partyId, with the name field
+     left empty, matched nothing. It vanished from the statement AND from the closing
+     balance, which stayed at the full 83,642 as though the 50,000 had never been paid.
+     Tested five ways: exact name, trailing space and different case all matched; a row with
+     only partyId did not, and neither did a near-miss spelling.
+     The party's own id is now accepted as well, taken from the party master by the same
+     name. A payment reaches its account whether it was written with the name, the id, or
+     both — which is how every other screen in this app already finds it. */
+  const _pids={};
+  (DB.parties||[]).forEach(pp=>{ if(nameNorm(pp.name)===n && pp.id)_pids[pp.id]=1; });
+  (DB.customers||[]).forEach(pp=>{ if(nameNorm(pp.name)===n && pp.id)_pids[pp.id]=1; });
+  (DB.karigars||[]).forEach(pp=>{ if(nameNorm(pp.name)===n && pp.id)_pids[pp.id]=1; });
+  (DB.staff||[]).forEach(pp=>{ if(nameNorm(pp.name)===n && pp.id)_pids[pp.id]=1; });
   (DB.ledger||[]).forEach(x=>{
     if(x.refKind==='opening')return;
-    if(nameNorm(x.party)!==n && nameNorm(x.cat)!==n)return;
+    if(nameNorm(x.party)!==n && nameNorm(x.cat)!==n && !(x.partyId && _pids[x.partyId]))return;
     const amt=r2(+x.amt||0);
     rows.push({date:x.date||'', ref:(x.ref||x.cat||'')+(x.note?' \u00B7 '+x.note:''),
       dr:x.dir==='out'?amt:0, cr:x.dir==='in'?amt:0});
@@ -27240,8 +27402,25 @@ function partyBillFlow(p,kind){
 }
 function partyBalance(p,kind){
   let bal=0;
+  /* ══════════════ v461 — TWO PEOPLE, ONE NAME, ONE BALANCE ══════════════
+     PHASE 3/4 finding, confirmed live: two customers both called "Ramesh Kumar", separate
+     ids, separate openings of 5,000 and 9,000 — and BOTH reported 14,000. A row was accepted
+     if its id matched OR its name did, so every row under that name landed on every party
+     wearing it. His own shop has had three Kanchans.
+     The name path cannot simply go: it is what lets a payment typed with only a name reach
+     the right ledger, which was fixed in v423 for exactly that reason and a great deal of
+     his older data was entered that way. So the rule is narrowed instead of removed. A row
+     that CARRIES an id belongs to that id and to nobody else — the name on it is ignored.
+     A row with no id still falls back to the name, exactly as before, unless another party
+     of the same name would also claim it; in that case it is left out rather than counted
+     twice, because a figure that is silently doubled is worse than one that is short and
+     visible. Nothing stored is altered. */
+  const _sameName=(DB.parties||[]).concat(DB.customers||[])
+    .filter(x=>x && x.id!==p.id && nameNorm(x.name)===nameNorm(p.name)).length>0;
   (DB.ledger||[]).forEach(l=>{
-    if(l.partyId!==p.id && String(l.party||'').trim().toLowerCase()!==String(p.name||'').trim().toLowerCase())return;
+    if(l.partyId){ if(l.partyId!==p.id)return; }
+    else if(_sameName)return;                      /* ambiguous — do not claim it */
+    else if(String(l.party||'').trim().toLowerCase()!==String(p.name||'').trim().toLowerCase())return;
     if(kind && l.partyKind && l.partyKind!==kind)return;
     const amt=+l.amt||0;
     /* v380 — the sign trap this file's own comment warns about, still live here. `dir` is
@@ -30429,9 +30608,61 @@ window.addEventListener('popstate',()=>{
     // second press within 2.2s -> let it go (app closes)
   } finally { _popping=false; }
 });
-$('#scrim').addEventListener('click',e=>{if(e.target===$('#scrim'))closeSheet();});
+/* ══════════════ v457 — A STRAY TOUCH THREW HIS WORK AWAY ══════════════
+   HIS 3 Sep: "halka sa bhi touch karo to kuch delete ho jaa raha hai, kuch edit ho jaa raha
+   hai... screen kai baar apne aap hat ja rahi hai."
+   Tapping anywhere outside the sheet closed it at once, with no question. On the iPad the
+   sheet does not fill the width, so most of the glass is that outside area — a thumb resting
+   on the bezel side, a palm while reaching for a key, and a half-typed purchase was gone.
+   The tap still closes a sheet he is only READING. If he has typed anything into it, it
+   asks first, and it routes through sheetClose() so the order form still parks as a draft
+   and the bill form still gives its own warning. A drag or a scroll is no longer a tap
+   either — the touch has to start and end in the same place. */
+(function(){
+  const sc=$('#scrim'); if(!sc)return;
+  let sx=0, sy=0, moved=false;
+  sc.addEventListener('touchstart',e=>{ const t=e.touches&&e.touches[0];
+    if(t){ sx=t.clientX; sy=t.clientY; moved=false; } },{passive:true});
+  sc.addEventListener('touchmove',e=>{ const t=e.touches&&e.touches[0];
+    if(t && (Math.abs(t.clientX-sx)>10||Math.abs(t.clientY-sy)>10))moved=true; },{passive:true});
+  function sheetHasTyping(){
+    const sh=$('#sheet'); if(!sh)return false;
+    return [...sh.querySelectorAll('input,textarea')].some(el=>{
+      if(el.type==='hidden'||el.type==='checkbox'||el.type==='radio')return false;
+      if(el.id==='dbQ'||/search|Q$/i.test(el.id||''))return false;   /* a search box is not work */
+      return String(el.value||'').trim()!=='';
+    });
+  }
+  sc.addEventListener('click',e=>{
+    if(e.target!==sc)return;
+    if(moved){ moved=false; return; }
+    if(sheetHasTyping()){
+      confirmModal('\u26A0\uFE0F '+t('sh_leave_t'), t('sh_leave_m'),
+        ()=>{ closeModal(); sheetClose(); }, ()=>closeModal(),
+        {yes:t('sh_leave_yes'), no:t('sh_stay')});
+      return;
+    }
+    sheetClose();
+  });
+})();
 /* the main sheet has closed on an outside tap since the beginning; the modal never did */
-$('#mscrim').addEventListener('click',e=>{if(e.target===$('#mscrim'))closeModal();});
+/* v457: the same guard on the modal layer. The party form, the staff card and every other
+   modal sat on this handler and closed on any outside tap — his typed party name went with
+   it. A confirm cannot ask about a confirm, so a modal that is ITSELF a question closes as
+   before; only one carrying typed work asks. */
+$('#mscrim').addEventListener('click',e=>{
+  if(e.target!==$('#mscrim'))return;
+  const m=$('#mscrim');
+  const isAsk=!!m.querySelector('.modal-actions button.primary') &&
+              !m.querySelector('input:not([type=hidden]):not([type=checkbox]):not([type=radio])');
+  const typed=!isAsk && [...m.querySelectorAll('input,textarea')].some(el=>{
+    if(el.type==='hidden'||el.type==='checkbox'||el.type==='radio')return false;
+    if(/search|Q$/i.test(el.id||''))return false;
+    return String(el.value||'').trim()!=='';
+  });
+  if(typed){ toast(t('sh_tap_keep'),'bad'); return; }
+  closeModal();
+});
 /* A modal lives on its own layer. It must NEVER wipe the sheet underneath —
    that used to destroy a half-filled order form (and everything typed into it). */
 /* v194 — the one place that knows how to walk back out of a screen, one step at a time.
