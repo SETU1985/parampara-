@@ -845,7 +845,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v484</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v487</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -2180,6 +2180,7 @@ const T={
   src_who:'Referred by (name)', src_who_ph:'Name of the person who referred them',
   src_report:'Where the business came from', src_report_hint:'Orders and value by enquiry source.',
   src_unknown:'Not recorded',
+  cust_meas_cleared:'Customer changed — the naap it had filled in is cleared ({g}). Anything you typed is still there.',
   ql_title:'Lengths', ql_editing:'open below', it_nav_prev:'Previous item', it_nav_next:'Next item',
   dsp_title:'Delivery', dsp_shop:'Collect from shop', dsp_courier:'Courier',
   dsp_city:'City / town', dsp_city_ph:'Patna, siliguri, kathmandu…',
@@ -4045,6 +4046,7 @@ dl_show_hidden:'Show hidden ({n})',
   src_who:'किसने भेजा (नाम)', src_who_ph:'जिसने रेफर किया उसका नाम',
   src_report:'बिज़नेस कहाँ से आया', src_report_hint:'ज़रिये के हिसाब से ऑर्डर और क़ीमत।',
   src_unknown:'दर्ज नहीं',
+  cust_meas_cleared:'ग्राहक बदला — जो नाप अपने आप भरा था वो हटा दिया ({g})। आपका लिखा हुआ वैसे ही है।',
   ql_title:'लंबाई', ql_editing:'नीचे खुला है', it_nav_prev:'पिछला आइटम', it_nav_next:'अगला आइटम',
   dsp_title:'डिलीवरी', dsp_shop:'दुकान से लेंगे', dsp_courier:'कूरियर',
   dsp_city:'शहर', dsp_city_ph:'पटना, सिलीगुड़ी, काठमांडू…',
@@ -5927,6 +5929,21 @@ function setDelDate(v){delDate=v;delFilter='date';pageReset('orders');renderOrde
    The header bar still works as the way IN from Home, and both write to this one ordQ —
    so a name half-typed on Home is still there, cursor and all, when the list opens. */
 let ordQ='';
+/* ═════ v485 — A NUMBER YOU CANNOT OPEN IS NOT A REPORT ═════
+   HIS 4 Sept: "BNI mein click kara to wo one ka list dikha de... repeat customer mein gaya
+   to repeat customer ka aisa hub aa jaye. Us dhang se hoga to zyada value samajh mein
+   aayegi."
+   His own rule says every management number must be traceable to its source records, and
+   this one was a dead end: BNI said 1 and there was no way to ask WHICH one.
+   It routes into the Orders list rather than building a new screen — that list already has
+   the search, the chips and the row-to-detail path, and a second half-built list of orders
+   would be exactly the clutter his screen law forbids. */
+let ordSrc='';
+function setOrdSrc(v){ ordSrc=String(v==null?'':v); pageReset('orders'); renderOrders(); }
+function clearOrdSrc(){ setOrdSrc(''); }
+/* '' means no source filter at all, so orders with nothing recorded need their own mark —
+   otherwise "not recorded" and "show everything" would be the same request. */
+const ORD_SRC_NONE='__nosrc__';
 function setOrdQ(v){ ordQ=v; const g=$('#search'); if(g)g.value=v;
   pageReset('orders'); renderOrders(true); }
 function focusOrdSearch(){ const el=$('#ordSearch');
@@ -10015,8 +10032,9 @@ function orderReports(){
     <div class="section-h">📣 ${t('src_report')}</div>
     <p class="hint" style="margin:0 0 8px">${t('src_report_hint')}</p>
     ${srcs.length?`<div class="card" style="margin-bottom:14px">
-      ${srcs.map(([n,v])=>`<div style="padding:9px 0;border-bottom:1px solid var(--line)">
-        <div class="kv"><b>${esc(n)}</b><b style="color:var(--saffron2)">${v.n}</b></div>
+      ${srcs.map(([n,v])=>`<div class="tappable" style="padding:9px 0;border-bottom:1px solid var(--line);cursor:pointer"
+        onclick="closeSheet();setDelFilter('all');setOrdSrc('${jq(n===t('src_unknown')?ORD_SRC_NONE:n)}');go('orders')">
+        <div class="kv"><b>${esc(n)} <span style="color:var(--txt2)">›</span></b><b style="color:var(--saffron2)">${v.n}</b></div>
         <div class="gr-bar" style="margin-top:5px"><div class="gr-fill" style="width:${Math.round(v.n/srcs[0][1].n*100)}%"></div></div>
         <div class="kv" style="margin-top:3px"><span class="hint">${t('or_value')}</span>
           <span class="hint">${money(v.v)}</span></div></div>`).join('')}
@@ -13334,6 +13352,8 @@ function tabHead(title){
 function renderOrders(keepFocus){
   const q=(ordQ||'').toLowerCase().trim();
   let list=deliveryList();
+  if(ordSrc){ list=list.filter(o=>{ const sv=String(o.source||'').trim();
+    return ordSrc===ORD_SRC_NONE ? !sv : sv.toLowerCase()===ordSrc.toLowerCase(); }); }
   if(q)list=list.filter(o=>(o.customerName||'').toLowerCase().includes(q)||(o.phone||'').includes(q)
     ||String(o.orderNo).toLowerCase().includes(q)
     /* v368: he hunts a bill by the figure he remembers as often as by the name */
@@ -13353,6 +13373,9 @@ function renderOrders(keepFocus){
     +`<button class="stp ${delFilter==='date'?'cur':''}" onclick="document.getElementById('delDateInp').showPicker?document.getElementById('delDateInp').showPicker():document.getElementById('delDateInp').click()">📅 ${delFilter==='date'&&delDate?fmtDate(delDate):t('f_date')}</button>`;
   const bar=`<div class="stepper" style="margin-bottom:10px">${chips}</div>
     <input type="date" id="delDateInp" value="${esc(delDate)}" onchange="setDelDate(this.value)" style="position:absolute;left:-9999px">`;
+  const srcBar=ordSrc?`<div class="card" style="border-color:var(--saffron);margin-bottom:10px">
+    <div class="kv"><b>📣 ${esc(ordSrc===ORD_SRC_NONE?t('src_unknown'):ordSrc)} · <span style="color:var(--saffron2)">${list.length}</span></b>
+      <button class="btn sm ghost" onclick="clearOrdSrc()">✕ ${t('f_all')}</button></div></div>`:'';
   const banner=(delFilter!=='all')?`<div class="card" style="border-color:var(--saffronDim)">
     <div style="display:flex;justify-content:space-between;align-items:center"><div><b style="font-size:18px;color:var(--saffron2)">${list.length}</b> ${t('deliveries')} · ${delLabel()}</div></div>
     <div class="row" style="margin-top:10px;gap:6px"><button class="btn sm ghost" onclick="printDeliveries()">🖨️ ${t('print')}</button><button class="btn sm ghost" onclick="waDeliveries()">💬 ${t('whatsapp')}</button></div></div>`:'';
@@ -13367,10 +13390,10 @@ function renderOrders(keepFocus){
   /* the same box, in the same place, as the Sales and Purchase lists */
   const searchBox=`<div class="field" style="margin-bottom:10px">
     <input id="ordSearch" value="${esc(ordQ)}" placeholder="🔍 ${t('ord_search_ph')}" oninput="setOrdQ(this.value)"></div>`;
-  if(!list.length){el.innerHTML=head+remind+searchBox+bar+banner+dcard+`<div class="empty"><div class="big">📋</div><p><b>${q?t('nothing'):(delFilter==='all'?t('no_orders'):t('no_deliveries'))}</b></p><p style="font-size:13px">${q?t('try_other'):(delFilter==='all'?t('no_orders_sub'):'')}</p></div>`;
+  if(!list.length){el.innerHTML=head+remind+searchBox+bar+srcBar+banner+dcard+`<div class="empty"><div class="big">📋</div><p><b>${q?t('nothing'):(delFilter==='all'?t('no_orders'):t('no_deliveries'))}</b></p><p style="font-size:13px">${q?t('try_other'):(delFilter==='all'?t('no_orders_sub'):'')}</p></div>`;
     if(keepFocus)focusOrdSearch(); return;}
   const _pg=pageSlice('orders',list);
-  el.innerHTML=head+remind+searchBox+bar+banner+dcard+_pg.map(o=>{
+  el.innerHTML=head+remind+searchBox+bar+srcBar+banner+dcard+_pg.map(o=>{
     const dl=daysLeft(o.deliveryDate),baaki=orderBaaki(o),st=orderSummaryStatus(o);
     let dcls='',dtxt=fmtDate(o.deliveryDate);
     if(st!=='delivered'&&dl!==null&&dl<0){dcls='soon';dtxt=Math.abs(dl)+'d '+t('late');}
@@ -14421,16 +14444,21 @@ function kbTo(el){
    and nothing more typed for a moment, then move on. Any further key — a dot, a fraction, a
    third digit, a correction — cancels the jump. Enter still moves immediately, as before. */
 let _maT=null;
+/* v484 — HIS 4 Sept: "ek measurement ka number daala, thirty nine — uske baad wo doosre
+   field mein chale jaate hain. Lekin kisi ka thirty nine point hai to badi dikkat. Pehle
+   wali hi setting theek thi."
+   Two digits started a 700ms timer and then jumped the cursor on its own. Every half
+   measurement in the shop is a race against that timer: he types 39, looks down for ½,
+   and by the time his thumb lands the cursor has gone — so the ½ falls into the NEXT
+   measurement. A wrong number in the next box is worse than a slow one in this box, and
+   no timer length can be right for both a man reading off a tape and a man being told a
+   figure across the counter.
+   The timer is gone. Nothing is lost, because the way forward was already under his
+   thumb the whole time: the fraction bar carries ‹ and ›, and Enter still steps too. So
+   a whole number is one tap on ›, and a half is ½ then › — both deliberate, neither
+   guessed. */
 function measAuto(e){
-  const el=e&&e.target; if(!el)return;
-  clearTimeout(_maT);
-  const v=String(el.value||'').trim();
-  if(!/^\d{2}$/.test(v))return;                 // only a clean two-digit number waits
-  _maT=setTimeout(()=>{
-    if(document.activeElement!==el)return;      // he already moved himself
-    if(String(el.value||'').trim()!==v)return;  // he kept typing — leave him alone
-    measStep({target:el,preventDefault(){}},1);
-  },700);
+  clearTimeout(_maT);          /* v484: cancel any jump a previous build had queued */
 }
 /* the one place that knows which box the naap starts on */
 /* v484 — HIS 4 Sept: "Lower/Pant me cursor direct length per jata hai jabki waist pahla
@@ -15229,7 +15257,51 @@ async function renderItemPhotos(gid){const el=$('#ip_'+cssId(gid));if(!el)return
     el.appendChild(w);}
 }
 function customerPickedHTML(){const f=form;return `<div class="cust-result"><div><b>${esc(f.customerName)}</b><div class="hint">${esc(f.phone||'')}</div></div><button class="btn sm ghost" onclick="clearCustomer()">${t('change')}</button></div>`;}
-function clearCustomer(){form.customerId=null;form.customerName='';form.phone='';renderForm();}
+/* ══════════════ v486 — ONE MAN'S BODY ON ANOTHER MAN'S ORDER ══════════════
+   HIS 4 Sept: "customer ka naam save kiya, dekha ki naam pehle se saved hai measurement
+   ke saath. Kuch galti thi to naya naam kar ke change kiya. Lekin pichhle naam ka jo
+   measurement tha wo naye naam ke saath bhi laga hi raha, naam badalne ke baad bhi."
+   He is right and this is the worst kind of bug, because it is silent and it spreads.
+   Picking a saved customer runs prefillGarment, which writes HIS chest, belly, hip,
+   shoulder, sleeve and neck into the order and marks each one in form.mAuto. Change then
+   cleared three fields — id, name, phone — and nothing else. The body stayed.
+   That is not merely a wrong figure on screen. saveOrder writes the main member's naap
+   back into the customer's own file: c.m[gid] = {...c.m[gid], ...f.m[key]}. So saving that
+   order would have stamped Raj's measurements onto the new man's permanent record, and
+   the shop would have cut his clothes to another man's body for years without ever
+   knowing why. Two customers' files corrupted by one tap on Change.
+   Change now takes back exactly what the app filled in — every value flagged in mAuto —
+   and nothing else. A figure HE typed is his work and is never touched. Only the main
+   member is cleared: a brother's or father's naap on the same order never came from the
+   customer's file in the first place (see the isMain guard in prefillGarment), so it stays.
+   And it says which pieces it emptied, because a silent clear is how this started. */
+/* v487: the same sweep, reachable from every door that drops the customer. Returns the
+   pieces it emptied so the caller can say so. */
+function wipeAutoNaap(){
+  const f=form; if(!f)return [];
+  const isMain=mid=>!mid||(f.members&&f.members[0]&&f.members[0].id===mid);
+  const wiped=[];
+  (f.items||[]).forEach(key=>{
+    if(!isMain(memberOf(key)))return;
+    const am=(f.mAuto||{})[key]; if(!am)return;
+    let n=0;
+    Object.keys(am).forEach(k=>{
+      if(am[k] && f.m && f.m[key] && f.m[key][k]!=null){ delete f.m[key][k]; n++; }
+      delete am[k];
+    });
+    if(n){ const g=G(key); wiped.push((g&&g.n)||key); }
+  });
+  return wiped;
+}
+function clearCustomer(){
+  captureForm();
+  const f=form;
+  const wiped=wipeAutoNaap();
+  f.customerId=null; f.customerName=''; f.phone='';
+  renderForm();
+  if(wiped.length)setTimeout(()=>{try{
+    toast(t('cust_meas_cleared',{g:wiped.slice(0,3).join(', ')}),'ok');}catch(e){}},120);
+}
 /* the number is typed once; the moment it is a whole number, say who this is */
 let _ordPhAsked='';
 function ordPhoneIn(el){
@@ -15407,10 +15479,16 @@ function custSearch(q){const box=$('#custResults'); if(!box)return;
     +(hits.length?hits.map(c=>custRowHTML(c,`pickCustomer('${c.id}')`)).join('')
       :`<p class="hint" style="margin:6px 0 0">${q?t('cust_none_q'):t('cust_none')}</p>`)
     +sugAddFoot('orderNewCustomer()', (($('#f_cname')||{}).value||''), !hits.length);}
+/* v487 — the second door onto the same cliff. Change was not the only way to drop a
+   customer: typing a fresh name and pressing ➕ New does it too, and this one also left
+   the naap the app had filled in from the man before. Same sweep, same rule. */
 function orderNewCustomer(){
   captureForm();
   const nm=($('#f_cname')&&$('#f_cname').value.trim())||'';
+  const _w=form.customerId?wipeAutoNaap():[];
   form.customerId=null; form.customerName=nm;
+  if(_w.length)setTimeout(()=>{try{
+    toast(t('cust_meas_cleared',{g:_w.slice(0,3).join(', ')}),'ok');}catch(e){}},120);
   const box=$('#custResults'); if(box)box.innerHTML=`<p class="hint" style="padding:6px 0">${t('cust_new_hint')}</p>`;
   const ph=$('#f_cphone'); if(ph)ph.focus();}
 function pickCustomer(id){captureForm();const c=custById(id);form.customerId=id;form.customerName=c.name;form.phone=c.phone;
@@ -18781,7 +18859,14 @@ function altNewCustomer(){
 function altPickCustomer(id){
   const c=custById(id); if(!c)return;
   const n=$('#a_cname'); if(n)n.value=c.name||'';
-  const ph=$('#a_phone'); if(ph&&c.phone)ph.value=c.phone;
+  /* v487 — FOUND IN THE SWEEP: this wrote into #a_phone. There is no #a_phone. The box on
+     the alteration screen is #a_cphone (and captureAltForm reads that one), so $() came
+     back null, the `if(ph && ...)` guard swallowed it, and picking a saved customer filled
+     his name and NEVER his number. The alteration then saved with no phone at all — no
+     WhatsApp could reach him and the record could not be found by number. Silent since the
+     screen was built. */
+  const ph=$('#a_cphone'); if(ph&&c.phone)ph.value=c.phone;
+  if(altForm&&c.phone)altForm.phone=c.phone;
   const box=$('#altCustResults'); if(box)box.innerHTML='';
   if(altForm)altForm.customerId=id;
   const s=custSummary(id);
