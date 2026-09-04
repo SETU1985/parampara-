@@ -845,7 +845,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v461</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v472</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -2662,6 +2662,30 @@ dl_show_hidden:'Show hidden ({n})',
   kr_none:'Nothing to check', kr_none_sub:'Every older tailor payment still has its ledger entry.',
   kr_foot:'Nothing has been changed or added. This only lists what the app can see.',
   cr_new_named:'Add \u201C{n}\u201D as a new creditor',
+  ki_cloth_cust:'Customer\'s cloth',
+  ki_cloth_shop:'Shop cloth',
+  ki_pick_thaan:'Which roll?',
+  ki_mtr:'Metres',
+  ki_need_thaan:'Pick the roll the cloth was cut from',
+  ki_need_mtr:'How many metres were cut?',
+  ki_short:'Roll {s} has only {b}m left',
+  cu_keep_t:'Keep this number?',
+  cu_keep_m:'The order was not saved. Should {n} ({p}) still go into the customer book?',
+  cu_keep_yes:'Keep the contact',
+  cu_keep_no:'No, leave it',
+  cu_keep_ok:'{n} saved in customers',
+  lv_t:'Leave without saving?',
+  lv_m:'What you typed on this screen has not been saved yet.',
+  lv_yes:'Leave, don\'t save',
+  lv_no:'Stay here',
+  mem_no_items:'No pieces yet',
+  mem_done:'Done — back to the order',
+  mem_done_ok:'{n} saved',
+  mem_need_item:'Pick at least one piece for this person',
+  mem_open:'Open',
+  od_give_kar:'Give to karigar',
+  it_added_one:'\u2795 {n} added \u2014 {c} of this piece now. Its own naap.',
+  pur_return:'Purchase return',
   cr_settled:'Settled',
   stk_next_ser:'Next number', stk_unnamed:'no name',
   stk_ser_dup_t:'That number is already on the shelf',
@@ -4466,6 +4490,30 @@ dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
   kr_none:'कुछ जाँचना नहीं है', kr_none_sub:'हर पुराने कारीगर भुगतान की लेजर एंट्री मौजूद है।',
   kr_foot:'कुछ बदला या जोड़ा नहीं गया। यह सिर्फ़ वही दिखाता है जो ऐप को दिख रहा है।',
   cr_new_named:'\u201C{n}\u201D को नया लेनदार बनाएँ',
+  ki_cloth_cust:'ग्राहक का कपड़ा',
+  ki_cloth_shop:'दुकान का कपड़ा',
+  ki_pick_thaan:'कौन सा थान?',
+  ki_mtr:'मीटर',
+  ki_need_thaan:'कपड़ा किस थान से कटा — वो चुनो',
+  ki_need_mtr:'कितने मीटर कटे?',
+  ki_short:'थान {s} में सिर्फ {b}म बचा है',
+  cu_keep_t:'ये नंबर रख लें?',
+  cu_keep_m:'ऑर्डर सेव नहीं हुआ। {n} ({p}) को ग्राहक की किताब में रख लें?',
+  cu_keep_yes:'नंबर रख लो',
+  cu_keep_no:'नहीं, रहने दो',
+  cu_keep_ok:'{n} ग्राहकों में जुड़ गया',
+  lv_t:'बिना सेव किए छोड़ें?',
+  lv_m:'इस स्क्रीन पर जो भरा है वो अभी सेव नहीं हुआ है।',
+  lv_yes:'छोड़ दो, सेव मत करो',
+  lv_no:'यहीं रुको',
+  mem_no_items:'अभी कोई पीस नहीं',
+  mem_done:'हो गया — ऑर्डर पर वापस',
+  mem_done_ok:'{n} का काम हो गया',
+  mem_need_item:'इस आदमी का कम से कम एक पीस चुनो',
+  mem_open:'खोलो',
+  od_give_kar:'कारीगर को दो',
+  it_added_one:'\u2795 {n} जुड़ा \u2014 अब इसके {c} पीस। अपना अलग नाप।',
+  pur_return:'ख़रीद वापसी',
   cr_settled:'चुक गया',
   stk_next_ser:'अगला नंबर', stk_unnamed:'बिना नाम',
   stk_ser_dup_t:'यह नंबर पहले से शेल्फ़ पर है',
@@ -5061,6 +5109,20 @@ const esc=s=>(s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt
    parsers. jq() for anything inside quotes in a handler; esc() stays right for text. */
 const jq=s=>String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\r?\n/g,'\\n').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const money=n=>'₹'+(Number(n)||0).toLocaleString('en-IN');
+/* ══════════════ v463 — A TAX INVOICE WITH NO YEAR ON IT ══════════════
+   HIS 3 Sep, holding the printed bill: "invoice date me year mention nahi hai, invoice date
+   clear likha hona chahiye. Delivery date bold aur highlight hona chahiye."
+   fmtDate() gives "3 Sep" — right for a screen he is looking at today, wrong for a document
+   that goes out of the shop, gets filed, and is read next April by him, by a customer, or by
+   a tax officer. A tax invoice without a year is not a record of anything.
+   Only the printed bill uses this. Every screen keeps the short form, because that is what
+   makes a list readable. */
+function fmtDateFull(d){
+  if(!d)return '\u2014';
+  const x=new Date(d);
+  if(isNaN(x))return String(d);
+  return x.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+}
 function fmtDate(d){if(!d)return '—';const x=new Date(d);return x.toLocaleDateString('en-IN',{day:'numeric',month:'short'});}
 function fmtDateTime(d){const x=new Date(d);return x.toLocaleDateString('en-IN',{day:'numeric',month:'short'})+' '+x.toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'});}
 function daysLeft(d){if(!d)return null;const x=new Date(d);x.setHours(0,0,0,0);const t=new Date();t.setHours(0,0,0,0);return Math.round((x-t)/86400000);}
@@ -13723,8 +13785,38 @@ document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==
 window.addEventListener('pagehide',saveDraft);
 window.addEventListener('blur',saveDraft);
 
+/* ══════════════ v471 — THE NAME AND NUMBER WERE ONLY IN THE DRAFT ══════════════
+   HIS 3 Sept, on the new-order screen with "Alok" and his number typed in: "add nahi kiya
+   to yeh automatically add ho jayega ya jab poora order save karunga tab? Phir kisi karan
+   se poora order save nahi kiya, khali naam number save kar diya, to contact save ho jana
+   chahiye."
+   Today a customer is written only inside saveOrder(). Abandon the order and the name and
+   number live on in the draft but never reach the customer book — so a man who walked in,
+   gave his number and left without ordering is not in the shop's records at all.
+   Keeping him is right, but not silently, and not for half a name: only a real name with a
+   full ten-digit number, only when nobody already holds that number, and only after he
+   says yes. */
+function orderContactOffer(f,then){
+  const nm=String((f&&f.customerName)||'').trim();
+  const ph=String((f&&f.phone)||'').replace(/\D/g,'').slice(-10);
+  const ok = nm.length>1 && ph.length===10 && !f.editId && !f.customerId
+    && !(DB.customers||[]).some(c=>String(c.phone||'').replace(/\D/g,'').slice(-10)===ph);
+  if(!ok){ then(); return; }
+  confirmModal(t('cu_keep_t'), t('cu_keep_m',{n:nm,p:ph}),
+    ()=>{ DB.customers=DB.customers||[];
+          DB.customers.push({id:uid(),name:nm,phone:ph,m:{}});
+          save(); toast(t('cu_keep_ok',{n:nm}),'ok'); then(); },
+    ()=>{ then(); },
+    {yes:t('cu_keep_yes'), no:t('cu_keep_no'), cls:'primary'});
+}
 function cancelOrderForm(){
   captureForm();
+  /* v471: ask first, then do exactly what Cancel always did. The answer runs cancelDo()
+     directly — calling cancelOrderForm() again from the callback asks forever. */
+  if(form && !form.editId){ orderContactOffer(form,cancelDo); return; }
+  cancelDo();
+}
+function cancelDo(){
   /* Parking as a draft is right for a NEW order — the work would otherwise be lost.
      For an EXISTING order it is wrong: the order is already saved, so cancelling an
      edit produced a second, ghost copy on the Orders page every single time. He opened
@@ -13915,11 +14007,9 @@ function addMember(){
   /* v337: the new person needs a name and his own pieces, and both of those live on the
      pick screen — so go there instead of leaving him on the last step wondering what
      happened. */
-  if(typeof _ordStage!=='undefined' && _ordStage!==1)ordStage(1);
-  else renderForm();
-  setTimeout(()=>{const els=document.querySelectorAll('.mem-name');const last=els[els.length-1];
-    if(last){ try{ last.focus(); }catch(e){}
-      if(last.scrollIntoView)try{ last.scrollIntoView({block:'center'}); }catch(e){} }},120);
+  /* v470: the new person gets his own screen straight away, instead of being appended to
+     the bottom of a list of everybody. */
+  memOpen(form.members[form.members.length-1].id);
   toast(t('mem_added_next'),'ok');
 }
 function delMember(mid){
@@ -13955,6 +14045,32 @@ function itemOpen(key){ kbHold(); ordStage(2,key); setTimeout(focusLenBox,120); 
    explicit that a lower piece must not turn up in the middle of the uppers. Inside a
    group it follows the shop's own item order, and a second Coat comes right after the
    first. With a family order, one member is finished before the next begins. */
+/* ══════════════ v470 — ONE PERSON ON THE SCREEN AT A TIME ══════════════
+   HIS 3 Sep, after the recording, and he asked for all people to work this way — not just
+   the second one: when a person is opened, a screen belongs to HIM. His name, his pieces,
+   his naap, his photos, one Done at the end, and back to the order where he shows as a card.
+   The reason is not that data was leaking — it never did; that was checked four ways today.
+   The reason is that he could not SEE which person he was standing on. That is what let
+   "Start measuring" put Aalok's shirt in front of him while he believed he was measuring
+   Sumit — and had he typed there, Aalok's naap would have gone.
+   So nothing is rebuilt. The pieces, the chips, the measure card, the photos and "One more"
+   are the same code they have always been. One thing is added: while a person is open,
+   every screen is scoped to him. Another person's chip cannot be reached, so a naap cannot
+   land on the wrong man. Done clears the focus and returns to the order. */
+let _memFocus='';
+function memOpen(mid){
+  captureForm(); _memFocus=String(mid||'');
+  _ordStage=1; renderForm();
+  setTimeout(()=>{const el=document.querySelector('.mem-name'); if(el){try{el.focus()}catch(e){}}},120);
+}
+function memDone(){
+  captureForm();
+  const mid=_memFocus;
+  const mine=(form.items||[]).filter(k=>memberOf(k)===mid);
+  if(!mine.length){ toast(t('mem_need_item'),'bad'); return; }
+  _memFocus=''; _ordStage=1; renderForm(); save();
+  toast(t('mem_done_ok',{n:memberLabel(form,mid)||t('mem_this')}),'ok');
+}
 function walkOrder(f){
   /* HIS 9:38 SCREENSHOT: the Lengths list showed SEVEN rows while the button underneath
      said "Start measuring (6 pieces)" — and he confirms he did not add the piece twice.
@@ -13982,7 +14098,11 @@ function walkOrder(f){
      that guard was for a real bug and is untouched. */
   const mems=(f.members||[]).map(m=>m.id);
   const memR=k=>{const i=mems.indexOf(memberOf(k));return i<0?999:i;};
-  const picked=[...new Set(f.items||[])];
+  let picked=[...new Set(f.items||[])];
+  /* v470: while one person is open, the walk is his pieces only — the arrows, the counter,
+     Done and Start measuring all read this one function, so none of them can wander onto
+     somebody else. */
+  if(_memFocus)picked=picked.filter(k=>memberOf(k)===_memFocus);
   const pickR={}; picked.forEach((k,i)=>pickR[k]=i);
   return picked.sort((a,b)=>
     memR(a)-memR(b) || pickR[a]-pickR[b]);
@@ -14016,11 +14136,47 @@ function kbTo(el){
   try{if(el.select)el.select();}catch(e){}
   try{el.scrollIntoView({block:'center'});}catch(e){}
 }
+/* ══════════════ v469 — TWO DIGITS, THEN THE NEXT BOX ON ITS OWN ══════════════
+   HIS 3 Sep: "naap daalte samay jab hum 2 digit ka number type karein to cursor ko apne aap
+   agle input box mein jump kar jana chahiye. Har box par baar-baar haath se tap na karna
+   pade."
+   He is holding a tape in one hand and the iPad in the other; every extra tap costs him.
+   But a naap is not always two digits — 39.5 and 23½ are ordinary, and jumping the instant
+   the second digit lands would make those impossible to type. So it waits: two whole digits
+   and nothing more typed for a moment, then move on. Any further key — a dot, a fraction, a
+   third digit, a correction — cancels the jump. Enter still moves immediately, as before. */
+let _maT=null;
+function measAuto(e){
+  const el=e&&e.target; if(!el)return;
+  clearTimeout(_maT);
+  const v=String(el.value||'').trim();
+  if(!/^\d{2}$/.test(v))return;                 // only a clean two-digit number waits
+  _maT=setTimeout(()=>{
+    if(document.activeElement!==el)return;      // he already moved himself
+    if(String(el.value||'').trim()!==v)return;  // he kept typing — leave him alone
+    measStep({target:el,preventDefault(){}},1);
+  },700);
+}
 /* the one place that knows which box the naap starts on */
 function focusLenBox(){ kbTo(document.querySelector('.mcard .mfield.lenhl input.mInput')); }
-/* start the walk: open the first piece of the whole order */
+/* ══════════════ v469 — "START MEASURING" OPENED THE WRONG MAN ══════════════
+   HIS 3 Sep, from the screen recording: add next person (Sumit, Bhai), pick his Shirt and
+   Pant, press Start measuring — and the boxes arrive holding 39, 39, 39, 18, 18, 16. He
+   read it as the new person inheriting the old customer's naap. It is worse than that.
+   The data was never mixed: Sumit's pieces were empty the whole time. This button simply
+   always opened walkOrder()[0] — the first piece of the WHOLE order, which is Aalok's
+   shirt, correctly holding Aalok's own saved naap. Sumit's card was further down the walk
+   and was never reached. So the numbers he was looking at were real, and belonged to
+   someone else. Had he typed Sumit's figures into that card, AALOK'S NAAP WOULD HAVE BEEN
+   OVERWRITTEN — a silent loss of a real customer's measurements.
+   Start measuring means "take the naap that has not been taken". So it opens the first
+   piece that is still empty, and only falls back to piece one when every piece is filled
+   (re-opening a finished order, where starting at the top is right). */
 function startNaap(){
-  const first=walkOrder(form)[0]; if(!first){toast(t('wk_none'),'bad');return;}
+  const w=walkOrder(form); if(!w.length){toast(t('wk_none'),'bad');return;}
+  const empty=k=>{ const m=(form.m||{})[k]||{};
+    return !Object.keys(m).some(x=>String(m[x]||'').trim()!==''); };
+  const first=w.find(empty)||w[0];
   kbHold();                       // must run while the tap is still live
   ordStage(2,first);
   setTimeout(focusLenBox,120);
@@ -14201,7 +14357,8 @@ function measCardHTML(f,key){
       return `<div class="mfield"><label>${esc(col.n)}</label><select class="mInput" data-g="${dkey}" data-k="${col.k}" style="width:100%;background:transparent;border:none;color:var(--txt);font-size:15px;font-weight:600;outline:none">${opts}</select></div>`;}
     return `<div class="mfield ${isLen?'lenhl':''} ${isAuto?'auto-f':''} ${isVoice?'voice-f':''} ${isOdd?'odd-f':''}" ${isOdd?'title="'+esc(t('ms_flag'))+'"':''}><label>${esc(col.n)}${isLen?' ★':''}${isOdd?'<span class="odd-w"> ⚠️</span>':''}</label>
       <input class="mInput ${val?'filled':''}" inputmode="${col.type==='text'?'text':'decimal'}" data-g="${dkey}" data-k="${col.k}" value="${esc(val)}" placeholder="—"
-        ${isAuto?'data-auto="1"':''} onkeydown="if(event.key==='Enter'){measStep(event,1)}"></div>`;}).join('');
+        ${isAuto?'data-auto="1"':''} onkeydown="if(event.key==='Enter'){measStep(event,1)}"
+        oninput="measAuto(event)"></div>`;}).join('');
 
   const vlist=(DB.variantLib&&DB.variantLib[gid])||[];
   const vcur=(f.variant&&f.variant[key])||'';
@@ -14295,7 +14452,27 @@ function addAnother(key){
       delete form.m[nk].L;
       if(form.mAuto&&form.mAuto[nk])delete form.mAuto[nk].L;
     } }catch(e){}
-  renderForm();
+  /* ══════════════ v464 — "ONE MORE" SAID NOTHING AT ALL ══════════════
+     HIS 3 Sep: "kurta do lene the customer ko to bahut pareshani hui add karne me, samajh
+     me nahi aa raha tha — kabhi add kar raha hai kurta to order me doosra do kurta add ho
+     ja raha hai, kabhi do pajama add ho ja raha hai, pata hi nahi chal raha kaise add ho."
+     This function pushed the piece, redrew the screen, and told him nothing. No toast, no
+     name, no count. On the measure screen the redraw leaves him on the SAME garment while
+     the new piece appears somewhere further down the list, so from where he sits it looks
+     like the app added something at random — or nothing.
+     It now says exactly what was created, by name and number, and the walk goes straight
+     to that piece so the very next number he types lands in it. The prefill rule above is
+     untouched: body naap carries over, the length does not. */
+  const _g3=G(nk);
+  const _label=(_g3?(_g3.ico+' '+_g3.n):'')+(n>1?' '+n:'');
+  const _mine=(form.items||[]).filter(k=>memberOf(k)===mid&&garmentOf(k)===gid).length;
+  save();
+  /* if he pressed it FROM a measure card, take him to the piece he just made — otherwise
+     the walk stays where it was and he cannot see what happened */
+  const _onWalk=!!document.querySelector('#sheet .mcard');
+  if(_onWalk && typeof ordStage==='function'){ ordStage(2,nk); }
+  else renderForm();
+  toast(t('it_added_one',{n:_label,c:_mine}),'ok');
   setTimeout(()=>{
     const q=$('#ql_'+cssId(nk));
     if(q){ q.scrollIntoView({block:'center',behavior:'smooth'}); q.focus(); return; }
@@ -14313,6 +14490,25 @@ function cssId(key){ return String(key).replace(/[^a-zA-Z0-9]/g,'_'); }
    bodyAnchor / bodyBlockHTML were deleted with them. */
 function memberBlockHTML(f,mem,idx,multi){
   const mine=itemsOfMember(f,mem.id);
+  /* ══════════ v470 — every person reached the same way, the first one too ══════════
+     HIS 3 Sep, asked whether this should be only for people added later: "sabhi".
+     So with more than one person on the order, nobody's chips are on the shared screen.
+     Each person is a card saying what he has and how much of it is measured, and it opens
+     into his own screen. With a single person there is nothing to confuse and nothing to
+     open — his block IS the screen, and the fast path for an ordinary order is untouched. */
+  if(multi && !_memFocus){
+    const done=mine.filter(k=>{const m=(f.m||{})[k]||{};
+      return Object.keys(m).some(x=>String(m[x]||'').trim()!=='');}).length;
+    const nm=(mem.name||'').trim()||t('mem_this');
+    const ono=mem.ono?(' \u00b7 #'+esc(mem.ono)):'';
+    return `<div class="kv card" style="padding:12px 13px;margin-bottom:8px;cursor:pointer"
+        onclick="memOpen('${jq(mem.id)}')">
+      <span style="flex:1;min-width:0"><b>${esc(nm)}</b>${ono}
+        <div class="hint">${mine.length?mine.map(k=>{const g=G(k);return g?g.n:'';})
+          .filter(Boolean).join(', '):t('mem_no_items')} ${mine.length?'\u00b7 '+done+'/'+mine.length:''}</div></span>
+      <span class="btn sm ghost" style="flex:0 0 auto">${t('mem_open')} \u203a</span>
+    </div>`;
+  }
   const _all=orderedItems();
   const _fav=favItems(), _favIds=_fav.map(g=>g.id);
   /* a piece already ON this order must always show, even if he later un-starred or
@@ -14459,7 +14655,13 @@ function renderForm(){
   }
 
   /* ================= STAGE 1 — PICK. Customer and the pieces. ====================== */
-  const memberBlocks=mems.map((m,i)=>memberBlockHTML(f,m,i,multi)).join('');
+  /* v470: one person open = only his block is drawn, with a Done under it */
+  const _fm=_memFocus?mems.find(m=>m.id===_memFocus):null;
+  if(_memFocus && !_fm)_memFocus='';
+  const memberBlocks=(_fm?[_fm]:mems)
+    .map((m,i)=>memberBlockHTML(f,m,_fm?mems.indexOf(m):i,multi)).join('')
+    + (_fm?`<button class="btn primary block" style="margin:12px 0 4px" onclick="memDone()">
+        \u2713 ${t('mem_done')}</button>`:'');
   const itemsSection=`
     <datalist id="relList">${(DB.relLib||[]).map(r=>`<option value="${esc(r)}">`).join('')}</datalist>
     <div class="section-h" style="display:flex;justify-content:space-between;align-items:baseline">
@@ -16280,8 +16482,18 @@ async function openDetail__inner(id,focusGid){
          told him he could tap things to edit them, which the pencils already say.
          One job, one button, one place. What is left is the only thing this screen is
          actually for: handing the work to a master. It gets the full width. */''}
+    ${/* v466: handing the work over is the thing this screen is FOR, and it was the one
+         thing missing. Two different jobs, so two buttons and not one: giving the pieces to
+         a karigar (who is holding it, at what rate) and sending the naap on WhatsApp. The
+         hand-over goes first and gets the emphasis. It shows a count of what is still with
+         nobody, so he can see at a glance whether this order has been given out. */''}
     <div class="row" style="gap:6px;margin-top:14px">
-      <button class="btn primary block" onclick="sendMenu('${o.id}')">📤 ${t('send_meas')}</button></div>
+      <button class="btn primary block" onclick="karIssue('','${o.id}')">👷 ${t('od_give_kar')}${(()=>{
+        const left=(o.items||[]).filter(g=>!(o.assign&&o.assign[g])
+          && itemStatusOf(o,g)!=='delivered' && itemStatusOf(o,g)!=='ready').length;
+        return left?' · '+left:'';})()}</button></div>
+    <div class="row" style="gap:6px;margin-top:6px">
+      <button class="btn ghost block" onclick="sendMenu('${o.id}')">📤 ${t('send_meas')}</button></div>
     <div class="fab-pad"></div>`;
 
   renderTimeline(o);
@@ -18861,7 +19073,10 @@ function buildInvoiceHTML(rec,inv){
     .muted{color:#666;font-size:11.5px}
     .kvr{display:flex;justify-content:space-between;font-size:12px;padding:1.5px 0}
     .kvr b{color:#2b2b2b}
-    .dd{background:#fff3cd;color:#7a4f01;font-weight:700;padding:1px 7px;border-radius:3px}
+    /* v463: bolder and bigger — he asked for it to stand out, and it is the line the
+       customer plans his wedding around. */
+    .dd{background:#fff3cd;color:#7a4f01;font-weight:800;font-size:14px;padding:2px 9px;
+        border-radius:4px;border:1px solid #e0b64d}
     table.items{width:100%;border-collapse:collapse;font-size:12px}
     table.items th{background:#7a1e2b;color:#fdf6e8;font-weight:600;padding:8px;text-align:left;font-size:10.5px;letter-spacing:.4px;text-transform:uppercase}
     table.items td{padding:7px 8px;border-bottom:1px solid #eee;vertical-align:top}
@@ -18916,11 +19131,15 @@ function buildInvoiceHTML(rec,inv){
       <div>
         <div class="cap">Invoice Details</div>
         <div class="kvr"><span class="muted">Invoice No</span><b>${esc(inv.no)}</b></div>
-        <div class="kvr"><span class="muted">Date</span><b>${fmtDate(inv.date)}</b></div>
+        ${/* v463: says WHICH date it is, and carries the year */''}
+        <div class="kvr"><span class="muted">Invoice Date</span><b>${fmtDateFull(inv.date)}</b></div>
         ${rec.orderNo?(()=>{const nos=orderNosOf(rec);
           return `<div class="kvr"><span class="muted">Order No${nos.length>1?'s':''}</span><b>${esc(nos.join(', '))}</b></div>`;})()
           :(rec.altNo?`<div class="kvr"><span class="muted">Alteration No</span><b>${esc(rec.altNo)}</b></div>`:'')}
-        ${rec.deliveryDate?`<div class="kvr"><span class="muted">Delivery Date</span><span class="dd">${fmtDate(rec.deliveryDate)}</span></div>`:''}
+        ${/* v463: the one date the customer actually comes back on. It carries its year now
+             and it is the boldest thing in this block, because every argument at the counter
+             is about this line. */''}
+        ${rec.deliveryDate?`<div class="kvr"><span class="muted"><b>Delivery Date</b></span><span class="dd">${fmtDateFull(rec.deliveryDate)}</span></div>`:''}
       </div>
     </div>
     <table class="items">
@@ -19001,12 +19220,25 @@ function buildInvoiceCanvas(rec,inv){
   if(shop.tagline)L.push({t:shop.tagline,s:16,c:'#2e7d32',b:1});
   if(shop.address)L.push({t:shop.address,s:16,c:'#444'});
   L.push({t:'GSTIN: '+(shop.gstin||''),s:15,c:'#444'});
+  /* ══════════════ v465 — A SECOND BILL NOBODY WAS AUDITING ══════════════
+     HIS 3 Sep, sending the same paper twice: "invoice date me year mention nahi hai...
+     delivery date bold aur highlight hona chahiye. Aur bhi hai."
+     v463 fixed exactly that — in buildInvoiceHTML. His bill did not come from there. It
+     came from HERE: buildInvoiceCanvas, the image bill that goes out on WhatsApp. Proof was
+     in the paper itself: it says TAX INVOICE and prints the GSTIN, yet carries no Qty, no
+     Rate, no GST column and no tax summary. buildInvoiceHTML cannot produce that
+     combination — with GST on it prints all of them, with GST off it does not say TAX
+     INVOICE at all. Two bills, and only one of them was ever being checked.
+     This one now: says TAX INVOICE only when GST actually is on, carries the year on both
+     dates, and states the tax it charged. Same shop, same numbers, one story. */
+  const _G=!!shop.showGst;
   L.push({rule:1,gap:16});
-  L.push({t:'TAX INVOICE',s:14,b:1,c:'#888'});
-  L.push({t:'Invoice No: '+inv.no+'   ·   Date: '+fmtDate(inv.date),s:19,b:1,c:'#111'});
+  L.push({t:_G?'TAX INVOICE':'INVOICE',s:14,b:1,c:'#888'});
+  L.push({t:'Invoice No: '+inv.no,s:19,b:1,c:'#111'});
+  L.push({t:'Invoice Date: '+fmtDateFull(inv.date),s:16,b:1,c:'#111'});
   if(rec.orderNo)L.push({t:'Order No: '+rec.orderNo,s:16,c:'#444'});
   else if(rec.altNo)L.push({t:'Alteration No: '+rec.altNo,s:16,c:'#444'});
-  if(rec.deliveryDate)L.push({t:'Delivery Date: '+fmtDate(rec.deliveryDate),s:18,b:1,c:'#7a4f01',hl:'#fff3cd'});
+  if(rec.deliveryDate)L.push({t:'Delivery Date: '+fmtDateFull(rec.deliveryDate),s:20,b:1,c:'#7a4f01',hl:'#fff3cd'});
   L.push({gap:10});
   L.push({t:(rec.customerName||'').toUpperCase(),s:22,b:1,c:'#111'});
   L.push({t:'Contact: '+(rec.phone||''),s:16,c:'#444'});
@@ -19021,6 +19253,18 @@ function buildInvoiceCanvas(rec,inv){
   L.push({rule:1,gap:12});
   L.push({t:'Sub Total',s:16,c:'#444',right:money(comp.gross),rightS:16});
   if(comp.discount>0)L.push({t:'Discount',s:16,c:'#444',right:'− '+money(comp.discount),rightS:16});
+  /* v465: a paper headed TAX INVOICE has to say what tax it charged. Sales are GST-inclusive
+     here, so the tax is shown as it is taken OUT of the total — the customer's figure does
+     not change by a rupee. */
+  /* v465: invCompute returns taxable / cgst / sgst / igst — those exact names, read from
+     the same engine the HTML bill and the GST report read, so no third calculation exists. */
+  const _tax=r2((+comp.cgst||0)+(+comp.sgst||0)+(+comp.igst||0));
+  if(_G && _tax>0){
+    L.push({t:'Taxable Value',s:15,c:'#666',right:money(comp.taxable),rightS:15});
+    if(+comp.igst>0)L.push({t:'IGST',s:15,c:'#666',right:money(comp.igst),rightS:15});
+    else { L.push({t:'CGST',s:15,c:'#666',right:money(comp.cgst),rightS:15});
+           L.push({t:'SGST',s:15,c:'#666',right:money(comp.sgst),rightS:15}); }
+  }
   L.push({t:'Grand Total',s:24,b:1,c:'#111',right:money(comp.total),rightS:24,rightB:1});
   L.push({gap:6});
   L.push({t:'Received',s:16,c:'#444',right:money(received),rightS:16});
@@ -19838,6 +20082,19 @@ function invDraftHTML(){
   const cur=(invForm&&invForm._draftId)||'';
   const list=invDraftList().filter(d=>d.id!==cur);
   if(!list.length)return '';
+  /* ══════════════ v464 — ANOTHER MAN'S DRAFT, IN THE MIDDLE OF THIS BILL ══════════════
+     HIS 3 Sep, with the screenshot: "invoice jo bana raha hoon, invoice me hi draft abhi
+     bhi aa raha hai pehli baar."
+     v335 was right that a second unfinished bill must not hide the first. But it shows them
+     at every moment, including the one where he has a customer standing there and Kurta
+     already on the bill — and what it offered was an hour-old draft with no name and one
+     line. Tapping Continue there would throw away what he is typing.
+     The offer only makes sense on a bill that has not been started. Once this one carries a
+     customer or a single line, the other drafts wait; they are not lost and the same list is
+     there the next time he opens a fresh bill. */
+  const _started = !!((invForm&&String(invForm.customerName||'').trim())
+    || (invForm&&(invForm.items||[]).some(it=>it&&(String(it.label||'').trim()||+it.price||+it.rate))));
+  if(_started)return '';
   const rows=list.slice(0,3).map(d=>{
     const who=(d.form.customerName||'').trim()||t('dft_no_name');
     const n=(d.form.items||[]).filter(it=>it&&(it.label||+it.price)).length;
@@ -24421,9 +24678,34 @@ function setItemKarigar(oid,gid,kid){const o=DB.orders.find(x=>x.id===oid);if(!o
    costs more and he settles that at the door. Whatever he types is written to that piece
    only (o.karAmt), so the master's standing rate is left alone.
    It writes through the same helpers a single hand-over uses, so the two can never drift. */
-let _ki={kid:'',pick:{},rate:{},q:''};
-function karIssue(kid){
+/* ══════════════ v466 — NO DOOR FROM THE ORDER TO THE KARIGAR ══════════════
+   HIS 3 Sep, and he is right to be angry: "maine kaha tha jo order liya wahan se direct
+   bhi ja karigar ko de sakoon ki multiple item ek karigar ko dena hai ya alag alag ko dena
+   hai... lekin maine ek order banaya us par de hi nahi paa raha hoon karigar ko. Send to
+   master hai, WhatsApp ja raha hai, lekin maal kaise jayega?"
+   karIssue() is a finished, working screen — pick a karigar, tick as many pieces as you
+   like, put a rate on each, issue them all in one press. It just could not be reached from
+   the order. The only karigar-looking button on the order screen is sendMenu(), which
+   shares a measurement slip on WhatsApp and does not assign anybody — it even prints
+   "unassigned: Kurta, Pant" at him without offering any way to fix that.
+   So the screen now takes an order to scope itself to. Opened from the order it shows only
+   that order's pieces; opened from the karigar hub it shows every waiting piece, exactly as
+   before. Same code, same issue path, one new door. */
+/* ══════════════ v467 — THE CLOTH NEVER LEFT THE SHELF ══════════════
+   HIS 3 Sep: "maal kaise jayega, stock kaise deduct hoga yeh sab kuch samajh me hi nahi
+   aa raha... stitching ke items hain, apna kapda laakar deta hai stitching karne deta hai
+   to uski kaise entry hogi?" And asked which of the two happens: "dono hote hai."
+   So the hand-over asks. Two kinds of work, and they are not the same business:
+     shop cloth      — a thaan is cut, metres come off stock, the cloth is a cost of this order
+     customer cloth  — nothing leaves the shop, only the tailor's labour is a cost
+   Nothing moves unless he picks a roll and types metres. His rule stands: stock does not
+   change by itself. The cut is written to the SAME move() ledger every other screen reads,
+   with the order as refId, so deleting the order gives the cloth back through the reversal
+   that already exists. No second stock system. */
+let _ki={kid:'',pick:{},rate:{},q:'',oid:'',cloth:'cust',th:{},mtr:{}};
+function karIssue(kid,oid){
   sheetAt(karIssue);
+  if(oid!==undefined)_ki.oid=oid||'';
   const ks=karigarsActive();
   if(!ks.length){ toast(t('ki_no_karigar'),'bad'); return; }
   if(kid)_ki.kid=kid;
@@ -24440,6 +24722,13 @@ function karIssue(kid){
       <select id="ki_k" onchange="kiPickKarigar(this.value)">
         ${ks.map(k=>`<option value="${k.id}" ${k.id===_ki.kid?'selected':''}>${esc(k.name)}</option>`).join('')}
       </select></div>
+    ${/* v467: whose cloth this job is cut from. It decides whether stock moves at all. */''}
+    <div class="row" style="gap:6px;margin-bottom:10px">
+      <button class="btn sm ${_ki.cloth==='cust'?'primary':'ghost'}" style="flex:1"
+        onclick="kiCloth('cust')">👤 ${t('ki_cloth_cust')}</button>
+      <button class="btn sm ${_ki.cloth==='shop'?'primary':'ghost'}" style="flex:1"
+        onclick="kiCloth('shop')">🏪 ${t('ki_cloth_shop')}</button>
+    </div>
     ${rows.length?`<div class="field" style="margin-bottom:8px">
       <input id="ki_q" value="${esc(_ki.q)}" placeholder="🔍 ${t('ki_search')}" oninput="kiSearch(this.value)"></div>`:''}
     <p class="hint" style="margin-bottom:6px">${t('ki_waiting',{n:rows.length})}</p>
@@ -24454,6 +24743,19 @@ function karIssue(kid){
           <span style="flex:0 0 96px"><input type="number" inputmode="numeric" placeholder="${t('ki_rate')}"
             value="${_ki.rate[r.key]!=null?esc(_ki.rate[r.key]):(r.rate||'')}"
             oninput="kiRate('${jq(r.key)}',this.value)" style="width:96px;text-align:right"></span></div>
+        ${/* v467: the roll and the metres appear only on a piece he has actually ticked, and
+             only when this hand-over is on shop cloth. A customer-cloth job stays a single
+             tick and a rate, exactly as fast as before. */''}
+        ${(_ki.cloth==='shop'&&_ki.pick[r.key])?`<div class="row" style="gap:6px;margin-top:6px">
+          <select onchange="kiThaan('${jq(r.key)}',this.value)" style="flex:1;min-width:0">
+            <option value="">${t('ki_pick_thaan')}</option>
+            ${(DB.thaans||[]).filter(th=>thaanBal(th)>0).map(th=>`<option value="${th.id}"
+              ${_ki.th[r.key]===th.id?'selected':''}>${esc(th.serial||'')} · ${esc(((FI(th.fabId)||{}).name)||'')} · ${thaanBal(th)}m</option>`).join('')}
+          </select>
+          <input type="number" inputmode="decimal" step="0.1" placeholder="${t('ki_mtr')}"
+            value="${_ki.mtr[r.key]!=null?esc(_ki.mtr[r.key]):''}"
+            oninput="kiMtr('${jq(r.key)}',this.value)" style="flex:0 0 92px;text-align:right">
+        </div>`:''}
       </div>`).join('')
       :`<div class="empty" style="padding:26px 10px"><div class="big">👷</div><p>${t('ki_none')}</p></div>`}
     ${n?`<button class="btn primary block" style="margin-top:10px" onclick="kiIssue()">
@@ -24464,7 +24766,9 @@ function karIssue(kid){
 /* every piece nobody is holding yet — across every open order */
 function karIssuePool(){
   const out=[];
-  (DB.orders||[]).forEach(o=>{
+  /* v466: scoped to one order when he came in from that order */
+  const only=_ki.oid||'';
+  (DB.orders||[]).filter(o=>!only||o.id===only).forEach(o=>{
     (o.items||[]).forEach(gid=>{
       if((o.assign&&o.assign[gid]))return;             // already with someone
       const st=itemStatusOf(o,gid);
@@ -24478,7 +24782,7 @@ function karIssuePool(){
   });
   return out.sort((a,b)=>String(a.dd||'9999').localeCompare(String(b.dd||'9999')));
 }
-function kiPickKarigar(v){ _ki.kid=v; _ki.rate={}; karIssue(); }
+function kiPickKarigar(v){ _ki.kid=v; _ki.rate={}; karIssue(_ki.kid,_ki.oid); }
 
 /* ══════════════════ v397 — TAKING THE WORK BACK ══════════════════
    The other half of the same job. He hands eight pieces to a master; two days later the
@@ -24567,7 +24871,10 @@ function krTake(){
   toast(left?t('kr_done_left',{n:n,r:left}):t('kr_done',{n:n}),'ok');
   karReceive();
 }
-function kiTick(k,on){ _ki.pick[k]=!!on; karIssue(); }
+function kiTick(k,on){ _ki.pick[k]=!!on; karIssue(_ki.kid,_ki.oid); }
+function kiCloth(m){ _ki.cloth=(m==='shop'?'shop':'cust'); karIssue(_ki.kid,_ki.oid); }
+function kiThaan(k,v){ _ki.th[k]=String(v||''); karIssue(_ki.kid,_ki.oid); }
+function kiMtr(k,v){ _ki.mtr[k]=v; }
 function kiRate(k,v){ _ki.rate[k]=v; }
 function kiSearch(v){ _ki.q=String(v||''); karIssue();
   setTimeout(()=>{const e=$('#ki_q'); if(e){const x=e.value;e.focus();
@@ -24577,12 +24884,44 @@ function kiIssue(){
   if(!keys.length)return;
   const kid=_ki.kid, kn=karigarName(kid);
   let n=0;
+  /* v467: check every cut BEFORE anything is written. A hand-over must not half-happen —
+     three pieces issued and the fourth refused because a roll was short would leave the
+     order in a state he cannot see or undo. */
+  if(_ki.cloth==='shop'){
+    for(const key of keys){
+      const thId=_ki.th[key]||'', m=+(_ki.mtr[key]||0);
+      if(!thId && !m)continue;                                  // he left this one on labour only
+      if(!thId){ toast(t('ki_need_thaan'),'bad'); return; }
+      if(!(m>0)){ toast(t('ki_need_mtr'),'bad'); return; }
+      const th=(DB.thaans||[]).find(x=>x.id===thId);
+      if(!th){ toast(t('ki_need_thaan'),'bad'); return; }
+      if(m>thaanBal(th)+0.001){
+        toast(t('ki_short',{s:th.serial||'',b:thaanBal(th)}),'bad'); return; }
+    }
+  }
   keys.forEach(key=>{
     const [oid,gid]=key.split('|');
     const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
     o.assign=o.assign||{}; o.assign[gid]=kid;
     const r=_ki.rate[key];
     if(r!=null && String(r).trim()!==''){ o.karAmt=o.karAmt||{}; o.karAmt[gid]=r2(+r||0); }
+    /* v467: whose cloth, and if it was the shop's, cut it */
+    o.cloth=o.cloth||{};
+    if(_ki.cloth==='shop'){
+      const thId=_ki.th[key]||'', m=r2(+(_ki.mtr[key]||0));
+      if(thId && m>0){
+        const th=(DB.thaans||[]).find(x=>x.id===thId);
+        th.used=r2((+th.used||0)+m);
+        move({dir:MV_OUT,target:'fab',thaanId:th.id,qty:m,rate:(+th.rate||0),
+              reason:'karigar',ref:(o.orderNo||''),refId:o.id,
+              note:((G(gid)||{}).n||gid)+' \u00b7 '+kn});
+        o.cloth[gid]={src:'shop',thaanId:th.id,serial:th.serial||'',mtr:m,
+                      rate:r2(+th.rate||0),value:r2(m*(+th.rate||0))};
+        o.log=o.log||[];
+        o.log.push({id:uid(),ts:new Date().toISOString(),
+          text:'\u2702\ufe0f '+m+'m \u00b7 '+(th.serial||'')+' \u2192 '+((G(gid)||{}).n||gid),voiceId:null});
+      }else{ o.cloth[gid]={src:'shop'}; }
+    }else{ o.cloth[gid]={src:'cust'}; }
     advanceStatus(o,gid,'stitching');                  /* same helper as a single hand-over */
     const g=G(gid);
     o.log=o.log||[];
@@ -24590,10 +24929,13 @@ function kiIssue(){
       text:(g?g.n+' → ':'')+'👷 '+kn,voiceId:null});
     touchOrder(o.id); n++;
   });
-  _ki.pick={}; _ki.rate={};
+  _ki.pick={}; _ki.rate={}; _ki.th={}; _ki.mtr={};
   save();
   toast(t('ki_done',{n:n,k:kn}),'ok');
-  karIssue();
+  /* v466: if he came from an order and that order has nothing left to hand out, drop him
+     back into the order rather than an empty list he has to close himself */
+  if(_ki.oid && !karIssuePool().length){ const _o=_ki.oid; _ki.oid=''; openDetail(_o); return; }
+  karIssue(_ki.kid,_ki.oid);
 }
 function sendKarigarWA(oid,kid){const o=DB.orders.find(x=>x.id===oid);if(!o)return;
   const gids=(o.items||[]).filter(g=>(o.assign&&o.assign[g])===kid);
@@ -26494,9 +26836,25 @@ function manageExpHeads(){
    tidy a list. So: nothing filed under it, it goes for good. Something filed under it, it
    is hidden instead — out of every picker, old entries untouched and still readable, and
    restorable from one place. He is told which of the two happened and why. */
+/* ══════════════ v468 — A WRONG PARTY THAT COULD NEVER BE DELETED ══════════════
+   HIS 3 Sep: "maine galti se daal diya, aur opening balance daal diya jo uska due tha, to
+   poori cheez gadbad ho gayi. Delete kar raha hoon to 'hide from the list' aa raha hai,
+   delete nahi ho raha. Kyun delete nahi hoga?"
+   Because this counter treated the party's OWN opening row as a reason to keep it. Creating
+   a party with an opening balance writes one ledger line; from that moment the counter
+   returns 1, delOrHide sees "in use", and only ever offers Hide. So the single most likely
+   thing to want deleted — a name typed by mistake, with a wrong opening under it — was the
+   one thing that could not be.
+   And it was never unsafe: the delete branch below already removes those opening rows.
+   An opening is not a transaction. It is part of the party record itself, entered on the
+   same screen, and it goes when the party goes. Real history — a purchase, a payment, a
+   bill — still blocks deletion and still should, because deleting that would silently
+   rewrite the books. */
 function partyUse(name,id){
   const n=nameNorm(name); let k=0;
-  (DB.ledger||[]).forEach(l=>{ if(l.partyId===id||nameNorm(l.party)===n)k++; });
+  (DB.ledger||[]).forEach(l=>{
+    if(l.refKind==='opening')return;                 // the party's own starting figure, not history
+    if(l.partyId===id||nameNorm(l.party)===n)k++; });
   (DB.purchases||[]).forEach(x=>{ if(nameNorm(x.supplier)===n)k++; });
   return k;
 }
@@ -26513,7 +26871,11 @@ function partyDel(id){
   const p=partyById(id); if(!p)return;
   delOrHide(p.name, partyUse(p.name,id),
     ()=>{ DB.parties=(DB.parties||[]).filter(x=>x.id!==id);
-          DB.ledger=(DB.ledger||[]).filter(l=>!(l.refKind==='opening'&&nameNorm(l.party)===nameNorm(p.name)));
+          /* v468: match on the id too. An opening row saved with the id and a blank name —
+             or a name since edited — was being left behind, and a stray opening with no
+             party to own it keeps showing a balance he cannot reach or clear. */
+          DB.ledger=(DB.ledger||[]).filter(l=>!(l.refKind==='opening'
+            && (l.partyId===id || nameNorm(l.party)===nameNorm(p.name))));
           save(); partiesHome(); },
     ()=>{ p.archived=1; save(); partiesHome(); });
 }
@@ -27252,6 +27614,21 @@ function ledgerView(id){
   (DB.purchases||[]).forEach(pu=>{ if(nameNorm(pu.supplier)!==n)return;
     rows.push({date:pu.date||'', ref:t('purchase')+(pu.billNo?' '+pu.billNo:''), dr:0, cr:r2(orderTotal(pu))});
     (pu.payments||[]).forEach(pp=>rows.push({date:pp.date||'', ref:t('pay_out'), dr:r2(+pp.amt||0), cr:0}));
+  });
+  /* ══════════════ v462 — GOODS WENT BACK, THE LEDGER NEVER HEARD ══════════════
+     Traced with one purchase of 4,200 and a return of 1,600 against it:
+         Payables       4,200 -> 2,600   correct
+         ledger screen  4,200 -> 4,200   the return was invisible
+     Three readers, and only one of them knew the cloth had gone back. This is the same
+     shape as the tailor-payment P0: one fact, several readers, and they disagree. The
+     Payables screen already nets returns off through supplierCredit(); the statement simply
+     never looked at DB.purchaseReturns. It does now, as its own line, so he can see WHAT
+     came off and not just a smaller number. A refund taken in cash is shown separately
+     because that is money moving, not the credit note itself. */
+  (DB.purchaseReturns||[]).forEach(pr=>{ if(nameNorm(pr.supplier)!==n)return;
+    rows.push({date:pr.date||'', ref:t('pur_return')+(pr.no?' '+pr.no:''),
+      dr:r2(+pr.total||0), cr:0});
+    if(+pr.refunded>0)rows.push({date:pr.date||'', ref:t('refund'), dr:0, cr:r2(+pr.refunded||0)});
   });
   [DB.sales,DB.orders,DB.alterations].forEach(list=>{
     (list||[]).forEach(r=>{ if(nameNorm(r.customerName)!==n)return;
@@ -30419,6 +30796,10 @@ function showSheet(){
      own line, where a comment belongs. */
   if(!sheetIsOpen() && !_sheetOn) _sheetFromTab=_curTab;   // remember where he came from
   bindSheetSwipe();closeModal();$('#scrim').classList.add('show');_sheetOn=true;
+  /* v472: remember how the screen looked before he touched it. Twice, because several
+     screens draw their boxes after the sheet is already up. */
+  setTimeout(()=>sheetStamp(1),0);
+  setTimeout(()=>sheetStamp(0),200);
   /* A form takes the WHOLE screen. Set by the caller for one render, cleared here, so no
      other sheet can inherit it. */
   try{ $('#scrim').classList.toggle('full', !!_sheetFull); }catch(e){}
@@ -30530,8 +30911,58 @@ function bindSheetSwipe(){
    away the search he had just done. The tab he was on when the sheet opened is remembered
    and restored, so closing returns him to where he came from. */
 let _sheetFromTab=null;
+/* ══════════════ v472 — TYPED IT, TAPPED ✕, IT WAS GONE ══════════════
+   HIS 3 Sept, after the order form learned to ask: "kahin par bhi kuch bhi naya add karo to
+   yahi system hai, jabki save click karke save hona chahiye. Pata bhi chal jaata hai save
+   ho gaya. Ab dekho aisa kahan kahan error hai, sab jagah theek karo."
+   Swept all fifteen entry screens by opening each one, typing into it and pressing ✕.
+   EIGHT threw the work away without a word: thaan, readymade, expense, incentive, journal,
+   staff, karigar, item. Each had its own ✕ calling closeSheet directly.
+   Fixed in one place rather than eight, so the next form written gets it for free. Two
+   conditions, both required, so it can never nag on a screen that is not a form:
+     · the sheet has a Save button — it is a form, not a list
+     · something on it was actually changed since it was drawn
+   A search box is ignored: filtering a list is not unsaved work. */
+function sheetDirty(){
+  const sh=$('#sheet'); if(!sh||!sh.offsetParent)return false;
+  const hasSave=[...sh.querySelectorAll('button')]
+    .some(b=>b.offsetParent && /save|सहेज|सेव/i.test(b.innerText||''));
+  if(!hasSave)return false;
+  return [...sh.querySelectorAll('input,select,textarea')].some(el=>{
+    if(!el.offsetParent)return false;
+    if(el.type==='search')return false;
+    const ph=String(el.placeholder||'')+' '+String(el.id||'');
+    if(/🔍|search|खोज/i.test(ph))return false;              // filtering is not unsaved work
+    const was=el.getAttribute('data-init');
+    if(was==null)return false;
+    return String(el.value==null?'':el.value)!==was;
+  });
+}
+/* stamped right after a screen is drawn, so "changed" means changed by HIM */
+function sheetStamp(fresh){
+  const sh=$('#sheet'); if(!sh)return;
+  sh.querySelectorAll('input,select,textarea').forEach(el=>{
+    /* a second pass catches boxes drawn after the sheet opened — photos, sub-lists, a
+       late render. It only stamps what is not stamped yet, so a value he typed in the
+       first moments is never mistaken for how the screen started. */
+    if(!fresh && el.getAttribute('data-init')!=null)return;
+    el.setAttribute('data-init', String(el.value==null?'':el.value)); });
+}
+let _xAsked=0;
 function closeSheet(){
   if(modalIsOpen()){ closeModal(); return; }      // a modal on top closes first — the form stays
+  if(!_xAsked && sheetDirty()){
+    _xAsked=1;
+    /* modal() and not confirmModal(): confirmModal's own buttons call closeSheet() to
+       dismiss themselves, so "Stay here" would have closed the very screen it promised to
+       keep. Found live — every second form in the sweep shut itself. */
+    modal(t('lv_t'),
+      `<p style="color:var(--txt2);font-size:14px;line-height:1.6">${t('lv_m')}</p>`,
+      [{label:t('lv_no'),cls:'ghost',fn:()=>{ closeModal(); _xAsked=0; }},
+       {label:t('lv_yes'),cls:'danger',fn:()=>{ closeModal(); _xAsked=1; closeSheet(); _xAsked=0; }}]);
+    return;
+  }
+  _xAsked=0;
   if(typeof _vmOn!=='undefined' && _vmOn)vmStop(true);   // v215: never leave the mic live behind a closed screen
   /* v193 — HIS 14 Aug: "back jane se ye as a draft save ho jata hai, isko bhi kuch rule
      hona chahiye — har cheez draft par nahi chahiye." Right: a practice run and a real
