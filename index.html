@@ -845,7 +845,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v481</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v483</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -2682,6 +2682,8 @@ dl_show_hidden:'Show hidden ({n})',
   lv_m:'What you typed on this screen has not been saved yet.',
   lv_yes:'Leave, don\'t save',
   lv_no:'Stay here',
+  dbf_msg:'This app could not read the saved book on this device. NOTHING has been deleted — the old data is still here, untouched, and a copy has been set aside. Saving is switched off so it cannot be written over. Please send this message to whoever maintains the app before entering anything.',
+  dbf_toast:'Saving is off — the saved book could not be read. Nothing has been deleted.',
   hd_nobill:'Bill not made',
   nb_title:'Orders with no bill',
   nb_sub:'Open the order and make the bill from there — name, number and order number come across on their own.',
@@ -4538,6 +4540,8 @@ dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
   lv_m:'इस स्क्रीन पर जो भरा है वो अभी सेव नहीं हुआ है।',
   lv_yes:'छोड़ दो, सेव मत करो',
   lv_no:'यहीं रुको',
+  dbf_msg:'इस डिवाइस पर सेव किया हुआ डेटा पढ़ा नहीं जा सका। कुछ भी मिटा नहीं है — पुराना डेटा जस का तस है और उसकी एक कॉपी अलग रख दी गई है। सेव करना बंद कर दिया गया है ताकि उसके ऊपर कुछ न लिखा जाए। कुछ भी भरने से पहले यह मैसेज ऐप बनाने वाले को भेजिए।',
+  dbf_toast:'सेव बंद है — पुराना डेटा पढ़ा नहीं जा सका। कुछ मिटा नहीं है।',
   hd_nobill:'बिल नहीं बना',
   nb_title:'जिनका बिल नहीं बना',
   nb_sub:'ऑर्डर खोलो और वहीं से बिल बनाओ — नाम, नंबर और ऑर्डर नंबर अपने आप आ जाते हैं।',
@@ -4698,13 +4702,23 @@ const LOWER_COMMON=['W','H','TH','AF','HF','P','M','L'];   // body cols reused a
 const MEAS_SECONDARY=['UB','Bi','P'];
 const GLOBAL_MEAS=['H'];                                    // Hip is one body measurement shared upper<->lower
 const MEAS_DERIVE={waistcoat:{S:-0.5}};                     // Bandi/Waist Coat shoulder = upper shoulder − 0.5
+/* ══════════════ v483 — A LIFE JACKET FOR A BANDI ══════════════
+   HIS 4 Sept, looking at the piece grid: "pyjama me photo dekho kya laga hai, bandi per
+   life jacket ka photo, kai jagah relevant photo nahi hai."
+   He is right, and two were worse than merely odd: Waist Coat and Bandi carried the SAME
+   picture, and so did Coat and Jacket. On a grid his staff read by picture, two pieces
+   wearing one face is not a small thing.
+   There is no emoji for a kurta or a churidar — Indian menswear simply is not in the set.
+   So the rule here is: every piece gets its own face, and the closest one available.
+   None of these is a photograph of the garment and none pretends to be; they are labels
+   his staff learn in a day, and the only thing that ruins them is two the same. */
 const GARMENTS=[
   {id:'coat',n:'Coat',cat:'upper',ico:'🧥'},{id:'waistcoat',n:'Waist Coat',cat:'upper',ico:'🦺',skip:['SL','Bi']},
-  {id:'shirt',n:'Shirt',cat:'upper',ico:'👔'},{id:'jacket',n:'Jacket',cat:'upper',ico:'🧥',skip:['SL','Bi']},
+  {id:'shirt',n:'Shirt',cat:'upper',ico:'👔'},{id:'jacket',n:'Jacket',cat:'upper',ico:'🥼',skip:['SL','Bi']},
   {id:'indo',n:'Indo-Western',cat:'upper',ico:'🪔'},{id:'sherwani',n:'Sherwani',cat:'upper',ico:'👑'},
-  {id:'kurta',n:'Kurta',cat:'upper',ico:'🕴️'},
-  {id:'jodhpuri',n:'Jodhpuri',cat:'upper',ico:'🏇'},{id:'bandi',n:'Bandi',cat:'upper',ico:'🦺',skip:['SL','Bi']},
-  {id:'pant',n:'Pant',cat:'lower',ico:'👖'},{id:'pyjama',n:'Pyjama',cat:'lower',ico:'🥋'},{id:'churidar',n:'Churidar',cat:'lower',ico:'🦵'}
+  {id:'kurta',n:'Kurta',cat:'upper',ico:'👘'},
+  {id:'jodhpuri',n:'Jodhpuri',cat:'upper',ico:'🤵'},{id:'bandi',n:'Bandi',cat:'upper',ico:'🎽',skip:['SL','Bi']},
+  {id:'pant',n:'Pant',cat:'lower',ico:'👖'},{id:'pyjama',n:'Pyjama',cat:'lower',ico:'🩳'},{id:'churidar',n:'Churidar',cat:'lower',ico:'🧦'}
 ];
 /* One piece, one entry. A shop that adds a custom item with a name a built-in already
    has (a second "Pant") used to get BOTH in every picker, in the lengths list and in
@@ -4810,7 +4824,33 @@ const commonFor=c=>c==='lower'?LOWER_COMMON:(c==='upper'?UPPER_COMMON:[]);
 /* ---- state ---- */
 let DB={orders:[],customers:[]}, form=null, detailId=null, altForm=null, altDetailId=null, invForm=null;
 
-function load(raw){ try{const r=(raw!==undefined&&raw!==null)?raw:localStorage.getItem('pb_ob_v1'); if(r)DB=JSON.parse(r);}catch(e){}
+/* ══════════════ v482 — A BAD READ LOOKED EXACTLY LIKE NO DATA ══════════════
+   HIS 4 Sept, after loading the new file on his phone and meeting the setup screen:
+   "backup nahi liya... sab kuch ud gaya? Data to tha hi mere mobile mein, PARAMPARA ka
+   naam aa raha tha, bahut saara data daala hua tha."
+   His data is almost certainly safe — the book lives in localStorage, which belongs to one
+   web address, so opening the file from a different address shows an empty shop and touches
+   nothing. But reading this line I could not promise him that in every case, and that is
+   not good enough for the only copy a shop has.
+   The catch here swallowed EVERY failure. If the stored text were ever unreadable, DB
+   stayed empty, the setup screen appeared exactly as if the shop were new — and the first
+   save would then write that empty book straight over the real one. Silent, and final.
+   Now a read that fails is not treated as an empty shop. The original text is left exactly
+   where it is, a copy is put aside under its own key, saving is refused, and it says so.
+   Nothing is repaired automatically, because guessing at damaged books is how figures get
+   invented. */
+let _dbReadFailed=false;
+function load(raw){
+  const r=(raw!==undefined&&raw!==null)?raw:(function(){try{return localStorage.getItem('pb_ob_v1');}catch(e){return null;}})();
+  if(r){
+    try{ DB=JSON.parse(r); _dbReadFailed=false; }
+    catch(e){
+      _dbReadFailed=true;
+      try{ if(!localStorage.getItem('pb_ob_v1_unreadable'))
+             localStorage.setItem('pb_ob_v1_unreadable', r); }catch(_){}
+      try{ setTimeout(()=>{ try{ alert(t('dbf_msg')); }catch(_){}}, 400); }catch(_){}
+    }
+  }
   if(!DB.orders)DB.orders=[]; if(!DB.customers)DB.customers=[]; if(!DB.designLib)DB.designLib={}; if(!DB.karigars)DB.karigars=[]; if(!DB.bodyTypes)DB.bodyTypes=[]; if(!DB.measLib)DB.measLib={}; if(!DB.alterations)DB.alterations=[]; if(!DB.salesmen)DB.salesmen=[]; if(!DB.sales)DB.sales=[]; if(!DB.purchases)DB.purchases=[]; if(!DB.salesReturns)DB.salesReturns=[]; if(!DB.purchaseReturns)DB.purchaseReturns=[]; if(!DB.estimates)DB.estimates=[]; if(!DB.purchaseOrders)DB.purchaseOrders=[];
   if(!DB.itemMaster)DB.itemMaster=[];
   if(!DB.measHide)DB.measHide={};
@@ -4963,6 +5003,9 @@ function coreOf(){ const c={}; for(const k in DB){ if(k!=='orders')c[k]=DB[k]; }
 
 let _dbDirty=false, _dbTimer=null, _dbWriting=false, _dbLastOK=0, _dbFailStreak=0;
 function save(oid){
+  /* v482: the book could not be read this session — writing now would replace it with
+     whatever is in memory, which is nothing. Refuse, every time, and keep saying so. */
+  if(_dbReadFailed){ try{ toast(t('dbf_toast'),'bad'); }catch(e){} return; }
   if(oid)touchOrder(oid);
   /* v449: a record has actually been written, so a save that was waiting on the double-tap
      latch is now genuinely done and the latch closes. A save that never got here — because
