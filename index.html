@@ -845,7 +845,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v483</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v484</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -2460,6 +2460,12 @@ const T={
   inv_loaded:'{n} items loaded — now set rates',
   t_no_im_name:'Enter item name',
   pick_order:'Pick an order',
+  inv_ord_find_hint:'Search by order number, customer name or phone.',
+  inv_ord_find_ph:'Order no, name or phone',
+  inv_ord_none:'No order matches that.',
+  inv_ord_billed:'Bill already made',
+  inv_ord_auto:'Order #{n} attached — his order, his bill.',
+  inv_ord_many:'{n} orders open for this customer — pick one.',
   inv_item_name_ph:'e.g. Suit 3pc, Sherwani, Readymade Shirt',
   pos_rate:'Rate',
   pos_amt:'Amount',
@@ -4319,6 +4325,12 @@ dl_show_hidden:'Show hidden ({n})',
   inv_loaded:'{n} आइटम आ गए — अब रेट डालें',
   t_no_im_name:'आइटम का नाम डालें',
   pick_order:'ऑर्डर चुनें',
+  inv_ord_find_hint:'ऑर्डर नंबर, ग्राहक का नाम या फ़ोन — किसी से भी खोजो।',
+  inv_ord_find_ph:'ऑर्डर नं, नाम या फ़ोन',
+  inv_ord_none:'इससे कोई ऑर्डर नहीं मिला।',
+  inv_ord_billed:'बिल बन चुका है',
+  inv_ord_auto:'ऑर्डर #{n} जुड़ गया — इन्हीं का ऑर्डर, इन्हीं का बिल।',
+  inv_ord_many:'इस ग्राहक के {n} ऑर्डर खुले हैं — एक चुनो।',
   inv_item_name_ph:'जैसे सूट 3 पीस, शेरवानी, रेडीमेड शर्ट',
   pos_rate:'रेट',
   pos_amt:'रकम',
@@ -14421,7 +14433,20 @@ function measAuto(e){
   },700);
 }
 /* the one place that knows which box the naap starts on */
-function focusLenBox(){ kbTo(document.querySelector('.mcard .mfield.lenhl input.mInput')); }
+/* v484 — HIS 4 Sept: "Lower/Pant me cursor direct length per jata hai jabki waist pahla
+   field hai." Right, and it was hardcoded: .lenhl is the Length box, so every piece put
+   the cursor on Length whatever its own field order said. On a coat Length IS the first
+   box so nothing looked wrong; on a pant it jumped straight past Waist.
+   The cursor now goes to the first box on that card that is still EMPTY, in the card's
+   own order. Pant opens on Waist. And when Waist has already come across from an earlier
+   pant, it lands on Length instead — which is the one that genuinely differs piece to
+   piece, so both of his rules are served by the same line. */
+function focusLenBox(){
+  const card=document.querySelector('.mcard'); if(!card){kbTo(null);return;}
+  const boxes=[].slice.call(card.querySelectorAll('.mfield input.mInput'));
+  if(!boxes.length){kbTo(null);return;}
+  kbTo(boxes.find(b=>!String(b.value||'').trim()) || boxes[0]);
+}
 /* ══════════════ v469 — "START MEASURING" OPENED THE WRONG MAN ══════════════
    HIS 3 Sep, from the screen recording: add next person (Sumit, Bhai), pick his Shirt and
    Pant, press Start measuring — and the boxes arrive holding 39, 39, 39, 18, 18, 16. He
@@ -14658,7 +14683,12 @@ function measCardHTML(f,key){
         ${walkOrder(f).length>1?`<button class="btn sm ghost" onclick="itemStep('${dkey}',-1)" title="${t('it_nav_prev')}">‹</button>
         <button class="btn sm ghost" onclick="itemStep('${dkey}',1)" title="${t('it_nav_next')}">›</button>`:''}
         <button class="btn sm ghost" onclick="addAnother('${dkey}')">➕ ${t('add_another_short')}</button>
-        <button class="btn sm danger" style="margin-left:auto" onclick="removeItem('${dkey}')">🗑️ ${t('remove_piece')}</button></span></div>
+        ${/* v484 — HIS 4 Sept: "ab nahi ek hi pant rakhna, do pant ka nahi chahiye. To kya
+             koi option hi nahi hai quantity kam karne ka?" It was here all along — this
+             button takes off THIS piece and leaves the rest — but beside "One more" the
+             bare word Remove reads as "delete the garment", so he never risked it. It now
+             names the piece it will take, so the pair reads as add one / take one back. */''}
+        <button class="btn sm danger" style="margin-left:auto" onclick="removeItem('${dkey}')">🗑️ ${t('remove_piece')}${instOf(key)>1?' '+g.n+' '+instOf(key):''}</button></span></div>
     <div class="mb">
       <div class="mgrid">${fields}</div>
       ${_hid?`<button class="btn sm ghost block" style="margin-top:6px" onclick="msMoreToggle('${dkey}')">${_more?t('ms_less'):t('ms_more',{n:_hid})}</button>`:''}
@@ -18058,15 +18088,16 @@ function posLinkOrder(no){
   const v=String(no||'').trim();
   if(!v){ invForm.orderNo=''; return; }
   const o=(DB.orders||[]).find(x=>String(x.orderNo).toLowerCase()===v.toLowerCase());
-  if(!o){ invForm.orderNo=v; return; }          // new number → a fresh order gets created on save
-  captureInvoiceForm();
-  const hadStuff=(invForm.items||[]).some(it=>it.label||+it.rate);
-  const go=()=>{ closeSheet(); openInvoiceForm('order',o.id); toast(t('pos_ono_linked',{n:o.orderNo,c:o.customerName||''}),'ok'); };
-  if(hadStuff){
-    confirmModal(t('pos_ono_switch'),t('pos_ono_switch_msg',{n:o.orderNo}),go,()=>{
-      const e=$('#pos_ono'); if(e)e.value='';
-    });
-  } else go();
+  if(!o){
+    /* v484: he types a NAME in here when the customer box has not found the man — and this
+       used to accept it silently as an order number, so a bill could be saved carrying an
+       "order" called Dimple. Anything that is not number-shaped now opens the search with
+       what he typed already in it. A genuinely new number still passes straight through. */
+    invForm.orderNo=v;
+    if(/[^0-9\-\/ ]/.test(v))invLoadFromOrder(v);
+    return;
+  }
+  invLinkOrder(o.id);
 }
 let _tileHold=null,_tileHeld=false;
 function tileHoldStart(mid){ _tileHeld=false; if(_tileHold)clearTimeout(_tileHold);
@@ -18595,22 +18626,99 @@ function ordAddSalesman(){
         renderForm(); toast(t('t_saved'),'ok');}}]);
   setTimeout(()=>{const el=$('#osmName');if(el)el.focus();},120);
 }
-function invLoadFromOrder(){
-  captureInvoiceForm();
-  const cid=invForm.customerId;
-  let list=(DB.orders||[]).slice();
-  if(cid)list=list.filter(o=>o.customerId===cid);
-  list=list.filter(o=>(o.items||[]).length).sort((a,b)=>String(b.created||'').localeCompare(String(a.created||''))).slice(0,15);
-  if(!list.length){toast(cid?t('inv_no_orders_cust'):t('no_orders'),'bad');renderInvoiceForm();return;}
-  const rowsH=list.map(o=>{
+/* ══════════ v484 — THE ORDER AND THE BILL WERE STRANGERS ══════════
+   HIS 4 Sept: "main bill direct nahi bana raha hoon. Main order lekar save kar raha hoon
+   aur invoice mein jaakar bill bana raha hoon... naam search karunga to turant naam aana
+   chahiye, order number se bhi aa jaana chahiye. Naam select kiya to uska order number
+   automatically order number par aa jaaye."
+   Two doors reached an order from a bill and they did DIFFERENT things. 🔍 ran
+   invPullOrder, which copied the order's LINES onto a counter sale and left the bill a
+   sale — so the order still read "bill not made" for ever. That is exactly what happened
+   to Dimple Singi: order #2602 still listed as unbilled, and INV/2992 sitting in the
+   invoice list marked Direct. Typing the number into the box ran posLinkOrder, which did
+   the right thing. One intention, two answers, and only one of them correct.
+   Neither door could be searched: 🔍 showed the last fifteen orders with no search box at
+   all, so a customer further back was simply unreachable.
+   One door now, and it searches order number, customer name and phone. Whichever way he
+   arrives the bill LANDS ON THE ORDER — it never becomes a counter sale wearing an order
+   number. */
+let _invOrdQ='';
+function invOrderRows(){
+  const raw=String(_invOrdQ||'').trim().toLowerCase();
+  const dq=phDigits(raw);
+  let list=(DB.orders||[]).filter(o=>(o.items||[]).length);
+  if(raw){
+    list=list.filter(o=>{
+      if(String(o.orderNo||'').toLowerCase().indexOf(raw)>=0)return true;
+      if(String(o.customerName||'').toLowerCase().indexOf(raw)>=0)return true;
+      if(dq && phDigits(o.phone).indexOf(dq)>=0)return true;
+      return (o.members||[]).some(m=>String(m.ono||'').toLowerCase().indexOf(raw)>=0);
+    });
+  }else if(invForm&&invForm.customerId){
+    list=list.filter(o=>o.customerId===invForm.customerId);
+  }
+  /* an order still waiting for its bill comes first — that is what he opened this for */
+  list.sort((a,b)=>{
+    const ab=a.invoice?1:0, bb=b.invoice?1:0;
+    if(ab!==bb)return ab-bb;
+    return String(b.created||'').localeCompare(String(a.created||''));
+  });
+  return list.slice(0,25);
+}
+function invOrderRowsHTML(){
+  const list=invOrderRows();
+  if(!list.length)return `<p class="hint" style="margin:10px 0 0">${t('inv_ord_none')}</p>`;
+  return list.map(o=>{
     const names=sortItems(o.items||[]).map(g=>{const x=G(g);return x?x.n:g;}).join(', ');
-    return `<div class="cust-result" style="margin-bottom:8px" onclick="invPullOrder('${o.id}')">
-      <div><b>#${esc(o.orderNo)} · ${esc(o.customerName||'')}</b>
+    const billed=!!o.invoice;
+    return `<div class="cust-result" style="margin-bottom:8px${billed?';opacity:.62':''}" onclick="invLinkOrder('${jq(o.id)}')">
+      <div style="min-width:0"><b>#${esc(o.orderNo)} · ${esc(o.customerName||'')}</b>
       <div class="hint">${esc(names)}</div>
-      <div class="hint">📅 ${fmtDate(o.deliveryDate)}${o.total?' · ₹'+esc(o.total):''}</div></div>
-      <span class="btn sm primary">${t('select')}</span></div>`;}).join('');
-  modal(t('pick_order'),`<p class="hint" style="margin-bottom:10px">${t('inv_load_order_hint')}</p>${rowsH}`,
-    [{label:t('cancel'),cls:'ghost',fn:()=>renderInvoiceForm()}]);
+      <div class="hint">${o.phone?'📞 '+esc(o.phone)+' · ':''}📅 ${fmtDate(o.deliveryDate)}${o.total?' · ₹'+esc(o.total):''}</div>
+      ${billed?`<div class="hint" style="color:var(--ok)">🧾 ${t('inv_ord_billed')} · ${esc((o.invoice||{}).no||'')}</div>`:''}</div>
+      <span class="btn sm primary">${billed?t('edit'):t('select')}</span></div>`;}).join('');
+}
+function invOrderSearch(q){ _invOrdQ=q; const box=$('#invOrdResults'); if(box)box.innerHTML=invOrderRowsHTML(); }
+function invLoadFromOrder(q){
+  captureInvoiceForm();
+  _invOrdQ=(q==null?'':String(q));
+  if(!(DB.orders||[]).some(o=>(o.items||[]).length)){toast(t('no_orders'),'bad');renderInvoiceForm();return;}
+  modal('👔 '+t('pick_order'),
+    `<p class="hint" style="margin-bottom:10px">${t('inv_ord_find_hint')}</p>
+     <input id="invOrdQ" autocomplete="off" placeholder="🔎 ${t('inv_ord_find_ph')}"
+       value="${esc(_invOrdQ)}" oninput="invOrderSearch(this.value)">
+     <div id="invOrdResults" style="margin-top:12px;max-height:52vh;overflow:auto">${invOrderRowsHTML()}</div>`,
+    [{label:t('cancel'),cls:'ghost',fn:()=>{closeModal();renderInvoiceForm();}}]);
+  setTimeout(()=>{try{const el=$('#invOrdQ'); if(el&&!_invOrdQ)el.focus();}catch(e){}},160);
+}
+/* The one place a bill is put onto an order. */
+function invLinkOrder(oid){
+  const o=(DB.orders||[]).find(x=>x.id===oid);
+  closeModal();
+  if(!o){renderInvoiceForm();return;}
+  const f=invForm||{};
+  const hadStuff=(f.items||[]).some(it=>it.label||+it.rate||+it.price);
+  /* no closeSheet() here on purpose: the bill sheet stays open and simply redraws on the
+     order. Closing it first made the unsaved-work guard ask him to confirm leaving a form
+     he was not leaving — two dialogs for one tap. */
+  const go=()=>{ openInvoiceForm('order',o.id);
+    toast(t('pos_ono_linked',{n:o.orderNo,c:o.customerName||''}),'ok'); };
+  if(f.kind==='sale'&&hadStuff)
+    confirmModal(t('pos_ono_switch'),t('pos_ono_switch_msg',{n:o.orderNo}),go,()=>renderInvoiceForm());
+  else go();
+}
+/* HIS: "naam select kiya, uska order number automatically order number par aa jaaye."
+   Only while the bill is still empty — a bill he has already started typing into is his,
+   and nothing may move under his hands. One open order attaches itself and says so; more
+   than one opens the picker already filtered to that customer; none does nothing at all. */
+function invAutoOrder(cid){
+  if(!invForm||invForm.kind!=='sale')return;
+  if((invForm.items||[]).some(it=>it.label||+it.rate||+it.price))return;
+  const open=(DB.orders||[]).filter(o=>o.customerId===cid&&(o.items||[]).length&&!o.invoice);
+  if(!open.length)return;
+  if(open.length===1){ invLinkOrder(open[0].id); return; }
+  toast(t('inv_ord_many',{n:open.length}),'ok');
+  invLoadFromOrder('');
 }
 function invPullOrder(oid){
   const o=(DB.orders||[]).find(x=>x.id===oid); if(!o){renderInvoiceForm();return;}
@@ -18686,6 +18794,8 @@ function invPickCustomer(id){
   const s=custSummary(id);
   if(s.due>0)toast(t('cust_had_due',{n:money(s.due)}),'bad');
   else if(s.visits)toast(t('cust_loaded',{n:s.visits}),'ok');
+  /* v484: his order is already in the book — the bill should not make him find it again */
+  if(invForm&&invForm.kind==='sale')setTimeout(()=>{try{invAutoOrder(id);}catch(e){}},300);
 }
 async function invPickContact(){
   if(!(navigator.contacts&&navigator.contacts.select)){toast(t('contacts_na'),'bad');return;}
