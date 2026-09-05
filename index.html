@@ -858,7 +858,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v498</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v501</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -1366,6 +1366,13 @@ const T={
   eh_move_first:'Move the entries',
   eh_del_ask:'Remove {n}? It has no entries, so nothing is lost.',
   eh_deleted:'Head removed',
+  ob_loan_n:'{n} entered',
+  ob_loan_sub:'Money the shop had borrowed on the starting day. Business and personal are kept apart.',
+  ob_stock_other:'I do not have today\u2019s figure',
+  ob_stock_other_hint:'Two other ways to reach the opening stock figure.',
+  ob_cap_auto:'Worked out from what the shop held and what it owed on that day. Nothing to type.',
+  ob_cap_set:'Put my own figure instead',
+  ob_cap_set_hint:'The books make it {v}. Only change this if you know it should be something else \u2014 the opening sheet will then be out by the difference.',
   save_generate:'Save & generate',
   save_close:'Save & close',
   mv_title:'Move this bill onto the order',
@@ -3254,6 +3261,13 @@ dl_show_hidden:'Show hidden ({n})',
   eh_move_first:'एंट्री ले जाएँ',
   eh_del_ask:'{n} हटाएँ? इस पर कोई एंट्री नहीं है, कुछ नहीं जाएगा।',
   eh_deleted:'हेड हट गया',
+  ob_loan_n:'{n} दर्ज हैं',
+  ob_loan_sub:'शुरुआत के दिन दुकान पर जो कर्ज़ था। बिज़नेस और निजी अलग-अलग रहते हैं।',
+  ob_stock_other:'\u0906\u091C \u0915\u093E \u0906\u0901\u0915\u0921\u093C\u093E \u092E\u0947\u0930\u0947 \u092A\u093E\u0938 \u0928\u0939\u0940\u0902 \u0939\u0948',
+  ob_stock_other_hint:'\u0913\u092A\u0928\u093F\u0902\u0917 \u0938\u094D\u091F\u0949\u0915 \u0928\u093F\u0915\u093E\u0932\u0928\u0947 \u0915\u0947 \u0926\u094B \u0914\u0930 \u0924\u0930\u0940\u0915\u0947\u0964',
+  ob_cap_auto:'\u0909\u0938 \u0926\u093F\u0928 \u0926\u0941\u0915\u093E\u0928 \u0915\u0947 \u092A\u093E\u0938 \u091C\u094B \u0925\u093E \u0914\u0930 \u091C\u094B \u0926\u0947\u0928\u093E \u0925\u093E, \u0909\u0938\u0938\u0947 \u0916\u0941\u0926 \u0928\u093F\u0915\u0932\u0924\u093E \u0939\u0948\u0964 \u0915\u0941\u091B \u092D\u0930\u0928\u093E \u0928\u0939\u0940\u0902 \u0939\u0948\u0964',
+  ob_cap_set:'\u0905\u092A\u0928\u093E \u0906\u0901\u0915\u0921\u093C\u093E \u0921\u093E\u0932\u0947\u0902',
+  ob_cap_set_hint:'\u0915\u093F\u0924\u093E\u092C \u0915\u0947 \u0939\u093F\u0938\u093E\u092C \u0938\u0947 {v} \u092C\u0928\u0924\u093E \u0939\u0948\u0964 \u0938\u093F\u0930\u094D\u092B\u093C \u0924\u092C \u092C\u0926\u0932\u0947\u0902 \u091C\u092C \u0906\u092A\u0915\u094B \u092A\u0915\u094D\u0915\u093E \u092A\u0924\u093E \u0939\u094B \u2014 \u092B\u093F\u0930 \u0913\u092A\u0928\u093F\u0902\u0917 \u0936\u0940\u091F \u0909\u0924\u0928\u0940 \u0917\u0921\u093C\u092C\u0921\u093C \u0930\u0939\u0947\u0917\u0940\u0964',
   save_generate:'सहेजें और बनाएँ',
   save_close:'सेव करके बंद करें',
   mv_title:'ये बिल ऑर्डर पर ले जाएँ',
@@ -13776,18 +13790,40 @@ function exportWA(d){
      balance, so it matched nothing and only the first column went out.
      A heading is the wrong thing to read. Every column goes now, and a cell is formatted as
      money because it IS a number, not because of what its heading is called. */
+  /* ══════════ v499 — THE MESSAGE READ LIKE A JUMBLE ══════════
+     HIS 5 Sept, holding what v498 produced: "msg dekho kitna clumsy hai, koi neat and clean
+     format hai hi nahi." He is right, and it is the same mistake twice over.
+     v498 printed a heading row of five column names and then dropped the empty cells out of
+     each line, so a line came out with three values under five headings and nothing said
+     which figure was the Debit and which the Credit. A column heading only works if every
+     line keeps its columns, and WhatsApp has no columns.
+     So the headings go, and each figure carries its own label instead. What the entry IS
+     goes on one line; what it did to the money goes underneath it, named. It reads the same
+     on any phone, at any width, and nothing has to line up. */
   const L=[d.title||''];
   if(d.sub)L.push(d.sub);
   L.push('');
-  if((d.head||[]).length>2)L.push((d.head||[]).filter(h=>String(h||'').trim()).join(' · '));
-  const cell=v=>{
-    if(v==null||v==='')return '';
-    const s2=String(v);
-    return (typeof v==='number' || /^-?\d+(\.\d+)?$/.test(s2.replace(/,/g,''))) ? money(v) : s2;
-  };
+  const head=(d.head||[]).map(h=>String(h==null?'':h));
+  const isNum=v=>v!=null&&v!==''&&(typeof v==='number'||/^-?\d+(\.\d+)?$/.test(String(v).replace(/,/g,'')));
   d.rows.forEach(r=>{
-    const parts=(Array.isArray(r)?r:[r]).map(cell).filter(x=>x!=='');
-    if(parts.length)L.push('• '+parts.join(' · '));
+    const cells=Array.isArray(r)?r:[r];
+    const words=[], figs=[];
+    cells.forEach((v,i)=>{
+      if(v==null||v==='')return;
+      /* The first two cells say WHAT the entry is — a date and a description — and read
+         fine on their own. Everything after that is a figure and gets its column's name in
+         front of it, number or not, so a closing balance can never be mistaken for a
+         payment. A report with only two columns keeps the old one-line shape. */
+      if(i<2 || !head[i] || head.length<3){ words.push(String(v)); return; }
+      /* Not every number is a rupee. A phone, a day count or a quantity printed as money
+         reads as nonsense — the Payables export turned a supplier's phone into
+         "₹3,34,00,42,686" the first time this ran. The column's own name settles it. */
+      const cash=isNum(v) && !/phone|mobile|serial|hsn|qty|quantity|count|oldest|invoice|bill|order no/i.test(head[i]);
+      figs.push(head[i]+' '+(cash?money(v):String(v)));
+    });
+    if(!words.length&&!figs.length)return;
+    L.push('\u2022 '+(words.join(' \u00B7 ')||'\u2014'));
+    if(figs.length)L.push('   '+figs.join(' \u00B7 '));
   });
   L.push(''); L.push(fmtDate(todayISO())+' · '+((DB.shopInfo||{}).name||'PARAMPARA'));
   const txt=L.join('\n');
@@ -23421,7 +23457,17 @@ function bsFigures(from,to){
     });
     add(L,'loans', loanBal);
   }
-  const g=gstFigures(from,to), gi=gstInputTax(from,to);
+  /* v501, second layer, found by the totals still being ₹6,864.40 apart after the profit
+     fix — and that figure was exactly the GST on one bill dated outside the window.
+     GST payable is a LIABILITY. What the shop owes the department is everything it has
+     collected less everything it has paid, from the day the books opened — not the tax on
+     five days of bills sitting beside two years of stock. Same mistake as the profit above,
+     one layer down, and it had to be found by measuring rather than by reading. The GST
+     RETURN screen still runs on the month he picks; that is a different question and a
+     different screen. */
+  const _gOpen=(ob.date||fyStartISO());
+  const _gFrom=_gOpen<from?_gOpen:from;
+  const g=gstFigures(_gFrom,to), gi=gstInputTax(_gFrom,to);
   /* v301 AUDIT — the balance sheet was out by ₹300 the moment input tax exceeded output
      tax. Math.max(0,…) threw that excess away: in a month where he buys more than he
      sells — the start of a season, exactly when he stocks up — the extra GST he has paid
@@ -23432,7 +23478,24 @@ function bsFigures(from,to){
   if(gstNet>=0)add(L,'gst', gstNet); else add(A,'gstcredit', r2(-gstNet));
 
   /* ---- capital ---- */
-  const pl=plFigures(from,to);
+  /* ══════════ v501 — A FIVE-DAY PROFIT ON AN ALL-TIME BALANCE SHEET ══════════
+     HIS 5 Sept, with his own trial balance in front of me: Cash −₹1,54,080, Bank
+     −₹3,22,331, Opening capital −₹28,18,601, Cost of goods sold exactly minus the stock,
+     and ₹9,42,193 that would not close. Every one of those follows from a single line.
+     Assets and liabilities above are read AS AT the closing date — accBalance(id,to),
+     receivableTotal(), stockNowValue() — which is right; a balance sheet is a photograph of
+     one day. The profit under them was being read for the CHOSEN WINDOW only, and the
+     window defaults to this month. So the sheet showed what the shop owned after two years
+     of trading against what it earned in five days. Those two can never agree, and the
+     bigger the shop grows the wider the gap.
+     The profit that belongs on a balance sheet is the profit since the books opened. That
+     is what capital has accumulated, and that is what makes the two sides meet. The chosen
+     window still governs the Profit & Loss screen itself, which is the report where a
+     period is the whole point — nothing there changes.
+     HE ASKED FOR THIS EXPLICITLY on 5 Sept ("pehle point ke liye haan"), which is why a
+     figure this central is being touched at all. */
+  const _bsOpen=(ob.date||fyStartISO());
+  const pl=plFigures(_bsOpen<from?_bsOpen:from, to);
   /* v364 — HIS 27 Aug: "accounts ka basic cheez dekho... basic cheezen hi tumhari galti hai."
      He is right and this is the worst of them. Opening capital is not a number a shopkeeper
      should ever be asked to work out — it IS the balancing figure, by definition: what the
@@ -23494,8 +23557,33 @@ function bsFigures(from,to){
       if(l.refKind!=='manual')return;
       const d2=String(l.date||''); if(d2<from||d2>to)return;
       const amt=+l.amt||0, named=String(l.party||'').trim();
+      /* ══════════ v501 — I MADE THIS ONE MYSELF, IN v494 ══════════
+         Caught by the balance sheet sitting exactly ₹30,000 apart on a test book whose only
+         loose payment was ₹30,000. This block turns a named 'manual' payment into Advance
+         with suppliers, an asset — which was right when it was written, because back then
+         nothing else did anything with that row. Then v494, at his request, taught
+         openingPays() to count those same rows against the party's OPENING BALANCE. From
+         that day the one payment was doing two jobs: reducing what he owed AND standing as
+         an asset. Both sides of the sheet moved for one rupee.
+         A payment that has already been set against an opening is spent. Only what is left
+         over after the opening is exhausted is genuinely money sitting with the supplier,
+         and that is what is counted now. */
+      if(named && l.dir==='out'){
+        let leftOver=amt;
+        try{
+          /* the row's own partyKind is unreliable — Money out writes 'other' when the name
+             was typed rather than picked, which is the very thing v491 had to work around
+             in openingPays. The party master is asked first, exactly as it is there. */
+          const st=openingState(named, ((partyByName(named)||{}).kind)||l.partyKind||'supplier');
+          if(st && st.dir==='out'){
+            const used=Math.min(amt, Math.max(0, r2(st.amt-(st.paid-amt))));
+            leftOver=r2(amt-Math.max(0,used));
+          }
+        }catch(e){}
+        if(leftOver>0)supAdv=r2(supAdv+leftOver);
+        return;
+      }
       if(named && l.dir==='in'){ custAdv=r2(custAdv+amt); return; }
-      if(named && l.dir==='out'){ supAdv=r2(supAdv+amt); return; }
       susp = (l.dir==='in') ? r2(susp+amt) : r2(susp-amt);
     });
     if(custAdv>0)add(L,'custadv',custAdv);   /* his money, held against goods not yet billed */
@@ -23509,7 +23597,11 @@ function bsFigures(from,to){
 }
 /* one row per account, both columns, so the two sides can be seen to agree */
 function tbRows(from,to){
-  const f=bsFigures(from,to), pl=plFigures(from,to);
+  /* v501: a trial balance lists the closing balance of every account, so its income and
+     expense lines have to run from the day the books opened too — exactly like the capital
+     they roll into. Reading them for a shorter window was what left his totals apart. */
+  const _tbOpen=(openBS().date||fyStartISO());
+  const f=bsFigures(from,to), pl=plFigures(_tbOpen<from?_tbOpen:from, to);
   const R=[];
   const E0=jvEffect(from,to);
   /* v273 FIX, caught by the test: bsFigures already folds the journal in, so listing the
@@ -23774,7 +23866,11 @@ function bsOpenLine(key){
 }
 function balanceSheet(){
   sheetAt(balanceSheet);
-  const {from,to}=rpRange();
+  /* v501: same as the trial balance. A balance sheet is a photograph of one day — every
+     figure on it runs from the day the books opened up to that day. The chips still choose
+     the DATE; they no longer shorten the history behind it. */
+  const _r=rpRange(), to=_r.to;
+  const from=(openBS().date||fyStartISO());
   const f=bsFigures(from,to);
   const OPEN={bs_cash:1,bs_bank:1,bs_debtors:1,bs_creditors:1,bs_stock:1,bs_karigar:1,
     bs_karadv:1,bs_staffadv:1,bs_loans:1,bs_fixed:1,bs_gst:1,bs_gstcredit:1,bs_suspense:1};
@@ -23858,7 +23954,13 @@ function balanceSheet(){
 }
 function trialBalance(){
   sheetAt(trialBalance);
-  const {from,to}=rpRange();
+  /* v501: a trial balance is not a period report. It lists the closing balance of every
+     account AS AT a date, and every one of those balances runs from the day the books
+     opened. Letting the chosen window shorten it was the whole reason his totals moved
+     about — and why the same books could be "out" by one figure this month and another
+     next. The closing date is his to pick; the start is not, and it never was. */
+  const _r=rpRange(), to=_r.to;
+  const from=(openBS().date||fyStartISO());
   const T=tbRows(from,to);
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F4CB} ${t('tb_title')}</h2>
@@ -27988,30 +28090,77 @@ function openBSEdit(){
       <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
     <p class="hint" style="margin:0 0 12px">${t('ob_shop_sub')}</p>
     <div class="field"><label>${t('ob_date')}</label>${dateField('obs_date',o.date)}</div>
+    ${/* ══════════ v500 — FIVE BUTTONS FOR TWO DECISIONS ══════════
+         HIS 5 Sept: "opening stock wale page mein hi dekho, itna kuch daal diya hai ki kuch
+         samajh mein nahi aa raha... buttons kam rahenge, process kam rahega, utna kaam
+         karne mein aasan hoga aur utni galtiyaan kam hongi."
+         He is right, and it is his own rule from the start: fewest buttons wins, a screen
+         shows only what that one job needs. This screen had five — three ways to fill the
+         stock figure, one to fix capital, one to add a loan — for what is really two
+         decisions: what the cloth was worth, and what the shop owned.
+         STOCK keeps the one answer he actually gave me: today's shelf. The other two ways
+         are for a man who does not have that figure; they move behind a plain text line so
+         they are there when needed and out of the way when not.
+         CAPITAL stops being a box he has to fill. It is not a figure anyone looks up — it
+         is whatever is left after the assets and the debts, and the app already works it
+         out to check itself. So it shows the worked-out figure and nothing else. The
+         warning and its fix-it button are gone because there is no longer anything to fix:
+         a number he never typed cannot be wrong. He can still set it himself if he has a
+         reason — one small line, not a field and a warning and a button. */''}
     <div class="field" style="margin-top:8px"><label>${t('ob_stock_v')}</label>${g('obs_stock',o.stock)}
-      <p class="hint" style="margin-top:4px">${t('ob_stock_open_only')}</p>
       <div class="kv" style="margin-top:6px"><span class="hint">${t('ob_stock_now')}</span>
         <b>${money(stockNowValue())}</b></div>
-      <div class="row" style="gap:6px;margin-top:6px">
-        <button class="btn sm ghost" style="flex:1" onclick="obsCalcOpening()">\u{1F9EE} ${t('ob_calc')}</button>
-        <button class="btn sm ghost" style="flex:1" onclick="obsUseNow()">\u{1F4E6} ${t('ob_stock_use_now')}</button></div>
-      <button class="btn sm ghost block" style="margin-top:6px" onclick="obsEstimate()">\u2753 ${t('ob_est')}</button>
-      ${o.stockEst?`<label class="hint" style="display:flex;gap:6px;align-items:center;margin-top:8px;color:var(--saffron2);cursor:pointer"
-        onclick="obsEstToggle()">\u26A0\uFE0F ${t('ob_est_flag')} \u00B7 <u>${t('ob_est_off')}</u></label>`:''}</div>
+      <button class="btn sm ghost block" style="margin-top:6px" onclick="obsUseNow()">\u{1F4E6} ${t('ob_stock_use_now')}</button>
+      <p class="hint" style="margin-top:6px;cursor:pointer" onclick="obsStockOther()"><u>${t('ob_stock_other')}</u></p>
+      ${o.stockEst?`<p class="hint" style="margin-top:6px;color:var(--saffron2);cursor:pointer"
+        onclick="obsEstToggle()">\u26A0\uFE0F ${t('ob_est_flag')} \u00B7 <u>${t('ob_est_off')}</u></p>`:''}</div>
     <div class="field" style="margin-top:8px"><label>${t('ob_fixed_v')}</label>${g('obs_fixed',o.fixed)}</div>
-    <div class="field" style="margin-top:8px"><label>${t('ob_cap')}</label>${g('obs_cap',o.capital)}
-      ${(()=>{const d=obsCapGap();return d.gap?`<div class="kv" style="margin-top:6px">
-        <span class="hint">\u26A0\uFE0F ${t('ob_cap_gap',{v:money(Math.abs(d.gap))})}</span>
-        <button class="btn sm ghost" style="flex:0 0 auto" onclick="obsCapFix()">${t('ob_cap_use',{v:money(d.should)})}</button></div>`
-        :`<p class="hint" style="margin-top:6px">\u2705 ${t('ob_cap_ok')}</p>`;})()}</div>
-    <div class="section-h" style="margin-top:14px">\u{1F3E6} ${t('bs_loans')}</div>
-    <div id="obsLoans">${obsLoanRows()}</div>
-    <button class="btn ghost block" style="margin-top:8px" onclick="obsLoanAdd()">\u2795 ${t('ob_loan_add')}</button>
+    ${(()=>{ const d=obsCapGap();
+      return `<div class="card" style="padding:11px 13px;margin-top:8px">
+        <div class="kv"><span class="hint">${t('ob_cap')}</span><b>${money(d.should)}</b></div>
+        <p class="hint" style="margin-top:4px">${t('ob_cap_auto')}</p>
+        <p class="hint" style="margin-top:6px;cursor:pointer" onclick="obsCapManual()"><u>${t('ob_cap_set')}</u></p>
+        <input type="hidden" id="obs_cap" value="${esc(d.should)}"></div>`; })()}
+    ${/* ══════════ v499 — FOUR DIFFERENT THINGS IN ONE FORM ══════════
+         HIS 5 Sept: "opening stock, loan, sab ek mein thoos diya hai, kisi ko jagah sahi
+         nahi hai."
+         Right, and it breaks his own rule: a LIST does not live inside a FORM. This screen
+         was a form about what the shop held on day one — a date, a stock figure, fittings,
+         capital — and then a list of loans with its own add and delete was dropped in the
+         middle of it, so the Save button at the bottom belonged to two different jobs.
+         The loans are a list, so they get a list screen. What stays here is one job with
+         one Save: what the shop itself was worth on the day the books opened. */''}
+    <div class="card" style="padding:11px 13px;margin-top:14px;cursor:pointer" onclick="obsLoansEdit()">
+      <div class="kv"><span style="flex:1;min-width:0"><b>\u{1F3E6} ${t('bs_loans')}</b>
+        <div class="hint">${openBS().loans.length?t('ob_loan_n',{n:openBS().loans.length}):t('ob_loan_none')}</div></span>
+        <span style="text-align:right;white-space:nowrap;flex:0 0 auto">
+          ${openBS().loans.length?`<b>${money(openBS().loans.reduce((x,L)=>r2(x+(+L.amt||0)),0))}</b>`:''}
+          <div class="hint" style="color:var(--saffron2)">\u203A</div></span></div></div>
     ${/* v276: this one had its Save as a loose block button, so the sticky rule above could
          not reach it. Put in the same action row as every other form. */''}
     <div class="modal-actions"><button class="btn primary" onclick="obsSave()">\u{1F4BE} ${t('save')}</button></div>
     <div class="fab-pad"></div>`;
   showSheet();
+}
+/* v499: the loans, on their own screen — a list with its own add, its own delete and its
+   own Save, exactly like every other list in the app. */
+function obsLoansEdit(){
+  sheetAt(obsLoansEdit);
+  openBS();
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:2px"><h2 style="margin:0">\u{1F3E6} ${t('bs_loans')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
+    <p class="hint" style="margin:0 0 12px">${t('ob_loan_sub')}</p>
+    <div id="obsLoans">${obsLoanRows()}</div>
+    <button class="btn ghost block" style="margin-top:8px" onclick="obsLoanAdd()">\u2795 ${t('ob_loan_add')}</button>
+    <div class="modal-actions"><button class="btn primary" onclick="obsLoansSave()">\u{1F4BE} ${t('save')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function obsLoansSave(){
+  obsCap();
+  openBS().loans=openBS().loans.filter(L=>String(L.name||'').trim()||+L.amt);
+  save(); toast(t('t_saved'),'ok'); sheetBack();
 }
 function obsLoanRows(){
   const o=openBS();
@@ -28032,9 +28181,14 @@ function obsCap(){
   const o=openBS();
   o.loans.forEach((L,i)=>{ const n=$('#obl_n'+i), a=$('#obl_a'+i), k=$('#obl_k'+i);
     if(n)L.name=n.value.trim(); if(a)L.amt=r2(+a.value||0); if(k)L.kind=k.value; });
-  const gv=id=>{ const e=$('#'+id); return e?r2(+e.value||0):0; };
+  /* v499: only write a figure whose box is actually on the screen. This used to return 0
+     for a missing box, so opening a screen that did not carry the stock field would have
+     quietly zeroed his opening stock on the next capture. Nothing had split these screens
+     before, so it had never fired — but the loans move out below, and a rule like this
+     must be right BEFORE it is relied on, not after. */
+  const put=(id,k)=>{ const e=$('#'+id); if(e)o[k]=r2(+e.value||0); };
   if($('#obs_date'))o.date=$('#obs_date').value||fyStartISO();
-  o.stock=gv('obs_stock'); o.fixed=gv('obs_fixed'); o.capital=gv('obs_cap');
+  put('obs_stock','stock'); put('obs_fixed','fixed'); put('obs_cap','capital');
 }
 function obsLoanAdd(){ obsCap(); openBS().loans.push({name:'',amt:0,kind:'business'});
   const b=$('#obsLoans'); if(b)b.innerHTML=obsLoanRows(); }
@@ -28064,6 +28218,26 @@ function obsCapGap(){
 }
 function obsCapFix(){ obsCap(); const d=obsCapGap();
   openBS().capital=r2((+openBS().capital||0)+d.gap); save(); openBSEdit(); toast(t('ob_cap_fixed'),'ok'); }
+/* v500: the two rarer ways to fill the stock figure, kept but out of the way. */
+function obsStockOther(){
+  obsCap();
+  modal('\u{1F4E6} '+t('ob_stock_v'),
+    `<p class="hint" style="margin-bottom:10px">${t('ob_stock_other_hint')}</p>
+     <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();obsCalcOpening()">\u{1F9EE} ${t('ob_calc')}</button>
+     <button class="btn ghost block" onclick="closeModal();obsEstimate()">\u2753 ${t('ob_est')}</button>`,
+    [{label:t('cancel'),cls:'ghost',fn:()=>{closeModal();openBSEdit();}}]);
+}
+/* v500: capital is worked out, not typed. He can still put his own figure in — but he has
+   to ask for it, and he is told plainly what the books make it. */
+function obsCapManual(){
+  const d=obsCapGap();
+  modal('\u{1F4B0} '+t('ob_cap'),
+    `<p class="hint" style="margin-bottom:8px">${t('ob_cap_set_hint',{v:money(d.should)})}</p>
+     <input id="obsCapM" type="number" inputmode="numeric" value="${esc(openBS().capital||d.should)}">`,
+    [{label:t('cancel'),cls:'ghost',fn:()=>{closeModal();openBSEdit();}},
+     {label:t('save'),cls:'primary',fn:()=>{const e=$('#obsCapM');
+       openBS().capital=r2(+((e&&e.value)||0)); save(); closeModal(); openBSEdit(); toast(t('t_saved'),'ok'); }}]);
+}
 function obsSave(){ obsCap();
   openBS().loans=openBS().loans.filter(L=>String(L.name||'').trim()||+L.amt);
   save(); toast(t('t_saved'),'ok'); closeSheet(); }
