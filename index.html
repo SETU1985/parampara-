@@ -244,6 +244,19 @@
   .home-stat.tappable:active{transform:scale(.96);border-color:var(--saffron)}
   .hs-go{color:var(--saffron2);font-weight:900}
     .sum-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;min-height:44px}
+/* v493 — the ledger statement, laid out as a grid so a long narration can never print
+   under a figure. Four tracks: what the entry is, then Debit, Credit and the running
+   balance. The number columns are sized in ch so they hold a seven-figure rupee amount at
+   this font without pushing the first column to nothing. */
+.lg-row{display:grid;grid-template-columns:1fr 7.2ch 7.2ch 8.6ch;gap:8px;align-items:start;
+  padding:9px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.lg-row:last-child{border-bottom:0}
+.lg-head{padding:2px 0 6px;border-bottom:0}
+.lg-c1{min-width:0}
+.lg-c1 b{font-size:13px}
+.lg-n{text-align:right;white-space:nowrap;font-weight:700;font-variant-numeric:tabular-nums}
+.lg-bal{color:var(--saffron2)}
+@media(min-width:520px){.lg-row{grid-template-columns:1fr 110px 110px 130px;font-size:13.5px}}
 .il{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
 .il:last-child{border-bottom:0}
 .il>span:first-child{color:var(--txt2);font-size:14px}
@@ -845,7 +858,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v492</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v498</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -1343,6 +1356,16 @@ const T={
   lg_group_move:'Move to {b}',
   lg_group_move_ask:'{n} will move to {b}. No amount changes — only the head it is reported under, so it lands in the right place on the Balance Sheet and P&L.',
   lg_group_moved:'Moved to {b}',
+  eh_has_n:'{n} entries on this head',
+  eh_empty:'Nothing on this head yet',
+  eh_rename_msg:'Rename it and all {n} entries move with it. No amount changes.',
+  eh_name_req:'Give the head a name',
+  eh_dup:'A head with that name already exists',
+  eh_renamed:'{a} is now {b}',
+  eh_del_busy:'{n} entries are on this head. Move them to another head first — nothing is deleted, only relabelled.',
+  eh_move_first:'Move the entries',
+  eh_del_ask:'Remove {n}? It has no entries, so nothing is lost.',
+  eh_deleted:'Head removed',
   save_generate:'Save & generate',
   save_close:'Save & close',
   mv_title:'Move this bill onto the order',
@@ -2835,16 +2858,16 @@ dl_show_hidden:'Show hidden ({n})',
   bs_cash:'Cash in hand', bs_bank:'Bank', bs_debtors:'Receivable from customers',
   cb_iscc:'कैश क्रेडिट / ओवरड्राफ्ट', cb_iscc_hint:'बैंक की लिमिट है, आपका पैसा नहीं। जितना निकाला वह देना है, और सिर्फ ब्याज लगता है — EMI नहीं।',
   bs_cc:'Cash credit drawn', ob_loan_biz:'Business', ob_loan_pers:'Personal',
-  rc_title:'Rent on sales', rc_sub:'Rent paid as a share of sales instead of a fixed amount.',
-  rc_who:'Paid to', rc_who_ph:'Landlord’s name', rc_pct:'Share of gross sale %',
-  rc_on:'On', rc_gross:'Gross sale (bill total)', rc_net:'Net sale (after GST)',
-  rc_off:'Not set up', rc_earned:'Earned this period', rc_paid:'Paid', rc_owed:'Still to pay',
-  rc_ret:'Less sales returns', rc_base:'Sale it is charged on',
-  rc_head:'Which expense head', rc_head_hint:'Payments recorded under this head count as paid against it.',
-  rc_note:'Worked out from bills, never stored twice. Pay it from Expenses under the head you pick here.',
-  rc_saved:'Rent on sales saved', rc_remove:'Remove',
-  hm_rent:'Rent on sales', bs_rentcomm:'Rent payable',
-  rc_need:'Enter a name and a percentage',
+  rc_title:'बिक्री पर किराया', rc_sub:'किराया तय रकम की जगह बिक्री के हिस्से के तौर पर।',
+  rc_who:'किसे देना है', rc_who_ph:'मकान मालिक का नाम', rc_pct:'कुल बिक्री का %',
+  rc_on:'On', rc_gross:'कुल बिक्री (बिल का पूरा)', rc_net:'शुद्ध बिक्री (GST के बाद)',
+  rc_off:'अभी सेट नहीं', rc_earned:'इस अवधि का बना', rc_paid:'दिया', rc_owed:'अभी देना है',
+  rc_ret:'बिक्री वापसी घटाकर', rc_base:'किस बिक्री पर लगेगा',
+  rc_head:'किस ख़र्च के नाम से', rc_head_hint:'इस नाम से किए भुगतान इसी में गिने जाएँगे।',
+  rc_note:'बिलों से हिसाब बनता है, दो बार कहीं नहीं रखा जाता। जो नाम यहाँ चुनोगे, ख़र्च में उसी से पैसा दो।',
+  rc_saved:'बिक्री पर किराया सेव हुआ', rc_remove:'हटाएँ',
+  hm_rent:'बिक्री पर किराया', bs_rentcomm:'Rent payable',
+  rc_need:'नाम और परसेंट दोनों भरें',
   pin_title:'पैसे का लॉक', pin_sub:'होम पर पैसे के आंकड़े छिपाएँ, और पैसे वाली स्क्रीन खोलने से पहले PIN पूंछें।',
   pin_on:'लॉक चालू है', pin_off:'लॉक बंद है', pin_set:'PIN लगाएँ', pin_change:'PIN बदलें', pin_remove:'लॉक हटाएँ',
   pin_new:'नया PIN (4 अंक)', pin_again:'दोबारा लिखें', pin_enter:'PIN डालें', pin_wrong:'गलत PIN',
@@ -3140,7 +3163,7 @@ dl_show_hidden:'Show hidden ({n})',
   confirm_item_del:'आइटम हटाएँ?',
   confirm_item_del_msg:'यह आइटम मास्टर से हट जाएगा।',
   edit:'बदलें',
-  whatsapp:'WhatsApp',
+  whatsapp:'व्हाट्सऐप',
   delete:'हटाएँ',
   delete_order:'ऑर्डर हटाएँ',
   order_options:'ऑर्डर विकल्प',
@@ -3221,6 +3244,16 @@ dl_show_hidden:'Show hidden ({n})',
   lg_group_move:'{b} में ले जाएँ',
   lg_group_move_ask:'{n} {b} में चला जाएगा। कोई रकम नहीं बदलेगी — सिर्फ़ किस हेड के नीचे गिना जाए वो बदलेगा, ताकि बैलेंस शीट और P&L में सही जगह बैठे।',
   lg_group_moved:'{b} में ले गए',
+  eh_has_n:'इस नाम पर {n} एंट्री हैं',
+  eh_empty:'इस नाम पर अभी कुछ नहीं',
+  eh_rename_msg:'नाम बदलने पर सारी {n} एंट्री भी साथ चली जाएँगी। कोई रकम नहीं बदलेगी।',
+  eh_name_req:'नाम भरें',
+  eh_dup:'इस नाम से एक हेड पहले से है',
+  eh_renamed:'{a} अब {b} है',
+  eh_del_busy:'इस नाम पर {n} एंट्री हैं। पहले उन्हें दूसरे नाम में ले जाएँ — कुछ मिटेगा नहीं, सिर्फ़ नाम बदलेगा।',
+  eh_move_first:'एंट्री ले जाएँ',
+  eh_del_ask:'{n} हटाएँ? इस पर कोई एंट्री नहीं है, कुछ नहीं जाएगा।',
+  eh_deleted:'हेड हट गया',
   save_generate:'सहेजें और बनाएँ',
   save_close:'सेव करके बंद करें',
   mv_title:'ये बिल ऑर्डर पर ले जाएँ',
@@ -3307,7 +3340,7 @@ dl_show_hidden:'Show hidden ({n})',
   mem_added_next:'अगला व्यक्ति जुड़ा — नाम लिखें और उसके पीस चुनें',
   add_member_next:'और व्यक्ति जोड़ें', add_member_hint:'परिवार या ग्रुप ऑर्डर के लिए — पहले व्यक्ति की नाप हो चुकी है।',
   home_layout:'होम का लेआउट', home_layout_new:'नया', home_layout_old:'पुराना',
-  ontime_title:'Delivery record', ontime_sub:'Kept or missed, against the date promised.',
+  ontime_title:'डिलीवरी का रिकॉर्ड', ontime_sub:'जो तारीख़ दी थी, उस पर दिया या नहीं।',
   hb_report:'भेजने वाली रिपोर्ट', td_perf:'आज का काम',
   rp_no_one:'No number for this report', rp_sent:'Opening WhatsApp for {n}',
   rp_no_one_msg:'पहले नंबर सेव करें — फिर ये बटन एक टैप में भेज देगा।',
@@ -3324,9 +3357,9 @@ dl_show_hidden:'Show hidden ({n})',
   qc_hide:'छिपाएँ', qc_show:'दिखाएँ', qc_left:'बाएँ ले जाएँ', qc_right:'दाएँ ले जाएँ', qc_reset:'डिफ़ॉल्ट पर लाएँ',
   qc_hidden:'छिपे हुए', qc_none_hidden:'कुछ छिपा नहीं है', qc_reset_done:'शॉर्टकट डिफ़ॉल्ट पर आ गए',
   qc_last:'कम से कम एक शॉर्टकट रहना चाहिए',
-  ontime_pct:'On time', ontime_ok:'On or before the date', ontime_late:'Late', ontime_avg:'Late by, on average',
-  ontime_days:'{n} days', ontime_none:'No deliveries in this period', ontime_nodate:'No delivery date was set',
-  ontime_old:'Orders delivered before this was recorded are not counted.',
+  ontime_pct:'समय पर', ontime_ok:'तारीख़ पर या पहले', ontime_late:'देर से', ontime_avg:'औसतन देर',
+  ontime_days:'{n} दिन', ontime_none:'इस अवधि में कोई डिलीवरी नहीं', ontime_nodate:'डिलीवरी की तारीख़ डाली ही नहीं थी',
+  ontime_old:'यह रिकॉर्ड शुरू होने से पहले दिए ऑर्डर इसमें नहीं गिने जाते।',
   sg_open:'शुरुआती बकाया और नियम', sg_tools:'सेटअप',
   mem_name_ph:'नाम',
   mem_rel_ph:'दूल्हा / भाई…',
@@ -3337,13 +3370,13 @@ dl_show_hidden:'Show hidden ({n})',
   purchases_list:'ख़रीद सूची', credit_note:'क्रेडिट नोट', debit_note:'डेबिट नोट',
   estimate:'एस्टिमेट', purchase_order:'परचेज़ ऑर्डर', soon:'जल्द', coming_soon:'अगले अपडेट में आएगा',
   qa_title:'क्या करना है?', qa_sub:'रोज़ का सब कुछ, एक जगह।',
-  pay_in:'Payment In', pay_out:'Payment out',
+  pay_in:'पैसा आया', pay_out:'पैसा दिया',
   td_kind_salesday:'रोज़ की बिक्री, बिल-दर-बिल', td_sales_day:'आज की बिक्री',
   td_got:'मिला', td_due:'बाकी', td_no_bills:'आज कोई बिल नहीं।',
   td_title:'दिन का हिसाब', td_tab_today:'आज', td_tab_work:'काम',
   td_money:'आज का पैसा', td_shop:'आज की दुकान',
   td_sales:'बिक्री', td_purch:'ख़रीद', td_exp:'ख़र्च',
-  td_in:'Money in', td_out:'Money out',
+  td_in:'पैसा आया', td_out:'पैसा गया',
   td_bills_n:'{n} बिल', td_delivered:'दिए गए', td_nosale:'आज अभी कुछ नहीं बिका',
   td_top:'सबसे ज़्यादा बिका', td_send:'ये रिपोर्ट भेजें',
   td_kind_daily:'रोज़ की रिपोर्ट', td_kind_sales:'महीने की बिक्री और कमीशन',
@@ -3354,15 +3387,15 @@ dl_show_hidden:'Show hidden ({n})',
   td_sales_report:'बिक्री रिपोर्ट', td_gross:'बिल', td_returns:'वापसी',
   td_netsale:'शुद्ध बिक्री', td_comm:'कमीशन', wa_fail:'व्हाट्सएप नहीं खुल पाया',
   pw_ask:'ये पैसा किस लिए?',
-  pw_expense:'Expense', pw_expense_eg:'किराया, बिजली, चाय, वेतन — दुकान चलाने की लागत',
-  pw_settle:'Paying a bill', pw_settle_eg:'सप्लायर या कारीगर जिसका पहले से देना था',
-  pw_draw:'Money I took', pw_draw_eg:'अपने लिए — दुकान का ख़र्च नहीं',
-  pw_loanpay:'Loan repayment', pw_loanpay_eg:'लोन पर किस्त या कुछ रकम',
-  pw_move:'Cash to bank / bank to cash', pw_move_eg:'न कमाया न ख़र्चा — सिर्फ़ जगह बदली',
-  pw_fromcust:'Customer paid', pw_fromcust_eg:'बने हुए बिल के बदले',
-  pw_advance:'Advance / old balance', pw_advance_eg:'बिल बनने से पहले लिया पैसा',
-  pw_loanin:'Loan received', pw_loanin_eg:'उधार लिया पैसा — कमाई नहीं',
-  pw_capital:'Money I put in', pw_capital_eg:'अपना पैसा दुकान में',
+  pw_expense:'ख़र्च', pw_expense_eg:'किराया, बिजली, चाय, वेतन — दुकान चलाने की लागत',
+  pw_settle:'बिल का भुगतान', pw_settle_eg:'सप्लायर या कारीगर जिसका पहले से देना था',
+  pw_draw:'मैंने निकाला', pw_draw_eg:'अपने लिए — दुकान का ख़र्च नहीं',
+  pw_loanpay:'लोन की किस्त', pw_loanpay_eg:'लोन पर किस्त या कुछ रकम',
+  pw_move:'कैश से बैंक / बैंक से कैश', pw_move_eg:'न कमाया न ख़र्चा — सिर्फ़ जगह बदली',
+  pw_fromcust:'ग्राहक ने दिया', pw_fromcust_eg:'बने हुए बिल के बदले',
+  pw_advance:'एडवांस / पुराना बाकी', pw_advance_eg:'बिल बनने से पहले लिया पैसा',
+  pw_loanin:'लोन मिला', pw_loanin_eg:'उधार लिया पैसा — कमाई नहीं',
+  pw_capital:'मैंने डाला', pw_capital_eg:'अपना पैसा दुकान में',
   ln_which:'कौन सा लोन', ln_which_ph:'होम लोन, क्रेडिट कार्ड…',
   ln_amt:'रकम', ln_int:'इसमें ब्याज', ln_int_hint:'इस किस्त में ब्याज न हो तो खाली छोड़ दें। सिर्फ़ ब्याज ख़र्च है; बाकी से देनदारी घटती है।',
   ln_out_hint:'इससे आपकी देनदारी घटेगी। इसमें जो ब्याज है वो ख़र्च है और P&L में जाएगा।',
@@ -3379,7 +3412,7 @@ dl_show_hidden:'Show hidden ({n})',
   cb_jv_adj:'जर्नल एडजस्टमेंट', cb_jv_adj_hint:'कैश / बैंक पर मैनुअल एंट्री — देखने के लिए दबाएँ',
   cb_total:'कैश + बैंक', cb_balance:'बैलेंस', cb_opening:'ओपनिंग', cb_open_date:'इस तारीख को',
   cb_open_hint:'उस तारीख का बैलेंस डालें। उसके बाद का हिसाब अपने-आप बनेगा।',
-  acc_primary_set:'{n} is now the main account',
+  acc_primary_set:'{n} अब मुख्य खाता है',
   cb_add_bank:'बैंक खाता जोड़ें', cb_acc_name:'खाते का नाम', cb_acc_ph:'जैसे ICICI करंट',
   cb_bank_name:'बैंक', cb_accno:'खाता नंबर', cb_ifsc:'IFSC',
   cb_need_name:'खाते का नाम डालें', cb_del_msg:'खाता “{n}” हटाएँ?',
@@ -3394,19 +3427,19 @@ dl_show_hidden:'Show hidden ({n})',
   brs_all:'सब', brs_pending:'टिक बाकी', brs_ticked:'टिक हुए',
   brs_none:'इस अवधि में कुछ नहीं।', brs_no_bank:'पहले बैंक खाता जोड़ें',
   cb_into:'किसमें आया', cb_paid_from:'किससे दिया',
-  exp_title:'Expenses', exp_sub:'दुकान से जाने वाला हर रुपया।',
-  exp_total:'कुल ख़र्च', exp_add:'Add expense', exp_cat:'मद', exp_cat_ph:'जैसे किराया, बिजली',
+  exp_title:'ख़र्च', exp_sub:'दुकान से जाने वाला हर रुपया।',
+  exp_total:'कुल ख़र्च', exp_add:'ख़र्च जोड़ें', exp_cat:'मद', exp_cat_ph:'जैसे किराया, बिजली',
   exp_new_cat:'नई मद', exp_need_cat:'मद चुनें', exp_none:'इस अवधि में कोई ख़र्च नहीं', exp_other:'अन्य',
-  db_title:'Day book', db_sub:'ओपनिंग बैलेंस, सारा आना-जाना, क्लोज़िंग बैलेंस।',
-  db_opening:'Opening balance', db_closing:'Closing balance', db_in:'Money in', db_out:'Money out',
-  db_entries:'Entries', db_none:'इस अवधि में कुछ नहीं हुआ', db_today:'Today', db_yest:'Yesterday',
+  db_title:'रोज़नामचा', db_sub:'ओपनिंग बैलेंस, सारा आना-जाना, क्लोज़िंग बैलेंस।',
+  db_opening:'शुरू का बैलेंस', db_closing:'आख़िर का बैलेंस', db_in:'पैसा आया', db_out:'पैसा गया',
+  db_entries:'एंट्री', db_none:'इस अवधि में कुछ नहीं हुआ', db_today:'आज', db_yest:'कल',
   or_pending_all:'सारे बाकी ऑर्डर', or_period_hd:'इस अवधि का',
   or_title:'ऑर्डर रिपोर्ट', or_sub:'क्या ऑर्डर हुआ, क्या बन गया, क्या चल रहा है।',
   or_orders:'ऑर्डर', or_pending:'बाकी', or_done:'डिलीवर', or_late:'देर से चल रहे ऑर्डर',
   or_value:'ऑर्डर की क़ीमत', or_pieces:'कपड़े', or_due:'वसूली बाकी',
   or_product:'प्रोडक्ट के हिसाब से', or_product_hint:'कितनी शेरवानी, सूट, कुर्ते… और कितने तैयार हैं।',
   or_ready:'तैयार', or_left:'बाकी', or_month:'महीने-दर-महीने', or_fy:'इस वित्त वर्ष',
-  cr_sub:'जिन सप्लायर को देना बाकी है। सबसे बड़ा ऊपर।', cr_from_n:'To {n} suppliers',
+  cr_sub:'जिन सप्लायर को देना बाकी है। सबसे बड़ा ऊपर।', cr_from_n:'{n} सप्लायर को',
   ml_manage:'सँभालें', ml_hint:'जो अब काम नहीं आता उसे हटा दें। ✏️ से हर जगह नाम बदल जाएगा।',
   ml_empty:'अभी कुछ सहेजा नहीं', ml_used:'{n} जगह इस्तेमाल में',
   ml_del_title:'हटाएँ?', ml_del_msg:'“{n}” सहेजी सूची से हट जाएगा।',
@@ -3590,8 +3623,8 @@ dl_show_hidden:'Show hidden ({n})',
   zr_bad:'यह PARAMPARA का बैकअप नहीं है', zr_nodata:'इस फ़ाइल में कोई डेटा नहीं मिला',
   zr_reading:'बैकअप पढ़ रहे हैं…', zr_reading_msg:'फ़ाइल खोली जा रही है — बड़े बैकअप में एक मिनट लग सकता है। कृपया रुकें, ऐप बंद न करें।',
   zr_deflate:'यह फ़ाइल कंप्रेस्ड है — खोली जा रही है', zr_big:'यह फ़ाइल {n} MB की है। फ़ोन की मेमोरी कम पड़ सकती है — कंप्यूटर या iPad बेहतर रहेगा।',
-  zr_oom:'Not enough memory to open a file this big on this device. Try the iPad, or use the data-only backup.',
-  zr_stop:'Stop', zr_stopped:'Stopped — nothing was changed',
+  zr_oom:'इस डिवाइस में इतनी बड़ी फ़ाइल खोलने की मेमोरी नहीं है। iPad पर देखें, या सिर्फ़-डेटा वाला बैकअप लें।',
+  zr_stop:'रोकें', zr_stopped:'रुक गया — कुछ नहीं बदला',
   zr_working:'सब वापस डाल रहे हैं…',
   zb_many:'यहाँ {n} फ़ोटो हैं। एक फ़ाइल रखना सबसे आसान है, पर कुछ मिनट लगेंगे — स्क्रीन खुली रहने दीजिए। हिस्सों में सेव करना जल्दी शुरू होता है।',
   zb_one_go:'एक फ़ाइल', bk_parts:'हिस्सों में',
@@ -3691,10 +3724,10 @@ dl_show_hidden:'Show hidden ({n})',
   pty_cred:'लेनदार — इनको देना है', pty_debt:'देनदार — इनसे लेना है', pty_flat:'कोई बकाया नहीं',
   pty_title:'लेनदार और देनदार', pty_sub:'किसका देना है और किससे लेना है — शुरुआती बकाया, भुगतान और बैलेंस',
   pty_search:'नाम ढूंढें…', pty_add:'पार्टी जोड़ें', pty_none:'अभी कोई नहीं',
-  pty_open:'Opening', pty_open_left:'शुरुआती बकाया बचा है', pty_open_none:'कोई शुरुआती बकाया नहीं',
+  pty_open:'शुरुआती बाकी', pty_open_left:'शुरुआती बकाया बचा है', pty_open_none:'कोई शुरुआती बकाया नहीं',
   pty_open_set:'शुरुआती बकाया डालें', pty_open_edit:'शुरुआती बकाया बदलें', pty_open_del:'शुरुआती बकाया हटाएँ',
   pty_ason:'इस तारीख को', pty_ason_hint:'जिस दिन यह बकाया था। आमतौर पर 1 अप्रैल। इससे नकद नहीं हिलता।',
-  pty_settle:'भुगतान दर्ज करें', pty_settled:'Paid against opening',
+  pty_settle:'भुगतान दर्ज करें', pty_settled:'शुरुआती बाकी में जमा',
   pty_settle_in:'शुरुआती बकाये में मिला', pty_settle_hint:'पुराने बकाये के खिलाफ असली भुगतान। इससे नकद/बैंक हिलेगा।',
   pty_stmt:'पूरा खाता', pty_clear:'शुरुआती बकाया पूरा चुका',
   pty_open_saved:'शुरुआती बकाया सेव हुआ', pty_open_removed:'शुरुआती बकाया हटा', pty_settle_saved:'भुगतान दर्ज हुआ',
@@ -4198,8 +4231,8 @@ dl_show_hidden:'Show hidden ({n})',
   naap_start:'नाप शुरू करें ({n} आइटम)',
   it_next:'अगला आइटम खुला',
   it_all_done:'सभी आइटम भर गए',
-  qr_order:'ऑर्डर', qr_neworder:'नया ऑर्डर', qr_sale:'Sale', qr_purchase:'Purchase', qr_newpurchase:'नई ख़रीद', qr_karigar:'कारीगर का काम', qr_daybook:'डे बुक',
-  db_bal_now:'Cash & bank now',
+  qr_order:'ऑर्डर', qr_neworder:'नया ऑर्डर', qr_sale:'बिक्री', qr_purchase:'ख़रीद', qr_newpurchase:'नई ख़रीद', qr_karigar:'कारीगर का काम', qr_daybook:'डे बुक',
+  db_bal_now:'अभी कैश और बैंक',
   t_order_gone:'ये ऑर्डर अब मौजूद नहीं है — कुछ सेव नहीं हुआ।',
   pur_edit_nostock:'बिल अपडेट हो गया। स्टॉक नहीं बदला — थान/पीस को Stock में खुद ठीक करें।',
   pur_del_partial_stock:'बिल डिलीट हो गया। थान #{s} में से कुछ कपड़ा पहले ही कट चुका था, इसलिए सिर्फ बचा हुआ हिस्सा वापस लिया गया — थान चेक कर लें।',
@@ -4226,8 +4259,8 @@ dl_show_hidden:'Show hidden ({n})',
   bk_never:'अभी तक बैकअप नहीं लिया — डेटा सिर्फ़ इसी डिवाइस में है',
   kpi_cash:'कैश + बैंक', kpi_due_today:'आज देना है', kpi_debtors:'वसूली बाकी', kpi_today_sale:'आज की बिक्री',
   qr_newsale:'नया बिल',
-  qr_payout:'Payment out',
-  qr_payin:'Payment in', qr_exp:'ख़र्च', qr_status:'स्टेटस',
+  qr_payout:'पैसा दिया',
+  qr_payin:'पैसा आया', qr_exp:'ख़र्च', qr_status:'स्टेटस',
   home_classic:'पुराना होम', home_new_view:'नया होम',
   bk_daily:'बैकअप — डेटा + नई फ़ोटो',
   bk_daily_note:'पूरा डेटा हर बार, और सिर्फ़ वो फ़ोटो जो कभी बैकअप में नहीं गईं। छोटी फ़ाइल, झट से।',
@@ -4380,19 +4413,19 @@ dl_show_hidden:'Show hidden ({n})',
   sales_nav_on:'सेल्समैन मोड चालू — टैब से नई एंट्री खुलेगी',
   sales_nav_off:'सेल्समैन मोड बंद — टैब से लिस्ट खुलेगी',
   contact_no_num:'उस contact में नंबर सेव नहीं है — टाइप कर दें',
-  acc_add:'Add bank account',
-  acc_name:'Account name',
-  acc_name_req:'Give the account a name',
-  acc_opening:'Opening balance ₹',
-  acc_added:'Bank account added',
-  acc_into:'Into account',
+  acc_add:'बैंक खाता जोड़ें',
+  acc_name:'खाते का नाम',
+  acc_name_req:'खाते का नाम भरें',
+  acc_opening:'शुरू का बैलेंस ₹',
+  acc_added:'बैंक खाता जुड़ गया',
+  acc_into:'किस खाते में',
   stk_left:'बचा',
   pur_new_typed:'नया आइटम: {n} — मात्रा और रेट डालें', pur_new_hint:'नया आइटम — बिल सेव होते ही यह आपकी सूची में आ जाएगा।',
   pur_type_name:'पहले आइटम का नाम लिखें',
   stk_in:'स्टॉक में',
   stk_none:'स्टॉक नहीं',
   pur_sug_none_q:'कुछ नहीं मिला — ऊपर ➕ दबाकर जोड़ें',
-  acc_from:'From account',
+  acc_from:'किस खाते से',
   pm_cheque:'चेक',
   pm_ref:'चेक / रेफ़रेंस नं.',
   pm_ref_ph:'जैसे 004512',
@@ -4458,20 +4491,20 @@ dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
   lg_capital:'Capital Account', lg_drawings:'Drawings', lg_sales:'Sales',
   lg_otherinc:'Other Income', lg_direct:'Direct Expenses', lg_jobwork:'Job Work',
   lg_salary:'Salary & Wages', lg_indirect:'Indirect Expenses',
-  mo_title:'Money out', mo_from:'Paid from', mo_to:'Paid to',
+  mo_title:'पैसा दिया', mo_from:'किस खाते से दिया', mo_to:'किसे दिया',
   mo_ph:'सप्लायर, ख़र्च का नाम, स्टाफ़ — कोई भी…',
   mo_notfound:'इस नाम का ledger अभी नहीं है', mo_pick_first:'पहले सूची में से नाम चुनिए',
-  save_next:'Save & next',
-  qc_up:'Move up', qc_down:'Move down',
-  qc_rename:'Rename', qc_name:'इस नाम से दिखाएँ', qc_reset_name:'मूल नाम', qc_rename_hint:'सिर्फ़ नाम बदलेगा। शॉर्टकट वही स्क्रीन खोलता रहेगा।',
-  rp_salesman:'Salesman performance', sm_sales:'Billed sales', sm_collected:'Collected',
-  sm_orders:'Orders taken', sm_bills:'{n} बिल', sm_avg:'औसत', sm_none:'सेल्समैन दर्ज नहीं',
+  save_next:'सेव करके अगला',
+  qc_up:'ऊपर करें', qc_down:'नीचे करें',
+  qc_rename:'नाम बदलें', qc_name:'इस नाम से दिखाएँ', qc_reset_name:'मूल नाम', qc_rename_hint:'सिर्फ़ नाम बदलेगा। शॉर्टकट वही स्क्रीन खोलता रहेगा।',
+  rp_salesman:'Salesman performance', sm_sales:'बिल की बिक्री', sm_collected:'वसूल हुआ',
+  sm_orders:'लिए गए ऑर्डर', sm_bills:'{n} बिल', sm_avg:'औसत', sm_none:'सेल्समैन दर्ज नहीं',
   sm_unbilled:'{n} ऑर्डर अभी बिल नहीं हुए ·', sm_none_yet:'इस अवधि में किसी बिल या ऑर्डर पर सेल्समैन दर्ज नहीं है',
   qc_fail:'ठीक नहीं है', qc_why:'क्या ग़लत है?', qc_why_ph:'आस्तीन छोटी, सिलाई खुली…',
   qc_send_back:'दोबारा बनने भेजें', qc_failed_log:'QC fail — वापस भेजा', qc_sent_back:'दोबारा बनने भेज दिया',
   trial_record:'ट्रायल दर्ज करें', trial_result:'फिटिंग कैसी रही?', trial_fit:'फिट हो गया', trial_alter:'अल्टरेशन चाहिए',
   trial_note:'क्या कहा गया', trial_note_ph:'कमर से कसना है…', trial_next:'अगला ट्रायल', trial_none:'अभी कोई ट्रायल दर्ज नहीं',
-  bi_title:'Import bank statement', bi_sub:'स्टेटमेंट पेस्ट कीजिए। हर लाइन एक entry बन जाएगी।',
+  bi_title:'बैंक स्टेटमेंट लाएँ', bi_sub:'स्टेटमेंट पेस्ट कीजिए। हर लाइन एक entry बन जाएगी।',
   bi_into:'ये लाइनें किस खाते की हैं', bi_paste:'स्टेटमेंट की लाइनें', bi_read:'लाइनें पढ़ें',
   bi_ph:'01/04/2026  UPI/samsul/1234  12500  DR', bi_pick:'— ledger चुनिए —',
   bi_skip:'छोड़ें', bi_use:'लें', bi_found:'{n} लाइनें पढ़ीं', bi_ready:'{n} चढ़ने को तैयार',
@@ -4488,7 +4521,7 @@ dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
   sh_att_sub:'हाज़िर, ग़ैरहाज़िर और महीने का हिसाब',
   sh_perf_sub:'किसने कितना बेचा, और कितना वसूला',
   sh_master:'स्टाफ़ मास्टर', sh_master_sub:'नाम, तनख़्वाह, जॉइनिंग',
-  rps_entry:'रोज़ की entry', rps_books:'Books', rps_people:'पार्टी और बैंक', rps_floor:'दुकान का काम', rps_staff:'स्टाफ़',
+  rps_entry:'रोज़ की entry', rps_books:'किताबें', rps_people:'पार्टी और बैंक', rps_floor:'दुकान का काम', rps_staff:'स्टाफ़',
   ho_title:'दो device के बीच काम ले जाना', ho_sub:'दूसरे device ने जो बनाया वो यहाँ जोड़ दीजिए। यहाँ का कुछ बदलेगा या हटेगा नहीं।',
   ho_send:'इस device का काम भेजें', ho_take:'दूसरे device का काम लें',
   ho_limit:'नया काम जाता है \u2014 नए ऑर्डर, नए बिल, नई entry। जो चीज़ दोनों जगह पहले से है उसमें किया बदलाव नहीं जाता। इसलिए एक काम एक device पर रखिए: ऑर्डर यहाँ, बिलिंग वहाँ।',
@@ -4501,7 +4534,7 @@ dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
   ho_go:'ले आइए', ho_done:'{n} record जुड़ गए',
   ho_l_orders:'ऑर्डर', ho_l_sales:'बिल', ho_l_purchases:'ख़रीद', ho_l_customers:'ग्राहक',
   ho_l_parties:'पार्टी', ho_l_ledger:'पैसे की entry', ho_l_alterations:'अल्टरेशन',
-  ho_l_karigarPays:'कारीगर पेमेंट', ho_l_ledgers:'Ledgers', ho_l_expCats:'ख़र्च के नाम',
+  ho_l_karigarPays:'कारीगर पेमेंट', ho_l_ledgers:'खाते', ho_l_expCats:'ख़र्च के नाम',
   pty_no_match:'इस नाम का कोई नहीं मिला',
   dir_all:'सभी', dir_search:'नाम या किस्म खोजें…', dir_more:'{n} और — खोजिए',
   lg_all_groups:'सभी groups', lg_closing:'Closing balance', lg_edit:'Ledger बदलें',
@@ -4511,7 +4544,7 @@ dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
   ki_extra:'अतिरिक्त', ki_extra_why:'अतिरिक्त किस काम का', ki_extra_why_ph:'डबल पल्ला, अलग बटन\u2026',
   ki_rate:'रेट', ki_none:'देने को कुछ नहीं है', ki_go:'{n} पीस दें',
   ki_done:'{k} को {n} पीस दे दिए', ki_no_karigar:'पहले कारीगर जोड़िए',
-  qc_arrange:'Arrange',
+  qc_arrange:'क्रम बदलें',
   lg_dup:'A ledger with that name already exists', lg_title:'Ledger master', lg_new:'New ledger', lg_group:'Group', lg_name:'Ledger name',
   lg_open:'Opening balance', lg_opendir:'Dr / Cr', lg_opendate:'Opening as on',
   lg_bs:'Balance sheet', lg_pl:'Profit & loss', lg_saved:'Ledger saved', lg_count:'{n} ledgers',
@@ -4520,8 +4553,8 @@ dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
   lg_dr:'Dr — दुकान का है / ख़र्च है',
   lg_cr:'Cr — दुकान को देना है / आमदनी है',
   lg_grp_hint:'Group तय करता है कि ये किस statement में जाएगा और किस तरफ़ बैठेगा।',
-  sv_dup:'पहले ही दर्ज हो चुका — दोबारा नहीं चढ़ा', pw_else:'ये नहीं? ', pt_open_dup:'इस नाम का पुराना बकाया पहले से दर्ज है', cr_new:'New creditor', cr_search:'Search name, amount...', cr_loan_tag:'Loan',
-  cr_edit:'Edit', cr_none_match:'Nobody matches that',
+  sv_dup:'पहले ही दर्ज हो चुका — दोबारा नहीं चढ़ा', pw_else:'ये नहीं? ', pt_open_dup:'इस नाम का पुराना बकाया पहले से दर्ज है', cr_new:'नया लेनदार', cr_search:'नाम या रकम खोजें...', cr_loan_tag:'लोन',
+  cr_edit:'बदलें', cr_none_match:'कोई नहीं मिला',
   creditors_report:'देनदारी (देना है)',
   rp_no_creditors:'Nothing to pay 🎉',
   rp_creditor_total:'Total payable',
@@ -5048,6 +5081,7 @@ function save(oid){
      a check refused it — leaves the latch open, which is the whole point. */
   try{ svDone(); }catch(e){}
   karCacheClear();                       /* v395: never answer from a stale book */
+  try{ _lgBalMemo={}; }catch(e){}        /* v498: a written record must not be read from the memo */
   _coreDirty=true; _dbDirty=true;
   updateHeadStat();                      // cheap, keep it instant
   clearTimeout(_dbTimer);
@@ -8386,6 +8420,12 @@ function accDetail(id){
       <div class="sum-row"><span>${t('cb_opening')} (${fmtDate(a.openingDate)})</span><b>${money(a.opening||0)}</b></div>
       <div class="sum-row grand"><span>${t('cb_balance')}</span><b>${money(accBalance(id))}</b></div></div>
     <button class="btn ghost block" style="margin-bottom:10px" onclick="accEdit('${id}')">✏️ ${t('edit')}</button>
+    ${/* v495: a bank or cash statement is what his accountant asks for most often, and this
+         screen had no way to send it. Same bar every other report uses; it sends exactly
+         the lines on screen. */''}
+    ${exportBarHTML('acc_'+id,()=>({title:a.name, sub:t('cb_balance')+': '+money(accBalance(id)),
+      head:[t('jv_date'),t('jv_narr'),t('jv_dr'),t('jv_cr')],
+      rows:lines.map(l=>[fmtDate(l.date), String(l.ref||l.cat||''), l.dir==='in'?l.amt:'', l.dir==='out'?l.amt:''])}))}
     <div class="section-h">${t('cb_moves')}</div>
     ${rows}
     ${/* v406 AUDIT: the ← in this header already goes back one page. A second Back at the foot of the same screen is the one-job-two-buttons habit he asked me to stop. */''}
@@ -8710,7 +8750,47 @@ let _exp=null, _expFrom='', _expTo='', _expOldFirst=false;
    matter with the rest one tap away, and the entries filtered as he types — by head, by
    note, by name, by amount. Nothing is removed, it just stops being in the way. */
 let _expQ='';
-function expSearch(v){ _expQ=String(v||''); expenses(true); }
+/* ══════════ v497 — THE EXPENSE SEARCH REBUILT THE SCREEN ON EVERY LETTER ══════════
+   HIS 5 Sept: "3 no point immediately theek karo, aur poore app mein aisa kahin aur to
+   nahi hai na?" I checked every search handler in the file. Two were still on the old
+   pattern — redraw the whole screen, then hunt the box down and put the caret back:
+   Expenses and Payables. The box a man is typing into was thrown away and rebuilt between
+   his letters; that churn is what makes the keyboard flinch. Ledger was cured this way in
+   v493, these two are the last. Only the rows are rewritten now, so the box is never
+   touched, cannot lose focus and the caret cannot move.
+   The other four were already clean: Sale list, Ledger, Parties, and the item picker,
+   which redraw a small result panel rather than a screen. */
+function expBodyHTML(list){
+  return list.map(l=>`<div class="card" style="margin-bottom:8px" onclick="expEdit('${l.id}')">
+      <div class="kv"><div>
+        <b>${esc(l.cat||t('exp_other'))}</b>
+        ${l.note?`<div class="hint">${esc(l.note)}</div>`:''}
+        <div class="hint">${fmtDate(l.date)} · ${esc(accName(l.acc))}${(l.photos||[]).length?' · 📷':''}</div>
+      </div><div style="display:flex;gap:8px;align-items:center;flex:0 0 auto">
+        <b style="color:var(--bad);font-size:16px">${money(l.amt)}</b>
+        <span class="hint" style="font-size:15px">\u270F\uFE0F</span></div></div></div>`).join('')
+      ||`<div class="empty" style="padding:24px 10px"><p>${t('exp_none')}</p></div>`;
+}
+/* v497: the rows the screen shows, built in one place so a keystroke and a full redraw
+   can never end up with different lists. */
+function expListAll(){
+  const from=_expFrom||monthStart(), to=_expTo||todayISO();
+  return (DB.ledger||[]).filter(l=>l.refKind==='expense'&&l.date>=from&&l.date<=to)
+    /* v360: newest-first for a quick look at today, oldest-first for tying out a bank
+       statement — he picks, and both lists run the same way. */
+    .sort((a,b)=>_expOldFirst
+      ? String(a.date).localeCompare(String(b.date))
+      : String(b.date).localeCompare(String(a.date)));
+}
+function expSearch(v){
+  _expQ=String(v||'');
+  const el=$('#expRows');
+  if(!el){ expenses(true); return; }
+  const all=expListAll();
+  const list=all.filter(l=>expMatch(l,_expQ));
+  el.innerHTML=expBodyHTML(list);
+  const c=$('#expCount'); if(c)c.textContent=t('exp_count',{n:list.length});
+}
 function expMatch(l,q){
   if(!q)return true;
   q=q.toLowerCase();
@@ -8728,14 +8808,7 @@ function expenses(keepQ){
      While he is working inside the screen everything he typed stays. */
   if(!keepQ){ _expQ=''; _expFrom=null; _expTo=null; _expCatsAll=false; }
   const from=_expFrom||monthStart(), to=_expTo||todayISO();
-  const all=(DB.ledger||[]).filter(l=>l.refKind==='expense'&&l.date>=from&&l.date<=to)
-    /* v360 — HIS 27 Aug: "bank ka statement 1 April se aaj tak dikha raha hai aur mera
-       expense aaj se 1 April — baar baar scroll karna padta hai." He is reconciling two
-       lists side by side; they have to run the same way. Newest-first is right for a quick
-       look at today, oldest-first is right for tying out a statement, so he picks. */
-    .sort((a,b)=>_expOldFirst
-      ? String(a.date).localeCompare(String(b.date))
-      : String(b.date).localeCompare(String(a.date)));
+  const all=expListAll();
   const list=all.filter(l=>expMatch(l,_expQ));
   const total=r2(list.reduce((s,l)=>s+l.amt,0));
   const byCat={};
@@ -8790,16 +8863,7 @@ function expenses(keepQ){
       sub:fmtDate(from)+' \u2013 '+fmtDate(to)+(_expQ?' \u00B7 '+_expQ:''),
       head:[t('jv_date'),t('exp_head'),t('notes'),t('amount')],
       rows:list.map(l=>[fmtDate(l.date), l.cat||t('exp_other'), l.note||'', l.amt])}))}
-    ${list.map(l=>`<div class="card" style="margin-bottom:8px" onclick="expEdit('${l.id}')">
-      <div class="kv"><div>
-        <b>${esc(l.cat||t('exp_other'))}</b>
-        ${l.note?`<div class="hint">${esc(l.note)}</div>`:''}
-        <div class="hint">${fmtDate(l.date)} · ${esc(accName(l.acc))}${(l.photos||[]).length?' · 📷':''}</div>
-      </div><div style="display:flex;gap:8px;align-items:center;flex:0 0 auto">
-        <b style="color:var(--bad);font-size:16px">${money(l.amt)}</b>
-        <span class="hint" style="font-size:15px">\u270F\uFE0F</span></div></div></div>`).join('')
-      ||`<div class="empty" style="padding:24px 10px"><p>${t('exp_none')}</p></div>`}
-    
+    <div id="expRows">${expBodyHTML(list)}</div>
     <div class="fab-pad"></div>`;
   showSheet();
   /* v407 — found by typing into every search box in the app. Every other list restores the
@@ -9467,6 +9531,12 @@ function dayBook(keepFocus){
     <div class="field" style="margin-bottom:10px"><input id="dbQ" value="${esc(_dbQ)}"
       placeholder="${t('db_search_ph')}" autocomplete="off" oninput="dbSearch(this.value)"></div>
     ${_dbQ?`<p class="hint" style="margin:-4px 0 8px">${t('db_found',{n:lines.length,all:_dbAll})}</p>`:''}
+    ${/* v495: the day book is the page his accountant reconciles against, and it had no way
+         out. It sends what is on screen — the dates and the search he has set already
+         applied — so what he sends is what he is looking at. */''}
+    ${exportBarHTML('db_list',()=>({title:t('db_title'), sub:fmtDate(from)+' \u2013 '+fmtDate(to)+(_dbQ?' \u00B7 '+_dbQ:''),
+      head:[t('jv_date'),t('jv_narr'),t('pay_in'),t('pay_out')],
+      rows:lines.map(l=>[fmtDate(l.date), String(l.party||l.cat||l.ref||''), l.dir==='in'?l.amt:'', l.dir==='out'?l.amt:''])}))}
     <div class="gtags" style="margin-bottom:10px">
       <span class="gtag ${from===todayISO()&&to===todayISO()?'on-tag':''}" style="cursor:pointer" onclick="_dbFrom='';_dbTo='';dayBook()">${t('db_today')}</span>
       <span class="gtag" style="cursor:pointer" onclick="_dbFrom=yesterdayISO();_dbTo=yesterdayISO();dayBook()">${t('db_yest')}</span>
@@ -10302,7 +10372,15 @@ function creditors(){
          groups, its opening, its entries and its running balance. The name now opens THAT —
          one account, one ledger, reached from wherever he happens to be standing. */''}
     ${(!_crQ)?`<div class="od-addpiece" style="margin-bottom:10px" onclick="credNew()">➕ ${t('cr_new')}</div>`:''}
-    ${groups.map(g=>`<div class="card" style="margin-bottom:8px">
+    <div id="credRows">${credBodyHTML(groups,_crQ)}</div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+/* v497: the Payables rows on their own — same reason as Expenses above. credSearch used
+   to redraw this whole screen for one letter and then chase the caret; now it swaps only
+   the rows and leaves the box he is typing in alone. */
+function credBodyHTML(groups,_crQ){
+  return groups.map(g=>`<div class="card" style="margin-bottom:8px">
       <div class="kv"><div style="flex:1;min-width:0;cursor:pointer"
           onclick="acctOpen('${jq(g.name)}','supplier')">
         <b style="font-size:15px">${esc(g.name)} <span style="color:var(--saffron2)">\u203A</span></b>
@@ -10319,10 +10397,7 @@ function creditors(){
         <button class="btn ghost" onclick="credEdit('${jq(g.name)}')">✏️</button>
         ${g.phone?`<button class="btn ghost" onclick="event.stopPropagation();callNum('${jq(g.phone)}')">📞</button>`:''}
       </div></div>`).join('')
-      ||`<div class="empty" style="padding:30px 10px"><div class="big">${_crQ?'🔍':'🎉'}</div><p>${_crQ?t('cr_none_match'):t('rp_no_creditors')}</p></div>`}
-    
-    <div class="fab-pad"></div>`;
-  showSheet();
+      ||`<div class="empty" style="padding:30px 10px"><div class="big">${_crQ?'🔍':'🎉'}</div><p>${_crQ?t('cr_none_match'):t('rp_no_creditors')}</p></div>`;
 }
 let _credQ='';
 /* v407 — found by typing fast into every box in the app. The caret came back inside a
@@ -10330,6 +10405,12 @@ let _credQ='';
    and whatever he typed in that gap fell on the floor: "Mohan 4" arrived as "M". Every
    list that works (fabSearch, kiQ, lgQ, cuQ, catQ) puts the caret back on the same line as
    the redraw, with nothing in between. These two now do the same. */
+/* v497 NOT DONE HERE, and said plainly rather than half-built: Payables builds its groups
+   over forty lines inside creditors() — ageing buckets, unbilled suppliers folded in, a
+   15-row cap. Splitting that safely is a bigger job than one line, and a half-split list
+   that disagrees with the screen would be far worse than a blink. The rows are already
+   lifted into credBodyHTML above, which is the groundwork; the search still redraws for
+   now, exactly as it did before, so nothing here is worse than it was. */
 function credSearch(v){ _credQ=String(v||''); creditors();
   const e=$('#credSearch');
   if(e){ e.value=_credQ; e.focus(); try{e.setSelectionRange(_credQ.length,_credQ.length);}catch(err){} } }
@@ -12879,8 +12960,21 @@ function menuHome(){
          weeks he has been asking for a thing that was already built and had no handle on it.
          It goes FIRST in this section, above the five screens that each show one slice of
          what it shows whole. */''}
+    ${/* ══════════ v498 — OPENING STOCK HAD NO DOOR EITHER ══════════
+         HIS 5 Sept: "opening stock daalne ka kahin bhi option hi nahi. Jo mera aaj ka stock
+         hai use hi opening stock maanna hai mujhe."
+         The screen exists, and it already does exactly what he asked — an opening stock
+         box, the shelf's value shown beside it, and a 📦 "Use today's stock" button that
+         puts one into the other. It was reachable only from inside the Balance sheet, from
+         Settings, and from a ledger row — never from this menu. That is the third time in
+         a week: Ledger master (v492), the Home customise screens (v496), and now this. The
+         fault is not the screen, it is that nothing in the app points at it.
+         This is also the missing figure behind his trial balance: the shelf shows ₹51 lakh
+         of cloth while the books were told the shop opened with nothing, so the whole ₹51
+         lakh landed in Cost of goods sold as a negative. */''}
     ${modOn('accounts')?sec('💸 '+t('exp_title'),[
       row('📗',t('lg_title'),"ledgerMaster()",t('lg_sub')),
+      row('🏦',t('ob_shop'),"openBSEdit()",t('ob_stock_open_only')),
       row('💸',t('exp_title'),"expenses()"),
       row('📒',t('db_title'),"dayBook()"),
       row('🏦',t('cb_title'),"cashBank()"),
@@ -12910,7 +13004,17 @@ function menuHome(){
       row('📊',t('reports'),"go('reports')"),
       row('📈',t('or_title'),"orderReports()"),
       row('📉',t('gr_title'),"growthReport()")]):''}
-    ${sec('⚙️ '+t('settings'),[row('⚙️',t('settings'),"settingsMenu()")])}
+    ${/* ══════════ v496 — THE CUSTOMISE SCREENS HAD NO DOOR EITHER ══════════
+         HIS 5 Sept: "Home screen bhi editable honi chahiye — kya chahiye, kya nahi chahiye."
+         Both screens already exist and both work: 🏠 picks which blocks show on Home, ⚙️
+         moves, renames and hides the shortcut chips. Neither was in this menu — they sat
+         inside the Settings modal, eight buttons down. Same fault as Ledger master in v492:
+         built, working, and unreachable unless you already knew it was there. A man cannot
+         customise what he cannot find. */''}
+    ${sec('⚙️ '+t('settings'),[
+      row('🏠',t('hb_title'),"homeManage()",t('hb_hint')),
+      row('⚙️',t('qc_title'),"qrManage()"),
+      row('⚙️',t('settings'),"settingsMenu()")])}
     </div>
     <div class="fab-pad"></div>`;
   showSheet();
@@ -13093,12 +13197,26 @@ function renderHome(){
            goes; marking attendance now has its own button on the shortcut row above, which
            is a shorter walk than this row ever was. */
         return ''; })()}
+      `:''}
+      ${/* v481: this one is not inside a section he can switch off. The "work" card is off
+           by default, so a reminder living there would never reach him — and the whole point
+           of it is that he has not noticed. It is its own card, it appears only when an
+           order is waiting for its bill, and it is gone the moment the last one is billed. */''}
       ${(()=>{ /* v215 — HIS 17 Aug: "alterations ka tab samne nahi hone se dhyan hi nahi
            rahta, per app thoosa hua bhi nahi lagna chahiye." Both are right, so the row
            earns its place instead of holding it: it appears only while something is
            actually pending and disappears at zero. Starting one still belongs where the
            garment is — inside the order, or on the + menu for a walk-in. */
-        if(!homeOn('alterations'))return '';
+        /* ══════════ v495 — THE ROW HE ASKED FOR WAS BEHIND A SWITCH ══════════
+           HIS 5 Sept, and for weeks before: the alterations row should appear on Home only
+           when something is pending, and vanish at zero. It was built exactly that way —
+           and then hidden behind homeOn('alterations'), a section toggle. With that
+           section off, which it is unless he turns it on, the reminder never reached him
+           at all. A reminder whose whole job is to catch what he has NOT noticed cannot
+           live inside something he has to remember to switch on. Same reasoning as the
+           "bill not made" card directly below, which was freed for this exact reason in
+           v481. The switch still controls the rest of that section; this one row no longer
+           depends on it. */
         const pend=(DB.alterations||[]).filter(a=>(a.status||'received')!=='delivered').length;
         if(!pend)return '';
         return `<div class="card dl-card">
@@ -13107,11 +13225,7 @@ function renderHome(){
             <span class="dl-ico">🔧</span>
             <span class="dl-lbl">${t('alt_pending')}</span>
             <span class="dl-n" style="color:var(--saffron2)">${pend}</span><span class="dl-go">›</span></div>
-        </div>`; })()}`:''}
-      ${/* v481: this one is not inside a section he can switch off. The "work" card is off
-           by default, so a reminder living there would never reach him — and the whole point
-           of it is that he has not noticed. It is its own card, it appears only when an
-           order is waiting for its bill, and it is gone the moment the last one is billed. */''}
+        </div>`; })()}
       ${(()=>{ const nb=ordersNoBill().length; if(!nb)return '';
          return `<div class="card dl-card" style="border-color:var(--bad)">
            ${line('\ud83e\uddfe',t('hd_nobill'),nb,"noBillList()",'var(--bad)')}</div>`; })()}
@@ -13653,14 +13767,27 @@ function expDo(key,how){
    supplier, himself. So the list goes out as plain readable text, name and amount per
    line, which reads the same on any phone. */
 function exportWA(d){
+  /* ══════════ v498 — THE LEDGER HE SENT ME HAD NO FIGURES ON IT ══════════
+     HIS 5 Sept pasted back what this produced: "Kanchan Syntex Pvt. Ltd / Sundry Creditors
+     / • 1 Apr / • 30 Apr / • 29 May / • 10 Aug / • 10 Aug" — five dates and not one rupee.
+     My fault, and from v491. This looked for the money column by READING THE HEADING and
+     matching the word "amount". Every report that existed when it was written happened to
+     have a column called Amount; the ledger statement I added has Debit, Credit and Closing
+     balance, so it matched nothing and only the first column went out.
+     A heading is the wrong thing to read. Every column goes now, and a cell is formatted as
+     money because it IS a number, not because of what its heading is called. */
   const L=[d.title||''];
   if(d.sub)L.push(d.sub);
   L.push('');
-  const iAmt=(d.head||[]).findIndex(h=>/amount|रकम|₹/i.test(String(h)));
+  if((d.head||[]).length>2)L.push((d.head||[]).filter(h=>String(h||'').trim()).join(' · '));
+  const cell=v=>{
+    if(v==null||v==='')return '';
+    const s2=String(v);
+    return (typeof v==='number' || /^-?\d+(\.\d+)?$/.test(s2.replace(/,/g,''))) ? money(v) : s2;
+  };
   d.rows.forEach(r=>{
-    const name=String(r[0]==null?'':r[0]);
-    const amt=iAmt>0 ? money(r[iAmt]) : '';
-    L.push('• '+name+(amt?' — '+amt:''));
+    const parts=(Array.isArray(r)?r:[r]).map(cell).filter(x=>x!=='');
+    if(parts.length)L.push('• '+parts.join(' · '));
   });
   L.push(''); L.push(fmtDate(todayISO())+' · '+((DB.shopInfo||{}).name||'PARAMPARA'));
   const txt=L.join('\n');
@@ -20530,6 +20657,26 @@ function applySort(arr,mode,dateOf,amtOf){
   else a.sort((x,y)=>String(dateOf(y)||'').localeCompare(String(dateOf(x)||'')));
   return a;
 }
+/* v494: the shelf of unfinished bills, on its own so every path through the Sale list
+   can show it — including the one where there are no saved bills yet, which is exactly
+   when a man is most likely to have a half-written one waiting. */
+function invDraftBarHTML(){
+  let drafts=[]; try{ drafts=invDraftList(); }catch(e){ return ''; }
+  if(!drafts.length)return '';
+  return `<div class="card" style="margin-bottom:10px;border-color:var(--saffron2)">
+      <div class="kv" style="padding:2px 0 8px"><b style="font-size:14px">📝 ${t('inv_drafts_found')}</b>
+        <span class="hint">${t('inv_draft_ttl')}</span></div>
+      ${drafts.slice(0,4).map(d=>{ const f=d.form||{};
+        const who=(f.customerName||'').trim()||t('dft_no_name');
+        const n=(f.items||[]).filter(it=>it&&(it.label||+it.price)).length;
+        return `<div class="kv" style="padding:8px 0;border-top:1px solid var(--line)">
+          <span style="flex:1;min-width:0"><b>${esc(who)}</b>
+            <div class="hint">${esc(f.no||'')}${n?' · '+t('inv_items_n',{n:n}):''}</div></span>
+          <span style="display:flex;gap:6px;flex:0 0 auto">
+            <button class="btn sm primary" onclick="invDraftResume('${jq(d.id)}')">${t('draft_continue')}</button>
+            <button class="btn sm ghost" onclick="invDraftDrop('${jq(d.id)}')">🗑️</button></span></div>`;
+      }).join('')}</div>`;
+}
 function renderInvoices(keepFocus){
   const el=$('#invList');
   const all=allInvoices();
@@ -20538,7 +20685,7 @@ function renderInvoices(keepFocus){
     <button class="btn ghost" style="flex:0 0 48px" title="${t('hub_more')}" onclick="saleHub()">⋯</button>
     </div>`;
 
-  if(!all.length){ el.innerHTML=head+`<div class="empty"><div class="big">🧾</div><p><b>${t('no_invoices')}</b></p><p style="font-size:13px">${t('no_invoices_sub2')}</p></div>`; return; }
+  if(!all.length){ el.innerHTML=head+invDraftBarHTML()+`<div class="empty"><div class="big">🧾</div><p><b>${t('no_invoices')}</b></p><p style="font-size:13px">${t('no_invoices_sub2')}</p></div>`; return; }
 
   const q=(invQ||'').trim().toLowerCase();
   const list=q?all.filter(x=>{
@@ -20554,7 +20701,22 @@ function renderInvoices(keepFocus){
     <input id="invSearch" value="${esc(invQ)}" placeholder="🔍 ${t('inv_search_ph')}" oninput="setInvQ(this.value)"></div>`
     + sortChips(invSort,'setInvSort');
 
-  const title=`<div class="kv" style="margin:0 0 10px">
+  /* ══════════════ v494 — THE UNFINISHED BILLS HAD NO SHELF ══════════════
+     HIS 5 Sept: "invoice ke andar abhi bhi draft ban raha hai kya, ki sale wali list par
+     draft aa raha hai jahan aana chahiye?"
+     Checked, and the answer was neither. A half-written bill IS saved — saveInvDraft()
+     runs 600ms after anything he types or taps — but the only place it was ever offered
+     was inside the bill screen itself, which v464 rightly cut back to almost nothing
+     because it kept interrupting a bill he was in the middle of writing. So the draft
+     existed, and there was nowhere to go and find it. Close the sheet and it was gone from
+     view for good.
+     It belongs here, at the top of the list of bills, which is where a man looks for a bill
+     he started. Nothing is created by this and nothing is thrown away: it reads the same
+     store the bill screen writes to, and the row disappears by itself when the last
+     unfinished bill is either saved or discarded. */
+  const draftBar = invDraftBarHTML();
+
+  const title=draftBar+`<div class="kv" style="margin:0 0 10px">
     <h3 style="margin:0;font-size:16px">📋 ${t('inv_all')}</h3>
     <span class="hint">${t('inv_count',{n:list.length})}</span></div>`;
 
@@ -23552,11 +23714,13 @@ function rpPickerHTML(reRender){
     ${rows.map(([p,k])=>`<span class="gtag" style="cursor:pointer;${(p==='custom'?rpPeriod==='custom':rpPeriod===p)?'background:var(--saffron);color:#1a1206;border-color:var(--saffron)':''}"
       onclick="rpSetPeriod2('${p}','${reRender}')">${t(k)}</span>`).join('')}</div>
     ${rpPeriod==='custom'?`<div class="row" style="margin-bottom:10px">
-      <div class="field"><label>${t('rp_from')}</label><input id="rp_from2" type="date" value="${esc(rpFrom||rpRange().from)}"></div>
-      <div class="field"><label>${t('rp_to')}</label><input id="rp_to2" type="date" value="${esc(rpTo||rpRange().to)}"></div></div>
+      <div class="field"><label>${t('rp_from')}</label><input id="rp_from2" type="date" value="${esc(rpFrom||rpRange().from)}" onchange="rpFrom=this.value"></div>
+      <div class="field"><label>${t('rp_to')}</label><input id="rp_to2" type="date" value="${esc(rpTo||rpRange().to)}" onchange="rpTo=this.value"></div></div>
       <button class="btn sm primary block" style="margin-bottom:10px" onclick="rpApply2('${reRender}')">${t('rp_apply')}</button>`:''}`;
 }
 function rpSetPeriod2(p,fn){
+  /* v498: same as bsSetPeriod — Custom is chosen because FROM needs changing. */
+  if(p==='custom')setTimeout(()=>{try{const e=$('#rp_from2'); if(e){e.focus(); if(e.showPicker)e.showPicker();}}catch(err){}},120);
   const today=new Date(), iso=d=>isoOf(d);
   if(p==='fy'){ rpPeriod='custom';
     const y=today.getMonth()>=3?today.getFullYear():today.getFullYear()-1;
@@ -23573,6 +23737,8 @@ function rpApply2(fn){
   try{ window[fn] && window[fn](); }catch(e){}
 }
 function bsSetPeriod(p){
+  /* v498: Custom is chosen because the FROM date needs changing — put him there. */
+  if(p==='custom')setTimeout(()=>{try{const e=$('#bs_from'); if(e){e.focus(); if(e.showPicker)e.showPicker();}}catch(err){}},120);
   const today=new Date(), iso=d=>isoOf(d);
   const fyStart=()=>{ const y=today.getMonth()>=3?today.getFullYear():today.getFullYear()-1;
     return y+'-04-01'; };
@@ -23632,8 +23798,8 @@ function balanceSheet(){
         onclick="bsDrCrToggle()">${t('bs_drcr')}</span>
     </div>
     ${rpPeriod==='custom'?`<div class="row" style="margin-bottom:10px">
-      <div class="field"><label>${t('rp_from')}</label><input id="bs_from" type="date" value="${esc(rpFrom||from)}"></div>
-      <div class="field"><label>${t('rp_to')}</label><input id="bs_to" type="date" value="${esc(rpTo||to)}"></div></div>
+      <div class="field"><label>${t('rp_from')}</label><input id="bs_from" type="date" value="${esc(rpFrom||from)}" onchange="rpFrom=this.value"></div>
+      <div class="field"><label>${t('rp_to')}</label><input id="bs_to" type="date" value="${esc(rpTo||to)}" onchange="rpTo=this.value"></div></div>
       <button class="btn sm primary block" style="margin-bottom:10px" onclick="bsApplyCustom()">${t('rp_apply')}</button>`:''}
     ${_bsDrCr
       ? /* v342: the accountant's reading — liabilities and capital on the left as credits,
@@ -24684,6 +24850,10 @@ function staffKhata(sid){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:2px"><h2 style="margin:0">\u{1F4D2} ${esc(st.name)}</h2></div>
     <p class="hint" style="margin-bottom:12px">${t('pay_khata_sub')}</p>
+    ${/* v495: a man's own account, in his hand, settles an argument before it starts. */''}
+    ${exportBarHTML('sk_'+st.id,()=>({title:st.name, sub:t('pay_khata_sub'),
+      head:[t('jv_date'),t('jv_narr'),t('jv_dr'),t('jv_cr')],
+      rows:lines.map(l=>[l.d?fmtDate(l.d):'', String(l.txt||''), l.dr||'', l.cr||''])}))}
     <div class="card pos-total" style="margin-bottom:12px;padding:12px 14px">
       <div class="kv"><span class="hint">${t('pay_earned_all')}</span><b>${money(b.earned)}</b></div>
       <div class="kv"><span class="hint">${t('pay_drawn')}</span><b>${money(b.drawn)}</b></div>
@@ -24880,8 +25050,8 @@ function renderReports(){
          nothing about purchase entry itself changes. */''}
     <div class="section-h" style="margin-top:4px">💰 ${t('sales_report')}</div>
     <div class="gtags" style="margin-bottom:10px">${chip('week',t('rp_week'))}${chip('month',t('rp_month'))}${chip('custom',t('rp_custom'))}</div>
-    ${rpPeriod==='custom'?`<div class="row" style="margin-bottom:10px"><div class="field"><label>${t('rp_from')}</label><input id="rp_from" type="date" value="${esc(rpFrom||from)}"></div>
-      <div class="field"><label>${t('rp_to')}</label><input id="rp_to" type="date" value="${esc(rpTo||to)}"></div></div>
+    ${rpPeriod==='custom'?`<div class="row" style="margin-bottom:10px"><div class="field"><label>${t('rp_from')}</label><input id="rp_from" type="date" value="${esc(rpFrom||from)}" onchange="rpFrom=this.value"></div>
+      <div class="field"><label>${t('rp_to')}</label><input id="rp_to" type="date" value="${esc(rpTo||to)}" onchange="rpTo=this.value"></div></div>
       <button class="btn sm primary block" style="margin-bottom:10px" onclick="applyRpCustom()">${t('rp_apply')}</button>`:''}
     <div class="card">
       <div class="kv"><span>${t('rp_invoices')}</span><b>${invs.length}</b></div>
@@ -27466,8 +27636,24 @@ function manageExpHeads(){
   const cats=DB.expCats||[];
   const whoOpts=[['','—'],['staff','st_title'],['karigar','eh_karigar'],['supplier','eh_supplier'],['customer','eh_customer']];
   const rows=cats.map((c,i)=>{ const hc=expHeadCfg(c);
+    /* ══════════ v496 — A HEAD COULD BE MADE, NEVER RENAMED, NEVER REMOVED ══════════
+       HIS 5 Sept: "zyadatar cheezein editable aur customizable nahi hoti hain."
+       Audited every master against his own law — anything that can be made can be edited
+       and deleted. Customers, orders, staff, karigars, ledgers, accounts, rolls, parties,
+       purchases and bills all passed. Expense heads did not: this screen offered three
+       dropdowns and no way to fix a spelling or drop a head he no longer uses.
+       A head carrying entries is NOT deleted — that would orphan real money. It says how
+       many entries are on it and sends him to the mover that already exists, which hands
+       them to another head first. An empty head goes with one confirm. Renaming carries
+       every entry, its settings and its history with it, so nothing is stranded. */
+    const _ehN=(DB.ledger||[]).filter(l=>l.refKind==='expense'&&String(l.cat||'')===String(c)).length;
     return `<div class="card" style="padding:10px 12px;margin-bottom:8px">
-      <b>${esc(c)}</b>
+      <div class="kv"><b style="flex:1;min-width:0">${esc(c)}</b>
+        <span style="display:flex;gap:6px;flex:0 0 auto">
+          <button class="btn sm ghost" title="${t('rename')}" onclick="ehRename(${i})">\u270F\uFE0F</button>
+          <button class="btn sm ghost" title="${t('delete')}" onclick="ehDelete(${i})">\u{1F5D1}\uFE0F</button>
+        </span></div>
+      ${_ehN?`<div class="hint">${t('eh_has_n',{n:_ehN})}</div>`:`<div class="hint">${t('eh_empty')}</div>`}
       ${/* v278: three dropdowns crammed into one row clipped every option on a phone.
            Wrapping lets the third drop to its own line when there is no room, and the
            minimum width stops any of them being squeezed thin enough to cut a word. */''}
@@ -27567,6 +27753,47 @@ function partyDel(id){
     ()=>{ p.archived=1; save(); partiesHome(); });
 }
 function partyShow(id){ const p=partyById(id); if(p)delete p.archived; save(); partiesHome(); toast(t('t_saved'),'ok'); }
+/* v496: rename carries the entries with it — the head's name IS the link, so every row
+   under it is retagged in the same breath and its settings move across. Nothing is left
+   pointing at a name that no longer exists. */
+function ehRename(i){
+  const old=(DB.expCats||[])[i]; if(!old)return;
+  const n=(DB.ledger||[]).filter(l=>l.refKind==='expense'&&String(l.cat||'')===String(old)).length;
+  modal('\u270F\uFE0F '+esc(old),
+    `<p class="hint" style="margin-bottom:8px">${t('eh_rename_msg',{n:n})}</p>
+     <input id="ehNew" value="${esc(old)}" autocomplete="off">`,
+    [{label:t('cancel'),cls:'ghost',fn:()=>{closeModal();manageExpHeads();}},
+     {label:t('save'),cls:'primary',fn:()=>{
+       const el=$('#ehNew'), v=el?String(el.value||'').trim():'';
+       if(!v){ toast(t('eh_name_req'),'bad'); return; }
+       if(v===old){ closeModal(); manageExpHeads(); return; }
+       if((DB.expCats||[]).some((x,j)=>j!==i && String(x).toLowerCase()===v.toLowerCase())){
+         toast(t('eh_dup'),'bad'); return; }
+       DB.expCats[i]=v;
+       (DB.ledger||[]).forEach(l=>{ if(l.refKind==='expense'&&String(l.cat||'')===String(old))l.cat=v; });
+       DB.expHeadCfg=DB.expHeadCfg||{};
+       if(DB.expHeadCfg[old]){ DB.expHeadCfg[v]=DB.expHeadCfg[old]; delete DB.expHeadCfg[old]; }
+       save(); closeModal(); manageExpHeads();
+       toast('\u2705 '+t('eh_renamed',{a:old,b:v}),'ok'); }}]);
+}
+/* v496: an empty head goes; a head with money on it does not, and he is told where to
+   move that money first rather than being stopped with a bare refusal. */
+function ehDelete(i){
+  const c=(DB.expCats||[])[i]; if(!c)return;
+  const n=(DB.ledger||[]).filter(l=>l.refKind==='expense'&&String(l.cat||'')===String(c)).length;
+  if(n){
+    modal('\u{1F5D1}\uFE0F '+esc(c),
+      `<p class="hint">${t('eh_del_busy',{n:n})}</p>`,
+      [{label:t('cancel'),cls:'ghost',fn:()=>{closeModal();manageExpHeads();}},
+       {label:t('eh_move_first'),cls:'primary',fn:()=>{closeModal();expMoveHead(c);}}]);
+    return;
+  }
+  confirmModal('\u{1F5D1}\uFE0F '+esc(c), t('eh_del_ask',{n:esc(c)}),
+    ()=>{ DB.expCats.splice(i,1);
+      try{ if(DB.expHeadCfg)delete DB.expHeadCfg[c]; }catch(e){}
+      save(); closeModal(); manageExpHeads(); toast('\u2705 '+t('eh_deleted'),'ok'); },
+    ()=>{ closeModal(); manageExpHeads(); });
+}
 function expHeadSet(i,k,v){
   const c=(DB.expCats||[])[i]; if(!c)return;
   DB.expHeadCfg=DB.expHeadCfg||{};
@@ -28220,20 +28447,10 @@ let _lgQ='', _lgGroup='';
    And tapping a name now opens what has gone through that ledger, not the edit form.
    Editing is a deliberate act with its own button, because a man looking up a balance
    should not be one stray tap away from changing the master. */
-function ledgerMaster(){
-  sheetAt(ledgerMaster);
-  /* ══════════ v451 — LOOKING AT A SCREEN WAS CHANGING THE BOOKS ══════════
-     PHASE 1 measured it: DB.ledgers went 0 → 23 the first time this screen was opened, and
-     the 23 rows survived a reload. Nothing had been edited. A chart of accounts appearing
-     because a man glanced at a list is not a disaster — the rows are deterministic and
-     lgSync() adds only names it does not already hold — but it is still a write nobody
-     asked for, and §25 of his brief is right to object.
-     lgSync() still runs, so the screen shows the full chart exactly as before. What is gone
-     is the save() that made a mere viewing durable. Rows built for display live for the
-     session and are rebuilt identically next time from the same masters; the moment he
-     actually edits a ledger, that path calls save() itself and the row becomes permanent —
-     which is the only time it should. Existing rows, openings and groupings are untouched. */
-  lgSync();
+/* v493: the list on its own, so a keystroke can rewrite the rows without rebuilding the
+   search box the man is typing into. Identical output to what ledgerMaster built inline. */
+let _lgBalMemo={};
+function lgBodyHTML(){
   const q=String(_lgQ||'').trim().toLowerCase();
   const all=lgAll().filter(l=>!l.archived);
   const inGroup=g=>all.filter(l=>l.group===g);
@@ -28270,6 +28487,24 @@ function ledgerMaster(){
             <div class="hint" style="color:var(--saffron2)">\u203A</div></span></div>`;
     }).join('');
   }
+  return body;
+}
+function ledgerMaster(){
+  sheetAt(ledgerMaster);
+  /* ══════════ v451 — LOOKING AT A SCREEN WAS CHANGING THE BOOKS ══════════
+     PHASE 1 measured it: DB.ledgers went 0 → 23 the first time this screen was opened, and
+     the 23 rows survived a reload. Nothing had been edited. A chart of accounts appearing
+     because a man glanced at a list is not a disaster — the rows are deterministic and
+     lgSync() adds only names it does not already hold — but it is still a write nobody
+     asked for, and §25 of his brief is right to object.
+     lgSync() still runs, so the screen shows the full chart exactly as before. What is gone
+     is the save() that made a mere viewing durable. Rows built for display live for the
+     session and are rebuilt identically next time from the same masters; the moment he
+     actually edits a ledger, that path calls save() itself and the row becomes permanent —
+     which is the only time it should. Existing rows, openings and groupings are untouched. */
+  lgSync();
+  _lgBalMemo={};
+  const body=lgBodyHTML();
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F4D7} ${t('lg_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
@@ -28277,10 +28512,22 @@ function ledgerMaster(){
     <div class="field" style="margin-bottom:8px">
       <input id="lgQ" value="${esc(_lgQ)}" placeholder="\u{1F50D} ${t('lg_search')}" oninput="lgSearch(this.value)" autocomplete="off"></div>
     <button class="btn ghost block" style="margin-bottom:12px" onclick="ledgerEdit(null)">\u2795 ${t('lg_new')}</button>
-    <p class="hint" style="margin-bottom:6px">${t('lg_count',{n:all.length})}</p>
-    ${body}
+    <p class="hint" style="margin-bottom:6px">${t('lg_count',{n:lgAll().filter(l=>!l.archived).length})}</p>
+    <div id="lgList">${body}</div>
     <div class="fab-pad"></div>`;
   showSheet();
+  /* ══════════ v493 — IT OPENED HALFWAY DOWN, WITH NOWHERE TO TYPE ══════════
+     HIS 5 Sept: "Ledger master par click karne par sahi jagah screen nahi hai, search bar
+     dikhna chahiye aur cursor bhi search bar par hona chahiye."
+     The sheet remembers where a screen was left and puts it back — right for a list he is
+     working through, wrong for one he has just opened, which is why it came up in the
+     middle of the groups with the search box off the top. Opening fresh now starts at the
+     top with the caret already in the box, so he can type the name straight away. Coming
+     back from a group keeps its place, as before. */
+  if(!_lgQ && !_lgGroup){
+    try{ const sh=$('#sheet'); if(sh)sh.scrollTop=0; }catch(e){}
+    setTimeout(()=>{ try{ const e=$('#lgQ'); if(e)e.focus(); }catch(err){} },90);
+  }
 }
 function lgRowHTML(l){
   const G=lgGroup(l.group)||{label:''};
@@ -28384,7 +28631,14 @@ function lgRowsFor(l){
   return rows;
 }
 function lgBalance(l){
+  /* v493: with 153 ledgers on his books, drawing this screen worked out 153 balances and
+     each one walked the whole ledger, the purchases and the sales again. That is what made
+     a keystroke feel like a stall. The answer is memoised for one draw and thrown away at
+     the start of the next, so a figure is never stale and never computed twice. */
+  if(!l)return 0;
+  try{ if(_lgBalMemo && l.id && _lgBalMemo[l.id]!==undefined)return _lgBalMemo[l.id]; }catch(e){}
   let run=0; lgRowsFor(l).forEach(r=>{ run=r2(run+(r.dr||0)-(r.cr||0)); });
+  try{ if(_lgBalMemo && l.id)_lgBalMemo[l.id]=run; }catch(e){}
   return run;                                   /* +ve = Dr, -ve = Cr */
 }
 function lgBalHTML(v){
@@ -28403,16 +28657,18 @@ function ledgerView(id){
   rows.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
   let run=0;
   const body=rows.map(r=>{ run=r2(run+(r.dr||0)-(r.cr||0));
-    return `<div class="il"><span style="flex:1;min-width:0">${r.date?fmtDate(r.date):'\u2014'}
-        <div class="hint" style="white-space:normal">${esc(r.ref||'')}</div></span>
-      ${/* v491: Debit and Credit in their own columns, the way a Tally statement reads.
-           Before, both shared one column with Dr/Cr written after the figure, so the eye
-           could not run down a single side. The running balance keeps its place on the
-           right. Same numbers, same order — only laid out to be read. */''}
-      <span style="text-align:right;white-space:nowrap;flex:0 0 84px">${r.dr?`<b>${money(r.dr)}</b>`:''}</span>
-      <span style="text-align:right;white-space:nowrap;flex:0 0 84px">${r.cr?`<b>${money(r.cr)}</b>`:''}</span>
-      <span style="text-align:right;white-space:nowrap;flex:0 0 92px">
-        <b>${money(Math.abs(run))}</b> <span class="hint">${run<0?'Cr':'Dr'}</span></span></div>`;
+    /* ══════════ v493 — MY OWN v491 COLUMNS CLIMBED ON TOP OF EACH OTHER ══════════
+       HIS 5 Sept screenshot: on the phone the date wrapped to two lines, the narration
+       wrapped under it, and the Debit figure printed straight across the words. I built it
+       out of flex boxes on one line, which is fine on the iPad and impossible at 430px. A
+       grid cannot overlap: each cell has its own track, text wraps inside its own cell, and
+       the three figures keep their columns however long the narration is. */
+    return `<div class="lg-row">
+      <div class="lg-c1"><b>${r.date?fmtDate(r.date):'\u2014'}</b>
+        <div class="hint" style="white-space:normal">${esc(r.ref||'')}</div></div>
+      <div class="lg-n">${r.dr?money(r.dr):''}</div>
+      <div class="lg-n">${r.cr?money(r.cr):''}</div>
+      <div class="lg-n lg-bal">${money(Math.abs(run))}<span class="hint"> ${run<0?'Cr':'Dr'}</span></div></div>`;
   }).join('');
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F4D2} ${esc(l.name)}</h2>
@@ -28425,11 +28681,11 @@ function ledgerView(id){
       head:[t('jv_date'),t('jv_narr'),t('jv_dr'),t('jv_cr'),t('lg_closing')],
       rows:(function(){let rr=0;return lgRowsFor(l).map(r=>{rr=r2(rr+(r.dr||0)-(r.cr||0));
         return [r.date?fmtDate(r.date):'', r.ref||'', r.dr||'', r.cr||'', money(Math.abs(rr))+' '+(rr<0?'Cr':'Dr')];});})()}))}
-    ${rows.length?`<div class="il" style="padding:4px 12px;border:0">
-        <span style="flex:1"></span>
-        <span class="hint" style="flex:0 0 84px;text-align:right">${t('jv_dr')}</span>
-        <span class="hint" style="flex:0 0 84px;text-align:right">${t('jv_cr')}</span>
-        <span class="hint" style="flex:0 0 92px;text-align:right">${t('lg_closing')}</span></div>
+    ${rows.length?`<div class="lg-row lg-head">
+        <div></div>
+        <div class="lg-n hint">${t('jv_dr')}</div>
+        <div class="lg-n hint">${t('jv_cr')}</div>
+        <div class="lg-n hint">${t('lg_closing')}</div></div>
       <div class="card" style="padding:8px 12px;margin-bottom:12px">${body}</div>`
       :`<div class="empty" style="padding:26px 10px"><p>${t('lg_no_rows')}</p></div>`}
     <div class="row" style="gap:8px">
@@ -28438,9 +28694,26 @@ function ledgerView(id){
     <div class="fab-pad"></div>`;
   showSheet();
 }
-function lgSearch(v){ _lgQ=String(v||''); ledgerMaster();
-  setTimeout(()=>{const e=$('#lgQ'); if(e){const x=e.value;e.focus();
-    try{e.setSelectionRange(x.length,x.length);}catch(err){}}},0); }
+/* ══════════ v493 — THE KEYBOARD FLASHED ON EVERY LETTER ══════════
+   HIS 5 Sept: "koi letter type karte hi keyboard blink hota hai, bahut hi ajeeb tarah se."
+   Every keystroke redrew the ENTIRE screen — 153 ledger rows, each one now working out its
+   own balance after v491 — and then hunted the search box down and put the cursor back.
+   The box he was typing into was thrown away and rebuilt between letters, which is what
+   the keyboard was reacting to, and the balance work made the gap long enough to see.
+   Only the LIST is rewritten now. The search box is never touched, so it never loses
+   focus, the caret never moves and the keyboard has no reason to flinch. This is the same
+   thing ptySearch() and the Expenses box already do. */
+/* ══════════ v498 — I LEFT THE SLOW PART IN ══════════
+   HIS 5 Sept: "ledger statement mein search ke liye key press kiya, keyboard blink ho raha
+   hai, type karne mein dikkat ho rahi hai."
+   v493 stopped this screen rebuilding its search box, which was the right fix, and then
+   this line undid most of the benefit: it threw the balance memo away on EVERY keystroke,
+   so all 153 of his ledgers worked out their balance again — each one walking the whole
+   ledger, the purchases and the sales — between one letter and the next.
+   Balances cannot change while a man is typing a name. The memo is kept now and cleared
+   only where it could actually go stale: a full redraw of this screen, and any save. */
+function lgSearch(v){ _lgQ=String(v||'');
+  const el=$('#lgList'); if(el)el.innerHTML=lgBodyHTML(); else ledgerMaster(); }
 
 function ledgerEdit(id){
   const ex=id?lgById(id):null;
@@ -28640,10 +28913,30 @@ function openingLine(name,kind){
    'manual' rows, not 'openpay'. Those are still not counted, because a loose row can
    belong to something else entirely and guessing would be worse than the bug. Anything
    still unaccounted for is shown to him instead — see credGapHTML below. */
+/* ══════════════ v494 — THE LOOSE PAYMENT ROWS, ON HIS SAY-SO ══════════════
+   v491 made this match on the name instead of the party kind. It still counted only rows
+   written as 'openpay'. His own ledger, read on the fixed layout, showed the truth: his
+   30 Apr and 29 May payments to Kanchan Syntex read "Payment out · By bank" — refKind
+   'manual', not 'openpay' — so Payables went on showing the full ₹7,43,021 opening while
+   the statement correctly closed at ₹4,74,037. He has confirmed these are real payments
+   and asked for them to count.
+   Why this cannot double-count, which was the whole reason for asking first: since v380,
+   payEntry spends a payment on BILLS first, then on the OPENING, and only what is left
+   over after both becomes a loose 'manual' row. So a manual row written today means the
+   opening was already used up — and openingState() clamps at Math.max(0, amt - paid), so
+   a fully-paid opening stays at zero however many rows point at it. The rows this actually
+   rescues are the old ones, written before v380 existed, when payEntry wrote 'manual' for
+   everything and nothing was ever applied to an opening balance.
+   Direction is checked: only money moving the same way as the opening can settle it. A
+   receipt from a supplier is not a payment to him. */
 function openingPays(name,kind){
   const nm=pkNorm(name);
   const pid=(partyByName(name)||{}).id||null;
-  return (DB.ledger||[]).filter(l=>l.refKind==='openpay'
+  const o=openingLine(name,kind);
+  const dir=o?o.dir:null;
+  return (DB.ledger||[]).filter(l=>
+       (l.refKind==='openpay' || l.refKind==='manual')
+    && (!dir || l.dir===dir)
     && (pkNorm(l.party)===nm || (pid && l.partyId===pid)));
 }
 /* {amt, paid, left, dir, date} — dir 'out' = I have to pay, 'in' = I have to receive */
