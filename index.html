@@ -858,7 +858,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v501</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v503</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -5409,6 +5409,24 @@ function invCompute(inv){
   const courier=+inv.courier||0;
   return {gross:r2(gross),discount:r2(discAmt),courier:r2(courier),taxable:r2(taxable),cgst:r2(cgst),sgst:r2(sgst),igst:r2(igst),total:r2(gross-discAmt+courier)};}
 const GST_STATES={'01':'Jammu and Kashmir','02':'Himachal Pradesh','03':'Punjab','04':'Chandigarh','05':'Uttarakhand','06':'Haryana','07':'Delhi','08':'Rajasthan','09':'Uttar Pradesh','10':'Bihar','11':'Sikkim','12':'Arunachal Pradesh','13':'Nagaland','14':'Manipur','15':'Mizoram','16':'Tripura','17':'Meghalaya','18':'Assam','19':'West Bengal','20':'Jharkhand','21':'Odisha','22':'Chhattisgarh','23':'Madhya Pradesh','24':'Gujarat','27':'Maharashtra','29':'Karnataka','30':'Goa','32':'Kerala','33':'Tamil Nadu','36':'Telangana','37':'Andhra Pradesh'};
+/* ══════════ v503 — IGST IS NOT A QUESTION, IT IS A FACT ══════════
+   HIS 5 Sept: "sales mein invoice mein maine dekha inter GST kya hai... woh main kisi bhi
+   software mein nahi dekhta hoon, woh automatic hota hai. Mera retail ka kaam hai."
+   Right on both counts. Whether a bill carries IGST or CGST+SGST is not an opinion — it is
+   decided by which state the other party is in, and the first two digits of a GSTIN say so.
+   Asking a man at the counter to tick it is asking him to know a rule he should never have
+   to think about, and to get it wrong on the bills where he is in a hurry.
+   So it is worked out, not asked. No GSTIN on the other side means a walk-in customer in
+   the shop's own state, which is the whole of his retail trade, and that is CGST + SGST.
+   It is still SHOWN, as one line, but only on the rare bill where it is actually
+   interstate — because there he does want to see why the tax looks different.
+   Bills already saved keep whatever they were saved with; this decides new ones only. */
+function shopStateCode(){ return gstStateCode((DB.shopInfo||{}).gstin||''); }
+function isInterstate(partyGstin){
+  const mine=shopStateCode(), theirs=gstStateCode(partyGstin||'');
+  if(!mine||!theirs)return false;          // no GSTIN either side -> local, the retail case
+  return mine!==theirs;
+}
 function gstState(gstin){const c=String(gstin||'').slice(0,2);return c&&GST_STATES[c]?c+'-'+GST_STATES[c]:'';}
 function numToWordsIndian(num){num=Math.round(+num||0);if(!num)return 'Zero Rupees only';
   const ones=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
@@ -5952,6 +5970,8 @@ function go(tab){
      of taking the app down. */
   if(!$('#tab-'+tab)) tab='home';
   _curTab=tab;
+  /* v503: remember where he is, so a reload puts him back rather than at the top */
+  try{ localStorage.setItem('pb_ob_lasttab', JSON.stringify({tab:tab, at:Date.now()})); }catch(e){}
   document.querySelectorAll('.tabpane').forEach(p=>p.classList.remove('active'));
   const pane=$('#tab-'+tab); if(pane)pane.classList.add('active');
   document.querySelectorAll('nav button').forEach(b=>b.classList.remove('on'));
@@ -18227,8 +18247,9 @@ function renderInvoiceForm(){
           <span class="gtag" style="cursor:pointer;border-style:dashed" onclick="invAddSalesman()">➕ ${t('add_salesman')}</span>
           ${all.length?`<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="invManageSalesmen()">⚙️ ${t('sm_manage')}</span>`:''}
         </div>`; })()}</div>
-      <label style="display:flex;align-items:center;gap:8px;margin:10px 0;font-size:13px;color:var(--txt2)">
-        <input type="checkbox" id="inv_inter" ${f.interstate?'checked':''} onchange="updateInvTotals()" style="width:18px;height:18px"> ${t('interstate')}</label>
+      ${/* v503: worked out from the customer's GSTIN, not asked. Shown only when it is
+           actually interstate, which for his retail counter is almost never. */''}
+      ${f.interstate?`<p class="hint" style="margin:10px 0;color:var(--saffron2)">\u2139\uFE0F ${t('interstate')}</p>`:''}
       <p class="hint">${t('invoice_gst_hint')}</p>
       ${f.kind==='sale'?`<div class="field"><label>${t('order_notes')}</label><textarea id="inv_notes" placeholder="${t('notes_ph')}">${esc(f.notes||'')}</textarea></div>`:''}
     </details>
@@ -19301,7 +19322,10 @@ function invPrevPrint(){
 function captureInvoiceForm(){const f=invForm;
   if($('#inv_no'))f.no=$('#inv_no').value.trim();
   if($('#inv_date'))f.date=$('#inv_date').value;
-  if($('#inv_inter'))f.interstate=$('#inv_inter').checked;
+  /* v503: decided by the two GSTINs, never by a tick */
+  try{ const c0=(DB.customers||[]).find(x=>x.id===f.customerId)||{};
+       const pt=partyByName(f.customerName||c0.name)||{};
+       f.interstate=isInterstate(pt.gstin||c0.gstin||f.custGstin||''); }catch(e){}
   if($('#inv_pm'))f.paymentMode=$('#inv_pm').value;
   if($('#inv_acc')&&$('#inv_acc').value!=='__new')f.acc=$('#inv_acc').value;
   if($('#inv_disctype'))f.discType=$('#inv_disctype').value;
@@ -20996,7 +21020,8 @@ function capturePurchForm(){const f=purchForm;if(!f)return;
     else { f.gstPct=null; }
   }
   if($('#pu_nogst'))f.noGst=$('#pu_nogst').checked;
-  if($('#pu_inter'))f.interstate=$('#pu_inter').checked;      /* v436 */
+  /* v503: worked out from the supplier's GSTIN, never from a tick */
+  try{ f.interstate=isInterstate((partyByName(f.supplier)||{}).gstin||''); }catch(e){}
   if($('#pu_nostock'))f.noStock=$('#pu_nostock').checked;
   if($('#pu_datelock'))_dateLock.pur=$('#pu_datelock').checked?f.date:'';
   if($('#pu_date'))f.date=$('#pu_date').value;
@@ -21085,6 +21110,13 @@ function purchTotalsBoxHTML(comp){
      they fold together. Opened on their own whenever any of them carries a figure, and the
      header says so — nothing can hide a number that is actually affecting the total. */
   const adjOn = _puAdj || !!(+f.discValue) || !!(+f.courier) || !!(+comp.roundOff);
+  /* v502: on a bill with nothing on it yet this whole block printed "Taxable value ₹0,
+     GST %, No GST, IGST ₹0, Grand Total ₹0, Paid now, Balance ₹0" and four payment chips —
+     six lines of arithmetic about a bill that does not exist. He opens this screen to type
+     a supplier and a bill number, and the first thing it showed him was a page of zeroes.
+     Nothing to add up, nothing to show. The running total still sits pinned above Save the
+     moment the first item goes on. */
+  if(!(f.items||[]).some(it=>it&&(it.label||+it.amt||+it.rate)))return '';
   const adjBits=[]; if(+f.discValue)adjBits.push(t('discount'));
   if(+f.courier)adjBits.push(t('courier')); if(+comp.roundOff)adjBits.push(t('round_off'));
   return `<div style="${ln};cursor:pointer" onclick="puAdjToggle()">
@@ -21122,9 +21154,10 @@ function purchTotalsBoxHTML(comp){
              The supplier's own GSTIN says where he is — the first two digits are his state.
              So it is set from that the moment the supplier is picked, and left on screen for
              him to overrule, because a GSTIN can be missing or mistyped. */''}
-        <label style="display:flex;gap:4px;align-items:center;font-size:12px;color:var(--mut)">
-          <input type="checkbox" id="pu_inter" style="width:16px;height:16px;margin:0" ${f.interstate?'checked':''}
-            onchange="updatePurchTotal()"> IGST</label></span>
+        ${/* v503: the supplier's GSTIN already says which state he is in, and this was
+             being set from it the moment the supplier was picked. The tick beside it only
+             ever offered a way to get it wrong. */''}
+        ${f.interstate?`<span class="hint" style="color:var(--saffron2)">IGST</span>`:''}</span>
       <b id="puTaxAmt">${money(comp.tax)}</b></div>
     ${comp.tax?`<div style="${ln}"><span class="hint">${comp.igst?'IGST':'CGST + SGST'}</span>
       <span class="hint">${comp.igst?money(comp.igst):money(comp.cgst)+' + '+money(comp.sgst)}</span></div>`:''}
@@ -21152,7 +21185,16 @@ function purchTotalsBoxHTML(comp){
       <span class="gtags" id="puModes">${PAY_MODES_PUR.map(m=>
         `<span class="gtag sm ${f.paymentMode===m[0]?'on-tag':''}" data-pm="${m[0]}" style="cursor:pointer" onclick="puSetMode('${m[0]}')">${t(m[1])}</span>`).join('')}</span>
       <input type="hidden" id="pu_pm" value="${esc(f.paymentMode||'Bank')}"></div>
-    <div style="${lnStack};border-bottom:0;padding-top:6px" id="puAccRow" ${/cash/i.test(f.paymentMode||'')?'hidden':''}>
+    ${/* ══════════ v502 — THE SCREEN ASKED THINGS BEFORE THEY MATTERED ══════════
+         HIS 5 Sept: "purchase ki entry ko thoda easy karne ki zarurat hai... save karte to
+         pata nahi kya kya option aa jaata hai. Thoda sa simplify karo."
+         Measured the blank purchase screen: 13 input boxes and 4 payment chips before he
+         has typed a single thing. The line above already promises "paying now? put the
+         amount first — the mode appears with it", and the MODE did wait. The account
+         picker did not: it sat there with a bank name and an ➕ Add bank account beside it
+         on a bill where nothing was being paid. A screen that says it will wait and then
+         does not is worse than one that never said it. */''}
+    <div style="${lnStack};border-bottom:0;padding-top:6px" id="puAccRow" ${(+paid>0 && !/cash/i.test(f.paymentMode||''))?'':'hidden'}>
       <span class="hint">${t('acc_from')}</span>
       <span style="width:100%">${acctSelHTML('pu_acc', f.acc||(defaultAcc()||{}).id)}</span></div>
     ${/cheque/i.test(f.paymentMode||'')?`<div class="field" style="margin:8px 0 0"><label>${t('pm_ref')}</label>
@@ -21337,10 +21379,10 @@ function puSupChanged(){
   const bal=supBalHTML(el.value);
   box.innerHTML = mark + (mark&&bal?' · ':'') + bal;
   /* v436: his state decides the tax, so the box follows the supplier he just named */
+  /* v503: no tick to keep in step any more — the figure follows the supplier directly */
   const inter=puIsInterstate(typed);
-  if(inter!==null){
-    const cb=$('#pu_inter');
-    if(cb && cb.checked!==inter){ cb.checked=inter; try{updatePurchTotal();}catch(e){} }
+  if(inter!==null && purchForm && purchForm.interstate!==inter){
+    purchForm.interstate=inter; try{ renderPurchaseForm(); }catch(e){}
   }
   const ph=$('#pu_phone'); if(s&&s.phone&&ph&&!ph.value)ph.value=s.phone;
   puSupNear();                     /* v328 */
@@ -32732,8 +32774,31 @@ async function init(){
   document.body.classList.toggle('simple-mode',localStorage.getItem('pb_ob_simple')==='1');
   enLockScreens();                     /* v264: accounts screens speak English */
   pinLockScreens();                    /* v271: and the money ones ask first */
-  renderHome();_curTab='home';pushGuard();
+  /* ══════════ v503 — SWITCH APPS, COME BACK, AND YOU ARE ON HOME AGAIN ══════════
+     HIS 5 Sept: "ek app se switch karke doosre app mein gaye phir wapas aaye to home
+     screen mein aa jaate hain... chhoti chhoti cheez bahut hi irritate karti hai."
+     He is right and it was never his device misbehaving. On an iPad or a phone the browser
+     drops a background page when it needs the memory, and tapping the icon reloads it from
+     scratch. Startup then said, in as many words, go('home') — so however deep in his work
+     he was, he came back to the top of the app and had to walk down again.
+     The tab he was on is remembered now, and he is put back on it. Only the TAB: the pane
+     he was reading, never a half-filled form, because restoring a form nobody asked to
+     reopen is how records get saved that he never meant to save. reopenForm() below already
+     handles an interrupted order, and it asks him first.
+     Half an hour is the cut-off. Coming back inside that is the same piece of work and he
+     should land where he left it; the next morning is a new day and Home is right. */
+  const _last=(function(){ try{ const r=JSON.parse(localStorage.getItem('pb_ob_lasttab')||'null');
+    if(r && r.tab && (Date.now()-(+r.at||0))<30*60*1000)return r.tab; }catch(e){} return ''; })();
+  renderHome(); _curTab='home';
+  pushGuard();
   reopenForm();                        // interrupted mid-order? put him back in it
+  /* v503: the tab is put back AFTER reopenForm, not before. Orders would not stick
+     otherwise — reopenForm lands him on Home when it finds an interrupted order, which is
+     right, and it must have the last word. A sheet already on screen keeps it too: if he
+     is being put back into an order, that is where he wants to be, not on a list. */
+  if(_last && _last!=='home' && $('#tab-'+_last) && !_sheetOn){
+    try{ go(_last); }catch(e){}
+  }
   setTimeout(autoFileBackup,4000);
   if(boot && boot.raw && boot.from!=='live' && boot.from!=='legacy'){
     setTimeout(()=>toast(t('rec_used',{src:boot.from}),'bad'),900);
