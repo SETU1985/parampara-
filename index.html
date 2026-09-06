@@ -191,7 +191,9 @@
   .qty-in{width:32px;text-align:center;background:transparent;border:none;color:var(--txt);
     font-size:15px;font-weight:700;outline:none;-moz-appearance:textfield}
   .qty-in::-webkit-outer-spin-button,.qty-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-  .rate-in{flex:1;min-width:0;display:flex;align-items:center;gap:2px;background:var(--card);border:1px solid var(--line2);
+  .mini-lbl{font-size:10px;letter-spacing:.4px;text-transform:uppercase;opacity:.55;
+  padding:0 5px 0 7px;white-space:nowrap}
+.rate-in{flex:1;min-width:0;display:flex;align-items:center;gap:2px;background:var(--card);border:1px solid var(--line2);
     border-radius:9px;padding:0 7px;height:38px}
   .rate-in span{color:var(--mut);font-size:13px;flex:0 0 auto}
   .rate-in input{flex:1;min-width:0;width:100%;background:transparent;border:none;color:var(--txt);font-size:15px;font-weight:700;outline:none}
@@ -858,7 +860,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v515</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v520</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -1387,6 +1389,8 @@ const T={
   lg_dir_auto:'Opening will be {d} \u2014 that is the side {g} sits on.',
   lg_dir_flip:'Make it {d} instead',
   lg_dir_odd:'This is the opposite of what this group normally does. Right for an advance or an overdrawn account \u2014 wrong otherwise.',
+  od_give_n:'Give pieces to a karigar · {n} not given yet',
+  ki_no_kar_ask:'No karigar is on the list yet. Add one now?',
   save_generate:'Save & generate',
   save_close:'Save & close',
   mv_title:'Move this bill onto the order',
@@ -2674,7 +2678,7 @@ dl_show_hidden:'Show hidden ({n})',
   dir_all:'All', dir_search:'Search a name or a kind...', dir_more:'{n} more — search to find them',
   lg_all_groups:'All groups', lg_closing:'Closing balance', lg_edit:'Edit ledger',
   lg_no_rows:'Nothing has gone through this ledger yet',
-  ki_title:'Issue to a karigar', ki_sub:'Pick the man once, then tick everything going with him.',
+  ki_title:'Issue to a karigar', ki_sub:'One karigar at a time — pick the man, tick only the pieces going to him, and issue. Come back for the next man.',
   ki_search:'Search order, customer, piece...', ki_waiting:'{n} pieces waiting to go out',
   ki_extra:'Extra', ki_extra_why:'What is the extra for', ki_extra_why_ph:'double palla, extra buttons\u2026',
   ki_rate:'Rate', ki_none:'Nothing is waiting to be given out', ki_go:'Issue {n} pieces',
@@ -3296,6 +3300,8 @@ dl_show_hidden:'Show hidden ({n})',
   lg_dir_auto:'ओपनिंग {d} जाएगी — {g} इसी तरफ़ बैठता है।',
   lg_dir_flip:'{d} कर दें',
   lg_dir_odd:'यह इस ग्रुप के आम तरीक़े का उल्टा है। एडवांस या ओवरड्रॉन खाते के लिए सही — वरना ग़लत।',
+  od_give_n:'कारीगर को पीस देना · {n} अभी नहीं दिए',
+  ki_no_kar_ask:'अभी कोई कारीगर सूची में नहीं है। अभी जोड़ें?',
   save_generate:'सहेजें और बनाएँ',
   save_close:'सेव करके बंद करें',
   mv_title:'ये बिल ऑर्डर पर ले जाएँ',
@@ -9601,7 +9607,41 @@ function isoOf(d){
 }
 function monthStart(){ const d=new Date(); return isoOf(new Date(d.getFullYear(),d.getMonth(),1)); }
 let _dbQ='';
-function dbSearch(v){ _dbQ=v; dayBook(1); }
+function dbSearch(v){
+  _dbQ=v;
+  const el=$('#dbRows');
+  if(!el){ dayBook(1); return; }
+  const lines=dbLines();
+  el.innerHTML=dbBodyHTML(lines);
+  const h=$('#dbFound'); if(h)h.textContent=_dbQ?t('db_found',{n:lines.length,all:_dbAllCount}):'';
+}
+/* ══════════ v520 — THE LAST TWO SEARCH BOXES THAT REBUILT THEMSELVES ══════════
+   Found in the full sweep rather than by him: Day book and Stock were still redrawing the
+   whole screen on every letter, throwing away the box he was typing into and putting the
+   focus back afterwards. Ledger, Expenses, the Sale list and Payables have all been cured
+   of this already; these two were simply never measured. Only the rows are rewritten now,
+   so the box is never touched and the keyboard has nothing to react to. */
+/* v520: the rows the screen shows, built in one place so a keystroke and a full redraw can
+   never end up with different lists. */
+let _dbAllCount=0;
+function dbLines(){
+  const from=_dbFrom||todayISO(), to=_dbTo||todayISO();
+  const q=String(_dbQ||'').trim().toLowerCase();
+  let lines=moneyLines(from,to).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  _dbAllCount=lines.length;
+  if(q)lines=lines.filter(l=>[l.party,l.cat,l.note,l.ref,String(Math.round(+l.amt||0))]
+    .some(v=>String(v||'').toLowerCase().includes(q)));
+  return lines;
+}
+function dbBodyHTML(lines){
+  return lines.map(l=>`<div class="card" onclick="dbOpen('${jq(l.id||'')}')" style="margin-bottom:6px;padding:11px;cursor:pointer">
+      <div class="kv"><div style="flex:1">
+        <b style="font-size:14px">${l._contra?('🔄 '+t('cb_contra')):esc(l.party||l.ref)}</b>
+        <div class="hint">${esc(l.ref)}${l.cat?' · '+esc(l.cat):''}${l.note?' · '+esc(l.note):''}</div>
+        <div class="hint">${fmtDate(l.date)} · ${esc(accName(l.acc))}</div>
+      </div><b style="font-size:16px;color:${l._contra?'var(--mut)':(l.dir==='in'?'var(--ok)':'var(--bad)')}">${l.dir==='in'?'+':'−'}${money(l.amt)}</b></div>
+    </div>`).join('')||`<div class="empty" style="padding:24px 10px"><p>${t('db_none')}</p></div>`;
+}
 function dayBook(keepFocus){
   sheetAt(dayBook); if(!modOn('accounts')){toast(t('mod_off'),'bad');return;}
   const from=_dbFrom||todayISO(), to=_dbTo||todayISO();
@@ -9615,10 +9655,8 @@ function dayBook(keepFocus){
      month of entries — he was scrolling. One box, filtering on the name, the head, the note
      and the amount, so "Om Creation" or "50000" both land on the row. */
   const _q=String(_dbQ||'').trim().toLowerCase();
-  let lines=moneyLines(from,to).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
-  const _dbAll=lines.length;
-  if(_q)lines=lines.filter(l=>[l.party,l.cat,l.note,l.ref,String(Math.round(+l.amt||0))]
-    .some(v=>String(v||'').toLowerCase().includes(_q)));
+  let lines=dbLines();
+  const _dbAll=_dbAllCount;
   const real=lines.filter(l=>!l._contra);     // a cash↔bank transfer is neither income nor expense
   const inTot=r2(real.filter(l=>l.dir==='in').reduce((s,l)=>s+l.amt,0));
   const outTot=r2(real.filter(l=>l.dir==='out').reduce((s,l)=>s+l.amt,0));
@@ -9642,7 +9680,7 @@ function dayBook(keepFocus){
          keeps the box and its cursor exactly where they are. */''}
     <div class="field" style="margin-bottom:10px"><input id="dbQ" value="${esc(_dbQ)}"
       placeholder="${t('db_search_ph')}" autocomplete="off" oninput="dbSearch(this.value)"></div>
-    ${_dbQ?`<p class="hint" style="margin:-4px 0 8px">${t('db_found',{n:lines.length,all:_dbAll})}</p>`:''}
+    <p class="hint" id="dbFound" style="margin:-4px 0 8px">${_dbQ?t('db_found',{n:lines.length,all:_dbAll}):''}</p>
     ${/* v495: the day book is the page his accountant reconciles against, and it had no way
          out. It sends what is on screen — the dates and the search he has set already
          applied — so what he sends is what he is looking at. */''}
@@ -9691,13 +9729,7 @@ function dayBook(keepFocus){
     ${/* v379 — CAUGHT IN AUDIT: the Day Book is where he checks the day's money, and every
          line in it was a dead end. He could see "₹40,000 Kanchan Syntex" and had no way to
          reach the entry to correct it. Each line now opens whatever made it. */''}
-    ${lines.map(l=>`<div class="card" onclick="dbOpen('${jq(l.id||'')}')" style="margin-bottom:6px;padding:11px;cursor:pointer">
-      <div class="kv"><div style="flex:1">
-        <b style="font-size:14px">${l._contra?('🔄 '+t('cb_contra')):esc(l.party||l.ref)}</b>
-        <div class="hint">${esc(l.ref)}${l.cat?' · '+esc(l.cat):''}${l.note?' · '+esc(l.note):''}</div>
-        <div class="hint">${fmtDate(l.date)} · ${esc(accName(l.acc))}</div>
-      </div><b style="font-size:16px;color:${l._contra?'var(--mut)':(l.dir==='in'?'var(--ok)':'var(--bad)')}">${l.dir==='in'?'+':'−'}${money(l.amt)}</b></div>
-    </div>`).join('')||`<div class="empty" style="padding:24px 10px"><p>${t('db_none')}</p></div>`}
+    <div id="dbRows">${dbBodyHTML(lines)}</div>
     
     <div class="fab-pad"></div>`;
   /* v456: HIS long-standing complaint about search everywhere — "cursor idhar udhar jaata
@@ -17123,8 +17155,14 @@ async function openDetail__inner(id,focusGid){
       ${(_kNow&&!_backOn)?`<div class="hint" style="padding:0 12px 8px;color:var(--saffron2)">
         \u{1F477} ${t('jr_now',{n:esc(karigarName(_kNow))})} \u00B7 ${_kindOf((o.karKind||{})[gid])}
         ${_outOn?(' \u00B7 '+t('jr_since',{n:Math.max(0,-daysLeft(_outOn))})):''}</div>`:''}
-      <div class="mb">
-      ${_open?`
+      ${/* ══════════ v516 — A BLACK BAND UNDER EVERY CLOSED PIECE ══════════
+           HIS 6 Sept screenshot, order #2617: Coat, Pant, Pant 2 and Pant 3 all shut, and
+           under each heading an empty dark strip. The body of the card was drawn whether or
+           not it had anything to draw — only its CONTENTS were conditional — so a closed
+           piece still paid for the padding of an open one. Four pieces, four empty bands,
+           and a screen a third longer than it needed to be. The card now ends at its
+           heading when it is closed. */''}
+      ${_open?`<div class="mb">
       <div class="ki-mgrid">${cells||`<span class="hint">—</span>`}</div>${dn}
       <div class="row" style="margin-top:10px;gap:8px;align-items:center">
         <div class="media-row" id="dip_${_cid}" style="flex:1;display:flex;gap:8px;flex-wrap:wrap"></div>
@@ -17136,11 +17174,11 @@ async function openDetail__inner(id,focusGid){
         <button class="btn sm ${urg?'danger':'ghost'} block" style="margin-top:8px" onclick="toggleUrgent('${o.id}','${gid}')">${urg?'🔴 '+t('urgent_on'):'⚪ '+t('urgent_off')}</button>
         ${legLine}${sQc}${ksel}
         <div class="row" style="margin-top:10px;gap:6px"><button class="btn sm ghost ic-btn" title="${t('whatsapp')}" onclick="itemWA('${o.id}','${gid}')">💬</button><button class="btn sm ghost ic-btn" title="${t('print')}" onclick="itemPrint('${o.id}','${gid}')">🖨️</button></div>`:''}
-      `:''}</div></div>`;}).join('');
+      </div>`:''}</div>`;}).join('');
 
   $('#detailPane').innerHTML=`
     <div class="detail-hd"><button class="back" onclick="go('orders')">←</button>
-      <div style="flex:1"><div style="color:var(--saffron);font-size:13px;font-weight:700">#${esc(o.orderNo)} <span title="Edit order number" onclick="event.stopPropagation();odEditNo('${o.id}')" style="cursor:pointer;opacity:.7">✏️</span></div><h2 onclick="odEditCust('${o.id}')" style="cursor:pointer">${esc(o.customerName)} <span style="opacity:.5;font-size:13px">✏️</span></h2></div>
+      <div style="flex:1"><div style="color:var(--saffron);font-size:13px;font-weight:700">#${esc(o.orderNo)} <span title="Edit order number" onclick="event.stopPropagation();odEditNo('${o.id}')" style="cursor:pointer;opacity:.7">✏️</span></div><h2 onclick="odEditCust('${o.id}')" style="cursor:pointer">${esc(o.customerName)}</h2></div>
       <button class="btn sm ghost" style="flex:0 0 auto" title="${t('wa_customer')}" onclick="event.stopPropagation();waOrder('${o.id}')">💬</button>
       <button class="btn sm ghost" onclick="orderMenu('${o.id}')">⋯</button></div>
 
@@ -17245,10 +17283,20 @@ async function openDetail__inner(id,focusGid){
          <button class="btn primary block" onclick="deliverPieces('${o.id}')">📦 ${t('od_deliver')}${
            out?' · '+out+'/'+tot:''}</button></div>`; })()}
     <div class="row" style="gap:6px;margin-top:${(o.items||[]).some(g=>['ready','checking','delivered'].includes(itemStatusOf(o,g)))?'6px':'14px'}">
-      <button class="btn primary block" onclick="karIssue('','${o.id}')">👷 ${t('od_give_kar')}${(()=>{
+      ${/* ══════════ v517 — "GIVE TO KARIGAR · 4" SAID NOTHING ══════════
+           HIS 6 Sept: "give karigar · 4 iska kya matlab hai? Tum app mein saaf language use
+           karo." A bare 4 hanging off a button is a number with no noun. It was the count of
+           pieces not yet handed out — so it says that. And he is right about the bigger
+           thing too: "saara maal zaroori nahi ki ek hi karigar ko jaye — pant Maksud ko,
+           coat Samsul ya Shoaib ko, shirt Naeem aur Afroz dono banate hain." The screen
+           behind this button has always worked that way — pick a man, tick only HIS pieces,
+           issue, then come back and pick the next man. The button never said so, so it read
+           like a single button that would send all four to one place. The words now match
+           what it does. */''}
+      <button class="btn primary block" onclick="karIssue('','${o.id}')">👷 ${(()=>{
         const left=(o.items||[]).filter(g=>!(o.assign&&o.assign[g])
           && itemStatusOf(o,g)!=='delivered' && itemStatusOf(o,g)!=='ready').length;
-        return left?' · '+left:'';})()}</button></div>
+        return left?t('od_give_n',{n:left}):t('od_give_kar');})()}</button></div>
     <div class="row" style="gap:6px;margin-top:6px">
       <button class="btn ghost block" onclick="sendMenu('${o.id}')">📤 ${t('send_meas')}</button></div>
     <div class="fab-pad"></div>`;
@@ -18438,9 +18486,18 @@ function posLineHTML(i,it){
         <button onclick="posQty(${i},-1)">−</button>
         <input class="qty-in" data-iqty="${i}" type="number" inputmode="numeric" min="1" value="${esc(it.qty||1)}" oninput="posLineCalc(${i})">
         <button onclick="posQty(${i},1)">+</button>
-      </div>
-      <div class="rate-in"><span>₹</span><input data-irate="${i}" type="number" min="0" inputmode="numeric" value="${it.rate?esc(it.rate):''}" placeholder="${t('pos_rate')}" oninput="posLineCalc(${i})" onkeydown="invRateKey(event)"></div>
-      <div class="rate-in amt-in"><span>₹</span><input data-iamt="${i}" type="number" min="0" inputmode="numeric" value="${amt?esc(amt):''}" placeholder="${t('pos_amt')}" oninput="posAmtEdit(${i})"></div>
+      ${/* ══════════ v519 — TWO MONEY BOXES, NEITHER OF THEM NAMED ══════════
+           HIS 6 Sept: "har item par teen alag box." Measured: five boxes and three buttons
+           on a line, and the two that hold money were marked only with a ₹ — nothing said
+           which was the rate and which was the amount. On one piece they even hold the same
+           figure, so there was no way to tell them apart by looking either.
+           I first tried hiding the rate box on a single piece. That was wrong and the test
+           caught it: posLineCalc reads the rate box to work out the amount, so with the box
+           gone the amount went to ₹0 the moment he touched the quantity. Money must never
+           depend on whether a field happens to be on screen. Both boxes stay, and each one
+           now says what it is. */''}
+      <div class="rate-in"><span class="mini-lbl">${t('pos_rate')}</span><span>₹</span><input data-irate="${i}" type="number" min="0" inputmode="numeric" value="${it.rate?esc(it.rate):''}" placeholder="${t('pos_rate')}" oninput="posLineCalc(${i})" onkeydown="invRateKey(event)"></div>
+      <div class="rate-in amt-in"><span class="mini-lbl">${t('pos_amt')}</span><input data-iamt="${i}" type="number" min="0" inputmode="numeric" value="${amt?esc(amt):''}" placeholder="${t('pos_amt')}" oninput="posAmtEdit(${i})"></div>
     </div>
     ${/* v490 — HIS 5 Sept: "HSN code kahin par nahi dikh raha, na sales mein na purchase
          mein." He was right. It printed on the invoice but on the billing screen it was
@@ -18462,9 +18519,18 @@ function posBilledSummary(){
   const f=invForm; if(!f||!(f.items||[]).length)return '';
   const qty=r2(f.items.reduce((s,it)=>s+(+it.qty||0),0));
   const sub=r2(f.items.reduce((s,it)=>s+(+it.price||((+it.qty||1)*(+it.rate||0)))||0,0));
+  /* ══════════ v516 — THE SAME FIGURE TWICE, ONE LINE APART ══════════
+     On a bill with no discount and no courier the subtotal IS the grand total, so the
+     screen printed ₹45,000 as "Subtotal" and again as "Grand Total (after discount)" a few
+     lines below. His v218 note about the purchase screen said the same thing — "sub total
+     grand total 2 ki kya jarurat hai" — and this screen kept doing it. The subtotal earns
+     its place only when something comes off it. The quantity stays either way: that is a
+     different fact and the only place it is said. */
+  let same=false;
+  try{ same = Math.abs(r2(invCompute(f).total) - sub) < 0.5; }catch(e){}
   return `<div class="billed-sum">
     <span>${t('pur_total_qty')}: <b>${qty}</b></span>
-    <span>${t('pur_subtotal')}: <b>${money(sub)}</b></span>
+    ${same?'':`<span>${t('pur_subtotal')}: <b>${money(sub)}</b></span>`}
   </div>`;
 }
 function posRefresh(){
@@ -25898,7 +25964,23 @@ function karIssue(kid,oid){
   sheetAt(karIssue);
   if(oid!==undefined)_ki.oid=oid||'';
   const ks=karigarsActive();
-  if(!ks.length){ toast(t('ki_no_karigar'),'bad'); return; }
+  if(!ks.length){
+    /* ══════════ v517 — "ADD A KARIGAR FIRST" AND NO WAY TO ADD ONE ══════════
+       HIS 6 Sept: "Add karigar first to hai, par karigar add karne ka option nahi hai
+       wahan." Right — it was a toast. It told him what was missing, said it in grey at the
+       bottom of the screen, and left him to work out where to go. A message that names the
+       missing thing must carry the way to make it. */
+    /* v517: asking was the wrong shape. When the list is empty there is exactly one thing to
+       do next, so it is done — the add-karigar form opens and a toast says why. (A confirm
+       was tried first and would not stay: confirmModal shuts its own sheet after the handler
+       runs and wiped whatever the handler had opened. Two delays later it still lost, so the
+       question went instead of the fix.) */
+    toast('\u{1F477} '+t('ki_no_karigar'),'bad');
+    /* on the next tick: this runs inside the button's own click, and the sheet machinery
+       finishes tidying up after the handler returns — opening a form before that tidying
+       is done means opening it into something that is about to be cleared. */
+    setTimeout(()=>{ try{ karigarEdit(); }catch(e){} },120);
+    return; }
   if(kid)_ki.kid=kid;
   if(!_ki.kid)_ki.kid=ks[0].id;
   const rows=karIssuePool();
@@ -28183,11 +28265,35 @@ function openBS(){
        opening stock + purchases − closing stock
    Valuation basis: every roll at ITS OWN rate, which is what the app has recorded on each
    cut all along, and is the more accurate of the two choices open to him. */
+/* ══════════════ v518 — THE SAMPLES WERE FALLING OUT OF THE BOOKS ══════════════
+   HIS 5 Sept, asked and answered: "sample cloth of course asset hi hai." He is right, and
+   until now it was not one anywhere.
+   The hole is worse than a missing line. When a sample is cut, the metres come OFF the
+   thaan — so the roll's value drops, exactly as it should. But the finished piece sitting
+   on his own rack was counted nowhere: not in thaans, not in readymade stock. So cloth
+   walked out of the books and nothing took its place. Every sample he has ever made has
+   been quietly shrinking his stock and his profit.
+   A piece is worth what it cost to make — the cloth off the roll plus the labour — for as
+   long as it is his. Once it is sold it is gone, and the sale carries it from there. A
+   sample with three sizes and one sold counts two-thirds. */
+function sampleStockValue(){
+  let v=0;
+  try{
+    (DB.samples||[]).forEach(s=>{
+      const sizes=smpSizes(s)||[];
+      if(!sizes.length)return;
+      const live=sizes.filter(z=>smpPieceState(s,z)!=='sold').length;
+      if(!live)return;
+      v=r2(v + (sampleCost(s)*live/sizes.length));
+    });
+  }catch(e){}
+  return r2(v);
+}
 function stockNowValue(){
   const fab=r2((DB.thaans||[]).reduce((a,th)=>a+thaanValue(th),0));
   let rdy=0;
   try{ rdy=r2(readyItems().reduce((a,m)=>a+readyTotal(m)*(+m.cost||+m.rate||0),0)); }catch(e){}
-  return r2(fab+rdy);
+  return r2(fab+rdy+sampleStockValue());
 }
 function fabricCutSince(from){
   let v=0;
