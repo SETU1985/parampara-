@@ -191,8 +191,22 @@
   .qty-in{width:32px;text-align:center;background:transparent;border:none;color:var(--txt);
     font-size:15px;font-weight:700;outline:none;-moz-appearance:textfield}
   .qty-in::-webkit-outer-spin-button,.qty-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-  .mini-lbl{font-size:10px;letter-spacing:.4px;text-transform:uppercase;opacity:.55;
-  padding:0 5px 0 7px;white-space:nowrap}
+  /* v522 — HIS 6 Sept, with the boxes drawn on top of each other: "rate wale buttons ko
+   dekho, kaam hi nahi kar raha, ek doosre ke upar ghus gaya hai. Aise buttons kaam nahi
+   karega to main to bill hi nahi bana sakunga. Basic cheezein to tumko check karni hi
+   chahiye thi audit mein."
+   He is right on both counts. In v519 I put the word RATE and the word AMOUNT INSIDE those
+   little pills to say which was which. The pill is a fixed-height flex strip sized for a ₹
+   and a number; a word shoved in beside them left the input no room at all, so the two
+   collapsed into each other and read "RATEAMOUNT" with nothing typeable behind it. And my
+   audit checked what the boxes CONTAINED and never once checked where they SAT — so it
+   passed a screen he could not bill on.
+   The word goes above the box now, where it costs 11px of height and none of the width.
+   The check for it goes in the audit: every input must be at least 40px wide and no two
+   may overlap. */
+.pl-money{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.pl-money-lbl{font-size:9.5px;letter-spacing:.4px;text-transform:uppercase;opacity:.5;
+  padding-left:3px;white-space:nowrap;line-height:1}
 .rate-in{flex:1;min-width:0;display:flex;align-items:center;gap:2px;background:var(--card);border:1px solid var(--line2);
     border-radius:9px;padding:0 7px;height:38px}
   .rate-in span{color:var(--mut);font-size:13px;flex:0 0 auto}
@@ -860,7 +874,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v520</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v522</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -1391,6 +1405,7 @@ const T={
   lg_dir_odd:'This is the opposite of what this group normally does. Right for an advance or an overdrawn account \u2014 wrong otherwise.',
   od_give_n:'Give pieces to a karigar · {n} not given yet',
   ki_no_kar_ask:'No karigar is on the list yet. Add one now?',
+  pos_tile_off:'{n} taken off the bill',
   save_generate:'Save & generate',
   save_close:'Save & close',
   mv_title:'Move this bill onto the order',
@@ -3302,6 +3317,7 @@ dl_show_hidden:'Show hidden ({n})',
   lg_dir_odd:'यह इस ग्रुप के आम तरीक़े का उल्टा है। एडवांस या ओवरड्रॉन खाते के लिए सही — वरना ग़लत।',
   od_give_n:'कारीगर को पीस देना · {n} अभी नहीं दिए',
   ki_no_kar_ask:'अभी कोई कारीगर सूची में नहीं है। अभी जोड़ें?',
+  pos_tile_off:'{n} बिल से हटा दिया',
   save_generate:'सहेजें और बनाएँ',
   save_close:'सेव करके बंद करें',
   mv_title:'ये बिल ऑर्डर पर ले जाएँ',
@@ -18486,6 +18502,7 @@ function posLineHTML(i,it){
         <button onclick="posQty(${i},-1)">−</button>
         <input class="qty-in" data-iqty="${i}" type="number" inputmode="numeric" min="1" value="${esc(it.qty||1)}" oninput="posLineCalc(${i})">
         <button onclick="posQty(${i},1)">+</button>
+      </div>
       ${/* ══════════ v519 — TWO MONEY BOXES, NEITHER OF THEM NAMED ══════════
            HIS 6 Sept: "har item par teen alag box." Measured: five boxes and three buttons
            on a line, and the two that hold money were marked only with a ₹ — nothing said
@@ -18496,8 +18513,10 @@ function posLineHTML(i,it){
            gone the amount went to ₹0 the moment he touched the quantity. Money must never
            depend on whether a field happens to be on screen. Both boxes stay, and each one
            now says what it is. */''}
-      <div class="rate-in"><span class="mini-lbl">${t('pos_rate')}</span><span>₹</span><input data-irate="${i}" type="number" min="0" inputmode="numeric" value="${it.rate?esc(it.rate):''}" placeholder="${t('pos_rate')}" oninput="posLineCalc(${i})" onkeydown="invRateKey(event)"></div>
-      <div class="rate-in amt-in"><span class="mini-lbl">${t('pos_amt')}</span><input data-iamt="${i}" type="number" min="0" inputmode="numeric" value="${amt?esc(amt):''}" placeholder="${t('pos_amt')}" oninput="posAmtEdit(${i})"></div>
+      <label class="pl-money"><span class="pl-money-lbl">${t('pos_rate')}</span>
+        <span class="rate-in"><span>₹</span><input data-irate="${i}" type="number" min="0" inputmode="numeric" value="${it.rate?esc(it.rate):''}" placeholder="${t('pos_rate')}" oninput="posLineCalc(${i})" onkeydown="invRateKey(event)"></span></label>
+      <label class="pl-money"><span class="pl-money-lbl">${t('pos_amt')}</span>
+        <span class="rate-in amt-in"><span>₹</span><input data-iamt="${i}" type="number" min="0" inputmode="numeric" value="${amt?esc(amt):''}" placeholder="${t('pos_amt')}" oninput="posAmtEdit(${i})"></span></label>
     </div>
     ${/* v490 — HIS 5 Sept: "HSN code kahin par nahi dikh raha, na sales mein na purchase
          mein." He was right. It printed on the invoice but on the billing screen it was
@@ -18646,7 +18665,35 @@ let _tileHold=null,_tileHeld=false;
 function tileHoldStart(mid){ _tileHeld=false; if(_tileHold)clearTimeout(_tileHold);
   _tileHold=setTimeout(function(){_tileHold=null;_tileHeld=true;try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){} tileEdit(mid);},500); }
 function tileHoldEnd(){ if(_tileHold){clearTimeout(_tileHold);_tileHold=null;} }
+/* ══════════ v521 — TAPPING A TILE AGAIN ADDED IT AGAIN ══════════
+   HIS 6 Sept: "Blazer par maine ek baar click kar diya, phir hataana tha to maine dobara
+   click kiya to ye do baar select ho gaya. Generally to yahi hota hai na ki click kiya,
+   dobara click kar denge to wo hat jaayega."
+   He is describing how every tile on every phone behaves, and he is right. The tile even
+   SAYS it is picked — it turns orange and shows ✓ 1 — so a second tap reads as "undo".
+   Instead it added a second line, then a third, and his bill ended up with three Blazers
+   at ₹0 that he could not get rid of from here.
+   A tap on a tile that is already on the bill now takes the LAST line it put there off
+   again. Only a line that is still untouched — no rate typed, nothing included, quantity
+   still one — because once he has priced it, it is his work and a stray tap must not throw
+   it away. A priced line still has its own ✕ on the row. */
 function tileTap(mid,out){ tileHoldEnd(); if(_tileHeld){_tileHeld=false;return;}
+  const m=(DB.itemMaster||[]).find(x=>x.id===mid);
+  if(m){
+    captureInvoiceForm();
+    const f=invForm||{}; const items=f.items||[];
+    for(let i=items.length-1;i>=0;i--){
+      const it=items[i];
+      if(String(it.label||'')!==String(m.name||''))continue;
+      const untouched = !(+it.price) && !(+it.rate) && (+it.qty||1)===1
+                        && !(it.incl&&it.incl.length) && !it.hsn;
+      if(!untouched)break;                 // he has worked on it — leave it alone
+      items.splice(i,1);
+      renderInvoiceForm();
+      toast(t('pos_tile_off',{n:esc(m.name)}),'ok');
+      return;
+    }
+  }
   if(out)toast(t('stk_oversell'),'bad');   // warn only — a visible tile must always add
   posAdd(mid); }
 function tileEdit(mid){ const m=(DB.itemMaster||[]).find(x=>x.id===mid); if(!m)return;
@@ -20884,6 +20931,11 @@ function shopInfoEdit(){
         <option value="1" ${s.qrOpen?'selected':''}>${t('qr_on_bill_open')}</option></select>
       <p class="hint" style="margin-top:4px">${t('qr_on_bill_hint')}</p></div>
     <div class="field" style="margin-top:10px"><label>${t('shop_terms')}</label><textarea id="si_terms">${esc(s.terms||'')}</textarea></div>
+    ${/* v522: the save bar sits over the form, so without room beneath it the last box on
+         this screen was under the buttons — measured at 813px with Cancel starting at 829,
+         which means he could neither see nor tap it. Every other long form on this screen
+         already leaves this gap; this one was missed. */''}
+    <div class="fab-pad"></div>
     <div class="modal-actions"><button class="btn ghost" onclick="closeSheet()">${t('cancel')}</button><button class="btn primary" onclick="shopInfoSave()">${t('save')}</button></div>`;
   showSheet();
 }
@@ -30822,9 +30874,12 @@ function staffMaster(){
   sheetAt(staffMaster);
   const ks=staffAll();
   $('#sheet').innerHTML=`<div class="grip"></div>
-    <div class="kv" style="margin:0 0 2px"><h2 style="margin:0">👥 ${t('st_title')}</h2>
-      <button class="btn sm ghost" onclick="staffSettings()">⚙️</button></div>
-    <p class="hint" style="margin:0 0 12px">${t('st_desc')}</p>
+    ${/* v522: the sheet's own ✕ is pinned to the top-right corner, and this screen put its
+         settings gear in the same corner — measured 4px of overlap, so a tap on the edge of
+         one hit the other. The gear moves down beside the description, clear of it. */''}
+    <div class="kv" style="margin:0 0 2px;padding-right:46px"><h2 style="margin:0">👥 ${t('st_title')}</h2></div>
+    <div class="kv" style="margin:0 0 12px"><p class="hint" style="margin:0;flex:1">${t('st_desc')}</p>
+      <button class="btn sm ghost" style="flex:0 0 auto" onclick="staffSettings()">⚙️</button></div>
     ${/* v213 — HIS 17 Aug: "staff permanent nahi, aaj hai, nahi samajh me aaya to wo chhod
          bhi sakte hain aur main hata bhi sakta hun." So every person can be edited or taken
          off the list from here. Taken off, never deleted: his attendance, his advances and
