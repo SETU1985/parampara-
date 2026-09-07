@@ -874,7 +874,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v548</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v550</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -1437,6 +1437,8 @@ const T={
   inv_p_lastm:'Last month',
   inv_p_custom:'Custom dates',
   inv_total_shown:'Total of what is shown',
+  rp_sales_list:'Sales list',
+  rp_inv_no:'Invoice no',
   save_generate:'Save & generate',
   save_close:'Save & close',
   mv_title:'Move this bill onto the order',
@@ -3370,6 +3372,8 @@ dl_show_hidden:'Show hidden ({n})',
   inv_p_lastm:'पिछले महीने',
   inv_p_custom:'तारीख़ चुनें',
   inv_total_shown:'जो दिख रहा है उसका जोड़',
+  rp_sales_list:'बिक्री सूची',
+  rp_inv_no:'बिल नंबर',
   save_generate:'सहेजें और बनाएँ',
   save_close:'सेव करके बंद करें',
   mv_title:'ये बिल ऑर्डर पर ले जाएँ',
@@ -14765,6 +14769,27 @@ function ordStage(n,key){
   _ordStage=n; renderForm();
   if(_ordStage===2 && typeof _vmOn!=='undefined' && _vmOn && !_vmField)
     setTimeout(()=>{ try{ vmFocus(null); }catch(e){} },60);
+  /* ══════════ v549 — HE ARRIVED AT THE LAST STEP AND HAD TO GO LOOKING ══════════
+     HIS 7 Sept: "jab measurement ka kaam ho gaya to Done kiya, waise cursor na Delivery
+     date mein aa jaana chahiye aur highlight ho jaana chahiye... otherwise fast kaam hoga."
+     Right, and it costs him a tap and a hunt on every single order. Coming back from the
+     measuring with everything taken, exactly one box is still required and it is the
+     delivery date — body type, salesman and notes are all optional and folded away. So the
+     cursor goes there and the box is marked, but only when it is still empty: on an order
+     he is re-opening to change something, jumping into a date he already set would be
+     meddling, not helping. */
+  if(_ordStage===1 && !form.deliveryDate){
+    setTimeout(()=>{
+      const el=$('#f_ddate_show')||$('#f_ddate');
+      if(!el)return;
+      el.scrollIntoView({block:'center',behavior:'smooth'});
+      el.style.borderColor='var(--saffron)';
+      try{ el.focus({preventScroll:true}); }catch(e){ try{el.focus();}catch(e2){} }
+      const clear=()=>{ el.style.borderColor=''; };
+      const d=$('#f_ddate'); if(d)d.addEventListener('change',clear,{once:true});
+      el.addEventListener('blur',clear,{once:true});
+    },160);
+  }
   /* v319 — HIS 25 Aug: "saved measurement sabse niche, keyboard me chhup jaate the, to
      pata hi nahi chalta tha. Start measuring upar aata hai to hum wahi se lena chalu kar
      dete hain." The card was there and the figures were in it — it simply opened below
@@ -21364,6 +21389,54 @@ function invInPeriod(d){
   if(invPeriod==='custom'){ if(invFrom&&d<invFrom)return false; if(invTo&&d>invTo)return false; return true; }
   return true;
 }
+/* v550: prints exactly the list on screen — same period, same search, same order. */
+function invListPrint(){
+  const all=allInvoices().filter(x=>invInPeriod((x.inv||{}).date));
+  const q=String(invQ||'').trim().toLowerCase();
+  const list=(q
+      ? all.filter(x=>[(x.inv||{}).no, x.rec.customerName, x.rec.phone, x.rec.orderNo]
+          .some(v=>String(v||'').toLowerCase().includes(q)))
+      : all)
+    .slice().sort((a,b)=>String((b.inv||{}).date||'').localeCompare(String((a.inv||{}).date||'')));
+  if(!list.length){ toast(t('nothing'),'bad'); return; }
+  let tot=0,due=0;
+  const rows=list.map(x=>{
+    const c=invCompute(x.inv), bk=Math.max(0,orderBaaki(x.rec)||0);
+    tot+=c.total; due+=bk;
+    return `<tr><td>${fmtDate(x.inv.date)}</td><td>${esc(x.inv.no||'')}</td>
+      <td>${esc(x.rec.customerName||'—')}</td>
+      <td class="r">${money(c.total)}</td><td class="r">${bk>0?money(bk):'—'}</td></tr>`;
+  }).join('');
+  const per = invPeriod==='custom'
+    ? ((invFrom?fmtDate(invFrom):'…')+' – '+(invTo?fmtDate(invTo):'…'))
+    : (invPeriod==='m'?t('inv_p_month'):invPeriod==='lm'?t('inv_p_lastm'):t('inv_p_all'));
+  const shop=((DB.shopInfo||{}).name)||'PARAMPARA';
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(t('rp_sales_list'))}</title><style>
+    *{font-family:Arial,sans-serif;color:#111}body{margin:18px}
+    .hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #c97e10;padding-bottom:6px;margin-bottom:4px}
+    .hd .b{font-size:21px;font-weight:bold;color:#c97e10;letter-spacing:1px}
+    .sub{font-size:12px;color:#555;margin-bottom:12px}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th{background:#f4f0e8;text-align:left;padding:6px 5px;border-bottom:1.5px solid #c97e10}
+    td{padding:5px;border-bottom:1px solid #e6e6e6}
+    .r{text-align:right;white-space:nowrap}
+    tfoot td{border-top:2px solid #c97e10;border-bottom:0;font-weight:bold;font-size:13px;padding-top:8px}
+    @media print{@page{margin:10mm}body{margin:0}thead{display:table-header-group}tr{page-break-inside:avoid}}
+  </style></head><body>
+  <div class="hd"><div class="b">${esc(shop)}</div><div style="font-size:15px;font-weight:bold">${esc(t('rp_sales_list'))}</div></div>
+  <div class="sub">${esc(per)} &nbsp;·&nbsp; ${esc(t('inv_count',{n:list.length}))} &nbsp;·&nbsp; ${fmtDate(todayISO())}</div>
+  <table><thead><tr><th>${esc(t('pay_date'))}</th><th>${esc(t('rp_inv_no'))}</th><th>${esc(t('customer'))}</th>
+    <th class="r">${esc(t('amount'))}</th><th class="r">${esc(t('baaki'))}</th></tr></thead>
+  <tbody>${rows}</tbody>
+  <tfoot><tr><td colspan="3">${esc(t('inv_total_shown'))}</td>
+    <td class="r">${money(r2(tot))}</td><td class="r">${due>0?money(r2(due)):'—'}</td></tr></tfoot>
+  </table></body></html>`;
+  const ifr=document.createElement('iframe');
+  ifr.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+  document.body.appendChild(ifr);
+  const d=ifr.contentWindow.document; d.open(); d.write(html); d.close();
+  setTimeout(()=>{try{ifr.contentWindow.focus();ifr.contentWindow.print();}catch(e){}setTimeout(()=>ifr.remove(),3000);},400);
+}
 function setInvPeriod(p){
   invPeriod=p;
   if(p==='custom'&&!invFrom&&!invTo){ const n=new Date();
@@ -21495,8 +21568,20 @@ function renderInvoices(keepFocus){
     <h3 style="margin:0;font-size:16px">📋 ${t('inv_all')}</h3>
     <span class="hint">${t('inv_count',{n:list.length})}</span></div>`
     +(list.length?`<div class="kv" id="invTotBar" style="margin:0 0 10px;padding:7px 10px;border:1px solid var(--line);border-radius:10px">
-      <span class="hint">${t('inv_total_shown')}</span>
-      <b style="font-size:15px">${money(r2(_tot))}${_due>0?' \u00B7 '+t('baaki')+' '+money(r2(_due)):''}</b>
+      <span style="flex:1;min-width:0">
+        <span class="hint" style="display:block">${t('inv_total_shown')}</span>
+        <b style="font-size:15px">${money(r2(_tot))}${_due>0?' \u00B7 '+t('baaki')+' '+money(r2(_due)):''}</b>
+      </span>
+      ${/* ══════════ v550 — THE ANSWER WAS ON SCREEN AND COULD NOT LEAVE IT ══════════
+           HIS 7 Sept: "is screen mein kahin PDF ka scope baith sakta hai kya? To bhi ek baar
+           mera kaam nikal jayega."
+           It can, and this is the right spot for it — the button belongs beside the figure it
+           prints, not in a menu three taps away. He has already chosen the period and the
+           search; the sheet takes exactly what is in front of him, in the order shown, with
+           the same total underneath. It is not the full Sale Report yet — no missing-number
+           check, no sort by number — but it is the thing he actually needs today, and it
+           costs him one tap. */''}
+      <button class="btn sm ghost" style="flex:0 0 auto;margin-left:8px" onclick="invListPrint()">\u{1F5A8}\uFE0F PDF</button>
     </div>`:'');
 
   /* ══════════ v514 — THE LAST SEARCH BOX THAT REBUILT ITSELF ══════════
