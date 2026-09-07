@@ -874,7 +874,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v541</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v544</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -1430,6 +1430,8 @@ const T={
   kr_norate_fix:'Put the rate in',
   kr_norate_skip:'Take back anyway',
   ki_not_his:'{k} does not usually make this',
+  naap_last:'Done — go to the last step',
+  naap_left:'Measure the {n} still left',
   save_generate:'Save & generate',
   save_close:'Save & close',
   mv_title:'Move this bill onto the order',
@@ -3356,6 +3358,8 @@ dl_show_hidden:'Show hidden ({n})',
   kr_norate_fix:'रेट डालें',
   kr_norate_skip:'ऐसे ही वापस लें',
   ki_not_his:'{k} आम तौर पर यह नहीं बनाते',
+  naap_last:'हो गया — आख़िरी क़दम पर जाएँ',
+  naap_left:'बचे हुए {n} का नाप लें',
   save_generate:'सहेजें और बनाएँ',
   save_close:'सेव करके बंद करें',
   mv_title:'ये बिल ऑर्डर पर ले जाएँ',
@@ -14142,6 +14146,8 @@ function renderCustomers(){
   }).join('')+pageMoreBtn('cust',list.length);
 }
 function openCustomer(id){
+  /* v544: a different customer means a fresh card — the same rule the order screen got. */
+  if(_cuOpenFor!==id){ _cuOpen=null; _cuOpenFor=id; }
   sheetAt(openCustomer);
   const c=custById(id); if(!c)return;
   const byNew=(a,b)=>new Date(b.created||b.date)-new Date(a.created||a.date);
@@ -14202,7 +14208,17 @@ function openCustomer(id){
   showSheet(); bindMeasInputs(); renderBodySlots(id,'cv_body',false);
 }
 /* ---- measurements ON the customer, with no order involved ---- */
-let _cuOpen=null;
+/* ══════════ v544 — THE SAME LEAK, TWO MORE PLACES ══════════
+   HIS 7 Sept: "jo bhi galtiyaan sudhaarte ho wo poore app mein har jagah dekhni chahiye ki
+   kahan kahan wo galtiyaan hain."
+   Right, and v539 fixed exactly one of three. That fix was for _odItem on the order screen —
+   one variable holding WHICH card is open, shared by every record the screen ever shows. I
+   swept for the shape rather than the symptom and found the same thing here on the customer
+   screen and on the karigar screen: open a garment on one customer, walk to the next, and
+   his card is open too — a card nobody touched, on a person he was not looking at.
+   Both now close when a DIFFERENT record is opened, and stay as they were when he returns
+   to the one he was reading. (_ptyOpen was already doing this correctly.) */
+let _cuOpen=null, _cuOpenFor=null;
 function cuItemToggle(cid,gid){ _cuOpen=(_cuOpen===gid)?null:gid; openCustomer(cid); }
 function cuMeasSet(cid,gid,k,val){
   const c=custById(cid); if(!c)return;
@@ -15572,7 +15588,28 @@ function renderForm(){
                editing gets a Done button that returns him to the order, and measuring
                keeps its own button where it belongs. */
             ? `<button class="btn primary" style="flex:2" onclick="saveOrder()">✓ ${t('done')}</button>`
-            : `<button class="btn primary" style="flex:2" onclick="startNaap()">▶ ${t('naap_start',{n:walk.length})}</button>`)
+            /* ══════════ v542 — "START MEASURING" AFTER THE MEASURING WAS DONE ══════════
+               HIS 7 Sept: "saare measurement ho gaye, maine Done kar diya... uske baad
+               screen mein neeche Start measuring likha hua hai. Wo phir kyun hai? Waha
+               Start measuring hone se confusion nahi ho raha hai... Save order hona chahiye
+               tha."
+               He is right, and the button was never looking. v196 taught it to say Done on
+               an EXISTING order, and left the new-order case saying "Start measuring" for
+               ever — before a single figure was taken and after every one of them. He
+               finishes four pieces, comes back to this page, and the app invites him to
+               start. So he presses ✕ and is told the order is not finished.
+               It asks now. Nothing measured yet → Start measuring. Every piece done → the
+               last step, where the delivery date and Save are. Some done and some not 
+               it says how many are left, so the number itself tells him where he is. */
+            : (()=>{
+                const left=walk.filter(g=>{
+                  const v=(f.m||{})[g]||{};
+                  return !Object.keys(v).some(k=>String(v[k]||'').trim()!=='');
+                }).length;
+                if(!left) return `<button class="btn primary" style="flex:2" onclick="ordStage(2)">✓ ${t('naap_last')}</button>`;
+                if(left<walk.length) return `<button class="btn primary" style="flex:2" onclick="startNaap()">▶ ${t('naap_left',{n:left})}</button>`;
+                return `<button class="btn primary" style="flex:2" onclick="startNaap()">▶ ${t('naap_start',{n:walk.length})}</button>`;
+              })())
         : `<button class="btn primary" style="flex:2;opacity:.45" disabled>▶ ${t('wk_pick_first')}</button>`}
     </div>
     <div class="fab-pad"></div>`;
@@ -18984,7 +19021,7 @@ function tileTap(mid,out){ tileHoldEnd(); if(_tileHeld){_tileHeld=false;return;}
   posAdd(mid); }
 function tileEdit(mid){ const m=(DB.itemMaster||[]).find(x=>x.id===mid); if(!m)return;
   modal('✏️ '+esc(m.name),`<p class="hint">${t('tile_edit_hint')}</p>`,
-    [{label:'✏️ '+t('edit'),cls:'ghost',fn:function(){closeModal();imEdit(mid,{type:'inv',i:-1});}},
+    [{label:'✏️ '+t('edit'),cls:'ghost',fn:function(){closeModal();imEdit(mid,{type:'inv',i:-1,noAdd:1});}},
      {label:'🗑️ '+t('delete'),cls:'danger',fn:function(){closeModal();posDelMaster(mid);}},
      {label:t('close'),cls:'primary',fn:closeModal}]);
 }
@@ -27116,7 +27153,7 @@ function kiPrevTag(x){
   const n=((DB.karigars||[]).find(k=>k.id===x.prev)||{}).name||'';
   return n?` <span class="pill st-alteration" style="font-size:10px">${t('ki_after',{n:esc(n)})}</span>`:'';
 }
-let _kiOpen=null;
+let _kiOpen=null, _kiOpenFor=null;
 function kiItemToggle(key,kid,mode){ _kiOpen=(_kiOpen===key)?null:key; karigarIssue(kid,mode); }
 /* Everything the master needs, and nothing else — no customer name, no phone, no money owed. */
 function kiDetailHTML(x,kid,mode){
@@ -27241,6 +27278,8 @@ function kiSelectAll(kid,mode){
 }
 /* mode 'give' = hand work out, mode 'take' = receive it back */
 function karigarIssue(kid,mode,keepFocus){
+  /* v544: and a different karigar means a fresh card too. */
+  if(_kiOpenFor!==(kid||'')){ _kiOpen=null; _kiOpenFor=(kid||''); }
   sheetAt(karigarIssue);
   const k=(DB.karigars||[]).find(x=>x.id===kid); if(!k)return;
   const give=(mode!=='take');
@@ -28481,7 +28520,19 @@ function imSave(){imCapture();const d=_imDraft;
       rmNo:d.rmNo||'', dsgn:d.dsgn||''};DB.itemMaster.push(rec);}
   save();toast(t('t_item_saved'),'ok');
   const back=d.back; const newId=rec.id; _imDraft=null;
-  if(back&&back.type==='inv'){ if(back.i>=0)invApplyMaster(back.i,newId); else { renderInvoiceForm(); posAdd(newId); } }
+  /* ══════════ v543 — EDITING A SHORTCUT PUT IT ON THE BILL ══════════
+     HIS 7 Sept: "one tap shortcut mein maine Edit click kiya, Coat ko edit karke Blazer
+     kiya — aur dekho invoice mein Blazer add ho gaya, jabki maine sirf edit kiya hai."
+     Exactly so. This line serves two journeys that arrive looking identical. Tapping ➕ New
+     from the bill means "make this item AND put it on the bill", which is what posAdd does
+     here. Tapping ✏️ on a tile that already exists means "correct its name" and nothing
+     more — but it arrived with the same i:-1 and got the same treatment, so a rename
+     silently became a line on his bill. They are told apart now. */
+  if(back&&back.type==='inv'){
+    if(back.i>=0)invApplyMaster(back.i,newId);
+    else if(back.noAdd)renderInvoiceForm();
+    else { renderInvoiceForm(); posAdd(newId); }
+  }
   else itemMaster();
 }
 function imBack(){const back=_imDraft?_imDraft.back:null;_imDraft=null;
