@@ -874,7 +874,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v529</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v536</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -1423,6 +1423,8 @@ const T={
   pay_receive:'Receive payment',
   pay_due_n:'{a} still to come · across {n} bill(s)',
   pay_no_due:'{n} owes nothing',
+  meas_dup_on:'{n} is already on this garment',
+  meas_dup_off:'{n} is already on this garment — switch it back on instead',
   save_generate:'Save & generate',
   save_close:'Save & close',
   mv_title:'Move this bill onto the order',
@@ -3342,6 +3344,8 @@ dl_show_hidden:'Show hidden ({n})',
   pay_receive:'पैसा लें',
   pay_due_n:'{a} अभी आना बाकी · {n} बिल में फैला हुआ',
   pay_no_due:'{n} का कुछ बाकी नहीं',
+  meas_dup_on:'{n} इस कपड़े में पहले से है',
+  meas_dup_off:'{n} इस कपड़े में पहले से है — उसी को वापस चालू कर लें',
   save_generate:'सहेजें और बनाएँ',
   save_close:'सेव करके बंद करें',
   mv_title:'ये बिल ऑर्डर पर ले जाएँ',
@@ -14504,6 +14508,8 @@ function saveDraft(){
     captureForm();
     if(!form._did)form._did='d'+uid();
     if(!formHasContent(form)){ dropDraft(form._did); clearFormOpen(); return; }
+    /* v531: remember which draft this was, outside `form`. See clearDraft below. */
+    _lastDraftId=form._did;
     putDraft(form._did, form);
     markFormOpen(form._did);
     const h=document.getElementById('draftHint');
@@ -14511,12 +14517,26 @@ function saveDraft(){
   }catch(e){}
 }
 function saveDraftSoon(){ clearTimeout(_draftT); _draftT=setTimeout(saveDraft,600); }
+let _lastDraftId='';
+/* ══════════════ v531 — DISCARD LEFT THE DRAFT STANDING ══════════════
+   HIS 7 Sept, with the Orders list open behind him: "maine discard kar diya, phir bhi draft
+   ban gaya — sumit ka. To phir poochhne ka matlab hi nahi hai."
+   He is right that a question you ignore is worse than no question.
+   What happens on ✕ is a chain: the contact offer runs first, then cancelDo parks the work
+   as a draft so nothing is lost, and only then does he get asked whether to keep it. By the
+   time he taps Discard the form has been closed and `form` no longer carries the draft's
+   id — so this line had nothing to drop, and the parked draft stayed on the Orders page
+   wearing the name he had just thrown away.
+   The id is now remembered the moment a draft is written, outside the form, so Discard can
+   still find it however far along the chain it is pressed. */
 function clearDraft(){
   _draftOff=true;
   try{clearInterval(_draftTick);clearTimeout(_draftT);}catch(e){}
   unbindDraftAutosave();
   clearFormOpen();
   if(form&&form._did)dropDraft(form._did);
+  else if(_lastDraftId)dropDraft(_lastDraftId);
+  _lastDraftId='';
 }
 function draftAge(ts){
   const mins=Math.round((Date.now()-ts)/60000);
@@ -15650,6 +15670,23 @@ function addMeas(gid,ctx){ctx=ctx||'order';const rerender=ctx==='alt'?renderAltF
   modal('📏 '+t('add_meas')+(g?' — '+g.n:''),`<div class="field"><input id="newmeas" placeholder="${t('meas_ph')}" autocomplete="off"></div>${listHTML}`,
    [{label:t('close'),cls:'ghost',fn:()=>rerender()},
     {label:t('add'),cls:'primary',fn:()=>{const v=(($('#newmeas')&&$('#newmeas').value)||'').trim();if(!v){rerender();return;}
+      /* ══════════ v530 — THE SAME MEASUREMENT, TWICE ══════════
+         HIS 6 Sept screenshot of Coat: "Upper Belly" listed once as a built-in and again as
+         "Upper Belly (custom)", both switched off. He had typed a name the garment already
+         had. This line only checked the CUSTOM list for a clash and never looked at the
+         garment's own columns, so any built-in name typed by hand made a second field with
+         the same words on it — two rows to switch, two places a number could land, and no
+         way to tell which one a measurement had been written into.
+         A name the garment already carries is now refused, and it says which one it is and
+         that switching it back on is what he wanted. Matching ignores case and spacing,
+         because "upper belly" and "Upper Belly" are the same measurement to a tailor. */
+      const _vn=String(v).trim().toLowerCase().replace(/\s+/g,' ');
+      const _have=(mcols(G(gid))||[]).find(c=>String(c.n||'').trim().toLowerCase().replace(/\s+/g,' ')===_vn);
+      if(_have){
+        const off=(measHidden(gid)||[]).includes(_have.k);
+        toast(off?t('meas_dup_off',{n:_have.n}):t('meas_dup_on',{n:_have.n}),'bad');
+        rerender(); return;
+      }
       DB.measLib=DB.measLib||{};DB.measLib[gid]=DB.measLib[gid]||[];if(!DB.measLib[gid].includes(v))DB.measLib[gid].push(v);save();rerender();}}]);}
 function delMeas(gid,i,ctx){
   /* v242: a saved measurement line cannot be rebuilt unless the customer is standing
@@ -18314,7 +18351,33 @@ function renderInvoiceForm(){
   const comp0=invCompute(f);
   const masters=(DB.itemMaster||[]).filter(m=>m.kind!=='ready');   // tiles = curated shortcuts only; readymade stock shows in "Add item" search, not as tiles
 
-  const custBlock = f.kind==='sale' ? `
+  /* ══════════════ v532 — HE COULD NOT SEE WHO HE WAS BILLING ══════════════
+     HIS 7 Sept: "customer ka naam number nahi dikhayi de raha hai. Order number nahi
+     dikhayi de raha tha."
+     Right, and the reason is one word: this whole block is written only when kind is
+     'sale'. A bill made FROM AN ORDER takes a different path, and on that path the customer
+     never appeared at all — not the name, not the phone. The thinking was that an order
+     already knows its customer so there is nothing to type; that is true, and it is not the
+     same as there being nothing to SHOW. He is looking at a bill for ₹45,000 and cannot see
+     whose it is.
+     An order bill now carries a line naming the customer, his phone, the order number and
+     the delivery date — read only, because they belong to the order and are changed there,
+     not here. */
+  const custBlock = f.kind!=='sale' ? (()=>{
+    const rec=invRecOf(f.kind,f.id)||{};
+    const nm=rec.customerName||'', ph=rec.phone||'';
+    if(!nm && !ph && !rec.orderNo) return '';
+    return `<div class="card" style="padding:10px 12px;margin-bottom:10px">
+      <div class="kv" style="border-bottom:0;padding:0">
+        <div style="flex:1;min-width:0">
+          <b style="font-size:15px">\u{1F464} ${esc(nm||'\u2014')}</b>
+          ${ph?`<div class="hint" style="margin-top:2px">\u{1F4DE} ${esc(ph)}</div>`:''}
+        </div>
+        <div style="text-align:right">
+          ${rec.orderNo?`<b style="color:var(--saffron2)">#${esc(rec.orderNo)}</b>`:''}
+          ${rec.deliveryDate?`<div class="hint" style="margin-top:2px">\u{1F69A} ${fmtDate(rec.deliveryDate)}</div>`:''}
+        </div></div></div>`;
+  })() : `
     <div id="invCustPicked" style="margin-bottom:10px">${(f.customerId||f.customerName)?invCustomerPickedHTML():''}</div>
     <div id="invCustSearchWrap" style="${(f.customerId||f.customerName)?'display:none':''};margin-bottom:10px">
       <div class="cust-2col">
@@ -18323,9 +18386,9 @@ function renderInvoiceForm(){
       </div>
       <div id="invCustResults"></div>
       ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost block" style="margin-top:8px" onclick="invPickContact()">📇 ${t('from_contacts')}</button>`:''}
-    </div>` : '';
+    </div>`;
 
-  const tiles = masters.map(m=>{
+  const tileArr = masters.map(m=>{
       const isR=m.kind==='ready';
       const tot=isR?readyTotal(m):0;
       const out=isR&&tot<=0;
@@ -18342,7 +18405,21 @@ function renderInvoiceForm(){
         oncontextmenu="event.preventDefault();tileEdit('${m.id}');return false;">
         ${isR?`<span class="pos-badge ${tot<=2?'low':''}">${tot}</span>`:''}
         ${onBill?`<span class="pos-on">✓ ${onBill}</span>`:''}
-        <b>${esc(m.name)}</b>${m.rate?`<span>₹${esc(m.rate)}</span>`:''}</div>`;}).join('');
+        <b>${esc(m.name)}</b>${m.rate?`<span>₹${esc(m.rate)}</span>`:''}</div>`;});
+  /* how often each has actually been billed — the rack sorts itself */
+  const _useN={};
+  try{ (DB.sales||[]).forEach(x=>((x.invoice||{}).items||[]).forEach(it=>{
+         const k=String(it.label||''); if(k)_useN[k]=(_useN[k]||0)+1; }));
+       (DB.orders||[]).forEach(o=>((o.invoice||{}).items||[]).forEach(it=>{
+         const k=String(it.label||''); if(k)_useN[k]=(_useN[k]||0)+1; })); }catch(e){}
+  const _onBill=new Set((f.items||[]).map(it=>String(it.label||'')));
+  const _rank=masters.map((m,i)=>({i:i,n:(_onBill.has(m.name)?1e9:0)+(_useN[m.name]||0)}))
+                     .sort((a,b)=>b.n-a.n||a.i-b.i);
+  const _keep=new Set(_rank.slice(0,6).map(r=>r.i));
+  const tilesTop=tileArr.filter((h,i)=>_keep.has(i)).join('');
+  const tilesRest=tileArr.filter((h,i)=>!_keep.has(i)).join('');
+  const tilesRestN=tileArr.length-_keep.size;
+  const tiles=tileArr.join('');
   /* v511: `tiles` used to fall back to the sentence "No item in your master yet" when there
      were none, which made an empty string look full and kept the whole rack on screen with
      nothing in it. It is empty when it is empty now, and the strip below can tell. */
@@ -18407,8 +18484,20 @@ function renderInvoiceForm(){
             placeholder="${t('pos_ono_auto')}" style="flex:1;min-width:0" onchange="posLinkOrder(this.value)">
           <button class="btn ghost" style="flex:0 0 auto;padding:0 8px" onclick="invLoadFromOrder()">🔍</button>
         </div>
+        ${/* ══════════ v534 — TWO ORDERS, ONE NAME, NO WAY TO TELL ══════════
+             HIS 7 Sept: "Rohit Sarraf ke naam se purana bhi tha naya bhi tha, to samajh
+             mein nahi aa raha tha naya kaunsa tha, purana kaunsa tha."
+             The list carried the order number and the customer's name and nothing else, so
+             a regular who has been in twice shows as the same line twice. He asked for the
+             date and said which one: the ORDER date, not the delivery date — "us date se
+             samajh mein aa jayega ye naya hai ki purana. Delivery date wahan dekh ke kya
+             karunga? Wo to bill par aa hi jayegi." So it is the order date, with the pieces
+             beside it, because on the counter that is the other thing that tells one visit
+             from another. */''}
         <datalist id="posOrderList">${(DB.orders||[]).slice(-60).reverse()
-          .map(o=>`<option value="${esc(o.orderNo)}">${esc(o.customerName||'')}</option>`).join('')}</datalist>
+          .map(o=>{const d=o.orderDate||(o.created||'').slice(0,10);
+            const gars=(o.items||[]).map(g=>((G(g)||{}).n)||'').filter(Boolean).slice(0,2).join(', ');
+            return `<option value="${esc(o.orderNo)}">${esc(o.customerName||'')}${d?' \u00B7 '+fmtDate(d):''}${gars?' \u00B7 '+esc(gars):''}</option>`;}).join('')}</datalist>
       </div>`:`
       <div class="field" style="margin:0"><label>👔 ${t('pos_orderno')}</label>
         <input class="bold-in" style="text-align:center"
@@ -18439,11 +18528,23 @@ function renderInvoiceForm(){
          and a label describing what is not on it. When he has shortcuts, all of it comes
          back exactly as before. */''}
     <div id="posChrome">
+      ${/* ══════════ v536 — FOURTEEN SHORTCUTS IS NOT A SHORTCUT ══════════
+           HIS 7 Sept: "itni nahi chahiye, chaar paanch chahiye, baaki dropdown mein ho
+           jaayenge to chalega — jo regular hote hain. Duniya bhar ki cheezein ho gayi hain."
+           Fourteen tiles filled the screen above the bill he was trying to read. The ones he
+           reaches for are a handful; the rest are there for the day they are needed.
+           The six he uses most stay out — measured by how often each has actually been
+           billed, so the rack arranges itself and he never has to. The rest fold behind
+           "▾ More (N)", which is the pattern the order screen already uses for garments.
+           Anything already ticked onto this bill stays out too, however rare it is, because
+           hiding something he has just added would be worse than showing too much. */''}
       ${tiles?`<div class="tap-mini" style="display:flex;justify-content:space-between;align-items:center">
         <span>⚡ ${t('pos_tap_add')} — ${t('pos_shortcut')}</span>
         <button class="btn sm ghost" style="padding:3px 12px;font-size:12px" onclick="posManageItems()">✏️ ${t('edit')}</button>
       </div>
-      <div class="pos-tiles">${tiles}<div class="pos-tile add" onclick="posNewItem()"><b>➕ New</b></div></div>`:''}
+      <div class="pos-tiles">${tilesTop}${_posTileMore?tilesRest:''}<div class="pos-tile add" onclick="posNewItem()"><b>➕ New</b></div></div>
+      ${tilesRestN?`<div style="text-align:center;margin:-2px 0 8px"><span class="gtag sm" style="cursor:pointer;border-style:dashed"
+         onclick="posTileMore()">${_posTileMore?'▴ '+t('gc_less'):'▾ '+t('gc_more')+' ('+tilesRestN+')'}</span></div>`:''}`:''}
       ${/* outline, not a slab of orange — his "side lines orange rahta aur neeche search
            likha rahta" */''}
       <div class="pos-addbar"><button class="btn ghost block" style="border-color:var(--saffron);color:var(--saffron2);font-weight:700"
@@ -18456,7 +18557,9 @@ function renderInvoiceForm(){
     <div id="posAddSmall" class="pos-add-small" style="${(f.items||[]).length?'':'display:none'}"
       onclick="posAddMenu()">🔎 ${t('pos_add_item')}</div>
     <div id="posBilledSummary">${posBilledSummary()}</div>
-    <p class="hint" id="invDraftHint" style="text-align:center;opacity:.6;margin:8px 0 0">💾 ${t('draft_auto')}</p>
+    ${/* v536: "ye green ekdam halki chahiye" — it is a reassurance, not a heading, and it
+         sat brighter than the figures above it. */''}
+    <p class="hint" id="invDraftHint" style="text-align:center;opacity:.28;font-size:11px;margin:6px 0 0">${t('draft_auto')}</p>
 
 
     ${/* v511: discount, grand total, received-now, four payment chips, the account picker
@@ -18511,10 +18614,21 @@ function renderInvoiceForm(){
                      color:var(--saffron2);border-color:var(--saffron)" oninput="updateInvTotals()"></div>`;
       })()}
 
+      ${/* ══════════ v533 — THREE LAYERS ASKING THE SAME THING ══════════
+           HIS 7 Sept: "jab maine split payment choose kiya hai to cash bhi dikha raha hai
+           aur UPI bhi... uske baad phir payment mode dikhane ka kya hai? Uske neeche phir
+           bank ka detail bhi. Poora confusing."
+           He is right and it is exactly three layers deep. With split ON he has already
+           said, in rupees, how much came as cash and how much online — that IS the answer.
+           Underneath it the mode chips still asked "Cash or UPI or Bank or Card", a question
+           split has just made meaningless, and under THAT the account picker asked a third
+           time. Three controls, one fact.
+           With split on, the chips go. Only the ⇄ stays, so he can switch back out of it.
+           The account picker stays, because the online half still has to land somewhere. */''}
       <div class="il il-stack">
-        <span class="hint">${t('payment_mode')}</span>
+        <span class="hint">${f.split?t('split_pay'):t('payment_mode')}</span>
         <span class="gtags" id="ivModes">
-          ${PU_MODES.map(m=>`<span class="gtag sm ${(!f.split&&f.paymentMode===m[0])?'on-tag':''}" data-pm="${m[0]}" style="cursor:pointer" onclick="invSetMode('${m[0]}')">${t(m[1])}</span>`).join('')}
+          ${f.split?'':PU_MODES.map(m=>`<span class="gtag sm ${(f.paymentMode===m[0])?'on-tag':''}" data-pm="${m[0]}" style="cursor:pointer" onclick="invSetMode('${m[0]}')">${t(m[1])}</span>`).join('')}
           <span class="gtag sm ${f.split?'on-tag':''}" style="cursor:pointer;border-style:dashed" onclick="invToggleSplit()">⇄ ${t('split_pay')}</span></span>
         <input type="hidden" id="inv_pm" value="${esc(f.paymentMode||'Cash')}"></div>
       ${/* v511: the account picker waited on the payment mode but not on whether any money
@@ -18649,14 +18763,20 @@ function posLineHTML(i,it){
          or corrected where the bill is actually made. It is a real box now, small and to
          one side, and only when GST is switched on: a shop not billing GST has no use for
          an HSN column and must not be given one. */''}
-    ${/* v512: the HSN box sat open on every line whether or not the shop bills GST. With
-         GST off it is a code nobody will ever read; it stays a hidden field so an old bill
-         keeps whatever it had, and appears only for a shop that actually needs it. */''}
-    ${(!!(DB.shopInfo&&DB.shopInfo.showGst))?`<div class="row" style="gap:6px;margin-top:4px;align-items:center">
-      <span class="hint" style="flex:0 0 auto">${t('im_hsn')}</span>
-      <input data-ihsn="${i}" value="${esc(it.hsn||'')}" placeholder="6203" inputmode="numeric"
-        style="flex:0 0 96px;margin:0;padding:5px 8px;font-size:13px;text-align:center"></div>`
-     :`<input type="hidden" data-ihsn="${i}" value="${esc(it.hsn||'')}">`}
+    ${/* ══════════ v535 — HSN OFF THE COUNTER, STILL ON THE BILL ══════════
+         HIS 7 Sept: "HSN wagairah jo hai wo background mein aise reh sakta hai ki print
+         karein ya WhatsApp karein usme aaye, par saamne jo screen mein nahi dikhe, aur
+         automatic item ke hisaab se HSN le le."
+         Right on all three counts. v512 already stopped it showing when the shop bills no
+         GST; that was half the answer. The other half is that even a GST shop does not read
+         a tax code while a customer stands waiting — it belongs to the printed bill, not to
+         the counter. It is a hidden field on every line now, so it still saves, still
+         prints, still goes on the WhatsApp copy, and still reaches the GST report.
+         It fills itself from the item, which it has always done through posAdd → it.hsn =
+         m.hsn. What was missing was a way to correct one: that lives with the item, in the
+         item master, where a code set once serves every future bill — instead of being
+         retyped on the counter on every line of every bill for ever. */''}
+    <input type="hidden" data-ihsn="${i}" value="${esc(it.hsn||'')}">
   </div>`;
 }
 function posBilledSummary(){
@@ -19119,6 +19239,10 @@ function posSearchNote(name){
      that is where he is looking — and the single toast comes from the add itself. */
   const q=$('#posSearchQ'); if(q){q.value='';q.focus();} posSearchRun(''); }
 function posAddTyped(){ const inp=$('#posSearchQ'); if(!inp)return; const v=(inp.value||'').trim(); if(!v)return; posPushItem({label:v}); posSearchNote(v); }
+/* v536: the fold's own state — kept outside the form so a redraw does not shut it while
+   he is looking through the rarer items. */
+let _posTileMore=false;
+function posTileMore(){ _posTileMore=!_posTileMore; captureInvoiceForm(); renderInvoiceForm(); }
 function posAddMaster(mid){ const m=(DB.itemMaster||[]).find(x=>x.id===mid); if(!m)return;
   const billRate=(m.kind==='ready')?(m.sell||''):(m.rate||'');   // never put purchase price on a customer bill
   posPushItem({masterId:m.id,label:m.name,hsn:m.hsn||'',unit:(m.incl&&m.incl.length>1)?'Set':'Pcs',rate:billRate,incl:[...(m.incl||[])],includes:(m.incl||[]).join(', ')});
@@ -19965,11 +20089,21 @@ function saveInvoice(){
      behind every single time, and dropped him on a blank form instead of the bill he had
      just corrected. Editing an existing bill is not a run. It ends where it started. */
   if(f.kind==='sale' && !_invWasEdit){ posDone(f.id); saleFormNext(); return; }
+  /* ══════════ v536 — ✕ WALKED BACK INTO THE BILL HE HAD JUST SAVED ══════════
+     HIS 7 Sept: "amount daal ke Save & generate kiya to save ho gaya, phir WhatsApp wali
+     screen khul jaati hai... maine cross dabaya to phir se wahi invoice wali screen aa gayi
+     jo maine banayi thi. Jabki jahan par invoice saved hai wo data aana chahiye."
+     This is v509 landing where it should not. ✕ steps back one page now, and the page behind
+     the share screen is the form he was filling — so the app dutifully reopened it, looking
+     unsaved, over a bill that was already in the books. From there another Save would have
+     asked to write it twice.
+     A finished bill ends the run. The trail is wiped at the moment of saving, so the share
+     screen has nothing behind it but the bill list, and ✕ takes him there. */
   if(f.kind==='sale'){                      /* an edit: go back to the bill he was fixing */
-    closeSheet(); invQ=''; invSort='new'; go('invoices');
+    closeSheet(); sheetReset(); invQ=''; invSort='new'; go('invoices');
     openInvoicePreview('sale',f.id); return;
   }
-  closeSheet();
+  closeSheet(); sheetReset();
   invQ=''; invSort='new';
   go('invoices');                       // the new bill is right there when you close the preview
   openInvoicePreview(f.kind,f.id);
@@ -21361,7 +21495,10 @@ function saveInvDraft(){
   if(!invHasContent(invForm)){ invDraftDropId(invForm._draftId); return; }
   invDraftPut(invForm._draftId, invForm);
   const h=document.getElementById('invDraftHint');
-  if(h){ h.textContent='✅ '+t('draft_saved'); h.style.opacity='1'; }
+  /* v536: this is where the green came from — the autosave swapped the quiet line for a
+     bright ✅ at full opacity on every keystroke. It is a reassurance, not an announcement;
+     it says the same thing without shouting over the figures above it. */
+  if(h){ h.textContent=t('draft_saved'); h.style.opacity='.34'; }
 }
 function clearInvDraft(){
   try{ if(invForm&&invForm._draftId)invDraftDropId(invForm._draftId); }catch(e){}
