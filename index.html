@@ -874,7 +874,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v544</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v548</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -1432,6 +1432,11 @@ const T={
   ki_not_his:'{k} does not usually make this',
   naap_last:'Done — go to the last step',
   naap_left:'Measure the {n} still left',
+  inv_p_all:'All',
+  inv_p_month:'This month',
+  inv_p_lastm:'Last month',
+  inv_p_custom:'Custom dates',
+  inv_total_shown:'Total of what is shown',
   save_generate:'Save & generate',
   save_close:'Save & close',
   mv_title:'Move this bill onto the order',
@@ -3360,6 +3365,11 @@ dl_show_hidden:'Show hidden ({n})',
   ki_not_his:'{k} आम तौर पर यह नहीं बनाते',
   naap_last:'हो गया — आख़िरी क़दम पर जाएँ',
   naap_left:'बचे हुए {n} का नाप लें',
+  inv_p_all:'सभी',
+  inv_p_month:'इस महीने',
+  inv_p_lastm:'पिछले महीने',
+  inv_p_custom:'तारीख़ चुनें',
+  inv_total_shown:'जो दिख रहा है उसका जोड़',
   save_generate:'सहेजें और बनाएँ',
   save_close:'सेव करके बंद करें',
   mv_title:'ये बिल ऑर्डर पर ले जाएँ',
@@ -6429,7 +6439,13 @@ function fabSelDelete(){
 const FAB_BANDS=[['le1','≤ 1 m',0,1],['1to2','1 – 2 m',1,2],['2to5','2 – 5 m',2,5],['ge5','5 m +',5,1e9]];
 function setFabCat(v){ _fabCat=String(v||''); pageReset('fab'); fabricBody(); }
 function setFabBand(v){ _fabBand=(_fabBand===v?'':v); pageReset('fab'); fabricBody(); }
-function setFabQ(v){_fabQ=v;pageReset('fab');fabricBody(true);}
+function setFabQ(v){
+  _fabQ=v; pageReset('fab');
+  /* v546: only the rows are rewritten, so the box he is typing into is never remade. */
+  const el=$('#fabRows');
+  if(!el){ fabricBody(true); return; }
+  fabricBody(true);
+}
 function setFabSort(v){_fabSort=v;pageReset('fab');fabricBody();}
 async function loadStockThumbs(){
   for(const img of document.querySelectorAll('img.stk-thumb[data-pid]')){
@@ -6444,6 +6460,36 @@ async function renderThaanDetailPhotos(th){
     w.innerHTML=`<img class="thumb" src="${url||''}">`;
     w.querySelector('.thumb').onclick=()=>viewPhoto(url);
     el.appendChild(w);}
+}
+/* v546: the stock rows on their own, so a keystroke rewrites only the list and never the
+   box he is typing into. Same cure the other six search screens already have. */
+function fabBodyHTML(list){
+  return `    ${!list.length?`<p class="hint" style="padding:26px 6px;text-align:center">${(DB.thaans||[]).length?t('stk_none_match'):t('stk_none_yet')}</p>`:''}
+    ${pageSlice('fab',list).map(th=>{
+      const f=FI(th.fabId)||{}; const bal=thaanBal(th);
+      const low=bal<=3&&bal>0; const done=bal<=0.05;
+      const dead=monthsSince(lastMoveTs(m=>m.thaanId===th.id&&m.dir===MV_OUT)||th.created)>=(DB.stkCfg.deadMonths||6);
+      return `<div class="card" data-th="${th.id}" style="margin-bottom:8px;${low?'border-color:var(--saffron)':''}${_fabSelMode&&_fabSel.has(th.id)?';border-color:var(--saffron2);border-width:2px':''}" onclick="${_fabSelMode?`fabSelPick('${th.id}')`:`thaanDetail('${th.id}')`}">
+        <div class="kv" style="align-items:flex-start">
+          ${_fabSelMode?`<span style="font-size:20px;line-height:1;margin-right:2px">${_fabSel.has(th.id)?'☑️':'⬜'}</span>`:''}
+          ${(th.photos||[]).length?`<img class="stk-thumb" data-pid="${th.photos[0]}">`:''}
+          <div style="flex:1">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <b style="color:var(--saffron2);font-size:15px">#${esc(th.serial)}</b>
+              ${low?`<span class="pill st-alteration" style="font-size:10px">${t('stk_cutpiece')}</span>`:''}
+              ${done?`<span class="pill st-delivered" style="font-size:10px">${t('stk_finished')}</span>`:''}
+              ${dead?`<span class="pill" style="font-size:10px;background:#5a2b2b;color:#ffd7d7">🐌 ${t('stk_slow')}</span>`:''}
+            </div>
+            <div style="font-weight:700;margin-top:2px">${esc(thaanName(th)||'—')}</div>
+            <div class="hint">${thaanCat(th)?esc(thaanCat(th))+' · ':''}${esc(th.party||f.party||'')}${th.rack?' · 📍 '+esc(th.rack):''}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:18px;font-weight:900">${bal} <span style="font-size:12px;color:var(--mut)">m</span></div>
+            <div class="hint">${t('stk_of')} ${+th.mtr||0} m</div>
+            ${th.rate?`<div class="hint" style="color:var(--saffron2)">@ ${money(th.rate)}/m = ${money(thaanValue(th))}</div>`:''}
+            ${(th.sell||f.sell)?`<div class="hint" style="color:#1a9d5a;font-weight:700">🏷️ ${money(th.sell||f.sell)}/m</div>`:''}
+          </div></div></div>`;}).join('')+pageMoreBtn('fab',list.length)
+      || `<div class="empty" style="padding:26px 10px"><p>${t('stk_no_thaan')}</p></div>`}`;
 }
 function fabricBody(keepFocus){
   const el=$('#stkBody'); if(!el)return;
@@ -6487,6 +6533,13 @@ function fabricBody(keepFocus){
      count reads honestly: "142 fabric rolls · 9 finished". */
   const finN=list.filter(th=>thaanBal(th)<=0.05).length;
 
+  /* v546: the box survives a keystroke — the frame is written once and only the rows
+     inside it are swapped after that. */
+  const _fbHolder=el.querySelector('#fabRows');
+  if(keepFocus && _fbHolder && el.querySelector('#fabSearch')){
+    _fbHolder.innerHTML=fabBodyHTML(list);
+    return;
+  }
   el.innerHTML=`
     <div class="field" style="margin-bottom:10px">
       <input id="fabSearch" value="${esc(_fabQ)}" placeholder="🔍 ${t('stk_fab_search')}" oninput="setFabQ(this.value)"></div>
@@ -6539,32 +6592,7 @@ function fabricBody(keepFocus){
       <span class="gtags">
         <span class="gtag ${_fabSort==='new'?'on-tag':''}" style="cursor:pointer" onclick="setFabSort('new')">${t('stk_sort_new')}</span>
         <span class="gtag ${_fabSort==='serial'?'on-tag':''}" style="cursor:pointer" onclick="setFabSort('serial')">${t('stk_sort_serial')}</span></span></div>
-    ${!list.length?`<p class="hint" style="padding:26px 6px;text-align:center">${(DB.thaans||[]).length?t('stk_none_match'):t('stk_none_yet')}</p>`:''}
-    ${pageSlice('fab',list).map(th=>{
-      const f=FI(th.fabId)||{}; const bal=thaanBal(th);
-      const low=bal<=3&&bal>0; const done=bal<=0.05;
-      const dead=monthsSince(lastMoveTs(m=>m.thaanId===th.id&&m.dir===MV_OUT)||th.created)>=(DB.stkCfg.deadMonths||6);
-      return `<div class="card" data-th="${th.id}" style="margin-bottom:8px;${low?'border-color:var(--saffron)':''}${_fabSelMode&&_fabSel.has(th.id)?';border-color:var(--saffron2);border-width:2px':''}" onclick="${_fabSelMode?`fabSelPick('${th.id}')`:`thaanDetail('${th.id}')`}">
-        <div class="kv" style="align-items:flex-start">
-          ${_fabSelMode?`<span style="font-size:20px;line-height:1;margin-right:2px">${_fabSel.has(th.id)?'☑️':'⬜'}</span>`:''}
-          ${(th.photos||[]).length?`<img class="stk-thumb" data-pid="${th.photos[0]}">`:''}
-          <div style="flex:1">
-            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-              <b style="color:var(--saffron2);font-size:15px">#${esc(th.serial)}</b>
-              ${low?`<span class="pill st-alteration" style="font-size:10px">${t('stk_cutpiece')}</span>`:''}
-              ${done?`<span class="pill st-delivered" style="font-size:10px">${t('stk_finished')}</span>`:''}
-              ${dead?`<span class="pill" style="font-size:10px;background:#5a2b2b;color:#ffd7d7">🐌 ${t('stk_slow')}</span>`:''}
-            </div>
-            <div style="font-weight:700;margin-top:2px">${esc(thaanName(th)||'—')}</div>
-            <div class="hint">${thaanCat(th)?esc(thaanCat(th))+' · ':''}${esc(th.party||f.party||'')}${th.rack?' · 📍 '+esc(th.rack):''}</div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:18px;font-weight:900">${bal} <span style="font-size:12px;color:var(--mut)">m</span></div>
-            <div class="hint">${t('stk_of')} ${+th.mtr||0} m</div>
-            ${th.rate?`<div class="hint" style="color:var(--saffron2)">@ ${money(th.rate)}/m = ${money(thaanValue(th))}</div>`:''}
-            ${(th.sell||f.sell)?`<div class="hint" style="color:#1a9d5a;font-weight:700">🏷️ ${money(th.sell||f.sell)}/m</div>`:''}
-          </div></div></div>`;}).join('')+pageMoreBtn('fab',list.length)
-      || `<div class="empty" style="padding:26px 10px"><p>${t('stk_no_thaan')}</p></div>`}
+    <div id="fabRows">${fabBodyHTML(list)}</div>
     ${_fabSelMode?`<div id="fabSelBar" class="save-dock" style="display:${_fabSel.size?'':'none'}">
       <span class="hint" style="flex:1;padding-left:4px"><b id="fabSelCount">${_fabSel.size}</b> ${t('fab_selected')}</span>
       <button class="btn danger" onclick="fabSelDelete()">🗑️ ${t('delete')}</button></div>`:''}`;
@@ -13799,6 +13827,20 @@ function tabHead(title){
     <b style="flex:1;text-align:center;font-size:15px">${esc(title)}</b>
     <span style="width:42px"></span></div>`;
 }
+/* ══════════ v546 — THE LAST TWO SEARCH BOXES THAT REBUILT THEMSELVES ══════════
+   HIS 7 Sept, after the full sweep found them: Orders and Stock were still redrawing the
+   whole pane on every letter, so the box he was typing into was thrown away and remade and
+   the focus put back afterwards. Ledger, Expenses, the Sale list, Payables, Parties and the
+   Day book have all been cured of this; these two were simply never measured. Same cure —
+   the heading and the box are written once, and a keystroke replaces only the rows inside
+   them, so the box is never touched and the keyboard has nothing to react to. */
+let _ordBody='';
+function _ordPaint(el,head,remind,searchBox,bar,srcBar,banner,dcard,keepFocus){
+  const holder=el.querySelector('#ordRows');
+  if(keepFocus && holder && el.querySelector('#ordSearch')){ holder.innerHTML=_ordBody; return; }
+  el.innerHTML=head+remind+searchBox+bar+srcBar+banner+dcard+'<div id="ordRows">'+_ordBody+'</div>';
+  if(keepFocus)focusOrdSearch();
+}
 function renderOrders(keepFocus){
   const q=(ordQ||'').toLowerCase().trim();
   let list=deliveryList();
@@ -13840,10 +13882,10 @@ function renderOrders(keepFocus){
   /* the same box, in the same place, as the Sales and Purchase lists */
   const searchBox=`<div class="field" style="margin-bottom:10px">
     <input id="ordSearch" value="${esc(ordQ)}" placeholder="🔍 ${t('ord_search_ph')}" oninput="setOrdQ(this.value)"></div>`;
-  if(!list.length){el.innerHTML=head+remind+searchBox+bar+srcBar+banner+dcard+`<div class="empty"><div class="big">📋</div><p><b>${q?t('nothing'):(delFilter==='all'?t('no_orders'):t('no_deliveries'))}</b></p><p style="font-size:13px">${q?t('try_other'):(delFilter==='all'?t('no_orders_sub'):'')}</p></div>`;
-    if(keepFocus)focusOrdSearch(); return;}
+  if(!list.length){_ordBody=`<div class="empty"><div class="big">📋</div><p><b>${q?t('nothing'):(delFilter==='all'?t('no_orders'):t('no_deliveries'))}</b></p><p style="font-size:13px">${q?t('try_other'):(delFilter==='all'?t('no_orders_sub'):'')}</p></div>`;
+    _ordPaint(el,head,remind,searchBox,bar,srcBar,banner,dcard,keepFocus); return;}
   const _pg=pageSlice('orders',list);
-  el.innerHTML=head+remind+searchBox+bar+srcBar+banner+dcard+_pg.map(o=>{
+  _ordBody=_pg.map(o=>{
     const dl=daysLeft(o.deliveryDate),baaki=orderBaaki(o),st=orderSummaryStatus(o);
     let dcls='',dtxt=fmtDate(o.deliveryDate);
     if(st!=='delivered'&&dl!==null&&dl<0){dcls='soon';dtxt=Math.abs(dl)+'d '+t('late');}
@@ -13863,8 +13905,9 @@ function renderOrders(keepFocus){
       ${ready?`<div class="row" style="margin-top:10px;gap:8px"><span class="btn sm" style="background:rgba(95,184,122,.18);color:var(--ok);border:none;flex:0 0 auto">✅ ${t('ready_word')}</span><button class="btn sm primary" onclick="event.stopPropagation();waReady('${o.id}')">💬 ${t('notify_ready')}</button></div>`:''}
       <div class="botrow"><span class="pill st-${st}">${sLabel(st)}</span><span style="font-size:12px;color:var(--txt2)">${rc}/${tot} ${t('ready_word').toLowerCase()}${baaki>0?` · <span style="color:var(--saffron2);font-weight:700">${money(baaki)}</span>`:''}</span></div>
     </div>`;
-  }).join('');
-  if(keepFocus)focusOrdSearch();
+  }).join('')+pageMoreBtn('orders',list.length);
+  _ordPaint(el,head,remind,searchBox,bar,srcBar,banner,dcard,keepFocus);
+
 }
 /* ---- print / whatsapp the delivery list (for staff / wall) ---- */
 function deliveriesText(){
@@ -21310,6 +21353,31 @@ function allInvoices(){
   return list;
 }
 let invQ='', invSort='new';
+let invPeriod='all', invFrom='', invTo='';
+/* v547: which bills the period lets through. 'all' is the old behaviour, unchanged. */
+function invInPeriod(d){
+  d=String(d||''); if(!d)return invPeriod==='all';
+  if(invPeriod==='all')return true;
+  const now=new Date(), y=now.getFullYear(), m=now.getMonth();
+  if(invPeriod==='m'){ const a=isoOf(new Date(y,m,1)), b=isoOf(new Date(y,m+1,0)); return d>=a&&d<=b; }
+  if(invPeriod==='lm'){ const a=isoOf(new Date(y,m-1,1)), b=isoOf(new Date(y,m,0)); return d>=a&&d<=b; }
+  if(invPeriod==='custom'){ if(invFrom&&d<invFrom)return false; if(invTo&&d>invTo)return false; return true; }
+  return true;
+}
+function setInvPeriod(p){
+  invPeriod=p;
+  if(p==='custom'&&!invFrom&&!invTo){ const n=new Date();
+    invFrom=isoOf(new Date(n.getFullYear(),n.getMonth(),1)); invTo=todayISO(); }
+  pageReset('inv'); renderInvoices();
+  if(p==='custom')setTimeout(()=>{ const e=$('#invFrom_show')||$('#invFrom'); if(e)e.focus(); },60);
+}
+/* v547: the two boxes report through one handler, so a change in either narrows the list
+   at once — he never has to press anything to apply it. */
+function invDatesChanged(){
+  const a=$('#invFrom'), b=$('#invTo');
+  invFrom=a?a.value:''; invTo=b?b.value:'';
+  pageReset('inv'); renderInvoices();
+}
 function setInvQ(v){invQ=v;renderInvoices(true);}
 function setInvSort(v){invSort=v;renderInvoices();}
 const SORTS=[['new','↓ '],['old','↑ '],['hi','₹↓ '],['lo','₹↑ ']];
@@ -21358,7 +21426,9 @@ function invDraftBarHTML(){
 }
 function renderInvoices(keepFocus){
   const el=$('#invList');
-  const all=allInvoices();
+  /* v547: the period is applied before anything else, so the search, the sort and the
+     month headings all work on the same set he has chosen. */
+  const all=allInvoices().filter(x=>invInPeriod((x.inv||{}).date));
   const head=tabHead(t('invoices'))+`<div class="row" style="margin-bottom:12px;gap:8px">
     <button class="btn primary" style="flex:1" onclick="openSaleForm()">+ ${t('new_sale')}</button>
     <button class="btn ghost" style="flex:0 0 48px" title="${t('hub_more')}" onclick="saleHub()">⋯</button>
@@ -21378,7 +21448,25 @@ function renderInvoices(keepFocus){
 
   const searchBox=`<div class="field" style="margin-bottom:10px">
     <input id="invSearch" value="${esc(invQ)}" placeholder="🔍 ${t('inv_search_ph')}" oninput="setInvQ(this.value)"></div>`
-    + sortChips(invSort,'setInvSort');
+    + sortChips(invSort,'setInvSort')
+    /* ══════════ v547 — THE BILL LIST HAD NO DATES ══════════
+       HIS 7 Sept: "search bar hai, uske neeche Newest first hai... uske baad custom dates
+       ka option ho jata to bahut achha ho jata."
+       The list ran from the first bill ever written to the last, 225 of them, and the only
+       way to reach August was to scroll. Every other list in the app takes a period; this
+       one takes only a sort. The chips are the same four the reports use, so it reads the
+       same way, and Custom opens the two date boxes. What he picks narrows the list AND the
+       month totals above it, so the figure he reads always belongs to what he is looking
+       at. */
+    + `<div class="gtags" style="margin:-4px 0 8px">
+        ${[['all','inv_p_all'],['m','inv_p_month'],['lm','inv_p_lastm'],['custom','inv_p_custom']]
+          .map(x=>`<span class="gtag sm ${invPeriod===x[0]?'on-tag':''}" style="cursor:pointer"
+             onclick="setInvPeriod('${x[0]}')">${t(x[1])}</span>`).join('')}
+       </div>
+       ${invPeriod==='custom'?`<div class="row" style="gap:6px;margin-bottom:8px" onchange="invDatesChanged()">
+         <div class="field" style="margin:0;flex:1"><label>${t('cb_from')}</label>${dateField('invFrom',invFrom||'','',true)}</div>
+         <div class="field" style="margin:0;flex:1"><label>${t('cb_to')}</label>${dateField('invTo',invTo||'','',true)}</div>
+       </div>`:''}`;
 
   /* ══════════════ v494 — THE UNFINISHED BILLS HAD NO SHELF ══════════════
      HIS 5 Sept: "invoice ke andar abhi bhi draft ban raha hai kya, ki sale wali list par
@@ -21395,9 +21483,21 @@ function renderInvoices(keepFocus){
      unfinished bill is either saved or discarded. */
   const draftBar = invDraftBarHTML();
 
-  const title=draftBar+`<div class="kv" style="margin:0 0 10px">
+  /* ══════════ v548 — 225 BILLS AND NO TOTAL ══════════
+     HIS 7 Sept: "poori list ka jod kahin nahi hai — sirf mahine-wise." Right: every month
+     heading carried its own sales and GST, and the list as a whole carried a count and
+     nothing else — so the one figure he wants after picking a date range, what the whole
+     thing comes to, was the one figure missing. It totals what is ON SCREEN, so it follows
+     the period and the search: pick July and it shows July's. */
+  const _tot=list.reduce((a,x)=>a+(invCompute(x.inv).total||0),0);
+  const _due=list.reduce((a,x)=>a+Math.max(0,orderBaaki(x.rec)||0),0);
+  const title=draftBar+`<div class="kv" style="margin:0 0 4px">
     <h3 style="margin:0;font-size:16px">📋 ${t('inv_all')}</h3>
-    <span class="hint">${t('inv_count',{n:list.length})}</span></div>`;
+    <span class="hint">${t('inv_count',{n:list.length})}</span></div>`
+    +(list.length?`<div class="kv" id="invTotBar" style="margin:0 0 10px;padding:7px 10px;border:1px solid var(--line);border-radius:10px">
+      <span class="hint">${t('inv_total_shown')}</span>
+      <b style="font-size:15px">${money(r2(_tot))}${_due>0?' \u00B7 '+t('baaki')+' '+money(r2(_due)):''}</b>
+    </div>`:'');
 
   /* ══════════ v514 — THE LAST SEARCH BOX THAT REBUILT ITSELF ══════════
      HIS 5 Sept: "koi letter type karte hi keyboard blink ho raha hai." Ledger was cured in
@@ -21456,9 +21556,24 @@ function invCardHTML(x){
   return `<div class="card ocard" onclick="openInvoicePreview('${x.kind}','${x.rec.id}')">
     <div class="top"><div><div class="ono">🧾 ${esc(x.inv.no)}</div>
       <div class="name">${esc(x.rec.customerName||'—')}</div>
-      <div class="meta">${ref} · ${fmtDate(x.inv.date)}${x.rec.deliveryDate?' · 📅 '+fmtDate(x.rec.deliveryDate):''}</div></div>
+      ${/* v548: "#2619 · 7 Sept · 📅 24 Sept" broke across two rows and left the word
+           "Sept" sitting alone underneath — on every one of 225 cards. It holds one line
+           now and trims instead of wrapping. */''}
+      <div class="meta" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ref} · ${fmtDate(x.inv.date)}${x.rec.deliveryDate?' · 📅 '+fmtDate(x.rec.deliveryDate):''}</div></div>
       <div style="text-align:right"><div style="font-weight:800;font-size:16px">${money(c.total)}</div>
-      ${due>0?`<div style="font-size:11px;color:var(--bad);font-weight:700">${t('baaki_sub')} ${money(due)}</div>`:`<div style="font-size:11px;color:var(--ok);font-weight:700">✓ ${t('inv_paid')}</div>`}</div></div>
+      ${/* ══════════ v548 — A LIST THAT LOOKED LIKE AN EMERGENCY ══════════
+           HIS 7 Sept: every card carried "Balance (customer pays) ₹3,280" in red. Money
+           still to come is ordinary — most bills in a tailoring shop sit part-paid for a
+           week — and painting all 225 of them red says nothing, because when everything is
+           an alarm nothing is. Red is kept for the case that IS a problem: the delivery date
+           has gone and the money has not come. The rest read as a quiet figure, and the long
+           sentence goes with it: "Balance ₹3,280" is the whole of it. */''}
+      ${(()=>{
+        if(due<=0)return `<div style="font-size:11px;color:var(--ok);font-weight:700">\u2713 ${t('inv_paid')}</div>`;
+        const dd=x.rec.deliveryDate||'';
+        const late=dd&&dd<todayISO();
+        return `<div style="font-size:11px;font-weight:700;color:${late?'var(--bad)':'var(--txt2)'}">${t('baaki')} ${money(due)}</div>`;
+      })()}</div></div>
     ${/* v359 — HIS 27 Aug: "invoice par click kiya to itne saare option aa jaate hain.
          Ya to edit karna hoga, ya delete, ya kisi ko bhejna hoga... teen chhote chhote
          button rahe har invoice ke bagal me to kaam ho jaye."
@@ -25774,10 +25889,25 @@ function renderReports(){
       ['\u2B06\uFE0F',t('mo_title'),'moneyOut()'],
       ['\u{1F4E5}',t('bi_title'),'bankImport()']])
   + _rpSec(t('rps_books'),[
+      /* ══════════ v545 — EIGHT REPORTS THAT LIVED OUTSIDE REPORTS ══════════
+         HIS 7 Sept, with the Vyapar screenshots again: "reports mein reports nahi hai. Day
+         book mein report hai — kyun hai bhai Day book mein report? Maine day one se bol raha
+         hoon ki sab kuch ek jagah ho, systematic ho, koi bhi bikhraav na ho."
+         He has said it from the start and I kept building reports and leaving them wherever
+         the work happened to be. Counted them: seventeen were in here and EIGHT were not —
+         the Day book under Expenses, the Ledger master under Expenses, the income book, the
+         karigar's account, the karigar report, the payments-to-check list, the staff report,
+         and the growth figures. Every one of them works; not one of them could be found from
+         the screen called Reports.
+         They are in, in the section a shopkeeper would look for them. Nothing new was built
+         and nothing was moved out of its old door — those still work — but Reports is now
+         the one place where all of them are listed. */
       ['\u{1F4C8}',t('rp_pl'),'plReport()'],
       ['\u{1F3E6}',t('bs_title'),'balanceSheet()'],
       ['\u{1F4CB}',t('tb_title'),'trialBalance()'],
       ['\u{1F4B5}',t('rp_cashflow'),'cashflowReport()'],
+      ['\u{1F4D2}',t('db_title'),'dayBook()'],
+      ['\u{1F4D7}',t('lg_title'),'ledgerMaster()'],
       ['\u{1F4D3}',t('jv_title'),'journalBook()'],
       ['\u{1F9FE}',t('gst_title'),'gstReport()']])
   + _rpSec(t('rps_people'),[
@@ -25788,6 +25918,8 @@ function renderReports(){
   + _rpSec(t('rps_floor'),[
       ['\u{1F4E4}',t('ki_title'),'karIssue()'],
       ['\u{1F4E5}',t('kr_title'),'karReceive()'],
+      ['\u{1F9F5}',t('kb_title'),'karigarBook()'],
+      ['\u{1F50E}',t('krp_title'),'karPayRiskReport()'],
       ['\u{1F69A}',t('ontime_title'),'ontimeReport()'],
       ['\u{1F4B0}',t('op_title'),'orderProfitReport()'],
       ['\u{1F4B8}',t('rp_exp_head'),'expHeadReport()']])
