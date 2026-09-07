@@ -874,7 +874,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v522</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v529</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -1406,6 +1406,23 @@ const T={
   od_give_n:'Give pieces to a karigar · {n} not given yet',
   ki_no_kar_ask:'No karigar is on the list yet. Add one now?',
   pos_tile_off:'{n} taken off the bill',
+  sm_gone:'(removed salesman)',
+  /* ══════════ v526 — TWO SCREENS SHARING ONE NAME ══════════
+     Found by scanning both language tables for keys defined twice: kr_title, kr_sub and
+     kr_none were each written twice — once for "Take work back", and again, later, for
+     "Karigar payments to check". In a JS object the last one wins, so the screen where he
+     takes finished pieces back from a karigar was headed "Karigar payments to check ·
+     Older payments whose ledger entry is missing" — a heading about a different job
+     entirely, sitting over a list of his own pieces. No data was wrong; the screen simply
+     lied about what it was. The payments-check screen gets its own keys. */
+  krp_title:'Karigar payments to check',
+  krp_sub:'Older payments whose ledger entry is missing. Put these beside your own cash book.',
+  krp_none:'Nothing to check',
+  pay_balance:'Still to come',
+  pay_take_all:'take it all',
+  pay_receive:'Receive payment',
+  pay_due_n:'{a} still to come · across {n} bill(s)',
+  pay_no_due:'{n} owes nothing',
   save_generate:'Save & generate',
   save_close:'Save & close',
   mv_title:'Move this bill onto the order',
@@ -1449,12 +1466,12 @@ const T={
   im_add_part:'+ New part',
   im_new_part:'New part name',
   im_part_ph:'e.g. waistcoat',
-  manage_meas:'Manage fields',
+  manage_meas:'Which measurements to take',
   ms_file_upd:'{g} measurements updated on his file',
   sm_card:'Saved measurements', sm_card_hint:'filled in when you pick a piece', sm_more:'more',
   ms_saved:'Saved measurements', ms_use:'Use these', ms_used:'{n} filled in from file — check them', ms_none_saved:'Nothing saved for this piece',
 
-  manage_meas_desc:'Turn a field off to hide it from this garment. Custom fields can be deleted.',
+  manage_meas_desc:'This is the list of measurements this garment asks for on EVERY order. Switch off the ones your shop never takes \u2014 they stop appearing on new orders. Switch one back on the day you need it. Nothing already written is lost either way.',
   mm_on:'On',
   mm_off:'Off',
   mm_del_msg:'Delete the custom field “{n}” everywhere?',
@@ -2740,9 +2757,7 @@ dl_show_hidden:'Show hidden ({n})',
   sh_tap_keep:'\u270F\uFE0F Kept \u2014 use Cancel or \u2715 to leave',
   sh_leave_t:'Leave this screen?', sh_leave_m:'You have typed something here. Leaving now loses it.',
   sh_leave_yes:'Leave', sh_stay:'Stay here',
-  kr_title:'Karigar payments to check', kr_sub:'Older payments whose ledger entry is missing. Put these beside your own cash book.',
-  kr_found:'{n} to check', kr_line:'{p} payment(s) \u00B7 {l} ledger row(s) found',
-  kr_none:'Nothing to check', kr_none_sub:'Every older karigar payment still has its ledger entry.',
+  kr_found:'{n} to check', kr_line:'{p} payment(s) \u00B7 {l} ledger row(s) found', kr_none_sub:'Every older karigar payment still has its ledger entry.',
   kr_foot:'Nothing has been changed or added. This only lists what the app can see.',
   cr_new_named:'Add \u201C{n}\u201D as a new creditor',
   ki_cloth_cust:'Customer\'s cloth',
@@ -3318,6 +3333,15 @@ dl_show_hidden:'Show hidden ({n})',
   od_give_n:'कारीगर को पीस देना · {n} अभी नहीं दिए',
   ki_no_kar_ask:'अभी कोई कारीगर सूची में नहीं है। अभी जोड़ें?',
   pos_tile_off:'{n} बिल से हटा दिया',
+  sm_gone:'(हटाया गया सेल्समैन)',
+  krp_title:'जाँचने लायक कारीगर भुगतान',
+  krp_sub:'पुराने भुगतान जिनकी लेजर एंट्री नहीं मिल रही। इन्हें अपनी रोकड़ बही से मिलाइए।',
+  krp_none:'कुछ जाँचना नहीं है',
+  pay_balance:'अभी आना बाकी',
+  pay_take_all:'पूरा लें',
+  pay_receive:'पैसा लें',
+  pay_due_n:'{a} अभी आना बाकी · {n} बिल में फैला हुआ',
+  pay_no_due:'{n} का कुछ बाकी नहीं',
   save_generate:'सहेजें और बनाएँ',
   save_close:'सेव करके बंद करें',
   mv_title:'ये बिल ऑर्डर पर ले जाएँ',
@@ -3361,11 +3385,11 @@ dl_show_hidden:'Show hidden ({n})',
   im_add_part:'+ नया हिस्सा',
   im_new_part:'नए हिस्से का नाम',
   im_part_ph:'जैसे वेस्टकोट',
-  manage_meas:'फ़ील्ड सँभालें',
+  manage_meas:'कौन से नाप लेने हैं',
   ms_file_upd:'{g} का नाप उसकी फ़ाइल में अपडेट हुआ',
   sm_card:'सेव किए हुए नाप', sm_card_hint:'पीस चुनते ही भर जाएंगे', sm_more:'और',
   ms_saved:'सेव किए हुए नाप', ms_use:'ये लें', ms_used:'{n} नाप फ़ाइल से भरे — जाँच लें', ms_none_saved:'इस पीस का कोई नाप सेव नहीं है',
-  manage_meas_desc:'किसी फ़ील्ड को बंद करके इस कपड़े से हटा सकते हैं। अपनी बनाई फ़ील्ड हटाई भी जा सकती है।',
+  manage_meas_desc:'हर ऑर्डर में इस कपड़े के लिए यही नाप पूछे जाते हैं। जो नाप आपकी दुकान कभी नहीं लेती उन्हें बंद कर दें — नए ऑर्डर में वो नहीं आएँगे। जिस दिन ज़रूरत हो उसी दिन वापस चालू कर लें। पहले लिखा हुआ कुछ भी नहीं जाता।',
   mm_on:'चालू',
   mm_off:'बंद',
   mm_del_msg:'फ़ील्ड “{n}” को हर जगह से हटाएँ?',
@@ -4650,9 +4674,7 @@ dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
   sh_tap_keep:'\u270F\uFE0F बचा लिया \u2014 जाने के लिए Cancel या \u2715 दबाइए',
   sh_leave_t:'यह स्क्रीन छोड़ें?', sh_leave_m:'आपने यहाँ कुछ लिखा है। अभी जाने पर वह चला जाएगा।',
   sh_leave_yes:'छोड़ दें', sh_stay:'यहीं रहें',
-  kr_title:'जाँचने लायक कारीगर भुगतान', kr_sub:'पुराने भुगतान जिनकी लेजर एंट्री नहीं मिल रही। इन्हें अपनी रोकड़ बही से मिलाइए।',
-  kr_found:'{n} जाँचने हैं', kr_line:'{p} भुगतान \u00B7 {l} लेजर पंक्ति मिली',
-  kr_none:'कुछ जाँचना नहीं है', kr_none_sub:'हर पुराने कारीगर भुगतान की लेजर एंट्री मौजूद है।',
+  kr_found:'{n} जाँचने हैं', kr_line:'{p} भुगतान \u00B7 {l} लेजर पंक्ति मिली', kr_none_sub:'हर पुराने कारीगर भुगतान की लेजर एंट्री मौजूद है।',
   kr_foot:'कुछ बदला या जोड़ा नहीं गया। यह सिर्फ़ वही दिखाता है जो ऐप को दिख रहा है।',
   cr_new_named:'\u201C{n}\u201D को नया लेनदार बनाएँ',
   ki_cloth_cust:'ग्राहक का कपड़ा',
@@ -8808,7 +8830,58 @@ function payRoutesHTML(dir,here){
     ${t('pw_else')} ${rest.map(o=>`<a style="cursor:pointer;white-space:nowrap"
       onclick="closeModal();closeSheet();${o[3]}">${o[1]} ${esc(o[2])}</a>`).join(' · ')}</div>`;
 }
-function payEntry(dir,skipAsk){
+/* ══════════════ v528 — THE BOX THAT NEVER SAID WHAT HE WAS OWED ══════════════
+   HIS 6 Sept, with a specification for a Vyapar-style Money In screen. Most of it was
+   already built and I said so rather than rebuild it: this form already takes the party,
+   the amount, the date, the account and a note, and settleParty already spreads the money
+   across that customer's open bills oldest-first — which is the hard part, and the part the
+   specification could not know about, because in this app a customer's balance is not one
+   figure in one ledger. It is spread across his orders.
+   Two things were genuinely missing. The form had an empty line reserved for the party's
+   outstanding — #pySettleHint, written in some earlier version and never filled — so he
+   typed a name and the screen told him nothing about what that man owed. And the sale list
+   had no way to take money against a bill; he had to leave, open Money In, and type the
+   name again.
+   Both are here now. The balance appears the moment the name matches, and it says how many
+   bills it is spread over, because that is what decides where his money lands. */
+/* v528: money taken straight off a bill in the list. The name and what is still owing
+   travel with it, so the only thing left is to confirm the amount and save — and it runs
+   through the same settleParty path as the Money In screen, so nothing about how it lands
+   in the books differs. The 💰 shows only on a bill that still has something owing. */
+function payFromBill(kind,id){
+  const rec=(kind==='sale'?(DB.sales||[]):(kind==='alt'?(DB.alterations||[]):(DB.orders||[]))).find(x=>x.id===id);
+  if(!rec)return;
+  const bk=orderBaaki(rec);
+  closeSheet();
+  setTimeout(()=>{ try{ payEntry('in',1,{party:rec.customerName||'', amt:bk>0?bk:''}); }catch(e){} },60);
+}
+function payDueOf(name){
+  const n=String(name||'').trim().toLowerCase(); if(!n)return null;
+  const cust=(DB.customers||[]).find(c=>String(c.name||'').trim().toLowerCase()===n);
+  let due=0, bills=0;
+  (DB.orders||[]).forEach(o=>{
+    if(String(o.customerName||'').trim().toLowerCase()!==n && !(cust&&o.customerId===cust.id))return;
+    const b=orderBaaki(o); if(b>0){ due=r2(due+b); bills++; }
+  });
+  (DB.sales||[]).forEach(x=>{
+    if(String(x.customerName||'').trim().toLowerCase()!==n)return;
+    const b=orderBaaki(x); if(b>0){ due=r2(due+b); bills++; }
+  });
+  try{ const op=openingLeft(name,'customer','in'); if(op>0){ due=r2(due+op); bills++; } }catch(e){}
+  return {due:due, bills:bills, known:!!cust};
+}
+function payPartyDue(){
+  const el=$('#pySettleHint'); if(!el)return;
+  const nm=(($('#py_party')||{}).value||'').trim();
+  const d=payDueOf(nm);
+  if(!nm || !d || (!d.due && !d.known)){ el.textContent=''; el.style.color=''; return; }
+  if(d.due<=0){ el.textContent='\u2705 '+t('pay_no_due',{n:esc(nm)}); el.style.color='var(--ok)'; return; }
+  el.innerHTML='\u{1F4B0} '+t('pay_due_n',{a:money(d.due),n:d.bills})+
+    ' \u00B7 <u style="cursor:pointer" onclick="payFillDue('+d.due+')">'+t('pay_take_all')+'</u>';
+  el.style.color='var(--saffron2)';
+}
+function payFillDue(v){ const e=$('#py_amt'); if(e){ e.value=v; e.focus(); } }
+function payEntry(dir,skipAsk,prefill){
   _pay={dir,photos:[]};
   const accs=DB.accounts||[];
   const parties = dir==='in'
@@ -8818,7 +8891,7 @@ function payEntry(dir,skipAsk){
     `<p class="hint" style="margin-bottom:10px">${dir==='in'?t('pay_in_hint'):t('pay_out_hint')}</p>
      <datalist id="partyList">${parties.map(p=>`<option value="${esc(p)}">`).join('')}</datalist>
      <div class="field"><label>${dir==='in'?t('customer'):t('supplier')} *</label>
-       <input id="py_party" list="partyList" placeholder="${t('name_ph')}">
+       <input id="py_party" list="partyList" placeholder="${t('name_ph')}" oninput="payPartyDue()">
        ${/* v371: same door as the expense screen — a name with no history gets its type and
             its opening balance here, before the money moves against it. */''}
        <button class="btn sm ghost" style="margin-top:6px" onclick="payNewParty()">➕ ${t('pt_new')}</button></div>
@@ -8851,6 +8924,11 @@ function payEntry(dir,skipAsk){
         toast(r.touched.length?t('pay_settled',{d:r.touched.join(', ')}):t('t_saved'),'ok');
         dayBook();
      }}]);
+  /* v528: opened from a bill — the name is already known, so it is filled and the balance
+     shown at once. He only confirms the amount. */
+  if(prefill&&prefill.party){ const e=$('#py_party'); if(e){ e.value=prefill.party; } }
+  try{ payPartyDue(); }catch(e){}
+  if(prefill&&prefill.amt){ const a=$('#py_amt'); if(a)a.value=prefill.amt; }
 }
 
 /* v371 LIVE TEST — the creator and the payment form share the same modal slot, so opening
@@ -13154,6 +13232,14 @@ function menuHome(){
     ${modOn('accounts')?sec('💸 '+t('exp_title'),[
       row('📗',t('lg_title'),"ledgerMaster()",t('lg_sub')),
       row('🏦',t('ob_shop'),"openBSEdit()",t('ob_stock_open_only')),
+      /* ══════════ v529 — MONEY IN HAD NO DOOR IN THE MENU ══════════
+         HIS 6 Sept, describing the Vyapar receipt flow he is used to. I checked every way in
+         before answering: Money In existed only as a Home shortcut — not in All screens, not
+         under the ＋ button. Had he ever moved that shortcut off Home it would have been
+         unreachable. Taking money is not a shortcut; it is something the shop does every
+         day, and it belongs in the list with everything else. */
+      row('\u2B07\uFE0F',t('pay_in'),"payEntry('in',1)",t('pay_in_hint')),
+      row('\u2B06\uFE0F',t('pay_out'),"payEntry('out',1)",t('pay_out_hint')),
       row('💸',t('exp_title'),"expenses()"),
       row('📒',t('db_title'),"dayBook()"),
       row('🏦',t('cb_title'),"cashBank()"),
@@ -13165,7 +13251,7 @@ function menuHome(){
       /* v461: the check only appears when there is something to check, so it does not sit
          in his menu forever once the old payments are reconciled. */
       (typeof karPayAtRisk==='function' && karPayAtRisk().length)
-        ? row('🔎',t('kr_title'),"karPayRiskReport()",t('kr_found',{n:karPayAtRisk().length})) : ''])}
+        ? row('🔎',t('krp_title'),"karPayRiskReport()",t('kr_found',{n:karPayAtRisk().length})) : ''])}
     ${sec('👤 '+t('st_title'),[
       row('👤',t('st_title'),"staffMaster()"),
       row('👥',t('pn_title'),"staffPunch()"),
@@ -16903,10 +16989,44 @@ function dictate(sel,btn){
 function paymentHistoryHTML(o){ migratePayments(o);
   if(!o.payments.length)return `<p class="hint">${t('no_payments')}</p>`;
   return o.payments.map((p,i)=>`<div class="kv"><span>${fmtDate(p.date)}</span><b>${money(p.amt)} <span onclick="delPayment('${o.id}',${i})" style="color:#d9534f;cursor:pointer;margin-left:8px">🗑️</span></b></div>`).join(''); }
+/* ══════════════ v527 — EVERY PAYMENT WAS BOOKED AS CASH ══════════════
+   HIS 6 Sept: "delivery and payment receipts fast hona chahiye. Payment kai baar part mein
+   bhi aata hai."
+   Measured the screen before changing it, and found something worse than slow. This box
+   asked for an amount and a date and nothing else — savePayment pushed {amt, date} with no
+   mode and no account, so the money fell to Cash by default. A customer paying ₹18,000 by
+   UPI moved his CASH figure by ₹18,000. His till never held that money, and the cash book
+   has been drifting from the real one by every online rupee ever taken this way.
+   So the box now asks the same three things the bill screen asks — how much, how, and into
+   which account — and the mode only asks for an account when it is not cash. Cash stays the
+   default, so nothing about the old habit changes.
+   And it is faster, because part payments are the normal case: the balance is written at
+   the top, and one tap on it fills the amount. Two taps for a full settlement, three for a
+   part payment. */
 function openPayment(id){ const o=DB.orders.find(x=>x.id===id); if(!o)return; const bk=orderBaaki(o);
-  modal(t('add_payment'),`<div class="field"><label>${t('pay_amount')} ₹</label><input id="p_amt" type="number" inputmode="numeric" placeholder="${bk||''}"></div>
-    <div class="field" style="margin-top:10px"><label>${t('pay_date')}</label>${dateField("p_date",todayISO())}</div>`,
-    [{label:t('cancel'),cls:'ghost',fn:closeSheet},{label:t('add'),cls:'primary',fn:()=>savePayment(id)}]); }
+  const accs=(DB.accounts||[]).filter(a=>!a.hidden);
+  modal(t('add_payment'),
+    `${bk>0?`<div class="kv" style="margin:0 0 10px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;cursor:pointer"
+        onclick="payFull(${bk})"><span class="hint">${t('pay_balance')}</span>
+        <b style="color:var(--saffron2)">${money(bk)} \u00B7 <u>${t('pay_take_all')}</u></b></div>`:''}
+     <div class="field"><label>${t('pay_amount')} ₹</label><input id="p_amt" type="number" inputmode="numeric" placeholder="${bk||''}"></div>
+     <div class="field" style="margin-top:10px"><label>${t('payment_mode')}</label>
+       <div class="gtags" id="p_modes">${PU_MODES.map((m,i)=>
+         `<span class="gtag ${i===0?'on-tag':''}" style="cursor:pointer" data-pmode="${esc(m[0])}"
+            onclick="payMode('${jq(m[0])}')">${esc(t(m[1]))}</span>`).join('')}</div></div>
+     <div class="field" id="p_accRow" style="margin-top:10px;display:none"><label>${t('acc_into')}</label>
+       <select id="p_acc">${accs.map(a=>`<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('')}</select></div>
+     <div class="field" style="margin-top:10px"><label>${t('pay_date')}</label>${dateField("p_date",todayISO())}</div>`,
+    [{label:t('cancel'),cls:'ghost',fn:closeSheet},{label:t('add'),cls:'primary',fn:()=>savePayment(id)}]);
+  _payMode=PU_MODES[0][0]; }
+let _payMode='Cash';
+function payFull(v){ const e=$('#p_amt'); if(e){ e.value=v; e.focus(); } }
+function payMode(m){
+  _payMode=m;
+  document.querySelectorAll('#p_modes [data-pmode]').forEach(c=>
+    c.classList.toggle('on-tag', c.getAttribute('data-pmode')===m));
+  const row=$('#p_accRow'); if(row)row.style.display=/cash/i.test(m)?'none':'';
+}
 /* ══════════════ v412 — THE SAME PAYMENT TWICE ══════════════
    HIS 31 Aug: "chetavni zaroori hai."
    A shop really can take ₹5,000 from the same man twice in one day, so this must never
@@ -16928,7 +17048,12 @@ function savePayment(id){ const o=DB.orders.find(x=>x.id===id); if(!o)return; mi
   const amt=+(($('#p_amt')&&$('#p_amt').value)||0); const date=($('#p_date')&&$('#p_date').value)||todayISO();
   if(!amt||amt<=0){toast(t('pay_amount'),'bad');return;}
   dupPayAsk(o.payments, amt, date, ()=>{
-    o.payments.push({id:'pay_'+uid(),amt,date}); o.payments.sort((a,b)=>String(a.date).localeCompare(String(b.date))); touchOrder(o.id);
+    /* v527: the mode and the account travel with the money now. Cash keeps no account, the
+       same as before, so nothing already recorded reads any differently. */
+    const md=_payMode||'Cash';
+    const ac=/cash/i.test(md)?'':((($('#p_acc')||{}).value)||'');
+    o.payments.push({id:'pay_'+uid(),amt,date,mode:md,acc:ac});
+    o.payments.sort((a,b)=>String(a.date).localeCompare(String(b.date))); touchOrder(o.id);
     save(id);closeSheet();openDetail(id);toast('✔️','ok'); });
 }
 function delPayment(id,i){ const o=DB.orders.find(x=>x.id===id); if(!o||!o.payments)return;
@@ -21131,6 +21256,7 @@ function invCardHTML(x){
     <div class="row" style="gap:6px;margin-top:8px" onclick="event.stopPropagation()">
       <button class="btn sm ghost" style="flex:1" onclick="openInvoiceForm('${x.kind}','${jq(x.rec.id)}')">✏️ ${t('edit')}</button>
       <button class="btn sm ghost" style="flex:1" title="${t('whatsapp')}" onclick="waInvoice('${x.kind}','${jq(x.rec.id)}')">💬</button>
+      ${(()=>{const bk=orderBaaki(x.rec); return bk>0?`<button class="btn sm ghost" style="flex:0 0 auto;color:var(--saffron2)" title="${esc(t('pay_receive'))}" onclick="payFromBill('${x.kind}','${jq(x.rec.id)}')">\u{1F4B0}</button>`:'';})()}
       ${x.kind==='sale'?`<button class="btn sm ghost" style="flex:0 0 auto;color:var(--bad)" title="${t('delete')}" onclick="delSale('${jq(x.rec.id)}')">🗑️</button>`:''}
     </div>
   </div>`;
@@ -24606,7 +24732,7 @@ function smFigures(from,to){
   const inRange=d=>{const x=String(d||'').slice(0,10);return x&&x>=from&&x<=to;};
   const map={};
   const row=id=>{ const k=id||'_none';
-    return map[k]=map[k]||{id:id||'',name:id?((staffById(id)||{}).name||id):t('sm_none'),
+    return map[k]=map[k]||{id:id||'',name:id?(((staffById(id)||{}).name)||(((DB.salesmen||[]).find(x=>x.id===id)||{}).name)||(((DB.staff||[]).find(x=>x.id===id)||{}).name)||t('sm_gone')):t('sm_none'),
       bills:0,sales:0,collected:0,orders:0,orderVal:0}; };
   (DB.sales||[]).forEach(sl=>{
     if(!sl.invoice)return;
@@ -24614,9 +24740,26 @@ function smFigures(from,to){
     const r=row(sl.salesmanId); r.bills++; r.sales=r2(r.sales+(orderTotal(sl)||0));
     (sl.payments||[]).forEach(p=>{ if(inRange(p.date))r.collected=r2(r.collected+(+p.amt||0)); });
   });
+  /* ══════════ v525 — HIS SALESMEN ALWAYS READ ZERO SALES ══════════
+     HIS 6 Sept: "salesman ka report mein salesman kitna kaam kiya dekh raha hai ki nahi?"
+     Measured on an order billed at ₹33,000 minutes earlier: Billed sales ₹0, and under it
+     "1 order not billed yet · ₹33,000".
+     A counter sale lands in DB.sales and counted as billed. An order stays in DB.orders
+     whether or not a bill has been made against it, and this counted EVERY order as
+     unbilled. In his shop nearly every rupee arrives through an order, so a salesman read
+     ₹0 sold for ever, however much he had actually written.
+     An order carrying an invoice is a sale and is counted as one, dated by the BILL — the
+     same rule counter sales already follow. Only an order with no bill yet is work in hand.
+     Nothing is counted twice: an order lands on exactly one side of this. */
   (DB.orders||[]).forEach(o=>{
-    const d=o.orderDate||(o.created||'').slice(0,10); if(!inRange(d))return;
-    const r=row(o.salesmanId); r.orders++; r.orderVal=r2(r.orderVal+(+orderTotal(o)||0));
+    const r=row(o.salesmanId);
+    if(o.invoice){
+      const bd=(o.invoice||{}).date||o.orderDate||(o.created||'').slice(0,10);
+      if(inRange(bd)){ r.bills++; r.sales=r2(r.sales+(orderTotal(o)||0)); }
+    } else {
+      const d=o.orderDate||(o.created||'').slice(0,10);
+      if(inRange(d)){ r.orders++; r.orderVal=r2(r.orderVal+(+orderTotal(o)||0)); }
+    }
     (o.payments||[]).forEach(p=>{ if(inRange(p.date))r.collected=r2(r.collected+(+p.amt||0)); });
   });
   const rows=Object.values(map).filter(r=>r.bills||r.orders)
@@ -26017,21 +26160,30 @@ function karIssue(kid,oid){
   if(oid!==undefined)_ki.oid=oid||'';
   const ks=karigarsActive();
   if(!ks.length){
-    /* ══════════ v517 — "ADD A KARIGAR FIRST" AND NO WAY TO ADD ONE ══════════
-       HIS 6 Sept: "Add karigar first to hai, par karigar add karne ka option nahi hai
-       wahan." Right — it was a toast. It told him what was missing, said it in grey at the
-       bottom of the screen, and left him to work out where to go. A message that names the
-       missing thing must carry the way to make it. */
-    /* v517: asking was the wrong shape. When the list is empty there is exactly one thing to
-       do next, so it is done — the add-karigar form opens and a toast says why. (A confirm
-       was tried first and would not stay: confirmModal shuts its own sheet after the handler
-       runs and wiped whatever the handler had opened. Two delays later it still lost, so the
-       question went instead of the fix.) */
-    toast('\u{1F477} '+t('ki_no_karigar'),'bad');
-    /* on the next tick: this runs inside the button's own click, and the sheet machinery
-       finishes tidying up after the handler returns — opening a form before that tidying
-       is done means opening it into something that is about to be cleared. */
-    setTimeout(()=>{ try{ karigarEdit(); }catch(e){} },120);
+    /* ══════════════ v524 — ✕ WAS WALKING HIM FORWARDS ══════════════
+       HIS 6 Sept: "cross button daba raha hoon to peeche jaane ki jagah aage wale page
+       mein chala ja raha hoon."
+       Exactly right, and it is two of my own changes fighting each other. v517 made this
+       screen OPEN the add-karigar form when the list was empty. v509 made ✕ step back one
+       page. So ✕ walked back to here, here saw an empty list again, and opened the
+       add-karigar form for the second time — a loop between two screens with no way out
+       except closing the app.
+       A screen must never open another screen just because it was entered. It shows its own
+       empty state and offers the button; he decides. No jump, nothing to come back to, and
+       ✕ means what it says. */
+    /* karIssue already registered itself on the line above — registering a SECOND time,
+       with a fresh closure, meant the trail grew by one on every redraw and ✕ could never
+       pop its way out. One screen, one registration. */
+    $('#sheet').innerHTML=`<div class="grip"></div>
+      <div class="kv" style="margin-bottom:2px"><h2 style="margin:0">\u{1F4E4} ${t('ki_title')}</h2></div>
+      <p class="hint" style="margin:0 0 16px">${t('ki_sub')}</p>
+      <div class="empty" style="padding:30px 10px">
+        <div class="big">\u{1F477}</div>
+        <p><b>${t('ki_no_karigar')}</b></p>
+        <p style="font-size:13px">${t('ki_no_kar_ask')}</p></div>
+      <button class="btn primary block" onclick="karigarEdit()">\u2795 ${t('add_karigar')}</button>
+      <div class="fab-pad"></div>`;
+    showSheet();
     return; }
   if(kid)_ki.kid=kid;
   if(!_ki.kid)_ki.kid=ks[0].id;
@@ -27764,13 +27916,13 @@ function karPayRiskReport(){
   const list=karPayAtRisk();
   const tot=r2(list.reduce((s,x)=>s+x.amt*x.missing,0));
   $('#sheet').innerHTML=`<div class="grip"></div>
-    <h2 style="margin:0 0 4px">\u{1F50E} ${t('kr_title')}</h2>
-    <p class="hint" style="margin-bottom:12px">${t('kr_sub')}</p>
+    <h2 style="margin:0 0 4px">\u{1F50E} ${t('krp_title')}</h2>
+    <p class="hint" style="margin-bottom:12px">${t('krp_sub')}</p>
     ${list.length?`<div class="kv" style="margin:0 2px 10px;padding:6px 0;border-bottom:1px solid var(--line)">
         <span class="hint">${t('kr_found',{n:list.length})}</span>
         <b style="color:var(--bad)">${money(tot)}</b></div>`
       :`<div class="empty" style="padding:26px 10px"><div class="big">\u2705</div>
-        <p><b>${t('kr_none')}</b></p><p style="font-size:13px">${t('kr_none_sub')}</p></div>`}
+        <p><b>${t('krp_none')}</b></p><p style="font-size:13px">${t('kr_none_sub')}</p></div>`}
     ${list.map(x=>`<div class="card" style="margin-bottom:8px">
       <div class="kv"><div style="flex:1;min-width:0">
         <b>${esc(x.who.join(', '))}</b>
