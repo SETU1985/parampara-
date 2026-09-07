@@ -874,7 +874,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v536</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v541</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -1425,6 +1425,11 @@ const T={
   pay_no_due:'{n} owes nothing',
   meas_dup_on:'{n} is already on this garment',
   meas_dup_off:'{n} is already on this garment — switch it back on instead',
+  kr_norate_title:'No rate on some pieces',
+  kr_norate_msg:'{n} — nothing has been agreed for these yet. Put the rate in now, or take them back without it and settle later.',
+  kr_norate_fix:'Put the rate in',
+  kr_norate_skip:'Take back anyway',
+  ki_not_his:'{k} does not usually make this',
   save_generate:'Save & generate',
   save_close:'Save & close',
   mv_title:'Move this bill onto the order',
@@ -3346,6 +3351,11 @@ dl_show_hidden:'Show hidden ({n})',
   pay_no_due:'{n} का कुछ बाकी नहीं',
   meas_dup_on:'{n} इस कपड़े में पहले से है',
   meas_dup_off:'{n} इस कपड़े में पहले से है — उसी को वापस चालू कर लें',
+  kr_norate_title:'कुछ पीस पर रेट नहीं है',
+  kr_norate_msg:'{n} — इनका रेट अभी तय नहीं है। अभी डाल दें, या बिना रेट के वापस ले लें और बाद में तय करें।',
+  kr_norate_fix:'रेट डालें',
+  kr_norate_skip:'ऐसे ही वापस लें',
+  ki_not_his:'{k} आम तौर पर यह नहीं बनाते',
   save_generate:'सहेजें और बनाएँ',
   save_close:'सेव करके बंद करें',
   mv_title:'ये बिल ऑर्डर पर ले जाएँ',
@@ -16507,8 +16517,27 @@ function saveOrder(){
     if(modOn('billing')){
       // he usually takes several orders back to back and bills afterwards, so never
       // drop him into the bill unasked — the order is already saved either way
+      /* ══════════ v537 — "THIS ORDER NUMBER ALREADY EXISTS" ON A SAVED ORDER ══════════
+         HIS 7 Sept: "later click kiya to phir yeh Save order wala screen aaya. Jab Save
+         order click kar raha hoon to aa raha hai ki order number already exist... aur peeche
+         jaakar dekh raha hoon to order save bhi ho gaya."
+         Both halves are true, which is the worst kind: the order WAS saved, and the screen
+         he was left on was the form that had just saved it, still holding the old form
+         object with no editId. Pressing Save there checked the number against the order it
+         had itself just written — and refused it. He was arguing with his own order.
+         The cause is confirmModal, and I have met it before: it shuts its own sheet AFTER
+         the handler returns, so a screen opened inside the handler is wiped the instant it
+         appears. openDetail ran, then was closed, leaving the form underneath.
+         Both answers now open on the next tick, once the confirm has finished getting out
+         of the way — and the form's state is cleared either way, so nothing is left holding
+         a stale copy of an order that is already in the book. */
       confirmModal('🧾 '+t('inv_now_title'), t('inv_now_msg',{n:o.orderNo||''}),
-        ()=>openInvoiceForm('order',o.id), ()=>openDetail(o.id),
+        ()=>{ try{form=null;}catch(e){} sheetReset();
+              setTimeout(()=>{ try{ closeSheet(); sheetReset(); openInvoiceForm('order',o.id); }catch(e){} },90); },
+        /* the form's sheet is still standing over everything — the order detail is a TAB, so
+           without closing it he keeps looking at the form he has already saved. */
+        ()=>{ try{form=null;}catch(e){} sheetReset();
+              setTimeout(()=>{ try{ closeSheet(); sheetReset(); openDetail(o.id); }catch(e){} },90); },
         {no:t('inv_later'), yes:t('inv_now'), cls:'primary'});
     }
     else openDetail(o.id);
@@ -17213,6 +17242,18 @@ async function openDetail(id,focusGid){
   }
 }
 async function openDetail__inner(id,focusGid){
+  /* ══════════ v539 — ONE ORDER'S OPEN CARD FOLLOWED HIM INTO THE NEXT ══════════
+     HIS 7 Sept: "agar main kisi order mein jaakar usme check kar raha hoon, measurement
+     khula hua hai, uske baad maine app band kar diya, uske baad phir kisi doosre order mein
+     gaya to jo measurement khula hua tha to isme bhi khula hua hi hai."
+     Reproduced from his description alone. _odItem holds WHICH piece is open, and it is one
+     variable for the whole app, not one per order. He opens the Coat on #2617, walks to
+     #2618, and its Coat is open too — a card he never touched, on a customer he was not
+     looking at. Worse on a busy day: he leaves an order half-read and every order after it
+     wears the same open card.
+     Opening a different order closes whatever was open. Coming back to the SAME order keeps
+     it, because that is him returning to what he was reading. */
+  if(_curDetailId!==id){ _odItem=null; _odX=false; _odInfo=false; }
   _curDetailId=id;
   detailId=id;const o=DB.orders.find(x=>x.id===id);if(!o){go('orders');return;}
   if(!o.log)o.log=[]; if(!o.status)o.status='new'; if(!o.voiceNotes)o.voiceNotes=[]; migrateItemStatus(o);
@@ -26336,7 +26377,16 @@ function karIssue(kid,oid){
       <select id="ki_k" onchange="kiPickKarigar(this.value)">
         ${ks.map(k=>`<option value="${k.id}" ${k.id===_ki.kid?'selected':''}>${esc(k.name)}</option>`).join('')}
       </select></div>
-    ${/* v467: whose cloth this job is cut from. It decides whether stock moves at all. */''}
+    ${/* ══════════ v538 — A SCREEN ASKING QUESTIONS HE HAD ALREADY ANSWERED ══════════
+         HIS 7 Sept, coming into this from one order: "customer clothing ko kya karunga main
+         yahan par? Ye kyun hai option? Koi sense hai hi nahi... aur jab main order se hi ja
+         raha hoon to search kya karunga?"
+         Both fair. Arriving from an order, there is exactly one order in front of him and
+         its pieces are already listed — a search box over one order searches nothing, and
+         the cloth tabs are a filter over a pool he is not looking at. They belong on the
+         general Issue screen, where he picks from everything waiting; they are noise here.
+         Both are kept for that screen and dropped when he came in through an order. */''}
+    ${_ki.oid?'':`
     <div class="row" style="gap:6px;margin-bottom:10px">
       <button class="btn sm ${_ki.cloth==='cust'?'primary':'ghost'}" style="flex:1"
         onclick="kiCloth('cust')">👤 ${t('ki_cloth_cust')}</button>
@@ -26344,7 +26394,7 @@ function karIssue(kid,oid){
         onclick="kiCloth('shop')">🏪 ${t('ki_cloth_shop')}</button>
     </div>
     ${rows.length?`<div class="field" style="margin-bottom:8px">
-      <input id="ki_q" value="${esc(_ki.q)}" placeholder="🔍 ${t('ki_search')}" oninput="kiSearch(this.value)"></div>`:''}
+      <input id="ki_q" value="${esc(_ki.q)}" placeholder="🔍 ${t('ki_search')}" oninput="kiSearch(this.value)"></div>`:''}`}
     <p class="hint" style="margin-bottom:6px">${t('ki_waiting',{n:rows.length})}</p>
     ${shown.length?shown.map(r=>`
       <div class="card" style="padding:10px 12px;margin-bottom:6px">
@@ -26352,6 +26402,12 @@ function karIssue(kid,oid){
             <input type="checkbox" ${_ki.pick[r.key]?'checked':''} onchange="kiTick('${jq(r.key)}',this.checked)"
               style="width:20px;height:20px;flex:0 0 auto;margin-top:2px">
             <span style="min-width:0"><b>#${esc(r.ono)} · ${esc(r.label)}</b>
+              ${(()=>{ /* v541: does this man normally make this piece? */
+                 const k=(DB.karigars||[]).find(x=>x.id===_ki.kid);
+                 const sp=(k&&k.specialties)||[];
+                 if(!k||!sp.length||sp.includes(r.gid))return '';
+                 return `<div class="hint" style="color:var(--saffron2)">\u26A0\uFE0F ${t('ki_not_his',{k:esc(k.name)})}</div>`;
+               })()}
               <div class="hint">${esc(r.who)}${r.dd?' · '+fmtDate(r.dd):''}</div></span>
           </label>
           <span style="flex:0 0 96px"><input type="number" inputmode="numeric" placeholder="${t('ki_rate')}"
@@ -26360,12 +26416,24 @@ function karIssue(kid,oid){
         ${/* v467: the roll and the metres appear only on a piece he has actually ticked, and
              only when this hand-over is on shop cloth. A customer-cloth job stays a single
              tick and a rate, exactly as fast as before. */''}
+        ${/* ══════════ v539 — SCROLLING A THOUSAND ROLLS TO FIND ONE ══════════
+             HIS 7 Sept: "'Which roll?' — agar mera roll number 1200 hai to kya utna scroll
+             karun drop-down mein? Kya logic hai?"
+             There is none, and he has asked twice. A plain <select> is fine for four
+             accounts and hopeless for a rack. He is typing a serial he already knows — the
+             number is written on the roll in his hand — so this takes it and narrows the
+             list as he types, exactly like every other search in the app. The full list is
+             still there when he has typed nothing, for the day he is browsing. */''}
         ${(_ki.cloth==='shop'&&_ki.pick[r.key])?`<div class="row" style="gap:6px;margin-top:6px">
-          <select onchange="kiThaan('${jq(r.key)}',this.value)" style="flex:1;min-width:0">
-            <option value="">${t('ki_pick_thaan')}</option>
-            ${(DB.thaans||[]).filter(th=>thaanBal(th)>0).map(th=>`<option value="${th.id}"
-              ${_ki.th[r.key]===th.id?'selected':''}>${esc(th.serial||'')} · ${esc(((FI(th.fabId)||{}).name)||'')} · ${thaanBal(th)}m</option>`).join('')}
-          </select>
+          <div style="flex:1;min-width:0">
+            <input list="kiThaanList_${cssId(r.key)}" placeholder="\u{1F50D} ${t('ki_pick_thaan')}"
+              value="${(()=>{const th=(DB.thaans||[]).find(x=>x.id===_ki.th[r.key]);
+                 return th?esc((th.serial||'')+' \u00B7 '+(((FI(th.fabId)||{}).name)||'')):'';})()}"
+              oninput="kiThaanType('${jq(r.key)}',this.value)" style="width:100%;margin:0">
+            <datalist id="kiThaanList_${cssId(r.key)}">
+              ${(DB.thaans||[]).filter(th=>thaanBal(th)>0).map(th=>`<option value="${esc((th.serial||'')+' \u00B7 '+(((FI(th.fabId)||{}).name)||''))}">${thaanBal(th)}m</option>`).join('')}
+            </datalist>
+          </div>
           <input type="number" inputmode="decimal" step="0.1" placeholder="${t('ki_mtr')}"
             value="${_ki.mtr[r.key]!=null?esc(_ki.mtr[r.key]):''}"
             oninput="kiMtr('${jq(r.key)}',this.value)" style="flex:0 0 92px;text-align:right">
@@ -26412,7 +26480,10 @@ function karReceive(kid){
   if(!ks.length){ toast(t('ki_no_karigar'),'bad'); return; }
   if(kid)_ki.kid=kid;
   if(!_ki.kid)_ki.kid=ks[0].id;
-  const rows=karHoldingPool(_ki.kid);
+  let rows=karHoldingPool(_ki.kid);
+  /* v541: narrow by what he types, on the same three things the issue screen matches. */
+  if(_ki.rq){ const q=String(_ki.rq).trim().toLowerCase();
+    rows=rows.filter(r=>[r.ono,r.cust,r.gname,r.label].some(v=>String(v||'').toLowerCase().includes(q))); }
   const n=Object.keys(_ki.pick).filter(k=>_ki.pick[k]).length;
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">📥 ${t('kr_title')}</h2>
@@ -26423,7 +26494,24 @@ function karReceive(kid){
         ${ks.map(k=>`<option value="${k.id}" ${k.id===_ki.kid?'selected':''}>${esc(k.name)} · ${karOutCount(k.id)}</option>`).join('')}
       </select></div>
     <div class="field"><label>${t('kr_on')}</label>${dateField('kr_date',todayISO())}</div>
+    ${/* ══════════ v541 — NO WAY TO FIND ONE PIECE AMONG THIRTY ══════════
+         HIS 7 Sept, asking for the receive screen to be gone through properly. A karigar
+         holding thirty pieces gives thirty rows and no way into them; he is looking for one
+         order that has come back and has to read the lot. Same search the issue screen has
+         had all along — order number, customer, piece. */''}
+    ${rows.length>4?`<div class="field" style="margin-bottom:8px">
+      <input id="kr_q" value="${esc(_ki.rq||'')}" placeholder="\u{1F50D} ${t('ki_search')}"
+        oninput="krSearch(this.value)"></div>`:''}
     <p class="hint" style="margin-bottom:6px">${t('kr_holding',{n:rows.length})}</p>
+    ${/* ══════════ v541 — HE WAS OFFERED WORK THIS MAN DOES NOT DO ══════════
+         HIS 7 Sept: "maine Samsul ko select mein daala tha ki wo coat banata hai, waistcoat
+         banata hai, par pant nahi banata — lekin maal jab banne ke liye chhod raha hoon to
+         pant bhi le le raha hai."
+         The specialty stars are already set on every karigar and were being ignored here.
+         They are not hidden, because a man will take a job outside his usual line when the
+         shop is pressed and hiding it would fight him — but a piece he does not normally
+         make is now marked, so a wrong tick is something he sees rather than something he
+         discovers a week later when it comes back unmade. */''}
     ${rows.length?rows.map(r=>`
       <div class="card" style="padding:10px 12px;margin-bottom:6px">
         <div class="kv"><label style="flex:1;min-width:0;display:flex;gap:8px;align-items:flex-start;cursor:pointer">
@@ -26458,9 +26546,44 @@ function karHoldingPool(kid){
   });
   return out.sort((a,b)=>String(a.dd||'9999').localeCompare(String(b.dd||'9999')));
 }
+function krSearch(v){
+  _ki.rq=v;
+  karReceive(_ki.kid);
+  const e=$('#kr_q'); if(e){ e.focus(); try{e.setSelectionRange(v.length,v.length);}catch(err){} }
+}
 function krPickKarigar(v){ _ki.kid=v; _ki.pick={}; _ki.rate={}; karReceive(); }
 function kiTick2(k,on){ _ki.pick[k]=!!on; karReceive(); }
+/* ══════════ v541 — WORK TAKEN BACK WITH NO PRICE ON IT ══════════
+   HIS 7 Sept: "pant mein rate nahi hai koi dikkat nahi hai, lekin receive karte time mein
+   bhi rate na rahe to ek baar poochhna chahiye."
+   Right. A piece can go out before the rate is settled — that happens. But it comes back
+   finished, and that is the last moment the figure can be caught while he still remembers
+   the job. After this the karigar's account is short by whatever it was, and he only finds
+   out at settlement with nothing left to check it against.
+   So it asks once, naming the pieces. He can still say leave it, because sometimes the rate
+   genuinely is agreed later — but he will not miss it by accident. */
+let _kiRateAsked=false;
 function krTake(){
+  const pool=karHoldingPool(_ki.kid);
+  const noRate=Object.keys(_ki.pick).filter(k=>_ki.pick[k]).filter(k=>{
+    const r=pool.find(x=>x.key===k)||{};
+    const v=(_ki.rate[k]!=null?_ki.rate[k]:r.rate);
+    return !(+v);
+  });
+  if(noRate.length && !_kiRateAsked){
+    const names=noRate.map(k=>{const r=pool.find(x=>x.key===k);
+      return r?('#'+r.ono+' \u00B7 '+r.label):'';}).filter(Boolean).slice(0,4).join(', ');
+    _kiRateAsked=true;
+    confirmModal('\u{1F4B0} '+t('kr_norate_title'), t('kr_norate_msg',{n:esc(names)}),
+      ()=>{ closeModal(); _kiRateAsked=false; },              // he goes back and fills it in
+      ()=>{ closeModal(); setTimeout(()=>{ try{krTake();}catch(e){} },60); },
+      {yes:t('kr_norate_fix'), no:t('kr_norate_skip'), cls:'primary'});
+    return;
+  }
+  _kiRateAsked=false;
+  return krTakeDo();
+}
+function krTakeDo(){
   const keys=Object.keys(_ki.pick).filter(k=>_ki.pick[k]);
   if(!keys.length)return;
   const when=(($('#kr_date')||{}).value)||todayISO();
@@ -26487,6 +26610,18 @@ function krTake(){
 }
 function kiTick(k,on){ _ki.pick[k]=!!on; karIssue(_ki.kid,_ki.oid); }
 function kiCloth(m){ _ki.cloth=(m==='shop'?'shop':'cust'); karIssue(_ki.kid,_ki.oid); }
+/* v539: he types a serial (or picks from the list, which puts the same text in the box) —
+   this finds the roll it belongs to. Matched on the serial first, because that is the number
+   printed on the roll; the fabric name is only there to reassure him he has the right one. */
+function kiThaanType(key,val){
+  const v=String(val||'').trim();
+  const ser=v.split('\u00B7')[0].trim().toLowerCase();
+  const th=(DB.thaans||[]).filter(x=>thaanBal(x)>0)
+    .find(x=>String(x.serial||'').trim().toLowerCase()===ser)
+    || (DB.thaans||[]).filter(x=>thaanBal(x)>0)
+    .find(x=>String(x.serial||'').trim().toLowerCase().indexOf(ser)===0);
+  kiThaan(key, th?th.id:'');
+}
 function kiThaan(k,v){ _ki.th[k]=String(v||''); karIssue(_ki.kid,_ki.oid); }
 function kiMtr(k,v){ _ki.mtr[k]=v; }
 function kiRate(k,v){ _ki.rate[k]=v; }
@@ -26548,7 +26683,17 @@ function kiIssue(){
   toast(t('ki_done',{n:n,k:kn}),'ok');
   /* v466: if he came from an order and that order has nothing left to hand out, drop him
      back into the order rather than an empty list he has to close himself */
-  if(_ki.oid && !karIssuePool().length){ const _o=_ki.oid; _ki.oid=''; openDetail(_o); return; }
+  /* v538: "issue to karigar ho gaya lekin page khula hua hi hai." The order detail is a
+     TAB, and this sheet stands over every tab — so opening the order behind it left him
+     staring at the same list he had just emptied. The sheet is shut first now. */
+  /* v539: "1 pieces issued to samsul master — message dikha, lekin ye screen waisi hi rahi,
+     band hi nahi hui." Coming in from an order, the job is done the moment the pieces are
+     issued; whatever is left on that order is visible on the order itself. Staying here left
+     him looking at a list he had just emptied, wondering whether it had worked. He is sent
+     back to the order either way now. The general Issue screen still stays open, because
+     there he is working through everything waiting and the next man is the next thing. */
+  if(_ki.oid){ const _o=_ki.oid; _ki.oid='';
+    closeSheet(); sheetReset(); openDetail(_o); return; }
   karIssue(_ki.kid,_ki.oid);
 }
 function sendKarigarWA(oid,kid){const o=DB.orders.find(x=>x.id===oid);if(!o)return;
@@ -28839,7 +28984,12 @@ function obsLoansEdit(){
 function obsLoansSave(){
   obsCap();
   openBS().loans=openBS().loans.filter(L=>String(L.name||'').trim()||+L.amt);
-  save(); toast(t('t_saved'),'ok'); sheetBack();
+  /* v540: found by an app-wide sweep for "the job is done but the screen is still here".
+     sheetBack() walks the trail, and if he reached this screen some way that left no trail
+     it walks nowhere — the loans stay saved and he stays sitting on them, with no sign it
+     worked beyond a toast he may have missed. Nothing behind it means close it. */
+  save(); toast(t('t_saved'),'ok');
+  if(!sheetBack())closeSheet();
 }
 function obsLoanRows(){
   const o=openBS();
