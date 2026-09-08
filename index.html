@@ -898,7 +898,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v575</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v576</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -1099,6 +1099,7 @@ const T={
   new_order:'New order',
   edit_order:'Edit order',
   order_no:'Order No',
+  refund:'Refund', rename:'Rename', mtr:'m', exp_count:'{n} entries', saved:'Saved',
   inv_cust_ph:'Customer name or number',
   delivery:'Delivery date',
   order_date:'Order date',
@@ -3067,6 +3068,7 @@ dl_show_hidden:'Show hidden ({n})',
   new_order:'नया ऑर्डर',
   edit_order:'ऑर्डर बदलें',
   order_no:'ऑर्डर नं.',
+  refund:'रिफ़ंड', rename:'नाम बदलें', mtr:'मी', exp_count:'{n} एंट्री', saved:'सहेजा गया',
   inv_cust_ph:'ग्राहक का नाम या नंबर',
   delivery:'डिलीवरी तारीख',
   order_date:'ऑर्डर तारीख',
@@ -9263,7 +9265,7 @@ function expenses(keepQ){
          the search and the date range he set are already applied to `list`. */''}
     ${exportBarHTML('exp_list',()=>({title:t('exp_title'),
       sub:fmtDate(from)+' \u2013 '+fmtDate(to)+(_expQ?' \u00B7 '+_expQ:''),
-      head:[t('jv_date'),t('exp_head'),t('notes'),t('amount')],
+      head:[t('jv_date'),t('exp_title'),t('notes'),t('amount')],
       rows:list.map(l=>[fmtDate(l.date), l.cat||t('exp_other'), l.note||'', l.amt])}))}
     <div id="expRows">${expBodyHTML(list)}</div>
     <div class="fab-pad"></div>`;
@@ -11975,7 +11977,7 @@ function markDelivered(oid){
    blocks, never asks for money, never changes a rupee. Payment stays where it already is. */
 let _dlv={oid:'',pick:{},date:'',pay:'',acc:''};
 function deliverPieces(oid){
-  const o=(DB.orders||[]).find(x=>x.id===oid); if(!o){toast(t('nf'),'bad');return;}
+  const o=(DB.orders||[]).find(x=>x.id===oid); if(!o){toast(t('nothing'),'bad');return;}
   if(_dlv.oid!==oid)_dlv={oid:oid,pick:{},date:todayISO(),pay:'',acc:''};
   sheetAt(()=>deliverPieces(oid));
   const left=(o.items||[]).filter(g=>itemStatusOf(o,g)!=='delivered');
@@ -13883,7 +13885,7 @@ function magicSearch(q){
       ||(o.members||[]).some(m=>has(m.name)||has(m.ono)))
       add(t('ms_orders'),'\u{1F454}','#'+(o.orderNo||'—')+' \u00B7 '+(o.customerName||''),
         (o.invoice?(o.invoice.no+' \u00B7 '):'')+money(orderTotal(o))
-        +(orderBaaki(o)?(' \u00B7 '+t('bal')+' '+money(orderBaaki(o))):''),
+        +(orderBaaki(o)?(' \u00B7 '+t('baaki')+' '+money(orderBaaki(o))):''),
         "openDetail('"+jq(o.id)+"')");
   });
   (DB.sales||[]).forEach(x=>{
@@ -13908,7 +13910,7 @@ function magicSearch(q){
   (DB.purchases||[]).forEach(pu=>{
     if(has(pu.supplier)||has(pu.billNo)||(num&&String(Math.round(+pu.total||0))===num))
       add(t('ms_purchases'),'\u{1F69A}',(pu.billNo||'—')+' \u00B7 '+(pu.supplier||''),
-        money(pu.total)+(orderBaaki(pu)?(' \u00B7 '+t('bal')+' '+money(orderBaaki(pu))):''),
+        money(pu.total)+(orderBaaki(pu)?(' \u00B7 '+t('baaki')+' '+money(orderBaaki(pu))):''),
         "openPurchaseForm('"+jq(pu.id)+"')");
   });
   const seenP={};
@@ -13917,7 +13919,7 @@ function magicSearch(q){
         "partyCard('"+jq(pt.name)+"')"); }});
   (DB.karigars||[]).forEach(k=>{
     if(has(k.name)) add(t('ms_karigars'),'\u{1F477}',k.name||'',
-      t('bal')+' '+money(karBalance(k.id)),"karMaster('"+jq(k.id)+"')");
+      t('baaki')+' '+money(karBalance(k.id)),"karMaster('"+jq(k.id)+"')");
   });
   staffAll().forEach(st=>{
     if(has(st.name)) add(t('ms_staff'),'\u{1F465}',st.name||'',
