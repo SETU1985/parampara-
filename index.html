@@ -877,7 +877,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v558</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v560</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -1306,6 +1306,8 @@ const T={
   yes:'Yes',
   cust_orders:'Orders',
   no_cust:'No customers yet',
+  cust_none_match:'No customer matches that search \u2014 the list is not empty',
+  cust_clear_search:'Clear the search',
   no_cust_sub:'Customers are saved automatically when you create an order',
   cust_edit:'Edit customer',
   save:'Save',
@@ -2261,6 +2263,7 @@ const T={
   au_highest:'Highest serial numbers', au_highest_hint:'The next serial is built from the highest one here — including rolls already finished, which the stock list hides. A stray high number here is why a new roll gets an unexpected serial. Open it to correct or delete it.',
   stk_sort_name:'By name',
   stk_sort_new:'Newest first', stk_sort_serial:'Serial order',
+  stk_short_warn:'{n} m more issued than this roll ever had — check the entries',
   jw_ready_to_give:'ready to give', jw_with_him:'with him',
   bk_link_title:'Keep one backup file', bk_link_desc:'Choose a file once. Every backup then writes over that same file, so you always have exactly one, always the latest.',
   bk_link_btn:'Choose the backup file', bk_linked:'Backup file linked', bk_linked_to:'Backup file',
@@ -2642,6 +2645,7 @@ const T={
   inv_count:'{n} invoices',
   inv_search_fail:'Search could not run \u2014 showing the full list',
   inv_none_match:'No invoice matches that search',
+  inv_none_period:'No bills in these dates. The book is not empty \u2014 pick another range.',
   inv_tag_direct:'Direct',
   no_invoices_sub2:'Tap “+ New Invoice” above to make your first bill',
   inv_paid:'Paid',
@@ -3250,6 +3254,8 @@ dl_show_hidden:'Show hidden ({n})',
   yes:'हाँ',
   cust_orders:'ऑर्डर',
   no_cust:'अभी कोई ग्राहक नहीं',
+  cust_none_match:'इस खोज से कोई ग्राहक नहीं मिला — सूची खाली नहीं है',
+  cust_clear_search:'खोज हटाएँ',
   no_cust_sub:'ऑर्डर बनाते ही ग्राहक अपने-आप सहेजे जाते हैं',
   cust_edit:'ग्राहक बदलें',
   save:'सहेजें',
@@ -4196,6 +4202,7 @@ dl_show_hidden:'Show hidden ({n})',
   au_highest:'सबसे बड़े सीरियल नंबर', au_highest_hint:'अगला सीरियल इन्हीं में से सबसे बड़े से बनता है — उन थानों समेत जो ख़त्म हो चुके हैं और सूची में नहीं दिखते। यहाँ कोई ग़लत बड़ा नंबर हो तो नए थान का सीरियल उसी वजह से अलग आता है। सुधारने या हटाने के लिए खोलें।',
   stk_sort_name:'नाम से',
   stk_sort_new:'नए पहले', stk_sort_serial:'सीरियल क्रम',
+  stk_short_warn:'इस थान में जितना था उससे {n} मीटर ज़्यादा निकाला गया है — एंट्री जाँचें',
   jw_ready_to_give:'देने को तैयार', jw_with_him:'उसके पास',
   bk_link_title:'एक ही बैकअप फ़ाइल रखें', bk_link_desc:'एक बार फ़ाइल चुन लें। फिर हर बैकअप उसी फ़ाइल पर लिखेगा — हमेशा एक ही, हमेशा नई।',
   bk_link_btn:'बैकअप फ़ाइल चुनें', bk_linked:'बैकअप फ़ाइल जुड़ गई', bk_linked_to:'बैकअप फ़ाइल',
@@ -4576,6 +4583,7 @@ dl_show_hidden:'Show hidden ({n})',
   inv_count:'{n} इनवॉइस',
   inv_search_fail:'खोज नहीं चल पाई — पूरी सूची दिखा रहे हैं',
   inv_none_match:'इस खोज से कोई इनवॉइस नहीं मिला',
+  inv_none_period:'इन तारीखों में कोई बिल नहीं। बही खाली नहीं है — दूसरी अवधि चुनें।',
   inv_tag_direct:'डायरेक्ट',
   no_invoices_sub2:'ऊपर “+ नया इनवॉइस” दबाकर पहला बिल बनाएँ',
   inv_paid:'चुकता',
@@ -6333,7 +6341,15 @@ function thaanCat(th){
   if(own)return own;
   return String(((FI(th.fabId)||{}).category)||'');
 }
-const thaanBal = th => r2(Math.max(0,(+th.mtr||0)-(+th.used||0)));
+/* ══════════ v559 — 50 METRES SHORT AND THE SCREEN SAID ZERO ══════════
+   HIS 8 Sept: "minus mein negative stock dikhao wo chalega, lekin pachas ko zero dikhana
+   to ekdam hi galat hai."
+   Math.max(0,…) was hiding exactly the case worth seeing. Issue 100 metres off a 50-metre
+   thaan and the roll read 0 — the same 0 as a roll that finished honestly — so a 50-metre
+   error in the cloth book was invisible for ever. A negative balance is not a display
+   problem; it is the app telling him an entry is wrong. It now says the true figure. */
+const thaanBal = th => r2((+th.mtr||0)-(+th.used||0));
+const thaanShort = th => thaanBal(th) < -0.05;      /* issued more than the roll ever had */
 const thaanValue = th => r2(thaanBal(th)*(+th.rate||0));
 
 
@@ -7098,7 +7114,13 @@ function thaanDetail(id){
     <div class="card pos-total" style="margin-bottom:12px">
       <div class="sum-row"><span>${t('stk_purchased')}</span><b>${+th.mtr||0} m</b></div>
       <div class="sum-row"><span>${t('stk_used')}</span><b class="neg">− ${r2(th.used)} m</b></div>
-      <div class="sum-row grand"><span>${t('stk_balance')}</span><b>${thaanBal(th)} m</b></div>
+      <div class="sum-row grand"><span>${t('stk_balance')}</span>
+        <b style="${thaanShort(th)?'color:var(--bad)':''}">${thaanBal(th)} m</b></div>
+      ${/* v559: a roll cannot give out more than it held. When it reads negative something
+           was entered wrong — a double issue, a wrong thaan, a missing purchase — and the
+           figure alone is easy to walk past, so it is named. */''}
+      ${thaanShort(th)?`<div class="sum-row" style="color:var(--bad);font-weight:700">
+        ⚠️ ${t('stk_short_warn',{n:r2(Math.abs(thaanBal(th)))})}</div>`:''}
       ${th.rate?`<div class="sum-row due" style="border-top:1px dashed var(--saffron)">
         <span>${t('stk_value')} @ ${money(th.rate)}/m</span><b>${money(thaanValue(th))}</b></div>`:''}
     </div>
@@ -14233,7 +14255,18 @@ function renderCustomers(){
     +((DB.customers||[]).length>=8?`<input id="custListQ" value="${esc(_custQ)}" placeholder="🔍 ${t('search_ph')}"
         autocomplete="off" style="margin-bottom:8px" oninput="custListSearch(this.value)">`:'')
     +(list.length?`<button class="btn ghost block" style="margin-bottom:10px" onclick="openCampaign()">📣 ${t('camp_title')}</button>`:'');
-  if(!list.length){el.innerHTML=`<div class="empty"><div class="big">👥</div><p><b>${t('no_cust')}</b></p><p style="font-size:13px">${t('no_cust_sub')}</p></div>`;return;}
+  /* ══════════ v560 — THE SAME TRAP THE BILL LIST HAD ══════════
+     Found by looking for the shape, not by waiting for it to bite: this asked "are there
+     no customers?" AFTER the search had run. Type a name that matches nobody and the shop
+     was told it has no customers at all — and the box holding the text that caused it was
+     redrawn without the search input, so there was nothing to clear. An empty SHOP and an
+     empty SEARCH are two different things; only the first gets the bare screen. */
+  if(!list.length){
+    const _none=!(DB.customers||[]).length;
+    el.innerHTML=`<div class="empty">${_none
+      ? `<div class="big">👥</div><p><b>${t('no_cust')}</b></p><p style="font-size:13px">${t('no_cust_sub')}</p>`
+      : `<p>${t('cust_none_match')}</p><button class="btn ghost" style="margin-top:10px" onclick="custListSearch('')">${t('cust_clear_search')}</button>`}</div>`;
+    return;}
   // one pass over the orders instead of a full scan per customer — that inner filter
   // was customers x orders work and would crawl on a shop with real history
   const cnts={}; (DB.orders||[]).forEach(o=>{ if(o.customerId)cnts[o.customerId]=(cnts[o.customerId]||0)+1; });
@@ -21710,7 +21743,19 @@ function renderInvoices(keepFocus){
     <button class="btn ghost" style="flex:0 0 48px" title="${t('hub_more')}" onclick="saleHub()">⋯</button>
     </div>`;
 
-  if(!all.length){ el.innerHTML=head+invDraftBarHTML()+`<div class="empty"><div class="big">🧾</div><p><b>${t('no_invoices')}</b></p><p style="font-size:13px">${t('no_invoices_sub2')}</p></div>`; return; }
+  /* ══════════ v560 — A DATE RANGE HE COULD NOT GET OUT OF ══════════
+     HIS 8 Sept: "April ka data poora dekha, phir custom date se August mein jaana chaha to
+     yeh screen aa gayi aur ab yeh hat hi nahi rahi."
+     Nothing was lost — every bill was exactly where he left it. This line was the trap. It
+     asked "are there no bills?" AFTER the period filter had run, so a custom range that
+     happened to match nothing took the same exit as an empty shop: a bare message with no
+     search box and, fatally, NO PERIOD CHIPS. The one control that could undo the range was
+     removed by the range itself. From where he sat his whole book had vanished.
+     An empty BOOK and an empty RANGE are two different things now. Only a shop with no
+     bills at all gets the bare screen; a range that matches nothing keeps the chips, the
+     dates and the search above it, says so plainly, and offers one tap back to All. */
+  const _bookEmpty = !allInvoices().length;
+  if(_bookEmpty){ el.innerHTML=head+invDraftBarHTML()+`<div class="empty"><div class="big">🧾</div><p><b>${t('no_invoices')}</b></p><p style="font-size:13px">${t('no_invoices_sub2')}</p></div>`; return; }
 
   /* ══════════ v552 — HE TYPED ONE BILL NUMBER AND GOT THREE ══════════
      HIS 8 Sept: searched 2783 and 2773 and 2831 stayed on the list. "2783" cannot match
@@ -21811,7 +21856,13 @@ function renderInvoices(keepFocus){
      touched, so it cannot lose focus and the keyboard has nothing to react to. */
   let body='';
   const amtOf=x=>invCompute(x.inv).total;
-  if(!list.length){ body=`<div class="empty"><p>${t('inv_none_match')}</p></div>`; }
+  if(!list.length){
+    /* v560: say WHICH of the two emptied it — the range or the search — and give the way
+       out right there, because the chips above are easy to miss when the list is bare. */
+    const _rangeEmpty = !all.length && invPeriod!=='all';
+    body=`<div class="empty"><p>${_rangeEmpty?t('inv_none_period'):t('inv_none_match')}</p>
+      ${_rangeEmpty?`<button class="btn ghost" style="margin-top:10px" onclick="setInvPeriod('all')">${t('inv_p_all')}</button>`:''}</div>`;
+  }
   else if(invSort==='hi'||invSort==='lo'){
     const flat=applySort(list,invSort,x=>x.inv.date,amtOf);
     /* Orders and customers were paginated long ago; these three were missed, so a shop
