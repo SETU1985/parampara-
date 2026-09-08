@@ -877,7 +877,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v553</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v554</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -11809,8 +11809,22 @@ function markDelivered(oid){
     toast(t('rtg_done',{n:esc(o.orderNo||'')}),'ok');
     statDetail('ready');
   };
-  confirmModal('✅ '+t('rtg_deliver'),
-    due>0?t('rtg_ask_due',{m:money(due)}):t('rtg_ask'), go);
+  /* ══════════ v554 — A QUESTION WITH NO ANSWER BUT YES ══════════
+     HIS 8 Sept: "deliver ho gaya to deliver kiya hai. Agar kuch badalna hai, edit karna
+     hai, to uska option hoga." He is right — he taps this at the counter with the piece
+     in the customer's hand, so the app is asking him to confirm something he is watching
+     happen. It goes through on the tap. The balance still has to reach him, so it is
+     SAID rather than asked, and Undo puts the order straight back on the rack. */
+  const snapStatus=JSON.parse(JSON.stringify(o.itemStatus||{}));
+  const hadOn=o.deliveredOn||'';
+  const logLen=(o.log||[]).length;
+  go();
+  undoOffer(due>0?t('rtg_ask_due',{m:money(due)}):t('t_saved'), ()=>{
+    o.itemStatus=snapStatus;
+    if(hadOn)o.deliveredOn=hadOn; else delete o.deliveredOn;
+    if((o.log||[]).length>logLen)o.log.length=logLen;   // take the line out of the log too
+    save(o.id); statDetail('ready');
+  });
 }
 /* ══════════════ v479 — HE TAKES TWO PIECES AND COMES BACK FOR THE REST ══════════════
    HIS 4 Sept: "paanch mein se do lekar ja sakta hai, teen lekar ja sakta hai, kuch bhi."
@@ -18407,7 +18421,7 @@ function estSave(silent){
   const rec={...e}; delete rec._new;
   if(idx>=0)DB.estimates[idx]=rec; else {DB.estimates=DB.estimates||[];DB.estimates.push(rec);}
   save();
-  if(!silent){closeSheet();toast(t('est_saved'),'ok');}
+  if(!silent){closeSheet();toast(t('est_saved'),'ok');refreshBehind();}  /* v554 */
   return true;
 }
 function estDelete(id){confirmModal(t('confirm_del'),t('confirm_del_msg'),()=>{
@@ -21988,8 +22002,14 @@ function invDraftResume(id){
   invForm=d.form; invForm._fromDraft=1; invForm._draftId=d.id; renderInvoiceForm();
 }
 function invDraftDrop(id){
+  /* ══════════ v554 — THE BILL DRAFT DID THE SAME THING ══════════
+     This bin sits on the Invoices LIST as well as inside the bill form, and it only ever
+     redrew the form. Dropped from the list — which is where he meets it — the row stayed
+     on screen over a draft that no longer existed, exactly like the order draft on 8 Sept.
+     Both screens are redrawn now; whichever one he is standing on tells the truth. */
   confirmModal(t('draft_discard'), t('draft_disc_msg'),
-    ()=>{ if(id)invDraftDropId(id); else clearInvDraft(); closeModal(); renderInvoiceForm(); });
+    ()=>{ if(id)invDraftDropId(id); else clearInvDraft(); closeModal();
+          try{renderInvoiceForm();}catch(e){} refreshBehind(); });
 }
 const PUR_DRAFT_KEY='pb_ob_purdraft';
 function purHasContent(f){ return !!(f && (f.supplier || f.phone || (f.items||[]).length || (f.notes||'').trim() || (f.photos||[]).length)); }
@@ -22418,8 +22438,9 @@ function purDraftResume(){
   purchForm=d; purchForm._fromDraft=1; renderPurchaseForm();
 }
 function purDraftDrop(){
+  /* v554: same as the bill draft above — the bin is offered on the Purchases list too. */
   confirmModal(t('draft_discard'), t('draft_disc_msg'),
-    ()=>{ clearPurDraft(); closeModal(); renderPurchaseForm(); });
+    ()=>{ closeModal(); purDraftReset(); });
 }
 /* ══════════════════ v442 — THE BILL AND THE ENTRY WERE THE SAME SCREEN ══════════════════
    HIS 1 Sep, after showing me Vyapar side by side: "vyapar me mujhe ek din bhi accountant
@@ -23332,11 +23353,21 @@ let _purDraftT=null;
 let _puExtra=false, _puAdj=false;
 function puAdjToggle(){ capturePurchForm(); _puAdj=!_puAdj; renderPurchaseForm(); }
 function puExtraToggle(){ capturePurchForm(); _puExtra=!_puExtra; renderPurchaseForm(); }
+/* ══════════ v554 — ONE JOB, TWO DOORS, TWO DIFFERENT ANSWERS ══════════
+   Throwing away a purchase draft was written twice: this one, on the line inside the form,
+   and purDraftDrop() on the list. One asked first, the other did not; one redrew the screen
+   behind, the other did not. The same tap on two screens behaved differently, which is how
+   a shop stops trusting a button. Both doors now run the same thing — ask once, clear once,
+   redraw both the form and whatever is standing behind it. */
 function discardPurDraft(){
+  purDraftDrop();
+}
+function purDraftReset(){
   clearPurDraft();
   purchForm={editId:null,supplier:'',phone:'',billNo:'',date:_dateLock.pur||todayISO(),
     items:[],discType:'amount',discValue:0,courier:0,paidNow:null,paymentMode:'Bank',notes:'',photos:[],noStock:true};
-  renderPurchaseForm();
+  try{renderPurchaseForm();}catch(e){}
+  refreshBehind();
   toast(t('draft_discarded'),'ok');
 }
 /* v243 — HIS pending list: "tareekh pakad ke rakhne wala switch — purani entry bharte
@@ -23836,7 +23867,7 @@ function poSave(silent){
   const rec={...p}; delete rec._new;
   if(idx>=0)DB.purchaseOrders[idx]=rec; else {DB.purchaseOrders=DB.purchaseOrders||[];DB.purchaseOrders.push(rec);}
   save();
-  if(!silent){closeSheet();toast(t('po_saved'),'ok');}
+  if(!silent){closeSheet();toast(t('po_saved'),'ok');refreshBehind();}   /* v554 */
   return true;
 }
 function poDelete(id){confirmModal(t('confirm_del'),t('confirm_del_msg'),()=>{
@@ -29577,7 +29608,7 @@ function obCommit(){
           ref:t('ob_ref'), refKind:'opening', cat:'', note:'', opening:true, photos:[]});
       });
       save(); _obRows=[]; closeSheet();
-      toast(t('ob_done'),'ok');
+      toast(t('ob_done'),'ok'); refreshBehind();   /* v554 */
     },
     null, {yes:t('ob_save_all'), no:t('cancel'), cls:'primary'});
 }
@@ -29873,7 +29904,7 @@ function moSave(next){
   save(); toast(r.msg,'ok');
   if(next){ _mo.amt=''; _mo.name=''; _mo.q=''; _mo.note=''; moneyOut(1);
             setTimeout(()=>{const a=$('#mo_amt'); if(a)a.focus();},80); }
-  else closeSheet();
+  else { closeSheet(); refreshBehind(); }   /* v554: money left the shop — say so behind */
 }
 
 /* ── the Ledger master screen: every name, its group, its opening ── */
@@ -34054,6 +34085,23 @@ function _toastLift(el){
     const h=f.getBoundingClientRect().height;
     if(h>0)el.style.bottom='calc('+Math.round(h+14)+'px + var(--safe-b))';
   }catch(e){}
+}
+/* ══════════ v554 — THE SAME FAULT IN FIVE MORE PLACES ══════════
+   The discarded draft that stayed on the Orders list was not one bug. It is a shape:
+   something is written or removed, the sheet closes, and the screen underneath is never
+   redrawn — so he is left reading a picture of how things were a moment ago, and only a
+   tap somewhere else brings the truth back. A scan of every function that changes DB and
+   then closes a sheet turned up five more of exactly this: saving a purchase order, saving
+   an estimate, committing opening balances, saving a money-out entry, and the numbering /
+   shop settings. This redraws the tab that is standing behind, whatever it is, and does
+   nothing when no tab is showing. Cheap, and it cannot show him something stale. */
+function refreshBehind(){
+  setTimeout(()=>{ try{
+    const f={home:renderHome,orders:renderOrders,customers:renderCustomers,
+             alterations:renderAlterations,invoices:renderInvoices,
+             reports:renderReports,purchases:renderPurchases}[_curTab];
+    if(typeof f==='function')f();
+  }catch(e){} },0);
 }
 function toast(msg,kind){const el=$('#toast');el.textContent=msg;el.className='toast show '+(kind||'');_toastLift(el);clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2400);}
 
