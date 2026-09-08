@@ -877,7 +877,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v556</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v558</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -6148,6 +6148,18 @@ function go(tab){
      a screen must degrade, never go blank, so an unknown name falls back to Home instead
      of taking the app down. */
   if(!$('#tab-'+tab)) tab='home';
+  /* ══════════ v557 — THE OPEN CARD SURVIVED CLOSING THE ORDER ══════════
+     HIS 8 Sept: "item ka measurement edit karte hain, peeche jaate hain, order band karte
+     hain — phir wahi order kholo to measurement khula hi rehta hai."
+     v539 stopped one order's open card following him into the NEXT order, and drew the line
+     at "same order, keep it open — that is him returning to what he was reading." Coming
+     back through a sub-sheet, yes. But LEAVING the order screen altogether is him finishing
+     with it, and finishing means the next visit starts closed. Walking off the order tab is
+     the signal, so no new state and no special case: whichever way he leaves — ✕, ←, a tab,
+     Home — the card he had open is no longer open when he returns. */
+  /* wrapped: go() runs from boot too, and these lets are declared further down the file —
+     a throw here would deactivate every pane and leave a white screen. */
+  try{ if(tab!=='detail' && _curDetailId){ _curDetailId=null; _odItem=null; _odX=false; _odInfo=false; } }catch(e){}
   _curTab=tab;
   /* v503: remember where he is, so a reload puts him back rather than at the top */
   try{ localStorage.setItem('pb_ob_lasttab', JSON.stringify({tab:tab, at:Date.now()})); }catch(e){}
@@ -18772,7 +18784,16 @@ function renderInvoiceForm(){
          exists they stop being the job and start being clutter above it — and most bills
          arrive already filled from an order. So the whole launcher steps aside once the
          first line lands, and all that is left is a thin add strip where the list ends. */''}
-    ${invDraftHTML()}
+    ${/* ══════════ v558 — THE SHELF DOES NOT BELONG ON THE COUNTER ══════════
+         HIS 8 Sept: "koi naya bill bana raha hai to kaise banayega jab saamne aisa draft
+         dikhai de raha ho."
+         Right. An unfinished bill is something you go and FETCH; it is not something that
+         stands in front of the blank bill you are writing now. v494 already gave it its
+         proper home — the shelf at the top of the Invoices list, where a man looks for a
+         bill he started. This card in the form was the older half of that idea and, once
+         the shelf existed, it was the same offer twice, with the wrong one in the way.
+         DO NOT PUT A DRAFT LIST BACK INSIDE THIS FORM. Drafts belong to the LIST screen
+         (invDraftBarHTML); this form is one bill and shows only that bill. */''}
     ${/* v358 — HIS 27 Aug, and he had been telling me for days: "multiple item select nahi
          ho raha." Measured at last, and it was not a missing feature — the whole shortcut
          block carried display:none the moment the first item landed. The tiles were still
@@ -21936,7 +21957,12 @@ function invDrafts(){
   const now=Date.now(); let changed=false;
   Object.keys(m).forEach(k=>{
     const e=m[k];
-    if(!e||!e.form||!invHasContent(e.form)||(now-(+e.ts||0))>INV_DRAFT_TTL_MS){ delete m[k]; changed=true; }
+    if(!e||!e.form||!invHasContent(e.form)||(now-(+e.ts||0))>INV_DRAFT_TTL_MS){ delete m[k]; changed=true; return; }
+    /* v558: drafts written by the fault above — a finished bill parked as unfinished
+       merely because he opened it to read. The record already carries its invoice, so
+       this entry can never be a real draft; it is dropped the same way an empty one is.
+       Nothing issued is touched: only the stray draft row goes. */
+    try{ const _r=invRecOf(e.form.kind, e.form.id); if(_r && _r.invoice){ delete m[k]; changed=true; } }catch(_e){}
   });
   if(changed){ try{ localStorage.setItem(INV_DRAFTS_KEY,JSON.stringify(m)); }catch(e){} }
   return m;
@@ -21960,6 +21986,19 @@ function invHasContent(f){
 function getInvDraft(){ const l=invDraftList(); return l.length?l[0].form:null; }
 function saveInvDraft(){
   if(!invForm || invForm.saved)return;
+  /* ══════════ v558 — LOOKING AT A FINISHED BILL TURNED IT INTO A DRAFT ══════════
+     HIS 8 Sept: "jo draft dikha raha hai us bill ko maine khali click karke check kiya
+     tha, uske baad band kiya tha — aur draft ban gaya."
+     Exactly what happened, and this line is why. The only guard was invForm.saved, and
+     that flag is written by saveInvoice — so it is true for a bill saved in THIS sitting
+     and false for every bill saved on any earlier day. Open bill #2986 to read it, touch
+     anything, and 600ms later the autosave parks a finished, numbered, already-issued
+     invoice as an unfinished draft. It then greets him on the next New Invoice, offering
+     to "continue" a bill that was never unfinished.
+     The record itself is the honest test: if it already carries an invoice, this form is
+     an EDIT of something the shop has issued, and an edit is never a draft. Only a bill
+     that does not exist yet can be one. */
+  try{ const _r=invRecOf(invForm.kind, invForm.id); if(_r && _r.invoice)return; }catch(e){}
   try{ captureInvoiceForm(); }catch(e){}
   /* v335: each bill in progress owns its own slot, so a second bill can never write over
      a first one that is still open. */
