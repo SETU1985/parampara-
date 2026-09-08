@@ -877,7 +877,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v554</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v556</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -5194,6 +5194,8 @@ function touchOrder(id){ if(id)_dirtyOrd.add(id); }
 function coreOf(){ const c={}; for(const k in DB){ if(k!=='orders')c[k]=DB[k]; } return c; }
 
 let _dbDirty=false, _dbTimer=null, _dbWriting=false, _dbLastOK=0, _dbFailStreak=0;
+let _uiEcho=null;      /* v555: declared ABOVE save() — a let used before its line has run
+                          throws, and a throw inside save() would blank the screen at boot */
 function save(oid){
   /* v482: the book could not be read this session — writing now would replace it with
      whatever is in memory, which is nothing. Refuse, every time, and keep saying so. */
@@ -5207,6 +5209,24 @@ function save(oid){
   try{ _lgBalMemo={}; }catch(e){}        /* v498: a written record must not be read from the memo */
   _coreDirty=true; _dbDirty=true;
   updateHeadStat();                      // cheap, keep it instant
+  /* ══════════ v555 — THE ROOT OF NINE SEPARATE REDRAW BUGS ══════════
+     8 Sept. Every one of them was the same sentence: something was written, and the screen
+     showing that something was never told. I repaired nine sites by hand — the order draft,
+     the bill draft, the purchase draft (twice), the purchase order, the estimate, opening
+     balances, money out, settings — and that is nine patches for one fault, with the tenth
+     waiting to be written next month.
+     save() is the one door every change goes through, so it is the right place to say so.
+     The danger is obvious and is why it was never done: save() also runs while he is TYPING
+     — the draft autosave fires 600ms after a keystroke — and redrawing under a man's thumb
+     is how a cursor jumps and a half-typed measurement lands in the wrong box. This app has
+     fought that bug before and must not invite it back.
+     So the redraw is fired late and CHECKS AT THAT MOMENT whether a sheet is open. A form on
+     screen means he is working inside it: nothing is redrawn, exactly as before. A closed
+     sheet means what he is looking at is a list, and a list must never show him something
+     that is no longer true. It also covers save-then-close, because by the time it fires the
+     sheet has gone. */
+  clearTimeout(_uiEcho);
+  _uiEcho=setTimeout(()=>{ try{ if(!sheetIsOpen())refreshBehind(); }catch(e){} },180);
   clearTimeout(_dbTimer);
   _dbTimer=setTimeout(flushDB,400);
 }
@@ -22008,8 +22028,20 @@ function invDraftDrop(id){
      on screen over a draft that no longer existed, exactly like the order draft on 8 Sept.
      Both screens are redrawn now; whichever one he is standing on tells the truth. */
   confirmModal(t('draft_discard'), t('draft_disc_msg'),
-    ()=>{ if(id)invDraftDropId(id); else clearInvDraft(); closeModal();
-          try{renderInvoiceForm();}catch(e){} refreshBehind(); });
+    ()=>{ closeModal();
+      /* ══════════ v556 — THE DISCARDED BILL DRAFT COULD COME BACK ══════════
+         Traced, not guessed. The bill draft is written 600ms after anything he types, and
+         the timer keeps running after the bin is tapped: it fires, sees invForm still
+         holding the same content under the same _draftId, and writes the row straight back.
+         The order draft has had a latch against this since v531; the bill draft never got
+         one. Three things close the hole and none of them can lose work — the pending write
+         is cancelled, the row is dropped, and the open form lets go of that draft id, so if
+         he carries on typing it starts a NEW draft instead of resurrecting the buried one. */
+      try{ clearTimeout(_invDraftT); }catch(e){}
+      const cur = (invForm && invForm._draftId) || '';
+      if(id)invDraftDropId(id); else clearInvDraft();
+      if(invForm && (!id || String(id)===String(cur))) invForm._draftId='';
+      try{renderInvoiceForm();}catch(e){} refreshBehind(); });
 }
 const PUR_DRAFT_KEY='pb_ob_purdraft';
 function purHasContent(f){ return !!(f && (f.supplier || f.phone || (f.items||[]).length || (f.notes||'').trim() || (f.photos||[]).length)); }
@@ -23363,6 +23395,11 @@ function discardPurDraft(){
   purDraftDrop();
 }
 function purDraftReset(){
+  /* v556: same hole as the bill draft — purDraftSoon's 600ms timer would fire after the
+     bin and write the draft back from a form still holding the same content. The pending
+     write is cancelled first; the form is then emptied, which is what makes the discard
+     stick here (a purchase keeps only one draft, under a fixed key). */
+  try{ clearTimeout(_purDraftT); }catch(e){}
   clearPurDraft();
   purchForm={editId:null,supplier:'',phone:'',billNo:'',date:_dateLock.pur||todayISO(),
     items:[],discType:'amount',discValue:0,courier:0,paidNow:null,paymentMode:'Bank',notes:'',photos:[],noStock:true};
