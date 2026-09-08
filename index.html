@@ -877,7 +877,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v552</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v553</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -14615,6 +14615,18 @@ function clearDraft(){
   if(form&&form._did)dropDraft(form._did);
   else if(_lastDraftId)dropDraft(_lastDraftId);
   _lastDraftId='';
+  /* ══════════ v553 — DISCARD WORKED AND THE SCREEN DID NOT SAY SO ══════════
+     HIS 8 Sept: "discard kar deta hun, phir Orders par aata hun to draft bana hua hi hai,
+     aur Continue dabata hun tab jaata hai."
+     Both halves are true and together they name the fault exactly. The draft WAS deleted
+     here — v531 saw to that. What never happened is the redraw: closeSheet only calls go()
+     when the form was opened from a DIFFERENT tab, and he opens New Order from the Orders
+     list itself, so the list behind was left holding a row for a draft that no longer
+     existed. Tapping Continue then found nothing in storage and redrew the list — which is
+     why it "went" on the second tap. He was looking at a stale screen, not a live draft.
+     The screen is redrawn the moment a draft is dropped, after the sheet has finished
+     closing, so what he sees and what is stored are the same thing again. */
+  setTimeout(()=>{ try{ renderOrders(); }catch(e){} try{ renderHome(); }catch(e){} },0);
 }
 function draftAge(ts){
   const mins=Math.round((Date.now()-ts)/60000);
@@ -16242,7 +16254,6 @@ async function pickContact(){
 }
 function removeItem(key){
   _sheetScroll=$('#sheet')?$('#sheet').scrollTop:0; captureForm();
-  const g=G(key), filled=Object.keys((form.m||{})[key]||{}).length;
   const nxt=walkNext(form,key);
   const kill=()=>{
     const i=form.items.indexOf(key); if(i>=0)form.items.splice(i,1);
@@ -16292,8 +16303,14 @@ function removeItem(key){
       renderForm();
     });
   };
-  if(filled)confirmModal((g?g.ico+' '+g.n:'')||t('remove'), t('it_remove_confirm',{n:filled}), kill);
-  else kill();
+  /* ══════════ v553 — A SWITCH THAT ARGUED BACK ══════════
+     HIS 8 Sept, and not the first time: "ek baar select kiya aur dobara click kiya to
+     deselect ho jana chahiye. Itni chhoti si cheez me galti kyun hai?" No question, no
+     modal. A chip is a switch and the second tap turns it off — that is his rule and it
+     has been asked for twice. The naap is not lost either way: the piece keeps everything
+     it owned in the snapshot above and Undo puts it back exactly, and anything the app
+     itself filled in was never his to lose — it is still on the customer's file. */
+  kill();
 }
 /* A chip is a switch: one tap picks the piece, the same tap again takes it off. That is
    what anyone expects and what he asked for. The reason it was made add-only was that
@@ -16700,10 +16717,14 @@ function saveOrder(){
       confirmModal('🧾 '+t('inv_now_title'), t('inv_now_msg',{n:o.orderNo||''}),
         ()=>{ try{form=null;}catch(e){} sheetReset();
               setTimeout(()=>{ try{ closeSheet(); sheetReset(); openInvoiceForm('order',o.id); }catch(e){} },90); },
-        /* the form's sheet is still standing over everything — the order detail is a TAB, so
-           without closing it he keeps looking at the form he has already saved. */
+        /* ══════════ v553 — LATER PUT HIM ON THE KARIGAR SCREEN ══════════
+           HIS 8 Sept: "order lete hain aur raat mein karigar ko dete hain. Same time
+           mein nahi dete, to yeh screen ki zarurat nahi hai." Saying Later to the bill
+           opened the order's own page — Give pieces to a karigar, Send to master — work
+           that happens hours after the customer has left. The Orders list is already
+           standing behind, which is where the next order gets taken from. */
         ()=>{ try{form=null;}catch(e){} sheetReset();
-              setTimeout(()=>{ try{ closeSheet(); sheetReset(); openDetail(o.id); }catch(e){} },90); },
+              setTimeout(()=>{ try{ closeSheet(); sheetReset(); go('orders'); }catch(e){} },90); },
         {no:t('inv_later'), yes:t('inv_now'), cls:'primary'});
     }
     else openDetail(o.id);
