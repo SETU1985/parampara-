@@ -898,7 +898,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v567</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v573</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -1099,6 +1099,7 @@ const T={
   new_order:'New order',
   edit_order:'Edit order',
   order_no:'Order No',
+  inv_cust_ph:'Customer name or number',
   delivery:'Delivery date',
   order_date:'Order date',
   customer:'Customer',
@@ -3063,6 +3064,7 @@ dl_show_hidden:'Show hidden ({n})',
   new_order:'नया ऑर्डर',
   edit_order:'ऑर्डर बदलें',
   order_no:'ऑर्डर नं.',
+  inv_cust_ph:'ग्राहक का नाम या नंबर',
   delivery:'डिलीवरी तारीख',
   order_date:'ऑर्डर तारीख',
   customer:'ग्राहक',
@@ -14948,7 +14950,17 @@ function ordStage(n,key){
      cursor goes there and the box is marked, but only when it is still empty: on an order
      he is re-opening to change something, jumping into a date he already set would be
      meddling, not helping. */
-  if(_ordStage===1 && !form.deliveryDate){
+  /* ══════════ v569 — THE CURSOR NEVER REACHED THE DELIVERY DATE ══════════
+     HIS 8 Sept: "delivery date par nazar hi nahi jaati. Thoda highlight rahe, ya Done karein
+     to cursor seedha delivery date par aa jaye."
+     v549 was written to do exactly that and never once ran: it asks for stage ONE, and the
+     delivery date lives on stage THREE — the last step. So the one box the order cannot be
+     saved without has been sitting quiet at the bottom of a long screen all this time, and
+     he has had to go hunting for it on every order.
+     Same fault as the "last step" button: the intent was right, the condition named the
+     wrong screen. It fires on the last step now, and only while the box is still empty —
+     jumping into a date he already set would be meddling. */
+  if(_ordStage===3 && !form.deliveryDate){
     setTimeout(()=>{
       const el=$('#f_ddate_show')||$('#f_ddate');
       if(!el)return;
@@ -18777,13 +18789,32 @@ function renderInvoiceForm(){
         </div></div></div>`;
   })() : `
     <div id="invCustPicked" style="margin-bottom:10px">${(f.customerId||f.customerName)?invCustomerPickedHTML():''}</div>
+    ${/* ══════════ v571 — THREE LINES TO NAME ONE CUSTOMER ══════════
+         HIS 8 Sept, with Vyapar beside it: "customer name, number aur From contacts —
+         teen chip use kiye hain aur space barbaad. Saaf screen easy to use lagti hai;
+         bhari hui screen se aisa lagta hai jaise flight ke cockpit mein baithe ho."
+         He is right, and the three did one job between them. A name box, a phone box and a
+         contacts button, stacked, before the bill even begins — on a phone that is most of
+         the first screenful spent on a customer who, nine times out of ten, is already
+         saved and needs two letters typed.
+         One box now. Type a name or a number and the saved list drops under it — the same
+         search that was already there, doing both jobs. 📇 rides inside the box as a small
+         button instead of owning a line. The phone box appears only when it is actually
+         needed: a customer nobody has saved yet, which is when the number matters. */''}
     <div id="invCustSearchWrap" style="${(f.customerId||f.customerName)?'display:none':''};margin-bottom:10px">
-      <div class="cust-2col">
-        <div><input id="inv_cname" placeholder="👤 ${t('name_ph')}" autocomplete="off" onfocus="invCustSearch(this.value)" oninput="invCustSearch(this.value)" value="${esc(f.customerName||'')}"></div>
-        <div><input id="inv_cphone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" placeholder="📞 ${t('phone')}" value="${esc(f.phone||'')}"></div>
+      <div style="position:relative">
+        <input id="inv_cname" placeholder="🔍 ${t('inv_cust_ph')}" autocomplete="off"
+          onfocus="invCustSearch(this.value)" oninput="invCustSearch(this.value)"
+          value="${esc(f.customerName||'')}" style="padding-right:46px">
+        ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost"
+          style="position:absolute;right:5px;top:50%;transform:translateY(-50%);padding:5px 9px;flex:0 0 auto"
+          title="${t('from_contacts')}" onclick="invPickContact()">📇</button>`:''}
       </div>
       <div id="invCustResults"></div>
-      ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost block" style="margin-top:8px" onclick="invPickContact()">📇 ${t('from_contacts')}</button>`:''}
+      ${/* the number is asked for only when there is nobody to pick — a new face */''}
+      <input id="inv_cphone" type="tel" inputmode="numeric" placeholder="📞 ${t('phone')}"
+        oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" value="${esc(f.phone||'')}"
+        style="margin-top:8px;${(f.phone||'').trim()?'':'display:none'}">
     </div>`;
 
   const tileArr = masters.map(m=>{
@@ -18845,7 +18876,9 @@ function renderInvoiceForm(){
     </div>
     ${f.kind!=='sale'?(()=>{const rec=invRecOf(f.kind,f.id)||{};
       const nos=orderNosOf(rec);
-      return `<div class="linked-chip">👔 ${t('pos_linked')} ${nos.map(n=>'#'+esc(n)).join(' · ')}</div>`;})():''}
+      /* v570: the order number is on its own saffron chip below and inside the customer
+         card — this made it a third copy of the same fact. */
+      return nos.length>1?`<div class="linked-chip">👔 ${t('pos_linked')} ${nos.map(n=>'#'+esc(n)).join(' · ')}</div>`:'';})():''}
 
     ${custBlock}
 
@@ -18855,13 +18888,38 @@ function renderInvoiceForm(){
          title line above, so repeating the date here cost a whole field for nothing.
          The two things he reaches for — delivery date and order number — now sit where
          his eye already was. The bill date stays editable, moved into ⚙️ below. */''}
-    ${/* v354: the bill's own two facts, side by side and both his to change */''}
-    <div class="row" style="margin-bottom:8px">
-      <div class="field" style="margin:0"><label>${t('invoice_no')}</label>
-        <input id="inv_no" value="${esc(f.no)}"></div>
-      <div class="field" style="margin:0"><label>${t('invoice_date')}</label>
-        ${dateField("inv_date",f.date)}</div>
+    ${/* ══════════ v570 — THE SAME NUMBER PRINTED THREE TIMES ══════════
+         HIS 8 Sept: "invoice number upar bhi diya hai, phir uske neeche bhi. Order number
+         aur delivery date highlight hone chahiye — yeh maine pehle bhi bataya tha."
+         Counted on his screenshot: the invoice number in the title, again in this box, and
+         the order number on the chip above AND inside the customer card. Four lines for two
+         facts, and the two he actually chases — which order, and when it is due — were the
+         quietest things on the screen.
+         One row now, two chips side by side, and the colours say which is which. The bill's
+         own number sits back in slate, because the app issues it and he rarely touches it.
+         The ORDER and its delivery date carry the saffron, because that is what he is
+         looking for when a bill is made against an order. Both still open for editing —
+         tap either one. Nothing is hidden; the same two boxes open underneath. */''}
+    <div class="row" style="margin-bottom:10px;gap:8px;align-items:stretch">
+      <div class="field" style="margin:0;flex:0 0 42%"><label>${t('invoice_no')}</label>
+        <input id="inv_no" value="${esc(f.no)}" style="font-size:14px"></div>
+      ${(()=>{ const ord=(f.kind==='order')?invRecOf('order',f.id):null;
+        const ono=ord?ord.orderNo:(f.orderNo||'');
+        const dd=(ord&&ord.deliveryDate)||f.deliveryDate||'';
+        if(!ono && !dd) return `<div class="field" style="margin:0;flex:1"><label>${t('invoice_date')}</label>
+            ${dateField("inv_date",f.date)}</div>`;
+        return `<div class="field" style="margin:0;flex:1;border:1.5px solid var(--saffron);
+            border-radius:12px;padding:6px 10px;background:rgba(201,126,16,.10)">
+          <label style="color:var(--saffron2)">👔 ${t('order_no')}${dd?' · 🚚 '+t('inv_delivery'):''}</label>
+          <div style="font-weight:800;font-size:16px;color:var(--saffron2);line-height:1.35">
+            ${ono?'#'+esc(ono):'—'}${dd?' <span style="color:var(--txt)">· '+fmtDate(dd)+'</span>':''}</div></div>`;
+      })()}
     </div>
+    ${(()=>{ const ord=(f.kind==='order')?invRecOf('order',f.id):null;
+      const ono=ord?ord.orderNo:(f.orderNo||'');
+      const dd=(ord&&ord.deliveryDate)||f.deliveryDate||'';
+      return (ono||dd)?`<div class="field" style="margin-bottom:8px"><label>${t('invoice_date')}</label>
+        ${dateField("inv_date",f.date)}</div>`:''; })()}
     ${/* ══════════ v512 — TWO BOXES A COUNTER SALE NEVER USES ══════════
          HIS 5 Sept: "chaaron ka do." Delivery date and order number sat at the top of every
          bill, in the place his eye lands first. v354 put them there believing they were what
@@ -18897,9 +18955,20 @@ function renderInvoiceForm(){
             const gars=(o.items||[]).map(g=>((G(g)||{}).n)||'').filter(Boolean).slice(0,2).join(', ');
             return `<option value="${esc(o.orderNo)}">${esc(o.customerName||'')}${d?' \u00B7 '+fmtDate(d):''}${gars?' \u00B7 '+esc(gars):''}</option>`;}).join('')}</datalist>
       </div>`:`
+      ${/* ══════════ v573 — THE ORDER NUMBER WAS LOCKED ON MOST BILLS ══════════
+           HIS 8 Sept: "saare buttons editable hone chahiye. Order number bhi — kai baar
+           multiple number daalne padte hain, to manually order number bhi daala ja sake."
+           On a counter sale this box was typeable. On a bill made FROM an order — which is
+           most of his bills — the same box was rendered `disabled`: it showed the number and
+           refused to be touched. So when a family's second order had to go onto the same
+           bill, there was no way to say so.
+           It is the same box on every bill now, and typing a number runs the same
+           posLinkOrder the counter sale has always used, which finds that order and attaches
+           it. Nothing new was built — the box simply stopped being locked. */''}
       <div class="field" style="margin:0"><label>👔 ${t('pos_orderno')}</label>
-        <input class="bold-in" style="text-align:center"
-          value="${esc((invRecOf(f.kind,f.id)||{}).orderNo||(invRecOf(f.kind,f.id)||{}).altNo||'')}" disabled></div>`}
+        <input id="pos_ono" class="bold-in" style="text-align:center"
+          value="${esc(f.orderNo||(invRecOf(f.kind,f.id)||{}).orderNo||(invRecOf(f.kind,f.id)||{}).altNo||'')}"
+          placeholder="${t('pos_ono_auto')}" onchange="posLinkOrder(this.value)"></div>`}
     </div>
 
     ${/* v187 — HIS #6 and #7, which are one complaint: "jab items add ho kar bill dikhta hai
@@ -20103,13 +20172,17 @@ function invCustSearch(q){const box=$('#invCustResults'); if(!box)return;
   box.innerHTML=sugHead('saved_customers','invNewCustomer()')
     +(hits.length?hits.map(c=>custRowHTML(c,`invPickCustomer('${c.id}')`)).join('')
       :`<p class="hint" style="margin:6px 0 0">${q?t('cust_none_q'):t('cust_none')}</p>`)
-    +sugAddFoot('invNewCustomer()', (($('#inv_cname')||{}).value||''), !hits.length);}
+    +sugAddFoot('invNewCustomer()', (($('#inv_cname')||{}).value||''), !hits.length);
+  /* v571: the phone box earns its place only when nobody matches — a face the shop has
+     not saved. While he is still picking from the list it stays out of the way. */
+  const ph=$('#inv_cphone');
+  if(ph && !String(ph.value||'').trim()) ph.style.display=(q && !hits.length)?'':'none';}
 function invNewCustomer(){
   captureInvoiceForm();
   const nm=($('#inv_cname')&&$('#inv_cname').value.trim())||'';
   invForm.customerId=null; invForm.customerName=nm;
   const box=$('#invCustResults'); if(box)box.innerHTML='';
-  const ph=$('#inv_cphone'); if(ph)ph.focus();
+  const ph=$('#inv_cphone'); if(ph){ ph.style.display=''; ph.focus(); }
   toast(nm?t('cust_new_typed',{n:nm}):t('cust_type_name'), nm?'ok':'bad');}
 function altCustSearch(q){const box=$('#altCustResults'); if(!box)return;
   const hits=custHits(q);
@@ -20957,8 +21030,22 @@ function buildInvoiceText(rec,inv){
   const prevBal=customerOutstanding(rec.customerId,rec.orderNo?'order':(rec.altNo?'alt':'sale'),rec.id);
   const currBal=r2(prevBal+orderBaaki(rec));
   let s=`${(DB.shopInfo&&DB.shopInfo.name)||t('your_shop')}\n${(DB.shopInfo&&DB.shopInfo.showGst&&DB.shopInfo.gstin)?('GSTIN: '+DB.shopInfo.gstin+'\n'):''}\nInvoice No: ${inv.no}\nDate: ${fmtDate(inv.date)}\n`;
-  if(rec.orderNo)s+=`Order #${rec.orderNo}\n`; else if(rec.altNo)s+=`Alteration #${rec.altNo}\n`;
-  if(rec.deliveryDate)s+=`📅 Delivery Date: ${fmtDate(rec.deliveryDate)}\n`;
+  /* ══════════ v572 — THE THREE THINGS HE IS ASKED ABOUT, BURIED ══════════
+     HIS 8 Sept: "order number, delivery date aur due amount highlight hone chahiye —
+     msg ya printout me bill me."
+     They were all in the message, in a run of eight identical lines, so the customer read
+     past them and rang up to ask the same three questions anyway: which order, when do I
+     get it, how much is left. They come out of the pile now, boxed together at the top of
+     the message where the eye lands. The due amount joins them — the figure that decides
+     whether he calls at all. Nothing is removed; the details all still follow below. */
+  { const bits=[];
+    if(rec.orderNo)bits.push(`👔 Order #${rec.orderNo}`);
+    else if(rec.altNo)bits.push(`🔧 Alteration #${rec.altNo}`);
+    if(rec.deliveryDate)bits.push(`🚚 Delivery: ${fmtDate(rec.deliveryDate)}`);
+    const _due=orderBaaki(rec);
+    if(_due>0)bits.push(`💰 Balance: ${money(_due)}`);
+    if(bits.length) s+='\n'+'━'.repeat(22)+'\n'+bits.join('\n')+'\n'+'━'.repeat(22)+'\n';
+  }
   const sm=rec.salesmanId?salesmenAll().find(x=>x.id===rec.salesmanId):null;
   if(sm)s+=`Salesman: ${sm.name}${sm.phone?' ('+sm.phone+')':''}\n`;
   s+='\n';
@@ -21185,8 +21272,12 @@ function buildInvoiceCanvas(rec,inv){
   L.push({t:_G?'TAX INVOICE':'INVOICE',s:14,b:1,c:'#888'});
   L.push({t:'Invoice No: '+inv.no,s:19,b:1,c:'#111'});
   L.push({t:'Invoice Date: '+fmtDateFull(inv.date),s:16,b:1,c:'#111'});
-  if(rec.orderNo)L.push({t:'Order No: '+rec.orderNo,s:16,c:'#444'});
-  else if(rec.altNo)L.push({t:'Alteration No: '+rec.altNo,s:16,c:'#444'});
+  /* v572: the order number was the palest line on the sheet (#444, 16px) while the bill's
+     own number sat bold above it — backwards for a customer, who identifies his goods by
+     the ORDER. It now carries the same highlight the delivery date has, so the two things
+     he checks read as a pair. The balance below joins them for the same reason. */
+  if(rec.orderNo)L.push({t:'Order No: '+rec.orderNo,s:20,b:1,c:'#7a4f01',hl:'#fff3cd'});
+  else if(rec.altNo)L.push({t:'Alteration No: '+rec.altNo,s:20,b:1,c:'#7a4f01',hl:'#fff3cd'});
   if(rec.deliveryDate)L.push({t:'Delivery Date: '+fmtDateFull(rec.deliveryDate),s:20,b:1,c:'#7a4f01',hl:'#fff3cd'});
   L.push({gap:10});
   L.push({t:(rec.customerName||'').toUpperCase(),s:22,b:1,c:'#111'});
@@ -21217,7 +21308,10 @@ function buildInvoiceCanvas(rec,inv){
   L.push({t:'Grand Total',s:24,b:1,c:'#111',right:money(comp.total),rightS:24,rightB:1});
   L.push({gap:6});
   L.push({t:'Received',s:16,c:'#444',right:money(received),rightS:16});
-  L.push({t:'Balance Due',s:19,b:1,c:baaki>0?'#c0392b':'#2e7d32',right:money(baaki),rightS:19,rightB:1});
+  /* v572: the one number the customer looks for. Given the same yellow band as the order
+     number and delivery date when money is still owed, so all three read together. */
+  L.push({t:'Balance Due',s:baaki>0?21:19,b:1,c:baaki>0?'#c0392b':'#2e7d32',
+    hl:baaki>0?'#fff3cd':null, right:money(baaki),rightS:baaki>0?21:19,rightB:1});
   if(prevBal>0){L.push({gap:6});
     L.push({t:'Previous Balance',s:15,c:'#666',right:money(prevBal),rightS:15});
     L.push({t:'Current Balance',s:16,b:1,c:'#444',right:money(currBal),rightS:16,rightB:1});}
@@ -21949,6 +22043,58 @@ async function sharePdf(spec,name,text){
   toast(t('pdf_saved'),'ok');
 }
 /* v567: the same list he is looking at, as a real PDF file — one tap to WhatsApp. */
+/* v568: the other four reports are the same shape — a table, some rows, a total — so they
+   all go through the one PDF builder. Nothing about the printed sheet changes; there is now
+   a real file beside it, which is what actually reaches the CA on WhatsApp. */
+async function plPdf(){
+  const {from,to}=rpRange(), f=plFigures(from,to);
+  const R=[]; const add=(l,v)=>R.push([l,money(v)]);
+  add(t('rp_sales_gross'),f.sales); add(t('rp_gst_out'),-f.gst); add(t('rp_net_sales'),f.netSales);
+  add(t('rp_purch_net'),-f.netPurch); if(f.direct)add(t('rp_direct'),-f.direct);
+  add(t('rp_gross_profit'),f.gross);
+  (f.heads||[]).forEach(([h,v])=>add('   '+h,-v));
+  add(t('rp_net_profit'),f.net);
+  await sharePdf({shop:((DB.shopInfo||{}).name)||'PARAMPARA', title:t('rp_pl'),
+    sub:fmtDate(from)+' → '+fmtDate(to),
+    cols:[{w:70,label:t('rp_pl')},{w:30,label:t('amount'),align:'right'}],
+    rows:R, foot:[t('rp_net_profit'),money(f.net)]},
+    'PARAMPARA-PL-'+todayISO()+'.pdf', t('rp_pl'));
+}
+async function cashflowPdf(){
+  const {from,to}=rpRange(), c=cashFigures(from,to);
+  const rows=(c.accs||[]).map(x=>[x.a.name,money(x.open),money(x.in),money(x.out),money(x.close)]);
+  await sharePdf({shop:((DB.shopInfo||{}).name)||'PARAMPARA', title:t('rp_cashflow'),
+    sub:fmtDate(from)+' → '+fmtDate(to),
+    cols:[{w:30,label:t('cb_account')},{w:17,label:t('rp_opening'),align:'right'},
+          {w:17,label:t('rp_money_in'),align:'right'},{w:17,label:t('rp_money_out'),align:'right'},
+          {w:19,label:t('rp_closing'),align:'right'}],
+    rows}, 'PARAMPARA-cashflow-'+todayISO()+'.pdf', t('rp_cashflow'));
+}
+async function expHeadPdf(){
+  const {from,to}=rpRange(), f=plFigures(from,to);
+  const rows=(f.heads||[]).map(([h,v])=>[h,money(v),(f.expTotal?Math.round(v/f.expTotal*100):0)+'%']);
+  await sharePdf({shop:((DB.shopInfo||{}).name)||'PARAMPARA', title:t('rp_exp_head'),
+    sub:fmtDate(from)+' → '+fmtDate(to),
+    cols:[{w:60,label:t('exp_title')},{w:25,label:t('amount'),align:'right'},{w:15,label:'%',align:'right'}],
+    rows, foot:[t('total'),money(f.expTotal),'100%']},
+    'PARAMPARA-expenses-'+todayISO()+'.pdf', t('rp_exp_head'));
+}
+async function karigarReportPdf(){
+  const ks=DB.karigars||[];
+  const per=ks.map(k=>({k,st:karPieceStats(k.id),paid:karPaid(k.id),bal:karBalance(k.id)}))
+    .sort((a,b)=>b.paid-a.paid);
+  let tN=0,tE=0,tP=0,tB=0;
+  const rows=per.map(({k,st,paid,bal})=>{ tN+=st.totalN; tE+=st.totalAmt; tP+=paid; tB+=bal;
+    return [k.name,String(st.totalN),money(st.totalAmt),money(paid),money(bal)]; });
+  if(!rows.length){ toast(t('nothing'),'bad'); return; }
+  await sharePdf({shop:((DB.shopInfo||{}).name)||'PARAMPARA', title:t('karigar_master'),
+    sub:fmtDate(todayISO()),
+    cols:[{w:32,label:t('karigar')},{w:12,label:t('kb_pcs'),align:'right'},
+          {w:19,label:t('kb_earned'),align:'right'},{w:19,label:t('kb_paid'),align:'right'},
+          {w:18,label:t('kb_payable'),align:'right'}],
+    rows, foot:[t('total'),String(tN),money(tE),money(tP),money(tB)]},
+    'PARAMPARA-karigar-'+todayISO()+'.pdf', t('karigar_master'));
+}
 async function invListPdf(){
   const all=allInvoices().filter(x=>invInPeriod((x.inv||{}).date));
   const q=String(invQ||'').trim().toLowerCase();
@@ -25775,7 +25921,8 @@ function plReport(){
             [t('rp_running'),-f.indirect],[t('rp_jv_adj'),f.jvPL||0],[t('rp_net_profit'),f.net]]}))}
     <div class="modal-actions">
       <button class="btn ghost" style="flex:1" onclick="closeSheet()">${t('back')}</button>
-      <button class="btn primary" style="flex:1" onclick="plPrint()">🖨️ ${t('rp_pdf')}</button></div>
+      <button class="btn primary" style="flex:1" onclick="plPdf()">\u{1F4C4} ${t('rp_pdf')}</button>
+      <button class="btn ghost" style="flex:0 0 auto" title="${t('print')}" onclick="plPrint()">🖨️</button></div>
     <div class="fab-pad"></div>`;
   showSheet();
 }
@@ -25819,7 +25966,8 @@ function cashflowReport(){
         .concat([[t('total'),c.T.open,c.T.inn,c.T.out,c.T.close]])}))}
     <div class="modal-actions">
       <button class="btn ghost" style="flex:1" onclick="closeSheet()">${t('back')}</button>
-      <button class="btn primary" style="flex:1" onclick="cashflowPrint()">🖨️ ${t('rp_pdf')}</button></div>
+      <button class="btn primary" style="flex:1" onclick="cashflowPdf()">\u{1F4C4} ${t('rp_pdf')}</button>
+      <button class="btn ghost" style="flex:0 0 auto" title="${t('print')}" onclick="cashflowPrint()">🖨️</button></div>
     <div class="fab-pad"></div>`;
   showSheet();
 }
@@ -25943,7 +26091,8 @@ function expHeadReport(){
     </div>`).join('')||`<p class="hint">${t('exp_none')}</p>`}
     <div class="modal-actions">
       <button class="btn ghost" style="flex:1" onclick="closeSheet()">${t('back')}</button>
-      <button class="btn primary" style="flex:1" onclick="expHeadPrint()">🖨️ ${t('rp_pdf')}</button></div>
+      <button class="btn primary" style="flex:1" onclick="expHeadPdf()">\u{1F4C4} ${t('rp_pdf')}</button>
+      <button class="btn ghost" style="flex:0 0 auto" title="${t('print')}" onclick="expHeadPrint()">🖨️</button></div>
     <div class="fab-pad"></div>`;
   showSheet();
 }
@@ -28817,7 +28966,8 @@ function karigarReport(){
     ${per.length?exportBarHTML('rp_kar',krExport):''}
     <div class="modal-actions">
       <button class="btn ghost" style="flex:1" onclick="karigarBook()">${t('back')}</button>
-      <button class="btn primary" style="flex:1" onclick="karigarReportPrint()">🖨️ ${t('rp_pdf')}</button></div>
+      <button class="btn primary" style="flex:1" onclick="karigarReportPdf()">\u{1F4C4} ${t('rp_pdf')}</button>
+      <button class="btn ghost" style="flex:0 0 auto" title="${t('print')}" onclick="karigarReportPrint()">🖨️</button></div>
     <div class="fab-pad"></div>`;
   showSheet();
 }
