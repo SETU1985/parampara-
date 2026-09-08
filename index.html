@@ -898,7 +898,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v573</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v575</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -2283,6 +2283,9 @@ const T={
   shr_need_backup:'Take a photo backup first. This makes every stored photo smaller and it cannot be undone \u2014 the backup is the only way back.',
   shr_ask:'Every photo already stored is made smaller (800px). Design, cloth and colour stay readable. This cannot be undone, and it may take a few minutes \u2014 you can stop it at any time and carry on later.',
   shr_done:'{a} photos shrunk \u00b7 {n} MB saved',
+  bk_auto_done:'\u2713 Backed up to your file',
+  bk_auto_t:'Back up on its own, once a day',
+  bk_auto_hint:'Writes to the file you linked above, quietly, when you are not in the middle of something. Keep that file in a Drive folder and Drive takes it off the device for you.',
   bk_book_now:'Back up the book', bk_photos_now:'Back up photos too',
   bk_book_hint:'Orders, bills, payments, measurements, stock, karigar \u2014 a small file, a few seconds. Do this every evening.',
   bk_data_only:'Send data-only backup (no photos)',
@@ -4239,6 +4242,9 @@ dl_show_hidden:'Show hidden ({n})',
   shr_need_backup:'पहले फ़ोटो का बैकअप लें। यह हर पुरानी फ़ोटो को छोटा कर देगा और वापस नहीं हो सकता — बैकअप ही वापसी का एकमात्र रास्ता है।',
   shr_ask:'सारी पुरानी फ़ोटो छोटी कर दी जाएँगी (800px)। डिज़ाइन, कपड़ा और रंग साफ़ दिखते रहेंगे। यह वापस नहीं हो सकता, और कुछ मिनट लग सकते हैं — बीच में रोक सकते हैं, बाद में जारी रख सकते हैं।',
   shr_done:'{a} फ़ोटो छोटी हुईं · {n} MB बची',
+  bk_auto_done:'\u2713 आपकी फ़ाइल में बैकअप हो गया',
+  bk_auto_t:'रोज़ अपने आप बैकअप लें',
+  bk_auto_hint:'ऊपर जोड़ी गई फ़ाइल में चुपचाप लिखता है, जब आप बीच काम में न हों। उस फ़ाइल को Drive के फ़ोल्डर में रखें — Drive उसे डिवाइस से बाहर ले जाएगा।',
   bk_book_now:'बही का बैकअप लें', bk_photos_now:'फ़ोटो का भी बैकअप लें',
   bk_book_hint:'ऑर्डर, बिल, पेमेंट, नाप, स्टॉक, कारीगर — छोटी फ़ाइल, कुछ ही सेकंड। यह रोज़ शाम को करें।',
   bk_data_only:'सिर्फ़ डेटा भेजें (फोटो नहीं)',
@@ -5290,6 +5296,7 @@ function save(oid){
      sheet has gone. */
   clearTimeout(_uiEcho);
   _uiEcho=setTimeout(()=>{ try{ if(!sheetIsOpen())refreshBehind(); }catch(e){} },180);
+  try{ autoBackupSoon(); }catch(e){}      /* v574: something was written — the day's backup is due */
   clearTimeout(_dbTimer);
   _dbTimer=setTimeout(flushDB,400);
 }
@@ -13832,8 +13839,21 @@ function resumeDraft(id){
   renderForm();
 }
 function discardDraft(id){
+  /* ══════════ v575 — THE THIRD DOOR WITH THE SAME HOLE ══════════
+     Found by looking for the shape, not by waiting for it: v556 closed this on the bill
+     draft and the purchase draft, and missed the ✕ that sits beside an ORDER draft on the
+     Orders list. The order draft is written 600ms after anything typed, and on a 5-second
+     tick while the form is open. Dropping the row here did not cancel either, and did not
+     let the open form let go of that draft id — so the very draft he had just thrown away
+     could be written straight back under the same id.
+     Same cure as the other two: cancel what is pending, drop the row, and make the open
+     form forget the id so it starts a fresh draft if he carries on typing. */
   confirmModal(t('draft_disc_title'),t('draft_disc_msg'),()=>{
-    dropDraft(id); renderOrders(); renderHome(); toast(t('draft_discarded'));
+    try{ clearTimeout(_draftT); clearInterval(_draftTick); }catch(e){}
+    dropDraft(id);
+    try{ if(window.form && String(form._did)===String(id)) form._did=''; }catch(e){}
+    try{ if(_lastDraftId===id)_lastDraftId=''; }catch(e){}
+    renderOrders(); renderHome(); toast(t('draft_discarded'));
   });
 }
 /* v286: one keystroke moves him to where the answers are, and only the first one does —
@@ -22570,8 +22590,16 @@ function invHasContent(f){
     (f.customerName||'').trim() || (f.phone||'').trim() || (f.notes||'').trim()));
 }
 function getInvDraft(){ const l=invDraftList(); return l.length?l[0].form:null; }
+/* v575: what a bill "is" for the purpose of not resurrecting one he just discarded —
+   the customer and the lines. Anything he changes makes it a different bill again. */
+let _invDropped='';
+function invDraftSig(f){
+  try{ return JSON.stringify([(f.customerName||'').trim(),(f.phone||'').trim(),
+    (f.items||[]).map(it=>[it.label||'',+it.qty||0,+it.price||0])]); }catch(e){ return ''; }
+}
 function saveInvDraft(){
   if(!invForm || invForm.saved)return;
+  if(_invDropped && invDraftSig(invForm)===_invDropped)return;   // he threw this one away
   /* ══════════ v558 — LOOKING AT A FINISHED BILL TURNED IT INTO A DRAFT ══════════
      HIS 8 Sept: "jo draft dikha raha hai us bill ko maine khali click karke check kiya
      tha, uske baad band kiya tha — aur draft ban gaya."
@@ -22663,7 +22691,18 @@ function invDraftDrop(id){
          is cancelled, the row is dropped, and the open form lets go of that draft id, so if
          he carries on typing it starts a NEW draft instead of resurrecting the buried one. */
       try{ clearTimeout(_invDraftT); }catch(e){}
+      /* ══════════ v575 — IT CAME BACK ANYWAY, AND HERE IS WHY ══════════
+         v556 cancelled the pending write and let the form drop the id. It was not enough,
+         proven by running it: renderInvoiceForm() below re-binds the autosave, that fires,
+         and the form — still open, still holding the same items, which is RIGHT, because he
+         may carry on with this bill — gets a fresh id and writes the row again. From where
+         he sits the draft he just threw away is back within a second.
+         Cancelling a timer cannot fix that; the form legitimately still has content. So the
+         discarded CONTENT is remembered for this sitting: if the very same bill is offered
+         again unchanged, it is not written. Type one more thing and it is a different bill,
+         and a draft is saved as usual. Nothing he does is lost. */
       const cur = (invForm && invForm._draftId) || '';
+      try{ if(invForm) _invDropped=invDraftSig(invForm); }catch(e){}
       if(id)invDraftDropId(id); else clearInvDraft();
       if(invForm && (!id || String(id)===String(cur))) invForm._draftId='';
       try{renderInvoiceForm();}catch(e){} refreshBehind(); });
@@ -33017,16 +33056,46 @@ async function backupToFile(silent){
     return false;
   }
 }
-/* once a file is linked, back up by itself once a day — the nag exists because he forgets */
+/* ══════════════ v574 — THE AUTO BACKUP WAS ALREADY HERE, AND IT INTERRUPTED ══════════════
+   I wrote a second one before looking, which is the fault this file warns about — one job,
+   two functions, drifting apart. This is the original and the only one; mine is gone.
+   What it was missing is the rule that matters: it never asked whether he was in the middle
+   of something. A write could land while a bill was half-typed. Proven in the browser, not
+   read: with the order form open, a backup went through underneath it.
+   The gate is now checked on BOTH sides of every await — before the file handle, and again
+   immediately before the write — because the two awaits are exactly where a tap can slip in.
+   It also honours the switch in the backup menu, and one refusal stops it for the session
+   instead of asking again on every save. */
+let _autoBkOff=false, _autoBkRunning=false, _autoBkT=null;
+function autoBackupSoon(){
+  if(_autoBkOff||_autoBkRunning)return;
+  if(localStorage.getItem('pb_ob_autobk')==='0')return;
+  clearTimeout(_autoBkT);
+  _autoBkT=setTimeout(()=>{ autoFileBackup(); }, 6000);
+}
+function autoBkToggle(){
+  const off=localStorage.getItem('pb_ob_autobk')==='0';
+  if(off){ localStorage.removeItem('pb_ob_autobk'); _autoBkOff=false; }
+  else localStorage.setItem('pb_ob_autobk','0');
+  backupMenu();
+}
 async function autoFileBackup(){
   try{
+    if(_autoBkOff||_autoBkRunning)return;
+    if(localStorage.getItem('pb_ob_autobk')==='0')return;
     if(!bkSupported())return;
-    const h=await bkGetHandle(); if(!h)return;
+    if(sheetIsOpen())return;                            // he is working — not now
     if(localStorage.getItem('pb_ob_bkauto')===todayISO())return;
-    if(!(await bkPerm(h,false)))return;                 // never prompt in the background
+    const h=await bkGetHandle(); if(!h)return;
+    if(sheetIsOpen())return;                            // a form may have opened in that gap
+    if(!(await bkPerm(h,false))){ _autoBkOff=true; return; }   // never prompt in the background
     if(!hasAnyData())return;
-    await backupToFile(true);
-  }catch(e){}
+    if(sheetIsOpen())return;                            // and again, right before writing
+    _autoBkRunning=true;
+    const done=await backupToFile(true);
+    _autoBkRunning=false;
+    if(done){ try{ toast(t('bk_auto_done'),'ok'); }catch(e){} }
+  }catch(e){ _autoBkRunning=false; }
 }
 /* the linked-file panel at the top of the backup menu */
 async function bkFileBox(){
@@ -33083,6 +33152,16 @@ function backupMenu(){
     ${/* v566: a one-time job, kept next to the backup it depends on — it refuses to run
          without one, so this is the right place for it to be found. */''}
     <button class="btn ghost block" style="margin-top:8px" onclick="closeModal();shrinkOldPhotos()">🗜️ ${t('shr_title')}</button>
+    ${/* v574: his switch. On by default — a backup nobody has to remember is the point —
+         but it is his shop and his device, so it can be turned off in one tap. */''}
+    <div class="card" style="padding:10px 12px;margin-top:10px">
+      <div class="kv"><span style="min-width:0">
+        <b style="font-size:13px">🔄 ${t('bk_auto_t')}</b>
+        <div class="hint">${t('bk_auto_hint')}</div></span>
+        <span style="flex:0 0 auto">
+          <button class="btn sm ${localStorage.getItem('pb_ob_autobk')==='0'?'ghost':'primary'}"
+            onclick="autoBkToggle()">${localStorage.getItem('pb_ob_autobk')==='0'?t('mm_off'):t('mm_on')}</button>
+        </span></div></div>
     <div id="bkMore" style="display:none;margin-top:10px">
       <div class="card" style="padding:10px 12px"><div class="kv"><span class="hint">${t('bk_stored')}</span><b id="bkSize">…</b></div></div>
       <div id="bkSafety"></div>
