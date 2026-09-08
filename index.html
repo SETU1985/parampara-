@@ -652,8 +652,11 @@
   body.modal-on .toast{bottom:auto; top:calc(14px + var(--safe-t)); transform:translateX(-50%) translateY(-20px)}
   body.modal-on .toast.show{transform:translateX(-50%) translateY(0)}
   .toast.ok{border-color:var(--ok)} .toast.bad{border-color:var(--bad)}
+  /* v552: the toast itself ignores taps, and that silently took the Undo button with it —
+     children inherit pointer-events, so the one button in the app that undoes a delete
+     could not be pressed. */
   .toast .tundo{margin-left:12px; background:var(--saffron); color:#1a1206; border:0;
-    border-radius:8px; padding:6px 14px; font-weight:800; font-size:14px}
+    border-radius:8px; padding:6px 14px; font-weight:800; font-size:14px; pointer-events:auto}
   #railToggle{display:none}
   .fab-pad{height:10px}
   body.simple-mode{font-size:17px}
@@ -874,7 +877,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v551</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v552</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -1487,7 +1490,7 @@ const T={
   sm_card:'Saved measurements', sm_card_hint:'filled in when you pick a piece', sm_more:'more',
   ms_saved:'Saved measurements', ms_use:'Use these', ms_used:'{n} filled in from file — check them', ms_none_saved:'Nothing saved for this piece',
 
-  manage_meas_desc:'This is the list of measurements this garment asks for on EVERY order. Switch off the ones your shop never takes \u2014 they stop appearing on new orders. Switch one back on the day you need it. Nothing already written is lost either way.',
+  manage_meas_desc:'\u2605 the measurements you want on the screen for this garment. The ones without a star do not appear on new orders \u2014 star one back the day you need it. Nothing already written is lost either way.',
   mm_on:'On',
   mm_off:'Off',
   mm_del_msg:'Delete the custom field “{n}” everywhere?',
@@ -2422,7 +2425,7 @@ const T={
   t_order_gone:'This order no longer exists — nothing was saved.',
   pur_edit_nostock:'Bill updated. Stock was NOT changed — correct the roll or piece in Stock.',
   pur_del_partial_stock:'Bill deleted. Some of this cloth (roll #{s}) was already cut, so only the unused part could be taken back — check the roll.',
-  wk_back:'All items', wk_stage3:'Last step',
+  wk_back:'Back to order', wk_stage3:'Last step',
   wk_none:'Pick at least one item first', wk_pick_first:'Pick an item to begin',
   wk_no_cust:'No customer name yet',
   add_another_short:'One more', remove_piece:'Remove',
@@ -2637,6 +2640,7 @@ const T={
   ord_search_ph:'Search order no, customer, mobile, amount...',
   hub_more:'More',
   inv_count:'{n} invoices',
+  inv_search_fail:'Search could not run \u2014 showing the full list',
   inv_none_match:'No invoice matches that search',
   inv_tag_direct:'Direct',
   no_invoices_sub2:'Tap “+ New Invoice” above to make your first bill',
@@ -3421,7 +3425,7 @@ dl_show_hidden:'Show hidden ({n})',
   ms_file_upd:'{g} का नाप उसकी फ़ाइल में अपडेट हुआ',
   sm_card:'सेव किए हुए नाप', sm_card_hint:'पीस चुनते ही भर जाएंगे', sm_more:'और',
   ms_saved:'सेव किए हुए नाप', ms_use:'ये लें', ms_used:'{n} नाप फ़ाइल से भरे — जाँच लें', ms_none_saved:'इस पीस का कोई नाप सेव नहीं है',
-  manage_meas_desc:'हर ऑर्डर में इस कपड़े के लिए यही नाप पूछे जाते हैं। जो नाप आपकी दुकान कभी नहीं लेती उन्हें बंद कर दें — नए ऑर्डर में वो नहीं आएँगे। जिस दिन ज़रूरत हो उसी दिन वापस चालू कर लें। पहले लिखा हुआ कुछ भी नहीं जाता।',
+  manage_meas_desc:'इस कपड़े में जो नाप स्क्रीन पर चाहिए उन पर ★ लगाएँ। बिना ★ वाले नाप नए ऑर्डर में नहीं आएँगे — जिस दिन ज़रूरत हो उस दिन ★ लगा दें। पहले लिखा हुआ कुछ भी नहीं जाता।',
   mm_on:'चालू',
   mm_off:'बंद',
   mm_del_msg:'फ़ील्ड “{n}” को हर जगह से हटाएँ?',
@@ -4356,7 +4360,7 @@ dl_show_hidden:'Show hidden ({n})',
   t_order_gone:'ये ऑर्डर अब मौजूद नहीं है — कुछ सेव नहीं हुआ।',
   pur_edit_nostock:'बिल अपडेट हो गया। स्टॉक नहीं बदला — थान/पीस को Stock में खुद ठीक करें।',
   pur_del_partial_stock:'बिल डिलीट हो गया। थान #{s} में से कुछ कपड़ा पहले ही कट चुका था, इसलिए सिर्फ बचा हुआ हिस्सा वापस लिया गया — थान चेक कर लें।',
-  wk_back:'सारे आइटम', wk_stage3:'आखिरी स्टेप',
+  wk_back:'ऑर्डर पर वापस', wk_stage3:'आखिरी स्टेप',
   wk_none:'पहले कोई आइटम चुनें', wk_pick_first:'शुरू करने के लिए आइटम चुनें',
   wk_no_cust:'ग्राहक का नाम अभी नहीं',
   add_another_short:'एक और', remove_piece:'हटाओ',
@@ -4570,6 +4574,7 @@ dl_show_hidden:'Show hidden ({n})',
   ord_search_ph:'ऑर्डर नं., ग्राहक, मोबाइल, रकम खोजें…',
   hub_more:'और',
   inv_count:'{n} इनवॉइस',
+  inv_search_fail:'खोज नहीं चल पाई — पूरी सूची दिखा रहे हैं',
   inv_none_match:'इस खोज से कोई इनवॉइस नहीं मिला',
   inv_tag_direct:'डायरेक्ट',
   no_invoices_sub2:'ऊपर “+ नया इनवॉइस” दबाकर पहला बिल बनाएँ',
@@ -14740,6 +14745,8 @@ let _msMore={};
    One primary button per stage. That is the whole point: he counts buttons, not features. */
 let _ordStage=1;
 function ordStage(n,key){
+  /* v552: which piece he was standing on when he pressed ← — the row to come back to. */
+  const _cameFrom=(_ordStage===2&&_openItem)?_openItem:null;
   _sheetScroll=0; captureForm();
   /* v215: his rule — no naap before the name and the number */
   if(n===2 && !form.customerId && !form.editId){
@@ -14796,8 +14803,28 @@ function ordStage(n,key){
      the fold with the keypad over it, so the naap already on file was never seen and the
      salesman measured the man again. Going to the top of the sheet is right while he is
      picking pieces; once a piece is open, the thing to show is that piece. */
+  /* ══════════ v552 — THE CURSOR CAME ONLY ONE WAY IN ══════════
+     HIS 8 Sept: "cursor length par aa jaata tha, wo abhi nahi aa raha." Right, and it
+     depended on the door he used. Start measuring, Done-next-piece and itemOpen each
+     called focusLenBox themselves; tapping a row on the Lengths list calls ordStage
+     straight and nobody focused anything. The walk itself puts the cursor in the first
+     empty box now, so every door behaves the same. Voice mode still decides its own
+     field — vmFocus above owns that case and is not touched. */
+  if(_ordStage===2 && !(typeof _vmOn!=='undefined' && _vmOn)){
+    try{kbHold();}catch(e){}                       // keep the keypad up across the redraw
+    setTimeout(()=>{ try{focusLenBox();}catch(e){} },140);
+  }
   setTimeout(()=>{
     const sh=$('#sheet'); if(!sh)return;
+    /* ══════════ v552 — BACK PUT HIM AT THE TOP OF THE ORDER ══════════
+       HIS 8 Sept: "wapas gaya to screen upar ki taraf item wale hisse par aa gayi, jahan
+       measurement aur Done hai wahan aani chahiye thi." He leaves the walk from a piece,
+       so he comes back to that piece's row on the Lengths list — not to the item chips he
+       finished with minutes ago. */
+    if(_ordStage===1 && _cameFrom){
+      const row=sh.querySelector('#ql_'+cssId(_cameFrom))||sh.querySelector('.ql-wrap');
+      if(row){ try{row.scrollIntoView({block:'center'});}catch(e){ sh.scrollTop=Math.max(0,row.offsetTop-80); } return; }
+    }
     if(_ordStage!==2 || !_openItem){ sh.scrollTop=0; return; }
     const card=sh.querySelector('.mcard[data-key="'+cssId(_openItem)+'"]');
     if(!card){ sh.scrollTop=0; return; }
@@ -14919,7 +14946,7 @@ function measFilledCount(f,key){
 }
 /* Opening a piece IS entering the walk (v168) — there is nowhere else a card can live.
    It used to toggle: tapping the open piece closed it and left an empty screen. */
-function itemOpen(key){ kbHold(); ordStage(2,key); setTimeout(focusLenBox,120); }
+function itemOpen(key){ kbHold(); ordStage(2,key); }   /* v552: ordStage owns the focus now */
 /* THE WALK. Five pieces picked means five cards, one after another, in an order that is
    never a surprise: every UPPER piece first, then every LOWER, then accessories — he was
    explicit that a lower piece must not turn up in the middle of the uppers. Inside a
@@ -15014,7 +15041,18 @@ function kbTo(el){
   if(!el)return;
   try{el.focus({preventScroll:true});}catch(e){try{el.focus();}catch(_){}}
   try{if(el.select)el.select();}catch(e){}
-  try{el.scrollIntoView({block:'center'});}catch(e){}
+  /* ══════════ v552 — THE SCREEN WENT BACK AND FORTH ON EVERY DONE ══════════
+     HIS 8 Sept: "Done next karne par bhi screen par keyboard aa raha hai aur screen aage
+     peeche ho rahi hai." Two hands were on the scrollbar at once: ordStage puts the card's
+     top under the header, and 100ms later this line dragged the box to the middle of the
+     screen — every time, even when the box was already sitting in plain sight. It only
+     scrolls now if the box is actually out of reach: hidden under the header, or down in
+     the half of the screen the keypad is about to cover. */
+  try{
+    const r=el.getBoundingClientRect();
+    const h=window.innerHeight||600;
+    if(r.top<70||r.bottom>h*0.55)el.scrollIntoView({block:'center'});
+  }catch(e){}
 }
 /* ══════════════ v469 — TWO DIGITS, THEN THE NEXT BOX ON ITS OWN ══════════════
    HIS 3 Sep: "naap daalte samay jab hum 2 digit ka number type karein to cursor ko apne aap
@@ -15076,8 +15114,7 @@ function startNaap(){
     return !Object.keys(m).some(x=>String(m[x]||'').trim()!==''); };
   const first=w.find(empty)||w[0];
   kbHold();                       // must run while the tap is still live
-  ordStage(2,first);
-  setTimeout(focusLenBox,120);
+  ordStage(2,first);              // v552: one focus path, inside ordStage
 }
 /* Done on a piece saves what is typed and opens the NEXT piece. */
 function itemDone(key){
@@ -15089,11 +15126,11 @@ function itemDone(key){
      way to correct a flowed measurement, add its photo or write its note without going
      back for it. Every piece now gets its own card, every time. */
   if(next){
-    ordStage(2,next);
     /* HIS #3: on the next piece the body naap is already flowed in — the ONLY thing he has
        to type is the Length. So put the cursor there with the keypad up: length daalo,
-       Done, agla. Nothing else to tap. */
-    setTimeout(focusLenBox,120);
+       Done, agla. Nothing else to tap. v552: ordStage does that for every door now, so the
+       second timer that used to sit here — and scrolled the page a second time — is gone. */
+    ordStage(2,next);
     toast(t('it_next'),'ok');
     return;
   }
@@ -15116,7 +15153,11 @@ function itemDone(key){
 function measSummary(f,key){
   const g=G(key); if(!g)return '';
   const vals=(f.m||{})[key]||{}, out=[];
-  vcols(g).forEach(c=>{ const v=String(vals[c.k]||'').trim(); if(v)out.push(c.k+' '+v); });
+  /* v552 — HIS 8 Sept: the Safa row read "f_head 23". The short keys (L, C, B, W) are
+     shop language and read fine; a custom item's key is code (f_head, x_…) and must never
+     reach the screen. Anything longer than two characters shows its NAME instead. */
+  vcols(g).forEach(c=>{ const v=String(vals[c.k]||'').trim();
+    if(v)out.push((String(c.k).length<=2?String(c.k):String(c.n||c.k))+' '+v); });
   if(!out.length)return '';
   return out.length>5 ? out.slice(0,5).join(' · ')+' +'+(out.length-5) : out.join(' · ');
 }
@@ -15126,7 +15167,15 @@ function quickLenHTML(f,mine,only){
   const src=[...new Set(mine||[])].filter(k=>set.has(k));   // dedupe HERE too, or a repeated key still draws twice
   const list=sortItems(only?src.filter(only):src);
   if(!list.length)return '';
-  const done=list.filter(k=>measFilledCount(f,k).len).length;
+  /* v552 — HIS 8 Sept: five pieces all filled, the head still said 4/5. Safa has no
+     Length column at all, so a piece measured completely could never be counted. A piece
+     counts as done when its Length is written — or, when it has no Length to write, when
+     anything on it is. */
+  const _pcDone=k=>{ const st=measFilledCount(f,k);
+    if(st.len)return true;
+    const g2=G(k); const hasL=!!(g2&&vcols(g2).some(c=>c.k==='L'));
+    return !hasL && st.done>0; };
+  const done=list.filter(_pcDone).length;
   const rows=list.map((k,i)=>{
     const g=G(k); if(!g)return '';
     const open=(_openItem===k);
@@ -15138,7 +15187,7 @@ function quickLenHTML(f,mine,only){
     const pc=((f.itemPhotos||{})[k]||[]).length;
     const nt=String((f.design||{})[k]||'').trim();
     const sum=measSummary(f,k);
-    return `<div class="ql-row ${open?'ql-on':''}" onclick="ordStage(2,'${jq(k)}')">
+    return `<div class="ql-row ${open?'ql-on':''}" id="ql_${cssId(k)}" onclick="ordStage(2,'${jq(k)}')">
       <span class="ql-nm">${g.ico} ${esc(g.n)}${instOf(k)>1?' <span class="inst-tag">'+instOf(k)+'</span>':''}</span>
       <span class="ql-sum ${sum?'':'empty'}">${sum?esc(sum):t('ql_no_meas')}</span>
       <span class="ql-ic ${pc?'has':''}" onclick="event.stopPropagation();pickItemPhotoQuick('${jq(k)}')" title="${t('photo_label')}">📷${pc>1?'<i>'+pc+'</i>':''}</span>
@@ -15674,7 +15723,13 @@ function renderForm(){
                   const v=(f.m||{})[g]||{};
                   return !Object.keys(v).some(k=>String(v[k]||'').trim()!=='');
                 }).length;
-                if(!left) return `<button class="btn primary" style="flex:2" onclick="ordStage(2)">✓ ${t('naap_last')}</button>`;
+                /* ══════════ v552 — THE BUTTON SAID LAST STEP AND OPENED THE WALK ══════════
+                   HIS 8 Sept: "Done go to the last step par click karne se fir se Coat ke
+                   measurement wale screen par aa gaya." Exactly what it was told to do:
+                   the label was changed in v542 and the destination was not. ordStage(2)
+                   is the walk and opens piece one. It goes to stage 3 now, which is where
+                   the delivery date and Save Order are — the place the words promise. */
+                if(!left) return `<button class="btn primary" style="flex:2" onclick="ordStage(3)">✓ ${t('naap_last')}</button>`;
                 if(left<walk.length) return `<button class="btn primary" style="flex:2" onclick="startNaap()">▶ ${t('naap_left',{n:left})}</button>`;
                 return `<button class="btn primary" style="flex:2" onclick="startNaap()">▶ ${t('naap_start',{n:walk.length})}</button>`;
               })())
@@ -15830,10 +15885,16 @@ function manageMeas(gid,ctx){ctx=ctx||'order';const rerender=ctx==='alt'?renderA
   const rows=all.map(c=>{
     const off=hid.includes(c.k);
     const custom=String(c.k).startsWith('x_');
+    /* ══════════ v552 — ON/OFF SAID NOTHING ABOUT THE SCREEN ══════════
+       HIS 8 Sept: "is measurement tool ne confusion hi badhaya hai. Measurement field
+       khaali likha hua rahe to bhi theek hai, bas uske andar star daalna hai — jo star
+       kiya hua hai wahi bahar aayega." His word, and it is the plainer one: a star is a
+       thing you can see on the row it controls. The setting underneath is unchanged —
+       starred is what used to be On, so nothing already switched off moves. */
     return `<div class="kv" style="padding:9px 0;border-bottom:1px solid var(--line)">
-      <span style="${off?'opacity:.45;text-decoration:line-through':''}">${esc(c.n)}${custom?' <span class="hint">(custom)</span>':''}</span>
+      <span style="${off?'opacity:.45':''}">${esc(c.n)}${custom?' <span class="hint">(custom)</span>':''}</span>
       <span style="display:flex;gap:12px;align-items:center">
-        <span onclick="toggleMeasField('${gid}','${jq(c.k)}','${ctx}')" style="cursor:pointer;font-weight:700;color:${off?'var(--mut)':'var(--ok)'}">${off?'✕ '+t('mm_off'):'✓ '+t('mm_on')}</span>
+        <span onclick="toggleMeasField('${gid}','${jq(c.k)}','${ctx}')" style="cursor:pointer;font-size:22px;line-height:1;padding:2px 6px;color:${off?'var(--mut)':'var(--saffron2)'}">${off?'☆':'★'}</span>
         ${custom?`<span onclick="delMeasField('${gid}','${jq(c.k)}','${ctx}')" style="color:#d9534f;cursor:pointer">🗑️</span>`:''}
       </span></div>`;}).join('');
   modal('⚙️ '+t('manage_meas')+' — '+g.n,
@@ -19792,7 +19853,39 @@ function invCustomerPickedHTML(){
     const due=r2(customerOutstanding(invForm.customerId)), cr=r2(customerCredit(invForm.customerId));
     if(due>0)bal=` · ${balArrow(due)}`; else if(cr>0)bal=` · ${balArrow(-cr)}`;
   }
-  return `<div class="cust-result"><div><b>${esc(invForm.customerName)}</b><div class="hint">${esc(invForm.phone||'')}${bal}</div></div><button class="btn sm ghost" onclick="invClearCustomer()">${t('change')}</button></div>`;}
+  /* ══════════ v552 — THE NAME WAS SPELT WRONG AND THERE WAS NO WAY IN ══════════
+     HIS 8 Sept: "name edit ka option chahiye ho sakta hai kya." Change means PICK ANOTHER
+     CUSTOMER — it always did — so correcting Jaishwal to Jaiswal meant leaving the bill,
+     finding the man in the customer master and coming back. Two jobs, two buttons, side
+     by side: ✏️ fixes the man's own name and number everywhere, Change swaps the man. */
+  const _fix=invForm.customerId?`<button class="btn sm ghost" style="flex:0 0 auto" onclick="invEditCustomer()">✏️</button>`:'';
+  return `<div class="cust-result"><div><b>${esc(invForm.customerName)}</b><div class="hint">${esc(invForm.phone||'')}${bal}</div></div><span style="display:flex;gap:6px">${_fix}<button class="btn sm ghost" onclick="invClearCustomer()">${t('change')}</button></span></div>`;}
+/* The customer master is edited in place, from a modal, so the half-written bill
+   underneath is never disturbed. Renaming relinks every order, bill and alteration that
+   names him — custRelink, the same path the customer screen uses — and a number already
+   on someone else is refused, because two men on one number is how a khata splits in two. */
+function invEditCustomer(){
+  captureInvoiceForm();
+  const c=custById(invForm.customerId); if(!c){toast(t('nothing'),'bad');return;}
+  modal('✏️ '+t('cust_edit'),
+    `<div class="field"><label>${t('customer')}</label><input id="ivc_name" value="${esc(c.name||'')}"></div>
+     <div class="field"><label>${t('phone')}</label><input id="ivc_ph" type="tel" inputmode="numeric"
+       oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" value="${esc(c.phone||'')}"></div>`,
+    [{label:t('cancel'),cls:'ghost',fn:()=>{closeModal();renderInvoiceForm();}},
+     {label:t('save'),cls:'primary',fn:()=>{
+        const nm=String((($('#ivc_name')||{}).value)||'').trim();
+        const ph=String((($('#ivc_ph')||{}).value)||'').trim();
+        if(!nm){ toast(t('cust_type_name'),'bad'); return; }
+        const dq=ph10(ph);
+        const clash=dq?(DB.customers||[]).find(x=>x.id!==c.id&&ph10(x.phone)===dq):null;
+        if(clash){ toast(t('cu_dup_msg',{n:(clash.name||'—')}),'bad'); return; }
+        c.name=nm; c.phone=ph;
+        const n=custRelink(c.id,nm,ph);
+        invForm.customerName=nm; invForm.phone=ph;
+        save(); closeModal(); renderInvoiceForm();
+        toast(t('t_cust_updated')+(n?' \u00B7 '+n:''),'ok');
+     }}]);
+}
 function invClearCustomer(){captureInvoiceForm();invForm.customerId=null;invForm.customerName='';invForm.phone='';renderInvoiceForm();}
 /* ══════════════ v461 — SIX SEARCHES THAT DIED ON THE LAST LINE ══════════════
    HIS 3 Sep: "customer ka naam/number search kiya to kuch result hi nahi aaya."
@@ -21455,7 +21548,12 @@ function invDatesChanged(){
   invFrom=a?a.value:''; invTo=b?b.value:'';
   pageReset('inv'); renderInvoices();
 }
-function setInvQ(v){invQ=v;renderInvoices(true);}
+/* v552: if the redraw throws, the old rows stay on screen and he reads them as the search
+   result. A full redraw is tried once, and if that fails too he is told, not fooled. */
+function setInvQ(v){invQ=v;
+  try{ renderInvoices(true); }
+  catch(e){ try{ renderInvoices(); }catch(e2){ toast(t('inv_search_fail'),'bad'); } }
+}
 function setInvSort(v){invSort=v;renderInvoices();}
 const SORTS=[['new','↓ '],['old','↑ '],['hi','₹↓ '],['lo','₹↑ ']];
 /* v345: four sort chips sat across the top of the purchase and bill lists at all times,
@@ -21538,14 +21636,26 @@ function renderInvoices(keepFocus){
 
   if(!all.length){ el.innerHTML=head+invDraftBarHTML()+`<div class="empty"><div class="big">🧾</div><p><b>${t('no_invoices')}</b></p><p style="font-size:13px">${t('no_invoices_sub2')}</p></div>`; return; }
 
+  /* ══════════ v552 — HE TYPED ONE BILL NUMBER AND GOT THREE ══════════
+     HIS 8 Sept: searched 2783 and 2773 and 2831 stayed on the list. "2783" cannot match
+     either of those, so the filter never ran at all — and the one thing in this line that
+     can stop it is invCompute() on a single malformed bill: it is called for EVERY record
+     just to allow searching by figure, so one bad one throws and the whole list falls
+     through unfiltered, silently, looking exactly like a search that found everything.
+     Each record is judged on its own now, the figure is read defensively, and the count
+     line above says plainly how many of how many are being shown — so if this ever misses
+     again it says so on screen instead of quietly showing him the wrong bills. */
   const q=(invQ||'').trim().toLowerCase();
+  const _amtOfSafe=x=>{ try{ return String(Math.round(invCompute(x.inv).total||0)); }catch(e){ return ''; } };
   const list=q?all.filter(x=>{
-    const no=String(x.inv.no||'').toLowerCase();
-    const nm=String(x.rec.customerName||'').toLowerCase();
-    const ph=String(x.rec.phone||'');
-    const ref=String(x.rec.orderNo||x.rec.altNo||'').toLowerCase();
-    const amt=String(Math.round(invCompute(x.inv).total||0));   /* v368: search by figure */
-    return no.includes(q)||nm.includes(q)||ph.includes(q)||ref.includes(q)||amt.includes(q);
+    try{
+      const no=String((x.inv||{}).no||'').toLowerCase();
+      const nm=String((x.rec||{}).customerName||'').toLowerCase();
+      const ph=String((x.rec||{}).phone||'');
+      const ref=String((x.rec||{}).orderNo||(x.rec||{}).altNo||'').toLowerCase();
+      const amt=_amtOfSafe(x);                                  /* v368: search by figure */
+      return no.includes(q)||nm.includes(q)||ph.includes(q)||ref.includes(q)||(!!amt&&amt.includes(q));
+    }catch(e){ return false; }
   }):all;
 
   const searchBox=`<div class="field" style="margin-bottom:10px">
@@ -21595,7 +21705,7 @@ function renderInvoices(keepFocus){
   const _due=list.reduce((a,x)=>a+Math.max(0,orderBaaki(x.rec)||0),0);
   const title=draftBar+`<div class="kv" style="margin:0 0 4px">
     <h3 style="margin:0;font-size:16px">📋 ${t('inv_all')}</h3>
-    <span class="hint">${t('inv_count',{n:list.length})}</span></div>`
+    <span class="hint">${t('inv_count',{n:list.length})}${q?' / '+all.length:''}</span></div>`
     +(list.length?`<div class="kv" id="invTotBar" style="margin:0 0 10px;padding:7px 10px;border:1px solid var(--line);border-radius:10px">
       <span style="flex:1;min-width:0">
         <span class="hint" style="display:block">${t('inv_total_shown')}</span>
@@ -33910,7 +34020,21 @@ function confirmModal(ti,m,onYes,onNo,labels){
     [{label:L.no||t('no'),cls:'ghost',fn:()=>{closeSheet(); if(onNo)onNo();}},
      {label:L.yes||t('yes'),cls:L.cls||'danger',fn:()=>{closeSheet();onYes();}}]);}
 let toastT=null;
-function toast(msg,kind){const el=$('#toast');el.textContent=msg;el.className='toast show '+(kind||'');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2400);}
+/* v552 — HIS 8 Sept: "Removed / Undo kaise upar aa gaya." It sat 86px off the bottom,
+   which on a sheet is right on top of the sticky button row and the line above it. The
+   toast now stands just clear of whatever footer is actually on screen, measured at the
+   moment it speaks, and falls back to the old place when there is no footer. */
+function _toastLift(el){
+  try{
+    el.style.bottom='';
+    if(document.body.classList.contains('modal-on'))return;   // that one sits at the top
+    const f=document.querySelector('#sheet .modal-actions')||document.querySelector('#sheet .save-dock');
+    if(!f)return;
+    const h=f.getBoundingClientRect().height;
+    if(h>0)el.style.bottom='calc('+Math.round(h+14)+'px + var(--safe-b))';
+  }catch(e){}
+}
+function toast(msg,kind){const el=$('#toast');el.textContent=msg;el.className='toast show '+(kind||'');_toastLift(el);clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2400);}
 
 /* UNDO. Until now a confirm dialog was the only thing between him and a permanent
    deletion, and a dialog only protects the tap you EXPECTED to be dangerous. The real
@@ -33991,6 +34115,7 @@ function undoOffer(msg, restore){
   b.onclick=()=>doUndo();
   el.appendChild(b);
   el.className='toast show';
+  _toastLift(el);                                  // v552: never over the sheet's buttons
   clearTimeout(toastT);
   toastT=setTimeout(()=>{el.classList.remove('show');},7000);
   _undoT=setTimeout(()=>{_undo=null;},7200);      // the offer expires with the toast
