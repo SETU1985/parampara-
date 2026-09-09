@@ -179,6 +179,11 @@
     color:var(--saffron2);font-size:12.5px;font-weight:800;padding:6px 12px;border-radius:20px;margin-bottom:10px}
   /* v358: a tile that is already on the bill says so, and says how many */
   .pos-tile.picked{border-color:var(--saffron);background:rgba(224,150,58,.10)}
+  /* v599 — a tapped shortcut adds a line far below the fold on an iPad, so the only sign it
+     worked was a toast at the very bottom of a tall screen. The new row now scrolls itself
+     into view and flashes once. */
+  @keyframes posFlash{0%{background:rgba(201,126,16,.28);border-color:var(--saffron)}100%{background:transparent}}
+  .pos-line.justadded{animation:posFlash 1.1s ease-out}
   .pos-on{position:absolute;top:3px;left:5px;font-size:10px;font-weight:800;color:var(--saffron2)}
   .pos-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:7px;margin-bottom:6px}
   .bf-l1{display:flex;gap:6px;margin-bottom:6px}
@@ -916,7 +921,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v598</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v599</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -1003,6 +1008,7 @@ const T={
   app_lang:'App language',
   inv_saved_go:'Bill {n} saved — it is at the top of the list',
   py_add_new:'➕ Add “{n}” as a new party',
+  pos_added:'{n} added to the bill',
   py_disc:'Discount', py_recd:'Received', py_total:'Total settled',
   py_bal:'Party balance', py_link:'\uD83D\uDD17 Choose bills',
   py_disc_none:'Nothing is outstanding, so a discount has nothing to reduce',
@@ -3042,6 +3048,7 @@ dl_show_hidden:'Show hidden ({n})',
   app_lang:'ऐप की भाषा',
   inv_saved_go:'बिल {n} सेव हो गया — सूची में सबसे ऊपर है',
   py_add_new:'➕ “{n}” को नई पार्टी बनाएँ',
+  pos_added:'{n} बिल में जुड़ गया',
   py_disc:'छूट', py_recd:'मिला', py_total:'कुल निपटा',
   py_bal:'पार्टी का बाकी', py_link:'\uD83D\uDD17 बिल चुनें',
   py_disc_none:'कुछ बाकी ही नहीं है, तो छूट किस पर लगेगी',
@@ -17651,7 +17658,7 @@ function saveOrder(){
     fillMemberOnos(f);                         /* v409: before the mark is raised */
     numHWCommitOrder(f);                       /* v257: an edit may raise it too */
     Object.assign(o,{orderNo:f.orderNo,customerId:c.id,customerName:c.name,phone:c.phone,salesmanId:f.salesmanId||'',orderDate:f.orderDate,deliveryDate:f.deliveryDate,trialDate:f.trialDate||'',items:f.items,m:f.m,design:f.design,variant:f.variant||{},notes:f.notes,total:f.total,advance:f.advance,photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,bodyType:f.bodyType,dispatch:f.dispatch||null,source:f.source||'',sourceRef:f.sourceRef||'',sampleId:f.sampleId||'',members:(f.members||[]).filter(m=>m.id!=='' )});
-    clearDraft();save(o.id);closeSheet();toast(t('t_updated'),'ok');openDetail(o.id);
+    clearDraft();save(o.id);sheetSaved();closeSheet();toast(t('t_updated'),'ok');openDetail(o.id);
   }else{fillMemberOnos(f);                     /* v409: numbers exist before the record does */
     const o={id:uid(),created:new Date().toISOString(),orderNo:f.orderNo,customerId:c.id,customerName:c.name,phone:c.phone,salesmanId:f.salesmanId||'',
       members:(f.members||[]).filter(m=>m.id!==''),
@@ -17662,7 +17669,7 @@ function saveOrder(){
     DB.orders.push(o);clearDraft();
     _ordLastSave=Date.now();                 /* v338: a repeat tap now falls through */
     try{ if(form)form._saved=1; }catch(e){}   /* v337: saved, so closeSheet must not ask */
-    save(o.id);closeSheet();toast(t('t_created',{n:o.orderNo}),'ok');
+    save(o.id);sheetSaved();closeSheet();toast(t('t_created',{n:o.orderNo}),'ok');
     go('orders');
     // customer is still standing there — bill it now, but only on an install that HAS billing
     if(modOn('billing')){
@@ -19171,13 +19178,13 @@ function saveAlteration(){
       itemDesc:f.itemDesc,notes:f.notes,receivedDate:f.receivedDate,deliveryDate:f.deliveryDate,charge:+f.charge||0,total:+f.charge||0,
       karigarId:f.karigarId,noKarigarPay:!!f.noKarigarPay,karAmt:+f.karAmt||0,recvDate:f.recvDate||'',photos:f.photos,voiceNotes:f.voiceNotes,
       garmentId:f.garmentId||'',meas:f.meas||{}});
-    save();closeSheet();toast(t('t_alt_updated'),'ok');openAltDetail(a.id);
+    save();sheetSaved();closeSheet();toast(t('t_alt_updated'),'ok');openAltDetail(a.id);
   }else{
     const a={id:uid(),created:new Date().toISOString(),altNo:f.altNo,origOrderId:f.origOrderId,customerId:f.customerId,customerName:f.customerName,phone:f.phone,
       itemDesc:f.itemDesc,notes:f.notes,receivedDate:f.receivedDate,deliveryDate:f.deliveryDate,charge:+f.charge||0,total:+f.charge||0,payments:[],
       karigarId:f.karigarId||'',noKarigarPay:!!f.noKarigarPay,karAmt:+f.karAmt||0,recvDate:f.recvDate||'',photos:f.photos,voiceNotes:f.voiceNotes,
       garmentId:f.garmentId||'',meas:f.meas||{},status:'received',log:[{id:uid(),ts:new Date().toISOString(),text:aLabel('received'),voiceId:null}]};
-    DB.alterations.push(a);save();closeSheet();toast(t('t_alt_created',{n:a.altNo}),'ok');go('alterations');
+    DB.alterations.push(a);save();sheetSaved();closeSheet();toast(t('t_alt_created',{n:a.altNo}),'ok');go('alterations');
   }
 }
 async function openAltDetail(id){
@@ -20347,6 +20354,19 @@ function tileEdit(mid){ const m=(DB.itemMaster||[]).find(x=>x.id===mid); if(!m)r
      {label:'🗑️ '+t('delete'),cls:'danger',fn:function(){closeModal();posDelMaster(mid);}},
      {label:t('close'),cls:'primary',fn:closeModal}]);
 }
+/* v599 — HIS 9 Sept: "shortcut Sherwani click kiya to pata nahi chalta ki neeche add ho
+   gaya... naye log confused ho jayenge." A toast fired, but on a tall iPad it sits at the
+   bottom while the item list is off-screen below the tiles, so the one thing that proves it
+   worked — the row itself — was never seen. It is brought into view and flashed. */
+function posShowLast(){
+  try{
+    const n=((invForm&&invForm.items)||[]).length; if(!n)return;
+    setTimeout(()=>{ const row=$('#posLine'+(n-1)); if(!row)return;
+      row.classList.remove('justadded'); void row.offsetWidth; row.classList.add('justadded');
+      try{ row.scrollIntoView({block:'center',behavior:'smooth'}); }catch(e){ row.scrollIntoView(); }
+    },60);
+  }catch(e){}
+}
 function posAdd(mid,size){
   captureInvoiceForm();
   const m=(DB.itemMaster||[]).find(x=>x.id===mid); if(!m)return;
@@ -20359,14 +20379,14 @@ function posAdd(mid,size){
     const ex=(invForm.items||[]).findIndex(it=>it.masterId===mid && (it.size||'')===(size||''));
     if(ex>=0){
       invForm.items[ex].qty=(+invForm.items[ex].qty||1)+1;
-      posRefresh(); toast(m.name+' ×'+invForm.items[ex].qty,'ok'); return;
+      posRefresh(); posShowLast(); toast(m.name+' ×'+invForm.items[ex].qty,'ok'); return;
     }
   }
   invForm.items=(invForm.items||[]).filter(it=>it.label||+it.rate);   // drop empty rows
   invForm.items.push({masterId:m.id,label:m.name+(size?' ('+size+')':''),hsn:m.hsn||'',qty:1,
     unit:(m.incl&&m.incl.length>1)?'Set':'Pcs', size:size||'',
     rate:((m.kind==='ready')?(m.sell||''):(m.rate||'')),price:'',disc:0,incl:[...(m.incl||[])],includes:(m.incl||[]).join(', ')});
-  posRefresh(); toast('+ '+m.name+(size?' '+size:''),'ok');
+  posRefresh(); posShowLast(); toast('\u2705 '+t('pos_added',{n:esc(m.name)+(size?' '+size:'')}),'ok');
 }
 function posPickSize(m){
   const sizes=(DB.stkCfg.sizes||[]).filter(sz=>readyQty(m,sz)>0);
@@ -21415,6 +21435,7 @@ function saveInvoice(){
   saleCommit(rec);                    /* v394: it becomes a sale HERE, not before */
   clearInvDraft();   /* v211: the bill is real now, so the half-made copy goes */
   if(invForm)invForm.saved=1;
+  sheetSaved();                       // v599: this form's typing is no longer unsaved
   numHWSet(invHWKey(), numDigits(String(f.no).split('/').pop()));   // v218
   rec.invoice={no:f.no,date:f.date,interstate:f.interstate,paymentMode:f.paymentMode,discType:f.discType||'amount',discValue:f.discValue||0,courier:+f.courier||0,
     deliveryDate:f.deliveryDate||'',salesmanId:f.salesmanId||'',items:f.items};
@@ -25401,7 +25422,7 @@ function savePurchase(){
   partyEnsure(f.supplier,f.phone,'supplier');   /* v211: the supplier becomes a party the
      moment a bill is saved, so a GSTIN and an opening balance have somewhere to live and
      the same name is never typed twice. */
-  save();clearPurDraft();toast(t('t_purch_saved'),'ok');purQ='';purSort='new';
+  save();sheetSaved();clearPurDraft();toast(t('t_purch_saved'),'ok');purQ='';purSort='new';
   if(_purSaveNew){ _purSaveNew=false;
     const sup=f.supplier,ph=f.phone,dt=_dateLock.pur;   /* v243: the locked date rides along */
     openPurchaseForm(); purchForm.supplier=sup; purchForm.phone=ph;
@@ -35566,6 +35587,24 @@ function sheetStamp(fresh){
     el.setAttribute('data-init', String(el.value==null?'':el.value)); });
 }
 let _xAsked=0;
+/* ══════════ v599 — "SAVE & CLOSE" SAVED, AND THE SCREEN STAYED ══════════
+   HIS 9 Sept, on the iPad, with a real ₹46,000 bill open: "save kar raha hun to save nahi
+   ho raha hai... screen hati hi nahi rahi hai, do teen baar click kar diya. Pata hi nahi
+   chala save hua ya nahi."
+   Driven here and reproduced exactly. The bill DID save — every time. What failed was
+   getting out:
+     ✕ → form is dirty → the leave modal
+     "Save & close" → presses his Save → the record is written → saveInvoice ends by
+       calling closeSheet()
+     closeSheet() looks at the boxes, which STILL differ from the values stamped when the
+       screen was drawn, decides there is unsaved work, and puts the very same modal back up.
+   So the guard meant to protect unsaved typing was firing on typing that had just been
+   saved, and every tap wrote the bill again (only the duplicate latch kept the books clean).
+   The stamp is the fault, not the guard: nothing re-stamped the boxes after a save, so a
+   saved form looked identical to an abandoned one. sheetSaved() re-stamps, and every save
+   path calls it the moment its record is written. One helper, called from each save, rather
+   than a timer or a special case inside the guard. */
+function sheetSaved(){ try{ _xAsked=0; sheetStamp(1); }catch(e){} }
 function closeSheet(){
   if(modalIsOpen()){ closeModal(); return; }      // a modal on top closes first — the form stays
   if(!_xAsked && sheetDirty()){
