@@ -81,7 +81,7 @@
   :root{
     --bg:#f6f4f0; --bg2:#eceae5; --card:#ffffff; --card2:#f4f2ed;
     --line:#e0dbd2; --line2:#c8c1b5;
-    --saffron:#c97e10; --saffron2:#9a5f06; --saffronDim:#f0e2c6;
+    --saffron:#c97e10; --saffron2:#9a5f06; --saffronDim:#dcb26a;
     --txt:#1b1915; --txt2:#57514a; --mut:#847c72;
     --ok:#15803d; --bad:#b3261e;
     --r:14px; --r2:10px; --safe-b:env(safe-area-inset-bottom,0px);
@@ -485,11 +485,11 @@
   .mcard .mb{padding:12px 14px}
   .mgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
   .mfield{background:var(--bg2); border:1px solid var(--line); border-radius:9px; padding:7px 9px}
-  .mfield.lenhl{border-color:var(--saffronDim); background:var(--saffronDim)}
+  .mfield.lenhl{border-color:var(--saffronDim); background:rgba(201,126,16,.10)}
   /* v190: the box the voice will write into — visible from arm's length while measuring. */
   /* v193: a number outside the usual range is kept and marked, never refused. */
   .mfield.odd-f{border-color:#c2703a}
-  .mfield.vm-live{border-color:var(--saffron); background:var(--saffronDim); box-shadow:0 0 0 2px rgba(201,126,16,.30)}
+  .mfield.vm-live{border-color:var(--saffron); background:rgba(201,126,16,.14); box-shadow:0 0 0 2px rgba(201,126,16,.30)}
   .mfield label{font-size:10px; color:var(--mut); display:block; margin-bottom:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
   .mfield input{width:100%; background:transparent; border:none; color:var(--txt); outline:none; font-size:17px; font-weight:600; padding:2px 0}
   .mfield input.filled{color:var(--saffron2)}
@@ -916,7 +916,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v594</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v598</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -1003,6 +1003,12 @@ const T={
   app_lang:'App language',
   inv_saved_go:'Bill {n} saved — it is at the top of the list',
   py_add_new:'➕ Add “{n}” as a new party',
+  py_disc:'Discount', py_recd:'Received', py_total:'Total settled',
+  py_bal:'Party balance', py_link:'\uD83D\uDD17 Choose bills',
+  py_disc_none:'Nothing is outstanding, so a discount has nothing to reduce',
+  py_over:'That is more than {m} outstanding',
+  py_disc_done:'{m} discount given \u00B7 {l}',
+  py_link_hint:'Want to choose which bills it lands on?',
   py_pick_none:'No name matches that',
   py_to_get:'to get', py_to_give:'to give', py_clear:'nothing pending',
   cat_upper:'Upper', cat_lower:'Lower', cat_acc:'Accessories',
@@ -3036,6 +3042,12 @@ dl_show_hidden:'Show hidden ({n})',
   app_lang:'ऐप की भाषा',
   inv_saved_go:'बिल {n} सेव हो गया — सूची में सबसे ऊपर है',
   py_add_new:'➕ “{n}” को नई पार्टी बनाएँ',
+  py_disc:'छूट', py_recd:'मिला', py_total:'कुल निपटा',
+  py_bal:'पार्टी का बाकी', py_link:'\uD83D\uDD17 बिल चुनें',
+  py_disc_none:'कुछ बाकी ही नहीं है, तो छूट किस पर लगेगी',
+  py_over:'यह बाकी {m} से ज़्यादा है',
+  py_disc_done:'{m} की छूट दी · {l}',
+  py_link_hint:'कौन से बिल पर लगे, खुद चुनना है?',
   py_pick_none:'इस नाम का कोई नहीं मिला',
   py_to_get:'लेना है', py_to_give:'देना है', py_clear:'कुछ बाकी नहीं',
   cat_upper:'ऊपर के', cat_lower:'नीचे के', cat_acc:'सहायक सामान',
@@ -6434,6 +6446,13 @@ try{
     setTimeout(()=>{_crashShown=0;},4000); }catch(x){} });
 }catch(e){}
 let _crashShown=0;
+/* v595 — declared HERE, above go(), on purpose. I first put this let down beside menuHome
+   and guarded the read in go() with `typeof _tabFromMenu!=='undefined'`. That guard does
+   not work: typeof on a `let` that has not been reached yet still throws, and a throw
+   inside go() deactivates every pane and leaves a white screen — fault 7 on his own list,
+   which I was writing new code straight into. Declared above its first reader instead, so
+   there is nothing to guard. */
+let _tabFromMenu='';
 
 function go(tab){
   /* v386 AUDIT — go() threw on any name that is not a real tab, and a throw here leaves
@@ -6453,7 +6472,7 @@ function go(tab){
   /* wrapped: go() runs from boot too, and these lets are declared further down the file —
      a throw here would deactivate every pane and leave a white screen. */
   try{ if(tab!=='detail' && _curDetailId){ _curDetailId=null; _odItem=null; _odX=false; _odInfo=false; } }catch(e){}
-  if(typeof _tabFromMenu!=='undefined' && _tabFromMenu && _tabFromMenu!==tab) _tabFromMenu='';
+  if(_tabFromMenu && _tabFromMenu!==tab) _tabFromMenu='';
   _curTab=tab;
   /* v503: remember where he is, so a reload puts him back rather than at the top */
   try{ localStorage.setItem('pb_ob_lasttab', JSON.stringify({tab:tab, at:Date.now()})); }catch(e){}
@@ -9448,15 +9467,45 @@ function collectTake(kind,id){
                : t('col_took',{m:money(amt),n:rec.customerName||''}),'ok');
   renderCollect();
 }
+/* v598 — the discount side of a receipt: it is written onto the SAME bills the money is
+   settling, oldest first, into the bill's own discValue. Nothing new is posted, so net
+   sales fall by exactly this and the trial balance cannot move. Returns what it managed to
+   place, so a discount bigger than the outstanding is refused rather than half-applied. */
+function payApplyDiscount(dir,party,partyId,disc){
+  if(!(disc>0))return {left:r2(disc||0),touched:[]};
+  let left=r2(disc); const touched=[];
+  openDocsFor(dir,party,partyId).forEach(d=>{
+    if(left<=0)return;
+    const rec=d.rec, inv=rec.invoice; if(!inv)return;          // only a billed document can carry one
+    const take=r2(Math.min(left,d.due)); if(take<=0)return;
+    const c0=invCompute(inv);
+    const base=(inv.discType==='percent')?r2(c0.gross*(+inv.discValue||0)/100):r2(+inv.discValue||0);
+    inv.discType='amt'; inv.discValue=r2(base+take);
+    rec.log=rec.log||[]; rec.log.push({t:Date.now(),what:t('disc_log',{m:money(take)})});
+    if(d.kind==='order')touchOrder(rec.id);
+    left=r2(left-take); touched.push(d.label+' '+money(take));
+  });
+  return {left,touched};
+}
 function payEntryDo(dir,again){
   const party=($('#py_party').value||'').trim(), amt=+$('#py_amt').value||0;
+  const disc=r2(+(($('#py_disc')||{}).value||0)||0);
   if(!party){toast(t('t_no_name'),'bad');return;}
-  if(amt<=0){toast(t('t_no_amount'),'bad');return;}
+  if(amt<=0 && disc<=0){toast(t('t_no_amount'),'bad');return;}
   if(!svOnce(['p',dir,party,amt,($('#py_date')||{}).value||'',($('#py_note')||{}).value||''].join('|'),
     ()=>{})){ toast(t('sv_dup'),'bad'); return; }
   const date=$('#py_date').value||todayISO();
   const acc=($('#py_acc').value==='__new'?(defaultAcc()||{}).id:$('#py_acc').value);
   const cust=(DB.customers||[]).find(c=>(c.name||'').trim().toLowerCase()===party.toLowerCase());
+  /* the discount goes FIRST, so the money that follows is not absorbed by the amount he is
+     writing off — the same order collectTake has used since v581 */
+  let _dres={left:disc,touched:[]};
+  if(disc>0){
+    const _open=openDocsFor(dir,party,cust?cust.id:null).reduce((s,d)=>r2(s+d.due),0);
+    if(_open<=0){ toast(t('py_disc_none'),'bad'); return; }
+    if(r2(disc+amt)>r2(_open)+0.5){ toast(t('py_over',{m:money(_open)}),'bad'); return; }
+    _dres=payApplyDiscount(dir,party,cust?cust.id:null,disc);
+  }
   const r=settleParty(dir,party,cust?cust.id:null,amt,date,acc,'');
   if(r.left>0){
     /* ══════════ v579 — THE GROUP DECIDES WHERE IT LANDS ══════════
@@ -9524,11 +9573,23 @@ function payPartyRows(dir){
   }
   return out;
 }
+/* v595 — payPartyRows() walks every order, sale and alteration ONCE PER NAME to work out
+   what that party owes. On his real book — 240-odd customers against a few hundred bills —
+   calling it from the keystroke handler meant tens of thousands of passes for every letter
+   typed, and the box would stutter exactly where he needs it quick. It is worked out once
+   when the screen opens and filtered from memory after that. Cleared on close so a payment
+   entered in this sitting is counted the next time the screen opens. */
+let _pyRows=null, _pyRowsDir='';
+function payPartyRowsCached(dir){
+  if(_pyRows && _pyRowsDir===dir)return _pyRows;
+  _pyRowsDir=dir; _pyRows=payPartyRows(dir); return _pyRows;
+}
+function payPartyRowsClear(){ _pyRows=null; _pyRowsDir=''; }
 function payPartyPick(q){
   const box=$('#pyPartyResults'); if(!box)return;
   const dir=(_pay&&_pay.dir)||'in';
   const s=String(q||'').trim().toLowerCase();
-  let rows=payPartyRows(dir);
+  let rows=payPartyRowsCached(dir);
   if(s) rows=rows.filter(r=>r.nm.toLowerCase().includes(s)||String(r.ph).includes(s));
   if(!rows.length){
     /* v592 — HIS question: "koi nahi aa raha hai to add new ka option aayega?" It was on the
@@ -9551,6 +9612,7 @@ function payPartyPick(q){
       ${tag}</div>`;}).join('');
 }
 function payPartySet(nm){
+  payPartyRowsClear();                 // he just picked one; the next open recounts
   const el=$('#py_party'); if(el)el.value=nm;
   const box=$('#pyPartyResults'); if(box)box.innerHTML='';
   payPartyDue();
@@ -9562,13 +9624,44 @@ function payPartyDue(){
   const d=payDueOf(nm);
   if(!nm || !d || (!d.due && !d.known)){ el.textContent=''; el.style.color=''; return; }
   if(d.due<=0){ el.textContent='\u2705 '+t('pay_no_due',{n:esc(nm)}); el.style.color='var(--ok)'; return; }
+  /* ══════════ v597 — THE DISCOUNT BOX IS NOT MISSING, IT IS ELSEWHERE ══════════
+     HIS 9 Sept: "amount wala column, discount ka column gayab hai."
+     It was settled on 8 Sept and shipped in v581, and I asked him again as if it were an
+     open question. It is not: he chose "main khud chunun kis bill par", so Discount and
+     Received sit together on the ROW OF ONE BILL, on 💰 Collect payments — because a
+     discount has to land on a named bill to close it, and this screen settles whatever is
+     oldest without asking. Putting a box here would either contradict the choice he made
+     or quietly discount a bill he did not pick.
+     What was actually missing is the signpost. When the man he has chosen has open bills,
+     the line that already reports what he owes now also opens exactly his bills, with the
+     discount box on each one. */
   el.innerHTML='\u{1F4B0} '+t('pay_due_n',{a:money(d.due),n:d.bills})+
-    ' \u00B7 <u style="cursor:pointer" onclick="payFillDue('+d.due+')">'+t('pay_take_all')+'</u>';
+    ' \u00B7 <u style="cursor:pointer" onclick="payFillDue('+d.due+')">'+t('pay_take_all')+'</u>'+
+    '<div style="margin-top:6px"><span class="hint">'+t('py_link_hint')+'</span> '+
+    '<u style="cursor:pointer;color:var(--saffron2)" onclick="payToCollect(\''+jq(nm)+'\')">'+
+    t('py_link')+'</u></div>';
   el.style.color='var(--saffron2)';
 }
-function payFillDue(v){ const e=$('#py_amt'); if(e){ e.value=v; e.focus(); } }
+function payFillDue(v){ const e=$('#py_amt'); if(e){ e.value=v; e.focus(); } payTotalPaint(); }
+/* v598: Total = Discount + Received, shown only once there is something to show */
+function payTotalPaint(){
+  const row=$('#pyTotalRow'), val=$('#pyTotalVal'); if(!row||!val)return;
+  const d=r2(+(($('#py_disc')||{}).value||0)||0);
+  const a=r2(+(($('#py_amt')||{}).value||0)||0);
+  const tot=r2(d+a);
+  if(d>0 && tot>0){ val.textContent=money(tot); row.style.display=''; }
+  else row.style.display='none';
+}
+/* v597: hand him straight to that party's own bills, already filtered, discount box on each */
+function payToCollect(nm){
+  try{ closeModal(); }catch(e){}
+  try{ closeSheet(); sheetReset(); }catch(e){}
+  _colQ=String(nm||'');
+  setTimeout(()=>{ try{ collectHub(); }catch(e){} },80);
+}
 function payEntry(dir,skipAsk,prefill){
   _pay={dir,photos:[]};
+  payPartyRowsClear();                 // v595: recount dues each time the screen opens
   const accs=DB.accounts||[];
   /* ══════════ v577 — I ALMOST PUT LOAN MONEY THROUGH THE WRONG DOOR ══════════
      HIS 8 Sept: "purana paisa jo aaya hai, kahin se loan kahin se aaya hai."
@@ -9630,12 +9723,39 @@ function payEntry(dir,skipAsk,prefill){
        <input id="py_party" autocomplete="off" placeholder="${t('name_ph')}"
          onfocus="payPartyPick(this.value)" oninput="payPartyPick(this.value);payPartyDue()">
        <div id="pyPartyResults"></div>
-       ${/* v371: same door as the expense screen — a name with no history gets its type and
-            its opening balance here, before the money moves against it. */''}
-       <button class="btn sm ghost" style="margin-top:6px" onclick="payNewParty()">➕ ${t('pt_new')}</button></div>
-     <div class="row"><div class="field"><label>${t('amount')} ₹ *</label>
-        <input id="py_amt" type="number" inputmode="numeric" placeholder="0"></div>
-       <div class="field"><label>${t('pay_date')}</label>${dateField("py_date",todayISO())}</div></div>
+       ${/* ══════════ v596 — TWO DOORS TO ONE ROOM ══════════
+            HIS 9 Sept: "Setu naam select kiya hua hai uske baad bhi add new party dikha raha
+            hai... isse confusion badhega."
+            Right. v592 put "➕ Add <name> as a new party" inside the search result, where it
+            belongs — it appears only when the name he typed matches nobody, and it carries
+            that name across. This standing button was the older door to the same room, and
+            it stayed on screen even with a party already chosen, which reads as a question
+            about a decision he has already made. One job, one button, one place. Adding a
+            party with nothing typed still lives where a party master belongs: Ledger master
+            and Creditors & debtors. */''}</div>
+     ${/* ══════════ v598 — DISCOUNT · RECEIVED · TOTAL, ON THIS SCREEN ══════════
+          HIS 9 Sept, with Vyapar's own Payment-In beside it: Discount Amount, Received,
+          Total Amount, and a Link button on the Received row.
+          On 8 Sept he chose "main khud chunun kis bill par", and I read that as "the box
+          belongs only on the per-bill screen". Vyapar's screen shows the third answer he
+          was actually describing: the boxes live HERE, the allocation is automatic oldest
+          first, and 🔗 is there for the day he wants to pick the bills himself. Both, not
+          either.
+          Total = Discount + Received, and that total is what comes off the party's balance.
+          The money goes in through settleParty exactly as before; the discount goes onto
+          the same bills' own discValue, oldest first — the same field the bill has always
+          understood, so net sales fall and nothing new was invented for the books. */''}
+     <div class="row"><div class="field"><label>🏷️ ${t('py_disc')} ₹</label>
+        <input id="py_disc" type="number" inputmode="decimal" placeholder="0"
+          oninput="payTotalPaint()" style="text-align:right"></div>
+       <div class="field"><label>💵 ${t('py_recd')} ₹ *</label>
+        <input id="py_amt" type="number" inputmode="numeric" placeholder="0"
+          oninput="payTotalPaint()" style="text-align:right;font-weight:800"></div></div>
+     <div id="pyTotalRow" style="display:none;margin:-4px 0 8px;padding:8px 10px;border-radius:10px;
+       background:rgba(21,128,61,.08);border:1px solid var(--ok)">
+       <div class="kv" style="border-bottom:0;padding:0">
+         <b style="color:var(--ok)">${t('py_total')}</b><b id="pyTotalVal" style="color:var(--ok)">—</b></div></div>
+     <div class="field"><label>${t('pay_date')}</label>${dateField("py_date",todayISO())}</div>
      <div class="field"><label>${t('cb_into')}</label>${acctSelHTML('py_acc',(defaultAcc()||{}).id)}</div>
      <p class="hint" id="pySettleHint" style="margin:-4px 0 8px"></p>
      <div class="field"><label>${t('stk_note')}</label><input id="py_note" placeholder="${t('stk_note_ph')}"></div>
@@ -13923,7 +14043,6 @@ function quickRowClassicHTML(){
    The menu leaves a mark when it hands off to a tab, and back honours it: one step to All
    screens, and only then Home. The mark is dropped the moment he navigates by any other
    means, so it can never fire on a tab he reached some other way. */
-let _tabFromMenu='';
 function menuGoTab(tab){ closeSheet(); _tabFromMenu=tab; go(tab); }
 function menuHome(){
   sheetAt(menuHome);
