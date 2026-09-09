@@ -898,7 +898,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v582</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v583</span></small></div></div>
     <div class="htools">
       <button class="langtog" id="langTog" onclick="toggleLang()"></button>
       <!-- v411: backup, beside the gear so it is always within reach. v412 FIX: this bar is
@@ -1226,6 +1226,23 @@ const T={
   del_pur_pay:'This purchase has {n} payment(s) on it \u2014 {amt} already paid to the supplier.',
   del_pur_pay_how:'Remove the payment first, then the bill can be deleted. Open the bill to do that.',
   del_open_rec:'\u270F\uFE0F Open it',
+  /* v583 \u2014 the boot that pretended to be a new shop */
+  lost_title:'Your book could not be read',
+  lost_body:'This device HAS your shop\u2019s data on it. The app could not open the store this time, so the screen looks empty. Nothing has been deleted.',
+  lost_dont:'Do not set up the shop again. Do not take a backup. Both make it worse.',
+  lost_do:'Close every tab and the installed app, then open it once more. If it still says this, restore from your backup file.',
+  lost_retry:'\uD83D\uDD04 Try again',
+  lost_saveoff:'Saving is switched off until the book is read.',
+  lost_ev:'Why it knows: {w}',
+  lost_ev_name:'shop name on file',
+  lost_ev_snap:'a snapshot was taken here',
+  lost_ev_bk:'a backup file is linked',
+  lost_ev_mb:'{n} MB of app data on this device',
+  dbf_toast_lost:'Not saving \u2014 the book was not read this time.',
+  /* v583 \u2014 a small book must not land on top of a big file */
+  bk_shrink_q:'The linked file holds about {o} records. This book has only {n}. Writing now replaces the bigger one.',
+  bk_shrink_go:'Write anyway',
+  bk_shrink_auto:'Daily backup stopped \u2014 this book is much smaller than the linked file.',
   /* v582 \u2014 the bill run, for the CA */
   gap_title:'Missing bill numbers',
   gap_sub:'Every number this series has used, and the ones with no bill against them.',
@@ -3226,6 +3243,21 @@ dl_show_hidden:'Show hidden ({n})',
   del_pur_pay:'इस खरीद पर {n} भुगतान है — {amt} सप्लायर को दिया जा चुका है।',
   del_pur_pay_how:'पहले भुगतान हटाएँ, फिर बिल मिटेगा। बिल खोलकर हटा सकते हैं।',
   del_open_rec:'✏️ खोलो',
+  lost_title:'आपकी किताब पढ़ी नहीं जा सकी',
+  lost_body:'इस फोन/iPad में आपका डेटा मौजूद है। इस बार ऐप उसे खोल नहीं पाया, इसलिए स्क्रीन खाली दिख रही है। कुछ मिटा नहीं है।',
+  lost_dont:'दुकान दोबारा सेट मत करिए। बैकअप मत लीजिए। दोनों से नुकसान होगा।',
+  lost_do:'सारे टैब और इंस्टॉल किया हुआ ऐप बंद करके एक बार फिर खोलिए। फिर भी यही आए तो बैकअप फ़ाइल से restore कीजिए।',
+  lost_retry:'🔄 फिर से कोशिश',
+  lost_saveoff:'जब तक किताब नहीं पढ़ी जाती, कुछ भी सेव नहीं होगा।',
+  lost_ev:'कैसे पता: {w}',
+  lost_ev_name:'दुकान का नाम यहीं दर्ज है',
+  lost_ev_snap:'यहाँ snapshot लिया गया था',
+  lost_ev_bk:'बैकअप फ़ाइल जुड़ी हुई है',
+  lost_ev_mb:'इस डिवाइस पर {n} MB ऐप डेटा है',
+  dbf_toast_lost:'सेव नहीं हो रहा — इस बार किताब पढ़ी नहीं गई।',
+  bk_shrink_q:'जुड़ी हुई फ़ाइल में लगभग {o} रिकॉर्ड हैं। इस किताब में सिर्फ {n}। अभी लिखा तो बड़ी वाली मिट जाएगी।',
+  bk_shrink_go:'फिर भी लिखो',
+  bk_shrink_auto:'रोज़ का बैकअप रोका — ये किताब जुड़ी फ़ाइल से बहुत छोटी है।',
   gap_title:'Missing bill numbers',
   gap_sub:'Every number this series has used, and the ones with no bill against them.',
   gap_none:'No gaps. {a} to {b} — every number has a bill.',
@@ -5471,8 +5503,32 @@ const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
 /* ---- IndexedDB media ---- */
 let idb=null;
-function openIDB(){return new Promise((res,rej)=>{const r=indexedDB.open('pb_ob_media',1);
-  r.onupgradeneeded=()=>r.result.createObjectStore('m'); r.onsuccess=()=>{idb=r.result;res()}; r.onerror=()=>rej(r.error);});}
+/* v583 — this had no onblocked and no timeout, and boot swallowed whatever it threw.
+   Two tabs open on the same address, or the installed app open alongside a browser tab,
+   and the store is BLOCKED: open() then neither succeeds nor errors, it simply never
+   answers. Boot carried on regardless, found nothing, and drew "Set up your shop" over a
+   device that was holding the whole book. He hit this more than once and each time the
+   app told him he had no shop.
+   Now: blocked and timeout are real, named failures, and it tries twice — a blocked
+   store usually clears within a second or two of the other context settling. */
+let _idbFail='';
+function openIDBOnce(ms){return new Promise((res,rej)=>{
+  let done=false;
+  const fin=(f,v)=>{ if(done)return; done=true; f(v); };
+  const timer=setTimeout(()=>fin(rej,new Error('timeout')), ms||6000);
+  let r; try{ r=indexedDB.open('pb_ob_media',1); }catch(e){ clearTimeout(timer); return fin(rej,e); }
+  r.onupgradeneeded=()=>{ try{ r.result.createObjectStore('m'); }catch(e){} };
+  r.onsuccess=()=>{ clearTimeout(timer); idb=r.result; fin(res); };
+  r.onerror=()=>{ clearTimeout(timer); fin(rej, r.error||new Error('error')); };
+  r.onblocked=()=>{ clearTimeout(timer); fin(rej, new Error('blocked')); };
+});}
+async function openIDB(){
+  try{ await openIDBOnce(6000); _idbFail=''; return; }
+  catch(e){ _idbFail=String((e&&e.message)||e||'error'); }
+  await new Promise(r=>setTimeout(r,1200));            // let the other tab settle
+  try{ await openIDBOnce(6000); _idbFail=''; return; }
+  catch(e){ _idbFail=String((e&&e.message)||e||'error'); throw e; }
+}
 /* boot does `try{ await openIDB(); }catch(e){}` and carries on, so on a device where
    IndexedDB will not open — private browsing, corrupt store, no quota — `idb` stays
    null. These three then threw synchronously on `idb.transaction`, the promise
@@ -33500,10 +33556,39 @@ async function unlinkBackupFile(){
 }
 /* write over the linked file, then READ IT BACK before trusting it — the same rule the
    database itself follows, because a single overwritten file must never be half-written */
+/* v583 — a small book must never quietly land on top of a big file.
+   hasAnyData() already stopped a COMPLETELY empty app from writing, but the dangerous
+   case is one step past that: an app that came up empty, had one order typed into it,
+   and then wrote itself over a file holding 220 bills. The file remembers roughly what
+   it last received, so a book that has shrunk by more than half stops here — silently
+   for the daily automatic write, and with the two figures named for a manual one. His
+   rule for restore, applied to backup: say what you found before overwriting it. */
+function bkRecCount(){
+  return ((DB.orders||[]).length+(DB.sales||[]).length+(DB.purchases||[]).length
+    +(DB.customers||[]).length+(DB.alterations||[]).length+(DB.thaans||[]).length
+    +(DB.ledger||[]).length);
+}
+function bkShrunk(){
+  let old=0; try{ old=+localStorage.getItem('pb_ob_bkrecs')||0; }catch(e){}
+  const now=bkRecCount();
+  return (old>5 && now < old/2) ? {old:old, now:now} : null;
+}
 async function backupToFile(silent){
   const h=await bkGetHandle();
   if(!h){ if(!silent)linkBackupFile(); return false; }
   if(!(await bkPerm(h,!silent))){ if(!silent)toast(t('bk_perm'),'bad'); return false; }
+  const shrink=bkShrunk();
+  if(shrink){
+    if(silent){ _autoBkOff=true; try{ toast(t('bk_shrink_auto'),'bad'); }catch(e){} return false; }
+    return await new Promise(res=>{
+      confirmModal('⚠️ '+t('lost_title'), t('bk_shrink_q',{o:shrink.old,n:shrink.now}),
+        ()=>{ closeModal(); backupToFileGo(h,silent).then(res); },
+        ()=>{ closeModal(); res(false); }, {yes:t('bk_shrink_go'), no:t('cancel'), cls:'bad'});
+    });
+  }
+  return await backupToFileGo(h,silent);
+}
+async function backupToFileGo(h,silent){
   /* the daily automatic write also packs every photo; on a big library that is a
      200 MB write for no benefit, so it falls back to data-only */
   if(await mediaTotalMB()>ONEFILE_MAX_MB){
@@ -33512,6 +33597,7 @@ async function backupToFile(silent){
     if(!res0)return false;
     try{ const w0=await h.createWritable(); await w0.write(res0.blob); await w0.close();
       localStorage.setItem('pb_ob_bkauto',todayISO()); markBackup();
+      try{ localStorage.setItem('pb_ob_bkrecs',String(bkRecCount())); }catch(e){}
       if(!silent){closeSheet();toast(t('bk_auto_dataonly'),'ok');}
       return true; }catch(e){ if(!silent)closeSheet(); return false; }
   }
@@ -33525,6 +33611,7 @@ async function backupToFile(silent){
     const back=await h.getFile();                       // verify it really landed
     if(back.size!==res.blob.size)throw new Error('size mismatch');
     markBackup(); localStorage.setItem('pb_ob_bkauto',todayISO());
+    try{ localStorage.setItem('pb_ob_bkrecs',String(bkRecCount())); }catch(e){}
     renderOrders();
     if(!silent){ closeSheet(); toast(t('bk_done',{n:res.count}),'ok'); }
     return true;
@@ -35504,6 +35591,56 @@ async function migrateToV2(obj){
     return true;
   }catch(e){ try{ await mDel('__meta'); }catch(e2){} return false; }
 }
+/* ══════════════ v583 — THE APP THAT ASKED HIM TO SET UP A SHOP HE ALREADY HAD ══════════════
+   8 Sept, his own device, more than once: right address, right version, and "Set up your
+   shop" with 0 orders. Not lost data — an unread store. The chain was:
+     openIDB() fails or is blocked  →  idb stays null
+     readStoreV2() returns null (it needs idb)
+     pickBootData() skips every IndexedDB source and only tries the legacy localStorage
+       blob, which has been empty since the data moved to IndexedDB long ago
+     → {raw:null, from:'empty'} → load(null) → a brand-new shop on screen
+   And then the app INVITED HIM TO TYPE INTO IT. That is the one thing his own rules
+   forbid: never enter anything in an app that looks empty, and never back up from it.
+   The app was breaking his rule on his behalf.
+   The device always knows better than this. Four marks survive an unreadable store, and
+   any one of them proves a shop existed here: the shop name kept in localStorage, the
+   last snapshot stamp, a linked backup file, and the megabytes the origin is still
+   holding. If boot comes up empty while any of those is true, this is a READ FAILURE and
+   not a new shop — so nothing is offered, nothing can be written, and the screen says so
+   in plain words with the way out. _dbReadFailed already gates every save in this app
+   (v482); it is simply told the truth here for the first time. */
+async function bootEvidence(){
+  const w=[];
+  try{ if((localStorage.getItem('pb_ob_shopname')||'').trim()) w.push(t('lost_ev_name')); }catch(e){}
+  try{ if(localStorage.getItem('pb_ob_lastsnap_ts')) w.push(t('lost_ev_snap')); }catch(e){}
+  try{ if(localStorage.getItem('pb_ob_bkname')) w.push(t('lost_ev_bk')); }catch(e){}
+  try{ if(navigator.storage&&navigator.storage.estimate){
+        const q=await navigator.storage.estimate();
+        const mb=Math.round((q&&q.usage||0)/1048576);
+        if(mb>=2) w.push(t('lost_ev_mb',{n:mb}));
+      } }catch(e){}
+  return w;
+}
+function showLostScreen(why){
+  try{ document.body.classList.remove('modal-on'); }catch(e){}
+  const d=document.createElement('div');
+  d.id='lostWrap';
+  d.setAttribute('style','position:fixed;inset:0;z-index:99999;background:#16130f;overflow:auto;padding:22px 18px;');
+  d.innerHTML=`<div style="max-width:520px;margin:0 auto">
+    <div style="font-size:44px;text-align:center;margin:14px 0">⚠️</div>
+    <h2 style="color:#ff6b6b;text-align:center;margin:0 0 14px">${t('lost_title')}</h2>
+    <p style="color:#e8e2d8;line-height:1.55;margin:0 0 14px">${t('lost_body')}</p>
+    <div style="border:1px solid #ff6b6b;border-radius:12px;padding:12px;margin:0 0 12px">
+      <p style="color:#ff9b9b;margin:0;line-height:1.55"><b>${t('lost_dont')}</b></p></div>
+    <div style="border:1px solid #3a332a;border-radius:12px;padding:12px;margin:0 0 12px">
+      <p style="color:#e8e2d8;margin:0;line-height:1.55">${t('lost_do')}</p></div>
+    <p style="color:#8f887c;font-size:13px;margin:0 0 4px">${t('lost_saveoff')}</p>
+    ${why&&why.length?`<p style="color:#8f887c;font-size:13px;margin:0 0 16px">${t('lost_ev',{w:why.join(' · ')})}</p>`:''}
+    <button type="button" style="width:100%;padding:14px;border-radius:12px;border:0;background:#e8a33d;color:#16130f;font-size:17px;font-weight:800"
+      onclick="location.reload()">${t('lost_retry')}</button>
+    <div style="height:40px"></div></div>`;
+  document.body.appendChild(d);
+}
 async function init(){
   try{ await openIDB(); }catch(e){}
   /* Photos and voice notes live in IndexedDB. If it will not open, the app still runs
@@ -35516,6 +35653,15 @@ async function init(){
   if(v2 && dbLooksReal(v2)){ DB=v2; usedV2=true; }
   else{
     boot=await pickBootData();
+    if(boot.from==='empty'){
+      const why=await bootEvidence();
+      if(why.length){                         /* a shop WAS here — this is a read failure */
+        _dbReadFailed=true;
+        load(null);
+        try{ showLostScreen(why); }catch(e){ try{ alert(t('lost_title')+'\n\n'+t('lost_dont')); }catch(_){} }
+        return;                               /* nothing renders, nothing can be written */
+      }
+    }
     load(boot.raw);
     if(idb && boot.raw){ const ok=await migrateToV2(DB); if(!ok && boot.from!=='live'){ try{ await mPut('__db', boot.raw); }catch(e){} } }
   }
