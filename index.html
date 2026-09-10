@@ -942,7 +942,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v612</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v615</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -2176,6 +2176,21 @@ const T={
   hd_deliver:'Delivery schedule', hd_work:'Work in hand',
   hd_late:'Overdue', hd_today:'Today', hd_tomorrow:'Tomorrow', hd_week:'This week',
   hd_nokar:'Not given to a karigar yet', hd_ready:'Ready to hand over',
+  hd_clear:'Nothing due this week.',
+  ono_set:'Order number',
+  ono_hint:'The next free number. If you have already written this one on a slip, change it here — the app will refuse a number that is already taken.',
+  smp_cust:'Sample given — no measurement',
+  smp_from:'From sample — no measurement',
+  smp_hold:'Customer sample held',
+  smp_back_msg:'Send it with the bundle and give it back with the finished garment.',
+  smp_back_go:'Given back',
+  smp_back_done:'Sample returned',
+  smp_on:'Sample — no measurement needed on this piece',
+  smp_off:'Sample mark removed',
+  hd_risk:'Due soon, not ready', hd_risk_sub:'Promised within two days and still not finished. Chase these first.',
+  hd_neworders:'Orders taken', hd_recv:'Money received',
+  hb_today:'Today', hb_shortcuts:'Shortcut buttons', kpi_payable:'To pay',
+  hm_month_exp:'Expenses', hm_open_pl:'Profit & loss', hm_lastmonth:'Same days last month',
   hd_tomorrow_sub:'Due tomorrow. Chase anything not ready today.',
   hd_week_sub:'Everything due in the next seven days.',
   hd_late_sub:'Past the delivery date and still not ready. These come first.',
@@ -4222,6 +4237,21 @@ dl_show_hidden:'Show hidden ({n})',
   hd_deliver:'डिलीवरी शेड्यूल', hd_work:'काम बाकी',
   hd_late:'तारीख़ निकल गई', hd_today:'आज', hd_tomorrow:'कल', hd_week:'इस हफ़्ते',
   hd_nokar:'करीगर को दिया ही नहीं', hd_ready:'तैयार — देने को',
+  hd_clear:'इस हफ़्ते कुछ देना नहीं है।',
+  ono_set:'ऑर्डर नंबर',
+  ono_hint:'अगला खाली नंबर। यह नंबर पर्ची पर पहले लिख चुके हैं तो यहीं बदल दीजिए — जो नंबर पहले से लगा है, ऐप उसे लेने नहीं देगा।',
+  smp_cust:'सैंपल दिया है — नाप नहीं',
+  smp_from:'सैंपल से — नाप नहीं',
+  smp_hold:'ग्राहक का सैंपल रखा है',
+  smp_back_msg:'बंडल के साथ भेजिए और तैयार कपड़े के साथ वापस कर दीजिए।',
+  smp_back_go:'वापस दे दिया',
+  smp_back_done:'सैंपल वापस दे दिया',
+  smp_on:'सैंपल — इस पीस का नाप नहीं चाहिए',
+  smp_off:'सैंपल का निशान हटा',
+  hd_risk:'जल्दी देना है, तैयार नहीं', hd_risk_sub:'दो दिन में देना है और अभी तैयार नहीं। पहले यही देखिए।',
+  hd_neworders:'नए ऑर्डर', hd_recv:'पैसा आया',
+  hb_today:'आज', hb_shortcuts:'शॉर्टकट बटन', kpi_payable:'देना बाकी',
+  hm_month_exp:'खर्च', hm_open_pl:'नफ़ा-नुक़सान', hm_lastmonth:'पिछले महीने इतने दिन में',
   hd_tomorrow_sub:'कल देना है। जो तैयार नहीं, आज ही देखिए।',
   hd_week_sub:'अगले सात दिन में जो देना है।',
   hd_late_sub:'तारीख़ निकल चुकी और अब तक तैयार नहीं। सबसे पहले यही।',
@@ -13714,6 +13744,16 @@ function statDetail(mode){
       .sort((a,b)=>String(a.deliveryDate||'0').localeCompare(String(b.deliveryDate||'0')));
     title='🔴 '+t('hd_late'); sub=t('hd_late_sub');
   }
+  else if(mode==='risk'){
+    /* v613 — the delivery card counted dates. This counts TROUBLE: promised inside two
+       days and still not finished. It is the only line on that card that names something
+       he can still do something about, so it is the only one that opens a list he has to
+       act on rather than a list he has to read. */
+    list=tag((DB.orders||[]).filter(o=>{ if(orderDelivered(o)||!o.deliveryDate)return false;
+        const d=daysLeft(o.deliveryDate); return d!==null&&d<=2&&!orderAllReady(o); }),'order')
+      .sort((a,b)=>String(a.deliveryDate||'0').localeCompare(String(b.deliveryDate||'0')));
+    title='⚠️ '+t('hd_risk'); sub=t('hd_risk_sub');
+  }
   else if(mode==='duetoday'){
     list=tag((DB.orders||[]).filter(o=>!orderDelivered(o)&&daysLeft(o.deliveryDate)===0),'order');
     title='⏰ '+t('home_due_today'); sub=t('stat_duetoday_sub');
@@ -13903,16 +13943,54 @@ function attChipTap(sid){
   if(a.in&&a.out){ toast(t('pn_day_done',{i:a.in,o:a.out}),'ok'); return; }
   punchTap(sid);
 }
-function kpiCardsHTML(){
+/* ══════════ v613 — HOME STARTED CARRYING A DECISION ══════════
+   The forward plan's first item, and the oldest complaint on this screen: Home is the
+   first thing opened every morning and it carried a row of doors, not an answer. A door
+   is not information. The bottom bar and All screens already hold every door in the app,
+   so the row was the third copy of a list that exists twice.
+   Four blocks now, each one a question the shop asks itself before it asks anything else:
+     TODAY        what has happened since the shutter went up
+     MONEY        what is owed to me, what I owe, what is in hand
+     THIS MONTH   is the month going the way last month went
+     DELIVERY     what has to go out, and what is going to be late
+   Every figure here is already computed somewhere else in the app by the function that
+   owns it — receivableTotal, credGroups, accBalance, plFigures, moneyLines — so Home can
+   never disagree with the report behind it. Nothing computes its own way. That was the
+   v256 fault and it is not repeated.
+   The shortcut row is NOT deleted. It moves behind a switch in "What shows on Home",
+   off by default, on again in one tap. His arrangement, his order, his hidden tiles are
+   untouched underneath. */
+function todayCardHTML(){
+  if(localStorage.getItem('pp_home_classic')==='1')return '';
+  const td=todayISO();
+  let sale=0; allInvoices().forEach(x=>{ if(String(x.inv.date||'')===td)sale+=invCompute(x.inv).total; });
+  let recv=0; try{ (moneyLines(td,td)||[]).forEach(l=>{ if(l.dir==='in')recv+=(+l.amt||0); }); }catch(e){}
+  const nNew=(DB.orders||[]).filter(o=>String(o.orderDate||o.created||'').slice(0,10)===td).length;
+  const nOut=(DB.orders||[]).filter(o=>!orderDelivered(o)&&daysLeft(o.deliveryDate)===0).length;
+  const hid=pinOn()&&!_moneyShown;
+  const tapM=hid?'moneyReveal()':null;
+  const cell=(lbl,val,fn,col)=>`<div class="home-stat tappable" onclick="${fn}" style="cursor:pointer">
+      <div class="hs-val" style="${col?'color:'+col:''}">${val}</div>
+      <div class="hs-lbl">${lbl}</div></div>`;
+  return `<div class="kpi-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+    ${cell('🧾 '+t('kpi_today_sale'), moneyMask(money(r2(sale))), tapM||"go('invoices')")}
+    ${cell('💵 '+t('hd_recv'), moneyMask(money(r2(recv))), tapM||"dayBook()")}
+    ${cell('👔 '+t('hd_neworders'), nNew, "go('orders')")}
+    ${cell('⏰ '+t('hd_today'), nOut, "statDetail('duetoday')", nOut?'var(--saffron2)':'')}
+  </div>
+  ${hid?`<p class="hint" style="text-align:center;margin:-6px 0 10px">🔒 ${t('pin_tap')}</p>`:''}`;
+}
+/* v613: receivable and payable were on two different report screens and cash + bank on a
+   third, so the one question every shopkeeper asks — am I owed more than I owe — could
+   not be answered without opening three things. Three lines, one card, each opening the
+   report it came from. */
+function moneyCardHTML(){
   if(localStorage.getItem('pp_home_classic')==='1')return '';
   let cash=0; (DB.accounts||[]).forEach(a=>{ cash+=accBalance(a.id); });
   /* v254: the card no longer counts its own way — see receivableTotal above.
      Today's sale legitimately stays invoice-only: a sale is a sale when it is billed. */
   const due=receivableTotal();
-  let todaySale=0; const td=todayISO();
-  allInvoices().forEach(x=>{
-    if(String(x.inv.date||'')===td)todaySale+=invCompute(x.inv).total;
-  });
+  let owe=0; try{ owe=credGroups('').total||0; }catch(e){}
   const act=(DB.orders||[]).filter(o=>!orderDelivered(o));
   /* v256 AUDIT — P2: the card said one thing and its own tap said another. It counted
      d<=0, which lumps EVERY overdue order in with today's, while the drill-down it opens
@@ -13921,22 +13999,54 @@ function kpiCardsHTML(){
      Today 0". A dashboard number that cannot be reconciled to the records behind it is
      worse than no number, so the count now matches the list it opens. Nothing is lost:
      overdue already has its own red row, with its own tap, in the card directly below. */
-  const nDue=act.filter(o=>{const d=o.deliveryDate?daysLeft(o.deliveryDate):null;return d===0;}).length;
-  const card=(lbl,val,col,fn)=>`<div class="home-stat tappable" onclick="${fn}" style="cursor:pointer">
-      <div class="hs-val" style="${col?'color:'+col:''}">${val}</div>
-      <div class="hs-lbl">${lbl}</div></div>`;
-  /* v271: a money figure is dots until he taps it. The count of orders due today is not
-     money and stays plain — hiding it would only slow the shop down. */
+  /* v271: a money figure is dots until he taps it. */
   const hid=pinOn()&&!_moneyShown;
   const tapM=hid?'moneyReveal()':null;
-  return `<div class="kpi-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-    ${/* v341 — HIS 27 Aug: "Remove Cash, Bank and Due Today." Both are still one tap away —
-         Cash + bank from All screens, Due today from the delivery list below — but they no
-         longer take half of the first thing he sees each morning. */''}
-    ${card('🔔 '+t('kpi_debtors'), moneyMask(money(r2(due))), '', tapM||"followUps()")}
-    ${card('🧾 '+t('kpi_today_sale'), moneyMask(money(r2(todaySale))), '', tapM||"go('invoices')")}
+  const row=(ico,lbl,val,fn,col)=>`<div class="dl-row tappable" onclick="${fn}">
+      <span class="dl-ico">${ico}</span><span class="dl-lbl">${lbl}</span>
+      <span class="dl-n" style="${col?'color:'+col:''}">${val}</span><span class="dl-go">›</span></div>`;
+  return `<div class="card dl-card">
+    <div class="dl-hd">💰 ${t('hb_money')}</div>
+    ${row('🔔',t('kpi_debtors'),moneyMask(money(r2(due))),tapM||"followUps()",due?'var(--ok)':'')}
+    ${modOn('billing')?row('📤',t('kpi_payable'),moneyMask(money(r2(owe))),tapM||"creditors()",owe?'var(--bad)':''):''}
+    ${row('🏦',t('kpi_cash'),moneyMask(money(r2(cash))),tapM||"cashBank()",'')}
   </div>
-  ${hid?`<p class="hint" style="text-align:center;margin:-6px 0 10px">🔒 ${t('pin_tap')}</p>`:''}`;
+  ${hid?`<p class="hint" style="text-align:center;margin:-2px 0 10px">🔒 ${t('pin_tap')}</p>`:''}`;
+}
+/* ══════════ v613 — THE MONTH, WITHOUT A FIGURE THAT CANNOT BE TRUSTED ══════════
+   The plan asked for a Month block and the obvious thing to put in it is profit. It is
+   not going on this screen yet, and the reason is written down in the standing risks:
+   purchases and stock are not reconciled, so cloth worth twenty thousand rupees can sit
+   as stock zero with the whole amount inside cost of goods. Profit computed on top of
+   that is wrong by whatever that gap happens to be, and a wrong profit read every
+   morning is worse than no profit at all — he would either trust it or learn to ignore
+   the screen. Sales and expenses are FACTS: they are what the bills and the vouchers
+   say. Both go here; profit stays one tap away in the report that can show its working,
+   and it comes to Home the day the purchase-to-stock warning lands. */
+function monthCardHTML(){
+  if(localStorage.getItem('pp_home_classic')==='1')return '';
+  if(!(modOn('accounts')||modOn('billing')))return '';
+  const to=todayISO(), from=to.slice(0,7)+'-01';
+  let f; try{ f=plFigures(from,to); }catch(e){ return ''; }
+  const d=new Date(to+'T00:00:00'), day=d.getDate();
+  const lm=new Date(d.getFullYear(),d.getMonth()-1,1);
+  const lmFrom=isoOf(lm), lmTo=isoOf(new Date(lm.getFullYear(),lm.getMonth(),
+    Math.min(day,new Date(lm.getFullYear(),lm.getMonth()+1,0).getDate())));
+  let lf=null; try{ lf=plFigures(lmFrom,lmTo); }catch(e){}
+  if(!f.netSales && !f.expTotal && !(lf&&lf.netSales))return '';
+  const hid=pinOn()&&!_moneyShown;
+  const tapM=hid?'moneyReveal()':null;
+  const row=(ico,lbl,val,fn,col)=>`<div class="dl-row tappable" onclick="${fn}">
+      <span class="dl-ico">${ico}</span><span class="dl-lbl">${lbl}</span>
+      <span class="dl-n" style="${col?'color:'+col:''}">${val}</span><span class="dl-go">›</span></div>`;
+  const up=lf?(f.netSales>=lf.netSales):null;
+  return `<div class="card dl-card">
+    <div class="dl-hd">📊 ${t('hm_pl')}</div>
+    ${row('🧾',t('hm_pl_sales'),moneyMask(money(r2(f.netSales))),tapM||"go('invoices')",'')}
+    ${lf?row(up?'📈':'📉',t('hm_lastmonth'),moneyMask(money(r2(lf.netSales))),tapM||"go('reports');setTimeout(plReport,120)",up?'var(--ok)':'var(--bad)'):''}
+    ${row('💸',t('hm_month_exp'),moneyMask(money(r2(f.expTotal))),tapM||"expenses()",'')}
+    ${row('📊',t('hm_open_pl'),'',"go('reports');setTimeout(plReport,120)",'')}
+  </div>`;
 }
 function homeClassicToggle(){
   const on=localStorage.getItem('pp_home_classic')==='1';
@@ -14182,15 +14292,45 @@ function menuGoTab(tab){ closeSheet(); _tabFromMenu=tab; go(tab); }
    description: pick a piece, pick a return, a planning note, what the preview will send.
    The rule from here: a title names the screen, and nothing under it repeats the title in
    longer words. */
+/* ══════════ v615 — ONE HUB, SECTIONS THAT OPEN ══════════
+   HIS 10 Sept, with Vyapar's menu open beside ours: "sale ke neeche ek arrow banaya hua
+   hai... us arrow ko click karta hoon to sale ke andar jitne heads hain wo dikhne lagte
+   hain, aur har head ke bagal me phir arrow hai. Ye accha system hai — ek hub ke andar
+   saare main heads aa gaye."
+   Two separate faults, and this fixes both at once.
+   ONE: our Sale section was a single row. Estimate, Sale return and the missing-number
+   check existed, worked, and lived behind an unlabelled ⋯ on the Sale list — which is why
+   he said "sales me na estimate hai na return hai, kuch nahi hai". They were never in the
+   menu that calls itself All screens. A map that leaves roads off is worse than no map.
+   TWO: with every section standing open the list ran to thirty-one rows, so finding a
+   thing meant scrolling past everything that was not it. Closed by default, the whole app
+   is ten lines on one screen — he sees the SHAPE first, then opens the one he wants.
+   Nothing is hidden by this: the search box still reaches every row, and a search opens
+   whatever section holds a match. */
+let _mnuOpen={};
+function menuSecToggle(k){
+  _mnuOpen[k]=!_mnuOpen[k];
+  document.querySelectorAll('#mnuBody .mnu-list[data-sec="'+k+'"]')
+    .forEach(l=>l.style.display=_mnuOpen[k]?'':'none');
+  document.querySelectorAll('#mnuBody .section-h[data-sec="'+k+'"] .mnu-caret')
+    .forEach(c=>c.textContent=_mnuOpen[k]?'\u25BE':'\u25B8');
+}
 function menuHome(){
   sheetAt(menuHome);
   _tabFromMenu='';
+  let _secN=0;
   const row=(ico,label,fn,sub)=>`<button class="mnu-row" onclick="closeSheet();${fn}">
     <span class="mnu-ico">${ico}</span>
     <span class="mnu-txt"><b>${esc(label)}</b>${sub?`<span class="hint">${esc(sub)}</span>`:''}</span>
     <span class="mnu-go">›</span></button>`;
-  const sec=(title,rows)=>rows.filter(Boolean).length?`<div class="section-h">${title}</div>
-    <div class="mnu-list">${rows.filter(Boolean).join('')}</div>`:'';
+  const sec=(title,rows)=>{
+    const list=rows.filter(Boolean); if(!list.length)return '';
+    const k='ms'+(_secN++), open=!!_mnuOpen[k];
+    return `<div class="section-h" data-sec="${k}" onclick="menuSecToggle('${k}')"
+        style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <span>${title}</span><span class="mnu-caret" style="opacity:.7">${open?'\u25BE':'\u25B8'}</span></div>
+    <div class="mnu-list" data-sec="${k}" style="${open?'':'display:none'}">${list.join('')}</div>`;
+  };
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:12px">☰ ${t('menu_all')}</h2>
     <input id="mnuQ" placeholder="🔍 ${t('menu_find')}" oninput="menuFilter(this.value)" style="margin-bottom:12px">
@@ -14204,10 +14344,21 @@ function menuHome(){
          waisa hi chahiye." Tapping a subject now lands on that subject's LIST — new button,
          search, records — with no screen of doors in between. Everything the hub held is
          still one tap away, behind ⋯ on that same list. */''}
+    ${/* v615: the same heads Vyapar shows under Sale, in his own working order. They were
+         all reachable already — behind ⋯ on the Sale list — and none of them was here. */''}
     ${modOn('billing')?sec('🧾 '+t('hub_sale'),[
-      row('🧾',t('hub_sale'),"menuGoTab('invoices')")]):''}
+      row('🧾',t('hub_sale'),"menuGoTab('invoices')"),
+      row('\u2B07\uFE0F',t('pay_in'),"payEntry('in',1)"),
+      row('↩️',t('sr_menu'),"salesReturnPick()"),
+      row('📄',t('estimate'),"estimateList()"),
+      row('🔢',t('gap_title'),"billGaps()"),
+      row('🔔',t('debtors_report'),"followUps()")]):''}
     ${modOn('billing')?sec('🚚 '+t('hub_purchase'),[
-      row('🚚',t('hub_purchase'),"menuGoTab('purchases')")]):''}
+      row('🚚',t('hub_purchase'),"menuGoTab('purchases')"),
+      row('\u2B06\uFE0F',t('pay_out'),"moneyOut()"),
+      row('↪️',t('pr_menu'),"purchaseReturnPick()"),
+      row('📝',t('purchase_order'),"poList()"),
+      row('📥',t('creditors_report'),"creditors()")]):''}
     ${sec('📋 '+t('nav_orders'),[
       row('📋',t('nav_orders'),"menuGoTab('orders')")])}
     ${modOn('stock')?sec('📦 '+t('stk_title'),[
@@ -14305,9 +14456,16 @@ function menuFilter(q){
   document.querySelectorAll('#mnuBody .mnu-row').forEach(r=>{
     r.style.display = !q || r.textContent.toLowerCase().indexOf(q)>=0 ? '' : 'none'; });
   document.querySelectorAll('#mnuBody .section-h').forEach(h=>{
+    const k=h.getAttribute('data-sec');
     const list=h.nextElementSibling;
     const any=list&&[...list.querySelectorAll('.mnu-row')].some(r=>r.style.display!=='none');
-    h.style.display=any?'':'none'; if(list)list.style.display=any?'':'none'; });
+    h.style.display=any?'':'none';
+    /* v615: while he is typing, a section holding a match stands open whatever its own
+       fold says — and the moment the box is cleared every fold goes back to how he left
+       it. Search must never be a second, competing way of opening things. */
+    const show = any && (q ? true : !!_mnuOpen[k]);
+    if(list)list.style.display=show?'':'none';
+    const c=h.querySelector('.mnu-caret'); if(c)c.textContent=show?'\u25BE':'\u25B8'; });
 }
 /* v355 — HIS 27 Aug: "kya home screen per rakhna hai ya kya nahi ye shopkeeper apne
    suvidha ke hisab se khud set kar sake. Jitna customer khud customise kar sakenge utna
@@ -14320,7 +14478,12 @@ function menuFilter(q){
    Defaults reproduce exactly what Home shows today, so nothing changes for anyone until
    they choose to change it. */
 const HOME_BLOCKS=[
+  /* v613: three new blocks, and every one of them is his to switch off exactly like the
+     others. The shortcut row joins the list for the first time — it used to be the one
+     thing on Home nobody could take off. */
+  ['today','📅','hb_today'],
   ['money','💰','hb_money'],
+  ['month','📊','hm_pl'],
   ['deliver','🚚','hd_deliver'],
   ['work','🧵','hd_work'],
   ['attend','👥','pn_title'],
@@ -14345,6 +14508,13 @@ function homeCfg(){
      Off by default, still one tap away in Job work and on the Today → Work tab, and one
      tap to put back. */
   if(!Array.isArray(DB.homeCfg.hidden))DB.homeCfg.hidden=['work'];
+  /* v613 — ONE TIME, AND ONLY ONCE. The shortcut row comes off Home so the dashboard has
+     the screen, and this runs against an existing saved layout as well as a new one. It
+     is a migration, not a rule: the moment he switches the row back on, 'shortcuts' leaves
+     hidden and the flag stops this ever putting it back. His own arrangement inside
+     DB.qrCfg is never touched, so the row he gets back is the row he built. */
+  if(!DB.homeCfg.v613){ if(DB.homeCfg.hidden.indexOf('shortcuts')<0)DB.homeCfg.hidden.push('shortcuts');
+    DB.homeCfg.v613=1; }
   return DB.homeCfg;
 }
 function homeOn(k){ return homeCfg().hidden.indexOf(k)<0; }
@@ -14388,8 +14558,10 @@ function renderHome(){
       <div class="home-sub">${new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'short'})}</div></div>
     </div>
 
-    ${homeOn('money')?kpiCardsHTML():''}
-    ${quickRowHTML()}
+    ${homeOn('shortcuts')?quickRowHTML():''}
+    ${homeOn('today')?todayCardHTML():''}
+    ${homeOn('money')?moneyCardHTML():''}
+    ${homeOn('month')?monthCardHTML():''}
 
       ${/* v405 — HIS 30 Aug: "attendance ka module na screen par dikh raha hai na kahin
            aur." Mine, and it could never have worked. This asked for modOn('staff'), but
@@ -14436,6 +14608,9 @@ function renderHome(){
       const nWeek =act.filter(o=>{const d=dl(o);return d!==null&&d>=0&&d<=7;}).length;
       const nLate =act.filter(o=>{const d=dl(o);return d!==null&&d<0;}).length;
       const nReady=act.filter(o=>orderAllReady(o)).length;
+      /* promised inside two days and still not finished — the only delivery figure on this
+         screen he can still change the outcome of */
+      const nRisk=act.filter(o=>{const d=dl(o);return d!==null&&d<=2&&!orderAllReady(o);}).length;
       const b=abBuckets();
       const nNoKar=new Set(b.noKar.map(x=>x.o.id)).size;   // orders, not pieces
       const line=(ico,label,n,go,col)=>
@@ -14453,10 +14628,23 @@ function renderHome(){
         <div class="dl-hd">🚚 ${t('hd_deliver')}</div>
         ${/* v341 — HIS 27 Aug: today first, then tomorrow, then the week, and overdue
              last. What is due now is what he acts on; overdue is what he chases after. */''}
-        ${line('⏰',t('hd_today'),nToday,"statDetail('duetoday')",'var(--saffron2)')}
-        ${line('📅',t('hd_tomorrow'),nTom,"statDetail('tomorrow')",'')}
-        ${line('🗓️',t('hd_week'),nWeek,"statDetail('week')",'')}
+        ${/* v613 — A ZERO IS NOT NEWS. Four lines stood here every day whether they held
+             anything or not, so on a quiet morning he read four noughts before reaching the
+             one row that mattered, and on a busy one the row that mattered looked like the
+             other three. A line earns its place by having something on it.
+             Overdue goes FIRST now — v341 put it last on the argument that today is what he
+             acts on and overdue is what he chases. That was right about a schedule and wrong
+             about a risk: an order already past its date is the one the customer is going to
+             ring about, and it cannot wait behind three rows to be seen.
+             'This week' stays, and keeps counting today and tomorrow inside it — it is a
+             total, not a fourth bucket — but it drops out entirely on a week with nothing
+             in it. */''}
         ${nLate?line('🔴',t('hd_late'),nLate,"statDetail('late')",'var(--bad)'):''}
+        ${nRisk?line('⚠️',t('hd_risk'),nRisk,"statDetail('risk')",'var(--bad)'):''}
+        ${nToday?line('⏰',t('hd_today'),nToday,"statDetail('duetoday')",'var(--saffron2)'):''}
+        ${nTom?line('📅',t('hd_tomorrow'),nTom,"statDetail('tomorrow')",''):''}
+        ${nWeek?line('🗓️',t('hd_week'),nWeek,"statDetail('week')",''):''}
+        ${(!nLate&&!nRisk&&!nToday&&!nTom&&!nWeek)?`<p class="hint" style="padding:2px 12px 10px;margin:0">${t('hd_clear')}</p>`:''}
         ${/* v252: the trial line joins the delivery card only when a fitting is actually
              due, so a week with no trials never grows a row he has to look past. */''}
         ${(()=>{ const td=trialsDue(); if(!td.length)return '';
@@ -14903,7 +15091,7 @@ function renderOrders(keepFocus){
     const ready=st==='ready';
     const altN=altsForOrder(o.id).length;
     return `<div class="card ocard" onclick="openDetail('${o.id}')">
-      <div class="top"><div><div class="ono">#${esc(o.orderNo)} ${altN?`<span style="color:var(--saffron2)">🔧${altN}</span>`:''}</div>
+      <div class="top"><div><div class="ono">#${esc(o.orderNo)} ${altN?`<span style="color:var(--saffron2)">🔧${altN}</span>`:''}${(custSampleCount(o)&&!o.custSampleBack)?`<span style="color:var(--saffron2)" title="${t('smp_hold')}">📦</span>`:''}</div>
         <div class="name">${esc(o.customerName)}</div><div class="meta">📞 ${esc(o.phone||'—')}</div></div>
         <div class="deliv ${dcls}">${dtxt}</div></div>
       <div class="gtags">${tags||'<span class="gtag">'+t('no_items')+'</span>'}</div>
@@ -15805,6 +15993,7 @@ function openOrderForm(editId){
       m:JSON.parse(JSON.stringify(o.m||{})),design:JSON.parse(JSON.stringify(o.design||{})),
       variant:JSON.parse(JSON.stringify(o.variant||{})),
       notes:o.notes||'',total:o.total,advance:o.advance,photos:[...(o.photos||[])],voiceNotes:JSON.parse(JSON.stringify(o.voiceNotes||[])),
+      custSample:JSON.parse(JSON.stringify(o.custSample||{})),
       itemPhotos:JSON.parse(JSON.stringify(o.itemPhotos||{})),itemVoice:JSON.parse(JSON.stringify(o.itemVoice||{})),bodyType:Array.isArray(o.bodyType)?[...o.bodyType]:(o.bodyType?[o.bodyType]:[]),
       dispatch:o.dispatch?JSON.parse(JSON.stringify(o.dispatch)):null,
       source:o.source||'', sourceRef:o.sourceRef||'',
@@ -15815,7 +16004,7 @@ function openOrderForm(editId){
        abandoned attempt walked away holding one and the same number reached three
        records. Numbering is how the shop finds a garment physically, so a number is now
        taken only when the order is actually saved. Until then the form shows no number. */
-    form={editId:null,orderNo:'',customerId:null,customerName:'',phone:'',salesmanId:'',
+    form={editId:null,orderNo:'',customerId:null,customerName:'',phone:'',salesmanId:'',custSample:{},
       orderDate:todayISO(),deliveryDate:'',   /* HIS #6: "delivery date important hai, poochhna chahiye." It was
     quietly pre-filled, so he could save an order having never once looked at the one date
     the whole production board runs on. Now it starts empty and Save refuses without it. */items:[],m:{},design:{},variant:{},notes:'',total:'',advance:'',photos:[],voiceNotes:[],itemPhotos:{},itemVoice:{},bodyType:[],members:[],dispatch:null,source:'',sourceRef:'',sampleId:''};
@@ -16273,6 +16462,68 @@ function measSummary(f,key){
   if(!out.length)return '';
   return out.length>5 ? out.slice(0,5).join(' · ')+' +'+(out.length-5) : out.join(' · ');
 }
+/* ══════════ v614 — THE ORDER NUMBER WAS INVISIBLE UNTIL THE LAST SCREEN ══════════
+   HIS 10 Sept: "order karte hain to screen mein kahin par bhi order number nahi dikhai
+   de raha hai... pata hi nahi rehta order number kya dikha raha hai."
+   It was on stage 3 all along, editable, with a duplicate guard on save. But he stands at
+   stage 1 with the customer in front of him, and the one thing he needs to know THEN is
+   which number this order is going to carry — because he writes it on the slip and on the
+   cloth by hand, and because he skips numbers: 2026 is used, so are 2027 and 2028 on
+   paper, and this one has to be 2029.
+   v193 is not undone. The fault then was that the number was ASSIGNED the moment the form
+   opened, so three abandoned drafts walked off holding #2581. This assigns nothing — it
+   shows the next free number as a preview and only writes one if he deliberately sets it.
+   numHWCommitOrder still burns the number at save and only at save, and saveOrder still
+   refuses a number another order already holds. */
+function ordNoPillHTML(f){
+  const n=f.orderNo||nextOrderNo();
+  return `<span class="gtag" style="cursor:pointer;border-style:dashed"
+    onclick="ordNoEdit()" title="${t('ono_set')}">#${esc(n)} ✏️</span>`;
+}
+function ordNoEdit(){
+  captureForm();
+  const cur=form.orderNo||nextOrderNo();
+  modal('#️⃣ '+t('ono_set'),
+    `<div class="field"><input id="ono_in" value="${esc(cur)}" placeholder="2481" inputmode="numeric"></div>
+     <p class="hint">${t('ono_hint')}</p>`,
+    [{label:t('cancel'),fn:closeModal},
+     {label:t('done'),cls:'primary',fn:()=>{
+       const el=$('#ono_in'); const v=String((el&&el.value)||'').trim();
+       /* left empty = back to whatever the shop's own running serial says next */
+       if(v && (DB.orders||[]).some(o=>String(o.orderNo)===v && o.id!==form.editId)){
+         toast(t('t_dup'),'bad'); return; }
+       form.orderNo=v; closeModal(); renderForm();
+     }}]);
+}
+/* ══════════ v614 — THE CUSTOMER LEFT A GARMENT INSTEAD OF A NAAP ══════════
+   HIS 10 Sept, describing what actually happened: "customer ne ek sila silaya kurta aur
+   ek pant de diya, aur kapda de diya. Maine woh master ko de diya — iske hisab se bana ke
+   le aao. Kahin par bhi mention nahi kiya, record nahi kiya."
+   Nothing in the app could hold that fact, and three things fell through the crack: the
+   piece sat forever as "naap baaki hai" on a screen that counts unmeasured pieces; the
+   bundle went to the master with no record that the customer's own kurta went with it; and
+   at delivery nobody was reminded that a garment belonging to the customer is still in the
+   shop, or with the karigar.
+   One mark fixes all three, and it is a mark on the PIECE, not on the order — he gave a
+   kurta for the kurta and a pant for the pant, and a third piece in the same order may
+   still need measuring normally.
+   It is deliberately not a new screen and not a new list. A piece marked this way counts
+   as done, reads "sample se — naap nahi" wherever its naap would have been read out, and
+   raises one line on the order that does not go away until he says the sample went back. */
+function custSampleCount(o){ return Object.keys((o&&o.custSample)||{}).length; }
+function sampleToggle(key){
+  captureForm();
+  form.custSample=form.custSample||{};
+  if(form.custSample[key])delete form.custSample[key]; else form.custSample[key]=1;
+  const on=!!form.custSample[key];
+  renderForm();
+  toast(on?t('smp_on'):t('smp_off'),'ok');
+}
+function odSampleBack(id){
+  const o=(DB.orders||[]).find(x=>x.id===id); if(!o)return;
+  o.custSampleBack=todayISO(); save(o.id);
+  toast(t('smp_back_done'),'ok'); openDetail(id);
+}
 function quickLenHTML(f,mine,only){
   // rows come from the walk, never from a second list — see walkOrder()
   const set=new Set(walkOrder(f));
@@ -16283,7 +16534,11 @@ function quickLenHTML(f,mine,only){
      Length column at all, so a piece measured completely could never be counted. A piece
      counts as done when its Length is written — or, when it has no Length to write, when
      anything on it is. */
-  const _pcDone=k=>{ const st=measFilledCount(f,k);
+  const _pcDone=k=>{
+    /* v614: a piece measured off the customer's own garment has no naap to write and must
+       never sit in the "still to measure" count forever. */
+    if(((f.custSample||{})[k]))return true;
+    const st=measFilledCount(f,k);
     if(st.len)return true;
     const g2=G(k); const hasL=!!(g2&&vcols(g2).some(c=>c.k==='L'));
     return !hasL && st.done>0; };
@@ -16299,11 +16554,13 @@ function quickLenHTML(f,mine,only){
     const pc=((f.itemPhotos||{})[k]||[]).length;
     const nt=String((f.design||{})[k]||'').trim();
     const sum=measSummary(f,k);
+    const smp=!!((f.custSample||{})[k]);
     return `<div class="ql-row ${open?'ql-on':''}" id="ql_${cssId(k)}" onclick="ordStage(2,'${jq(k)}')">
       <span class="ql-nm">${g.ico} ${esc(g.n)}${instOf(k)>1?' <span class="inst-tag">'+instOf(k)+'</span>':''}</span>
-      <span class="ql-sum ${sum?'':'empty'}">${sum?esc(sum):t('ql_no_meas')}</span>
+      <span class="ql-sum ${(smp||sum)?'':'empty'}">${smp?('📦 '+t('smp_from')):(sum?esc(sum):t('ql_no_meas'))}</span>
       <span class="ql-ic ${pc?'has':''}" onclick="event.stopPropagation();pickItemPhotoQuick('${jq(k)}')" title="${t('photo_label')}">📷${pc>1?'<i>'+pc+'</i>':''}</span>
       <span class="ql-ic ${nt?'has':''}" onclick="event.stopPropagation();itemNoteQuick('${jq(k)}')" title="${t('item_notes')}">📝</span>
+      <span class="ql-ic ${smp?'has':''}" onclick="event.stopPropagation();sampleToggle('${jq(k)}')" title="${t('smp_cust')}">📦</span>
       <span class="ql-go">›</span></div>`;
   }).join('');
   return `<div class="ql-wrap">
@@ -16464,6 +16721,9 @@ function measCardHTML(f,key){
       <div class="mgrid">${fields}</div>
       ${_hid?`<button class="btn sm ghost block" style="margin-top:6px" onclick="msMoreToggle('${dkey}')">${_more?t('ms_less'):t('ms_more',{n:_hid})}</button>`:''}
       <div class="gtags" style="margin-top:6px">
+        ${/* v614: first chip on the card, because it is the first question — is there a
+             naap to take at all, or did he hand over a garment to copy? */''}
+        <span class="gtag" onclick="sampleToggle('${dkey}')" style="cursor:pointer;border-style:dashed;${((f.custSample||{})[key])?'border-color:var(--saffron2);color:var(--saffron2);font-weight:800':''}">📦 ${t('smp_cust')}</span>
         <span class="gtag" onclick="addMeas('${gid}')" style="cursor:pointer;border-style:dashed">📏 ${t('add_meas')}</span>
         <span class="gtag" onclick="manageMeas('${gid}')" style="cursor:pointer;border-style:dashed">⚙️ ${t('manage_meas')}</span></div>
 
@@ -16631,7 +16891,9 @@ function memberBlockHTML(f,mem,idx,multi){
          NEW order every row just says "not measured" — six lines of nothing above a button
          that is about to measure them. It earns its place only once something IS measured,
          i.e. when he comes back to review or edit. */
-      mine.some(k=>measSummary(f,k)) ? quickLenHTML(f,mine) : ''}
+      /* v614: a piece marked "sample se" has no measSummary to show, so the whole list
+         stayed hidden and the mark he had just made was nowhere on the screen. */
+      mine.some(k=>measSummary(f,k)||((f.custSample||{})[k])) ? quickLenHTML(f,mine) : ''}
   </div>`;
 }
 
@@ -16667,7 +16929,8 @@ function renderForm(){
              menu, not as a way back. His own rule puts ← on the left of every screen.
              Same button, same destination — now it looks like what it does. */''}
         <button class="btn sm ghost" onclick="ordStage(1)">← ${t('wk_back')}</button>
-        <span class="wk-pos">${pos} / ${walk.length}</span></div>
+        <span class="wk-pos">${pos} / ${walk.length}</span>
+        ${ordNoPillHTML(f)}</div>
       <h2 style="margin:0 0 12px">${g?g.ico+' '+esc(g.n):''}${instOf(_openItem)>1?' <span class="inst-tag">'+instOf(_openItem)+'</span>':''}</h2>
       ${measCardHTML(f,_openItem)}
       <div class="fab-pad"></div>`;
@@ -16809,7 +17072,8 @@ function renderForm(){
          <div id="cbar_ord"></div>
          </div>`;
   sh.innerHTML=`${head}<h2 style="margin:0 0 4px">${f.editId?t('edit_order'):t('new_order')}</h2>
-    <p class="hint" style="margin:0 0 10px">${f.orderNo?'#'+esc(f.orderNo)+' · ':''}${fmtDate(f.orderDate)}</p>
+    <p class="hint" style="margin:0 0 10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      ${ordNoPillHTML(f)}<span>${fmtDate(f.orderDate)}</span></p>
     <div id="draftHint" class="draft-hint">🔒 ${t('draft_never')}</div>
     ${rc}
     ${itemsSection}
@@ -17789,12 +18053,12 @@ function saveOrder(){
     if(!o){ toast(t('t_order_gone'),'bad'); closeSheet(); go('orders'); return; }
     fillMemberOnos(f);                         /* v409: before the mark is raised */
     numHWCommitOrder(f);                       /* v257: an edit may raise it too */
-    Object.assign(o,{orderNo:f.orderNo,customerId:c.id,customerName:c.name,phone:c.phone,salesmanId:f.salesmanId||'',orderDate:f.orderDate,deliveryDate:f.deliveryDate,trialDate:f.trialDate||'',items:f.items,m:f.m,design:f.design,variant:f.variant||{},notes:f.notes,total:f.total,advance:f.advance,photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,bodyType:f.bodyType,dispatch:f.dispatch||null,source:f.source||'',sourceRef:f.sourceRef||'',sampleId:f.sampleId||'',members:(f.members||[]).filter(m=>m.id!=='' )});
+    Object.assign(o,{orderNo:f.orderNo,customerId:c.id,customerName:c.name,phone:c.phone,salesmanId:f.salesmanId||'',orderDate:f.orderDate,deliveryDate:f.deliveryDate,trialDate:f.trialDate||'',items:f.items,m:f.m,design:f.design,variant:f.variant||{},notes:f.notes,total:f.total,advance:f.advance,photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,bodyType:f.bodyType,dispatch:f.dispatch||null,source:f.source||'',sourceRef:f.sourceRef||'',sampleId:f.sampleId||'',custSample:f.custSample||{},members:(f.members||[]).filter(m=>m.id!=='' )});
     clearDraft();save(o.id);sheetSaved();closeSheet();toast(t('t_updated'),'ok');openDetail(o.id);
   }else{fillMemberOnos(f);                     /* v409: numbers exist before the record does */
     const o={id:uid(),created:new Date().toISOString(),orderNo:f.orderNo,customerId:c.id,customerName:c.name,phone:c.phone,salesmanId:f.salesmanId||'',
       members:(f.members||[]).filter(m=>m.id!==''),
-      orderDate:f.orderDate,deliveryDate:f.deliveryDate,trialDate:f.trialDate||'',items:f.items,m:f.m,design:f.design,variant:f.variant||{},notes:f.notes,total:f.total,advance:f.advance,payments:(+f.advance>0?[{id:'pay_'+uid(),amt:+f.advance,date:f.orderDate||todayISO()}]:[]),photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,bodyType:f.bodyType,dispatch:f.dispatch||null,source:f.source||'',sourceRef:f.sourceRef||'',sampleId:f.sampleId||'',
+      orderDate:f.orderDate,deliveryDate:f.deliveryDate,trialDate:f.trialDate||'',items:f.items,m:f.m,design:f.design,variant:f.variant||{},notes:f.notes,total:f.total,advance:f.advance,payments:(+f.advance>0?[{id:'pay_'+uid(),amt:+f.advance,date:f.orderDate||todayISO()}]:[]),photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,bodyType:f.bodyType,dispatch:f.dispatch||null,source:f.source||'',sourceRef:f.sourceRef||'',sampleId:f.sampleId||'',custSample:f.custSample||{},
       status:'new',itemStatus:(function(){const o={};f.items.forEach(g=>o[g]='new');return o;})(),log:[{id:uid(),ts:new Date().toISOString(),text:t('t_status',{s:sLabel('new')}),voiceId:null}]};
     _pastDelivOK=false;                        /* v258: the question is asked per order */
     numHWCommitOrder(f);                       /* v257: burned here, and only here */
@@ -18710,6 +18974,15 @@ async function openDetail__inner(id,focusGid){
       <div style="flex:1"><div style="color:var(--saffron);font-size:13px;font-weight:700">#${esc(o.orderNo)} <span title="Edit order number" onclick="event.stopPropagation();odEditNo('${o.id}')" style="cursor:pointer;opacity:.7">✏️</span></div><h2 onclick="odEditCust('${o.id}')" style="cursor:pointer">${esc(o.customerName)}</h2></div>
       <button class="btn sm ghost" style="flex:0 0 auto" title="${t('wa_customer')}" onclick="event.stopPropagation();waOrder('${o.id}')">💬</button>
       <button class="btn sm ghost" onclick="orderMenu('${o.id}')">⋯</button></div>
+
+    ${(()=>{ const n=custSampleCount(o); if(!n||o.custSampleBack)return '';
+      /* v614: it stays on the screen — not behind a fold, not in the notes — until he
+         says the garment went back. The shop is holding something that is not its own. */
+      return `<div class="card" style="border-color:var(--saffron2);margin-bottom:8px">
+        <div class="kv"><span><b>📦 ${t('smp_hold')} · ${n}</b></span>
+          <button class="btn sm primary" style="flex:0 0 auto"
+            onclick="event.stopPropagation();odSampleBack('${o.id}')">${t('smp_back_go')}</button></div>
+        <p class="hint" style="margin:6px 0 0">${t('smp_back_msg')}</p></div>`; })()}
 
     <button class="btn ghost block od-info-btn" style="margin-bottom:8px" onclick="odInfoToggle()">
       📞 ${esc(o.phone||'—')} ${dl!==null&&st!=='delivered'?('· '+(dl<0?Math.abs(dl)+'d '+t('late'):dl+'d')):''} ${baaki>0.5?('· '+t('baaki')+' '+money(baaki)):''} ${_odInfo?'▴':'▾'}</button>
