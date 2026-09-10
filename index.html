@@ -130,7 +130,17 @@
   .tile-soon .soon{position:absolute; top:6px; right:8px; font-size:9px; font-weight:900;
     color:var(--saffron2); letter-spacing:.5px}
   .mscrim{z-index:110}          /* must sit ABOVE the main sheet (z-index 90) */
-  .mscrim .sheet{max-height:85vh}
+  /* ══════════ v602 — THE MODAL THAT WOULD NOT MOVE FOR THE KEYBOARD ══════════
+     HIS 10 Sept, on Payment In: "customer par click kiya to aadha mobile number aa raha
+     hai... scroll karke neeche la raha hun to wo bhi nahi aata jab tak keyboard minimize
+     na karun."
+     v340 taught every sheet to shrink by the keyboard's height — max-height:calc(90vh -
+     var(--kb)) — and it works. This line, written earlier and more specific, then pinned
+     the MODAL sheets back to a flat 85vh, so it never shrank: its lower half stayed under
+     the keys, and scrolling could not reach what was not in the box. A later rule quietly
+     undoing an earlier fix, on exactly the screens that are modals — Payment In, Payment
+     Out, Journal entry, Opening balances. It subtracts the keyboard too now. */
+  .mscrim .sheet{max-height:calc(85vh - var(--kb, 0px))}
     .draft-card{border:1px dashed var(--saffron) !important; background:rgba(224,138,26,.05); cursor:pointer}
   .draft-card .ono{color:var(--saffron2); font-size:11px; letter-spacing:1px; font-weight:900}
   .draft-card:active{transform:scale(.99)}
@@ -620,7 +630,12 @@
      hai". A form is a PLACE, not a peek — so it takes the whole screen, opaque, with
      nothing of the page behind showing through. */
   .scrim.full{background:var(--bg); align-items:stretch}
-  .scrim.full .sheet{width:100%; max-width:100%; height:100dvh; max-height:100dvh;
+  /* v603 — same shape as the modal, found by sweeping every height cap in the stylesheet.
+     100dvh shrinks when the browser's own bars slide away; it does NOT shrink for the
+     on-screen keyboard. So the full-screen forms — New order and New bill, the two he is
+     inside all day — kept their bottom half under the keys with no way to scroll to it. */
+  .scrim.full .sheet{width:100%; max-width:100%; height:calc(100dvh - var(--kb, 0px));
+    max-height:calc(100dvh - var(--kb, 0px));
     border:none; border-radius:0; animation:fade .15s; padding-top:12px}
   .scrim.full .grip{display:none}
   /* THE FRACTION BAR was covering Save Order — it is fixed to the bottom and the sheet
@@ -886,7 +901,10 @@
 
     /* detail sheets sit beside the list, not on top of it */
     .scrim{background:transparent; justify-content:flex-end; align-items:stretch; pointer-events:none}
-    .scrim .sheet{pointer-events:auto; width:560px; max-width:560px; max-height:100vh; height:100vh;
+    /* v603 — and this is the iPad's own rule, the widest one, on the device the shop
+       actually runs on. 100vh never shrinks for anything at all. */
+    .scrim .sheet{pointer-events:auto; width:560px; max-width:560px;
+      max-height:calc(100vh - var(--kb, 0px)); height:calc(100vh - var(--kb, 0px));
       border-radius:0; border-top:0; border-right:0; border-left:1px solid var(--line);
       box-shadow:-18px 0 44px rgba(0,0,0,.5); animation:slidein .18s ease; padding-bottom:28px}
     @keyframes slidein{from{transform:translateX(100%)} to{transform:none}}
@@ -894,7 +912,10 @@
     /* on a wide screen the sheet is already a full-height side panel, so "full" only
        needs to stop it going edge-to-edge */
     .scrim.full{background:transparent; align-items:stretch}
-    .scrim.full .sheet{width:560px; max-width:560px; height:100vh; max-height:100vh;
+    /* v603 — the fourth and last one: the FULL form on a wide screen, i.e. New order and
+       New bill on the iPad in landscape. The sweep found it; I had only fixed three. */
+    .scrim.full .sheet{width:560px; max-width:560px;
+      height:calc(100vh - var(--kb, 0px)); max-height:calc(100vh - var(--kb, 0px));
       border-left:1px solid var(--line); animation:slidein .18s ease}
 
     /* the confirm/pick modal stays centred — it is a decision, not a workspace */
@@ -921,7 +942,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v599</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v611</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -1009,6 +1030,20 @@ const T={
   inv_saved_go:'Bill {n} saved — it is at the top of the list',
   py_add_new:'➕ Add “{n}” as a new party',
   pos_added:'{n} added to the bill',
+  vch_receipt:'Receipt', vch_payment:'Payment',
+  lg_opening_as:'Opening as on {d}', lg_period:'Period', lg_from:'From', lg_to:'To',
+  rps_outstanding:'Outstanding',
+  lg_dr_total:'Total Debit', lg_cr_total:'Total Credit', lg_all_dates:'All dates',
+  lg_nomove:'No entries in this period',
+  mi_use_contra:'Cash and bank move by transfer, not by receipt',
+  mi_no_group:'{n} has no group yet \u2014 set it, so the money lands in the right place',
+  mo_not_out:'{n} is an income account \u2014 money does not go out through it',
+  lg_nogroup:'Group not set',
+  mi_grp:'{g}',
+  inv_need_line:'Add at least one item to the bill',
+  inv_zero_saved:'Bill {n} saved with no amount \u2014 fill the rates whenever they are decided',
+  del_take_pay:'\uD83D\uDDD1\uFE0F Delete the bill AND its {amt}',
+  del_take_pay_msg:'The bill goes, and the {amt} receipt on it goes with it. Your cash for the day drops by {amt}. Nothing else is touched.',
   py_disc:'Discount', py_recd:'Received', py_total:'Total settled',
   py_bal:'Party balance', py_link:'\uD83D\uDD17 Choose bills',
   py_disc_none:'Nothing is outstanding, so a discount has nothing to reduce',
@@ -1682,7 +1717,7 @@ const T={
   purchases_list:'Purchase list', credit_note:'Credit note', debit_note:'Debit note',
   estimate:'Estimate', purchase_order:'Purchase order', soon:'SOON', coming_soon:'Coming in the next update',
   qa_title:'What do you want to do?', qa_sub:'Everything you add day to day, in one place.',
-  pay_in:'Payment In', pay_out:'Payment Out',
+  pay_in:'Receipt', pay_out:'Payment',
   td_kind_salesday:'Daily sales, bill by bill', td_sales_day:'Sales today',
   td_got:'Received', td_due:'Due', td_no_bills:'No bills today.',
   td_title:'Daily summary', td_tab_today:'Today', td_tab_work:'Work',
@@ -1781,7 +1816,7 @@ const T={
   pur_count:'{n} {n|purchase|purchases}',
   pur_spent:'Spent',
   pm_bank:'Bank transfer',
-  pos_ono_auto:'auto',
+  pos_ono_auto:'Search or type',
   gs_title:'GST rates', gs_sub:'What a new bill starts at. Past bills keep the rate they were saved with.',
   gs_pur_def:'Default GST on a new purchase', gs_pur_hint:'You can still change it on any single bill.',
   gs_sale_note:'Sale bills work it out per item — cloth sold by the metre at 5%, and readymade at 5% up to ₹2,500 or 18% above it.',
@@ -2036,7 +2071,10 @@ const T={
   ex_csv:'CSV', ex_pdf:'PDF / print', ex_done:'{n} {n|row|rows} exported', ex_nothing:'Nothing to export',
   stk_cat_all:'All categories', stk_cat_pick:'Category',
   pty_cred:'Creditors — I have to pay', pty_debt:'Debtors — they have to pay me', pty_flat:'No balance',
-  pty_title:'Creditors & debtors', pty_sub:'Who the shop owes, and who owes the shop — openings, payments and balance',
+  pty_title:'Sundry Debtors', pty_sub:'',
+  pty_cred_title:'Sundry Creditors',
+  rp_out_debtors:'Debtors Outstanding', rp_out_creditors:'Creditors Outstanding',
+  rp_out_loans:'Loans Outstanding',
   pty_search:'Search a name…', pty_add:'Add a party', pty_none:'Nobody yet',
   pty_open:'Opening', pty_open_left:'Opening still open', pty_open_none:'No opening entered',
   pty_open_set:'Set opening balance', pty_open_edit:'Change opening', pty_open_del:'Remove opening',
@@ -3049,6 +3087,20 @@ dl_show_hidden:'Show hidden ({n})',
   inv_saved_go:'बिल {n} सेव हो गया — सूची में सबसे ऊपर है',
   py_add_new:'➕ “{n}” को नई पार्टी बनाएँ',
   pos_added:'{n} बिल में जुड़ गया',
+  vch_receipt:'रसीद', vch_payment:'भुगतान',
+  lg_opening_as:'{d} तक का ओपनिंग', lg_period:'अवधि', lg_from:'से', lg_to:'तक',
+  rps_outstanding:'बकाया',
+  lg_dr_total:'कुल डेबिट', lg_cr_total:'कुल क्रेडिट', lg_all_dates:'सभी तारीख़ें',
+  lg_nomove:'इस अवधि में कोई एंट्री नहीं',
+  mi_use_contra:'कैश और बैंक के बीच पैसा ट्रांसफ़र से जाता है, रसीद से नहीं',
+  mi_no_group:'{n} का group अभी तय नहीं है — तय कीजिए, तभी पैसा सही जगह जाएगा',
+  mo_not_out:'{n} आय का खाता है — इससे पैसा बाहर नहीं जाता',
+  lg_nogroup:'Group तय नहीं',
+  mi_grp:'{g}',
+  inv_need_line:'बिल में कम से कम एक आइटम डालिए',
+  inv_zero_saved:'बिल {n} बिना रकम के सेव हो गया \u2014 भाव तय होते ही डाल दीजिए',
+  del_take_pay:'\uD83D\uDDD1\uFE0F बिल और उसका {amt} दोनों मिटाओ',
+  del_take_pay_msg:'बिल मिट जाएगा और उस पर की {amt} की रसीद भी। दिन का कैश {amt} घट जाएगा। बाकी कुछ नहीं छुएगा।',
   py_disc:'छूट', py_recd:'मिला', py_total:'कुल निपटा',
   py_bal:'पार्टी का बाकी', py_link:'\uD83D\uDD17 बिल चुनें',
   py_disc_none:'कुछ बाकी ही नहीं है, तो छूट किस पर लगेगी',
@@ -3708,7 +3760,7 @@ dl_show_hidden:'Show hidden ({n})',
   purchases_list:'ख़रीद सूची', credit_note:'क्रेडिट नोट', debit_note:'डेबिट नोट',
   estimate:'एस्टिमेट', purchase_order:'परचेज़ ऑर्डर', soon:'जल्द', coming_soon:'अगले अपडेट में आएगा',
   qa_title:'क्या करना है?', qa_sub:'रोज़ का सब कुछ, एक जगह।',
-  pay_in:'पैसा आया', pay_out:'पैसा दिया',
+  pay_in:'रसीद (Receipt)', pay_out:'भुगतान (Payment)',
   td_kind_salesday:'रोज़ की बिक्री, बिल-दर-बिल', td_sales_day:'आज की बिक्री',
   td_got:'मिला', td_due:'बाकी', td_no_bills:'आज कोई बिल नहीं।',
   td_title:'दिन का हिसाब', td_tab_today:'आज', td_tab_work:'काम',
@@ -3808,7 +3860,7 @@ dl_show_hidden:'Show hidden ({n})',
   pur_count:'{n} ख़रीद',
   pur_spent:'ख़र्च',
   pm_bank:'बैंक ट्रांसफ़र',
-  pos_ono_auto:'अपने-आप',
+  pos_ono_auto:'खोजें या लिखें',
   gs_title:'GST दरें', gs_sub:'नया बिल किस दर से खुलेगा। पुराने बिल अपनी दर पर ही रहेंगे।',
   gs_pur_def:'नई खरीद पर डिफ़ॉल्ट GST', gs_pur_hint:'किसी भी एक बिल पर बदल सकते हैं।',
   gs_sale_note:'बिक्री के बिल में हर आइटम की दर अपने आप लगती है — मीटर से बिकने वाला कपड़ा 5%, और रेडीमेड ₹2,500 तक 5%, उससे ऊपर 18%।',
@@ -4063,7 +4115,10 @@ dl_show_hidden:'Show hidden ({n})',
   ex_csv:'CSV', ex_pdf:'PDF / प्रिंट', ex_done:'{n} लाइन एक्सपोर्ट हुईं', ex_nothing:'एक्सपोर्ट करने को कुछ नहीं',
   stk_cat_all:'सभी कैटेगरी', stk_cat_pick:'कैटेगरी',
   pty_cred:'लेनदार — इनको देना है', pty_debt:'देनदार — इनसे लेना है', pty_flat:'कोई बकाया नहीं',
-  pty_title:'लेनदार और देनदार', pty_sub:'किसका देना है और किससे लेना है — शुरुआती बकाया, भुगतान और बैलेंस',
+  pty_title:'देनदार (Sundry Debtors)', pty_sub:'',
+  pty_cred_title:'लेनदार (Sundry Creditors)',
+  rp_out_debtors:'देनदार बकाया', rp_out_creditors:'लेनदार बकाया',
+  rp_out_loans:'ऋण बकाया',
   pty_search:'नाम ढूंढें…', pty_add:'पार्टी जोड़ें', pty_none:'अभी कोई नहीं',
   pty_open:'शुरुआती बाकी', pty_open_left:'शुरुआती बकाया बचा है', pty_open_none:'कोई शुरुआती बकाया नहीं',
   pty_open_set:'शुरुआती बकाया डालें', pty_open_edit:'शुरुआती बकाया बदलें', pty_open_del:'शुरुआती बकाया हटाएँ',
@@ -5383,6 +5438,22 @@ function load(raw){
     ['Tax payment','indirect',''], ['CA / accounting fee','indirect',''],
     ['Loan interest','indirect',''], ['Bank charges','indirect',''],
     ['Advertising','indirect',''],
+    /* ══════════ v605 — THE APP SHIPPED ITS OWN UNGROUPED HEADS ══════════
+       Found by the Receipt screen: two ledgers on his book had NO group — "General
+       expenses" and "Job work". Both are heads THIS APP creates on first run, in the
+       DB.expCats list above, and neither was given a kind here. With no kind, lgGuessGroup
+       has nothing to read and (since v513, correctly) refuses to guess — so the app's own
+       defaults arrived on the chart of accounts unplaced.
+       HIS 10 Sept: "General expenses, of course, indirect expenses mein jaayenge."
+       Job work is the making-cost of the garment and the chart has a group of that exact
+       name; the app already argues this for the "Job Worker" head at v235, so it is placed
+       DIRECT for the same reason and by the same rule, not by a fresh guess.
+       Only filled where missing, so a head he has already re-kinded is never overwritten. */
+    ['General expenses','indirect',''],
+    ['Staff welfare','indirect',''],
+    ['Professional fees','indirect',''],
+    ['Repairs & maintenance','indirect',''],
+    ['Job work','direct',''],
     [t('eh_drawing'),'drawing','staff']
   ].forEach(([nm,kind,who])=>{
     if(DB.expCats.indexOf(nm)<0)DB.expCats.push(nm);
@@ -7379,7 +7450,7 @@ function bulkFabRender(){
      <button class="btn sm danger" style="flex:0 0 auto" onclick="bulkDelAdded('${a.id}')">✕</button></div>`).join('');
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">📋 ${t('stk_bulk_title')}</h2><button class="btn sm ghost" onclick="closeSheet();stockHome('fabric')" title="Back">←</button></div>
-    <p class="hint" style="margin-bottom:12px">${t('stk_bulk_desc')}</p>
+    
     <datalist id="fabCats">${[...new Set((DB.fabItems||[]).map(x=>x.category).filter(Boolean))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
     <datalist id="fabRacks">${[...new Set((DB.thaans||[]).map(x=>x.rack).filter(Boolean))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
     ${_bulkMore?`<div class="head-grid" style="grid-template-columns:1fr 1fr">
@@ -7511,7 +7582,7 @@ function scrapBook(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F9F5} ${t('scrap_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
-    <p class="hint" style="margin-bottom:10px">${t('scrap_sub')}</p>
+    
     <div class="field"><label>${t('scrap_below')}</label>
       <input id="scrapLim" type="number" step="0.1" inputmode="decimal" value="${lim}"
         onchange="scrapSetLimit(this.value)"> </div>
@@ -7708,7 +7779,7 @@ function readyBulkRender(){
   const e=_rbulk.entry;
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">👔 ${t('rb_title')}</h2><button class="btn sm ghost" onclick="closeSheet();stockHome('ready')" title="Back">←</button></div>
-    <p class="hint" style="margin-bottom:12px">${t('rb_sub')}</p>
+    
     <div class="field"><label>${t('rb_cat')}</label><input id="rb_cat" list="rdyCats" value="${esc(_rbulk.cat)}" oninput="rbShared(this.value)" placeholder="Suit / Kurta / Sherwani"></div>
     <datalist id="rdyCats">${[...new Set((DB.itemMaster||[]).filter(x=>x.kind==='ready'&&x.category).map(x=>x.category))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
     <div class="card" style="padding:10px;border-color:var(--saffron);margin:10px 0 14px">
@@ -8122,7 +8193,7 @@ function gstSetup(){
   const opts=[0,5,12,18,28];
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">🧾 ${t('gs_title')}</h2></div>
-    <p class="hint" style="margin-bottom:14px">${t('gs_sub')}</p>
+    
     <div class="field"><label>${t('gs_pur_def')}</label>
       <select id="gs_pur">
         ${opts.map(r=>`<option value="${r}" ${r===cur?'selected':''}>${r}%</option>`).join('')}
@@ -8148,7 +8219,7 @@ function numberingEdit(){
   const seen=invSeen();
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">🔢 ${t('num_title')}</h2>
-    <p class="hint" style="margin-bottom:14px">${t('num_sub')}</p>
+    
 
     <div class="section-h">🧾 ${t('num_inv')}</div>
     <div class="row">
@@ -8247,7 +8318,7 @@ function importVyapar(){
   sheetAt(importVyapar);
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">📥 ${t('imp_title')}</h2>
-    <p class="hint" style="margin-bottom:14px">${t('imp_sub')}</p>
+    
     <div class="card" style="margin-bottom:14px">
       <b style="font-size:13px">${t('imp_how')}</b>
       <ol style="margin:8px 0 0 16px;padding:0;color:var(--txt2);font-size:12.5px;line-height:1.9">
@@ -8432,7 +8503,7 @@ function growthReport(){
 
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">📈 ${t('gr_title')}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
-    <p class="hint" style="margin-bottom:14px">${t('gr_sub')}</p>
+    
 
     ${P?`<div class="card pos-total" style="margin-bottom:14px">
       <div class="sum-row"><span>${t('gr_fy')} ${fyLabel(cur)} <span class="hint">(${t('gr_sofar')})</span></span><b>${money(curTD)}</b></div>
@@ -8644,7 +8715,7 @@ function cashBank(){
   const adj=jvCashAdj();
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">🏦 ${t('cb_title')}</h2>
-    <p class="hint" style="margin-bottom:14px">${t('cb_sub')}</p>
+    
     <div class="card pos-total" style="margin-bottom:14px">
       <div class="sum-row grand" style="border-top:none;padding-top:0">
         <span>${t('cb_total')}</span><b>${money(total)}</b></div></div>
@@ -8778,7 +8849,7 @@ function bankImport(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">🏦 ${t('bi_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
-    <p class="hint" style="margin-bottom:10px">${t('bi_sub')}</p>
+    
     <div class="field"><label>${t('bi_into')}</label>
       <select id="bi_acc">${banks.map(a=>`<option value="${a.id}" ${a.id===_bi.acc?'selected':''}>${esc(a.name)}</option>`).join('')}</select></div>
     <div class="field"><label>${t('bi_paste')}</label>
@@ -8970,7 +9041,7 @@ function brsRender(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">🏦 ${t('brs_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
-    <p class="hint" style="margin-bottom:10px">${t('brs_sub')}</p>
+    
     ${accs.length>1?`<div class="field" style="margin-bottom:8px"><label>${t('cb_into')}</label>
       <select onchange="_brsAcc=this.value;brsRender()">
         ${accs.map(a=>`<option value="${a.id}" ${a.id===_brsAcc?'selected':''}>${esc(a.name)}</option>`).join('')}
@@ -9405,7 +9476,7 @@ function renderCollect(){
   const more=list.length>60?`<p class="hint" style="text-align:center">${t('col_more',{n:list.length-60})}</p>`:'';
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:6px">\u{1F4B0} ${t('col_title')}</h2>
-    <p class="hint" style="margin-bottom:8px">${t('col_sub')}</p>
+    
     <div class="card pos-total" style="margin-bottom:10px">
       <div class="sum-row grand"><span>${t('col_left',{n:list.length})}</span><b>${money(total)}</b></div>
     </div>
@@ -9503,6 +9574,42 @@ function payEntryDo(dir,again){
     ()=>{})){ toast(t('sv_dup'),'bad'); return; }
   const date=$('#py_date').value||todayISO();
   const acc=($('#py_acc').value==='__new'?(defaultAcc()||{}).id:$('#py_acc').value);
+  /* v604: anything that is not a party ledger is posted by miPost, which reads the chart
+     and writes the one right row. Party ledgers keep the settle path below, because only
+     they have bills for the money to land on. */
+  /* ══════════ v607 — AND THE SAME ON THE WAY OUT ══════════
+     HIS 10 Sept: "receipt ka kaam ho gaya, payment ka kaam kar do."
+     Same argument, same shape. moPost has routed money-out by the chart of accounts since
+     v456 — supplier, tailor, staff, loan repayment, expense, the owner's own drawing — so
+     the Payment screen only ever needed to stop filtering its list down to suppliers and
+     hand the name over. Both vouchers now read one chart, refuse one thing (an ungrouped
+     name), and settle bills only where bills can exist. */
+  {
+    const _L=(typeof lgByName==='function')?lgByName(party):null;
+    const _g=(_L&&_L.group)||'';
+    if(_L && (!_g || !lgGroup(_g))){        /* v604: an ungrouped ledger is fixed, not guessed */
+      toast(t('mi_no_group',{n:party}),'bad');
+      closeModal(); setTimeout(()=>{ try{ ledgerEdit(_L.id); }catch(e){} },120); return;
+    }
+    if(dir==='out' && _g && _g!=='debtors' && _g!=='creditors'){
+      if(disc>0){ toast(t('py_disc_none'),'bad'); return; }
+      const res=moPost({name:party, amt, date, acc, note:($('#py_note')||{}).value||''});
+      if(!res.ok){ toast(res.msg,'bad'); return; }
+      save(); payPartyRowsClear(); closeModal();
+      toast('\u2705 '+t('vch_payment')+' \u00B7 '+money(amt)+' \u00B7 '+esc(party),'ok');
+      if(again)payEntry(dir,1); else { renderHome(); }
+      return;
+    }
+    if(dir==='in' && _g && _g!=='debtors' && _g!=='creditors'){
+      if(disc>0){ toast(t('py_disc_none'),'bad'); return; }
+      const res=miPost({name:party, amt, date, acc, note:($('#py_note')||{}).value||''});
+      if(!res.ok){ toast(res.msg,'bad'); return; }
+      save(); payPartyRowsClear(); closeModal();
+      toast('\u2705 '+t('vch_receipt')+' \u00B7 '+money(amt)+' \u00B7 '+esc(party),'ok');
+      if(again)payEntry(dir,1); else { renderHome(); }
+      return;
+    }
+  }
   const cust=(DB.customers||[]).find(c=>(c.name||'').trim().toLowerCase()===party.toLowerCase());
   /* the discount goes FIRST, so the money that follows is not absorbed by the amount he is
      writing off — the same order collectTake has used since v581 */
@@ -9561,18 +9668,21 @@ function payPartyRows(dir){
     const lk=k.toLowerCase(); if(seen[lk]){ if(ph&&!seen[lk].ph)seen[lk].ph=ph; return; }
     const row={nm:k,ph:ph||''}; seen[lk]=row; out.push(row); };
   if(dir==='in'){
-    /* v591 — FOUND BY RUNNING IT, and it is the worse half of the fault. The list was built
-       from DB.customers alone, so a man who has a bill outstanding but no customer record —
-       an old order, an imported bill, a walk-in — did not appear at all on the one screen
-       where his money is collected. Every name that carries a balance is on the list now,
-       whether or not anybody ever saved him as a customer. */
     (DB.customers||[]).forEach(c=>push(c.name,c.phone));
     (DB.orders||[]).forEach(o=>{ if(orderBaaki(o)>0)push(o.customerName,o.phone); });
     (DB.sales||[]).forEach(x=>{ if(orderBaaki(x)>0)push(x.customerName,x.phone); });
     (DB.alterations||[]).forEach(a=>{ if(orderBaaki(a)>0)push(a.customerName,a.phone); });
   } else {
     (DB.purchases||[]).forEach(p=>push(p.supplier,p.phone));
+    (DB.karigars||[]).forEach(k=>push(k.name,k.phone));
+    (DB.staff||[]).forEach(k=>push(k.name,k.phone));
   }
+  /* v604: and then the CHART ITSELF — every ledger the shop keeps, so a loan, the owner's
+     own money or income that is not a sale can be received on this one screen. Cash and
+     bank are left out on purpose: moving money between them is a transfer, and it has its
+     own voucher because both sides are accounts of his own. */
+  try{ lgSync(); }catch(e){}
+  lgAll().forEach(l=>{ const g=(l.group||''); if(g==='cash'||g==='bank')return; push(l.name,''); });
   /* the ones who owe come first, biggest first — that is the order he works in */
   if(dir==='in'){
     out.forEach(r=>{ const d=payDueOf(r.nm); r.due=d?d.due:0; });
@@ -9610,9 +9720,16 @@ function payPartyPick(q){
   }
   box.innerHTML=rows.slice(0,8).map(r=>{
     const due=(dir==='in')?(r.due||0):0;
+    /* v604: a ledger that is not a party has no "owes" figure — what matters about it is
+       which group it sits in, because that is what decides where the money lands */
+    const L=(typeof lgByName==='function')?lgByName(r.nm):null;
+    const G=(L&&typeof lgGroup==='function')?lgGroup(L.group):null;
+    const isParty=!L||!G||G.id==='debtors'||G.id==='creditors';
     const tag = (dir!=='in') ? ''
+      : (L&&!G ? `<span class="hint" style="white-space:nowrap;color:var(--bad)">${t('lg_nogroup')}</span>`
+      : (!isParty ? `<span class="hint" style="white-space:nowrap">${esc(G.label)}</span>`
       : (due>0 ? `<b style="color:var(--ok);white-space:nowrap">${money(due)} ${t('py_to_get')}</b>`
-               : `<span class="hint" style="white-space:nowrap">${t('py_clear')}</span>`);
+               : `<span class="hint" style="white-space:nowrap">${t('py_clear')}</span>`)));
     return `<div class="cust-result" onclick="payPartySet('${jq(r.nm)}')">
       <div style="min-width:0"><b>${esc(r.nm)}</b>
         ${r.ph?`<div class="hint">${esc(r.ph)}</div>`:''}</div>
@@ -9891,7 +10008,7 @@ function expenses(keepQ){
      parts are in the order a man actually uses them. */
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">💸 ${t('exp_title')}</h2></div>
-    <p class="hint" style="margin-bottom:12px">${t('exp_sub')}</p>
+    
     <button class="btn primary block" style="margin-bottom:10px" onclick="expEdit()">➕ ${t('exp_add')}</button>
     <input id="expQ" value="${esc(_expQ)}" placeholder="🔍 ${t('exp_search_ph')}"
       autocomplete="off" oninput="expSearch(this.value)" style="margin-bottom:8px">
@@ -10623,7 +10740,7 @@ function dayBook(keepFocus){
 
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">📒 ${t('db_title')}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
-    <p class="hint" style="margin-bottom:8px">${t('db_sub')}</p>
+    
     ${/* v456: search sits above the dates, because a name is what he is looking for and the
          range is only how far back to look. Typing does not rebuild the sheet — dayBook(1)
          keeps the box and its cursor exactly where they are. */''}
@@ -10822,7 +10939,7 @@ function orderFilter(){
 
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">🔎 ${t('of_title')}</h2>
-    <p class="hint" style="margin-bottom:10px">${t('of_sub')}</p>
+    
 
     <div class="gtags" style="margin-bottom:8px">
       <span class="gtag ${_ofBasis==='delivery'?'on-tag':''}" style="cursor:pointer" onclick="ofSet('basis','delivery')">📅 ${t('of_by_delivery')}</span>
@@ -11190,7 +11307,7 @@ function orderReports(){
 
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">📊 ${t('or_title')}</h2>
-    <p class="hint" style="margin-bottom:12px">${t('or_sub')}</p>
+    
     ${/* v346: what is pending right now, before the period figures below — those look
          back, this looks at the shop as it stands today. */''}
     ${orderBoardHTML()}
@@ -11441,7 +11558,7 @@ function creditors(){
   let groups=_cg.groups; const total=_cg.total, _crMore=_cg.more, _crAll=_cg.all, _crQ=_cg.q;
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">📤 ${t('creditors_report')}</h2>
-    <p class="hint" style="margin-bottom:12px">${t('cr_sub')}</p>
+    
     ${/* v372 — HIS 28 Aug: "creditors me click karun to new creditor aur search bar aur
          neeche purani entries, wahi sab cheezein usi hisaab se dikhe. To kisi ko entry
          karna hai to yahan se bhi kar sakta hai." Same shape as the Orders and Purchase
@@ -11777,7 +11894,7 @@ function incBook(){
     </div>`;}).join('');
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin:0 0 2px">🎯 ${t('inc_title')}</h2>
-    <p class="hint" style="margin:0 0 12px">${t('inc_desc')}</p>
+    
     <button class="btn primary block" style="margin-bottom:10px" onclick="incEdit()">➕ ${t('inc_new')}</button>
     ${rows||`<div class="empty" style="padding:26px 10px"><p>${t('inc_none')}</p></div>`}
     <div class="fab-pad"></div>`;
@@ -12117,7 +12234,7 @@ function qrRender(){
   const url=qrDataURL(amt,_qrNote,340);
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">💳 ${t('qr_title')}</h2>
-    <p class="hint" style="margin-bottom:12px">${t('qr_sub')}</p>
+    
     <div class="qr-card">
       ${url?`<img src="${url}" alt="UPI QR" class="qr-img">`:`<p class="hint">${t('t_wrong')}</p>`}
       <div class="qr-name">${esc(shop.name||t('your_shop'))}</div>
@@ -12534,7 +12651,7 @@ function followUps(){
 
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">🔔 ${t('fu_title')}</h2>
-    <p class="hint" style="margin-bottom:12px">${t('fu_sub')}</p>
+    
     ${/* v399 — HIS 29 Aug: "debtors me search bar bhi nahi hai... agar sau do sau honge to
          kitna bada page ho jayega aur main kaise search karunga." Payables had a search box
          and this did not, and neither of them had any idea when to stop. Ten names is a
@@ -13057,7 +13174,7 @@ function noBillList(){
     ||`<p class="hint" style="padding:20px 0;text-align:center">${t('nb_none')}</p>`;
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">\ud83e\uddfe ${t('nb_title')}</h2>
-    <p class="hint" style="margin-bottom:12px">${t('nb_sub')}</p>
+    
     ${rows}
     <div class="fab-pad"></div>`;
   showSheet();
@@ -13106,7 +13223,7 @@ function statusEnquiry(q){
       <span style="color:var(--saffron2)">›</span></div>`;}).join('');
   const html=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">📞 ${t('se_title')}</h2>
-    <p class="hint" style="margin-bottom:10px">${t('se_sub')}</p>
+    
     <input id="se_q" placeholder="${t('se_ph')}" autocomplete="off" value="${esc(term)}"
       oninput="statusEnquiry()" inputmode="search">
     <div style="margin-top:10px">${term?(rows||`<p class="hint" style="padding:14px 0;text-align:center">${t('se_nohit')}</p>`):''}</div>
@@ -13274,7 +13391,7 @@ function courierHub(keep){
   const thisMonth=sent.filter(o=>String(o.dispatch.sentDate||'').slice(0,7)===todayISO().slice(0,7)).length;
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">📦 ${t('cu_title')}</h2>
-    <p class="hint" style="margin-bottom:10px">${t('cu_sub')}</p>
+    
     <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
       <div class="il"><span>${t('cu_pending')}</span><b style="font-size:18px;color:var(--saffron2)">${toSend.length}</b></div>
       <div class="il" style="border-bottom:0"><span>${t('cu_sent_month')}</span><b>${thisMonth}</b></div></div>
@@ -13415,7 +13532,7 @@ function catalogue(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">📖 ${t('cat_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
-    <p class="hint" style="margin-bottom:12px">${t('cat_sub')}</p>
+    
     <button class="btn primary block" style="margin-bottom:12px" onclick="catFolderEdit()">➕ ${t('cat_new_folder')}</button>
     ${fs.length?`<div class="cat-grid">${cards}</div>`:`<p class="hint" style="padding:20px 0;text-align:center">${t('cat_no_folder')}</p>`}
     <button class="btn ghost block" style="margin-top:12px" onclick="catSource()">🗂️ ${t('cat_browse_all')}</button>
@@ -13665,7 +13782,7 @@ function renderSetup(){
   $('#homePane').innerHTML=`
     <div class="card" style="margin-bottom:12px">
       <h2 style="margin:0 0 4px">${t('su_title')}</h2>
-      <p class="hint" style="margin:0">${t('su_sub')}</p>
+      
     </div>
     <div class="card">
       <div class="field"><label>${t('su_shop')} *</label>
@@ -13982,7 +14099,7 @@ function qrManage(focus){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u2699\uFE0F ${t('qc_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
-    <p class="hint" style="margin-bottom:12px">${t('qc_sub')}</p>
+    
     ${vis.map(x=>row(x,true)).join('')}
     <div class="section-h" style="margin-top:14px">${t('qc_hidden')}</div>
     ${hid.length?hid.map(x=>row(x,false)).join(''):`<p class="hint">${t('qc_none_hidden')}</p>`}
@@ -14051,6 +14168,16 @@ function quickRowClassicHTML(){
    screens, and only then Home. The mark is dropped the moment he navigates by any other
    means, so it can never fire on a tab he reached some other way. */
 function menuGoTab(tab){ closeSheet(); _tabFromMenu=tab; go(tab); }
+/* ══════════ v611 — 62 SCREENS STOPPED EXPLAINING THEMSELVES ══════════
+   HIS 10 Sept: "hamare software ka kaam accounts padhana nahi hai... maalik ko lagna
+   chahiye us level ka hai."
+   Counted: 296 caption paragraphs in the app. Most are honest work — an empty state, a
+   warning before money moves, a note on one field — and those stay. 69 of them sat directly
+   under a SCREEN TITLE and did nothing but describe the screen he had just chosen to open.
+   Those are gone. Seven were kept because they are an instruction rather than a
+   description: pick a piece, pick a return, a planning note, what the preview will send.
+   The rule from here: a title names the screen, and nothing under it repeats the title in
+   longer words. */
 function menuHome(){
   sheetAt(menuHome);
   _tabFromMenu='';
@@ -14074,11 +14201,11 @@ function menuHome(){
          search, records — with no screen of doors in between. Everything the hub held is
          still one tap away, behind ⋯ on that same list. */''}
     ${modOn('billing')?sec('🧾 '+t('hub_sale'),[
-      row('🧾',t('hub_sale'),"menuGoTab('invoices')",t('mnu_sale_sub'))]):''}
+      row('🧾',t('hub_sale'),"menuGoTab('invoices')")]):''}
     ${modOn('billing')?sec('🚚 '+t('hub_purchase'),[
-      row('🚚',t('hub_purchase'),"menuGoTab('purchases')",t('mnu_pur_sub'))]):''}
+      row('🚚',t('hub_purchase'),"menuGoTab('purchases')")]):''}
     ${sec('📋 '+t('nav_orders'),[
-      row('📋',t('nav_orders'),"menuGoTab('orders')",t('hub_orders_sub'))])}
+      row('📋',t('nav_orders'),"menuGoTab('orders')")])}
     ${modOn('stock')?sec('📦 '+t('stk_title'),[
       row('📦',t('stk_title'),"stockHome()"),
       /* ══════════ v447 — A SCREEN WITH NO DOOR ══════════
@@ -14087,7 +14214,7 @@ function menuHome(){
          row anywhere leads to it. Every other screen in the app is reachable from this list;
          this one was finished and then never let in. It sits under Stock, which is where a
          piece the shop made for its own rack belongs. */
-      modOn('samples')?row('🧷',t('smp_title'),"samplesHome()",t('smp_sub')):'']):''}
+      modOn('samples')?row('🧷',t('smp_title'),"samplesHome()"):'']):''}
     ${/* ══════════ v492 — THE LEDGER HAD NO DOOR ══════════
          HIS 5 Sept, standing on this very menu: "Ledger master hai kahan? Sab alag-alag
          account dikh rahe hain, alag-alag head dikh rahe hain, kahin ledger master to
@@ -14112,20 +14239,21 @@ function menuHome(){
          of cloth while the books were told the shop opened with nothing, so the whole ₹51
          lakh landed in Cost of goods sold as a negative. */''}
     ${modOn('accounts')?sec('💸 '+t('exp_title'),[
-      row('📗',t('lg_title'),"ledgerMaster()",t('lg_sub')),
-      row('🏦',t('ob_shop'),"openBSEdit()",t('ob_stock_open_only')),
+      row('📗',t('lg_title'),"ledgerMaster()"),
+      row('🏦',t('ob_shop'),"openBSEdit()"),
       /* ══════════ v529 — MONEY IN HAD NO DOOR IN THE MENU ══════════
          HIS 6 Sept, describing the Vyapar receipt flow he is used to. I checked every way in
          before answering: Money In existed only as a Home shortcut — not in All screens, not
          under the ＋ button. Had he ever moved that shortcut off Home it would have been
          unreachable. Taking money is not a shortcut; it is something the shop does every
          day, and it belongs in the list with everything else. */
-      row('\u2B07\uFE0F',t('pay_in'),"payEntry('in',1)",t('pay_in_hint')),
-      row('\u2B06\uFE0F',t('pay_out'),"payEntry('out',1)",t('pay_out_hint')),
+      row('\u2B07\uFE0F',t('pay_in'),"payEntry('in',1)"),
+      row('\u2B06\uFE0F',t('pay_out'),"payEntry('out',1)"),
       row('💸',t('exp_title'),"expenses()"),
       row('📒',t('db_title'),"dayBook()"),
       row('🏦',t('cb_title'),"cashBank()"),
-      row('📒',t('pty_title'),"partiesHome()",t('pty_sub')),
+      row('📒',t('pty_title'),"debtorsHome()"),
+      row('📕',t('pty_cred_title'),"creditorsHome()"),
       modOn('billing')?row('🔔',t('debtors_report'),"followUps()"):'',
       modOn('billing')?row('📥',t('creditors_report'),"creditors()"):'']):''}
     ${sec('🧵 '+t('jw_title'),[
@@ -14160,7 +14288,7 @@ function menuHome(){
          built, working, and unreachable unless you already knew it was there. A man cannot
          customise what he cannot find. */''}
     ${sec('⚙️ '+t('settings'),[
-      row('🏠',t('hb_title'),"homeManage()",t('hb_hint')),
+      row('🏠',t('hb_title'),"homeManage()"),
       row('⚙️',t('qc_title'),"qrManage()"),
       row('⚙️',t('settings'),"settingsMenu()")])}
     </div>
@@ -14487,7 +14615,7 @@ function draftsAll(){
   const list=draftList();
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">📝 ${t('dft_all_title')}</h2>
-    <p class="hint" style="margin-bottom:14px">${t('dft_all_sub')}</p>
+    
     ${list.length?draftCardsFor(list):`<div class="empty"><div class="big">📝</div><p>${t('dft_all_title')}</p></div>`}
     <div class="fab-pad"></div>`;
   showSheet();
@@ -14658,7 +14786,7 @@ function magicOpen(q){
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F50D} ${t('msr_title')}</h2></div>
     <input id="msQ" value="${esc(_msQ)}" placeholder="${t('ms_ph')}" autocomplete="off"
       oninput="_msQ=this.value;magicSearchRender(this.value)" style="margin-bottom:4px">
-    <p class="hint" style="margin-bottom:6px">${t('msr_sub')}</p>
+    
     <div id="msRes"></div>
     <div class="fab-pad"></div>`;
   showSheet();
@@ -14843,7 +14971,7 @@ function campRender(){
   const F=[['all','camp_f_all'],['due','camp_f_due'],['lapsed','camp_f_lapsed'],['recent','camp_f_recent']];
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">📣 ${t('camp_title')}</h2>
-    <p class="hint" style="margin:0 0 12px">${t('camp_sub')}</p>
+    
     <div class="gtags" style="margin-bottom:10px">${F.map(f=>
       `<span class="gtag ${_camp.filter===f[0]?'on-tag':''}" style="cursor:pointer" onclick="campSetFilter('${f[0]}')">${t(f[1])}</span>`).join('')}</div>
     <div class="kv" style="margin-bottom:8px">
@@ -19293,9 +19421,10 @@ function altMenu(id){modal(t('alt_options'),`
     <button class="btn danger block simple-hide" onclick="delAlteration('${id}')">🗑️ ${t('delete_alteration')}</button>`,[]);}
 function delAlteration(id){
   const _a0=altById(id);
-  if(payGuard(_a0,{msg:(n,amt)=>t('del_alt_pay',{n:n,amt:amt}),
+  if(payGuard(_a0,{force:()=>{ _a0.payments=[]; save(); delAlteration(id); },
+                   msg:(n,amt)=>t('del_alt_pay',{n:n,amt:amt}),
                    how:t('del_ord_pay_how'), open:()=>openAltDetail(id)}))return;
-  confirmModal(t('confirm_alt_del'),t('confirm_alt_del_msg'),async()=>{const a=altById(id);
+  delAsk(t('confirm_alt_del_msg'),async()=>{const a=altById(id);
   for(const p of(a.photos||[]))await mDel(p);
   for(const e of(a.log||[]))if(e.voiceId)await mDel(e.voiceId);
   for(const v of(a.voiceNotes||[]))if(v.voiceId)await mDel(v.voiceId);
@@ -19338,7 +19467,7 @@ function billGaps(){
   if(!sers.length){
     $('#sheet').innerHTML=`<div class="grip"></div>
       <h2 style="margin-bottom:4px">🔢 ${t('gap_title')}</h2>
-      <p class="hint" style="margin-bottom:14px">${t('gap_sub')}</p>
+      
       <div class="empty"><div class="big">🔢</div><p>${t('gap_empty')}</p></div>
       <div class="fab-pad"></div>`;
     showSheet(); return;
@@ -19356,7 +19485,7 @@ function billGaps(){
     : `<div class="empty" style="padding:18px 0"><div class="big">✅</div><p>${t('gap_none',{a:_gapSeries+'/'+pad(lo),b:_gapSeries+'/'+pad(hi)})}</p></div>`;
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">🔢 ${t('gap_title')}</h2>
-    <p class="hint" style="margin-bottom:10px">${t('gap_sub')}</p>
+    
     ${sers.length>1?`<div class="chips" style="margin-bottom:10px">${chips}</div>`:''}
     <div class="card" style="margin-bottom:10px">
       <div class="hint">${t('gap_range',{s:esc(_gapSeries),a:pad(lo),b:pad(hi),u:nums.length})}</div>
@@ -19602,7 +19731,16 @@ function openInvoiceForm(kind,id){
       if(!items.length)items=[{label:'Item',hsn:'',qty:1,unit:'Pcs',rate:'',price:'',disc:0,includes:''}];
     }
     invNormItems(items);
-    invForm={kind,id,no:nextInvoiceNo(),date:todayISO(),interstate:false,paymentMode:'UPI',discType:'amount',discValue:0,courier:0,
+    /* ══════════ v601 — MONEY LANDED WHERE HE NEVER LOOKED ══════════
+       HIS 9 Sept: "cash ke ledger me kyun nahi dekh raha tha? Sale kiya to uska ek rupya
+       cash me to turant plus hoga."
+       Driven here: the ₹1 went in, the books balanced, the total was right — and it sat in
+       Bank / UPI, because a NEW bill started with paymentMode 'UPI'. He took the note in his
+       hand and the app filed it in a bank account, so the Cash ledger he opened was empty
+       and the receipt looked lost. Every other default in this app describes his counter;
+       this one described nothing. A shop counter takes cash unless told otherwise, and the
+       chips are right there for the bill where it is UPI. */
+    invForm={kind,id,no:nextInvoiceNo(),date:todayISO(),interstate:false,paymentMode:'Cash',discType:'amount',discValue:0,courier:0,
       saleType:kind==='sale'?'rdy':null, orderNo:'',
       deliveryDate:rec.deliveryDate||'', salesmanId:rec.salesmanId||'',
       customerId:kind==='sale'?(rec.customerId||null):undefined,
@@ -19677,6 +19815,12 @@ function renderInvoiceForm(){
         </div></div></div>`;
   })() : `
     <div id="invCustPicked" style="margin-bottom:10px">${(f.customerId||f.customerName)?invCustomerPickedHTML():''}</div>
+    <div class="head-grid3" style="grid-template-columns:1fr 1fr;margin-bottom:10px">
+      <div class="field" style="margin:0"><label>🧾 ${t('invoice_no')}</label>
+        <input id="inv_no" value="${esc(f.no)}" style="font-size:14px"></div>
+      <div class="field" style="margin:0"><label>📅 ${t('invoice_date')}</label>
+        ${dateField("inv_date",f.date)}</div>
+    </div>
     ${/* v590 — HIS 9 Sept: "sales se jo direct invoice banega usme bhi order number aur
          delivery date likhne ka space chahiye — customer ko photo bhejun to jo bhara hai
          wo aaye, jo nahi bhara wo na aaye."
@@ -19687,7 +19831,6 @@ function renderInvoiceForm(){
          other, so there is never a second copy to drift.
          What PRINTS was already right — the bill writes "Order No" and "Delivery Date"
          only when they carry a value — so a plain counter sale still prints neither. */''}
-    <div id="invOrdSlot"></div>
     ${/* ══════════ v571 — THREE LINES TO NAME ONE CUSTOMER ══════════
          HIS 8 Sept, with Vyapar beside it: "customer name, number aur From contacts —
          teen chip use kiye hain aur space barbaad. Saaf screen easy to use lagti hai;
@@ -19715,7 +19858,11 @@ function renderInvoiceForm(){
         oninput="this.value=this.value.replace(/[^0-9+ ]/g,'');cbPaint('inv')" value="${esc(f.phone||'')}"
         style="margin-top:8px;${(f.phone||'').trim()?'':'display:none'}">
       <div id="cbar_inv"></div>
-    </div>`;
+    </div>
+    ${/* v608 — his sequence, and the sequence of the work: WHICH BILL, then WHO it is for,
+         then WHICH ORDER and WHEN it is due. The order slot used to sit above the customer
+         because that is where the panel happened to be mounted. */''}
+    <div id="invOrdSlot"></div>`;
 
   const tileArr = masters.map(m=>{
       const isR=m.kind==='ready';
@@ -19782,11 +19929,16 @@ function renderInvoiceForm(){
              its own number visible is not a bill.
              It shows for every kind now. While EDITING the h2 already carries the number,
              so only the date is added there. */''}
-        <span class="hint">${(()=>{
-          const arr=f.kind==='order'?DB.orders:(f.kind==='alt'?DB.alterations:DB.sales);
-          const rec=f.id?(arr||[]).find(x=>x.id===f.id):null;
-          return (rec&&rec.invoice)?fmtDate(f.date):('#'+esc(f.no)+' · '+fmtDate(f.date));
-        })()}</span>
+        ${/* ══════════ v608 — SHOWN AND EDITABLE ARE THE SAME PLACE ══════════
+             HIS 9 Sept: one fact printed twice is clutter. HIS 10 Sept: "invoice number aur
+             invoice date upar jo aata hai usme editable nahi hai."
+             Both are right and they point the same way: there should be ONE place, and it
+             should be the box he can type in. v589 kept a read-only copy in the title and
+             moved the boxes under ⚙️, which satisfied the first complaint by creating the
+             second. The title carries the word Invoice and nothing else now, and the two
+             boxes come back to the top of the form in the order he asked for:
+                Invoice No · Date  →  Customer · Mobile  →  Order No · Delivery date */''}
+        <span class="hint"></span>
         <button class="btn sm ghost" onclick="invClose()">✕</button></span>
     </div>
     ${f.kind!=='sale'?(()=>{const rec=invRecOf(f.kind,f.id)||{};
@@ -19841,15 +19993,12 @@ function renderInvoiceForm(){
          Both move into ⚙️ More options, which already exists a few lines below and already
          holds the bill date for the same reason. One tap away, and off the path of the
          ninety-nine bills out of a hundred that need neither. */''}
-    <div class="head-grid3" id="invDelyGrid" style="grid-template-columns:1fr 1fr;display:none">
-      <div class="field" style="margin:0"><label>🧾 ${t('invoice_no')}</label>
-        <input id="inv_no" value="${esc(f.no)}" style="font-size:14px"></div>
-      <div class="field" style="margin:0"><label>📅 ${t('invoice_date')}</label>
-        ${dateField("inv_date",f.date)}</div>
-    </div>
+    ${/* v608: the number and the date now live at the top of the form, so this panel is
+         left with the things that genuinely are options */''}
+    ${/* v608 — his order, and it is the order the work happens in: which order this bill is
+         for, and only then when it must be delivered. Delivery date was sitting first
+         because that is the sequence the panel grew in, not because anything decided it. */''}
     <div class="head-grid3" id="invOrdGrid" style="grid-template-columns:1fr 1fr;display:none">
-      <div class="field" style="margin:0"><label>🚚 ${t('inv_delivery')}</label>
-        ${dateField("inv_ddate",f.deliveryDate||'','',true)}</div>
       ${f.kind==='sale'?`
       <div class="field" style="margin:0"><label>👔 ${t('pos_orderno')}</label>
         <div style="display:flex;gap:4px">
@@ -19886,6 +20035,8 @@ function renderInvoiceForm(){
         <input id="pos_ono" class="bold-in" style="text-align:center"
           value="${esc(f.orderNo||(invRecOf(f.kind,f.id)||{}).orderNo||(invRecOf(f.kind,f.id)||{}).altNo||'')}"
           placeholder="${t('pos_ono_auto')}" onchange="posLinkOrder(this.value)"></div>`}
+      <div class="field" style="margin:0"><label>🚚 ${t('inv_delivery')}</label>
+        ${dateField("inv_ddate",f.deliveryDate||'','',true)}</div>
     </div>
 
     ${/* v187 — HIS #6 and #7, which are one complaint: "jab items add ho kar bill dikhta hai
@@ -21392,7 +21543,17 @@ function saveInvoice(){
     toast('🧾 '+t('inv_no_taken',{a:taken,b:f.no}),'bad');
   }
   f.items=(f.items||[]).filter(it=>it.label||+it.price);
-  if(!f.items.length||f.items.every(it=>!(+it.price))){toast(t('inv_need_amt'),'bad');return;}
+  /* ══════════ v600 — A BILL MAY BE MADE BEFORE THE RATE IS DECIDED ══════════
+     HIS 9 Sept: "bina amount daale bill banakar rakhna padta hai, amount baad me daalte
+     hain. Wo save hona chahiye."
+     It refused, so he put ₹1 on the line to get it saved — and that ₹1 then trapped the
+     bill: the delete guard would not let a bill go while money sat on it, and removing the
+     ₹1 meant saving a zero bill, which this very line refused. A rule that forces a false
+     number into the books is worse than the empty bill it was preventing.
+     A LINE is still required — a bill with nothing on it is not a bill. The amount is not.
+     A zero bill carries no receipt, so nothing wrong reaches the cash book; it simply sits
+     as an unpriced bill until he fills the rate. */
+  if(!f.items.length){toast(t('inv_need_line'),'bad');return;}
   if(f.split){ const sSum=r2((+f.split.cash||0)+(+f.split.upi||0));
     if(sSum>r2(invCompute(f).total)+0.5){toast(t('split_over'),'bad');return;} }
 
@@ -22016,16 +22177,12 @@ function delSale(id){
      hole in his cash weeks later. Nothing is deleted for him behind his back. */
   const rec=(DB.sales||[]).find(x=>x.id===id);
   if(rec){
-    const nPay=(rec.payments||[]).filter(pp=>+pp.amt).length;
-    const got=orderReceived(rec);
-    if(nPay&&got>0){
-      modal('🗑️ '+t('confirm_del'),
-        `<p>${t('del_has_pay',{n:nPay,amt:money(got)})}</p>
-         <p class="hint" style="margin-top:8px">${t('del_has_pay_how')}</p>`,
-        [{label:t('close'),fn:closeModal},
-         {label:'✏️ '+t('edit'),cls:'primary',fn:()=>{closeModal();openInvoiceForm('sale',id);}}]);
-      return;
-    }
+    /* v600: this screen kept its own copy of the money guard, so the way out added to the
+       shared one never reached the bill he was actually stuck on. One guard now. */
+    if(payGuard(rec,{msg:(n,amt)=>t('del_has_pay',{n:n,amt:amt}),
+                     how:t('del_has_pay_how'),
+                     open:()=>openInvoiceForm('sale',id),
+                     force:()=>{ rec.payments=[]; save(); delSale(id); }}))return;
     if(rec.orderNo){
       modal('🗑️ '+t('confirm_del'),
         `<p>${t('del_has_order',{n:esc(rec.orderNo)})}</p>
@@ -22036,7 +22193,7 @@ function delSale(id){
     }
   }
   const nRet=(DB.salesReturns||[]).filter(r=>r.saleId===id).length;
-  confirmModal(t('confirm_del'), nRet?t('del_with_returns',{n:nRet}):t('confirm_del_msg'),()=>{
+  delAsk(nRet?t('del_with_returns',{n:nRet}):t('confirm_del_msg'),()=>{
   unwindReturnsFor('sale',id);
   revertStockByRef(id);                       // put sold pieces / meters back in stock
   DB.sales=(DB.sales||[]).filter(x=>x.id!==id);save();closeSheet();renderInvoices();toast(t('t_deleted'));});}
@@ -22490,7 +22647,7 @@ function samplesHome(){
   const earned=list.reduce((a,s)=>a+sampleEarned(s),0);
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">🧥 ${t('smp_title')}</h2>
-    <p class="hint" style="margin-bottom:12px">${t('smp_sub')}</p>
+    
     <div class="home-stats" style="margin-bottom:12px">
       <div class="stat"><b>${list.length}</b><span>${t('smp_n')}</span></div>
       <div class="stat"><b>${money(spend)}</b><span>${t('smp_spend')}</span></div>
@@ -25745,10 +25902,11 @@ function supplierCredit(name){
 
 function delPurchase(id){
   const _p0=(DB.purchases||[]).find(x=>x.id===id);
-  if(payGuard(_p0,{msg:(n,amt)=>t('del_pur_pay',{n:n,amt:amt}),
+  if(payGuard(_p0,{force:()=>{ _p0.payments=[]; save(); delPurchase(id); },
+                   msg:(n,amt)=>t('del_pur_pay',{n:n,amt:amt}),
                    how:t('del_pur_pay_how'), open:()=>openPurchaseForm(id)}))return;
   const nRet=(DB.purchaseReturns||[]).filter(r=>r.purId===id).length;
-  confirmModal(t('confirm_del'), nRet?t('del_with_returns',{n:nRet}):t('confirm_del_msg'),async()=>{
+  delAsk(nRet?t('del_with_returns',{n:nRet}):t('confirm_del_msg'),async()=>{
   const p=(DB.purchases||[]).find(x=>x.id===id);
   if(p)for(const ph of(p.photos||[]))await mDel(ph);
   unwindReturnsFor('purchase',id);
@@ -26435,7 +26593,7 @@ function journalBook(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F4D3} ${t('jv_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
-    <p class="hint" style="margin-bottom:10px">${t('jv_sub')}</p>
+    
     <button class="btn primary block" style="margin-bottom:12px" onclick="journalEdit(null)">\u2795 ${t('jv_new')}</button>
     ${list.length?`<p class="hint" style="margin-bottom:6px">${t('jv_n',{n:list.length})}</p>${body}`
       :`<div class="empty" style="padding:26px 10px"><p>${t('jv_none')}</p></div>`}
@@ -27496,10 +27654,10 @@ function staffHub(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">👥 ${t('sh_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
-    <p class="hint" style="margin-bottom:12px">${t('sh_sub')}</p>
-    ${row('🗓️',t('srp_title'),t('sh_att_sub'),"staffReport()")}
-    ${row('🧑‍💼',t('rp_salesman'),t('sh_perf_sub'),"salesmanReport()")}
-    ${row('👤',t('sh_master'),t('sh_master_sub'),"closeSheet();staffSettings()")}
+    
+    ${row('🗓️',t('srp_title'),"staffReport()")}
+    ${row('🧑‍💼',t('rp_salesman'),"salesmanReport()")}
+    ${row('👤',t('sh_master'),"closeSheet();staffSettings()")}
     <div class="fab-pad"></div>`;
   showSheet();
 }
@@ -27607,7 +27765,7 @@ function payrollHub(mon){
   }).join('')||`<p class="hint">${t('st_none')}</p>`;
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F4B0} ${t('pay_title')}</h2></div>
-    <p class="hint" style="margin-bottom:10px">${t('pay_sub')}</p>
+    
     <div class="kv" style="margin:0 0 12px">
       <button class="btn sm ghost" onclick="payrollHub('${payPrevMonth(m)}')">\u2039</button>
       <b>${esc(payMonthLabel(m))}</b>
@@ -27752,7 +27910,7 @@ function staffKhata(sid){
   const b=payBalance(sid,upto);
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:2px"><h2 style="margin:0">\u{1F4D2} ${esc(st.name)}</h2></div>
-    <p class="hint" style="margin-bottom:12px">${t('pay_khata_sub')}</p>
+    
     ${/* v495: a man's own account, in his hand, settles an argument before it starts. */''}
     ${exportBarHTML('sk_'+st.id,()=>({title:st.name, sub:t('pay_khata_sub'),
       head:[t('jv_date'),t('jv_narr'),t('jv_dr'),t('jv_cr')],
@@ -27862,7 +28020,30 @@ function renderReports(){
   const _rpSec=(title,rows)=>`<div class="card" style="padding:4px 12px 2px;margin-bottom:12px">
       <div class="section-h" style="margin:8px 0 2px">${esc(title)}</div>
       ${rows.filter(Boolean).map(r=>_rpRow(r[0],r[1],r[2])).join('')}</div>`;
-  const _mainRp =
+  /* ══════════ v610 — WHAT IS OUTSTANDING, IN THREE LINES ══════════
+     HIS 10 Sept: "reports mein khali dekhna hai ki creditors total outstanding kitne hain?
+     Debtors kitne hain? Loan kitna hai? To reports mein sabka section alag alag ho."
+     Each of these figures already existed and each lived on a different screen, so reading
+     the three together meant opening three places and holding the numbers in his head. They
+     are one section now, with the figure on the row, and each one opens its own report. */
+  const _rpOut=(()=>{
+    const A=(openBS().date||fyStartISO()), B=todayISO();
+    let f={A:{},L:{}}; try{ f=bsFigures(A,B); }catch(e){}
+    const money0=v=>money(r2(Math.abs(+v||0)));
+    return `<div class="card" style="padding:4px 12px 2px;margin-bottom:12px">
+      <div class="section-h" style="margin:8px 0 2px">${t('rps_outstanding')}</div>
+      <div class="il tappable" onclick="closeSheet();debtorsHome()">
+        <span>\u{1F4D2} ${t('rp_out_debtors')}</span><b>${money0(f.A.debtors)}</b></div>
+      <div class="il tappable" onclick="closeSheet();creditorsHome()">
+        <span>\u{1F4D5} ${t('rp_out_creditors')}</span><b>${money0(f.L.creditors)}</b></div>
+      ${/* v610: there is no separate loans screen and there does not need to be — every loan
+           is a ledger in the Loans group, so this row opens the ledger master already
+           filtered to that group, which is where the detail lives. */''}
+      <div class="il tappable" style="border-bottom:0" onclick="closeSheet();lgOpenGroup('loans')">
+        <span>\u{1F3E6} ${t('rp_out_loans')}</span><b>${money0(f.L.loans)}</b></div>
+    </div>`;
+  })();
+  const _mainRp = _rpOut +
     _rpSec(t('rps_entry'),[
       ['\u2B06\uFE0F',t('mo_title'),'moneyOut()'],
       ['\u{1F4E5}',t('bi_title'),'bankImport()']])
@@ -28306,22 +28487,46 @@ function orderMenu(id){const o=DB.orders.find(x=>x.id===id);const canAlt=o&&orde
    PATTERN:  a delete that takes receipts out of the books without naming them
    FOUND IN: delOrder, delAlteration, delPurchase  (delSale already guarded)
    FIXED:    3        LEFT: 0 */
+/* ══════════ v600 — THE GUARD THAT HAD NO DOOR ══════════
+   HIS 9 Sept: "bill delete nahi ho raha ki isme already entry hai, pehle usko delete karo.
+   Sale me gaya, ek rupya hataya, to bill save hi nahi hota. Cash bank me gaya to wo
+   transaction dikhta hi nahi. To wo entry main delete kar hi nahi paya."
+   v582 built this guard so money could never leave the books behind his back, and that is
+   right. What it lacked was the door: it told him to remove the payment first, and on a
+   bill whose only line was that ₹1 there was no way to do it. A wall with instructions he
+   cannot follow is not a safeguard, it is a trap — and it was holding an invoice number
+   hostage, which would have broken his numbering the moment he made the next bill.
+   The third button removes both together, and says exactly what leaves and by how much,
+   which is the rule for anything that touches money. The Undo that follows the delete
+   brings the receipt back with the record. */
+/* v600 — the guard's third door already asked the hard question, naming the record and the
+   exact rupees leaving the cash book. Letting the delete then ask a second, vaguer "Delete
+   this?" would be fault 8 on his own list: a question that protects nothing. This flag
+   carries his answer through, and is spent the moment it is read. */
+let _delForced=0;
+function delAsk(msg,go){ if(_delForced){ _delForced=0; go(); return; }
+  confirmModal(t('confirm_del'), msg, go); }
 function payGuard(rec,opt){
   const n=((rec&&rec.payments)||[]).filter(p=>+p.amt).length;
   const got=rec?orderReceived(rec):0;
   if(!(n&&got>0))return false;
+  const acts=[{label:t('close'),fn:closeModal},
+    {label:t('del_open_rec'),cls:'ghost',fn:()=>{closeModal();opt.open();}}];
+  if(opt.force)acts.push({label:t('del_take_pay',{amt:money(got)}),cls:'danger',
+    fn:()=>{closeModal();
+      confirmModal('🗑️ '+t('confirm_del'), t('del_take_pay_msg',{amt:money(got)}),
+        ()=>{ _delForced=1; opt.force(); }, null, {yes:t('delete'), cls:'danger'});}});
   modal('🗑️ '+t('confirm_del'),
     `<p>${opt.msg(n,money(got))}</p>
-     <p class="hint" style="margin-top:8px">${opt.how}</p>`,
-    [{label:t('close'),fn:closeModal},
-     {label:t('del_open_rec'),cls:'primary',fn:()=>{closeModal();opt.open();}}]);
+     <p class="hint" style="margin-top:8px">${opt.how}</p>`, acts);
   return true;
 }
 function delOrder(id){
   const _o0=DB.orders.find(x=>x.id===id);
   if(payGuard(_o0,{msg:(n,amt)=>t('del_ord_pay',{no:esc(_o0.orderNo||''),n:n,amt:amt}),
-                   how:t('del_ord_pay_how'), open:()=>openDetail(id)}))return;
-  confirmModal(t('confirm_del_order'),t('confirm_del_msg'),async()=>{
+                   how:t('del_ord_pay_how'), open:()=>openDetail(id),
+                   force:()=>{ _o0.payments=[]; save(); delOrder(id); }}))return;
+  delAsk(t('confirm_del_msg'),async()=>{
   const i=DB.orders.findIndex(x=>x.id===id); if(i<0)return;
   const o=DB.orders[i];
   /* The photos and voice notes are NOT destroyed here any more. They used to go first,
@@ -28532,7 +28737,7 @@ function karIssue(kid,oid){
        pop its way out. One screen, one registration. */
     $('#sheet').innerHTML=`<div class="grip"></div>
       <div class="kv" style="margin-bottom:2px"><h2 style="margin:0">\u{1F4E4} ${t('ki_title')}</h2></div>
-      <p class="hint" style="margin:0 0 16px">${t('ki_sub')}</p>
+      
       <div class="empty" style="padding:30px 10px">
         <div class="big">\u{1F477}</div>
         <p><b>${t('ki_no_karigar')}</b></p>
@@ -28550,7 +28755,7 @@ function karIssue(kid,oid){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">📤 ${t('ki_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
-    <p class="hint" style="margin-bottom:10px">${t('ki_sub')}</p>
+    
     <div class="field"><label>${t('karigar')}</label>
       <select id="ki_k" onchange="kiPickKarigar(this.value)">
         ${ks.map(k=>`<option value="${k.id}" ${k.id===_ki.kid?'selected':''}>${esc(k.name)}</option>`).join('')}
@@ -28666,7 +28871,7 @@ function karReceive(kid){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">📥 ${t('kr_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
-    <p class="hint" style="margin-bottom:10px">${t('kr_sub')}</p>
+    
     <div class="field"><label>${t('karigar')}</label>
       <select id="kr_k" onchange="krPickKarigar(this.value)">
         ${ks.map(k=>`<option value="${k.id}" ${k.id===_ki.kid?'selected':''}>${esc(k.name)} · ${karOutCount(k.id)}</option>`).join('')}
@@ -28996,7 +29201,7 @@ function modulesEdit(){
     <span>${ico} ${esc(label)}</span></label>`;
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">🧩 ${t('mod_title')}</h2>
-    <p class="hint" style="margin-bottom:12px">${t('mod_sub')}</p>
+    
     <div class="card">
       <div class="kv" style="padding:8px 0"><span>📋 ${t('su_mod_orders')}</span><b style="color:var(--ok)">${t('su_mod_always')}</b></div>
       ${row('billing','🧾',t('su_mod_billing'))}
@@ -29666,7 +29871,7 @@ function karSettle(kid,from,to){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">🧾 ${esc(k.name)}</h2>
       <button class="btn sm ghost" onclick="settleDay()" title="Back">←</button></div>
-    <p class="hint" style="margin-bottom:10px">${t('ks_sub')}</p>
+    
     <div class="row" style="gap:8px;margin-bottom:8px">
       <div class="field" style="flex:1;margin:0"><label>${t('rp_from')}</label>${dateField('ks_f',F)}</div>
       <div class="field" style="flex:1;margin:0"><label>${t('rp_to')}</label>${dateField('ks_t',T)}</div></div>
@@ -29749,7 +29954,7 @@ function settleDay(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">📆 ${t('stl_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
-    <p class="hint" style="margin-bottom:10px">${t('stl_sub')}</p>
+    
     <div class="row" style="gap:8px;margin-bottom:10px">
       <div class="field" style="flex:1;margin:0"><label>${t('rp_from')}</label>${dateField('stl_f',from)}</div>
       <div class="field" style="flex:1;margin:0"><label>${t('rp_to')}</label>${dateField('stl_t',to)}</div></div>
@@ -29800,7 +30005,7 @@ function jobWork(){
   }).join('') || `<p class="hint" style="padding:20px 0;text-align:center">${t('no_karigars')}</p>`;
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">🧵 ${t('jw_title')}</h2>
-    <p class="hint" style="margin-bottom:12px">${t('jw_sub')}</p>
+    
     ${unassigned?`<div class="card fu-open" style="padding:12px 14px;margin-bottom:12px;border-color:var(--saffron)" onclick="actionList('nokar')">
       <div class="kv"><span>⚠️ ${t('ab_nokar')}</span><b style="color:var(--saffron2)">${unassigned}</b></div></div>`:''}
     ${b.stuck.length?`<div class="card fu-open" style="padding:12px 14px;margin-bottom:12px" onclick="actionList('stuck')">
@@ -29835,7 +30040,7 @@ function karigarBook(){
   const outAll=ks.reduce((s,k)=>s+karOutCount(k.id),0);
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">👷 ${t('kb_title')}</h2>
-    <p class="hint" style="margin-bottom:12px">${t('kb_sub')}</p>
+    
     <button class="btn ghost block" style="margin-bottom:10px" onclick="_kdRows=[];karDay()">⚡ ${t('kd_title')}</button>
     <div class="card pos-total" style="margin-bottom:12px;padding:12px 14px">
       <div class="il"><span>${t('kb_total_payable')}</span><b>${balArrow(-total)}</b></div>
@@ -30006,7 +30211,7 @@ function karigarReport(){
       return [k.name, st.totalN, r2(st.totalAmt), r2(p), r2(st.totalAmt-p)]; })});
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">📊 ${t('kb_report')}</h2>
-    <p class="hint" style="margin-bottom:10px">${t('kb_report_sub')}</p>
+    
     ${krRangeChips('report')}
     <p class="hint" style="margin:-4px 0 10px">${t('kb_period')}: <b>${krRangeLabel()}</b></p>
     <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
@@ -30154,7 +30359,7 @@ function karDay(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">🧵 ${t('kd_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
-    <p class="hint" style="margin-bottom:10px">${t('kd_sub')}</p>
+    
     <div class="row" style="gap:8px;margin-bottom:8px">
       <div class="field" style="margin:0;flex:1"><label>${t('pay_date')}</label>
         ${dateField('kd_date',_kdDate,'',true)}</div>
@@ -30252,7 +30457,7 @@ function karBulk(kid){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">👷 ${esc(k.name)}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
-    <p class="hint" style="margin-bottom:10px">${t('kb_bulk_sub')}</p>
+    
     <div class="field"><label>${t('cb_paid_from')}</label>${acctSelHTML('kb_acc',_kbAcc)}</div>
     ${rows}
     <button class="btn ghost block" style="margin-bottom:10px" onclick="kbAdd()">➕ ${t('kb_add_row')}</button>
@@ -30381,7 +30586,7 @@ function karPayRiskReport(){
   const tot=r2(list.reduce((s,x)=>s+x.amt*x.missing,0));
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin:0 0 4px">\u{1F50E} ${t('krp_title')}</h2>
-    <p class="hint" style="margin-bottom:12px">${t('krp_sub')}</p>
+    
     ${list.length?`<div class="kv" style="margin:0 2px 10px;padding:6px 0;border-bottom:1px solid var(--line)">
         <span class="hint">${t('kr_found',{n:list.length})}</span>
         <b style="color:var(--bad)">${money(tot)}</b></div>`
@@ -30465,7 +30670,7 @@ function karigarMaster(){
   sheetAt(karigarMaster);
   const ks=DB.karigars||[];
   $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:6px">${t('karigar_master')}</h2>
-    <p class="hint" style="margin-bottom:12px">${t('karigar_desc')}</p>
+    
     ${/* v260: archived men stay listed here — dimmed, with one tap to bring them back —
          because the money and the pieces are still theirs. They are gone from the pickers,
          not from the books. */''}
@@ -30567,7 +30772,7 @@ function itemMaster(){
   sheetAt(itemMaster);
   const its=DB.itemMaster||[];
   $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:6px">📦 ${t('item_master')}</h2>
-    <p class="hint" style="margin-bottom:12px">${t('item_master_desc')}</p>
+    
     ${/* v427: the shop's own number leads, because that is the one every design has. The
          supplier's design number rides beside it only when the goods came with one. */''}
     ${/* v460 — the sweep across every list found one row whose NAME did nothing on tap: this
@@ -30774,7 +30979,7 @@ function manageExpHeads(){
       </div></div>`;}).join('')||`<p class="hint">${t('eh_none')}</p>`;
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin:0 0 2px">⚙️ ${t('eh_title')}</h2>
-    <p class="hint" style="margin:0 0 4px">${t('eh_sub')}</p>
+    
     ${/* v278: "Direct · cost of goods" was cut to "Direct · cost of g" inside a phone
          dropdown, which teaches him nothing. The option is short enough to read now and the
          meaning is spelled out here, once, where there is room. */''}
@@ -31056,7 +31261,7 @@ function rentSetup(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:2px"><h2 style="margin:0">\u{1F3EA} ${t('rc_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
-    <p class="hint" style="margin:0 0 12px">${t('rc_sub')}</p>
+    
     <div class="field"><label>${t('rc_who')} *</label>
       <input id="rc_who" value="${esc(c.who||'')}" placeholder="${t('rc_who_ph')}"></div>
     <div class="row" style="gap:8px;margin-top:8px">
@@ -31106,7 +31311,7 @@ function openBSEdit(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:2px"><h2 style="margin:0">\u{1F4D2} ${t('ob_shop')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
-    <p class="hint" style="margin:0 0 12px">${t('ob_shop_sub')}</p>
+    
     <div class="field"><label>${t('ob_date')}</label>${dateField('obs_date',o.date)}</div>
     ${/* ══════════ v500 — FIVE BUTTONS FOR TWO DECISIONS ══════════
          HIS 5 Sept: "opening stock wale page mein hi dekho, itna kuch daal diya hai ki kuch
@@ -31168,7 +31373,7 @@ function obsLoansEdit(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:2px"><h2 style="margin:0">\u{1F3E6} ${t('bs_loans')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
-    <p class="hint" style="margin:0 0 12px">${t('ob_loan_sub')}</p>
+    
     <div id="obsLoans">${obsLoanRows()}</div>
     <button class="btn ghost block" style="margin-top:8px" onclick="obsLoanAdd()">\u2795 ${t('ob_loan_add')}</button>
     <div class="modal-actions"><button class="btn primary" onclick="obsLoansSave()">\u{1F4BE} ${t('save')}</button></div>
@@ -31269,7 +31474,7 @@ function openingBulk(){
   const kinds=[['karigar','eh_karigar'],['supplier','eh_supplier'],['customer','eh_customer'],['staff','st_title'],['lender','ob_lender']];
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin:0 0 2px">📒 ${t('ob_title')}</h2>
-    <p class="hint" style="margin:0 0 12px">${t('ob_sub')}</p>
+    
     <div class="card" style="padding:12px">
       <div class="field"><label>${t('ob_name')}</label><input id="obName" placeholder="${t('ob_name_ph')}"></div>
       <div class="field" style="margin-top:8px"><label>${t('ob_kind')}</label>
@@ -31553,6 +31758,22 @@ function moPost(d){
     }
     return {ok:true,msg:r.touched.length?r.touched.join(' · '):t('t_saved')};
   }
+  /* ══════════ v607 — A LOAN REPAID IS NOT AN EXPENSE ══════════
+     Found by driving the new Payment screen: ₹5,000 paid against HDFC Loan landed in
+     INDIRECT EXPENSES and the loan itself did not move. moPost knew about parties, costs
+     and drawings but never about liabilities, so every repayment was quietly eating the
+     month's profit while the borrowing stayed on the books in full.
+     Principal repaid reduces the liability and nothing else — the interest is its own head
+     and is entered as its own payment, which is exactly how the loan screen has always
+     written it. */
+  if(g==='loans'){
+    DB.ledger.push({id:uid(), refKind:'loan', dir:'out', date, amt, acc:d.acc,
+      party:d.name, partyId:null, partyKind:'loan', ref:t('vch_payment'),
+      cat:'', note:d.note||'', photos:[]});
+    return {ok:true,msg:t('t_saved')};
+  }
+  if(g==='sales'||g==='otherinc'||g==='debtors_income')
+    return {ok:false,msg:t('mo_not_out',{n:d.name})};
   /* a cost, or the owner's own money — both are the same row, told apart by the group,
      exactly as the expense screen already writes them */
   const hcKind = g==='drawings'||g==='capital' ? 'drawing'
@@ -31567,6 +31788,53 @@ function moPost(d){
   return {ok:true,msg:t('t_saved')};
 }
 
+/* ══════════════ v604 — ONE RECEIPT SCREEN, ANY LEDGER ══════════════
+   HIS 10 Sept: "jitni zyada screen rahegi utni galtiyan hongi... receipts bolkar ek screen
+   ho, jahan search karke ledger chunun. Dikkat kahan hai? Main tumhara tark nahi samajh pa
+   raha hun."
+   There was no good argument, and I had dressed a limitation up as one. Money coming in is
+   always the same voucher — Dr Cash or Bank, Cr the other ledger — and WHICH ledger it is
+   decides everything that follows. The old screen simply could not see past customers, so
+   loans, capital and transfers each grew a door of their own. His own master document says
+   the same in §10: Receipt, Payment, Contra, Journal. Four, not eight.
+   moPost has done exactly this for money going out since v456. This is its twin, written
+   the same way and routing on the same chart of accounts, so both sides of the book behave
+   identically and there is one rule to remember instead of two. */
+function miPost(d){
+  try{ if(typeof lgSync==='function' && !lgByName(d.name)) lgSync(); }catch(e){}
+  const _L=lgByName(d.name);
+  const g=(_L&&_L.group)||'';
+  const amt=r2(+d.amt||0), date=d.date||todayISO();
+  if(!(amt>0)) return {ok:false,msg:t('t_no_amount')};
+  if(!String(d.name||'').trim()) return {ok:false,msg:t('t_no_name')};
+  /* v604 — found in the live test: two ledgers on his own book carry NO group at all
+     ("General expenses", "Job work"), because lgGuessGroup could not place them. Defaulting
+     an ungrouped name to debtors would post an expense head as a customer receipt and try
+     to settle bills that do not exist. Nothing is guessed: it refuses and says which name
+     needs its group, which is a thirty-second fix on the ledger itself. */
+  if(!g || !lgGroup(g)) return {ok:false,msg:t('mi_no_group',{n:d.name}),needGroup:d.name};
+  DB.ledger=DB.ledger||[];
+
+  if(g==='cash'||g==='bank')
+    return {ok:false,msg:t('mi_use_contra')};   /* moving money is a transfer, not a receipt */
+
+  if(g==='debtors'||g==='creditors'){
+    const pt=(DB.parties||[]).find(x=>nameNorm(x.name)===nameNorm(d.name));
+    const r=settleParty('in',d.name,pt?pt.id:null,amt,date,d.acc,'');
+    if(r.left>0){                                /* more than he owed → it sits as advance */
+      DB.ledger.push({id:uid(),dir:'in',date,amt:r.left,acc:d.acc,party:d.name,
+        partyId:pt?pt.id:null,partyKind:g==='creditors'?'supplier':'customer',
+        ref:t('vch_receipt'),refKind:'manual',cat:'',note:d.note||'',photos:[]});
+    }
+    return {ok:true,msg:r.touched.length?r.touched.join(' · '):t('t_saved')};
+  }
+  /* a loan taken, the owner's own money, or income that is not a sale — one row each,
+     told apart by the group exactly as the money-out side does it */
+  const rk = g==='loans' ? 'loan' : (g==='capital' ? 'capital' : 'manual');
+  DB.ledger.push({id:uid(),dir:'in',date,amt,acc:d.acc,party:d.name,partyId:null,
+    partyKind:'', ref:t('vch_receipt'), refKind:rk, cat:'', note:d.note||'', photos:[]});
+  return {ok:true,msg:t('t_saved')};
+}
 let _mo={date:'',amt:'',acc:'',name:'',note:'',q:''};
 function moneyOut(keep){
   sheetAt(moneyOut); lgSync();
@@ -31717,7 +31985,7 @@ function ledgerMaster(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F4D7} ${t('lg_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
-    <p class="hint" style="margin-bottom:10px">${t('lg_sub')}</p>
+    
     <div class="field" style="margin-bottom:8px">
       <input id="lgQ" value="${esc(_lgQ)}" placeholder="\u{1F50D} ${t('lg_search')}" oninput="lgSearch(this.value)" autocomplete="off"></div>
     <button class="btn ghost block" style="margin-bottom:12px" onclick="ledgerEdit(null)">\u2795 ${t('lg_new')}</button>
@@ -31892,17 +32160,42 @@ function lgBalHTML(v){
   const a=Math.abs(r2(v)); if(!a)return `<span class="hint">\u2014</span>`;
   return `<b>${money(a)}</b> <span class="hint">${v<0?'Cr':'Dr'}</span>`;
 }
+/* ══════════ v609 — A LEDGER IS READ BETWEEN TWO DATES ══════════
+   HIS 10 Sept: "custom dates ho — kis date se kis date tak uska ledger dekhna hai... opening
+   balance kitna tha, uske baad usne kitna maal liya, kitna paisa diya, aaj ki date me kitna
+   baaki hai. Ledger mein to mainly yahi sab dekha jata hai."
+   That is the standard shape of a statement and it was the one thing this screen did not
+   have: it printed every entry since the beginning and one closing figure. A period needs
+   three things and all three are here now — what he owed on the opening date, what moved
+   inside the window with its own debit and credit totals, and what he owes at the end. */
+let _lgFrom='', _lgTo='';
+function lgSetRange(f,to){ _lgFrom=f||''; _lgTo=to||''; }
+function lgRangeApply(id){
+  _lgFrom=($('#lgFrom')||{}).value||''; _lgTo=($('#lgTo')||{}).value||''; ledgerView(id);
+}
+function lgRangeClear(id){ _lgFrom=''; _lgTo=''; ledgerView(id); }
 function ledgerView(id){
   const l=lgById(id); if(!l)return;
   sheetAt(()=>ledgerView(id));
   const G=lgGroup(l.group)||{label:'',side:'dr'};
   const n=nameNorm(l.name);
-  const rows=[];
-  if(l.openAmt)rows.push({date:l.openDate||'', ref:t('lg_open'),
+  const all=[];
+  if(l.openAmt)all.push({date:l.openDate||'', ref:t('lg_open'),
     dr:l.openDir==='dr'?l.openAmt:0, cr:l.openDir==='cr'?l.openAmt:0});
-  lgPushRows(rows,l,n);
-  rows.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
-  let run=0;
+  lgPushRows(all,l,n);
+  all.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+  /* everything before the window is folded into ONE opening line, which is what an opening
+     balance is — the sum of the past, not a list of it */
+  let opening=0; const rows=[];
+  all.forEach(r=>{
+    const d=String(r.date||'');
+    if(_lgFrom && d && d<_lgFrom){ opening=r2(opening+(r.dr||0)-(r.cr||0)); return; }
+    if(_lgTo && d && d>_lgTo)return;
+    rows.push(r);
+  });
+  const drTot=r2(rows.reduce((s,r)=>s+(r.dr||0),0));
+  const crTot=r2(rows.reduce((s,r)=>s+(r.cr||0),0));
+  let run=opening;
   const body=rows.map(r=>{ run=r2(run+(r.dr||0)-(r.cr||0));
     /* ══════════ v493 — MY OWN v491 COLUMNS CLIMBED ON TOP OF EACH OTHER ══════════
        HIS 5 Sept screenshot: on the phone the date wrapped to two lines, the narration
@@ -31931,6 +32224,17 @@ function ledgerView(id){
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F4D2} ${esc(l.name)}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
     <p class="hint" style="margin-bottom:10px">${esc(G.label)} \u00B7 ${G.stmt==='bs'?t('lg_bs'):t('lg_pl')}</p>
+    <div class="head-grid3" style="grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:10px;align-items:end">
+      <div class="field" style="margin:0"><label>${t('lg_from')}</label>
+        ${dateField("lgFrom",_lgFrom,'',true)}</div>
+      <div class="field" style="margin:0"><label>${t('lg_to')}</label>
+        ${dateField("lgTo",_lgTo,'',true)}</div>
+      <button class="btn ghost sm" style="height:42px" onclick="lgRangeApply('${jq(l.id)}')">\u{1F50D}</button>
+    </div>
+    ${(_lgFrom||_lgTo)?`<div class="kv" style="border-bottom:0;padding:0 0 8px">
+      <span class="hint">${_lgFrom?t('lg_opening_as',{d:fmtDate(_lgFrom)}):t('lg_open')}</span>
+      <b>${money(Math.abs(opening))} <span class="hint">${opening<0?'Cr':'Dr'}</span></b></div>
+      <button class="btn ghost sm block" style="margin-bottom:10px" onclick="lgRangeClear('${jq(l.id)}')">${t('lg_all_dates')}</button>`:''}
     ${/* v506: the two things he can do to a ledger, at the top with its name — not at the
          far end of two hundred entries. Move is here because it is the honest answer to
          "delete": the entries have to go somewhere. */''}
@@ -31938,7 +32242,9 @@ function ledgerView(id){
       <button class="btn ghost sm" style="flex:1" onclick="ledgerEdit('${jq(l.id)}')">\u270F\uFE0F ${t('lg_edit')}</button>
       <button class="btn ghost sm" style="flex:1" onclick="lgMerge('${jq(l.id)}')">\u{1F500} ${t('lg_merge_go')}</button></div>
     <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
-      <div class="il" style="border-bottom:0"><span>${t('lg_closing')}</span>
+      <div class="il"><span>${t('lg_dr_total')}</span><b>${money(drTot)}</b></div>
+      <div class="il"><span>${t('lg_cr_total')}</span><b>${money(crTot)}</b></div>
+      <div class="il" style="border-bottom:0"><span><b>${t('lg_closing')}</b></span>
         <b style="font-size:18px">${money(Math.abs(run))} ${run<0?'Cr':'Dr'}</b></div></div>
     ${exportBarHTML('lg_'+l.id,()=>({title:l.name, sub:(lgGroup(l.group)||{}).label||'',
       head:[t('jv_date'),t('jv_narr'),t('jv_dr'),t('jv_cr'),t('lg_closing')],
@@ -32351,6 +32657,16 @@ function openingLeft(name,kind,dir){
 
 /* ── the Parties screen: one place to add a person and see where he stands ── */
 let _ptyQ='';
+/* ══════════ v606 — DEBTORS AND CREDITORS ARE TWO REPORTS ══════════
+   HIS 10 Sept: "creditors ek uska report rahega, doosra debtors — creditors and debtors mat
+   karo."
+   Right, and it is not a preference: they sit on opposite sides of the balance sheet, they
+   are chased by different people for different reasons, and every set of books in the world
+   lists them apart. One screen holding both was mine, made because the underlying record is
+   the same shape — which is a reason to share the CODE, not the screen. */
+let _ptyKind='';
+function debtorsHome(){ _ptyKind='debtors'; partiesHome(); }
+function creditorsHome(){ _ptyKind='creditors'; partiesHome(); }
 function partiesHome(keep){
   /* v400 — his standing rule: a search box is cleared when a screen is opened fresh and
      held while he is standing on it. Without this he came back to the screen an hour later,
@@ -32358,11 +32674,11 @@ function partiesHome(keep){
      re-renders the rows only, so typing is untouched. */
   if(!keep){ _ptyQ=''; _ptyOpen={}; _ptyAll={}; }
   sheetAt(()=>partiesHome(1));
-  const rows=partiesRows();
+  const rows=partiesRows(_ptyKind);
   $('#sheet').innerHTML=`<div class="grip"></div>
-    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F4D2} ${t('pty_title')}</h2>
+    <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">\u{1F4D2} ${
+      _ptyKind==='creditors'?t('pty_cred_title'):t('pty_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
-    <p class="hint" style="margin-bottom:10px">${t('pty_sub')}</p>
     <input id="ptyQ" value="${esc(_ptyQ)}" placeholder="\u{1F50D} ${t('pty_search')}" oninput="ptySearch(this.value)" autocomplete="off">
     <button class="btn primary block" style="margin:10px 0" onclick="partyEdit(null,()=>partiesHome())">\u2795 ${t('pty_add')}</button>
     <div id="ptyList">${rows}</div>
@@ -32391,10 +32707,15 @@ let _ptyOpen={}, _ptyAll={};
    section is not opening the screen; it must keep what he has just asked for. */
 function ptyMore(k){ _ptyOpen[k]=!_ptyOpen[k]; if(!_ptyOpen[k])_ptyAll[k]=false; partiesHome(1); }
 function ptyShowAll(k){ _ptyAll[k]=true; partiesHome(1); }
-function partiesRows(){
+function partiesRows(kind){
   const q=pkNorm(_ptyQ);
   let who=peopleAll();
   if(q)who=who.filter(p=>pkNorm(p.name).indexOf(q)>=0);
+  /* v606 — the side is decided by the balance itself, not by a label somebody typed once.
+     A man who owes the shop is a debtor today whatever hat he was entered under, and a man
+     the shop owes is a creditor. Anyone square sits on neither list. */
+  if(kind==='debtors')   who=who.filter(p=>r2(partyNet(p))>0);
+  if(kind==='creditors') who=who.filter(p=>r2(partyNet(p))<0);
   if(!who.length)return `<p class="hint" style="padding:20px 4px;text-align:center">${t('pty_none')}</p>`;
   /* One man can sit in the books under more than one hat — an opening typed as 'supplier',
      a bill raised as 'customer'. Which side of the ledger he lands on is decided by his
@@ -33380,7 +33701,7 @@ function staffSettings(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:2px"><h2 style="margin:0">\u2699\uFE0F ${t('scfg_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
-    <p class="hint" style="margin:0 0 4px">${t('scfg_sub')}</p>
+    
     <p class="hint" style="margin:0 0 14px;color:var(--ok)">\u2705 ${t('autosave')}</p>
     <div class="card" style="padding:12px 14px;margin-bottom:10px">
       <label>${t('att_weekoff')}</label>
@@ -33511,7 +33832,7 @@ function staffMaster(){
          settings gear in the same corner — measured 4px of overlap, so a tap on the edge of
          one hit the other. The gear moves down beside the description, clear of it. */''}
     <div class="kv" style="margin:0 0 2px;padding-right:46px"><h2 style="margin:0">👥 ${t('st_title')}</h2></div>
-    <div class="kv" style="margin:0 0 12px"><p class="hint" style="margin:0;flex:1">${t('st_desc')}</p>
+    <div class="kv" style="margin:0 0 12px">
       <button class="btn sm ghost" style="flex:0 0 auto" onclick="staffSettings()">⚙️</button></div>
     ${/* v213 — HIS 17 Aug: "staff permanent nahi, aaj hai, nahi samajh me aaya to wo chhod
          bhi sakte hain aur main hata bhi sakta hun." So every person can be edited or taken
@@ -33718,7 +34039,7 @@ function salesmanMaster(){
   sheetAt(salesmanMaster);
   const ks=salesmenAll();
   $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:6px">${t('salesman_master')}</h2>
-    <p class="hint" style="margin-bottom:12px">${t('salesman_desc')}</p>
+    
     ${ks.map(k=>`<div class="cust-result"><div><b>🧑‍💼 ${esc(k.name)}</b>${k.phone?`<div class="hint">📞 ${esc(k.phone)}</div>`:''}</div>
       <div style="display:flex;gap:6px"><button class="btn sm ghost" onclick="salesmanEdit('${k.id}')">✏️</button><button class="btn sm danger" onclick="salesmanDelete('${k.id}')">✕</button></div></div>`).join('')||'<p class="hint">'+t('no_salesmen')+'</p>'}
     <button class="btn primary block" style="margin-top:10px" onclick="salesmanEdit()">+ ${t('add_salesman')}</button>
@@ -33789,7 +34110,7 @@ function itemShortcuts(){
       <span class="it-nm" style="opacity:.55">${g.ico} ${esc(g.n)}</span>
       <button class="btn sm ghost" onclick="itemHideToggle('${g.id}')">${t('it_restore')}</button></div>`).join(''):'';
   $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:6px">⚙️ ${t('it_setup')}</h2>
-    <p class="hint" style="margin-bottom:12px">${t('it_setup_desc')}</p>
+    
     ${rows}${hid}
     <button class="btn ghost block" style="margin-top:10px" onclick="garmentMaster()">➕ ${t('new_garment')}</button>
     <div class="modal-actions"><button class="btn primary block" onclick="closeSheet();if(formIsOpenSoft())renderForm();">${t('close')}</button></div>`;
@@ -33876,7 +34197,7 @@ function garmentMaster(){
   sheetAt(garmentMaster);
   const items=DB.customItems||[];
   $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:6px">${t('item_master')}</h2>
-    <p class="hint" style="margin-bottom:12px">${t('item_master_desc')}</p>
+    
     ${items.map(it=>`<div class="cust-result"><div><b>${it.ico||'🧩'} ${esc(it.n)}</b><div class="hint">${(it.fields||[]).map(f=>esc(f.n)).join(', ')||'—'}</div></div>
       <div style="display:flex;gap:6px"><button class="btn sm ghost" onclick="itemEdit('${it.id}')">✏️</button><button class="btn sm danger" onclick="itemDelete('${it.id}')">✕</button></div></div>`).join('')||'<p class="hint">'+t('no_custom_items')+'</p>'}
     <button class="btn primary block" style="margin-top:10px" onclick="itemEdit()">+ ${t('add_item')}</button>
@@ -34917,7 +35238,7 @@ function handoverScreen(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F501} ${t('ho_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
-    <p class="hint" style="margin-bottom:10px;white-space:normal">${t('ho_sub')}</p>
+    
     <button class="btn primary block" style="margin-bottom:10px" onclick="handoverSend()">\u{1F4E4} ${t('ho_send')}</button>
     <label class="btn ghost block" style="margin-bottom:14px;text-align:center;cursor:pointer">
       \u{1F4E5} ${t('ho_take')}
@@ -35194,7 +35515,7 @@ async function stockAudit(){
   const now=rollStats(DB.thaans||[]);
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">🩺 ${t('au_title')}</h2>
-    <p class="hint" style="margin-bottom:12px">${t('au_sub')}</p>
+    
     <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
       <div class="il"><span>${t('au_rolls')}</span><b style="font-size:18px">${now.count}</b></div>
       <div class="il"><span>${t('au_range')}</span><b>${now.min!==null?now.min+' – '+now.max:'—'}</b></div>
