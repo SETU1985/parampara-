@@ -942,7 +942,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v611</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v612</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -1031,6 +1031,8 @@ const T={
   py_add_new:'➕ Add “{n}” as a new party',
   pos_added:'{n} added to the bill',
   vch_receipt:'Receipt', vch_payment:'Payment',
+  del_unlink_go:'🗑️ Unlink order #{n} and delete',
+  del_unlink_msg:'The bill goes. Order #{n} stays exactly as it is and can be billed again.',
   lg_opening_as:'Opening as on {d}', lg_period:'Period', lg_from:'From', lg_to:'To',
   rps_outstanding:'Outstanding',
   lg_dr_total:'Total Debit', lg_cr_total:'Total Credit', lg_all_dates:'All dates',
@@ -3088,6 +3090,8 @@ dl_show_hidden:'Show hidden ({n})',
   py_add_new:'➕ “{n}” को नई पार्टी बनाएँ',
   pos_added:'{n} बिल में जुड़ गया',
   vch_receipt:'रसीद', vch_payment:'भुगतान',
+  del_unlink_go:'🗑️ ऑर्डर #{n} से हटाकर मिटाओ',
+  del_unlink_msg:'बिल मिट जाएगा। ऑर्डर #{n} जैसा है वैसा ही रहेगा और दोबारा बिल बन सकेगा।',
   lg_opening_as:'{d} तक का ओपनिंग', lg_period:'अवधि', lg_from:'से', lg_to:'तक',
   rps_outstanding:'बकाया',
   lg_dr_total:'कुल डेबिट', lg_cr_total:'कुल क्रेडिट', lg_all_dates:'सभी तारीख़ें',
@@ -19722,7 +19726,14 @@ function openInvoiceForm(kind,id){
     invNormItems(invForm.items);
     invForm.deliveryDate=rec.deliveryDate||invForm.deliveryDate||'';
     invForm.salesmanId=rec.salesmanId||invForm.salesmanId||'';
-    if(kind==='sale'){invForm.customerName=rec.customerName||'';invForm.phone=rec.phone||'';invForm.notes=rec.notes||'';invForm.customerId=rec.customerId||null;} }
+    if(kind==='sale'){invForm.customerName=rec.customerName||'';invForm.phone=rec.phone||'';invForm.notes=rec.notes||'';invForm.customerId=rec.customerId||null;
+      /* ══════════ v612 — TOLD TO UNLINK SOMETHING THE FORM DID NOT SHOW ══════════
+         HIS 10 Sept: delete refused with "This bill belongs to order #2526 — unlink the
+         order on the bill first", he tapped Edit, and the Order number box was EMPTY.
+         v590 started writing orderNo onto a counter-sale RECORD so it would print. Loading
+         that bill back never read it, so the guard could see the number and the form could
+         not. He was sent to undo something the screen did not admit existed. */
+      invForm.orderNo=rec.orderNo||invForm.orderNo||''; } }
   else{
     let items;
     if(kind==='alt'){ items=[{label:rec.itemDesc||t('alterations'),hsn:'',qty:1,unit:'Pcs',price:+rec.total||0,disc:0,includes:''}]; }
@@ -22183,12 +22194,26 @@ function delSale(id){
                      how:t('del_has_pay_how'),
                      open:()=>openInvoiceForm('sale',id),
                      force:()=>{ rec.payments=[]; save(); delSale(id); }}))return;
-    if(rec.orderNo){
+    /* v612 — and the guard fired on the wrong thing. It exists so a bill cannot vanish out
+       from under an ORDER that depends on it. But it was reading a text box: on a counter
+       sale orderNo is whatever he typed, a slip number, a scribble — no order record is
+       involved and nothing depends on it. It now asks whether a real order actually points
+       at this bill, and only then stands in the way. When it does, the third door unlinks
+       and deletes in one go, naming the order, exactly as the money guard does.
+       HIS words: "khali wahan se delete kiya to sab kuch automatically ho jaye." */
+    const _linkedOrd=(DB.orders||[]).find(o=>
+      String(o.orderNo||'')===String(rec.orderNo||'') &&
+      (o.invoiceId===rec.id || (o.invoice&&o.invoice.no===((rec.invoice||{}).no))));
+    if(rec.orderNo && _linkedOrd){
       modal('🗑️ '+t('confirm_del'),
         `<p>${t('del_has_order',{n:esc(rec.orderNo)})}</p>
          <p class="hint" style="margin-top:8px">${t('del_has_order_how')}</p>`,
         [{label:t('close'),fn:closeModal},
-         {label:'✏️ '+t('edit'),cls:'primary',fn:()=>{closeModal();openInvoiceForm('sale',id);}}]);
+         {label:'✏️ '+t('edit'),cls:'ghost',fn:()=>{closeModal();openInvoiceForm('sale',id);}},
+         {label:t('del_unlink_go',{n:esc(rec.orderNo)}),cls:'danger',fn:()=>{closeModal();
+            confirmModal('🗑️ '+t('confirm_del'), t('del_unlink_msg',{n:esc(rec.orderNo)}),
+              ()=>{ rec.orderNo=''; save(); _delForced=1; delSale(id); },
+              null, {yes:t('delete'), cls:'danger'});}}]);
       return;
     }
   }
