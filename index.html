@@ -773,7 +773,11 @@
   .mnu-row:active{background:var(--card2)}
   .mnu-ico{font-size:21px;width:26px;text-align:center}
   .mnu-txt{flex:1;display:flex;flex-direction:column;gap:2px;font-size:15px}
-  .mnu-go{color:var(--mut);font-size:19px}
+  /* v616 — HIS 10 Sept: "arrow itna halka colour ka hai ki pata hi nahi chal raha hai."
+     He was right and it was not a taste question: this arrow is the only thing on the row
+     telling him the row goes somewhere. Grey on grey said nothing. */
+  .mnu-go{color:var(--saffron2);font-size:20px;font-weight:800}
+  .mnu-caret{color:var(--saffron2);font-size:17px;font-weight:800}
   .home-stats{display:flex;gap:8px;margin-bottom:20px}
   /* v199 — the dashboard reads top to bottom like the day itself: what must go out, what
      is still in hand, then the money. Rows, not tiles, because a row can carry a label
@@ -942,7 +946,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v615</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v617</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -2177,6 +2181,16 @@ const T={
   hd_late:'Overdue', hd_today:'Today', hd_tomorrow:'Tomorrow', hd_week:'This week',
   hd_nokar:'Not given to a karigar yet', hd_ready:'Ready to hand over',
   hd_clear:'Nothing due this week.',
+  enq_title:'Enquiries', enq_save_btn:'Not an order yet — keep the measurements',
+  enq_save_hint:'No order number is taken and no delivery date is asked. Turn it into an order when he confirms.',
+  enq_saved:'Kept — {n}', enq_pcs:'pieces', enq_waiting:'Waiting {n} days',
+  enq_make:'Make it an order', enq_lost:'Did not happen',
+  enq_lost_ask:'Close this enquiry for {n}? The measurements stay with the customer.',
+  enq_loaded:'Loaded — take the number and the delivery date',
+  enq_none:'No enquiries', enq_none_sub:'When a customer leaves measurements without confirming, keep them here.',
+  pl_new_in:'New receipt', pl_new_out:'New payment',
+  pl_find:'Name, amount, reference…',
+  rp_lastmonth:'Last month', pl_all:'All',
   ono_set:'Order number',
   ono_hint:'The next free number. If you have already written this one on a slip, change it here — the app will refuse a number that is already taken.',
   smp_cust:'Sample given — no measurement',
@@ -4238,6 +4252,16 @@ dl_show_hidden:'Show hidden ({n})',
   hd_late:'तारीख़ निकल गई', hd_today:'आज', hd_tomorrow:'कल', hd_week:'इस हफ़्ते',
   hd_nokar:'करीगर को दिया ही नहीं', hd_ready:'तैयार — देने को',
   hd_clear:'इस हफ़्ते कुछ देना नहीं है।',
+  enq_title:'पूछताछ', enq_save_btn:'अभी ऑर्डर नहीं — नाप रख लो',
+  enq_save_hint:'न ऑर्डर नंबर लगेगा, न डिलीवरी की तारीख़ पूछेगा। जब वो हाँ कहे, तब ऑर्डर बना दीजिए।',
+  enq_saved:'रख लिया — {n}', enq_pcs:'पीस', enq_waiting:'{n} दिन से',
+  enq_make:'ऑर्डर बना दो', enq_lost:'नहीं बना',
+  enq_lost_ask:'{n} की पूछताछ बंद कर दें? नाप ग्राहक के नाम पर रहेगा।',
+  enq_loaded:'भर दिया — नंबर और डिलीवरी की तारीख़ डाल दीजिए',
+  enq_none:'कोई पूछताछ नहीं', enq_none_sub:'ग्राहक नाप देकर जाए और हाँ न कहे — तो यहाँ रख लीजिए।',
+  pl_new_in:'नई रसीद', pl_new_out:'नया भुगतान',
+  pl_find:'नाम, रकम, हवाला ढूँढिए…',
+  rp_lastmonth:'पिछला महीना', pl_all:'सब',
   ono_set:'ऑर्डर नंबर',
   ono_hint:'अगला खाली नंबर। यह नंबर पर्ची पर पहले लिख चुके हैं तो यहीं बदल दीजिए — जो नंबर पहले से लगा है, ऐप उसे लेने नहीं देगा।',
   smp_cust:'सैंपल दिया है — नाप नहीं',
@@ -6566,6 +6590,30 @@ let _crashShown=0;
    there is nothing to guard. */
 let _tabFromMenu='';
 
+/* ══════════ v616 — THE MONEY WENT IN AND THE SCREEN KEPT THE OLD FIGURE ══════════
+   HIS 10 Sept, with the bill list open: "payment received kiya, received karne ke baad bhi
+   balance 5000 reflect ho raha hai. Paanch-saat minute baad update hua."
+   Not a stale cache and not a slow save — the receipt was written to the book instantly.
+   The fault is one word: after taking money, payEntryDo called renderHome(). Home was
+   redrawn correctly; the INVOICES tab he was actually looking at was not, so the figure on
+   his screen stayed at the number it had been drawn with. Five minutes later something else
+   happened to redraw that tab and the balance "updated" — nothing had changed but the
+   picture.
+   A screen showing a wrong rupee figure is the worst class of fault in this app: he acts on
+   it, or he stops believing the app. So money never redraws one screen by name again — it
+   redraws Home AND whatever he is standing on, whichever that happens to be. */
+function refreshMoney(){
+  try{ renderHome(); }catch(e){}
+  const tb=(typeof _curTab!=='undefined'&&_curTab)||'home';
+  try{
+    if(tb==='orders')safeRender('Orders',renderOrders);
+    else if(tb==='invoices')safeRender('Invoices',renderInvoices);
+    else if(tb==='purchases')safeRender('Purchases',renderPurchases);
+    else if(tb==='customers')safeRender('Customers',renderCustomers);
+    else if(tb==='alterations')safeRender('Alterations',renderAlterations);
+    else if(tb==='reports')safeRender('Reports',renderReports);
+  }catch(e){}
+}
 function go(tab){
   /* v386 AUDIT — go() threw on any name that is not a real tab, and a throw here leaves
      EVERY pane deactivated: the whole app goes white with nothing to tap. His rule is that
@@ -9323,7 +9371,7 @@ function payLoanSave(dir){
   }
   save(); closeModal();
   toast(intr>0?t('ln_saved_int',{p:money(principal),i:money(intr)}):t('ln_saved'),'ok');
-  try{ renderHome(); }catch(e){}
+  refreshMoney();
 }
 /* Money the owner puts in: capital, not income. */
 function payCapital(){
@@ -9349,7 +9397,7 @@ function payCapitalSave(){
     acc:(($('#cp_acc')||{}).value||''), party:'', ref:t('pw_capital'), cat:'',
     note:(($('#cp_note')||{}).value||'').trim()});
   save(); closeModal(); toast(t('cap_saved'),'ok');
-  try{ renderHome(); }catch(e){}
+  refreshMoney();
 }
 /* Money the owner takes: the expense form, opened on his drawings head. */
 function payDrawings(){
@@ -9631,7 +9679,7 @@ function payEntryDo(dir,again){
       if(!res.ok){ toast(res.msg,'bad'); return; }
       save(); payPartyRowsClear(); closeModal();
       toast('\u2705 '+t('vch_payment')+' \u00B7 '+money(amt)+' \u00B7 '+esc(party),'ok');
-      if(again)payEntry(dir,1); else { renderHome(); }
+      if(again)payEntry(dir,1); else { refreshMoney(); }
       return;
     }
     if(dir==='in' && _g && _g!=='debtors' && _g!=='creditors'){
@@ -9640,7 +9688,7 @@ function payEntryDo(dir,again){
       if(!res.ok){ toast(res.msg,'bad'); return; }
       save(); payPartyRowsClear(); closeModal();
       toast('\u2705 '+t('vch_receipt')+' \u00B7 '+money(amt)+' \u00B7 '+esc(party),'ok');
-      if(again)payEntry(dir,1); else { renderHome(); }
+      if(again)payEntry(dir,1); else { refreshMoney(); }
       return;
     }
   }
@@ -10733,6 +10781,65 @@ function dbLines(){
     .some(v=>String(v||'').toLowerCase().includes(q)));
   return lines;
 }
+/* ══════════ v616 — RECEIPTS COULD BE TAKEN AND NEVER LOOKED AT ══════════
+   HIS 10 Sept: "receipt par click kar raha hoon to receipt ke liye page aa jaata hai, lekin
+   purana jo maine receipt kiya hai wo check karne ke liye option nahi aa raha... jaise sale
+   ke invoice me click kiya to neeche saari invoice ki details aa rahi hai aur custom search
+   ka option aa raha hai — waisa hi receipt ka page ho."
+   Every receipt was in the book — the day book has always listed them — but the door marked
+   Receipt led straight into a blank form. A screen that can only ADD is half a screen: he
+   cannot check what he took yesterday, cannot find one by name, cannot correct it.
+   Same shape as the bill list, deliberately: the new button on top, the search under it,
+   the period chips, the total of what is shown, then the entries. The rows are the day
+   book's own rows and open through the day book's own dbOpen — so a receipt reads the same
+   and edits the same wherever he meets it, and there is no second version of the truth. */
+let _plQ='', _plPeriod='month', _plDir='in';
+function payListIn(){ payList('in'); }
+function payListOut(){ payList('out'); }
+function payList(dir){
+  _plDir=dir||'in';
+  sheetAt(_plDir==='in'?payListIn:payListOut);
+  if(!modOn('accounts')&&!modOn('billing')){ toast(t('mod_off'),'bad'); return; }
+  const isIn=_plDir==='in';
+  const to=todayISO();
+  let from='';
+  if(_plPeriod==='month') from=to.slice(0,7)+'-01';   /* 'all' leaves from empty */
+  else if(_plPeriod==='last'){ const d=new Date(to+'T00:00:00');
+    const s0=new Date(d.getFullYear(),d.getMonth()-1,1), e0=new Date(d.getFullYear(),d.getMonth(),0);
+    return payListDraw(isIn,isoOf(s0),isoOf(e0)); }
+  return payListDraw(isIn,from,to);
+}
+function payListDraw(isIn,from,to){
+  const q=String(_plQ||'').trim().toLowerCase();
+  let lines=[];
+  try{ lines=(moneyLines(from,to)||[]).filter(l=>!l._contra && l.dir===(isIn?'in':'out')); }catch(e){}
+  const all=lines.length;
+  if(q) lines=lines.filter(l=>[l.party,l.ref,l.note,l.cat,accName(l.acc),String(l.amt)]
+    .join(' ').toLowerCase().indexOf(q)>=0);
+  lines.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+  const tot=r2(lines.reduce((s,l)=>s+(+l.amt||0),0));
+  const chip=(k,lbl)=>`<span class="gtag sm ${_plPeriod===k?'on-tag':''}" style="cursor:pointer"
+      onclick="_plPeriod='${k}';payList('${isIn?'in':'out'}')">${lbl}</span>`;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${isIn?'⬇️':'⬆️'} ${t(isIn?'pay_in':'pay_out')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
+    <button class="btn primary block" style="margin-bottom:10px"
+      onclick="${isIn?"payEntry('in',1)":'moneyOut()'}">+ ${t(isIn?'pl_new_in':'pl_new_out')}</button>
+    <div class="field" style="margin-bottom:10px">
+      <input id="plQ" value="${esc(_plQ)}" placeholder="🔍 ${t('pl_find')}"
+        oninput="_plQ=this.value;payListDraw(${isIn},'${from}','${to}');
+          setTimeout(()=>{const b=document.getElementById('plQ');if(b){b.focus();
+            b.setSelectionRange(b.value.length,b.value.length);}},0)"></div>
+    <div class="gtags" style="margin:-2px 0 10px">
+      ${chip('month',t('rp_month'))}${chip('last',t('rp_lastmonth'))}${chip('all',t('pl_all'))}</div>
+    <div class="kv" style="margin:0 0 10px;padding:7px 10px;border:1px solid var(--line);border-radius:10px">
+      <span><span class="hint" style="display:block">${t('inv_total_shown')}</span>
+        <b style="font-size:16px;color:${isIn?'var(--ok)':'var(--bad)'}">${money(tot)}</b></span>
+      <span class="hint">${lines.length}${q?' / '+all:''}</span></div>
+    ${dbBodyHTML(lines)}
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
 function dbBodyHTML(lines){
   return lines.map(l=>`<div class="card" onclick="dbOpen('${jq(l.id||'')}')" style="margin-bottom:6px;padding:11px;cursor:pointer">
       <div class="kv"><div style="flex:1">
@@ -11445,6 +11552,7 @@ function ordersHub(){
     ['👗', t('trial_due'), "closeSheet();trialBoard()"],
     ['🔍', t('of_title'), "closeSheet();orderFilter()"],
     ['📞', t('se_title'), "closeSheet();statusEnquiry('')"],
+    ['📝', t('enq_title'), "closeSheet();enqList()"],
     ['🔧', t('home_alterations'), "closeSheet();go('alterations')"],
     ['📦', t('cu_title'), "closeSheet();courierHub()"],
     modOn('samples')?['👗', t('smp_title'), "closeSheet();samplesHome()"]:null,
@@ -14313,7 +14421,7 @@ function menuSecToggle(k){
   document.querySelectorAll('#mnuBody .mnu-list[data-sec="'+k+'"]')
     .forEach(l=>l.style.display=_mnuOpen[k]?'':'none');
   document.querySelectorAll('#mnuBody .section-h[data-sec="'+k+'"] .mnu-caret')
-    .forEach(c=>c.textContent=_mnuOpen[k]?'\u25BE':'\u25B8');
+    .forEach(c=>c.textContent=_mnuOpen[k]?'\u2303':'\u2304');
 }
 function menuHome(){
   sheetAt(menuHome);
@@ -14328,7 +14436,10 @@ function menuHome(){
     const k='ms'+(_secN++), open=!!_mnuOpen[k];
     return `<div class="section-h" data-sec="${k}" onclick="menuSecToggle('${k}')"
         style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px">
-      <span>${title}</span><span class="mnu-caret" style="opacity:.7">${open?'\u25BE':'\u25B8'}</span></div>
+      ${/* v616: a HEAD carries a chevron pointing DOWN — it drops open in place. A ROW
+           carries › — it takes you somewhere else. Two different jobs, two different
+           signs, exactly as Vyapar has it and exactly as he read it. */''}
+      <span>${title}</span><span class="mnu-caret">${open?'\u2303':'\u2304'}</span></div>
     <div class="mnu-list" data-sec="${k}" style="${open?'':'display:none'}">${list.join('')}</div>`;
   };
   $('#sheet').innerHTML=`<div class="grip"></div>
@@ -14348,14 +14459,17 @@ function menuHome(){
          all reachable already — behind ⋯ on the Sale list — and none of them was here. */''}
     ${modOn('billing')?sec('🧾 '+t('hub_sale'),[
       row('🧾',t('hub_sale'),"menuGoTab('invoices')"),
-      row('\u2B07\uFE0F',t('pay_in'),"payEntry('in',1)"),
+      row('\u2B07\uFE0F',t('pay_in'),"payList('in')"),
       row('↩️',t('sr_menu'),"salesReturnPick()"),
       row('📄',t('estimate'),"estimateList()"),
-      row('🔢',t('gap_title'),"billGaps()"),
+      /* v617 — HIS 10 Sept: "missing bill numbers screen par nahi chahiye. Maine bataya tha
+         screen thodi clean chahiye, unnecessary ki cheezein nahi chahiye." Off the menu. It
+         is NOT deleted — the check still runs and still opens from ⋯ on the Sale list, which
+         is where a man goes when he is hunting a missing number, not looking for a door. */
       row('🔔',t('debtors_report'),"followUps()")]):''}
     ${modOn('billing')?sec('🚚 '+t('hub_purchase'),[
       row('🚚',t('hub_purchase'),"menuGoTab('purchases')"),
-      row('\u2B06\uFE0F',t('pay_out'),"moneyOut()"),
+      row('\u2B06\uFE0F',t('pay_out'),"payList('out')"),
       row('↪️',t('pr_menu'),"purchaseReturnPick()"),
       row('📝',t('purchase_order'),"poList()"),
       row('📥',t('creditors_report'),"creditors()")]):''}
@@ -14402,8 +14516,8 @@ function menuHome(){
          under the ＋ button. Had he ever moved that shortcut off Home it would have been
          unreachable. Taking money is not a shortcut; it is something the shop does every
          day, and it belongs in the list with everything else. */
-      row('\u2B07\uFE0F',t('pay_in'),"payEntry('in',1)"),
-      row('\u2B06\uFE0F',t('pay_out'),"payEntry('out',1)"),
+      row('\u2B07\uFE0F',t('pay_in'),"payList('in')"),
+      row('\u2B06\uFE0F',t('pay_out'),"payList('out')"),
       row('💸',t('exp_title'),"expenses()"),
       row('📒',t('db_title'),"dayBook()"),
       row('🏦',t('cb_title'),"cashBank()"),
@@ -14465,7 +14579,7 @@ function menuFilter(q){
        it. Search must never be a second, competing way of opening things. */
     const show = any && (q ? true : !!_mnuOpen[k]);
     if(list)list.style.display=show?'':'none';
-    const c=h.querySelector('.mnu-caret'); if(c)c.textContent=show?'\u25BE':'\u25B8'; });
+    const c=h.querySelector('.mnu-caret'); if(c)c.textContent=show?'\u2303':'\u2304'; });
 }
 /* v355 — HIS 27 Aug: "kya home screen per rakhna hai ya kya nahi ye shopkeeper apne
    suvidha ke hisab se khud set kar sake. Jitna customer khud customise kar sakenge utna
@@ -15031,7 +15145,7 @@ let _ordBody='';
 function _ordPaint(el,head,remind,searchBox,bar,srcBar,banner,dcard,keepFocus){
   const holder=el.querySelector('#ordRows');
   if(keepFocus && holder && el.querySelector('#ordSearch')){ holder.innerHTML=_ordBody; return; }
-  el.innerHTML=head+remind+searchBox+bar+srcBar+banner+dcard+'<div id="ordRows">'+_ordBody+'</div>';
+  el.innerHTML=head+enqBarHTML()+remind+searchBox+bar+srcBar+banner+dcard+'<div id="ordRows">'+_ordBody+'</div>';
   if(keepFocus)focusOrdSearch();
 }
 function renderOrders(keepFocus){
@@ -16998,6 +17112,10 @@ function renderForm(){
         <p class="hint" style="margin:4px 0 0">${t('add_member_hint')}</p>`:''}
       ${ordBillBlockHTML(f)}
       ${ordExtrasHTML(f)}
+      ${/* v617: only on a NEW order. Editing a real order into an enquiry would mean
+           un-taking a number that is already on his slip. */''}
+      ${!f.editId?`<button class="btn ghost block" style="margin-top:14px" onclick="enqSave()">📝 ${t('enq_save_btn')}</button>
+        <p class="hint" style="margin:4px 0 0">${t('enq_save_hint')}</p>`:''}
       <div class="save-dock">${cancelBtn}
         <button class="btn primary" style="flex:2" onclick="saveOrder()">💾 ${f.editId?t('update'):t('save_order')}</button></div>
       <div class="fab-pad"></div>`;
@@ -17920,6 +18038,106 @@ function fillMemberOnos(f){
     if(nx){ m.ono=nx; used.add(nx); base=nx; }
   });
 }
+/* ══════════ v617 — THE NAAP THAT ARRIVES BEFORE THE ORDER DOES ══════════
+   HIS 10 Sept: "kisi customer ne measurement de diya, par abhi isne confirm nahi kiya —
+   phone par hi confirm kar denge. To order me bhi aisa kuch ho sakta hai kya ki order nahi
+   hai to customer ka naam, number aur measurement daal diya, estimate kind of, aur wo order
+   me jab convert hua to order kar diya."
+   Until now there were only two ways to hold that, and both were wrong. Make a real order:
+   it burns a number the shop has not used, lands on the delivery board with no date, and
+   sits in the receivables. Or write it on paper: it is lost by Friday.
+   So an enquiry is a THIRD thing, and it is deliberately not an order wearing a different
+   hat. It has no order number — the shop's running serial is never spent on a maybe. It has
+   no delivery date, so it can never reach the delivery board or the late list. It carries no
+   money into the books; the amount, if he puts one, is a quote and nothing more, and it is
+   optional exactly as he asked: "daalna hua to daala, nahi daalna hoga to nahi."
+   What it does carry is everything that took time to collect — the naap, the pieces, the
+   photos, the design notes, the sample mark. "Order बना दो" hands all of it to a fresh
+   order form and the number is taken at save, like any other order. "नहीं बना" closes it,
+   so the list stays short and the shop ends up with a figure nobody has today: how many
+   enquiries turned into work. */
+function enqAll(){ DB.enquiries=DB.enquiries||[]; return DB.enquiries; }
+function enqOpen(){ return enqAll().filter(e=>e.status!=='lost'); }
+function enqDays(e){ try{ return Math.max(0,Math.round((Date.now()-new Date(e.created).getTime())/86400000)); }catch(x){ return 0; } }
+function enqSave(){
+  captureForm(); const f=form; if(!f)return;
+  if(!(f.customerName||'').trim() && !(f.phone||'').trim()){ toast(t('t_no_name'),'bad'); return; }
+  if(!(f.items||[]).length){ toast(t('t_no_item'),'bad'); return; }
+  const e={ id:'e'+Date.now(), created:new Date().toISOString(), status:'open',
+    customerId:f.customerId||null, customerName:(f.customerName||'').trim(), phone:(f.phone||'').trim(),
+    items:(f.items||[]).slice(), m:JSON.parse(JSON.stringify(f.m||{})),
+    mAuto:JSON.parse(JSON.stringify(f.mAuto||{})), mFlag:JSON.parse(JSON.stringify(f.mFlag||{})),
+    design:JSON.parse(JSON.stringify(f.design||{})),
+    itemPhotos:JSON.parse(JSON.stringify(f.itemPhotos||{})),
+    itemVoice:JSON.parse(JSON.stringify(f.itemVoice||{})),
+    custSample:JSON.parse(JSON.stringify(f.custSample||{})),
+    members:(f.members||[]).slice(), bodyType:(f.bodyType||[]).slice(),
+    notes:f.notes||'', photos:(f.photos||[]).slice(), voiceNotes:(f.voiceNotes||[]).slice(),
+    salesmanId:f.salesmanId||'', source:f.source||'', sourceRef:f.sourceRef||'',
+    amount:+f.total||0 };
+  enqAll().push(e);
+  try{ form._saved=1; }catch(x){}
+  clearDraft(); save(); sheetSaved(); closeSheet();
+  toast('📝 '+t('enq_saved',{n:e.customerName||e.phone}),'ok');
+  go('orders'); safeRender('Orders',renderOrders);
+}
+function enqBarHTML(){
+  const n=enqOpen().length; if(!n)return '';
+  return `<button class="btn ghost block" style="margin-bottom:10px;border-color:var(--saffron2);
+      display:flex;align-items:center;justify-content:space-between" onclick="enqList()">
+    <span>📝 ${t('enq_title')} · <b>${n}</b></span><span style="color:var(--saffron2);font-weight:800">›</span></button>`;
+}
+function enqList(){
+  sheetAt(enqList);
+  const list=enqOpen().slice().sort((a,b)=>String(a.created).localeCompare(String(b.created)));
+  const rows=list.map(e=>{
+    const d=enqDays(e), pcs=(e.items||[]).length;
+    return `<div class="card" style="margin-bottom:8px;padding:12px">
+      <div class="kv"><div style="flex:1;min-width:0">
+        <b style="font-size:15px">${esc(e.customerName||'—')}</b>
+        <div class="hint">${esc(e.phone||'')}${e.phone&&pcs?' · ':''}${pcs?pcs+' '+t('enq_pcs'):''}${e.amount?' · '+money(e.amount):''}</div>
+        <div class="hint" style="color:${d>=7?'var(--bad)':'inherit'}">${t('enq_waiting',{n:d})}</div>
+      </div>
+      ${e.phone?`<button class="btn sm ghost" style="flex:0 0 auto" onclick="waSend('${jq(e.phone)}','')">💬</button>`:''}</div>
+      <div class="row" style="gap:8px;margin-top:10px">
+        <button class="btn sm primary" style="flex:2" onclick="enqToOrder('${jq(e.id)}')">✅ ${t('enq_make')}</button>
+        <button class="btn sm ghost" style="flex:1" onclick="enqDrop('${jq(e.id)}')">${t('enq_lost')}</button>
+      </div></div>`;
+  }).join('');
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">📝 ${t('enq_title')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
+    ${list.length?rows:`<div class="empty" style="padding:26px 10px"><div class="big">📝</div>
+      <p><b>${t('enq_none')}</b></p><p style="font-size:13px">${t('enq_none_sub')}</p></div>`}
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function enqDrop(id){
+  const e=enqAll().find(x=>x.id===id); if(!e)return;
+  confirmModal(t('enq_lost'), t('enq_lost_ask',{n:e.customerName||e.phone||''}), ()=>{
+    e.status='lost'; e.lostAt=todayISO(); save(); closeModal();
+    enqList(); safeRender('Orders',renderOrders); toast(t('t_saved'),'ok');
+  });
+}
+function enqToOrder(id){
+  const e=enqAll().find(x=>x.id===id); if(!e)return;
+  closeSheet(); sheetReset();
+  openOrderForm();
+  setTimeout(()=>{
+    if(!form)return;
+    ['customerId','customerName','phone','salesmanId','source','sourceRef','notes'].forEach(k=>{ form[k]=e[k]||form[k]||''; });
+    form.customerId=e.customerId||null;
+    form.items=(e.items||[]).slice();
+    ['m','mAuto','mFlag','design','itemPhotos','itemVoice','custSample'].forEach(k=>{
+      try{ form[k]=JSON.parse(JSON.stringify(e[k]||{})); }catch(x){} });
+    form.members=(e.members||[]).slice(); form.bodyType=(e.bodyType||[]).slice();
+    form.photos=(e.photos||[]).slice(); form.voiceNotes=(e.voiceNotes||[]).slice();
+    if(e.amount)form.total=e.amount;
+    form._fromEnq=e.id;                 /* cleared only when the order actually saves */
+    renderForm();
+    toast(t('enq_loaded'),'ok');
+  },380);
+}
 function saveOrder(){
   /* v338 — HIS 26 Aug: three quick taps produced ONE order, which is right, but the second
      and third taps still reported "This order number already exists" — a frightening
@@ -18065,6 +18283,8 @@ function saveOrder(){
     DB.orders.push(o);clearDraft();
     _ordLastSave=Date.now();                 /* v338: a repeat tap now falls through */
     try{ if(form)form._saved=1; }catch(e){}   /* v337: saved, so closeSheet must not ask */
+    /* v617: it became work — it stops being a maybe. Only here, only on a real save. */
+    if(f._fromEnq){ DB.enquiries=(DB.enquiries||[]).filter(x=>x.id!==f._fromEnq); }
     save(o.id);sheetSaved();closeSheet();toast(t('t_created',{n:o.orderNo}),'ok');
     go('orders');
     // customer is still standing there — bill it now, but only on an install that HAS billing
