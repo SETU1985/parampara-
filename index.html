@@ -967,7 +967,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v623</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v625</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -2275,6 +2275,14 @@ const T={
   dup_ph_same:'Yes, same person', dup_ph_edit:'No, change number',
   it_icon:'Change icon', it_icon_pick:'Pick an icon', it_icon_own:'Or type any emoji',
   pos_f_all:'All', pos_f_mto:'Made to order', pos_f_rdy:'Readymade', pos_f_fab:'Fabric',
+  pos_f_stitch:'Stitching',
+  pos_mtr:'mtr', pos_rate_mtr:'Rate / mtr',
+  pos_left_mtr:'{n} mtr left on this roll',
+  pos_left_pcs:'{n} in stock',
+  pos_over:'more than stock',
+  pos_n_pcs:'{n} pcs',
+  pos_n_mtr:'{n} mtr',
+  im_stitch:'Stitching only', im_stitch_hint:'Customer brings the cloth — we only stitch. It shows under the Stitching head, not Made to order.',
   vm_next:'Next piece', vm_done:'All measurements taken',
   vm_two:'Two different numbers — say it again', vm_nonum:'No number heard',
   vm_nofield:'Which measurement? Say the name first', vm_notonthis:'{f} is not on this piece',
@@ -4354,6 +4362,14 @@ dl_show_hidden:'Show hidden ({n})',
   dup_ph_same:'हाँ, वही आदमी', dup_ph_edit:'नहीं, नंबर बदलें',
   it_icon:'आइकन बदलें', it_icon_pick:'आइकन चुनिए', it_icon_own:'या कोई भी इमोजी लिखिए',
   pos_f_all:'सब', pos_f_mto:'ऑर्डर पर बनने वाला', pos_f_rdy:'रेडीमेड', pos_f_fab:'कपड़ा',
+  pos_f_stitch:'सिलाई',
+  pos_mtr:'मीटर', pos_rate_mtr:'रेट / मीटर',
+  pos_left_mtr:'इस थान में {n} मी बची',
+  pos_left_pcs:'स्टॉक में {n}',
+  pos_over:'स्टॉक से ज़्यादा',
+  pos_n_pcs:'{n} नग',
+  pos_n_mtr:'{n} मी',
+  im_stitch:'सिर्फ सिलाई', im_stitch_hint:'कपड़ा ग्राहक का — सिर्फ सिलाई होगी। यह सिलाई वाले head में आएगा, ऑर्डर पर बनने वाले में नहीं।',
   vm_next:'अगला आइटम', vm_done:'सारे नाप हो गए',
   vm_two:'दो अलग नंबर — फिर से बोलिए', vm_nonum:'नंबर नहीं सुनाई दिया',
   vm_nofield:'कौन सा नाप? पहले नाम बोलिए', vm_notonthis:'{f} इस आइटम में नहीं है',
@@ -20974,9 +20990,30 @@ function renderInvoiceForm(){
 }
 
 /* ---- bill lines: rendered on their own, so typing never re-renders the page ---- */
+/* ══════════ v625 — A ROLL OF CLOTH BILLED AS "1 PIECE" ══════════
+   HIS 11 Sept, customer standing there: "teen meter kapda customer ne liya hai, to kaise
+   iski entry karun? Ek aa raha hai piece aur rate dene aa raha hai. To quantity kaise kam
+   hoga?"
+   The books were already right — save has deducted metres off the thaan since v380, and
+   readymade off the size. What was wrong was the FORM, which never asked him for metres.
+   The quantity box was a whole-number stepper with nothing beside it saying Mtr, so a
+   fabric line looked exactly like a piece; 3.5 could not be typed at all, and half a metre
+   is an everyday thing in cloth. The rate box said only "Rate" where it meant rate PER
+   METRE. And the roll's balance — the one number that decides whether the sale is even
+   possible — was on the search screen a moment earlier and gone by the time he billed.
+   All of it belongs on the line: metres, the word मीटर, ₹/मीटर, and "13.7 मी बची" that
+   turns red the instant he types more than the roll holds, instead of a toast after Save
+   when the bill is already made. */
 function posLineHTML(i,it){
   const picked=Array.isArray(it.incl)?it.incl:[];
   const amt=r2((+it.qty||1)*(+it.rate||0));
+  const isFab=invIsFabric(it);
+  /* what is left on THIS roll — the piece he is selling out of, not the whole design */
+  let bal=null;
+  if(isFab&&it.thaanId){ const th=(DB.thaans||[]).find(x=>x.id===it.thaanId); if(th)bal=thaanBal(th); }
+  let rdyLeft=null;
+  if(!isFab&&it.masterId){ const m=(DB.itemMaster||[]).find(x=>x.id===it.masterId);
+    if(m&&m.kind==='ready')rdyLeft=it.size?readyQty(m,it.size):readyTotal(m); }
   return `<div class="pos-line pur-card" id="posLine${i}" style="cursor:default">
     <div class="pl-top">
       <span class="pur-num">#${i+1}</span>
@@ -20990,9 +21027,12 @@ function posLineHTML(i,it){
     <div class="pl-row">
       <div class="qty-step">
         <button onclick="posQty(${i},-1)">−</button>
-        <input class="qty-in" data-iqty="${i}" type="number" inputmode="numeric" min="1" value="${esc(it.qty||1)}" oninput="posLineCalc(${i})">
+        <input class="qty-in" data-iqty="${i}" type="number"
+          inputmode="${isFab?'decimal':'numeric'}" step="${isFab?'any':'1'}" min="${isFab?'0':'1'}"
+          value="${esc(it.qty||1)}" oninput="posLineCalc(${i})">
         <button onclick="posQty(${i},1)">+</button>
       </div>
+      ${isFab?`<span class="hint" id="posUnit${i}" style="flex:0 0 auto;font-weight:700">${t('pos_mtr')}</span>`:''}
       ${/* ══════════ v519 — TWO MONEY BOXES, NEITHER OF THEM NAMED ══════════
            HIS 6 Sept: "har item par teen alag box." Measured: five boxes and three buttons
            on a line, and the two that hold money were marked only with a ₹ — nothing said
@@ -21003,7 +21043,7 @@ function posLineHTML(i,it){
            gone the amount went to ₹0 the moment he touched the quantity. Money must never
            depend on whether a field happens to be on screen. Both boxes stay, and each one
            now says what it is. */''}
-      <label class="pl-money"><span class="pl-money-lbl">${t('pos_rate')}</span>
+      <label class="pl-money"><span class="pl-money-lbl">${isFab?t('pos_rate_mtr'):t('pos_rate')}</span>
         <span class="rate-in"><span>₹</span><input data-irate="${i}" type="number" min="0" inputmode="numeric" value="${it.rate?esc(it.rate):''}" placeholder="${t('pos_rate')}" oninput="posLineCalc(${i})" onkeydown="invRateKey(event)"></span></label>
       <label class="pl-money"><span class="pl-money-lbl">${t('pos_amt')}</span>
         <span class="rate-in amt-in"><span>₹</span><input data-iamt="${i}" type="number" min="0" inputmode="numeric" value="${amt?esc(amt):''}" placeholder="${t('pos_amt')}" oninput="posAmtEdit(${i})"></span></label>
@@ -21028,11 +21068,17 @@ function posLineHTML(i,it){
          item master, where a code set once serves every future bill — instead of being
          retyped on the counter on every line of every bill for ever. */''}
     <input type="hidden" data-ihsn="${i}" value="${esc(it.hsn||'')}">
+    ${(bal!==null||rdyLeft!==null)?`<div class="hint" id="posLeft${i}">${posLeftHTML(i,it)}</div>`:''}
   </div>`;
 }
 function posBilledSummary(){
   const f=invForm; if(!f||!(f.items||[]).length)return '';
-  const qty=r2(f.items.reduce((s,it)=>s+(+it.qty||0),0));
+  /* v625: "Total qty: 2" was one suit plus one metre added together. They are different
+     things and no single number can hold both, so they are counted apart. */
+  const pcs=r2(f.items.filter(it=>!invIsFabric(it)).reduce((s,it)=>s+(+it.qty||0),0));
+  const mtr=r2(f.items.filter(it=>invIsFabric(it)).reduce((s,it)=>s+(+it.qty||0),0));
+  const qty=[pcs?t('pos_n_pcs',{n:pcs}):'', mtr?t('pos_n_mtr',{n:mtr}):'']
+    .filter(Boolean).join(' · ') || '0';
   const sub=r2(f.items.reduce((s,it)=>s+(+it.price||((+it.qty||1)*(+it.rate||0)))||0,0));
   /* ══════════ v516 — THE SAME FIGURE TWICE, ONE LINE APART ══════════
      On a bill with no discount and no courier the subtotal IS the grand total, so the
@@ -21116,6 +21162,28 @@ function invRateKey(ev){
   if(i>=0 && rows[i+1]){ invPick(rows[i+1]); return; }
   invPick($('#inv_recv'));                      // last rate done → the money he is taking
 }
+/* Written once and called from two places — the first draw and every keystroke — so the
+   warning can never be one behind what is typed. */
+function posLeftHTML(i,item){
+  const it=item||((invForm&&invForm.items)||[])[i]; if(!it)return '';
+  const q=+it.qty||0;
+  if(invIsFabric(it)&&it.thaanId){
+    const th=(DB.thaans||[]).find(x=>x.id===it.thaanId); if(!th)return '';
+    const bal=thaanBal(th);
+    const over=q>bal+0.001;
+    return `<span style="${over?'color:var(--bad);font-weight:800':''}">
+      ${over?'⚠️ ':''}${t('pos_left_mtr',{n:r2(bal)})}${over?' · '+t('pos_over'):''}</span>`;
+  }
+  if(it.masterId){
+    const m=(DB.itemMaster||[]).find(x=>x.id===it.masterId);
+    if(!m||m.kind!=='ready')return '';
+    const left=it.size?readyQty(m,it.size):readyTotal(m);
+    const over=q>left;
+    return `<span style="${over?'color:var(--bad);font-weight:800':''}">
+      ${over?'⚠️ ':''}${t('pos_left_pcs',{n:left})}${it.size?' · '+esc(it.size):''}${over?' · '+t('pos_over'):''}</span>`;
+  }
+  return '';
+}
 function posLineCalc(i){            // ← no re-render: cursor stays exactly where it is
   const qEl=document.querySelector('[data-iqty="'+i+'"]');
   const rEl=document.querySelector('[data-irate="'+i+'"]');
@@ -21123,6 +21191,7 @@ function posLineCalc(i){            // ← no re-render: cursor stays exactly wh
   if(invForm.items[i]){invForm.items[i].qty=q;invForm.items[i].rate=r;invForm.items[i].price=r2(q*r);}
   const a=document.querySelector('[data-iamt="'+i+'"]'); if(a&&document.activeElement!==a)a.value=r2(q*r)||'';
   const lb=$('#posLineAmt'+i); if(lb)lb.textContent=money(r2(q*r));
+  const lf=$('#posLeft'+i); if(lf)lf.innerHTML=posLeftHTML(i);      /* v625 */
   const bs=$('#posBilledSummary'); if(bs)bs.innerHTML=posBilledSummary();
   updateInvTotals();
 }
@@ -21140,7 +21209,12 @@ function posAmtEdit(i){             // type the total; rate is derived (qty stay
 }
 function posQty(i,d){
   const el=document.querySelector('[data-iqty="'+i+'"]'); if(!el)return;
-  const v=Math.max(1,(+el.value||1)+d); el.value=v; posLineCalc(i);
+  /* v625: cloth is sold in halves and quarters, so the floor of 1 is wrong there — a
+     0.5 metre cut is a real sale and the stepper must be able to reach it. */
+  const it=((invForm&&invForm.items)||[])[i]||{};
+  const step=invIsFabric(it)?0.5:1, floor=invIsFabric(it)?0.5:1;
+  const v=Math.max(floor, r2((+el.value||floor)+d*step));
+  el.value=v; posLineCalc(i);
 }
 function posLinkOrder(no){
   const v=String(no||'').trim();
@@ -21256,7 +21330,20 @@ function posNewItem(){captureInvoiceForm();_imDraft=null;imEdit(null,{type:'inv'
 function posAddMenu(){ posSearchAdd(); }
 function posSearchAdd(){
   _posFilter='all';   // a fresh search never inherits the last bill's sieve
-  const fchips=[['all','pos_f_all'],['mto','pos_f_mto'],['rdy','pos_f_rdy'],['fab','pos_f_fab']]
+  /* ══════════ v624 — SILAI HAD NOWHERE OF ITS OWN TO LIVE ══════════
+     HIS 11 Sept: "stitching karke bhi ek head hona chahiye… abhi mereko made-to-order mein
+     hi Coat stitching only, Shirt stitching only, Pant aise karke banana padega poora."
+     Right. Three sieves existed — made to order, readymade, fabric — and stitching is none
+     of them. Cloth the customer brings himself, we only stitch: no piece leaves the rack,
+     no thaan is cut, and the rate is per garment, not per set. Dropped into made-to-order
+     it sat mixed with the Suits and Sherwanis and had to be hunted for on a counter with a
+     customer waiting.
+     It gets its own head. An item is marked stitching once, in the item screen, and from
+     then on it appears under this chip and NOT under made to order — one item, one place.
+     Everything else about it is unchanged: same rate box, same Includes, so a "Suit
+     stitching" can still carry coat + pant + shirt exactly as a readymade suit does. */
+  const fchips=[['all','pos_f_all'],['mto','pos_f_mto'],['stitch','pos_f_stitch'],
+                ['rdy','pos_f_rdy'],['fab','pos_f_fab']]
     .map(([k,lbl])=>`<span class="gtag sm ${k==='all'?'on-tag':''}" data-pf="${k}" style="cursor:pointer" onclick="posSetFilter('${k}')">${t(lbl)}</span>`).join('');
   modal('🔎 '+t('pos_add_item'),
     `<div class="gtags" style="margin:0 0 8px">${fchips}</div>
@@ -21294,9 +21381,12 @@ function posSearchRun(qraw){
   // (Suit 3 PC, Sherwani…) — picking a preset links masterId so Includes + rate auto-fill,
   // which a plain typed line can't do. Presets still never get auto-created from billed names.
   const ready=show('rdy')?(DB.itemMaster||[]).filter(m=>m.kind==='ready'&&match(m.name)).slice(0,12):[];
-  const presets=show('mto')?(DB.itemMaster||[]).filter(m=>m.kind!=='ready'&&match(m.name)).slice(0,12):[];
+  const isStitch=m=>m.kind==='stitch';
+  const presets=show('mto')?(DB.itemMaster||[]).filter(m=>m.kind!=='ready'&&!isStitch(m)&&match(m.name)).slice(0,12):[];
+  const stitches=show('stitch')?(DB.itemMaster||[]).filter(m=>isStitch(m)&&match(m.name)).slice(0,12):[];
   const rolls=show('fab')?(DB.thaans||[]).filter(th=>{const fi=(DB.fabItems||[]).find(x=>x.id===th.fabId)||{};return match(th.serial)||match(fi.name)||match(fi.category);}).slice(0,15):[];
-  const exact = qn && (ready.some(m=>key(m.name)===qn) || presets.some(m=>key(m.name)===qn) || rolls.some(th=>{const fi=(DB.fabItems||[]).find(x=>x.id===th.fabId)||{};return key(th.serial)===qn||key(fi.name)===qn;}));
+  const exact = qn && (ready.some(m=>key(m.name)===qn) || presets.some(m=>key(m.name)===qn)
+    || stitches.some(m=>key(m.name)===qn) || rolls.some(th=>{const fi=(DB.fabItems||[]).find(x=>x.id===th.fabId)||{};return key(th.serial)===qn||key(fi.name)===qn;}));
   _posItems=[];
   const scoreOf=fields=>{let b=9;for(const f of fields){if(!f)continue;if(f===qn)b=Math.min(b,0);else if(f.indexOf(qn)===0)b=Math.min(b,1);else if(f.includes(qn))b=Math.min(b,2);}return b;};
   ready.forEach(m=>{
@@ -21307,6 +21397,12 @@ function posSearchRun(qraw){
   presets.forEach(m=>{
     const parts=(m.incl||[]).join(' + ');
     _posItems.push({title:esc(m.name),sub:`${parts?esc(parts)+' · ':''}${m.rate?'₹'+esc(m.rate):t('pos_preset_norate')}`,
+      act:()=>posAddMaster(m.id),score:qn?scoreOf([key(m.name)]):3});
+  });
+  stitches.forEach(m=>{
+    const parts=(m.incl||[]).join(' + ');
+    _posItems.push({title:'🧵 '+esc(m.name),
+      sub:`${parts?esc(parts)+' · ':''}${m.rate?'₹'+esc(m.rate):t('pos_preset_norate')}`,
       act:()=>posAddMaster(m.id),score:qn?scoreOf([key(m.name)]):3});
   });
   rolls.forEach(th=>{const fi=(DB.fabItems||[]).find(x=>x.id===th.fabId)||{};
@@ -31693,6 +31789,14 @@ function imRender(){
         <input id="im_dsgn" value="${esc(d.dsgn)}" placeholder="${t('im_dsgn_ph')}"></div></div>
     <div class="row"><div class="field"><label>${t('im_hsn')}</label><input id="im_hsn" value="${esc(d.hsn)}" placeholder="6203"></div>
       <div class="field"><label>${t('im_rate')}</label><input id="im_rate" type="number" inputmode="numeric" value="${esc(d.rate)}" placeholder="0"></div></div>
+    ${/* v624: the one switch that decides which head it lives under. Deliberately here and
+         nowhere else — set it on the item and every screen agrees, instead of each screen
+         guessing from the name. */''}
+    <label class="il" style="cursor:pointer;padding:10px 0">
+      <span><b>🧵 ${t('im_stitch')}</b>
+        <div class="hint">${t('im_stitch_hint')}</div></span>
+      <input type="checkbox" id="im_stitch" ${(_imDraft&&_imDraft.kind==='stitch')?'checked':''}
+        style="width:22px;height:22px"></label>
     <div class="section-h">${t('im_incl')}</div>
     <p class="hint" style="margin:0 0 8px">${t('im_incl_desc')}</p>
     <div class="gtags">${chips}<span class="gtag" onclick="imAddPart()" style="cursor:pointer;border-style:dashed">${t('im_add_part')}</span>
@@ -31731,7 +31835,9 @@ function imAddPart(){imCapture();_imDraft._keep=true;
        _imDraft._keep=true;imRender();}}]);
   setTimeout(()=>{const el=$('#newPart');if(el)el.focus();},120);
 }
-function imSave(){imCapture();const d=_imDraft;
+function imSave(){
+  const _st=$('#im_stitch'); imCapture(); const d=_imDraft;
+  if(_st)d.kind=_st.checked?'stitch':(d.kind==='ready'?'ready':'');
   if(!d.name){toast(t('t_no_im_name'),'bad');return;}
   DB.itemMaster=DB.itemMaster||[];
   let rec;
@@ -31740,11 +31846,16 @@ function imSave(){imCapture();const d=_imDraft;
      it, so a repeat is refused rather than quietly renumbered. */
   const dup=(DB.itemMaster||[]).find(x=>x.id!==d.id && d.rmNo && String(x.rmNo||'')===String(d.rmNo));
   if(dup){ toast(t('im_rm_dup',{n:esc(d.rmNo)}),'bad'); return; }
+  /* v624: a readymade piece is a piece of stock and must never be turned into a stitching
+     line by a stray tap — the switch only ever moves an item between made-to-order and
+     stitching. */
+  const stitchOn=!!((($('#im_stitch')||{}).checked)||(d.kind==='stitch'&&!$('#im_stitch')));
   if(d.id){rec=DB.itemMaster.find(x=>x.id===d.id);
     Object.assign(rec,{name:d.name,hsn:d.hsn,rate:d.rate,incl:[...d.incl],photos:[...(d.photos||[])],
-      rmNo:d.rmNo||rec.rmNo||'', dsgn:d.dsgn||''});}
+      rmNo:d.rmNo||rec.rmNo||'', dsgn:d.dsgn||''});
+    if(rec.kind!=='ready')rec.kind=stitchOn?'stitch':'';}
   else{rec={id:uid(),name:d.name,hsn:d.hsn,rate:d.rate,incl:[...d.incl],photos:[...(d.photos||[])],
-      rmNo:d.rmNo||'', dsgn:d.dsgn||''};DB.itemMaster.push(rec);}
+      rmNo:d.rmNo||'', dsgn:d.dsgn||'', kind:stitchOn?'stitch':''};DB.itemMaster.push(rec);}
   save();toast(t('t_item_saved'),'ok');
   const back=d.back; const newId=rec.id; _imDraft=null;
   /* ══════════ v543 — EDITING A SHORTCUT PUT IT ON THE BILL ══════════
