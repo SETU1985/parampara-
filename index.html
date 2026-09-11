@@ -82,6 +82,12 @@
     --bg:#f6f4f0; --bg2:#eceae5; --card:#ffffff; --card2:#f4f2ed;
     --line:#e0dbd2; --line2:#c8c1b5;
     --saffron:#c97e10; --saffron2:#9a5f06; --saffronDim:#dcb26a;
+    /* v622 — HIS 11 Sept: "arrow pehle se bahut achha, phir bhi utna bright nahi. Ekdam
+       bright hona chahiye ki samajh mein aaye." A sign that has to be looked for is not
+       doing its job. This is the loud one, used ONLY where something must be noticed at a
+       glance — the All screens heads and their arrows. The rest of the app keeps the two
+       quieter saffrons, or nothing would stand out at all. */
+    --saffronHot:#f07f13;
     --txt:#1b1915; --txt2:#57514a; --mut:#847c72;
     --ok:#15803d; --bad:#b3261e;
     --r:14px; --r2:10px; --safe-b:env(safe-area-inset-bottom,0px);
@@ -464,7 +470,12 @@
   .ocard .name{font-size:16px; font-weight:700}
   .ocard .meta{font-size:12px; color:var(--txt2); margin-top:3px}
   .gtags{display:flex; flex-wrap:wrap; gap:5px; margin-top:10px}
-  .gtag{font-size:11px; background:var(--bg2); border:1px solid var(--line); padding:4px 8px; border-radius:20px; color:var(--txt2)}
+  /* v621 — HIS 11 Sept: "jaise Search item ka border kesariya hai waise hi har chip ka
+     border kesariya ho." Purely how it looks; nothing about what a chip does changes.
+     The dim saffron, not the full one — a row of twelve chips in the strong colour would
+     shout louder than the selected chip sitting among them, and knowing which one is ON
+     matters more than the outline. */
+  .gtag{font-size:11px; background:var(--bg2); border:1px solid var(--saffronDim); padding:4px 8px; border-radius:20px; color:var(--txt2)}
   .deliv{font-size:11px; padding:4px 9px; border-radius:20px; font-weight:700; white-space:nowrap; background:rgba(95,184,122,.13); color:var(--ok)}
   .deliv.soon{background:rgba(224,107,90,.15); color:var(--bad)}
   .ocard .botrow{display:flex; justify-content:space-between; align-items:center; margin-top:8px}
@@ -776,8 +787,11 @@
   /* v616 — HIS 10 Sept: "arrow itna halka colour ka hai ki pata hi nahi chal raha hai."
      He was right and it was not a taste question: this arrow is the only thing on the row
      telling him the row goes somewhere. Grey on grey said nothing. */
-  .mnu-go{color:var(--saffron2);font-size:20px;font-weight:800}
-  .mnu-caret{color:var(--saffron2);font-size:17px;font-weight:800}
+  .mnu-go{color:var(--saffronHot);font-size:23px;font-weight:800}
+  .mnu-caret{color:var(--saffronHot);font-size:21px;font-weight:900}
+  /* the heads of All screens only — .section-h is used on many other screens and those
+     stay as they were */
+  #mnuBody .section-h{color:var(--saffronHot)}
   .home-stats{display:flex;gap:8px;margin-bottom:20px}
   /* v199 — the dashboard reads top to bottom like the day itself: what must go out, what
      is still in hand, then the money. Rows, not tiles, because a row can carry a label
@@ -946,7 +960,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v617</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v622</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -2181,6 +2195,15 @@ const T={
   hd_late:'Overdue', hd_today:'Today', hd_tomorrow:'Tomorrow', hd_week:'This week',
   hd_nokar:'Not given to a karigar yet', hd_ready:'Ready to hand over',
   hd_clear:'Nothing due this week.',
+  inv_clear:'Show all again',
+  rcpt_in:'Money receipt', rcpt_out:'Payment voucher',
+  pl_title_in:'Payments received', pl_title_out:'Payments made',
+  td_what_this:'Only a WhatsApp list — who the report is sent to. No balance is kept here and nothing here reaches the books. A customer, a supplier or a loan is made in Ledger master.',
+  ret_from_bill:'From a bill', ret_nobill:'No bill', ret_nobill_tag:'No bill',
+  ret_nobill_warn:'Money only. Stock is not changed, because nothing here says which piece came back. Pick the bill instead if the stock has to go back.',
+  ret_billno:'Bill no.', ret_what:'What came back', ret_amount:'Amount', ret_opt:'optional',
+  pr_note_credit_x:'If it is not taken back in cash now, it stays as credit against the supplier.',
+  ret_refunded:'Refunded', ret_none:'Nothing returned yet',
   enq_title:'Enquiries', enq_save_btn:'Not an order yet — keep the measurements',
   enq_save_hint:'No order number is taken and no delivery date is asked. Turn it into an order when he confirms.',
   enq_saved:'Kept — {n}', enq_pcs:'pieces', enq_waiting:'Waiting {n} days',
@@ -4252,6 +4275,15 @@ dl_show_hidden:'Show hidden ({n})',
   hd_late:'तारीख़ निकल गई', hd_today:'आज', hd_tomorrow:'कल', hd_week:'इस हफ़्ते',
   hd_nokar:'करीगर को दिया ही नहीं', hd_ready:'तैयार — देने को',
   hd_clear:'इस हफ़्ते कुछ देना नहीं है।',
+  inv_clear:'फिर से सब दिखाइए',
+  rcpt_in:'रसीद', rcpt_out:'भुगतान पर्ची',
+  pl_title_in:'आया हुआ पैसा', pl_title_out:'दिया हुआ पैसा',
+  td_what_this:'यह सिर्फ़ WhatsApp की सूची है — रिपोर्ट किसे भेजनी है। यहाँ कोई बकाया नहीं रखा जाता और यह हिसाब-किताब में कहीं नहीं जाता। ग्राहक, सप्लायर या लोन Ledger master में बनता है।',
+  ret_from_bill:'बिल से', ret_nobill:'बिना बिल', ret_nobill_tag:'बिना बिल',
+  ret_nobill_warn:'सिर्फ़ पैसे की एंट्री। स्टॉक नहीं बदलेगा, क्योंकि यहाँ से पता नहीं चलता कौन-सा माल वापस आया। स्टॉक वापस चढ़ाना हो तो बिल चुनिए।',
+  ret_billno:'बिल नं.', ret_what:'क्या वापस आया', ret_amount:'रकम', ret_opt:'ज़रूरी नहीं',
+  pr_note_credit_x:'अभी नकद वापस नहीं लिया तो सप्लायर के नाम जमा रहेगा।',
+  ret_refunded:'पैसे लौटाए', ret_none:'अभी कोई वापसी नहीं',
   enq_title:'पूछताछ', enq_save_btn:'अभी ऑर्डर नहीं — नाप रख लो',
   enq_save_hint:'न ऑर्डर नंबर लगेगा, न डिलीवरी की तारीख़ पूछेगा। जब वो हाँ कहे, तब ऑर्डर बना दीजिए।',
   enq_saved:'रख लिया — {n}', enq_pcs:'पीस', enq_waiting:'{n} दिन से',
@@ -5880,6 +5912,49 @@ function numHWCommitOrder(f){
   numHWSet('ord', numDigits(f.orderNo));
   (f.members||[]).forEach(m=>numHWSet('ord', numDigits(m.ono)));
 }
+/* ══════════ v621 — 3003 WAS DELETED AND THE NEXT BILL CAME OUT 3004 ══════════
+   HIS 11 Sept: "3003 wala bill humne delete kar diya tha... 3003 aana chahiye. Yeh bahut
+   bada mistake." He is right, and it was mine.
+   Two things decide the next number: what the records actually hold (invSeen / the order
+   scan), and a permanent HIGH-WATER MARK burned at save (v218/v257). The scan comes down
+   when a record is deleted. The mark never did. So the mark, alone, kept issuing 3004 for
+   a number nothing in the book was using.
+   The mark now comes DOWN to whatever the records still hold, and it is done at the moment
+   a number is issued — not in the delete paths — because there is more than one way to
+   delete a record and a fix that lives in the delete paths is a fix that the next delete
+   path forgets.
+   It can only ever release the TAIL. Delete a bill from the middle and the scan still finds
+   the higher ones, so the mark stays where it is and no number is ever handed out twice.
+   Worth him knowing: a bill that was already printed and given to a customer should keep
+   its gap rather than have its number reused. Deleting such a bill is the thing to avoid;
+   the gap itself is visible on Missing bill numbers. */
+function numRelease(){
+  try{
+    DB.numCfg=DB.numCfg||{}; DB.numCfg.hw=DB.numCfg.hw||{};
+    const k=invHWKey(), seen=invSeen();
+    if((+DB.numCfg.hw[k]||0)>seen)DB.numCfg.hw[k]=seen;
+    let mx=0;
+    (DB.orders||[]).forEach(o=>{ const n=numDigits(o.orderNo); if(n>mx)mx=n;
+      (o.members||[]).forEach(m=>{ const j=numDigits(m.ono); if(j>mx)mx=j; }); });
+    if((+DB.numCfg.hw['ord']||0)>mx)DB.numCfg.hw['ord']=mx;
+  }catch(e){}
+}
+/* The same hole in every other series — SR, PR, EST, PO — which run off a stored counter
+   instead of a mark. Same rule: the counter drops to the highest number still on a record,
+   so only an unused tail is given back. */
+function docSeqRelease(){
+  try{
+    DB.docSeq=DB.docSeq||{};
+    Object.keys(DB.docSeq).forEach(pre=>{
+      let mx=0; const re=new RegExp('^'+pre.replace(/[^A-Za-z0-9_]/g,'')+'-(\\d+)$');
+      Object.keys(DB).forEach(key=>{ const v=DB[key];
+        if(!Array.isArray(v))return;
+        v.forEach(o=>{ if(!o||typeof o.no!=='string')return;
+          const m=o.no.match(re); if(m){ const n=+m[1]; if(n>mx)mx=n; } }); });
+      if((+DB.docSeq[pre]||0)>mx)DB.docSeq[pre]=mx;
+    });
+  }catch(e){}
+}
 function numHWSet(k,v){
   v=parseInt(v,10); if(!v||isNaN(v))return;
   DB.numCfg=DB.numCfg||{}; DB.numCfg.hw=DB.numCfg.hw||{};
@@ -5887,6 +5962,7 @@ function numHWSet(k,v){
 }
 const numDigits=v=>parseInt(String(v==null?'':v).replace(/\D/g,''),10)||0;
 function nextOrderNo(){
+  numRelease();                       /* v621 */
   const c=DB.numCfg||{};
   let mx=0;
   (DB.orders||[]).forEach(o=>{const n=parseInt(String(o.orderNo).replace(/\D/g,''),10);if(!isNaN(n)&&n>mx)mx=n;
@@ -5919,6 +5995,7 @@ function invSeen(){                       // highest number already used in this
 /* the bill series keeps its own mark, one per year — 2026-27 must not restart 2025-26 */
 function invHWKey(){ return 'inv:'+invSeries(); }
 function nextInvoiceNo(){
+  numRelease();                       /* v621 */
   const c=DB.numCfg||{};
   const n=Math.max(invSeen()+1, numHW(invHWKey())+1, +c.invStart||0, 1);
   const pre=(c.invPrefix||'').trim();
@@ -6157,6 +6234,7 @@ function dateField(id,iso,extra,allowEmpty){
 }
 /* Sequential document numbers per series: SR-1, PR-1, EST-1, PO-1 … */
 function nextDocNo(prefix){
+  docSeqRelease();                    /* v621 */
   DB.docSeq=DB.docSeq||{};
   const n=(DB.docSeq[prefix]||0)+1; DB.docSeq[prefix]=n;
   return prefix+'-'+n;
@@ -6363,8 +6441,12 @@ function custCreditMap(){
   const m={};
   (DB.salesReturns||[]).forEach(r=>{
     const left=r2((+r.total||0)-(+r.refunded||0)); if(left<=0)return;
-    const sv=(DB.sales||[]).find(x=>x.id===r.saleId); if(!sv)return;
-    const k=custKeyOf(sv);
+    /* v618: a credit note made without picking a bill has no sale behind it. Read the
+       party off the note itself, or the credit would sit in the books belonging to nobody
+       and his receivables would stay too high for a customer who has already sent goods
+       back — the exact fault v316 fixed for the bill-linked case. */
+    const sv=(DB.sales||[]).find(x=>x.id===r.saleId);
+    const k=custKeyOf(sv||r);
     m[k]=r2((m[k]||0)+left);
   });
   return m;
@@ -9069,6 +9151,17 @@ function biPost(){
   toast(t('bi_posted',{n:done}),'ok');
   biRender();
 }
+/* Straight into the same entry form the day book uses — nothing new to learn, and one
+   place where a payment is made. Coming back lands on the reconciliation again. */
+function brsAdd(dir){
+  try{ if(dir==='in')payEntry('in',1); else payEntry('out',1); }
+  catch(e){ toast(t('scr_lost'),'bad'); }
+}
+function brsEdit(lineId){
+  const l=(brsLines()||[]).find(x=>x.id===lineId);
+  if(!l){ toast(t('ex_nothing'),'bad'); return; }
+  try{ dbOpen(l.id); }catch(e){ toast(t('ex_nothing'),'bad'); }
+}
 function brsToggle(lineId){
   const l=(DB.ledger||[]).find(x=>x.id===lineId);
   if(l){ l.rec=!l.rec; save(); brsRender(); return; }
@@ -9118,11 +9211,28 @@ function brsRender(){
       <span style="min-width:0">
         <b style="font-size:13px">${esc(l.party||l.ref||'—')}</b>
         <div class="hint">${fmtDate(l.date)}${l.cat?' · '+esc(l.cat):''}</div></span></span>
-    <b style="color:${l.dir==='in'?'var(--ok)':'var(--bad)'};white-space:nowrap">
-      ${l.dir==='in'?'+':'−'}${money(l.amt)}</b></div>`;
+    <span style="display:flex;align-items:center;gap:10px;white-space:nowrap">
+      <b style="color:${l.dir==='in'?'var(--ok)':'var(--bad)'}">
+        ${l.dir==='in'?'+':'−'}${money(l.amt)}</b>
+      ${/* v621: the tick is the common action so the whole row keeps doing it; the pencil
+           stops the tap from reaching the row and opens the entry instead */''}
+      <span style="font-size:15px;color:var(--saffron2)"
+        onclick="event.stopPropagation();brsEdit('${jq(l.id)}')">✏️</span>
+    </span></div>`;
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">🏦 ${t('brs_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
+    ${/* ══════════ v621 — SITTING WITH THE PASSBOOK, HE COULD ONLY TICK ══════════
+         HIS 11 Sept: "bank se cash book milaun, jahan edit karna ho edit kar sakun, koi
+         entry chhooti hui hai to entry wahin se kar sakun."
+         That is what reconciling actually is. The screen could tick a line and nothing
+         else — a wrong amount meant leaving, finding it in the day book, fixing it and
+         coming back to find his place again, and a receipt he had never entered meant
+         the same walk. Both doors are on this screen now. Tapping a row still ticks it;
+         the pencil opens it. */''}
+    <div class="row" style="gap:8px;margin-bottom:10px">
+      <button class="btn ghost" style="flex:1" onclick="brsAdd('in')">➕ ${t('pay_in')}</button>
+      <button class="btn ghost" style="flex:1" onclick="brsAdd('out')">➕ ${t('pay_out')}</button></div>
     
     ${accs.length>1?`<div class="field" style="margin-bottom:8px"><label>${t('cb_into')}</label>
       <select onchange="_brsAcc=this.value;brsRender()">
@@ -10836,6 +10946,17 @@ function payListDraw(isIn,from,to){
       <span><span class="hint" style="display:block">${t('inv_total_shown')}</span>
         <b style="font-size:16px;color:${isIn?'var(--ok)':'var(--bad)'}">${money(tot)}</b></span>
       <span class="hint">${lines.length}${q?' / '+all:''}</span></div>
+    ${/* ══════════ v620 — THE PDF BUTTON EXISTED ON ONE SCREEN OUT OF MANY ══════════
+         HIS 11 Sept: "jab ek jagah bana diya to kai jagah bana sakte ho... har page hi
+         rakhna hai phir." Right, and it was never a build problem — the PDF engine and the
+         WhatsApp text builder have been shared since v568, and a screen gets both by
+         passing its own rows to one helper. The bar simply was not put on the screens
+         added since. So it goes on all of them, and a standing check now names the screens
+         that must carry it, which is what stops the next new screen from missing it. */''}
+    ${lines.length?exportBarHTML('pay_'+(isIn?'in':'out'),()=>({
+      title:t(isIn?'pl_title_in':'pl_title_out'), sub:(from?fmtDate(from)+' – ':'')+fmtDate(to),
+      head:[t('ps_date'),t(isIn?'customer':'supplier'),t('cb_into'),t('amount')],
+      rows:lines.map(l=>[fmtDate(l.date), (l.party||l.ref||''), accName(l.acc), l.amt])})):''}
     ${dbBodyHTML(lines)}
     <div class="fab-pad"></div>`;
   showSheet();
@@ -10983,6 +11104,12 @@ function payEdit(id){
      <div class="field"><label>${t('stk_note')}</label><input id="pe_note" value="${esc(ex.note||'')}"></div>`,
     [{label:t('cancel'),cls:'ghost',fn:closeModal},
      {label:'🗑️',cls:'danger',fn:()=>payDelete(id)},
+     /* ══════════ v620 — HE NAMED THIS ONE HIMSELF ══════════
+        "jaise money receipt mein tum daal sakte the PDF ka option." A customer hands over
+        money and wants something back. Until now the entry could be typed, corrected and
+        deleted, but nothing left the phone — he was writing the receipt by hand beside an
+        app that already held every figure on it. */
+     {label:'📄',cls:'ghost',fn:()=>payReceiptPdf(id)},
      {label:t('save'),cls:'primary',fn:()=>{
         const g=i=>(($('#'+i)||{}).value||'');
         const party=g('pe_party').trim(), amt=r2(+g('pe_amt')||0);
@@ -10992,6 +11119,24 @@ function payEdit(id){
           acc:g('pe_acc')||ex.acc||'', note:g('pe_note').trim()});
         save(); closeModal(); toast(t('t_updated'),'ok'); dayBook();
      }}]);
+}
+/* One payment, one sheet: who, how much, when, into which account, and what it was for.
+   Built through the same engine as every report, so it carries the shop name and looks
+   like everything else that leaves this app. */
+async function payReceiptPdf(id){
+  const l=(DB.ledger||[]).find(x=>x.id===id); if(!l){ toast(t('ex_nothing'),'bad'); return; }
+  const isIn=l.dir==='in';
+  const R=[[t('ps_date'), fmtDate(l.date)],
+           [isIn?t('customer'):t('supplier'), l.party||'—'],
+           [t('amount'), money(+l.amt||0)],
+           [t('cb_into'), accName(l.acc)||'—']];
+  if(l.ref)R.push([t('inv_no'), l.ref]);
+  if(l.note)R.push([t('stk_note'), l.note]);
+  await sharePdf({shop:((DB.shopInfo||{}).name)||'PARAMPARA',
+    title:t(isIn?'rcpt_in':'rcpt_out'), sub:fmtDate(l.date),
+    cols:[{w:40,label:''},{w:60,label:'',align:'right'}], rows:R},
+    (isIn?'receipt-':'payment-')+(l.date||todayISO())+'.pdf',
+    t(isIn?'rcpt_in':'rcpt_out')+' · '+money(+l.amt||0));
 }
 function payDelete(id){
   confirmModal(t('confirm_del'),t('confirm_del_msg'),()=>{
@@ -11355,11 +11500,18 @@ function todayWA(i,kind){
    he sets a number once and never types it again. */
 function reportToEdit(){
   DB.reportTo=DB.reportTo||[];
-  const rows=(DB.reportTo||[]).map((x,i)=>`<div class="card" style="padding:9px 12px;margin-bottom:8px">
+  /* ══════════ v619 — ADD IT OR BIN IT, NOTHING IN BETWEEN ══════════
+     HIS 10 Sept: "add jo contact kiya hai us contact ka naam ya number kaise edit karenge?"
+     He could not. One digit wrong in a number meant deleting the line and typing the whole
+     thing again — and on the day he noticed, the report had already been going nowhere.
+     Every row opens now. */
+  const rows=(DB.reportTo||[]).map((x,i)=>`<div class="card" style="padding:9px 12px;margin-bottom:8px;cursor:pointer"
+      onclick="reportToOpen(${i})">
     <div class="kv"><span style="min-width:0"><b>${esc(x.name||'—')}</b>
-      <div class="hint">${esc(x.phone||'')} · ${x.kind==='sales'?t('td_kind_sales'):t('td_kind_daily')}</div></span>
-      <button class="btn sm ghost" onclick="reportToDel(${i})">🗑️</button></div></div>`).join('');
+      <div class="hint">${esc(x.phone||'')} · ${x.kind==='sales'?t('td_kind_sales'):x.kind==='salesday'?t('td_kind_salesday'):t('td_kind_daily')}</div></span>
+      <span style="color:var(--saffron2);font-weight:800">✏️</span></div></div>`).join('');
   modal('📤 '+t('td_manage_numbers'),
+    `<p class="hint" style="margin:0 0 10px">${t('td_what_this')}</p>`+
     (rows||`<p class="hint">${t('td_no_numbers')}</p>`)+
     `<div class="field" style="margin-top:10px"><label>${t('st_name')}</label>
        <input id="rt_name" placeholder="${t('td_name_ph')}"></div>
@@ -11380,9 +11532,39 @@ function reportToAdd(){
   DB.reportTo.push({name:nm||ph, phone:ph, kind:(($('#rt_kind')||{}).value||'daily')});
   save(); closeModal(); toast(t('td_number_added'),'ok'); reportToEdit();
 }
+/* v619: the same three boxes, filled in, with Save and Delete. Deliberately NOT a party
+   screen — see td_what_this. A number here is somewhere a report is sent, nothing more:
+   it holds no balance, it is not a customer, a supplier or a loan, and it never touches
+   the books. Anything that IS a party, with an opening balance and a group, is made in
+   Ledger master and only there — one fixed place per thing. */
+function reportToOpen(i){
+  const x=(DB.reportTo||[])[i]; if(!x)return;
+  closeModal();
+  setTimeout(()=>{
+    modal('✏️ '+t('td_manage_numbers'),
+      `<div class="field"><label>${t('st_name')}</label>
+         <input id="rt_ename" value="${esc(x.name||'')}" placeholder="${t('td_name_ph')}"></div>
+       <div class="field" style="margin-top:8px"><label>${t('phone')}</label>
+         <input id="rt_ephone" type="tel" inputmode="tel" value="${esc(x.phone||'')}"></div>
+       <div class="field" style="margin-top:8px"><label>${t('td_which_report')}</label>
+         <select id="rt_ekind">
+           <option value="daily" ${x.kind==='daily'||!x.kind?'selected':''}>${t('td_kind_daily')}</option>
+           <option value="salesday" ${x.kind==='salesday'?'selected':''}>${t('td_kind_salesday')}</option>
+           <option value="sales" ${x.kind==='sales'?'selected':''}>${t('td_kind_sales')}</option></select></div>`,
+      [{label:t('cancel'),fn:()=>{closeModal();setTimeout(reportToEdit,60);}},
+       {label:'🗑️ '+t('delete'),cls:'danger',fn:()=>reportToDel(i)},
+       {label:'💾 '+t('save'),cls:'primary',fn:()=>{
+         const nm=(($('#rt_ename')||{}).value||'').trim();
+         const ph=(($('#rt_ephone')||{}).value||'').replace(/[^0-9]/g,'');
+         if(!ph||ph.length<10){ toast(t('td_need_phone'),'bad'); return; }
+         x.name=nm||ph; x.phone=ph; x.kind=(($('#rt_ekind')||{}).value||'daily');
+         save(); closeModal(); toast(t('t_saved'),'ok'); setTimeout(reportToEdit,60);
+       }}]);
+  },60);
+}
 function reportToDel(i){
   confirmModal(t('confirm_del'), t('td_del_msg'), ()=>{
-    (DB.reportTo||[]).splice(i,1); save(); closeModal(); reportToEdit(); });
+    (DB.reportTo||[]).splice(i,1); save(); closeModal(); setTimeout(reportToEdit,60); });
 }
 function orderBoardHTML(){
   const pend=(DB.orders||[]).filter(o=>!orderDelivered(o));
@@ -14460,7 +14642,7 @@ function menuHome(){
     ${modOn('billing')?sec('🧾 '+t('hub_sale'),[
       row('🧾',t('hub_sale'),"menuGoTab('invoices')"),
       row('\u2B07\uFE0F',t('pay_in'),"payList('in')"),
-      row('↩️',t('sr_menu'),"salesReturnPick()"),
+      row('↩️',t('sr_menu'),"retList('sale')"),
       row('📄',t('estimate'),"estimateList()"),
       /* v617 — HIS 10 Sept: "missing bill numbers screen par nahi chahiye. Maine bataya tha
          screen thodi clean chahiye, unnecessary ki cheezein nahi chahiye." Off the menu. It
@@ -14470,7 +14652,7 @@ function menuHome(){
     ${modOn('billing')?sec('🚚 '+t('hub_purchase'),[
       row('🚚',t('hub_purchase'),"menuGoTab('purchases')"),
       row('\u2B06\uFE0F',t('pay_out'),"payList('out')"),
-      row('↪️',t('pr_menu'),"purchaseReturnPick()"),
+      row('↪️',t('pr_menu'),"retList('purchase')"),
       row('📝',t('purchase_order'),"poList()"),
       row('📥',t('creditors_report'),"creditors()")]):''}
     ${sec('📋 '+t('nav_orders'),[
@@ -22528,6 +22710,148 @@ function alreadyReturnedQty(saleId,idx){
   return (DB.salesReturns||[]).filter(r=>r.saleId===saleId)
     .reduce((s,r)=>s+(((r.lines||[]).find(l=>l.idx===idx)||{}).qty||0),0);
 }
+/* ══════════ v618 — A RETURN COULD ONLY BE MADE IF A BILL EXISTED ══════════
+   HIS 10 Sept, holding Vyapar's Credit Note beside our screen: "make every return entry
+   flexible and easy to make entry." His screenshot of ours shows the whole story — a
+   heading, one line of instruction, and "No sales yet". A dead end. Even with bills on the
+   device the only way in was to find the exact bill first, and goods come back for reasons
+   that do not start at a bill: a counter sale nobody billed, a bill from before this app,
+   a customer who returns one piece of three and cannot say which slip it was on.
+   So the door is now a LIST, like every other money screen in the app — what has already
+   come back, searchable, with a New button on top — and there are two ways to make one:
+     PICK THE BILL   exact. Quantities capped at what was sold, stock goes back up, GST
+                     comes off at the rate that bill actually charged.
+     NO BILL         name, amount, done. Money only: no stock is moved, because nothing
+                     tells us WHICH thaan or which size came back, and a guess in the stock
+                     register is worse than a gap.
+   That difference is printed on the screen, not hidden — he chooses knowing what each one
+   does. Both land in the same DB.salesReturns, both reduce net sales, both reach the
+   customer's balance and his statement. */
+let _retQ='';
+function retList(kind){
+  const isSale=kind!=='purchase';
+  sheetAt(isSale?retListSale:retListPur);
+  const q=String(_retQ||'').trim().toLowerCase();
+  let list=((isSale?DB.salesReturns:DB.purchaseReturns)||[]).slice();
+  const all=list.length;
+  if(q)list=list.filter(r=>[r.no,r.customerName,r.supplier,r.phone,r.refNo,r.note,String(r.total)]
+    .join(' ').toLowerCase().indexOf(q)>=0);
+  list.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+  const tot=r2(list.reduce((s,r)=>s+(+r.total||0),0));
+  const rows=list.map(r=>`<div class="card" style="margin-bottom:6px;padding:11px;cursor:pointer"
+      onclick="retOpen('${isSale?'sale':'purchase'}','${jq(r.id)}')">
+      <div class="kv"><div style="flex:1;min-width:0">
+        <b style="font-size:14px">${esc(r.customerName||r.supplier||'—')}</b>
+        <div class="hint">${esc(r.no||'')}${r.refNo?' · '+esc(r.refNo):''}${r.free?' · '+t('ret_nobill_tag'):''}</div>
+        <div class="hint">${fmtDate(r.date)}${(+r.refunded)?' · '+t('ret_refunded'):''}</div>
+      </div><b style="font-size:16px;color:var(--saffron2)">${money(+r.total||0)}</b></div></div>`).join('');
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${isSale?'↩️':'↪️'} ${t(isSale?'sr_title':'pr_title')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
+    <div class="row" style="gap:8px;margin-bottom:10px">
+      <button class="btn primary" style="flex:2" onclick="${isSale?'salesReturnPick()':'purchaseReturnPick()'}">+ ${t('ret_from_bill')}</button>
+      <button class="btn ghost" style="flex:1" onclick="retFree('${isSale?'sale':'purchase'}')">${t('ret_nobill')}</button></div>
+    <div class="field" style="margin-bottom:10px">
+      <input id="retQ" value="${esc(_retQ)}" placeholder="🔍 ${t('pl_find')}"
+        oninput="_retQ=this.value;retList('${isSale?'sale':'purchase'}');
+          setTimeout(()=>{const b=document.getElementById('retQ');if(b){b.focus();
+            b.setSelectionRange(b.value.length,b.value.length);}},0)"></div>
+    <div class="kv" style="margin:0 0 10px;padding:7px 10px;border:1px solid var(--line);border-radius:10px">
+      <span><span class="hint" style="display:block">${t('inv_total_shown')}</span>
+        <b style="font-size:16px">${money(tot)}</b></span>
+      <span class="hint">${list.length}${q?' / '+all:''}</span></div>
+    ${list.length?exportBarHTML('ret_'+(isSale?'s':'p'),()=>({
+      title:t(isSale?'sr_title':'pr_title'), sub:t('inv_total_shown')+' '+money(tot),
+      head:[t('ps_date'),t('inv_no'),t(isSale?'customer':'supplier'),t('amount')],
+      rows:list.map(r=>[fmtDate(r.date), (r.no||''), (r.customerName||r.supplier||''), r.total])})):''}
+    ${list.length?rows:`<div class="empty" style="padding:24px 10px"><div class="big">${isSale?'↩️':'↪️'}</div>
+      <p><b>${t('ret_none')}</b></p></div>`}
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function retListSale(){ retList('sale'); }
+function retListPur(){ retList('purchase'); }
+function retOpen(kind,id){ try{ retView(kind,id); }catch(e){ toast(t('ps_open_fail'),'bad'); } }
+let _rfree=null;
+function retFree(kind){
+  const isSale=kind!=='purchase';
+  _rfree={kind:isSale?'sale':'purchase', date:todayISO(), refund:false, acc:(defaultAcc()||{}).id};
+  retFreeRender();
+}
+function retFreeRender(){
+  if(!_rfree){ toast(t('scr_lost'),'bad'); closeSheet(); return; }
+  sheetAt(retFreeRender);
+  const isSale=_rfree.kind==='sale';
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">${isSale?'↩️':'↪️'} ${t('ret_nobill')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
+    <p class="hint" style="margin:0 0 12px">${t('ret_nobill_warn')}</p>
+    <div class="field"><label>${t(isSale?'customer':'supplier')} *</label>
+      <input id="rf_name" value="${esc(_rfree.name||'')}" placeholder="${t(isSale?'customer':'supplier')}"></div>
+    ${isSale?`<div class="field"><label>${t('phone')}</label>
+      <input id="rf_phone" value="${esc(_rfree.phone||'')}" inputmode="tel"></div>`:''}
+    <div class="row" style="gap:8px">
+      <div class="field" style="flex:1"><label>${t('f_date')}</label>${dateField('rf_date',_rfree.date,'',true)}</div>
+      <div class="field" style="flex:1"><label>${t('ret_billno')}</label>
+        <input id="rf_ref" value="${esc(_rfree.refNo||'')}" placeholder="${t('ret_opt')}"></div></div>
+    <div class="field"><label>${t('ret_what')}</label>
+      <input id="rf_note" value="${esc(_rfree.note||'')}" placeholder="${t('ret_opt')}"></div>
+    <div class="field"><label>${t('ret_amount')} *</label>
+      <input id="rf_amt" type="number" inputmode="decimal" value="${_rfree.amt||''}" placeholder="0"></div>
+    <div class="card" style="padding:12px 14px">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:8px">
+        <input type="checkbox" id="rf_refund" ${_rfree.refund?'checked':''}
+          onchange="retFreeGrab();_rfree.refund=this.checked;retFreeRender()" style="width:20px;height:20px">
+        <span>${t('sr_refund_now')}</span></label>
+      <div style="${_rfree.refund?'':'display:none'}">
+        <label class="hint">${t(isSale?'sr_refund_from':'pr_refund_to')}</label>${acctSelHTML('rf_acc',_rfree.acc)}</div>
+      <p class="hint" style="margin:8px 0 0">${t(isSale?'sr_note_credit':'pr_note_credit_x')}</p>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="retList('${_rfree.kind}')">${t('back')}</button>
+      <button class="btn primary" onclick="retFreeSave()">${t('sr_save')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function retFreeGrab(){
+  if(!_rfree)return;
+  const g=id=>{const e=$('#'+id);return e?String(e.value||'').trim():'';};
+  _rfree.name=g('rf_name'); _rfree.phone=g('rf_phone'); _rfree.refNo=g('rf_ref');
+  _rfree.note=g('rf_note'); _rfree.amt=g('rf_amt'); _rfree.date=g('rf_date')||_rfree.date;
+  const a=$('#rf_acc'); if(a)_rfree.acc=a.value==='__new'?(defaultAcc()||{}).id:a.value;
+}
+function retFreeSave(){
+  retFreeGrab();
+  const isSale=_rfree.kind==='sale';
+  const nm=(_rfree.name||'').trim();
+  const total=r2(+_rfree.amt||0);
+  if(!nm){ toast(t('t_no_name'),'bad'); return; }
+  if(total<=0){ toast(t('t_no_amount'),'bad'); return; }
+  const no=nextDocNo(isSale?'SR':'PR');
+  /* one synthetic line so every report that walks lines keeps working — and no thaanId or
+     masterId on it, which is exactly what keeps the stock register untouched */
+  const line={idx:-1,label:(_rfree.note||t('ret_nobill_tag')),qty:1,price:total,rate:total};
+  const rec={id:uid(),no,created:new Date().toISOString(),date:_rfree.date||todayISO(),
+    free:1, refNo:_rfree.refNo||'', note:_rfree.note||'', lines:[line],
+    total, refunded:_rfree.refund?total:0, acc:_rfree.refund?_rfree.acc:''};
+  if(isSale){
+    const c=(DB.customers||[]).find(x=>(x.name||'').trim().toLowerCase()===nm.toLowerCase());
+    rec.saleId=''; rec.customerId=c?c.id:null; rec.customerName=nm; rec.phone=_rfree.phone||(c?c.phone:'')||'';
+    if(_rfree.refund && total>0){ DB.ledger=DB.ledger||[];
+      DB.ledger.push({id:uid(),dir:'out',date:rec.date,amt:total,acc:rec.acc,
+        party:nm,partyId:rec.customerId,ref:no,refKind:'sales_return',cat:'',note:t('sr_refund_note'),photos:[]}); }
+    DB.salesReturns=DB.salesReturns||[]; DB.salesReturns.push(rec);
+  } else {
+    rec.purId=''; rec.supplier=nm;
+    if(_rfree.refund && total>0){ DB.ledger=DB.ledger||[];
+      DB.ledger.push({id:uid(),dir:'in',date:rec.date,amt:total,acc:rec.acc,
+        party:nm,partyId:null,ref:no,refKind:'purchase_return',cat:'',note:t('pr_refund_note'),photos:[]}); }
+    DB.purchaseReturns=DB.purchaseReturns||[]; DB.purchaseReturns.push(rec);
+  }
+  save(); _rfree=null; closeSheet();
+  toast('✅ '+t(isSale?'sr_saved':'pr_saved'),'ok');
+  refreshMoney();
+}
 function salesReturnPick(){
   sheetAt(salesReturnPick);
   const sales=(DB.sales||[]).filter(sv=>((sv.invoice&&sv.invoice.items||[]).length>0)&&orderTotal(sv)>0)
@@ -22541,7 +22865,10 @@ function salesReturnPick(){
   }).join('') || `<p class="hint" style="padding:20px 0;text-align:center">${t('sr_no_sales')}</p>`;
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">↩️ ${t('sr_title')}</h2>
-    <p class="hint" style="margin-bottom:12px">${t('sr_pick')}</p>${rows}
+    <p class="hint" style="margin-bottom:12px">${t('sr_pick')}</p>
+    ${/* v618: whatever the list above holds, including nothing, there is a way forward */''}
+    <button class="btn ghost block" style="margin-bottom:12px" onclick="retFree('sale')">${t('ret_nobill')}</button>
+    ${rows}
     
     <div class="fab-pad"></div>`;
   showSheet();
@@ -24047,8 +24374,24 @@ function renderInvoices(keepFocus){
      the period and the search: pick July and it shows July's. */
   const _tot=list.reduce((a,x)=>a+(invCompute(x.inv).total||0),0);
   const _due=list.reduce((a,x)=>a+Math.max(0,orderBaaki(x.rec)||0),0);
+  /* ══════════ v619 — THE HEADING SAID "ALL INVOICES" WHILE A FILTER WAS ON ══════════
+     HIS 10 Sept, with Custom dates lit up and one bill on screen: "custom date apne aap
+     kaise aa raha hai?"
+     Nothing set it by itself. He picked it earlier, and invPeriod is a plain variable that
+     stays put until the app is reloaded — so the filter followed him from tab to tab and
+     back, hours later, on a screen whose heading still read ALL INVOICES. That heading is
+     what made it look like the app had done something on its own: the words above the list
+     flatly contradicted the chip below the search box, and he believed the words.
+     The heading now says what is actually on screen — the month, the two dates, or All —
+     and when anything narrower than All is on, a ✕ sits beside it that puts the list back.
+     A filter he cannot see is a filter he cannot trust. */
+  const _perLbl = invPeriod==='custom'
+    ? ((invFrom?fmtDate(invFrom):'…')+' – '+(invTo?fmtDate(invTo):'…'))
+    : (invPeriod==='m'?t('inv_p_month'):invPeriod==='lm'?t('inv_p_lastm'):t('inv_all'));
+  const _filtered = invPeriod!=='all';
   const title=draftBar+`<div class="kv" style="margin:0 0 4px">
-    <h3 style="margin:0;font-size:16px">📋 ${t('inv_all')}</h3>
+    <h3 style="margin:0;font-size:16px">📋 ${esc(_perLbl)}${_filtered?`<button class="btn sm ghost"
+      style="margin-left:8px;padding:2px 9px" onclick="setInvPeriod('all')" title="${t('inv_clear')}">✕</button>`:''}</h3>
     <span class="hint">${t('inv_count',{n:list.length})}${q?' / '+all.length:''}</span></div>`
     +(list.length?`<div class="kv" id="invTotBar" style="margin:0 0 10px;padding:7px 10px;border:1px solid var(--line);border-radius:10px">
       <span style="flex:1;min-width:0">
@@ -27874,9 +28217,18 @@ function partyStatement(pid,kind){
     </table></div>
     <p class="hint" style="margin:8px 0 0">${run<0?t('ob_pay'):t('ob_get')} \u00B7 ${money(Math.abs(run))}</p>`
     :`<p class="hint">${t('pt_no_bal')}</p>`}
+    ${/* v620: psPrint hands the sheet to the printer. What a customer actually asks for is
+         the statement ON WHATSAPP, or a file he can keep — the same two buttons every
+         report screen already has. Printing stays where it was. */''}
+    ${lines.length?exportBarHTML('ps_'+pid,()=>{ let rr=0;
+      return {title:p.name, sub:t(PK_LBL[p.kind]||'pt_other'),
+        head:[t('ps_date'),t('ps_part'),t('ps_dr'),t('ps_cr'),t('ps_bal')],
+        rows:lines.map(l=>{ rr=r2(rr+(l.dir==='in'?l.amt:-l.amt));
+          return [fmtDate(l.date), (l.ref||l.note||''),
+                  (l.dir==='in'?l.amt:''), (l.dir==='in'?'':l.amt), Math.abs(rr)]; })}; }):''}
     <div class="modal-actions">
       <button class="btn ghost" style="flex:1" onclick="partyStatement()">${t('back')}</button>
-      <button class="btn primary" style="flex:1" onclick="psPrint('${pid}','${p.kind}')">🖨️ ${t('rp_pdf')}</button></div>
+      <button class="btn primary" style="flex:1" onclick="psPrint('${pid}','${p.kind}')">🖨️ ${t('print')}</button></div>
     <div class="fab-pad"></div>`;
   showSheet();
 }
@@ -28029,7 +28381,8 @@ function psLines(p){
   };
   (DB.purchases||[]).filter(mine).forEach(addSup);
   (DB.purchaseReturns||[]).forEach(r=>{
-    const pu=(DB.purchases||[]).find(x=>x.id===r.purId); if(!pu||!mine(pu))return;
+    const pu=(DB.purchases||[]).find(x=>x.id===r.purId);
+    if(!mine(pu||r))return;                     /* v618: same for a supplier return with no bill */
     out.push({date:r.date,dir:'in',amt:r2(+r.total||0),acc:'',
       ref:t('pr_title')+' '+(r.no||''),note:'',_src:'pret',_id:r.id});
     if(+r.refunded)out.push({date:r.date,dir:'out',amt:r2(+r.refunded||0),acc:r.acc||'',
@@ -28049,7 +28402,8 @@ function psLines(p){
   [['order',DB.orders],['alt',DB.alterations],['sale',DB.sales]].forEach(([k,list])=>
     (list||[]).filter(mine).forEach(rec=>addCust(rec,k)));
   (DB.salesReturns||[]).forEach(r=>{
-    const sv=(DB.sales||[]).find(x=>x.id===r.saleId); if(!sv||!mine(sv))return;
+    const sv=(DB.sales||[]).find(x=>x.id===r.saleId);
+    if(!mine(sv||r))return;                     /* v618: bill-free notes belong on his statement too */
     out.push({date:r.date,dir:'out',amt:r2(+r.total||0),acc:'',
       ref:t('sr_title')+' '+(r.no||''),note:'',_src:'sret',_id:r.id});
     if(+r.refunded)out.push({date:r.date,dir:'in',amt:r2(+r.refunded||0),acc:r.acc||'',
