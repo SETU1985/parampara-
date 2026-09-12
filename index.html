@@ -237,12 +237,19 @@
   .pl-incl-chips{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin:7px 0 9px}
   .pl-incl-chips .gtag.sm{font-size:11px;padding:3px 8px}
   .pl-incl-chips .incl-lbl{font-size:11px;color:var(--mut);margin-right:2px}
-  .pl-row{display:flex;align-items:center;gap:8px}
+  .pl-row{display:flex;align-items:flex-end;gap:8px}
+  .pl-qty{display:flex;flex-direction:column;gap:2px;flex:0 0 auto}
   .qty-step{display:flex;align-items:center;background:var(--card);border:1px solid var(--line2);border-radius:9px;overflow:hidden}
   .qty-step button{background:transparent;border:none;color:var(--saffron2);font-size:18px;font-weight:800;
     width:29px;height:36px;cursor:pointer;line-height:1}
   .qty-step button:active{background:var(--saffron);color:#1a1206}
-  .qty-in{width:32px;text-align:center;background:transparent;border:none;color:var(--txt);
+  /* v627 — HIS 11 Sept: "saadhe teen meter hai to usko kaise likhunga main?"
+     By tapping the number and typing it — which has always worked, and which nothing on
+     screen said. 32px of transparent background between two buttons reads as a label, not
+     as a box. It is wider now and carries the same underline every other typed field on
+     this line has, so it looks like what it is. The +/− still step, by half a metre on
+     cloth and by one on a piece. */
+  .qty-in{width:52px;text-align:center;background:transparent;border-bottom:1px solid var(--saffronDim);color:var(--txt);
     font-size:15px;font-weight:700;outline:none;-moz-appearance:textfield}
   .qty-in::-webkit-outer-spin-button,.qty-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   /* v522 — HIS 6 Sept, with the boxes drawn on top of each other: "rate wale buttons ko
@@ -587,7 +594,13 @@
 
   nav{position:fixed; bottom:0; left:0; right:0; z-index:50; background:linear-gradient(180deg,#ffffff,#f8f6f2);
     border-top:1px solid var(--line); display:flex; padding:8px 6px calc(8px + var(--safe-b)); justify-content:space-around}
-  nav button{display:flex; flex-direction:column; align-items:center; gap:3px; flex:1; padding:4px; color:var(--mut); font-size:10px; font-weight:600}
+  /* v626 — HIS 11 Sept: "Home orange mein, baaki sab dark black mein — abhi grey hai."
+     The bar had the tab he is ON in saffron and the three he can go to in the muted grey
+     this app uses for things that are only hints. But those three are not hints, they are
+     the four doors of the whole app and he presses them all day. Grey reads as switched
+     off. They go to the same near-black the app reads in; the saffron alone says where he
+     is standing. */
+  nav button{display:flex; flex-direction:column; align-items:center; gap:3px; flex:1; padding:4px; color:var(--txt); font-size:10px; font-weight:600}
   nav button.on{color:var(--saffron)} nav .nico{font-size:20px}
   nav .add .nico{width:50px; height:50px; border-radius:50%; background:linear-gradient(135deg,var(--saffron),#d98a12);
     color:#1a1206; display:grid; place-items:center; font-size:28px; font-weight:300; margin-top:-22px;
@@ -967,7 +980,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v625</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v631</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -1056,6 +1069,27 @@ const T={
   py_add_new:'➕ Add “{n}” as a new party',
   pos_added:'{n} added to the bill',
   vch_receipt:'Receipt', vch_payment:'Payment',
+  cl_title:'Cloud backup', cl_row:'Cloud backup',
+  cl_off:'Not connected', cl_on:'Connected',
+  cl_google:'Sign in with Google', cl_email:'Sign in with email',
+  cl_signout:'Sign out of cloud',
+  cl_lastup:'Last sent {w}', cl_never:'Nothing sent yet',
+  cl_sending:'Sending…', cl_sent:'Saved to cloud',
+  cl_fail:'Could not reach the cloud — it will try again',
+  cl_offline:'No internet — the book is safe here and will go up when the net returns',
+  cl_pull:'Bring the book down from cloud',
+  cl_pull_q:'Replace what is on THIS device?',
+  cl_pull_msg:'Cloud has {a}. This device has {b}. Everything on this device is replaced by the cloud copy. This cannot be undone.',
+  cl_pull_none:'There is nothing in the cloud yet',
+  cl_pull_done:'Book brought down — {n}',
+  cl_counts:'{o} orders · {s} bills · {c} customers',
+  cl_auto:'Send to cloud automatically',
+  cl_who:'Signed in as {n}',
+  cl_load_fail:'Cloud could not load. Check the internet and try again.',
+  cl_pw:'Password', cl_email_ph:'Email',
+  cl_signup:'Create it', cl_signin:'Sign in',
+  cl_need_both:'Email and password are both needed',
+  cl_photos_soon:'Photos are not sent yet — that comes next',
   del_unlink_go:'🗑️ Unlink order #{n} and delete',
   del_unlink_msg:'The bill goes. Order #{n} stays exactly as it is and can be billed again.',
   lg_opening_as:'Opening as on {d}', lg_period:'Period', lg_from:'From', lg_to:'To',
@@ -2276,6 +2310,7 @@ const T={
   it_icon:'Change icon', it_icon_pick:'Pick an icon', it_icon_own:'Or type any emoji',
   pos_f_all:'All', pos_f_mto:'Made to order', pos_f_rdy:'Readymade', pos_f_fab:'Fabric',
   pos_f_stitch:'Stitching',
+  pos_qty:'Qty',
   pos_mtr:'mtr', pos_rate_mtr:'Rate / mtr',
   pos_left_mtr:'{n} mtr left on this roll',
   pos_left_pcs:'{n} in stock',
@@ -3157,6 +3192,27 @@ dl_show_hidden:'Show hidden ({n})',
   py_add_new:'➕ “{n}” को नई पार्टी बनाएँ',
   pos_added:'{n} बिल में जुड़ गया',
   vch_receipt:'रसीद', vch_payment:'भुगतान',
+  cl_title:'क्लाउड बैकअप', cl_row:'क्लाउड बैकअप',
+  cl_off:'जुड़ा नहीं है', cl_on:'जुड़ा हुआ है',
+  cl_google:'Google से लॉगिन करें', cl_email:'ईमेल से लॉगिन करें',
+  cl_signout:'क्लाउड से लॉगआउट',
+  cl_lastup:'पिछली बार भेजा {w}', cl_never:'अभी कुछ नहीं भेजा',
+  cl_sending:'भेजा जा रहा है…', cl_sent:'क्लाउड पर सेव हो गया',
+  cl_fail:'क्लाउड तक नहीं पहुँचा — फिर कोशिश होगी',
+  cl_offline:'इंटरनेट नहीं — किताब यहीं सुरक्षित है, नेट आते ही चली जाएगी',
+  cl_pull:'क्लाउड से किताब वापस लाएँ',
+  cl_pull_q:'इस डिवाइस का सब कुछ बदल दें?',
+  cl_pull_msg:'क्लाउड में {a} है। इस डिवाइस में {b} है। इस डिवाइस का सब कुछ क्लाउड वाली कॉपी से बदल जाएगा। यह वापस नहीं होगा।',
+  cl_pull_none:'क्लाउड में अभी कुछ नहीं है',
+  cl_pull_done:'किताब आ गई — {n}',
+  cl_counts:'{o} ऑर्डर · {s} बिल · {c} ग्राहक',
+  cl_auto:'अपने आप क्लाउड पर भेजें',
+  cl_who:'{n} से लॉगिन है',
+  cl_load_fail:'क्लाउड लोड नहीं हुआ। इंटरनेट देखकर दोबारा कोशिश कीजिए।',
+  cl_pw:'पासवर्ड', cl_email_ph:'ईमेल',
+  cl_signup:'बना दीजिए', cl_signin:'लॉगिन',
+  cl_need_both:'ईमेल और पासवर्ड दोनों चाहिए',
+  cl_photos_soon:'फ़ोटो अभी नहीं जातीं — वो अगला काम है',
   del_unlink_go:'🗑️ ऑर्डर #{n} से हटाकर मिटाओ',
   del_unlink_msg:'बिल मिट जाएगा। ऑर्डर #{n} जैसा है वैसा ही रहेगा और दोबारा बिल बन सकेगा।',
   lg_opening_as:'{d} तक का ओपनिंग', lg_period:'अवधि', lg_from:'से', lg_to:'तक',
@@ -4363,6 +4419,7 @@ dl_show_hidden:'Show hidden ({n})',
   it_icon:'आइकन बदलें', it_icon_pick:'आइकन चुनिए', it_icon_own:'या कोई भी इमोजी लिखिए',
   pos_f_all:'सब', pos_f_mto:'ऑर्डर पर बनने वाला', pos_f_rdy:'रेडीमेड', pos_f_fab:'कपड़ा',
   pos_f_stitch:'सिलाई',
+  pos_qty:'मात्रा',
   pos_mtr:'मीटर', pos_rate_mtr:'रेट / मीटर',
   pos_left_mtr:'इस थान में {n} मी बची',
   pos_left_pcs:'स्टॉक में {n}',
@@ -5571,6 +5628,15 @@ function load(raw){
   ].forEach(([nm,kind,who])=>{
     if(DB.expCats.indexOf(nm)<0)DB.expCats.push(nm);
     if(!DB.expHeadCfg[nm])DB.expHeadCfg[nm]={who:who,kind:kind,pay:''};
+    /* ══════════ v630 — HIS BOOK HAD TO BE FIXED BY HAND, AND SHOULD NOT HAVE ══════════
+       The line above writes nothing when the head already exists, so it only ever helped a
+       shop starting fresh. On HIS device these heads existed from day one WITHOUT a kind —
+       "General expenses" and "Job work" both arrived on the chart of accounts with no group,
+       which the Receipt screen then correctly refused to post against. I told him to go and
+       tap each one; that is the app's own defect handed back to him as a chore.
+       A head that exists but carries no kind is filled in here. An EMPTY field only — a kind
+       he has set himself is never touched. */
+    else if(!DB.expHeadCfg[nm].kind) DB.expHeadCfg[nm].kind=kind;
   });
     if(!DB.numCfg)DB.numCfg={invPrefix:'INV',invMode:'fy',invStart:0,ordPrefix:'',ordStart:0};
   if(!DB.fabItems)DB.fabItems=[];      // fabric qualities
@@ -5679,6 +5745,9 @@ function save(oid){
      sheet has gone. */
   clearTimeout(_uiEcho);
   _uiEcho=setTimeout(()=>{ try{ if(!sheetIsOpen())refreshBehind(); }catch(e){} },180);
+  /* v631: and the cloud is told, quietly and late. Debounced, so a run of twenty saves
+     sends once; silent, so a shop with no internet never sees a failure it cannot act on. */
+  try{ clPushSoon(6000); }catch(e){}
   try{ autoBackupSoon(); }catch(e){}      /* v574: something was written — the day's backup is due */
   clearTimeout(_dbTimer);
   _dbTimer=setTimeout(flushDB,400);
@@ -14097,7 +14166,32 @@ function statDetail(mode){
 /* A brand-new install has no shop identity yet. Until it does, the home screen IS
    the setup screen — nothing else can be reached, so nobody can raise a bill
    carrying a blank (or somebody else's) shop name. */
-function setupNeeded(){ return !String((DB.shopInfo&&DB.shopInfo.name)||'').trim(); }
+/* ══════════ v629 — A LOADED BOOK WAS OFFERED THE FIRST-RUN SCREEN ══════════
+   HIS 11 Sept: "iPhone start kiya, waise hi screen khaali aayi, usme company name aur yeh
+   blank likhne ke liye. Maine Home dabaya aur saara data aa gaya. Ek baar to tension ho
+   gaya tha ki agar backup nahi liya hoga to aaj ka poora kaam barbaad."
+   That blank screen was not lost data — it was the SETUP screen, and this one line put it
+   there. It asked a single question, does DB.shopInfo.name have something in it, and on
+   that boot it did not yet. Every order, bill and customer was sitting right there
+   untouched; pressing Home drew the real screen and there it all was.
+   The danger was never the fright. It was the button on that screen: Start runs setupSave,
+   which rewrites DB.modules from those checkboxes and can rewrite the item list. Had he
+   typed his shop name and pressed it — the obvious thing to do when an app asks for your
+   shop name — a live book would have been overwritten by a first-run answer.
+   So the question is a better one now: a book that HOLDS SOMETHING is not a new shop, no
+   matter what the name field says. Setup is for an empty book and nothing else. */
+function setupHasRecords(){
+  try{
+    return !!((DB.orders||[]).length || (DB.sales||[]).length || (DB.customers||[]).length
+      || (DB.purchases||[]).length || (DB.ledger||[]).length || (DB.thaans||[]).length
+      || (DB.estimates||[]).length || (DB.expenses||[]).length);
+  }catch(e){ return false; }
+}
+function setupNeeded(){
+  if(String((DB.shopInfo&&DB.shopInfo.name)||'').trim())return false;
+  if(setupHasRecords())return false;      /* v629 */
+  return true;
+}
 /* Which pieces the shop actually sells is the single thing that turns this from
    "somebody else's app" into theirs, and it is the one question a boutique can answer
    in ten seconds. It runs off the same DB.itemCfg the Item setup screen uses, so
@@ -14188,6 +14282,12 @@ function renderSetup(){
 function setupSave(){
   suCapture();
   const nm=($('#su_name').value||'').trim();
+  /* v629: belt as well as braces. Even if this screen is reached some other way, it may
+     never reset the modules or the item list of a book that already holds work. */
+  if(setupHasRecords()){
+    if(nm){ DB.shopInfo=Object.assign(DB.shopInfo||{},{name:nm}); save(); }
+    toast(t('t_saved'),'ok'); renderHome(); return;
+  }
   if(!nm){ toast(t('su_need_name'),'bad');
     const e=$('#su_name');
     if(e){ e.style.borderColor='var(--bad)'; e.scrollIntoView({block:'center',behavior:'smooth'}); e.focus();
@@ -19132,6 +19232,26 @@ function photoPick(cb){
 }
 function pickItemPhotoQuick(gid){ photoPick(src=>pickItemPhoto(src,gid)); }
 function pickItemPhoto(src,gid){captureForm();photoTarget={type:'item',gid};const inp=src==='cam'?$('#filePickCam'):$('#filePick');inp.value='';inp.click();}
+/* v628: the bill's own photos. Same two inputs every other screen uses, so nothing about
+   how a photo is taken or stored changes — only where it lands. */
+function pickInvPhotoQuick(){ photoPick(src=>pickInvPhoto(src)); }
+function pickInvPhoto(src){
+  try{ captureInvoiceForm(); }catch(e){}
+  photoTarget={type:'inv'};
+  const inp=src==='cam'?$('#filePickCam'):$('#filePick'); inp.value=''; inp.click();
+}
+async function renderInvPhotos(){
+  const el=$('#inv_photos'); if(!el||!invForm)return; el.innerHTML='';
+  for(const id of (invForm.photos||[])){
+    const url=await mURL(id);
+    const w=document.createElement('div'); w.className='thumb-wrap';
+    w.innerHTML=`<img class="thumb" src="${url||''}"><div class="thumb-x">✕</div>`;
+    w.querySelector('.thumb').onclick=()=>viewPhoto(url);
+    w.querySelector('.thumb-x').onclick=async()=>{ await mDel(id);
+      invForm.photos=(invForm.photos||[]).filter(x=>x!==id); renderInvPhotos(); };
+    el.appendChild(w);
+  }
+}
 function pickThaanPhoto(src){thaanCapture();photoTarget={type:'fab'};const inp=src==='cam'?$('#filePickCam'):$('#filePick');inp.value='';inp.click();}
 function pickReadyPhoto(src){readyCapture();photoTarget={type:'rdy'};const inp=src==='cam'?$('#filePickCam'):$('#filePick');inp.value='';inp.click();}
 async function renderThaanPhotos(){const el=$('#th_photos');if(!el)return;el.innerHTML='';
@@ -19180,6 +19300,7 @@ async function storePhoto(file){
   if(photoTarget.type==='item'){const gid=photoTarget.gid;form.itemPhotos=form.itemPhotos||{};form.itemPhotos[gid]=form.itemPhotos[gid]||[];form.itemPhotos[gid].push(id);renderItemPhotos(gid);}
   else if(photoTarget.type==='alt'){altForm.photos=altForm.photos||[];altForm.photos.push(id);renderAltFormPhotos();}
   else if(photoTarget.type==='purch'){purchForm.photos=purchForm.photos||[];purchForm.photos.push(id);renderPurchPhotos();}
+  else if(photoTarget.type==='inv'){ if(invForm){invForm.photos=invForm.photos||[];invForm.photos.push(id);renderInvPhotos();} }
   else if(photoTarget.type==='fab'){_th.photos=_th.photos||[];_th.photos.push(id);renderThaanPhotos();}
   else if(photoTarget.type==='smp'){_smp.photos=_smp.photos||[];_smp.photos.push(id);renderSmpPhotos();}
   else if(photoTarget.type==='exp'){_exp.photos=_exp.photos||[];_exp.photos.push(id);renderExpPhotos();}
@@ -20424,7 +20545,12 @@ function openInvoiceForm(kind,id){
     invNormItems(invForm.items);
     invForm.deliveryDate=rec.deliveryDate||invForm.deliveryDate||'';
     invForm.salesmanId=rec.salesmanId||invForm.salesmanId||'';
-    if(kind==='sale'){invForm.customerName=rec.customerName||'';invForm.phone=rec.phone||'';invForm.notes=rec.notes||'';invForm.customerId=rec.customerId||null;
+    /* v628: read them back off the bill, whatever kind it is */
+    try{ const _iv=rec.invoice||{};
+      invForm.photos=(_iv.photos||[]).slice();
+      invForm.voiceNotes=(_iv.voiceNotes||[]).slice();
+      if(_iv.notes)invForm.notes=_iv.notes; }catch(e){}
+    if(kind==='sale'){invForm.customerName=rec.customerName||'';invForm.phone=rec.phone||'';invForm.notes=rec.notes||invForm.notes||'';invForm.customerId=rec.customerId||null;
       /* ══════════ v612 — TOLD TO UNLINK SOMETHING THE FORM DID NOT SHOW ══════════
          HIS 10 Sept: delete refused with "This bill belongs to order #2526 — unlink the
          order on the bill first", he tapped Edit, and the Order number box was EMPTY.
@@ -20454,7 +20580,7 @@ function openInvoiceForm(kind,id){
       deliveryDate:rec.deliveryDate||'', salesmanId:rec.salesmanId||'',
       customerId:kind==='sale'?(rec.customerId||null):undefined,
       customerName:kind==='sale'?(rec.customerName||''):undefined,phone:kind==='sale'?(rec.phone||''):undefined,
-      notes:kind==='sale'?(rec.notes||''):undefined,items};
+      notes:kind==='sale'?(rec.notes||''):'', photos:[], voiceNotes:[], items};
   }
   /* v215 — HIS 17 Aug: "sale ke invoice draft me save nahi ho rahe... banta hi nahi."
      It was being written all along. Coming back was the problem: invForm.id is the
@@ -20859,9 +20985,16 @@ function renderInvoiceForm(){
         const shown = f.receivedNow!=null ? f.receivedNow : (paid||'');
         return `<div class="il">
             <span style="display:flex;gap:8px;align-items:center">
-              <input type="checkbox" id="inv_paidfull" style="width:18px;height:18px;margin:0" onchange="invPaidFull(this.checked)"
+              <input type="checkbox" id="inv_paidfull" style="width:22px;height:22px;margin:0" onchange="invPaidFull(this.checked)"
                 ${(+shown>0&&r2(+shown)===r2(comp0.total))?'checked':''}>
-              <span style="font-weight:800;color:var(--saffron2)">💵 ${t('received_now')}</span></span>
+              ${/* v628 — HIS 11 Sept: "receive hi nahi dikhayi de raha tha… receive par turant
+                   aage chale jaana chahiye." The only two things that answered a tap here were
+                   an 18px checkbox and the number box itself; the words between them did
+                   nothing, which is why the row read as a label and not as the place money is
+                   entered. The words are the button now — one tap and the cursor is already in
+                   the amount, ready for the figure. The tick still means paid in full. */''}
+              <span style="font-weight:800;color:var(--saffron2);cursor:pointer"
+                onclick="invRecvHere()">💵 ${t('received_now')}</span></span>
             <input id="inv_recv" type="number" min="0" inputmode="numeric" value="${esc(shown)}" placeholder="0"
               style="width:120px;text-align:right;margin:0;font-weight:800;font-size:16px;
                      color:var(--saffron2);border-color:var(--saffron)" oninput="updateInvTotals()"></div>`;
@@ -20897,7 +21030,11 @@ function renderInvoiceForm(){
     </div>
 
     <details style="margin-top:14px">
-      <summary style="font-size:13px;color:var(--saffron2);cursor:pointer;font-weight:700;padding:6px 0">⚙️ ${t('pos_more')}</summary>
+      <summary style="font-size:13px;color:var(--saffron2);cursor:pointer;font-weight:700;padding:6px 0">⚙️ ${t('pos_more')}
+        ${/* v628: shut, this block used to give no sign that anything was inside it */''}
+        <span class="hint">${[(f.notes||'').trim()?'📝':'',
+          (f.voiceNotes||[]).length?('🎙️ '+(f.voiceNotes||[]).length):'',
+          (f.photos||[]).length?('📷 '+(f.photos||[]).length):''].filter(Boolean).join(' · ')}</span></summary>
       ${/* v512: delivery date and order number live here now — the grid above is drawn
            hidden and moved in when this opens, so there is only ever one copy of each box
            and nothing had to be written twice. */''}
@@ -20941,7 +21078,28 @@ function renderInvoiceForm(){
         ${f.interstate?`<b style="color:var(--saffron2)">\u2139\uFE0F ${t('tax_igst')}</b>`:t('tax_local')}
         \u00B7 <u>${t('tax_flip')}</u></p>
       <p class="hint">${t('invoice_gst_hint')}</p>
-      ${f.kind==='sale'?`<div class="field"><label>${t('order_notes')}</label><textarea id="inv_notes" placeholder="${t('notes_ph')}">${esc(f.notes||'')}</textarea></div>`:''}
+      ${/* ══════════ v628 — THE BILL COULD HOLD NO PROOF OF ITSELF ══════════
+           HIS 11 Sept, a walking customer: wife picked the cloth, no measurements, size M,
+           order number written on the bill, sizes to be filled in later. "Bill banate ho to
+           maine fabric ka photo attach karne ki koshish ki to hua nahi. Recording ka bhi
+           option, notes ka option, yeh sab hona chahiye — invoice par bhi. More karne par
+           wo sab option aana chahiye."
+           Right, and the order form has had all three for a long time — this screen simply
+           never got them. Worse, notes were here but only on a COUNTER sale; the moment a
+           bill came off an order the box vanished, which is exactly the bill his note was
+           for. A photo of the cloth he just sold, and his own voice saying what was agreed,
+           belong to the bill: it is the thing he opens a week later when the customer comes
+           back. Same recorder, same picker, same list as the order screen — one way to do a
+           thing, in both places.
+           These are the BILL's own — an order's photos and voice stay the order's and are
+           not touched. */''}
+      <div class="field"><label>${t('order_notes')} ${micBtn('#inv_notes')}</label>
+        <textarea id="inv_notes" placeholder="${t('notes_ph')}">${esc(f.notes||'')}</textarea></div>
+      <div class="field"><label>${t('voice_notes')}</label>${voiceSection('ivn')}</div>
+      <div class="field"><label>${t('photo_label')}</label>
+        <div id="inv_photos" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+        <div class="row" style="margin-top:8px">
+          <button class="btn sm ghost" onclick="pickInvPhotoQuick()">📷 ${t('photo_label')}</button></div></div>
     </details>
 
     <div class="modal-actions"><button class="btn ghost" onclick="closeSheet()">${t('cancel')}</button>
@@ -20982,6 +21140,12 @@ function renderInvoiceForm(){
   /* only when the lines came ready-made (billing an order) — a blank sale needs the
      item name first, and stealing focus there would fight him */
   setTimeout(()=>{ try{ if(invForm&&(invForm.items||[]).some(it=>it&&it.label))invFocusRate(); }catch(e){} },160);
+  /* v628: the recorder and the thumbnails have to be wired on every draw of this screen,
+     exactly like the order form does it — a <details> that opens does not re-render, so
+     binding once at open would leave the button dead the second time round. */
+  try{ bindVoice('ivn', ()=>{ invForm.voiceNotes=invForm.voiceNotes||[]; return invForm.voiceNotes; },
+        ()=>{ try{ invDraftSoon(); }catch(e){} }); }catch(e){}
+  try{ renderInvPhotos(); }catch(e){}
   /* v211: from here on, every keystroke on this bill is remembered */
   try{ const sh=$('#sheet');
     if(sh && !sh._invDraftBound){ sh._invDraftBound=1;
@@ -21006,7 +21170,8 @@ function renderInvoiceForm(){
    when the bill is already made. */
 function posLineHTML(i,it){
   const picked=Array.isArray(it.incl)?it.incl:[];
-  const amt=r2((+it.qty||1)*(+it.rate||0));
+  const _q=(it.qty===0||it.qty==='0')?0:(+it.qty||1);
+  const amt=r2(_q*(+it.rate||0));
   const isFab=invIsFabric(it);
   /* what is left on THIS roll — the piece he is selling out of, not the whole design */
   let bal=null;
@@ -21025,14 +21190,21 @@ function posLineHTML(i,it){
     <div id="posNS${i}"></div>
     <div class="pl-incl-chips" id="posIncl${i}">${posInclChipsHTML(i,it)}</div>
     <div class="pl-row">
+    ${/* ══════════ v627 — RATE AND AMOUNT WERE NAMED, QUANTITY WAS NOT ══════════
+         HIS 11 Sept: "quantity kahin par bhi likha hona chahiye tha, jaise rate hai amount
+         hai, waise upar QTY likhna chahiye."
+         v519 named the two money boxes on this line and stopped there. The third box — the
+         one that decides both of them — was left as a bare number between two buttons. On a
+         fabric line it now also carries mtr beside it, which made the gap louder: the app
+         says what the unit is but not what the number means. */''}
+    <label class="pl-qty"><span class="pl-money-lbl">${t('pos_qty')}${isFab?' · '+t('pos_mtr'):''}</span>
       <div class="qty-step">
         <button onclick="posQty(${i},-1)">−</button>
         <input class="qty-in" data-iqty="${i}" type="number"
-          inputmode="${isFab?'decimal':'numeric'}" step="${isFab?'any':'1'}" min="${isFab?'0':'1'}"
+          inputmode="${isFab?'decimal':'numeric'}" step="${isFab?'any':'1'}" min="0"
           value="${esc(it.qty||1)}" oninput="posLineCalc(${i})">
         <button onclick="posQty(${i},1)">+</button>
-      </div>
-      ${isFab?`<span class="hint" id="posUnit${i}" style="flex:0 0 auto;font-weight:700">${t('pos_mtr')}</span>`:''}
+      </div></label>
       ${/* ══════════ v519 — TWO MONEY BOXES, NEITHER OF THEM NAMED ══════════
            HIS 6 Sept: "har item par teen alag box." Measured: five boxes and three buttons
            on a line, and the two that hold money were marked only with a ₹ — nothing said
@@ -21187,7 +21359,11 @@ function posLeftHTML(i,item){
 function posLineCalc(i){            // ← no re-render: cursor stays exactly where it is
   const qEl=document.querySelector('[data-iqty="'+i+'"]');
   const rEl=document.querySelector('[data-irate="'+i+'"]');
-  const q=+((qEl||{}).value)||1, r=+((rEl||{}).value)||0;
+  /* v627: an empty box still means one — a typed 0 means zero. "||1" could not tell
+     those apart and turned every 0 back into a 1, which is why − did nothing. */
+  const qRaw=((qEl||{}).value);
+  const q=(qRaw===''||qRaw==null)?1:(+qRaw||0);
+  const r=+((rEl||{}).value)||0;
   if(invForm.items[i]){invForm.items[i].qty=q;invForm.items[i].rate=r;invForm.items[i].price=r2(q*r);}
   const a=document.querySelector('[data-iamt="'+i+'"]'); if(a&&document.activeElement!==a)a.value=r2(q*r)||'';
   const lb=$('#posLineAmt'+i); if(lb)lb.textContent=money(r2(q*r));
@@ -21209,11 +21385,17 @@ function posAmtEdit(i){             // type the total; rate is derived (qty stay
 }
 function posQty(i,d){
   const el=document.querySelector('[data-iqty="'+i+'"]'); if(!el)return;
-  /* v625: cloth is sold in halves and quarters, so the floor of 1 is wrong there — a
-     0.5 metre cut is a real sale and the stepper must be able to reach it. */
+  /* v625: cloth is sold in halves and quarters, so a floor of 1 is wrong there.
+     v627 — HIS 11 Sept: "minus karein zero ho jaye… ya phir quantity zero ka bhi option
+     rehna chahiye." The floor was 1, so pressing − on the last one did nothing at all and
+     the line just sat there. It goes to 0 now and the amount goes with it. The RATE he
+     typed is deliberately left alone — that is his figure, and one more tap on + brings the
+     line straight back. A line left at 0 is worth nothing on the bill and takes nothing out
+     of stock. */
   const it=((invForm&&invForm.items)||[])[i]||{};
-  const step=invIsFabric(it)?0.5:1, floor=invIsFabric(it)?0.5:1;
-  const v=Math.max(floor, r2((+el.value||floor)+d*step));
+  const step=invIsFabric(it)?0.5:1;
+  const cur=(el.value===''?1:+el.value||0);
+  const v=Math.max(0, r2(cur+d*step));
   el.value=v; posLineCalc(i);
 }
 function posLinkOrder(no){
@@ -22175,6 +22357,12 @@ function invSetMode(m){
   if(invForm.split){ invToggleSplit(); return; }   // picking one mode means it isn't split any more
   document.querySelectorAll('#ivModes .gtag').forEach(el=>el.classList.toggle('on-tag',el.dataset.pm===m));
 }
+/* v628 */
+function invRecvHere(){
+  const el=$('#inv_recv'); if(!el)return;
+  try{ el.focus(); el.select&&el.select(); }catch(e){}
+  try{ el.scrollIntoView({block:'center'}); }catch(e){}
+}
 function invPaidFull(on){
   captureInvoiceForm();
   const comp=invCompute(invForm);
@@ -22256,6 +22444,8 @@ function captureInvoiceForm(){const f=invForm;
   if($('#inv_cname')&&!f.customerId)f.customerName=$('#inv_cname').value.trim();
   if($('#inv_cphone')&&!f.customerId)f.phone=$('#inv_cphone').value.trim();
   if($('#inv_notes'))f.notes=$('#inv_notes').value.trim();
+  /* v628: photos and voice are held on invForm directly by their own handlers — nothing
+     to read out of the DOM, and nothing here may clear them */
   if($('#inv_recv'))f.receivedNow=$('#inv_recv').value===''?null:(+$('#inv_recv').value||0);
   if(f.split){
     if($('#inv_cash'))f.split.cash=$('#inv_cash').value===''?'':(+$('#inv_cash').value||0);
@@ -22285,13 +22475,17 @@ function captureInvoiceForm(){const f=invForm;
     if(f.items[i])f.items[i].label=inp.value.trim();});
   document.querySelectorAll('[data-ihsn]').forEach(inp=>{const i=+inp.dataset.ihsn;
     if(f.items[i])f.items[i].hsn=inp.value.trim();});
+  /* v627: this ran on every capture and put the 1 straight back, so the box showed 0
+     while the form still held 1 — the number on screen and the number in the books
+     disagreed, which is worse than the stepper not moving at all. An EMPTY box still
+     means one; a typed 0 means zero. */
   document.querySelectorAll('[data-iqty]').forEach(inp=>{const i=+inp.dataset.iqty;
-    if(f.items[i])f.items[i].qty=(+inp.value||1);});
+    if(f.items[i])f.items[i].qty=(inp.value===''?1:(+inp.value||0));});
   document.querySelectorAll('[data-irate]').forEach(inp=>{const i=+inp.dataset.irate;
     if(f.items[i]){ f.items[i].rate=+inp.value||0; _seenRate[i]=1; }});
   // line amount = qty x rate ; keep .price (line total) for GST engine & printing
   (f.items||[]).forEach((it,i)=>{
-    it.qty=+it.qty||1;
+    it.qty=(it.qty===0||it.qty==='0')?0:(+it.qty||1);     /* v627 */
     if(_seenRate[i]){ it.rate=+it.rate||0; it.price=r2(it.qty*it.rate); }
     else {
       const price=+it.price||0, rate=+it.rate||0;
@@ -22388,7 +22582,11 @@ function saveInvoice(){
   sheetSaved();                       // v599: this form's typing is no longer unsaved
   numHWSet(invHWKey(), numDigits(String(f.no).split('/').pop()));   // v218
   rec.invoice={no:f.no,date:f.date,interstate:f.interstate,paymentMode:f.paymentMode,discType:f.discType||'amount',discValue:f.discValue||0,courier:+f.courier||0,
-    deliveryDate:f.deliveryDate||'',salesmanId:f.salesmanId||'',items:f.items};
+    deliveryDate:f.deliveryDate||'',salesmanId:f.salesmanId||'',items:f.items,
+    /* v628: on a bill made FROM AN ORDER, rec is the order — rec.photos and rec.notes are
+       the ORDER's and must not be written over. The bill's own three live inside
+       rec.invoice, where they belong to the bill and to nothing else. */
+    notes:f.notes||'', photos:(f.photos||[]).slice(), voiceNotes:(f.voiceNotes||[]).slice()};
   if(rec._fromEst){ const _e=(DB.estimates||[]).find(x=>x.id===rec._fromEst); if(_e)_e.convertedSaleId=rec.id; delete rec._fromEst; }
   /* v590 — the printed bill reads rec.orderNo, and on a COUNTER SALE nothing ever wrote
      it: he could type an order number under ⚙️, save, and the number he typed was simply
@@ -22461,7 +22659,10 @@ function saveInvoice(){
       const m=DB.itemMaster.find(x=>x.id===it.masterId);
       if(!m||m.kind!=='ready')return;
       const sz=it.size||'';
-      const q=+it.qty||1;
+      /* v627: the fabric side already returned on q<=0; this side read "||1" and would have
+         taken a piece off the rack for a line he had zeroed out. */
+      const q=(it.qty===0||it.qty==='0')?0:(+it.qty||1);
+      if(q<=0)return;
       if(sz){ if(q>readyQty(m,sz))toast(t('stk_oversell'),'bad'); readySet(m,sz,readyQty(m,sz)-q); }
       move({dir:MV_OUT,target:'ready',itemId:m.id,size:sz,qty:q,rate:+it.rate||0,
         reason:'sale',ref:'Invoice '+f.no,refId:f.id});
@@ -30213,6 +30414,7 @@ function settingsMenu(){modal(t('settings'),`
   ${/* v280 — HIS 23 Aug: "old home / opening balance shop / garment type... samajh nahi aa
        raha hai." A label a man has to already know the answer to is a failed label. This
        one names the setting and shows which way it is set, like every other toggle here. */''}
+  <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();cloudScreen()">☁️ ${t('cl_row')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();homeManage()">🏠 ${t('hb_title')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();qrManage()">⚙️ ${t('qc_title')}</button>
   <button class="btn ghost block" style="margin-bottom:8px" onclick="homeClassicToggle()">🏠 ${t('home_layout')} · <b>${localStorage.getItem('pp_home_classic')==='1'?t('home_layout_old'):t('home_layout_new')}</b></button>
@@ -32824,6 +33026,181 @@ function miPost(d){
   DB.ledger.push({id:uid(),dir:'in',date,amt,acc:d.acc,party:d.name,partyId:null,
     partyKind:'', ref:t('vch_receipt'), refKind:rk, cat:'', note:d.note||'', photos:[]});
   return {ok:true,msg:t('t_saved')};
+}
+
+/* ══════════════════ v631 — THE BOOK LEAVES THE DEVICE ══════════════════
+   HIS 12 Sept, after eight days in which a phone came up empty once and the whole shop
+   ran on one iPad with no copy anywhere: cloud.
+   What this is and what it is NOT, so nobody reads more into it than it does:
+     · It SENDS the book up. It does not pull anything down on its own, ever. A download
+       replaces what is on the device, and this app has already seen what an automatic
+       replace does to a man's data — so that stays a deliberate tap with both record
+       counts named before it happens.
+     · It touches nothing when there is no internet, no login, or no Firebase. The app is
+       offline-first and stays exactly as it was; the cloud is a passenger.
+     · Photos do not go yet. That is the next piece and it is a different shape — one file
+       at a time, never a 747 MB heap.
+   The book is ~400 KB. A Firestore document caps at 1 MiB, which it would quietly exceed
+   one day with no warning, so it is written in parts under a meta doc that records how
+   many. Parts are numbered, not appended, so a shrinking book cannot leave a stale tail. */
+const CLOUD_CFG={
+  apiKey:"AIzaSyDl5AYlRowvgcrIUcYlRH3KtR-koRuZsxY",
+  authDomain:"parampara-18977.firebaseapp.com",
+  projectId:"parampara-18977",
+  storageBucket:"parampara-18977.firebasestorage.app",
+  messagingSenderId:"152243063982",
+  appId:"1:152243063982:web:ea8bee4df71bfd7252713f"
+};
+const CL_SDK='https://www.gstatic.com/firebasejs/10.12.2/';
+let _clApp=null,_clAuth=null,_clDb=null,_clUser=null,_clBusy=0,_clLoading=null,_clFns=null;
+
+function clOn(){ try{ return localStorage.getItem('pb_cloud_on')!=='0'; }catch(e){ return true; } }
+function clSetOn(v){ try{ localStorage.setItem('pb_cloud_on',v?'1':'0'); }catch(e){} }
+function clLastAt(){ try{ return +localStorage.getItem('pb_cloud_at')||0; }catch(e){ return 0; } }
+
+/* the SDK is fetched only when he actually asks for the cloud — a shop with no internet
+   never pays for a script it cannot use */
+function clLoad(){
+  if(_clFns)return Promise.resolve(_clFns);
+  if(_clLoading)return _clLoading;
+  _clLoading=(async()=>{
+    const [app,auth,fs]=await Promise.all([
+      import(CL_SDK+'firebase-app.js'),
+      import(CL_SDK+'firebase-auth.js'),
+      import(CL_SDK+'firebase-firestore.js')]);
+    _clApp=app.initializeApp(CLOUD_CFG);
+    _clAuth=auth.getAuth(_clApp);
+    _clDb=fs.getFirestore(_clApp);
+    _clFns={app,auth,fs};
+    auth.onAuthStateChanged(_clAuth,u=>{ _clUser=u||null;
+      try{ if(_sheetCur===cloudScreen)cloudScreen(); }catch(e){}
+      if(u)clPushSoon(300); });
+    return _clFns;
+  })().catch(e=>{ _clLoading=null; throw e; });
+  return _clLoading;
+}
+
+/* ─── what actually goes up ─── */
+function clBookJSON(){
+  /* photos and voice live in IndexedDB, not in DB, so they are simply not here. The book
+     is every record the shop is run from. */
+  return JSON.stringify(DB);
+}
+function clCounts(o){
+  return t('cl_counts',{o:((o&&o.orders)||[]).length,s:((o&&o.sales)||[]).length,
+    c:((o&&o.customers)||[]).length});
+}
+const CL_PART=700000;                       /* well under the 1 MiB document cap */
+
+async function clPush(silent){
+  if(!clOn()||!_clUser)return false;
+  if(_dbReadFailed)return false;            /* an unread book must never be sent anywhere */
+  if(_clBusy)return false;
+  if(!navigator.onLine){ if(!silent)toast(t('cl_offline'),'bad'); return false; }
+  _clBusy=1;
+  try{
+    const {fs}=await clLoad();
+    const uid=_clUser.uid, txt=clBookJSON();
+    const parts=[]; for(let i=0;i<txt.length;i+=CL_PART)parts.push(txt.slice(i,i+CL_PART));
+    for(let i=0;i<parts.length;i++)
+      await fs.setDoc(fs.doc(_clDb,'shops',uid,'book','part'+i),{i:i,s:parts[i]});
+    await fs.setDoc(fs.doc(_clDb,'shops',uid,'book','meta'),{
+      parts:parts.length, at:Date.now(), bytes:txt.length, ver:appVerHere(),
+      orders:(DB.orders||[]).length, sales:(DB.sales||[]).length,
+      customers:(DB.customers||[]).length, device:(navigator.userAgent||'').slice(0,60)});
+    try{ localStorage.setItem('pb_cloud_at',String(Date.now())); }catch(e){}
+    if(!silent)toast('☁️ '+t('cl_sent'),'ok');
+    try{ if(_sheetCur===cloudScreen)cloudScreen(); }catch(e){}
+    return true;
+  }catch(e){
+    if(!silent)toast(t('cl_fail'),'bad');
+    return false;
+  }finally{ _clBusy=0; }
+}
+
+let _clT=null;
+function clPushSoon(ms){
+  if(!clOn())return;
+  clearTimeout(_clT);
+  _clT=setTimeout(()=>{ clPush(1); }, ms||6000);
+}
+
+/* ─── coming DOWN is never automatic ─── */
+async function clPull(){
+  if(!_clUser)return;
+  try{
+    const {fs}=await clLoad();
+    const uid=_clUser.uid;
+    const m=await fs.getDoc(fs.doc(_clDb,'shops',uid,'book','meta'));
+    if(!m.exists()){ toast(t('cl_pull_none'),'bad'); return; }
+    const md=m.data();
+    const cloudTxt=t('cl_counts',{o:md.orders||0,s:md.sales||0,c:md.customers||0});
+    const hereTxt=clCounts(DB);
+    confirmModal('⚠️ '+t('cl_pull_q'), t('cl_pull_msg',{a:cloudTxt,b:hereTxt}), async()=>{
+      let txt='';
+      for(let i=0;i<(md.parts||0);i++){
+        const p=await fs.getDoc(fs.doc(_clDb,'shops',uid,'book','part'+i));
+        txt+=(p.exists()?(p.data().s||''):'');
+      }
+      let obj=null; try{ obj=JSON.parse(txt); }catch(e){}
+      if(!obj){ toast(t('cl_fail'),'bad'); return; }
+      DB=obj; save();
+      toast(t('cl_pull_done',{n:clCounts(DB)}),'ok');
+      setTimeout(()=>location.reload(),900);
+    }, null, {yes:t('cl_pull'), cls:'danger'});
+  }catch(e){ toast(t('cl_load_fail'),'bad'); }
+}
+
+/* ─── the screen ─── */
+async function cloudSignInGoogle(){
+  try{ const {auth}=await clLoad();
+    const p=new auth.GoogleAuthProvider();
+    await auth.signInWithPopup(_clAuth,p);
+    cloudScreen();
+  }catch(e){ toast(t('cl_load_fail'),'bad'); }
+}
+async function cloudSignInEmail(){
+  const em=(($('#cl_em')||{}).value||'').trim(), pw=(($('#cl_pw')||{}).value||'');
+  if(!em||!pw){ toast(t('cl_need_both'),'bad'); return; }
+  try{ const {auth}=await clLoad();
+    try{ await auth.signInWithEmailAndPassword(_clAuth,em,pw); }
+    catch(e){ await auth.createUserWithEmailAndPassword(_clAuth,em,pw); }
+    cloudScreen();
+  }catch(e){ toast(String((e&&e.message)||t('cl_load_fail')).slice(0,90),'bad'); }
+}
+async function cloudSignOut(){
+  try{ const {auth}=await clLoad(); await auth.signOut(_clAuth); _clUser=null; cloudScreen(); }catch(e){}
+}
+function cloudToggleAuto(){ clSetOn(!clOn()); cloudScreen(); if(clOn())clPushSoon(300); }
+
+function cloudScreen(){
+  sheetAt(cloudScreen);
+  const at=clLastAt();
+  const who=_clUser?(_clUser.email||_clUser.displayName||'—'):'';
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">☁️ ${t('cl_title')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
+    ${_clUser?`
+      <div class="card" style="padding:12px 14px;margin-bottom:12px">
+        <div class="il"><span>${t('cl_on')}</span><b style="color:var(--ok)">${esc(who)}</b></div>
+        <div class="il"><span>${t('cl_lastup',{w:at?fmtDate(new Date(at).toISOString().slice(0,10)):''})}</span>
+          <b>${at?new Date(at).toLocaleTimeString():t('cl_never')}</b></div>
+        <div class="il" style="border-bottom:0"><span>${t('cl_counts',{o:(DB.orders||[]).length,s:(DB.sales||[]).length,c:(DB.customers||[]).length})}</span></div>
+      </div>
+      <button class="btn primary block" style="margin-bottom:8px" onclick="clPush(0)">☁️ ${t('cl_sending').replace('…','')}</button>
+      <button class="btn ghost block" style="margin-bottom:8px" onclick="cloudToggleAuto()">${clOn()?'✅':'⬜'} ${t('cl_auto')}</button>
+      <button class="btn ghost block" style="margin-bottom:8px" onclick="clPull()">⬇️ ${t('cl_pull')}</button>
+      <p class="hint" style="margin:10px 2px">${t('cl_photos_soon')}</p>
+      <button class="btn ghost block" style="margin-top:14px" onclick="cloudSignOut()">${t('cl_signout')}</button>
+    `:`
+      <button class="btn primary block" style="margin-bottom:10px" onclick="cloudSignInGoogle()">${t('cl_google')}</button>
+      <div class="dl-hd" style="padding:10px 2px 6px">${t('cl_email')}</div>
+      <div class="field"><input id="cl_em" type="email" autocomplete="off" placeholder="${t('cl_email_ph')}"></div>
+      <div class="field"><input id="cl_pw" type="password" placeholder="${t('cl_pw')}"></div>
+      <button class="btn ghost block" onclick="cloudSignInEmail()">${t('cl_signin')}</button>
+    `}
+    <div class="fab-pad"></div>`;
+  showSheet();
 }
 let _mo={date:'',amt:'',acc:'',name:'',note:'',q:''};
 function moneyOut(keep){
