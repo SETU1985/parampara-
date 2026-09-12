@@ -980,7 +980,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v635</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v636</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -1074,7 +1074,7 @@ const T={
   cl_google:'Sign in with Google', cl_email:'Sign in with email',
   cl_signout:'Sign out of cloud',
   cl_lastup:'Last sent {w}', cl_never:'Nothing sent yet',
-  cl_sending:'Sending…', cl_sent:'Saved to cloud',
+  cl_sending:'Sending…', cl_send_now:'Send now', cl_sent:'Saved to cloud',
   cl_fail:'Could not reach the cloud — it will try again',
   cl_offline:'No internet — the book is safe here and will go up when the net returns',
   cl_pull:'Bring the book down from cloud',
@@ -3198,7 +3198,7 @@ dl_show_hidden:'Show hidden ({n})',
   cl_google:'Google से लॉगिन करें', cl_email:'ईमेल से लॉगिन करें',
   cl_signout:'क्लाउड से लॉगआउट',
   cl_lastup:'पिछली बार भेजा {w}', cl_never:'अभी कुछ नहीं भेजा',
-  cl_sending:'भेजा जा रहा है…', cl_sent:'क्लाउड पर सेव हो गया',
+  cl_sending:'भेजा जा रहा है…', cl_send_now:'अभी भेजें', cl_sent:'क्लाउड पर सेव हो गया',
   cl_fail:'क्लाउड तक नहीं पहुँचा — फिर कोशिश होगी',
   cl_offline:'इंटरनेट नहीं — किताब यहीं सुरक्षित है, नेट आते ही चली जाएगी',
   cl_pull:'क्लाउड से किताब वापस लाएँ',
@@ -33148,8 +33148,27 @@ function clBookJSON(){
      is every record the shop is run from. */
   return JSON.stringify(DB);
 }
+/* ══════════ v636 — HIS BILL WAS NEVER MISSING; MY COUNTER WAS WRONG ══════════
+   HIS 12 Sept: "maine koi bill nahi mitaya." He was right.
+   The cloud card said "1 orders · 0 bills" while his bill list plainly showed
+   INV/2026-27/001 for Rs 38,000. I counted DB.sales, which holds COUNTER sales only. A bill
+   raised against an order lives on the ORDER, and one raised against an alteration lives on
+   the alteration — allInvoices() has gathered all three since the screen was built. So a
+   bill made the normal way, from an order, counted as zero.
+   Cosmetic on the status card. NOT cosmetic on the download: that confirmation names the
+   record counts on both sides, and he decides whether to wipe a device by reading them. A
+   cloud holding 234 bills reported as 0 is a wrong number in front of an irreversible
+   choice. It counts what the bill list counts, everywhere. */
+function clBillCount(o){
+  if(o===DB || !o){ try{ return allInvoices().length; }catch(e){} }
+  let n=0;
+  ((o&&o.orders)||[]).forEach(x=>{ if(x&&x.invoice)n++; });
+  ((o&&o.alterations)||[]).forEach(x=>{ if(x&&x.invoice)n++; });
+  ((o&&o.sales)||[]).forEach(x=>{ if(x&&x.invoice)n++; });
+  return n;
+}
 function clCounts(o){
-  return t('cl_counts',{o:((o&&o.orders)||[]).length,s:((o&&o.sales)||[]).length,
+  return t('cl_counts',{o:((o&&o.orders)||[]).length, s:clBillCount(o),
     c:((o&&o.customers)||[]).length});
 }
 const CL_PART=700000;                       /* well under the 1 MiB document cap */
@@ -33168,7 +33187,7 @@ async function clPush(silent){
       await fs.setDoc(fs.doc(_clDb,'shops',uid,'book','part'+i),{i:i,s:parts[i]});
     await fs.setDoc(fs.doc(_clDb,'shops',uid,'book','meta'),{
       parts:parts.length, at:Date.now(), bytes:txt.length, ver:appVerHere(),
-      orders:(DB.orders||[]).length, sales:(DB.sales||[]).length,
+      orders:(DB.orders||[]).length, sales:clBillCount(DB),
       customers:(DB.customers||[]).length, device:(navigator.userAgent||'').slice(0,60)});
     try{ localStorage.setItem('pb_cloud_at',String(Date.now())); }catch(e){}
     if(!silent)toast('☁️ '+t('cl_sent'),'ok');
@@ -33247,9 +33266,11 @@ function cloudScreen(){
         <div class="il"><span>${t('cl_on')}</span><b style="color:var(--ok)">${esc(who)}</b></div>
         <div class="il"><span>${t('cl_lastup',{w:at?fmtDate(new Date(at).toISOString().slice(0,10)):''})}</span>
           <b>${at?new Date(at).toLocaleTimeString():t('cl_never')}</b></div>
-        <div class="il" style="border-bottom:0"><span>${t('cl_counts',{o:(DB.orders||[]).length,s:(DB.sales||[]).length,c:(DB.customers||[]).length})}</span></div>
+        <div class="il" style="border-bottom:0"><span>${clCounts(DB)}</span></div>
       </div>
-      <button class="btn primary block" style="margin-bottom:8px" onclick="clPush(0)">☁️ ${t('cl_sending').replace('…','')}</button>
+      ${/* v636: the button read "Sending" while sitting still. A button is named for the
+           job it does when pressed, not the state it enters. */''}
+      <button class="btn primary block" style="margin-bottom:8px" onclick="clPush(0)">☁️ ${t('cl_send_now')}</button>
       <button class="btn ghost block" style="margin-bottom:8px" onclick="cloudToggleAuto()">${clOn()?'✅':'⬜'} ${t('cl_auto')}</button>
       <button class="btn ghost block" style="margin-bottom:8px" onclick="clPull()">⬇️ ${t('cl_pull')}</button>
       <p class="hint" style="margin:10px 2px">${t('cl_photos_soon')}</p>
