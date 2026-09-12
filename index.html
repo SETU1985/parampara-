@@ -980,7 +980,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v631</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v634</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -1135,6 +1135,7 @@ const T={
   home_to_collect:'Receivables',
   home_month_sales:'This month sale',
   hm_pl:'This month', hm_pl_sales:'Sales', hm_pl_cost:'Costs', hm_pl_profit:'Profit',
+  hm_gst_in:'of which GST',
   gst_title:'GST', gst_sub:'Output tax on what you sold, input tax on what you bought, and the difference.',
   eh_drawing:'My own drawings',
   bs_title:'Balance sheet', tb_title:'Trial balance', de_menu:'Accounts',
@@ -3258,6 +3259,7 @@ dl_show_hidden:'Show hidden ({n})',
   home_to_collect:'वसूली बाकी',
   home_month_sales:'इस महीने की बिक्री',
   hm_pl:'इस महीने', hm_pl_sales:'बिक्री', hm_pl_cost:'खर्च', hm_pl_profit:'मुनाफ़ा',
+  hm_gst_in:'इसमें GST',
   gst_title:'GST', gst_sub:'बिक्री पर लिया टैक्स, खरीद पर दिया टैक्स, और दोनों का फ़र्क।',
   eh_drawing:'My own drawings',
   bs_title:'Balance sheet', tb_title:'Trial balance', de_menu:'Accounts',
@@ -14452,11 +14454,25 @@ function monthCardHTML(){
   const row=(ico,lbl,val,fn,col)=>`<div class="dl-row tappable" onclick="${fn}">
       <span class="dl-ico">${ico}</span><span class="dl-lbl">${lbl}</span>
       <span class="dl-n" style="${col?'color:'+col:''}">${val}</span><span class="dl-go">›</span></div>`;
-  const up=lf?(f.netSales>=lf.netSales):null;
+  /* ══════════ v634 — SALES MEANS WHAT HE SOLD ══════════
+     HIS 12 Sept: "gross sale hi pakadte hain sales ke liye. Akhil ko commission gross sale
+     par hi dena hota hai. Saal me ek crore ka maal beche to inclusive GST ek crore ka data
+     chahiye hota hai. Adtees hazaar becha hai to adtees hazaar hi dikhe."
+     His call, and the reasons are business reasons: the commission he pays is computed on
+     the gross figure, and a shopkeeper who says he did a crore means a crore on the bills.
+     Showing 32,203 where he billed 38,000 is a number he has to correct in his own head
+     every time he reads his own Home screen.
+     So the DASHBOARD speaks his language — Sales is what was billed, with the GST inside it
+     named on its own line underneath, so nothing is hidden and the figure is traceable.
+     The ACCOUNTING layer does not move: P&L, Trial Balance and Balance Sheet keep Gross
+     Sales, less GST, Net Sales, because GST is collected for the government and booking it
+     as income would overstate both the profit and the tax due on it. */
+  const up=lf?(f.sales>=lf.sales):null;
   return `<div class="card dl-card">
     <div class="dl-hd">📊 ${t('hm_pl')}</div>
-    ${row('🧾',t('hm_pl_sales'),moneyMask(money(r2(f.netSales))),tapM||"go('invoices')",'')}
-    ${lf?row(up?'📈':'📉',t('hm_lastmonth'),moneyMask(money(r2(lf.netSales))),tapM||"go('reports');setTimeout(plReport,120)",up?'var(--ok)':'var(--bad)'):''}
+    ${row('🧾',t('hm_pl_sales'),moneyMask(money(r2(f.sales))),tapM||"go('invoices')",'')}
+    ${f.gst?row('🧾',t('hm_gst_in'),moneyMask(money(r2(f.gst))),tapM||"go('reports');setTimeout(plReport,120)",'var(--txt2)'):''}
+    ${lf?row(up?'📈':'📉',t('hm_lastmonth'),moneyMask(money(r2(lf.sales))),tapM||"go('reports');setTimeout(plReport,120)",up?'var(--ok)':'var(--bad)'):''}
     ${row('💸',t('hm_month_exp'),moneyMask(money(r2(f.expTotal))),tapM||"expenses()",'')}
     ${row('📊',t('hm_open_pl'),'',"go('reports');setTimeout(plReport,120)",'')}
   </div>`;
@@ -14861,7 +14877,13 @@ function menuHome(){
          inside the Settings modal, eight buttons down. Same fault as Ledger master in v492:
          built, working, and unreachable unless you already knew it was there. A man cannot
          customise what he cannot find. */''}
+    ${/* v632 — I put the cloud row inside the Settings MODAL, which is the exact fault this
+         section was created to fix in v615: built, working, and unreachable unless you
+         already knew where it was. He went looking for it here, in All screens, and it was
+         not here. It is the first row now, because a book that leaves the device is a bigger
+         thing than which chips show on Home. */''}
     ${sec('⚙️ '+t('settings'),[
+      row('☁️',t('cl_row'),"cloudScreen()"),
       row('🏠',t('hb_title'),"homeManage()"),
       row('⚙️',t('qc_title'),"qrManage()"),
       row('⚙️',t('settings'),"settingsMenu()")])}
@@ -15186,13 +15208,15 @@ function renderHome(){
       let f; try{ f=plFigures(mFrom,mTo); }catch(e){ return ''; }
       const cost=r2(f.netPurch+f.expTotal);
       const prof=f.net, up=prof>=0;
-      if(!f.netSales && !cost) return `<div class="card dl-card" style="margin-top:12px">
+      if(!f.sales && !cost) return `<div class="card dl-card" style="margin-top:12px">
         <div class="dl-hd">📊 ${t('hm_pl')}</div>
         <p class="hint" style="padding:2px 12px 10px;margin:0">${t('hm_pl_none')}</p></div>`;
       return `<div class="card dl-card" style="margin-top:12px">
         <div class="dl-hd">📊 ${t('hm_pl')}</div>
         <div class="dl-row"><span class="dl-ico">🧾</span>
-          <span class="dl-lbl">${t('hm_pl_sales')}</span><span class="dl-n">${moneyMask(money(f.netSales))}</span></div>
+          <span class="dl-lbl">${t('hm_pl_sales')}</span><span class="dl-n">${moneyMask(money(f.sales))}</span></div>
+        ${f.gst?`<div class="dl-row"><span class="dl-ico">🧾</span>
+          <span class="dl-lbl">${t('hm_gst_in')}</span><span class="dl-n" style="color:var(--txt2)">${moneyMask(money(f.gst))}</span></div>`:''}
         <div class="dl-row"><span class="dl-ico">💸</span>
           <span class="dl-lbl">${t('hm_pl_cost')}</span><span class="dl-n">${moneyMask(money(cost))}</span></div>
         ${f.rentDue?`<div class="dl-row"><span class="dl-ico">🏪</span>
@@ -27187,6 +27211,18 @@ function plFigures(from,to){
     if(d<from||d>to)return;
     sales=r2(sales+(+orderTotal(a)||0));
   });
+  /* ══════════ v633 — ONE WORD, TWO FIGURES ══════════
+     HIS 12 Sept, from his own screen: Home said Sales Rs 32,203.38 and the bill list said
+     SALES Rs 38,000 for the same month. "Wo 32,203.38 kyun dikhayega? 38,000 hona chahiye."
+     Both figures are right and the gap is exactly the GST — Rs 5,796.62. What was wrong was
+     that one word, "Sales", was printed over two different things, so the only way to tell
+     which was which was to do the subtraction in your head.
+     The figures stay as they are, because both are needed and both are correct: the bill
+     list totals what was BILLED, and Home shows what the shop actually earned, since GST is
+     collected for the government and was never income. They are named apart now, in the
+     terms this app already uses in Reports — Gross Sales and Net Sales.
+     Neither figure moves when a customer pays. Money received is a different fact and has
+     its own tile; a sale is made when the bill is made. */
   const netSales=r2(sales-gst);                    // GST is the government's, never income
 
   let purch=0, purchGst=0;
@@ -36272,7 +36308,17 @@ async function bkFreshCount(){
   try{
     const fresh=await bkNewKeys();
     const e=$('#bkFreshLine');
-    if(e)e.textContent = fresh.length ? t('bk_fresh_n',{n:fresh.length}) : t('bk_fresh_0');
+    /* ══════════ v634 — TWO LINES THAT CONTRADICTED EACH OTHER ══════════
+       Found in HIS 12 Sept screenshot, one line under the other on the same card:
+         "No backup taken yet"
+         "Every photo is already backed up — today's file will be data only"
+       Both came from this line. It counted photos NOT YET SENT, got zero, and read that as
+       "all of them have gone" — when on his phone the truth is there are no photos at all.
+       Zero-not-yet-sent and zero-photos are different facts and only one of them is good
+       news. It says nothing when there is nothing to say. */
+    const total=(await photoBackupKeys()).length;
+    if(e)e.textContent = fresh.length ? t('bk_fresh_n',{n:fresh.length})
+                       : (total ? t('bk_fresh_0') : '');
   }catch(e){}
 }
 /* v295 — one reliable way to hand a backup file to the device, used everywhere a backup
