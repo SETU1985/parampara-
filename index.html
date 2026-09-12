@@ -980,7 +980,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v634</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v635</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -14743,6 +14743,24 @@ function menuSecToggle(k){
     .forEach(l=>l.style.display=_mnuOpen[k]?'':'none');
   document.querySelectorAll('#mnuBody .section-h[data-sec="'+k+'"] .mnu-caret')
     .forEach(c=>c.textContent=_mnuOpen[k]?'\u2303':'\u2304');
+  /* ══════════ v635 — IT OPENED WHERE HE COULD NOT SEE IT ══════════
+     HIS 12 Sept: "jab arrow ko dabata hun to screen upar nahi uthti hai... scroll karke
+     upar karna padta hai."
+     SETTINGS is the last head on the list, so its rows drop open BELOW the fold. The tap
+     worked, the rows were there, and the screen showed him the same thing it showed before
+     — which reads as a dead button. Same shape as the nine stale-screen faults: something
+     happened and the screen was never moved to it.
+     The opened head is brought to the top of the sheet, so the rows that just appeared are
+     the rows he is looking at. Closing scrolls nothing — he is already looking at the head
+     he just closed. */
+  if(_mnuOpen[k]){
+    const h=document.querySelector('#mnuBody .section-h[data-sec="'+k+'"]');
+    const box=document.querySelector('#sheet');
+    if(h&&box)setTimeout(()=>{ try{
+      box.scrollTo({top:box.scrollTop+h.getBoundingClientRect().top-box.getBoundingClientRect().top-8,
+                    behavior:'smooth'});
+    }catch(e){} },40);
+  }
 }
 function menuHome(){
   sheetAt(menuHome);
@@ -14764,7 +14782,15 @@ function menuHome(){
     <div class="mnu-list" data-sec="${k}" style="${open?'':'display:none'}">${list.join('')}</div>`;
   };
   $('#sheet').innerHTML=`<div class="grip"></div>
-    <h2 style="margin-bottom:12px">☰ ${t('menu_all')}</h2>
+    ${/* ══════════ v635 — A BUTTON'S OWN SIGN, PRINTED WHERE IT DOES NOTHING ══════════
+         HIS 12 Sept: "top left taraf wahi three arrow rehte hain jo ki kaam nahi karta hai."
+         ☰ is a real button — it sits in the bottom bar and opens this very screen. Printing
+         the same three lines as decoration in this heading gives him the shop's most
+         familiar control in the top-left corner, where it does nothing at all. He pressed
+         it, because of course he did.
+         His own screen law: one job = one button = one place, and that button appears
+         nowhere else. The heading names the screen; the button stays in the bar. */''}
+    <h2 style="margin-bottom:12px">${t('menu_all')}</h2>
     <input id="mnuQ" placeholder="🔍 ${t('menu_find')}" oninput="menuFilter(this.value)" style="margin-bottom:12px">
     <div id="mnuBody">
     ${/* v229 — HIS 20 Aug: "sabse pehle SALES / PURCHASES / ORDER / STOCK / EXPENSES /
