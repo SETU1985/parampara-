@@ -498,8 +498,11 @@
   .st-delivered{background:var(--bg2); color:var(--mut)}
 
   .chip-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(104px,1fr)); gap:9px}
-  .save-dock{position:sticky; bottom:0; z-index:60; display:flex; gap:8px; padding:10px 0 12px;
-    background:linear-gradient(180deg,transparent,var(--card) 24%); margin-top:14px}
+  /* v637: the top quarter of this bar was transparent, so on the iPad "Add next person"
+     and the ⚙ options row showed THROUGH it and read as a broken layout. Solid after a
+     short fade — nothing is ever half-visible under it now. */
+  .save-dock{position:sticky; bottom:0; z-index:60; display:flex; gap:8px; padding:14px 0 12px;
+    background:linear-gradient(180deg,transparent 0,var(--card) 12px); margin-top:14px}
   .save-dock .btn{flex:1}
   .chip{padding:16px 8px; text-align:center; border-radius:var(--r2); border:1px solid var(--line);
     background:var(--bg2); color:var(--txt2); font-size:15px; font-weight:700; transition:.12s; position:relative;
@@ -980,7 +983,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v636</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v638</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -1090,6 +1093,11 @@ const T={
   cl_signup:'Create it', cl_signin:'Sign in',
   cl_need_both:'Email and password are both needed',
   cl_photos_soon:'Photos are not sent yet — that comes next',
+  cl_checking:'Checking the cloud account…',
+  rp_no_one_for:'No number saved for “{r}”',
+  cl_shrink_q:'The cloud copy is SMALLER',
+  cl_shrink_msg:'Cloud has {a}. This device has {b}. Downloading would remove {n} records that exist only here. Take a backup file first.',
+  inv_full:'Full',
   del_unlink_go:'🗑️ Unlink order #{n} and delete',
   del_unlink_msg:'The bill goes. Order #{n} stays exactly as it is and can be billed again.',
   lg_opening_as:'Opening as on {d}', lg_period:'Period', lg_from:'From', lg_to:'To',
@@ -1536,6 +1544,16 @@ const T={
   backup_note:'Photos stay on the device; the JSON holds order/measurement data only.',
   download_backup:'Download backup',
   restore_backup:'Restore from backup',
+  dg_title:'Replaces the whole book',
+  dg_warn:'Each of these throws away what is on this device and puts something else in its place. There is no undo.',
+  dg_locked:'Locked',
+  dg_type:'Type {w} to unlock',
+  dg_word:'REPLACE',
+  dg_unlock:'Unlock',
+  dg_unlocked:'Unlocked — be careful',
+  dg_lastbk:'Last backup file: {w}',
+  dg_nobk:'No backup file has ever been taken from this device',
+  dg_open:'Replaces the whole book…',
   restore_title:'Restore?',
   restore_msg:'Current data will be replaced.',
   mic_blocked:'Microphone blocked',
@@ -1841,6 +1859,7 @@ const T={
   db_title:'Day book', db_sub:'Opening balance, everything in and out, closing balance.',
   db_opening:'Opening balance', db_closing:'Closing balance', db_in:'Payment In', db_out:'Payment Out',
   db_entries:'Entries', db_none:'Nothing moved in this period', db_today:'Today', db_yest:'Yesterday',
+  db_f_all:'All', db_f_sale:'Sales', db_f_purch:'Purchases', db_f_exp:'Expenses', db_f_in:'Money in', db_f_out:'Money out',
   or_pending_all:'All pending orders', or_period_hd:'For the period',
   or_title:'Order reports', or_sub:'What was ordered, what is made, what is still running.',
   or_orders:'Orders', or_pending:'Pending', or_done:'Delivered', or_late:'Overdue orders',
@@ -3214,6 +3233,11 @@ dl_show_hidden:'Show hidden ({n})',
   cl_signup:'बना दीजिए', cl_signin:'लॉगिन',
   cl_need_both:'ईमेल और पासवर्ड दोनों चाहिए',
   cl_photos_soon:'फ़ोटो अभी नहीं जातीं — वो अगला काम है',
+  cl_checking:'क्लाउड खाता देखा जा रहा है…',
+  rp_no_one_for:'“{r}” के लिए कोई नंबर सेव नहीं है',
+  cl_shrink_q:'क्लाउड वाली कॉपी छोटी है',
+  cl_shrink_msg:'क्लाउड में {a} है। इस डिवाइस में {b} है। डाउनलोड करने से {n} रिकॉर्ड मिट जाएँगे जो सिर्फ़ यहीं हैं। पहले बैकअप फ़ाइल ले लीजिए।',
+  inv_full:'पूरा',
   del_unlink_go:'🗑️ ऑर्डर #{n} से हटाकर मिटाओ',
   del_unlink_msg:'बिल मिट जाएगा। ऑर्डर #{n} जैसा है वैसा ही रहेगा और दोबारा बिल बन सकेगा।',
   lg_opening_as:'{d} तक का ओपनिंग', lg_period:'अवधि', lg_from:'से', lg_to:'तक',
@@ -3655,6 +3679,16 @@ dl_show_hidden:'Show hidden ({n})',
   backup_note:'फ़ोटो डिवाइस में ही रहती हैं; JSON में सिर्फ़ ऑर्डर और नाप का डेटा होता है।',
   download_backup:'बैकअप डाउनलोड करें',
   restore_backup:'बैकअप से वापस लाएँ',
+  dg_title:'पूरी किताब बदल देने वाले काम',
+  dg_warn:'इनमें से हर काम इस डिवाइस का सब कुछ हटा कर उसकी जगह कुछ और रख देता है। वापस नहीं होता।',
+  dg_locked:'ताला लगा है',
+  dg_type:'खोलने के लिए {w} टाइप कीजिए',
+  dg_word:'REPLACE',
+  dg_unlock:'ताला खोलें',
+  dg_unlocked:'ताला खुला है — ध्यान से',
+  dg_lastbk:'आख़िरी बैकअप फ़ाइल: {w}',
+  dg_nobk:'इस डिवाइस से कभी बैकअप फ़ाइल नहीं ली गई',
+  dg_open:'पूरी किताब बदल देने वाले काम…',
   restore_title:'वापस लाएँ?',
   restore_msg:'अभी का सारा डेटा बदल जाएगा।',
   mic_blocked:'माइक्रोफ़ोन बंद है',
@@ -3952,6 +3986,7 @@ dl_show_hidden:'Show hidden ({n})',
   db_title:'रोज़नामचा', db_sub:'ओपनिंग बैलेंस, सारा आना-जाना, क्लोज़िंग बैलेंस।',
   db_opening:'शुरू का बैलेंस', db_closing:'आख़िर का बैलेंस', db_in:'पैसा आया', db_out:'पैसा दिया',
   db_entries:'एंट्री', db_none:'इस अवधि में कुछ नहीं हुआ', db_today:'आज', db_yest:'कल',
+  db_f_all:'सब', db_f_sale:'बिक्री', db_f_purch:'ख़रीद', db_f_exp:'ख़र्च', db_f_in:'आया', db_f_out:'गया',
   or_pending_all:'सारे बाकी ऑर्डर', or_period_hd:'इस अवधि का',
   or_title:'ऑर्डर रिपोर्ट', or_sub:'क्या ऑर्डर हुआ, क्या बन गया, क्या चल रहा है।',
   or_orders:'ऑर्डर', or_pending:'बाकी', or_done:'डिलीवर', or_late:'देर से चल रहे ऑर्डर',
@@ -10947,7 +10982,7 @@ async function renderExpPhotos(){ const el=$('#ex_photos'); if(!el)return; el.in
     el.appendChild(w);}}
 
 /* ---------------- DAY BOOK ---------------- */
-let _dbFrom='', _dbTo='';
+let _dbFrom='', _dbTo='', _dbKind='all';
 /* v362 — HIS 27 Aug, from his own screenshot: the expense screen opened at "From 31/07/2026"
    when it meant the first of August. toISOString() converts to UTC, and India runs 5½ hours
    ahead of it — so 1 Aug 00:00 in Kolkata is 31 Jul 18:30 UTC, and every date built this way
@@ -10976,6 +11011,21 @@ function dbSearch(v){
 /* v520: the rows the screen shows, built in one place so a keystroke and a full redraw can
    never end up with different lists. */
 let _dbAllCount=0;
+/* ══════════ v637 — CHIPS ON THE DAY BOOK, NOT A SECOND DAY BOOK ══════════
+   HIS 13 Sept: "reports me daybook ek bada hub bana sakte hain, jisme sales / purchases /
+   expenses / money in / money out sab."
+   This screen already IS that hub — opening, in, out, closing, live cash and bank, every
+   line tappable back to whatever made it. The one thing missing was a way to look at only
+   one kind, so the answer is chips over the rows that are already here, not a second
+   screen carrying the same figures. One job, one place. */
+function dbKindOf(l){
+  const k=String(l.refKind||'');
+  if(k==='sale'||k==='order')return 'sale';
+  if(k==='purchase')return 'purch';
+  if(k==='expense')return 'exp';
+  return l.dir==='in'?'in':'out';
+}
+function dbSetFilter(k){ _dbKind=k||'all'; dayBook(); }
 function dbLines(){
   const from=_dbFrom||todayISO(), to=_dbTo||todayISO();
   const q=String(_dbQ||'').trim().toLowerCase();
@@ -10983,6 +11033,7 @@ function dbLines(){
   _dbAllCount=lines.length;
   if(q)lines=lines.filter(l=>[l.party,l.cat,l.note,l.ref,String(Math.round(+l.amt||0))]
     .some(v=>String(v||'').toLowerCase().includes(q)));
+  if(_dbKind&&_dbKind!=='all')lines=lines.filter(l=>dbKindOf(l)===_dbKind);
   return lines;
 }
 /* ══════════ v616 — RECEIPTS COULD BE TAKEN AND NEVER LOOKED AT ══════════
@@ -11147,6 +11198,13 @@ function dayBook(keepFocus){
       <div class="sum-row due"><span>${t('db_closing')}</span><b>${money(closeTot)}</b></div>
     </div>
 
+    ${/* v637: a chip is a switch — second tap on the one already on turns it off */''}
+    <div class="gtags" style="margin-bottom:8px">
+      ${[['all','db_f_all'],['sale','db_f_sale'],['purch','db_f_purch'],['exp','db_f_exp'],
+         ['in','db_f_in'],['out','db_f_out']].map(k=>
+        `<span class="gtag sm ${(_dbKind||'all')===k[0]?'on-tag':''}" style="cursor:pointer"
+           onclick="dbSetFilter('${(_dbKind||'all')===k[0]?'all':k[0]}')">${t(k[1])}</span>`).join('')}
+    </div>
     <div class="section-h">${t('db_entries')} <span class="hint">(${lines.length})</span></div>
     ${/* v379 — CAUGHT IN AUDIT: the Day Book is where he checks the day's money, and every
          line in it was a dead end. He could see "₹40,000 Kanchan Syntex" and had no way to
@@ -11480,15 +11538,14 @@ function salesDayText(d){
     const k=invCompute(x.inv), amt=r2(k.total||0);
     const paid=r2(orderReceived(x.rec)), bal=r2(Math.max(0,amt-paid));
     tot=r2(tot+amt); got=r2(got+paid); due=r2(due+bal);
-    L.push('#'+((x.inv.no)||'—')+'  '+money(amt)
-      +(paid?('  |  '+t('td_got')+' '+money(paid)):'')
-      +(bal?('  |  '+t('td_due')+' '+money(bal)):''));
+    /* v637 — HIS 13 Sept: "sales report me only sales chahiye." The consolidated Daily
+       report is where money-in and money-out belong; this sheet is the day's bills, so it
+       carries a number and an amount and stops there. */
+    L.push('#'+((x.inv.no)||'—')+'  '+money(amt));
   });
   L.push('');
   L.push(t('td_bills_n',{n:inv.length}));
   L.push(t('td_sales')+': '+money(tot));
-  L.push(t('td_got')+': '+money(got));
-  L.push(t('td_due')+': '+money(due));
   return L.join('\n');
 }
 /* Akhil's monthly sheet. His words: 15% of the whole bill, GST included, less returns. */
@@ -11510,10 +11567,23 @@ function salesCommText(from,to){
    than one. Sending the day's takings to the wrong number is not a mistake worth risking
    for the sake of saving a tap, so it only goes straight through when the choice is
    unambiguous. */
+function rpKindName(k){
+  return t(k==='sales'?'td_kind_sales':k==='salesday'?'td_kind_salesday':'td_kind_daily');
+}
 function sendReport(kind){
   const list=(DB.reportTo||[]).filter(x=>x&&x.phone&&(x.kind||'daily')===kind);
   if(!list.length){
-    confirmModal(t('rp_no_one'), t('rp_no_one_msg'), ()=>{ closeModal(); reportToEdit(); },
+    /* ══════════ v637 — THE LOOP HE COULD NOT GET OUT OF ══════════
+       HIS 13 Sept: "contact details save kiya... phir report to send wali chip par aaya aur
+       send kiya to phir who to send poochne laga aur phir wahi silsila."
+       Every number here belongs to ONE report. He was sending the day's sales while the
+       number he had just added was saved against the Daily report, so the app asked again,
+       and the add form opened on Daily again, and round it went. The guard never said WHICH
+       report had no number — his own rule: a guard must never name a thing he cannot reach.
+       It names it now, the form opens on that report already chosen, and the moment the
+       number is saved the report goes out instead of dropping him back on a list. */
+    confirmModal(t('rp_no_one_for',{r:rpKindName(kind)}), t('rp_no_one_msg'),
+      ()=>{ closeModal(); reportToEdit(kind, ()=>sendReport(kind)); },
       closeModal, {yes:t('td_manage_numbers'), no:t('cancel')});
     return;
   }
@@ -11592,8 +11662,10 @@ function todayWA(i,kind){
 }
 /* Who the report goes to. Kept in the shop's own data so it travels with a backup —
    he sets a number once and never types it again. */
-function reportToEdit(){
+let _rtPre='', _rtThen=null;
+function reportToEdit(pre,then){
   DB.reportTo=DB.reportTo||[];
+  _rtPre=pre||''; _rtThen=(typeof then==='function')?then:null;
   /* ══════════ v619 — ADD IT OR BIN IT, NOTHING IN BETWEEN ══════════
      HIS 10 Sept: "add jo contact kiya hai us contact ka naam ya number kaise edit karenge?"
      He could not. One digit wrong in a number meant deleting the line and typing the whole
@@ -11613,9 +11685,9 @@ function reportToEdit(){
        <input id="rt_phone" type="tel" inputmode="tel" placeholder="98xxxxxxxx"></div>
      <div class="field" style="margin-top:8px"><label>${t('td_which_report')}</label>
        <select id="rt_kind">
-         <option value="daily">${t('td_kind_daily')}</option>
-         <option value="salesday">${t('td_kind_salesday')}</option>
-         <option value="sales">${t('td_kind_sales')}</option></select></div>`,
+         <option value="daily" ${_rtPre==='daily'||!_rtPre?'selected':''}>${t('td_kind_daily')}</option>
+         <option value="salesday" ${_rtPre==='salesday'?'selected':''}>${t('td_kind_salesday')}</option>
+         <option value="sales" ${_rtPre==='sales'?'selected':''}>${t('td_kind_sales')}</option></select></div>`,
     [{label:t('cancel'),fn:closeModal},{label:'➕ '+t('add'),cls:'primary',fn:reportToAdd}]);
 }
 function reportToAdd(){
@@ -11624,7 +11696,11 @@ function reportToAdd(){
   if(!ph||ph.length<10){ toast(t('td_need_phone'),'bad'); return; }
   DB.reportTo=DB.reportTo||[];
   DB.reportTo.push({name:nm||ph, phone:ph, kind:(($('#rt_kind')||{}).value||'daily')});
-  save(); closeModal(); toast(t('td_number_added'),'ok'); reportToEdit();
+  save(); closeModal(); toast(t('td_number_added'),'ok');
+  /* v637: came here to send something — finish that, do not park him on the list again */
+  const then=_rtThen; _rtPre=''; _rtThen=null;
+  if(then){ setTimeout(then,120); return; }
+  reportToEdit();
 }
 /* v619: the same three boxes, filled in, with Save and Delete. Deliberately NOT a party
    screen — see td_what_this. A number here is somewhere a report is sent, nothing more:
@@ -17459,8 +17535,7 @@ function renderForm(){
       <div class="field dd-field" id="ddWrap" style="margin-top:14px"><label>🚚 ${t('delivery')} *</label>
         ${dateField("f_ddate",f.deliveryDate,'',true)}</div>
       <div class="field" style="margin-top:8px"><label>👗 ${t('trial_date')}</label>
-        ${dateField("f_tdate",f.trialDate||'','',true)}
-        <p class="hint" style="margin-top:4px">${t('trial_hint')}</p></div>
+        ${dateField("f_tdate",f.trialDate||'','',true)}</div>
       ${/* v280: the right moment to ask. The pieces above have been measured; if there is
            another person he knows it by now. */''}
       ${(modOn('family')&&!multi)?`<button class="btn ghost block" style="margin-top:14px" onclick="addMember()">👥 ${t('add_member_next')}</button>
@@ -21043,6 +21118,7 @@ function renderInvoiceForm(){
                    nothing, which is why the row read as a label and not as the place money is
                    entered. The words are the button now — one tap and the cursor is already in
                    the amount, ready for the figure. The tick still means paid in full. */''}
+              <span class="hint" style="cursor:pointer" onclick="var c=$('#inv_paidfull');if(c){c.checked=!c.checked;invPaidFull(c.checked);}">${t('inv_full')}</span>
               <span style="font-weight:800;color:var(--saffron2);cursor:pointer"
                 onclick="invRecvHere()">💵 ${t('received_now')}</span></span>
             <input id="inv_recv" type="number" min="0" inputmode="numeric" value="${esc(shown)}" placeholder="0"
@@ -22404,6 +22480,21 @@ function invSetMode(m){
   const ar=$('#ivAccRow');
   if(ar){ const rv=$('#inv_recv'); const got=rv?(+rv.value||0):0;
     ar.style.display=(got>0 && !(/cash/i.test(m)&&!invForm.split))?'':'none'; }
+  /* ══════════ v637 — UPI ON THE CHIP, CASH IN THE BOOK ══════════
+     HIS 13 Sept screenshot: mode UPI, "Into account · Cash", ₹21,000. The picker was drawn
+     ONCE, while the mode was still Cash, and tapping UPI only un-hid it — the account it
+     was showing never moved. The cash book would have carried money that never touched the
+     drawer. The account follows the mode now, both ways. */
+  try{
+    const sel=$('#inv_acc'), cashId=(cashAcc()||{}).id||'';
+    if(sel){
+      if(/cash/i.test(m)&&!invForm.split){ if(cashId)sel.value=cashId; }
+      else if(!sel.value||sel.value===cashId){
+        const b=(bankAccs()[0]||{}).id||''; if(b)sel.value=b;
+      }
+      invForm.acc=sel.value;
+    }
+  }catch(e){}
   if(invForm.split){ invToggleSplit(); return; }   // picking one mode means it isn't split any more
   document.querySelectorAll('#ivModes .gtag').forEach(el=>el.classList.toggle('on-tag',el.dataset.pm===m));
 }
@@ -33115,7 +33206,31 @@ const CLOUD_CFG={
 };
 const CL_SDK='https://www.gstatic.com/firebasejs/10.12.2/';
 let _clApp=null,_clAuth=null,_clDb=null,_clUser=null,_clBusy=0,_clLoading=null,_clFns=null;
+let _clKnown=0;                       /* v637: has Firebase answered yet? */
 
+/* ══════════ v637 — THE BACKUP STOPPED AT THE END OF EVERY SITTING ══════════
+   HIS 13 Sept: "bar bar hamesha login karte rehna padega kya? ek bar login kar diye to
+   jab tak logout nahi kiye to login hi rehna chahiye."
+   He was right, and it was worse than the screen he was looking at. Firebase keeps the
+   session on the device — it was never lost. But the SDK is only fetched when he opens
+   the cloud screen, and _clUser is only filled by onAuthStateChanged INSIDE that fetch.
+   So after any reload nobody had asked, _clUser was null, and clPush's first line
+   — if(!clOn()||!_clUser)return — walked away. Automatic backup ran only in the sitting
+   he had signed in, and said nothing on any other day. Fault 4 again: ask what a flag is
+   FALSE for, not what it is true for.
+   Three states now, not two: signed in · signed out · NOT ASKED YET. Nothing decides on
+   the third one — it waits for the answer. */
+function clSeen(){ try{ return localStorage.getItem('pb_cloud_seen')==='1'; }catch(e){ return false; } }
+function clSetSeen(v){ try{ v?localStorage.setItem('pb_cloud_seen','1'):localStorage.removeItem('pb_cloud_seen'); }catch(e){} }
+/* resolves only once Firebase has actually said who is signed in */
+function clReady(){
+  if(_clKnown)return Promise.resolve(_clUser);
+  if(!clSeen())return Promise.resolve(null);
+  return clLoad().then(()=>new Promise(res=>{
+    if(_clKnown)return res(_clUser);
+    let n=0; const iv=setInterval(()=>{ if(_clKnown||++n>50){ clearInterval(iv); res(_clUser); } },100);
+  })).catch(()=>null);
+}
 function clOn(){ try{ return localStorage.getItem('pb_cloud_on')!=='0'; }catch(e){ return true; } }
 function clSetOn(v){ try{ localStorage.setItem('pb_cloud_on',v?'1':'0'); }catch(e){} }
 function clLastAt(){ try{ return +localStorage.getItem('pb_cloud_at')||0; }catch(e){ return 0; } }
@@ -33134,7 +33249,7 @@ function clLoad(){
     _clAuth=auth.getAuth(_clApp);
     _clDb=fs.getFirestore(_clApp);
     _clFns={app,auth,fs};
-    auth.onAuthStateChanged(_clAuth,u=>{ _clUser=u||null;
+    auth.onAuthStateChanged(_clAuth,u=>{ _clUser=u||null; _clKnown=1; clSetSeen(!!u);
       try{ if(_sheetCur===cloudScreen)cloudScreen(); }catch(e){}
       if(u)clPushSoon(300); });
     return _clFns;
@@ -33174,9 +33289,11 @@ function clCounts(o){
 const CL_PART=700000;                       /* well under the 1 MiB document cap */
 
 async function clPush(silent){
-  if(!clOn()||!_clUser)return false;
+  if(!clOn())return false;
   if(_dbReadFailed)return false;            /* an unread book must never be sent anywhere */
   if(_clBusy)return false;
+  if(!_clUser)await clReady();              /* v637: never decide on an unanswered session */
+  if(!_clUser)return false;
   if(!navigator.onLine){ if(!silent)toast(t('cl_offline'),'bad'); return false; }
   _clBusy=1;
   try{
@@ -33208,6 +33325,7 @@ function clPushSoon(ms){
 
 /* ─── coming DOWN is never automatic ─── */
 async function clPull(){
+  if(!_clUser)await clReady();
   if(!_clUser)return;
   try{
     const {fs}=await clLoad();
@@ -33217,7 +33335,13 @@ async function clPull(){
     const md=m.data();
     const cloudTxt=t('cl_counts',{o:md.orders||0,s:md.sales||0,c:md.customers||0});
     const hereTxt=clCounts(DB);
-    confirmModal('⚠️ '+t('cl_pull_q'), t('cl_pull_msg',{a:cloudTxt,b:hereTxt}), async()=>{
+    /* v637: the file restore has refused to let a small book bury a big one since v6xx;
+       the cloud download is the same irreversible act and had no such rule. A device
+       holding the real book must never be quietly replaced by a practice one. */
+    const cloudN=(+md.orders||0)+(+md.sales||0)+(+md.customers||0);
+    const hereN=((DB.orders||[]).length)+clBillCount(DB)+((DB.customers||[]).length);
+    const shrink=(cloudN<hereN);
+    const go=()=>confirmModal('⚠️ '+t('cl_pull_q'), t('cl_pull_msg',{a:cloudTxt,b:hereTxt}), async()=>{
       let txt='';
       for(let i=0;i<(md.parts||0);i++){
         const p=await fs.getDoc(fs.doc(_clDb,'shops',uid,'book','part'+i));
@@ -33229,6 +33353,11 @@ async function clPull(){
       toast(t('cl_pull_done',{n:clCounts(DB)}),'ok');
       setTimeout(()=>location.reload(),900);
     }, null, {yes:t('cl_pull'), cls:'danger'});
+    /* it is still allowed — he may be setting up a fresh device — but it is never one tap */
+    if(shrink)confirmModal('⚠️ '+t('cl_shrink_q'),
+      t('cl_shrink_msg',{a:cloudTxt,b:hereTxt,n:hereN-cloudN}),
+      ()=>{ closeModal(); setTimeout(go,80); }, closeModal, {yes:t('cl_pull'), cls:'danger'});
+    else go();
   }catch(e){ toast(t('cl_load_fail'),'bad'); }
 }
 
@@ -33237,6 +33366,7 @@ async function cloudSignInGoogle(){
   try{ const {auth}=await clLoad();
     const p=new auth.GoogleAuthProvider();
     await auth.signInWithPopup(_clAuth,p);
+    _clKnown=1; clSetSeen(true);
     cloudScreen();
   }catch(e){ toast(t('cl_load_fail'),'bad'); }
 }
@@ -33246,16 +33376,21 @@ async function cloudSignInEmail(){
   try{ const {auth}=await clLoad();
     try{ await auth.signInWithEmailAndPassword(_clAuth,em,pw); }
     catch(e){ await auth.createUserWithEmailAndPassword(_clAuth,em,pw); }
+    _clKnown=1; clSetSeen(true);
     cloudScreen();
   }catch(e){ toast(String((e&&e.message)||t('cl_load_fail')).slice(0,90),'bad'); }
 }
 async function cloudSignOut(){
-  try{ const {auth}=await clLoad(); await auth.signOut(_clAuth); _clUser=null; cloudScreen(); }catch(e){}
+  try{ const {auth}=await clLoad(); await auth.signOut(_clAuth); _clUser=null; _clKnown=1; clSetSeen(false); cloudScreen(); }catch(e){}
 }
 function cloudToggleAuto(){ clSetOn(!clOn()); cloudScreen(); if(clOn())clPushSoon(300); }
 
 function cloudScreen(){
   sheetAt(cloudScreen);
+  /* v637: an unanswered session must not be drawn as a signed-out one — that is what sent
+     him back to the sign-in form every day. Ask, and redraw when the answer arrives. */
+  const waiting=(!_clKnown && clSeen());
+  if(waiting)clReady().then(()=>{ try{ if(_sheetCur===cloudScreen)cloudScreen(); }catch(e){} });
   const at=clLastAt();
   const who=_clUser?(_clUser.email||_clUser.displayName||'—'):'';
   $('#sheet').innerHTML=`<div class="grip"></div>
@@ -33272,9 +33407,10 @@ function cloudScreen(){
            job it does when pressed, not the state it enters. */''}
       <button class="btn primary block" style="margin-bottom:8px" onclick="clPush(0)">☁️ ${t('cl_send_now')}</button>
       <button class="btn ghost block" style="margin-bottom:8px" onclick="cloudToggleAuto()">${clOn()?'✅':'⬜'} ${t('cl_auto')}</button>
-      <button class="btn ghost block" style="margin-bottom:8px" onclick="clPull()">⬇️ ${t('cl_pull')}</button>
       <p class="hint" style="margin:10px 2px">${t('cl_photos_soon')}</p>
       <button class="btn ghost block" style="margin-top:14px" onclick="cloudSignOut()">${t('cl_signout')}</button>
+    `:waiting?`
+      <div class="empty" style="padding:26px 10px"><p>${t('cl_checking')}</p></div>
     `:`
       <button class="btn primary block" style="margin-bottom:10px" onclick="cloudSignInGoogle()">${t('cl_google')}</button>
       <div class="dl-hd" style="padding:10px 2px 6px">${t('cl_email')}</div>
@@ -35962,6 +36098,51 @@ async function bkFileBox(){
     el2.innerHTML=`<p class="hint" style="margin-top:10px">${t('bk_link_unsupported')}</p>`;
   }
 }
+
+/* ══════════════ v638 — ONE LOCKED DOOR FOR EVERY IRREVERSIBLE ACT ══════════════
+   HIS 13 Sept: "jisse bhi data lost ka 1% bhi chance hai use app par hide kar do."
+   Four things in this app throw the book away and put another one in its place —
+   restore from a file, restore an auto-snapshot, bring the book down from the cloud, and
+   the one-way photo shrink. They were scattered: two on the face of the Backup screen,
+   one inside More, one on the cloud screen. Any of them was one stray tap away, and on
+   12 Sept the cloud one was sitting on a device holding practice data while the real book
+   lived on another.
+   They live here now, behind a word he has to TYPE. A tap cannot be accidental if it is
+   not a tap. Nothing is removed — he can still do all four — but never by mistake, and
+   never without the screen first telling him when he last took a backup file. */
+let _dgOpen=0;
+function dangerScreen(){
+  sheetAt(dangerScreen); _dgOpen=0; dangerDraw();
+}
+function dangerDraw(){
+  const last=localStorage.getItem('pb_ob_lastbackup')||'';
+  const w=t('dg_word');
+  const row=(emoji,label,fn)=>`<button class="btn ghost block" style="margin-bottom:8px;${_dgOpen?'':'opacity:.4'}"
+    ${_dgOpen?`onclick="${fn}"`:'disabled'}>${emoji} ${label}</button>`;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">⚠️ ${t('dg_title')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
+    <p class="hint" style="margin:0 0 12px">${t('dg_warn')}</p>
+    <div class="card" style="padding:11px 13px;margin-bottom:12px;border-color:${last?'var(--ok)':'var(--bad)'}">
+      <b style="color:${last?'var(--ok)':'var(--bad)'}">${last?t('dg_lastbk',{w:fmtDate(last)}):t('dg_nobk')}</b></div>
+    ${_dgOpen?`<div class="card" style="padding:9px 12px;margin-bottom:12px;border-color:var(--bad)">
+        <b style="color:var(--bad)">🔓 ${t('dg_unlocked')}</b></div>`
+      :`<div class="field" style="margin-bottom:12px">
+         <label>🔒 ${t('dg_type',{w:w})}</label>
+         <input id="dgWord" autocomplete="off" autocapitalize="characters" placeholder="${esc(w)}">
+         <button class="btn primary block" style="margin-top:8px" onclick="dangerUnlock()">${t('dg_unlock')}</button></div>`}
+    ${row('⬆️',t('restore_backup'),'doImport()')}
+    ${row('🕑',t('restore_auto'),'restoreSnapshotMenu()')}
+    ${row('\u2601\uFE0F',t('cl_pull'),'clPull()')}
+    ${row('🗜️',t('shr_title'),'closeSheet();shrinkOldPhotos()')}
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function dangerUnlock(){
+  const v=String((($('#dgWord')||{}).value||'')).trim().toUpperCase();
+  if(v!==String(t('dg_word')).toUpperCase()){ toast(t('dg_type',{w:t('dg_word')}),'bad'); return; }
+  _dgOpen=1; dangerDraw();
+}
 function backupMenu(){
   /* v188 — HIS 13 Aug: "backup lete samay itne saare options hain ki staff to le hi nahi
      paate. Jitne bhi software use kiye hain kisi me bhi itna clumsy nahi hai."
@@ -35991,10 +36172,9 @@ function backupMenu(){
     <p class="hint" id="bkFreshLine" style="text-align:center;margin:6px 0 0"></p>
     <p class="hint" style="text-align:center;margin:8px 0 0">${d!==null&&d>2?'⚠️ ':''}${when}</p>
     <p class="hint" style="text-align:center;margin:4px 0 14px">${t('bk_daily_note')}</p>
-    <button class="btn ghost block" onclick="doImport()">⬆️ ${t('restore_backup')}</button>
-    ${/* v566: a one-time job, kept next to the backup it depends on — it refuses to run
-         without one, so this is the right place for it to be found. */''}
-    <button class="btn ghost block" style="margin-top:8px" onclick="closeModal();shrinkOldPhotos()">🗜️ ${t('shr_title')}</button>
+    ${/* v638: restore and shrink used to sit here, in reach of a thumb. One door now. */''}
+    <button class="btn ghost block" style="border-color:var(--bad);color:var(--bad)"
+      onclick="closeModal();dangerScreen()">⚠️ ${t('dg_open')}</button>
     ${/* v574: his switch. On by default — a backup nobody has to remember is the point —
          but it is his shop and his device, so it can be turned off in one tap. */''}
     <div class="card" style="padding:10px 12px;margin-top:10px">
@@ -36022,7 +36202,6 @@ function backupMenu(){
       <p class="hint" style="margin:2px 0 8px">${t('bk_data_only_hint')}</p>
       <button class="btn ghost block" onclick="closeModal();zipBackup()">🗜️ ${t('bk_take')}</button>
       <button class="btn ghost block" onclick="photoBackup()">🖼️ ${t('pb_title')}</button>
-      <button class="btn ghost block" onclick="restoreSnapshotMenu()">🕑 ${t('restore_auto')}</button>
       <button class="btn ghost block" style="margin-top:8px" onclick="handoverScreen()">🔁 ${t('ho_title')}</button>
       <button class="btn ghost block" onclick="stockAudit()">🩺 ${t('au_title')}</button>
     </div>
