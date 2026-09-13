@@ -983,7 +983,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v638</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v641</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -1554,6 +1554,16 @@ const T={
   dg_lastbk:'Last backup file: {w}',
   dg_nobk:'No backup file has ever been taken from this device',
   dg_open:'Replaces the whole book…',
+  od_edit_no:'Change the order number',
+  om_title:'Naap for this order',
+  om_hint:'Added to this piece on this order only. Other orders are not touched.',
+  om_all_on:'Every measurement for this garment is already on the card.',
+  ms_saved:'saved',
+  ph_item:'Photo of this piece', ph_order:'Photo for the order',
+  mm_shows:'shows',
+  mm_hidden:'hidden',
+  mm_always:'This sets what this garment ALWAYS asks for. For one customer only, use “Naap for this order” on the card.',
+  mm_cant_del:'Built-in measurements cannot be deleted — old orders are written with these names. ☆ takes it off the screen.',
   restore_title:'Restore?',
   restore_msg:'Current data will be replaced.',
   mic_blocked:'Microphone blocked',
@@ -1776,7 +1786,8 @@ const T={
   hb_title:'What shows on Home', hb_money:'Money tiles', hb_backup:'Backup reminder',
   hb_shown:'On', hb_hidden:'Off',
   hb_hint:'Tap a block to put it on Home or take it off. Nothing is deleted — everything stays reachable from All screens.',
-  hb_shortcut_note:'The shortcut buttons are arranged separately, under Quick shortcuts.',
+  hb_shortcuts:'Quick shortcuts',
+  hb_shortcut_note:'Long-press any shortcut to move it or take it off.',
   qc_title:'Home shortcuts', qc_sub:'The one at the top shows first on Home. Move any shortcut with the arrows.',
   rp_cogs:'Cost of goods sold', rp_open_stk:'Opening stock', rp_close_stk:'Closing stock',
   ob_stock_now:'On the shelf right now', ob_stock_open_only:'This is the opening figure only. Closing stock is counted from the rolls and pieces themselves — you never type it again.',
@@ -3689,6 +3700,16 @@ dl_show_hidden:'Show hidden ({n})',
   dg_lastbk:'आख़िरी बैकअप फ़ाइल: {w}',
   dg_nobk:'इस डिवाइस से कभी बैकअप फ़ाइल नहीं ली गई',
   dg_open:'पूरी किताब बदल देने वाले काम…',
+  od_edit_no:'ऑर्डर नंबर बदलें',
+  om_title:'इस ऑर्डर का नाप',
+  om_hint:'सिर्फ़ इसी ऑर्डर के इसी कपड़े में जुड़ेगा। बाक़ी ऑर्डर पर कोई असर नहीं।',
+  om_all_on:'इस कपड़े के सारे नाप पहले से कार्ड पर हैं।',
+  ms_saved:'सेव',
+  ph_item:'इस कपड़े की फ़ोटो', ph_order:'ऑर्डर की फ़ोटो',
+  mm_shows:'दिखेगा',
+  mm_hidden:'नहीं दिखेगा',
+  mm_always:'यह तय करता है कि इस कपड़े में हमेशा कौन से नाप आएँगे। किसी एक ग्राहक के लिए कार्ड पर “इस ऑर्डर का नाप” इस्तेमाल कीजिए।',
+  mm_cant_del:'ऐप के अपने नाप मिटाए नहीं जा सकते — पुराने ऑर्डर इन्हीं नामों से लिखे हैं। ☆ उसे स्क्रीन से हटा देता है।',
   restore_title:'वापस लाएँ?',
   restore_msg:'अभी का सारा डेटा बदल जाएगा।',
   mic_blocked:'माइक्रोफ़ोन बंद है',
@@ -3902,7 +3923,8 @@ dl_show_hidden:'Show hidden ({n})',
   hb_title:'होम पर क्या दिखे', hb_money:'पैसे के टाइल', hb_backup:'बैकअप याद दिलाना',
   hb_shown:'चालू', hb_hidden:'बंद',
   hb_hint:'किसी हिस्से को दबाकर होम पर लगाएँ या हटाएँ। कुछ मिटता नहीं — सब कुछ All screens से मिलता रहेगा।',
-  hb_shortcut_note:'शॉर्टकट बटन अलग से सजते हैं — Quick shortcuts में।',
+  hb_shortcuts:'शॉर्टकट बटन',
+  hb_shortcut_note:'किसी भी शॉर्टकट को दबाए रखिए — जगह बदलिए या हटाइए।',
   qc_title:'होम के शॉर्टकट', qc_sub:'सबसे ऊपर वाला होम पर पहले दिखेगा। तीरों से ऊपर-नीचे कीजिए।',
   rp_cogs:'Cost of goods sold', rp_open_stk:'Opening stock', rp_close_stk:'Closing stock',
   ob_stock_now:'On the shelf right now', ob_stock_open_only:'This is the opening figure only. Closing stock is counted from the rolls and pieces themselves — you never type it again.',
@@ -15034,7 +15056,19 @@ const HOME_BLOCKS=[
      so the one block he could never switch off was the one he never chose to switch on.
      Every block on Home is his to keep or hide — that was the whole point of v356. */
   ['alterations','🔧','alt_pending'],
-  ['report','📤','hb_report']
+  ['report','📤','hb_report'],
+  /* ══════════ v641 — THE ROW HE COULD NOT GET BACK ══════════
+     HIS 13 Sept: "one tap jo sale purchase yeh sab tha, customize karne ka tha, sab gayab
+     hai."
+     He was right and I was wrong about why — I said the tiles had moved into ☰ long ago.
+     They had not. renderHome still draws the shortcut row, gated on homeOn('shortcuts'),
+     and v613 pushed 'shortcuts' into hidden for every existing shop, once. But the key was
+     never added to THIS list — and this list is what builds the Home-manage screen. So the
+     row was switched off and the switch did not exist anywhere in the app.
+     The code above this even records the same fault from v406, on 'alterations', in the
+     same words. Twice is a pattern: a block renderHome asks about must be listed here, and
+     regress.js now fails if any homeOn() key is missing from this array. */
+  ['shortcuts','⚡','hb_shortcuts']
 ];
 /* One row: open the report, or send it. If exactly one person is set up for that report
    the send goes straight to him; if several, he picks. */
@@ -15058,6 +15092,11 @@ function homeCfg(){
      DB.qrCfg is never touched, so the row he gets back is the row he built. */
   if(!DB.homeCfg.v613){ if(DB.homeCfg.hidden.indexOf('shortcuts')<0)DB.homeCfg.hidden.push('shortcuts');
     DB.homeCfg.v613=1; }
+  /* v641: v613 took the row away and left no way back. He has asked for it, so it comes
+     back once — and from here it is an ordinary switch on the Home-manage screen like
+     every other block. His own arrangement in DB.qrCfg was never touched. */
+  if(!DB.homeCfg.v641){ DB.homeCfg.hidden=DB.homeCfg.hidden.filter(k=>k!=='shortcuts');
+    DB.homeCfg.v641=1; }
   return DB.homeCfg;
 }
 function homeOn(k){ return homeCfg().hidden.indexOf(k)<0; }
@@ -16563,7 +16602,19 @@ function openOrderForm(editId){
       if(seed.pid){ form.itemPhotos=form.itemPhotos||{}; form.itemPhotos[k]=[seed.pid]; } }
     else if(seed.pid){ form.photos=form.photos||[]; form.photos.push(seed.pid); }
   }
-  _gcMore={}; _xOpen={}; _ordX=false; _msMore={}; _ordStage=1; _openItem=null;
+  /* ══════════ v639 — EDIT WAS A BLIND ALLEY ══════════
+     HIS 13 Sept: "edit karte waqt kai jagah atak jaate hain ki edit nahi ho pa raha hai…
+     save ka option nahi aa raha."
+     Driven here on 13 Sept: opening a SAVED order for edit landed on stage 1, and stage 1
+     carries ✕ · Change · Cancel · ✓ Done — no Save anywhere. Worse, "✓ Done" reads like
+     finish and actually LEAVES the form, so a man changing a delivery date pressed the
+     only forward-looking button and lost the edit. Fault 2: the words and the action
+     disagreed.
+     A new order still starts at PICK — nothing about taking an order changes. An order
+     that already exists opens at FINISH, where the delivery date, the trial, the notes and
+     Save all are. Pieces are one tap away from there if a measurement has to change. */
+  _gcMore={}; _xOpen={}; _ordX=false; _msMore={}; _openItem=null;
+  _ordStage=(editId&&(form.items||[]).length)?3:1;
   renderForm();
 }
 let _sheetScroll=0;
@@ -17197,7 +17248,8 @@ function savedMeasCard(f){
 }
 function measCardHTML(f,key){
   const g=G(key); if(!g)return '';
-  const cols=vcols(g), vals=f.m[key]||{};
+  const cols=cardCols(f,key), vals=f.m[key]||{};
+  const _extraK=ordExtraCols(f,key);
   const gid=g.id, dkey=esc(key), cid=cssId(key);
   const autoM=((f.mAuto||{})[key])||{};
   const _more=!!_msMore[key];
@@ -17227,7 +17279,8 @@ function measCardHTML(f,key){
     const isOdd=!!(val&&(((f.mFlag||{})[key])||{})[col.k]);   // v193: written, but worth a second look
     if(col.type==='select'){const opts=['<option value="">—</option>'].concat((col.options||[]).map(o=>`<option value="${esc(o)}" ${val===o?'selected':''}>${esc(o)}</option>`)).join('');
       return `<div class="mfield"><label>${esc(col.n)}</label><select class="mInput" data-g="${dkey}" data-k="${col.k}" style="width:100%;background:transparent;border:none;color:var(--txt);font-size:15px;font-weight:600;outline:none">${opts}</select></div>`;}
-    return `<div class="mfield ${isLen?'lenhl':''} ${isAuto?'auto-f':''} ${isVoice?'voice-f':''} ${isOdd?'odd-f':''}" ${isOdd?'title="'+esc(t('ms_flag'))+'"':''}><label>${esc(col.n)}${isLen?' ★':''}${isOdd?'<span class="odd-w"> ⚠️</span>':''}</label>
+    const isExtra=_extraK.includes(col.k);
+    return `<div class="mfield ${isLen?'lenhl':''} ${isAuto?'auto-f':''} ${isVoice?'voice-f':''} ${isOdd?'odd-f':''}" ${isOdd?'title="'+esc(t('ms_flag'))+'"':''}><label>${esc(col.n)}${isLen?' ★':''}${isExtra?` <span onclick="event.stopPropagation();ordDropMeasOne('${dkey}','${col.k}')" style="cursor:pointer;color:var(--bad)">✕</span>`:''}${isOdd?'<span class="odd-w"> ⚠️</span>':''}</label>
       <input class="mInput ${val?'filled':''}" inputmode="${col.type==='text'?'text':'decimal'}" data-g="${dkey}" data-k="${col.k}" value="${esc(val)}" placeholder="—"
         ${isAuto?'data-auto="1"':''} onkeydown="if(event.key==='Enter'){measStep(event,1)}"
         oninput="measAuto(event)"></div>`;}).join('');
@@ -17269,7 +17322,7 @@ function measCardHTML(f,key){
         ${/* v614: first chip on the card, because it is the first question — is there a
              naap to take at all, or did he hand over a garment to copy? */''}
         <span class="gtag" onclick="sampleToggle('${dkey}')" style="cursor:pointer;border-style:dashed;${((f.custSample||{})[key])?'border-color:var(--saffron2);color:var(--saffron2);font-weight:800':''}">📦 ${t('smp_cust')}</span>
-        <span class="gtag" onclick="addMeas('${gid}')" style="cursor:pointer;border-style:dashed">📏 ${t('add_meas')}</span>
+        <span class="gtag" onclick="ordAddMeasPick('${dkey}')" style="cursor:pointer;border-style:dashed">📏 ${t('om_title')}</span>
         <span class="gtag" onclick="manageMeas('${gid}')" style="cursor:pointer;border-style:dashed">⚙️ ${t('manage_meas')}</span></div>
 
       ${(()=>{
@@ -17763,6 +17816,50 @@ function delBodyType(i){const n=(DB.bodyTypes||[])[i]||'';
 function mcols(g){return itemCols(g).concat(((DB.measLib&&DB.measLib[g.id])||[]).map(l=>({k:'x_'+l,n:l})));}
 function measHidden(gid){return (DB.measHide&&DB.measHide[gid])||[];}
 function vcols(g){const h=measHidden(g.id);return mcols(g).filter(c=>!h.includes(c.k));}
+/* ══════════ v640 — A NAAP FOR THIS ORDER ONLY ══════════
+   HIS 13 Sept: "Length, Chest, Belly, Hip, Shoulder, Sleeve, Neck ye to mandatory hai hi.
+   Lekin kabhi kisi ka body shape alag hota hai to Upper Belly lena padta hai, Bicep lena
+   padta hai — to wo main jab chahun on kar lun… lekin bas wo us order tak hi hona chahiye.
+   Har baar jab naap leta hoon to aa jaata hai, bahut hi awkward lagta hai."
+   Until now there was one switch and it was permanent: star a field and it appeared on
+   every order for that garment, for ever. That is right for a shop changing its own
+   defaults and wrong for one customer's belly.
+   Two levels now. The ⚙️ screen sets what this garment ALWAYS asks. The ➕ chip on the
+   card adds a field to THIS piece on THIS order and nowhere else. A field that already
+   carries a value always shows, so nothing written can hide. */
+function ordExtraCols(f,key){ try{ return ((f&&f.mOn)||{})[key]||[]; }catch(e){ return []; } }
+function cardCols(f,key){
+  const g=G(key); if(!g)return [];
+  const on=vcols(g).map(c=>c.k);
+  const extra=ordExtraCols(f,key);
+  const vals=(f&&f.m&&f.m[key])||{};
+  return mcols(g).filter(c=>on.includes(c.k)||extra.includes(c.k)||String(vals[c.k]||'').trim()!=='');
+}
+function ordAddMeasPick(key){
+  const g=G(key); if(!g)return;
+  captureForm();
+  const shown=cardCols(form,key).map(c=>c.k);
+  const rest=mcols(g).filter(c=>!shown.includes(c.k));
+  const rows=rest.length?rest.map(c=>`<button class="btn ghost block" style="margin-bottom:8px"
+      onclick="ordAddMeasOne('${jq(key)}','${jq(c.k)}')">➕ ${esc(c.n)}</button>`).join('')
+    :`<p class="hint">${t('om_all_on')}</p>`;
+  modal('📏 '+t('om_title'),
+    `<p class="hint" style="margin-bottom:8px">${t('om_hint')}</p>${rows}
+     <button class="btn primary block" style="margin-top:6px" onclick="closeModal();addMeas('${jq(g.id)}')">➕ ${t('add_meas')}</button>`,
+    [{label:t('close'),cls:'ghost',fn:closeModal}]);
+}
+function ordAddMeasOne(key,k){
+  captureForm();
+  form.mOn=form.mOn||{}; form.mOn[key]=form.mOn[key]||[];
+  if(!form.mOn[key].includes(k))form.mOn[key].push(k);
+  closeModal(); renderForm();
+}
+function ordDropMeasOne(key,k){
+  captureForm();
+  form.mOn=form.mOn||{}; form.mOn[key]=(form.mOn[key]||[]).filter(x=>x!==k);
+  if(form.m&&form.m[key])delete form.m[key][k];
+  renderForm();
+}
 function addMeas(gid,ctx){ctx=ctx||'order';const rerender=ctx==='alt'?renderAltForm:renderForm;const cap=ctx==='alt'?captureAltForm:captureForm;
   _sheetScroll=$('#sheet')?$('#sheet').scrollTop:0;cap();const g=G(gid);const list=((DB.measLib&&DB.measLib[gid])||[]);
   const listHTML=list.length?`<div class="hint" style="margin:12px 0 4px">${t('saved_options')}</div>`+list.map((o,i)=>`<div class="kv"><span>${esc(o)}</span><span onclick="delMeas('${gid}',${i},'${ctx}')" style="color:#d9534f;cursor:pointer">🗑️</span></div>`).join(''):'';
@@ -17820,15 +17917,22 @@ function manageMeas(gid,ctx){ctx=ctx||'order';const rerender=ctx==='alt'?renderA
        kiya hua hai wahi bahar aayega." His word, and it is the plainer one: a star is a
        thing you can see on the row it controls. The setting underneath is unchanged —
        starred is what used to be On, so nothing already switched off moves. */
+    /* v640: a star on its own says nothing — it reads as "important", not as "shows".
+       The outcome is written next to it in words, and the delete is explained rather than
+       silently absent on the shipped columns. */
     return `<div class="kv" style="padding:9px 0;border-bottom:1px solid var(--line)">
       <span style="${off?'opacity:.45':''}">${esc(c.n)}${custom?' <span class="hint">(custom)</span>':''}</span>
-      <span style="display:flex;gap:12px;align-items:center">
-        <span onclick="toggleMeasField('${gid}','${jq(c.k)}','${ctx}')" style="cursor:pointer;font-size:22px;line-height:1;padding:2px 6px;color:${off?'var(--mut)':'var(--saffron2)'}">${off?'☆':'★'}</span>
+      <span style="display:flex;gap:10px;align-items:center">
+        <span onclick="toggleMeasField('${gid}','${jq(c.k)}','${ctx}')" style="cursor:pointer;display:flex;gap:6px;align-items:center;padding:2px 6px">
+          <span style="font-size:22px;line-height:1;color:${off?'var(--mut)':'var(--saffron2)'}">${off?'☆':'★'}</span>
+          <span class="hint" style="${off?'':'color:var(--saffron2);font-weight:700'}">${off?t('mm_hidden'):t('mm_shows')}</span></span>
         ${custom?`<span onclick="delMeasField('${gid}','${jq(c.k)}','${ctx}')" style="color:#d9534f;cursor:pointer">🗑️</span>`:''}
       </span></div>`;}).join('');
   modal('⚙️ '+t('manage_meas')+' — '+g.n,
-    `<p class="hint" style="margin-bottom:8px">${t('manage_meas_desc')}</p>${rows}`,
-    [{label:t('close'),cls:'primary',fn:()=>{closeSheet();rerender();}}]);
+    `<p class="hint" style="margin-bottom:8px">${t('mm_always')}</p>${rows}
+     <button class="btn primary block" style="margin-top:12px" onclick="closeModal();addMeas('${jq(gid)}')">➕ ${t('add_meas')}</button>
+     <p class="hint" style="margin:8px 0 0">${t('mm_cant_del')}</p>`,
+    [{label:t('close'),cls:'ghost',fn:()=>{closeSheet();rerender();}}]);
 }
 function toggleMeasField(gid,k,ctx){
   const sc=$('#sheet')?$('#sheet').scrollTop:0;      // keep the list exactly where it was
@@ -19544,6 +19648,7 @@ async function openDetail__inner(id,focusGid){
       return `<div class="ki-m"><label>${esc(col.n)}${col.k==='L'?' ★':''}</label>
         <input class="mInput ${val?'filled':''}" inputmode="${col.type==='text'?'text':'decimal'}"
           data-g="${esc(gid)}" data-k="${esc(col.k)}" value="${esc(val)}" placeholder="—"
+          oninput="odMeasType('${o.id}','${jq(gid)}','${jq(col.k)}',this)"
           onchange="odMeasSet('${o.id}','${jq(gid)}','${jq(col.k)}',this.value)"
           onkeydown="if(event.key==='Enter'){measStep(event,1)}"></div>`;}).join('');
     const dn=`<div class="field" style="margin:10px 0 0"><label>📝 ${t('item_notes')}</label>
@@ -19630,7 +19735,7 @@ async function openDetail__inner(id,focusGid){
       <div class="ki-mgrid">${cells||`<span class="hint">—</span>`}</div>${dn}
       <div class="row" style="margin-top:10px;gap:8px;align-items:center">
         <div class="media-row" id="dip_${_cid}" style="flex:1;display:flex;gap:8px;flex-wrap:wrap"></div>
-        <button class="btn sm ghost ic-btn" title="${t('add_photo')}" onclick="odAddItemPhoto('${o.id}','${jq(gid)}')">📷</button></div>
+        <button class="btn sm ghost" title="${t('add_photo')}" onclick="odAddItemPhoto('${o.id}','${jq(gid)}')">📷 ${t('ph_item')}</button></div>
       <div id="div_${_cid}" style="margin-top:4px"></div>
       ${sStat}
       <button class="btn sm ghost block" style="margin-top:10px;text-align:left" onclick="odProdToggle('${jq(gid)}')">⚙️ ${t('od_production')}${_prodMark?` · ${_prodMark}`:''} ${_odProd[gid]?'▴':'▾'}</button>
@@ -19642,7 +19747,11 @@ async function openDetail__inner(id,focusGid){
 
   $('#detailPane').innerHTML=`
     <div class="detail-hd"><button class="back" onclick="go('orders')">←</button>
-      <div style="flex:1"><div style="color:var(--saffron);font-size:13px;font-weight:700">#${esc(o.orderNo)} <span title="Edit order number" onclick="event.stopPropagation();odEditNo('${o.id}')" style="cursor:pointer;opacity:.7">✏️</span></div><h2 onclick="odEditCust('${o.id}')" style="cursor:pointer">${esc(o.customerName)}</h2></div>
+      <div style="flex:1"><div style="color:var(--saffron);font-size:13px;font-weight:700">#${esc(o.orderNo)} <span title="${t('od_edit_no')}" onclick="event.stopPropagation();odEditNo('${o.id}')" style="cursor:pointer;opacity:.7;text-decoration:underline">${t('change')}</span></div><h2 onclick="odEditCust('${o.id}')" style="cursor:pointer">${esc(o.customerName)}</h2></div>
+      ${/* v639: look at it · fix it · send it — the three things anyone does with a saved
+           record. Sending was on the face and fixing was two taps inside ⋯. HIS words:
+           "entry hone ke baad edit sabse pehle saamne hi rehna chahiye." */''}
+      <button class="btn sm ghost" style="flex:0 0 auto" title="${t('edit_order')}" onclick="event.stopPropagation();openOrderForm('${o.id}')">✏️</button>
       <button class="btn sm ghost" style="flex:0 0 auto" title="${t('wa_customer')}" onclick="event.stopPropagation();waOrder('${o.id}')">💬</button>
       <button class="btn sm ghost" onclick="orderMenu('${o.id}')">⋯</button></div>
 
@@ -19731,7 +19840,7 @@ async function openDetail__inner(id,focusGid){
     <div class="od-addpiece" onclick="openOrderForm('${o.id}')">➕ ${t('od_add_remove')}</div>
     <div class="row" style="margin-top:10px;gap:8px;align-items:center">
       <div id="d_photos" style="flex:1;display:flex;gap:8px;flex-wrap:wrap"></div>
-      <button class="btn sm ghost ic-btn" title="${t('add_photo')}" onclick="odAddOrderPhoto('${o.id}')">📷</button></div>
+      <button class="btn sm ghost" title="${t('add_photo')}" onclick="odAddOrderPhoto('${o.id}')">📷 ${t('ph_order')}</button></div>
     ${/* v404 — HIS 30 Aug, with the screenshot: "screen itna bhara hua hai ki kuch samajh
          me hi nahi aa raha." Three of the four things on this foot were already on the
          screen. "Add / remove a piece" sat here AND as the dashed box directly above the
@@ -19809,6 +19918,31 @@ async function openDetail__inner(id,focusGid){
 /* ---- editing an order WITHOUT leaving the order screen ----------------------
    Each of these writes one field straight to the record. None of them re-renders,
    so the caret stays exactly where he put it and the screen never jumps. */
+/* ══════════ v640 — THE NAAP THAT WAITED FOR A BLUR ══════════
+   HIS 13 Sept: "abhi maine jaise edit kiya, 42 chest tha, 41 kiya. To ab kahin par bhi
+   save karne ka option nahi aa raha hai."
+   There is no Save button here on purpose — the naap writes itself. But it was wired to
+   onchange, which only fires when the box loses focus. With the fraction keypad still up,
+   one tap on ← or Home destroys the box and the change never fires. Silent loss — and his
+   instinct that something was missing was right.
+   It writes as he types now, and a small word says so, so he never has to hunt for a
+   button that was never meant to exist. */
+let _odMsT=null;
+function odMeasType(oid,gid,k,el){
+  clearTimeout(_odMsT);
+  const v=el?el.value:'';
+  _odMsT=setTimeout(()=>{ odMeasSet(oid,gid,k,v); odMeasMark(el); },350);
+}
+function odMeasMark(el){
+  try{
+    const box=el&&el.parentElement; if(!box)return;
+    let tag=box.querySelector('.ms-ok');
+    if(!tag){ tag=document.createElement('span'); tag.className='ms-ok';
+      tag.style.cssText='margin-left:6px;color:var(--ok);font-size:11px;transition:.3s'; box.appendChild(tag); }
+    tag.textContent=t('ms_saved'); tag.style.opacity='1';
+    clearTimeout(tag._t); tag._t=setTimeout(()=>{ tag.style.opacity='0'; },1600);
+  }catch(e){}
+}
 function odMeasSet(oid,gid,k,val){
   const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
   o.m=o.m||{}; o.m[gid]=o.m[gid]||{};
@@ -29963,6 +30097,25 @@ function buildMasterText(o,gids){
   if(o.notes)s+='\nNote: '+o.notes+'\n';
   return s;
 }
+/* ══════════ v640 — IT ASKED FOR A NUMBER IT NEVER READ ══════════
+   HIS 13 Sept: "karigar ka naam number daala, save kiya, uske baad phir WhatsApp kar raha
+   hoon to bhi nahi ho raha hai."
+   Both master-slip menus called shareMaster(order, pieces, '') — an empty string where the
+   phone goes — and waSend then refused with "No mobile number saved — add it first". He
+   had saved the number; nothing could change, because nothing looked it up. His own rule:
+   a guard must never name a thing he cannot reach.
+   sendKarigarWA had done it correctly all along — one job, two versions, drifting apart.
+   Both read the karigar on the piece now, through the same helper. Pieces with different
+   masters, or none, open the chooser as before and say nothing false. */
+function karigarPhoneFor(o,gids){
+  try{
+    const ids=[...new Set((gids||[]).map(g=>((o.assign||{})[g])||'').filter(Boolean))];
+    if(ids.length!==1)return '';
+    const k=(DB.karigars||[]).find(x=>x.id===ids[0]);
+    const p=(k&&k.phone)||'';
+    return waNum(p)?p:'';
+  }catch(e){ return ''; }
+}
 async function shareMaster(o,gids,phone){
   gids=(gids&&gids.length)?gids:sortItems(o.items);
   const text=buildMasterText(o,gids);
@@ -29972,7 +30125,9 @@ async function shareMaster(o,gids,phone){
     for(const pid of (o.photos||[])){ const b=await mGet(pid); if(b)files.push(new File([b],'order-'+pid+'.jpg',{type:b.type||'image/jpeg'})); }
     if(files.length && navigator.canShare && navigator.canShare({files})){ await navigator.share({files,title:'Order #'+o.orderNo,text}); return; }
   }catch(e){ if(e&&e.name==='AbortError')return; }
-  waSend(phone||'',text);
+  /* no number found means the pieces are with nobody, or with more than one master —
+     open the chooser instead of accusing him of not saving a number */
+  waSend(phone||'',text,!phone);
 }
 /* Handing the piece back is what earns the master his money — so the date matters. */
 function setItemRecv(oid,gid,d){
@@ -30428,7 +30583,7 @@ function sendMenu(oid){const o=DB.orders.find(x=>x.id===oid);if(!o)return;
   if(unassigned.length)body+=`<p class="hint" style="margin-top:8px;color:var(--saffron2)">⚠️ ${t('unassigned')}: ${esc(unassigned.join(', '))}</p>`;
   body+=`<p class="hint" style="margin:14px 0 6px">📋 ${t('send_choose')}</p>`+sortItems(o.items).map(gid=>{const g=G(gid);return `<label style="display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line)"><input type="checkbox" class="msel" value="${gid}" checked style="width:20px;height:20px"> ${g.ico} ${esc(g.n)}</label>`;}).join('');
   modal(t('send_meas'),body,[
-    {label:'💬 '+t('whatsapp'),cls:'primary',fn:()=>{const sel=msel();if(!sel.length){toast(t('master_none'),'bad');return;}closeSheet();shareMaster(o,sel,'');}},
+    {label:'💬 '+t('whatsapp'),cls:'primary',fn:()=>{const sel=msel();if(!sel.length){toast(t('master_none'),'bad');return;}closeSheet();shareMaster(o,sel,karigarPhoneFor(o,sel));}},
     {label:'🖨️ '+t('print'),cls:'ghost',fn:()=>{const sel=msel();if(!sel.length){toast(t('master_none'),'bad');return;}printMaster(o,sel);}},
     {label:t('close'),cls:'ghost',fn:closeSheet}
   ]);
@@ -30436,7 +30591,7 @@ function sendMenu(oid){const o=DB.orders.find(x=>x.id===oid);if(!o)return;
 function masterSlipMenu(oid){const o=DB.orders.find(x=>x.id===oid);if(!o)return;  const items=sortItems(o.items);
   const body=`<p class="hint" style="margin-bottom:8px">${t('master_pick')}</p>`+items.map(gid=>{const g=G(gid);return `<label style="display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line)"><input type="checkbox" class="msel" value="${gid}" checked style="width:20px;height:20px"> ${g.ico} ${esc(g.n)}</label>`;}).join('');
   modal(t('master_slip'),body,[
-    {label:'💬 '+t('whatsapp'),cls:'primary',fn:()=>{const sel=msel();if(!sel.length){toast(t('master_none'),'bad');return;}closeSheet();shareMaster(o,sel,'');}},
+    {label:'💬 '+t('whatsapp'),cls:'primary',fn:()=>{const sel=msel();if(!sel.length){toast(t('master_none'),'bad');return;}closeSheet();shareMaster(o,sel,karigarPhoneFor(o,sel));}},
     {label:'🖨️ '+t('print'),cls:'ghost',fn:()=>{const sel=msel();if(!sel.length){toast(t('master_none'),'bad');return;}printMaster(o,sel);}},
     {label:t('close'),cls:'ghost',fn:closeSheet}
   ]);
@@ -30480,7 +30635,7 @@ async function itemWA(oid,gid){const o=DB.orders.find(x=>x.id===oid);if(!o)retur
     if(navigator.canShare&&files.length&&navigator.canShare({files})){ await navigator.share({files,title:'Order #'+o.orderNo,text}); return; }
     if(navigator.canShare&&files[0]&&navigator.canShare({files:[files[0]]})){ await navigator.share({files:[files[0]],title:'Order #'+o.orderNo,text}); return; }
   }catch(e){ if(e&&e.name==='AbortError')return; }
-  waSend('',text,true);
+  waSend(karigarPhoneFor(o,gid?[gid]:sortItems(o.items))||'',text,true);
 }
 function buildPrintHTML(o,itemId){
   const items=itemId?[itemId]:sortItems(o.items);
@@ -32000,7 +32155,11 @@ function karigarMaster(){
   sheetAt(karigarMaster);
   const ks=DB.karigars||[];
   $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:6px">${t('karigar_master')}</h2>
-    
+    ${/* v640 — HIS 13 Sept: "add karigar upar hona chahiye aur details neeche." He is right
+         and it is the shape this app already uses on the receipt list — the new button on
+         top, the rows under it. This screen had been left the other way round, so after
+         saving a man the button he wanted next was below however many rows. */''}
+    <button class="btn primary block" style="margin:0 0 12px" onclick="karigarEdit()">+ ${t('add_karigar')}</button>
     ${/* v260: archived men stay listed here — dimmed, with one tap to bring them back —
          because the money and the pieces are still theirs. They are gone from the pickers,
          not from the books. */''}
@@ -32011,7 +32170,6 @@ function karigarMaster(){
           ? `<button class="btn sm ghost" onclick="karigarArchive('${k.id}',false)">↩️ ${t('kar_unarch')}</button>`
           : `<button class="btn sm ghost" onclick="karigarEdit('${k.id}')">✏️</button><button class="btn sm danger" onclick="karigarDelete('${k.id}')">✕</button>`}
       </div></div>`).join('')||'<p class="hint">'+t('no_karigars')+'</p>'}
-    <button class="btn primary block" style="margin-top:10px" onclick="karigarEdit()">+ ${t('add_karigar')}</button>
     `;
   showSheet();
 }
@@ -38141,6 +38299,14 @@ function showLostScreen(why){
     <div style="height:40px"></div></div>`;
   document.body.appendChild(d);
 }
+/* v640: is there actually anything on the screen? Used after every restore-on-open. */
+function paneHasContent(){
+  try{
+    const m=document.querySelector('main'); if(!m)return true;
+    if(document.body.classList.contains('sheet-open'))return true;
+    return (m.innerText||'').trim().length>0 || m.querySelectorAll('button,input,img,canvas').length>0;
+  }catch(e){ return true; }
+}
 async function init(){
   try{ await openIDB(); }catch(e){}
   /* Photos and voice notes live in IndexedDB. If it will not open, the app still runs
@@ -38196,8 +38362,19 @@ async function init(){
      right, and it must have the last word. A sheet already on screen keeps it too: if he
      is being put back into an order, that is where he wants to be, not on a list. */
   if(_last && _last!=='home' && $('#tab-'+_last) && !_sheetOn){
-    try{ go(_last); }catch(e){}
+    /* ══════════ v640 — THE BLANK SCREEN ON OPEN ══════════
+       HIS 13 Sept: "screen kai baar aise kholo to blank aa rahi hai. Home dabao tab theek
+       aati hai… aisi blank screen dekh kar to ekdam ghabrahat ho jaati hai."
+       This line put him back on the tab he was last using — and swallowed any error while
+       doing it. The old pane is cleared before the new one draws, so a throw here left the
+       header, the nav bar, and nothing in between. Home worked because Home drew again.
+       Fault 7, and against the app's own law: a screen may degrade, never go blank.
+       Nothing is swallowed silently now — if the tab will not draw, Home does. */
+    try{ go(_last); }catch(e){ try{ renderHome(); _curTab='home'; }catch(_){} }
+    try{ if(!paneHasContent()){ renderHome(); _curTab='home'; } }catch(e){}
   }
+  /* and once more a moment later, for a pane that draws late and comes back empty */
+  setTimeout(()=>{ try{ if(!_sheetOn && !paneHasContent()){ renderHome(); _curTab='home'; } }catch(e){} },700);
   setTimeout(autoFileBackup,4000);
   if(boot && boot.raw && boot.from!=='live' && boot.from!=='legacy'){
     setTimeout(()=>toast(t('rec_used',{src:boot.from}),'bad'),900);
