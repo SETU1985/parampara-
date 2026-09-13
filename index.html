@@ -760,6 +760,11 @@
   .rs-row:active{background:rgba(255,255,255,.04)}
   .rs-total{display:flex;gap:8px;padding:12px 10px;margin-top:2px;border-top:2px solid var(--saffronDim);
     font-weight:800;position:sticky;bottom:0;background:var(--card)}
+  /* v648: making a new record is the rare job, so it sits at the bottom under the thumb
+     and the whole screen above it belongs to the list. */
+  .listfab{position:sticky;bottom:8px;z-index:55;display:flex;justify-content:center;
+    pointer-events:none;margin-top:10px}
+  .listfab .btn{pointer-events:auto;min-width:190px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
   /* v643 - HIS 13 Sept: "main heads ko ekdam gray colour mein chhota sa likh rakha hai,
      samajh mein hi nahi aa raha hai." A section head is the one word that tells him what
      he is looking at; it was small, grey and half-invisible. */
@@ -1003,7 +1008,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v646</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v648</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -13488,44 +13493,41 @@ function ontimeRows(from,to){
   });
   return rows.sort((a,b)=>(b.late||0)-(a.late||0));
 }
+/* v647: onto the shell. Same rows, same export — now with a search box, real column
+   headings and a total that stays put while the list scrolls. */
 function ontimeReport(){
   sheetAt(ontimeReport);
   const {from,to}=rpRange();
-  const rows=ontimeRows(from,to);
-  const dated=rows.filter(r=>r.late!==null);
-  const ok=dated.filter(r=>r.late<=0).length;
-  const late=dated.filter(r=>r.late>0);
-  const pct=dated.length?Math.round(ok*100/dated.length):0;
-  const avg=late.length?Math.round(late.reduce((a,r)=>a+r.late,0)/late.length):0;
-  const nodate=rows.length-dated.length;
-  const line=(l,v,col,bold)=>`<div class="il"${bold?' style="font-weight:800"':''}>
-    <span>${l}</span><b style="${col?'color:'+col:''}">${v}</b></div>`;
-  const body=rows.map(r=>`<div class="card" style="padding:10px 14px;margin-bottom:8px;cursor:pointer"
-      onclick="closeSheet();orderMenu('${jq(r.o.id)}')">
-      <div class="kv"><div style="min-width:0;flex:1">
-        <b>#${esc(r.o.orderNo||'')} \u00B7 ${esc(r.o.customerName||'\u2014')}</b>
-        <div class="hint">${r.due?t('delivery')+' '+fmtDate(r.due)+' \u00B7 ':''}${t('as_delivered')} ${fmtDate(r.on)}</div></div>
-        <b style="color:${r.late===null?'var(--mut)':(r.late>0?'var(--bad)':'var(--ok)')}">
-          ${r.late===null?t('ontime_nodate'):(r.late>0?t('ontime_days',{n:r.late}):'\u2705')}</b></div></div>`).join('');
-  $('#sheet').innerHTML=`<div class="grip"></div>
-    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F69A} ${t('ontime_title')}</h2>
-      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
-    <p class="hint" style="margin-bottom:8px">${t('ontime_sub')}</p>${rangeBarHTML()}
-    ${dated.length?`<div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
-      ${line('\u2705 '+t('ontime_pct'), pct+'%', pct>=80?'var(--ok)':(pct>=50?'var(--saffron2)':'var(--bad)'),1)}
-      ${line(t('ontime_ok'), ok, 'var(--ok)')}
-      ${line(t('ontime_late'), late.length, late.length?'var(--bad)':'')}
-      ${avg?line(t('ontime_avg'), t('ontime_days',{n:avg}), 'var(--bad)'):''}
-      ${nodate?`<div class="hint" style="margin-top:6px">${nodate} \u00B7 ${t('ontime_nodate')}</div>`:''}
-    </div>
-    ${exportBarHTML('rp_ontime',()=>({title:t('ontime_title'), sub:fmtDate(from)+' \u2013 '+fmtDate(to),
+  const all=ontimeRows(from,to).map(function(r){
+    return {no:r.o.orderNo||'', who:r.o.customerName||'\u2014', due:r.due?fmtDate(r.due):'',
+            on:fmtDate(r.on), late:r.late, id:r.o.id};});
+  const rows=rsFilter('rp_ontime',all,['no','who','due','on']);
+  const dated=rows.filter(function(r){return r.late!==null;});
+  const okN=dated.filter(function(r){return r.late<=0;}).length;
+  const late=dated.filter(function(r){return r.late>0;});
+  const pct=dated.length?Math.round(okN*100/dated.length):0;
+  const avg=late.length?Math.round(late.reduce(function(a,r){return a+r.late;},0)/late.length):0;
+  const line=function(l,v,col,bold){ return '<div class="il"'+(bold?' style="font-weight:800"':'')+'>'
+    +'<span>'+l+'</span><b style="'+(col?'color:'+col:'')+'">'+v+'</b></div>'; };
+  $('#sheet').innerHTML=reportShell({
+    key:'rp_ontime', icon:'\uD83D\uDE9A', title:t('ontime_title'), sub:t('ontime_sub'),
+    cols:[{n:t('order_no'),w:'22%'},{n:t('customer')},{n:t('as_delivered'),w:'24%'},{n:t('ontime_late'),w:'62px',num:1}],
+    rows:rows.map(function(r){ return {
+      onclick:"closeSheet();orderMenu('"+jq(r.id)+"')",
+      cells:['#'+esc(r.no), esc(r.who), r.on,
+        '<b style="color:'+(r.late===null?'var(--mut)':(r.late>0?'var(--bad)':'var(--ok)'))+'">'
+        +(r.late===null?t('ontime_nodate'):(r.late>0?t('ontime_days',{n:r.late}):'\u2705'))+'</b>']}; }),
+    total:[t('ontime_pct'), '', '', pct+'%'],
+    top: dated.length?('<div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">'
+      +line('\u2705 '+t('ontime_pct'), pct+'%', pct>=80?'var(--ok)':(pct>=50?'var(--saffron2)':'var(--bad)'),1)
+      +line(t('ontime_ok'), okN, 'var(--ok)')
+      +line(t('ontime_late'), late.length, late.length?'var(--bad)':'')
+      +(avg?line(t('ontime_avg'), t('ontime_days',{n:avg}), 'var(--bad)'):'')
+      +'</div>'):'',
+    exportBuilder:function(){ return {title:t('ontime_title'), sub:fmtDate(from)+' \u2013 '+fmtDate(to),
       head:[t('order_no'),t('customer'),t('delivery'),t('as_delivered'),t('ontime_late')],
-      rows:rows.map(r=>[r.o.orderNo||'',r.o.customerName||'',r.due?fmtDate(r.due):'',fmtDate(r.on),
-        r.late===null?'':r.late])}))}`
-    :`<div class="empty" style="padding:30px 10px"><p>${t('ontime_none')}</p></div>`}
-    ${body}
-    <p class="hint" style="margin-top:10px">${t('ontime_old')}</p>
-    <div class="fab-pad"></div>`;
+      rows:rows.map(function(r){ return [r.no,r.who,r.due,r.on,r.late===null?'':r.late]; })}; }
+  });
   showSheet();
 }
 /* v348 — HIS 27 Aug: "In Order Profit add a search bar (by name, order/bill number) and
@@ -24598,14 +24600,11 @@ function allInvoices(){
 let invQ='', invSort='new';
 let invPeriod='all', invFrom='', invTo='';
 /* v547: which bills the period lets through. 'all' is the old behaviour, unchanged. */
+/* v648: one period for the whole app - the bill list stops keeping its own. */
 function invInPeriod(d){
-  d=String(d||''); if(!d)return invPeriod==='all';
-  if(invPeriod==='all')return true;
-  const now=new Date(), y=now.getFullYear(), m=now.getMonth();
-  if(invPeriod==='m'){ const a=isoOf(new Date(y,m,1)), b=isoOf(new Date(y,m+1,0)); return d>=a&&d<=b; }
-  if(invPeriod==='lm'){ const a=isoOf(new Date(y,m-1,1)), b=isoOf(new Date(y,m,0)); return d>=a&&d<=b; }
-  if(invPeriod==='custom'){ if(invFrom&&d<invFrom)return false; if(invTo&&d>invTo)return false; return true; }
-  return true;
+  d=String(d||''); if(!d)return false;
+  const r=rpRange();
+  return d>=r.from && d<=r.to;
 }
 /* v550: prints exactly the list on screen — same period, same search, same order. */
 /* ══════════════ v567 — A REAL PDF FILE, NOT THE PRINT SCREEN ══════════════
@@ -24956,9 +24955,19 @@ function renderInvoices(keepFocus){
   /* v547: the period is applied before anything else, so the search, the sort and the
      month headings all work on the same set he has chosen. */
   const all=allInvoices().filter(x=>invInPeriod((x.inv||{}).date));
-  const head=tabHead(t('invoices'))+`<div class="row" style="margin-bottom:12px;gap:8px">
-    <button class="btn primary" style="flex:1" onclick="openSaleForm()">+ ${t('new_sale')}</button>
-    <button class="btn ghost" style="flex:0 0 48px" title="${t('hub_more')}" onclick="saleHub()">⋯</button>
+  /* ============== v648 - THE LIST IS FOR LOOKING, NOT FOR MAKING ==============
+     HIS 13 Sept, holding up Vyapar's Sale list: "+ New invoice sabse upar aur sabse bada
+     hai" - the first and biggest thing on a screen he opens twenty times a day to LOOK at
+     bills and maybe four times to write one. Vyapar puts Add Sale on a small floating
+     button at the bottom and gives the whole screen to the list. He is right.
+     The name, the search and the PDF live in one bar at the top, the way every other app
+     he uses does it. The new-bill button goes to the bottom, where the thumb already is. */
+  const head=`<div class="detail-hd">
+      <button class="back" onclick="go('home')">\u2190</button>
+      <div style="flex:1"><h2>\uD83E\uDDFE ${t('invoices')}</h2></div>
+      <button class="btn sm ghost" title="${t('ex_pdf')}" onclick="invListPdf()">\uD83D\uDCC4</button>
+      <button class="btn sm ghost" title="${t('print')}" onclick="invListPrint()">\uD83D\uDDA8\uFE0F</button>
+      <button class="btn sm ghost" title="${t('hub_more')}" onclick="saleHub()">\u22ef</button>
     </div>`;
 
   /* ══════════ v560 — A DATE RANGE HE COULD NOT GET OUT OF ══════════
@@ -25009,15 +25018,11 @@ function renderInvoices(keepFocus){
        same way, and Custom opens the two date boxes. What he picks narrows the list AND the
        month totals above it, so the figure he reads always belongs to what he is looking
        at. */
-    + `<div class="gtags" style="margin:-4px 0 8px">
-        ${[['all','inv_p_all'],['m','inv_p_month'],['lm','inv_p_lastm'],['custom','inv_p_custom']]
-          .map(x=>`<span class="gtag sm ${invPeriod===x[0]?'on-tag':''}" style="cursor:pointer"
-             onclick="setInvPeriod('${x[0]}')">${t(x[1])}</span>`).join('')}
-       </div>
-       ${invPeriod==='custom'?`<div class="row" style="gap:6px;margin-bottom:8px" onchange="invDatesChanged()">
-         <div class="field" style="margin:0;flex:1"><label>${t('cb_from')}</label>${dateField('invFrom',invFrom||'','',true)}</div>
-         <div class="field" style="margin:0;flex:1"><label>${t('cb_to')}</label>${dateField('invTo',invTo||'','',true)}</div>
-       </div>`:''}`;
+    /* v648: the bill list had a FIFTH way of choosing a period - All / This month / Last
+       month / Custom, with its own pair of date boxes. Same bar as every report now, so a
+       date is picked the same way wherever he is. Sort stays: Newest / Oldest / Custom is
+       his own idea and Vyapar has nothing like it. */
+    + rangeBarHTML();
 
   /* ══════════════ v494 — THE UNFINISHED BILLS HAD NO SHELF ══════════════
      HIS 5 Sept: "invoice ke andar abhi bhi draft ban raha hai kya, ki sale wali list par
@@ -25075,8 +25080,8 @@ function renderInvoices(keepFocus){
            the same total underneath. It is not the full Sale Report yet — no missing-number
            check, no sort by number — but it is the thing he actually needs today, and it
            costs him one tap. */''}
-      <button class="btn sm ghost" style="flex:0 0 auto;margin-left:8px" onclick="invListPdf()">\u{1F4C4} PDF</button>
-      <button class="btn sm ghost" style="flex:0 0 auto;margin-left:6px" title="${t('print')}" onclick="invListPrint()">\u{1F5A8}\uFE0F</button>
+      ${/* v648: PDF and print moved into the one header bar - they were here AND up there,
+           two doors to the same job on one screen. Print lives beside PDF now. */''}
     </div>`:'');
 
   /* ══════════ v514 — THE LAST SEARCH BOX THAT REBUILT ITSELF ══════════
@@ -25132,7 +25137,9 @@ function renderInvoices(keepFocus){
     holder.innerHTML=body;
     return;
   }
-  el.innerHTML=head+searchBox+`<div id="invListTitle">${title}</div><div id="invBody">${body}</div>`;
+  el.innerHTML=head+searchBox+`<div id="invListTitle">${title}</div><div id="invBody">${body}</div>
+    <div class="listfab"><button class="btn primary" onclick="openSaleForm()">+ ${t('new_sale')}</button></div>
+    <div class="fab-pad" style="height:76px"></div>`;
   if(keepFocus)focusInvSearch();
 }
 function invCardHTML(x){
