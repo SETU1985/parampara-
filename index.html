@@ -745,6 +745,26 @@
     border-radius:8px; padding:6px 14px; font-weight:800; font-size:14px; pointer-events:auto}
   #railToggle{display:none}
   .fab-pad{height:10px}
+  /* v643: one date bar, and it must look like a control, not a caption */
+  .rngbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;cursor:pointer;
+    border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin:0 0 12px}
+  .rngbar .rngname{font-weight:800;color:var(--saffron2)}
+  .rngbar .rngdates{color:var(--txt);opacity:.85;font-size:13px}
+  /* v644: the report shell. Headings so he can tell which column is which, rows that read
+     as rows, and a total that stays on the screen while the list scrolls under it. */
+  .rs-search{width:100%;margin:0 0 10px}
+  .rs-head{display:flex;gap:8px;padding:8px 10px;border-bottom:2px solid var(--line);
+    font-size:12px;font-weight:800;letter-spacing:.3px;opacity:.85;position:sticky;top:0;
+    background:var(--card);z-index:2}
+  .rs-row{display:flex;gap:8px;padding:11px 10px;border-bottom:1px solid var(--line);font-size:14px}
+  .rs-row:active{background:rgba(255,255,255,.04)}
+  .rs-total{display:flex;gap:8px;padding:12px 10px;margin-top:2px;border-top:2px solid var(--saffronDim);
+    font-weight:800;position:sticky;bottom:0;background:var(--card)}
+  /* v643 - HIS 13 Sept: "main heads ko ekdam gray colour mein chhota sa likh rakha hai,
+     samajh mein hi nahi aa raha hai." A section head is the one word that tells him what
+     he is looking at; it was small, grey and half-invisible. */
+  .section-h{font-size:14px!important;font-weight:800!important;letter-spacing:.4px;
+    color:var(--txt)!important;opacity:.95!important}
   body.simple-mode{font-size:17px}
   body.simple-mode .btn{padding:14px 16px; font-size:16px}
   body.simple-mode .ono{font-size:18px}
@@ -983,7 +1003,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v642</span></small></div></div>
+    <div class="brand"><div class="logo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v646</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -1555,6 +1575,8 @@ const T={
   dg_nobk:'No backup file has ever been taken from this device',
   dg_open:'Replaces the whole book…',
   od_edit_no:'Change the order number',
+  rp_summary:'Sales & purchase summary',
+  rps_summary_sec:'SUMMARY',
   om_title:'Naap for this order',
   om_hint:'Added to this piece on this order only. Other orders are not touched.',
   om_all_on:'Every measurement for this garment is already on the card.',
@@ -2972,6 +2994,19 @@ const T={
   rp_week:'This week',
   rp_month:'This month',
   rp_custom:'Custom',
+  rp_today:'Today', rp_quarter:'This quarter', rp_fy:'This financial year',
+  rs_search:'Search name, number or amount', rs_none:'Nothing in this period',
+  rh_sales:'Sales', rh_purchase:'Purchase', rh_expense:'Expenses',
+  rec_title:'Match the book', rec_acc:'Which account', rec_book:'Book says',
+  rec_actual:'Actually there', rec_diff:'Difference', rec_head:'Put the difference in',
+  rec_h_susp:'Suspense', rec_h_short:'Cash short', rec_h_excess:'Cash excess',
+  rec_note_ph:'why, if you know', rec_go:'Post the difference',
+  rec_no_count:'Enter what is actually there', rec_already:'It already matches',
+  rec_auto:'Balancing entry',
+  rec_confirm:'{a}: the book says {b}, you have {c}. {d} will be posted to {h}. It will show in the Day book like any other entry.',
+  rec_done:'{d} posted to {h}',
+  rh_accounts:'Accounts', rh_cash:'Cash & bank', rh_floor:'Shop floor',
+  rp_period:'Which period',
   rp_from:'From',
   rp_to:'To',
   rp_apply:'Apply',
@@ -3701,6 +3736,8 @@ dl_show_hidden:'Show hidden ({n})',
   dg_nobk:'इस डिवाइस से कभी बैकअप फ़ाइल नहीं ली गई',
   dg_open:'पूरी किताब बदल देने वाले काम…',
   od_edit_no:'ऑर्डर नंबर बदलें',
+  rp_summary:'बिक्री और ख़रीद का सार',
+  rps_summary_sec:'सार',
   om_title:'इस ऑर्डर का नाप',
   om_hint:'सिर्फ़ इसी ऑर्डर के इसी कपड़े में जुड़ेगा। बाक़ी ऑर्डर पर कोई असर नहीं।',
   om_all_on:'इस कपड़े के सारे नाप पहले से कार्ड पर हैं।',
@@ -5108,6 +5145,19 @@ dl_show_hidden:'Show hidden ({n})',
   rp_week:'This week',
   rp_month:'This month',
   rp_custom:'Custom',
+  rp_today:'आज', rp_quarter:'यह तिमाही', rp_fy:'यह वित्त वर्ष',
+  rs_search:'नाम, नंबर या रकम खोजिए', rs_none:'इस अवधि में कुछ नहीं',
+  rh_sales:'बिक्री', rh_purchase:'ख़रीद', rh_expense:'खर्च',
+  rec_title:'खाता मिलाओ', rec_acc:'कौन सा खाता', rec_book:'किताब कहती है',
+  rec_actual:'असल में है', rec_diff:'अंतर', rec_head:'अंतर कहाँ डालें',
+  rec_h_susp:'Suspense', rec_h_short:'Cash short', rec_h_excess:'Cash excess',
+  rec_note_ph:'क्यों, अगर पता हो', rec_go:'अंतर दर्ज करो',
+  rec_no_count:'जितना असल में है वह लिखिए', rec_already:'यह पहले से मिला हुआ है',
+  rec_auto:'मिलान की एंट्री',
+  rec_confirm:'{a}: किताब {b} कहती है, आपके पास {c} है। {d} {h} में दर्ज होगा। यह Day book में हर एंट्री की तरह दिखेगा।',
+  rec_done:'{d} {h} में दर्ज हो गया',
+  rh_accounts:'खाते', rh_cash:'नकद और बैंक', rh_floor:'दुकान का काम',
+  rp_period:'कौन सी अवधि',
   rp_from:'From',
   rp_to:'To',
   rp_apply:'Apply',
@@ -11049,7 +11099,7 @@ function dbKindOf(l){
 }
 function dbSetFilter(k){ _dbKind=k||'all'; dayBook(); }
 function dbLines(){
-  const from=_dbFrom||todayISO(), to=_dbTo||todayISO();
+  const {from,to}=rpRange();   /* v645: one period for the whole app */
   const q=String(_dbQ||'').trim().toLowerCase();
   let lines=moneyLines(from,to).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
   _dbAllCount=lines.length;
@@ -11139,7 +11189,7 @@ function dbBodyHTML(lines){
 }
 function dayBook(keepFocus){
   sheetAt(dayBook); if(!modOn('accounts')){toast(t('mod_off'),'bad');return;}
-  const from=_dbFrom||todayISO(), to=_dbTo||todayISO();
+  const {from,to}=rpRange();   /* v645: one period for the whole app */
   /* ══════════════ v456 — HE COULD SET THE DATES BUT NOT FIND THE NAME ══════════════
      HIS 3 Sep: "cash gaya, date maine daala, aur search bhar raha aur filter, ek tareekh se
      itne tareekh tak, aur saara ek baar mila liya — haan ye entry galat hai, iska head galat
@@ -11183,15 +11233,11 @@ function dayBook(keepFocus){
       head:[t('jv_date'),t('jv_narr'),t('pay_in'),t('pay_out')],
       rows:lines.map(l=>[fmtDate(l.date), String(l.party||l.cat||l.ref||''), l.dir==='in'?l.amt:'', l.dir==='out'?l.amt:''])}))}
     <div class="gtags" style="margin-bottom:10px">
-      <span class="gtag ${from===todayISO()&&to===todayISO()?'on-tag':''}" style="cursor:pointer" onclick="_dbFrom='';_dbTo='';dayBook()">${t('db_today')}</span>
-      <span class="gtag" style="cursor:pointer" onclick="_dbFrom=yesterdayISO();_dbTo=yesterdayISO();dayBook()">${t('db_yest')}</span>
-      <span class="gtag" style="cursor:pointer" onclick="_dbFrom=monthStart();_dbTo=todayISO();dayBook()">${t('rp_month')}</span>
     </div>
-    <div class="row" style="margin-bottom:12px">
-      <div class="field" style="margin:0"><label>${t('rp_from')}</label>
-        <input type="date" value="${from}" onchange="_dbFrom=this.value;dayBook()"></div>
-      <div class="field" style="margin:0"><label>${t('rp_to')}</label>
-        <input type="date" value="${to}" onchange="_dbTo=this.value;dayBook()"></div></div>
+    ${/* v645: the Day book had its own three chips and its own pair of date boxes — a
+         fourth way of choosing a period in an app that now has one. Same bar as every
+         report, so a date is chosen the same way wherever he is. */''}
+    ${rangeBarHTML()}
 
     ${/* HIS ASK: "day book me updated cash and bank balance show hona chahiye."
           Closing balance answered a DATE RANGE, not "how much is in hand right now" — look
@@ -13464,7 +13510,7 @@ function ontimeReport(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F69A} ${t('ontime_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
-    <p class="hint" style="margin-bottom:12px">${t('ontime_sub')} \u00B7 ${fmtDate(from)} \u2192 ${fmtDate(to)}</p>
+    <p class="hint" style="margin-bottom:8px">${t('ontime_sub')}</p>${rangeBarHTML()}
     ${dated.length?`<div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
       ${line('\u2705 '+t('ontime_pct'), pct+'%', pct>=80?'var(--ok)':(pct>=50?'var(--saffron2)':'var(--bad)'),1)}
       ${line(t('ontime_ok'), ok, 'var(--ok)')}
@@ -13531,7 +13577,7 @@ function orderProfitReport(keepFocus){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F4B0} ${t('op_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
-    <p class="hint" style="margin-bottom:8px">${t('op_sub')} \u00B7 ${fmtDate(from)} \u2192 ${fmtDate(to)}</p>
+    <p class="hint" style="margin-bottom:8px">${t('op_sub')}</p>${rangeBarHTML()}
     ${/* v348: find one order without scrolling past the rest */''}
     <div class="field" style="margin-bottom:10px"><input id="opSearch" value="${esc(_opQ)}"
       placeholder="\u{1F50D} ${t('op_search_ph')}" oninput="opSetQ(this.value)"></div>
@@ -15851,6 +15897,49 @@ function exportPDF(title,sub,head,rows){
 /* the two buttons every report carries. The caller passes a builder so nothing is computed
    until he actually taps one. */
 let _expBuild={};
+/* ══════════════════ v644 — ONE SHELL, EVERY REPORT ══════════════════
+   HIS 13 Sept: "kahin PDF ka option nahi hai, to kahin date ka option nahi hai, to kahin
+   phir search ka option nahi hai... reports ko aise gandh macha rakhi hai."
+   Correct, and the cause is that every report screen wrote its own layout from scratch.
+   Twenty-odd screens, twenty-odd opinions about where the date goes, whether there is a
+   search box, whether a total sits at the bottom, whether it can be sent at all.
+   One shell now. A report hands over its title, its rows and its columns; the shell draws
+   the date bar, the search box, the export buttons, the column headings and the sticky
+   total. A new report cannot be built without them — there is nowhere to leave them out. */
+let _rsQ={};
+function rsSearch(key,v){ _rsQ[key]=v; try{ if(_sheetCur)_sheetCur(); }catch(e){} }
+function rsQuery(key){ return String(_rsQ[key]||''); }
+function rsFilter(key,rows,fields){
+  const q=rsQuery(key).trim().toLowerCase(); if(!q)return rows;
+  return rows.filter(r=>(fields||Object.keys(r)).some(f=>String(r[f]==null?'':r[f]).toLowerCase().includes(q)));
+}
+/* cfg: {key, icon, title, sub, dated, searchable, cols:[{n,w,num}], rows:[[..]],
+         total:[..], exportBuilder, top} */
+function reportShell(cfg){
+  const key=cfg.key;
+  const cols=cfg.cols||[];
+  const head=cols.length?`<div class="rs-head">`+cols.map((c,i)=>
+      `<span style="${c.w?'width:'+c.w+';flex:0 0 '+c.w+';':'flex:1;'}${c.num?'text-align:right':''}">${esc(c.n)}</span>`).join('')+`</div>`:'';
+  const body=(cfg.rows&&cfg.rows.length)
+    ? cfg.rows.map(r=>`<div class="rs-row"${r.onclick?` onclick="${r.onclick}" style="cursor:pointer"`:''}>`
+        +(r.cells||r).map((cell,i)=>{const c=cols[i]||{};
+          return `<span style="${c.w?'width:'+c.w+';flex:0 0 '+c.w+';':'flex:1;'}${c.num?'text-align:right;font-weight:700':''}">${cell}</span>`;}).join('')
+        +`</div>`).join('')
+    : `<div class="empty" style="padding:26px 10px"><p>${t('rs_none')}</p></div>`;
+  const tot=(cfg.total&&cfg.total.length)?`<div class="rs-total">`+cfg.total.map((cell,i)=>{const c=cols[i]||{};
+      return `<span style="${c.w?'width:'+c.w+';flex:0 0 '+c.w+';':'flex:1;'}${c.num?'text-align:right':''}">${cell}</span>`;}).join('')+`</div>`:'';
+  return `<div class="grip"></div>
+    <div class="kv" style="margin-bottom:8px"><h2 style="margin:0">${cfg.icon||''} ${esc(cfg.title||'')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
+    ${cfg.sub?`<p class="hint" style="margin:0 0 8px">${cfg.sub}</p>`:''}
+    ${cfg.dated===false?'':rangeBarHTML()}
+    ${cfg.searchable===false?'':`<input class="rs-search" placeholder="\u{1F50D} ${t('rs_search')}"
+       value="${esc(rsQuery(key))}" oninput="rsSearch('${jq(key)}',this.value)">`}
+    ${cfg.top||''}
+    ${cfg.exportBuilder?exportBarHTML(key,cfg.exportBuilder):''}
+    ${head}${body}${tot}
+    <div class="fab-pad"></div>`;
+}
 function exportBarHTML(key,builder){
   _expBuild[key]=builder;
   return `<div class="row" style="gap:8px;margin:10px 0 4px">
@@ -27623,11 +27712,59 @@ function barHTML(pct,colour){
   return `<div style="background:rgba(255,255,255,.07);border-radius:5px;height:8px;overflow:hidden;margin-top:5px">
     <div style="width:${Math.max(2,Math.min(100,pct))}%;height:8px;background:${colour||'var(--saffron)'}"></div></div>`;
 }
+/* ============== v643 - ONE DATE CONTROL FOR THE WHOLE APP ==============
+   HIS 13 Sept: "expense head mein date upar 1 se 13 tak diya hua hai aur usko change karne
+   ka koi option nahi hai... tumne app mein koi system hi nahi bana rakha hai date change
+   karne ke liye."
+   He is right, and it is one fault repeated eleven times: every report printed
+   fmtDate(from) -> fmtDate(to) as DEAD TEXT and took the period from whatever some other
+   screen had last set. There was no way in, so the report in front of him could not be
+   pointed at the months he needed.
+   One bar now, drawn by one function, on every report: the period by name and the two
+   dates, all of it tappable. Six choices, the same six Vyapar offers, because they are the
+   right six. */
 function rpRange(){
   const today=new Date();const iso=d=>isoOf(d);
+  if(rpPeriod==='today')return {from:iso(today),to:iso(today)};
   if(rpPeriod==='week'){const d=new Date(today);const day=(d.getDay()+6)%7;d.setDate(d.getDate()-day);return {from:iso(d),to:iso(today)};}
   if(rpPeriod==='month'){return {from:iso(new Date(today.getFullYear(),today.getMonth(),1)),to:iso(today)};}
+  if(rpPeriod==='quarter'){const q=Math.floor(today.getMonth()/3)*3;
+    return {from:iso(new Date(today.getFullYear(),q,1)),to:iso(today)};}
+  if(rpPeriod==='fy'){const y=today.getMonth()>=3?today.getFullYear():today.getFullYear()-1;
+    return {from:iso(new Date(y,3,1)),to:iso(today)};}
   return {from:rpFrom||iso(new Date(today.getFullYear(),today.getMonth(),1)),to:rpTo||iso(today)};
+}
+const RP_PERIODS=[['today','rp_today'],['week','rp_week'],['month','rp_month'],
+  ['quarter','rp_quarter'],['fy','rp_fy'],['custom','rp_custom']];
+function rpPeriodName(){ const r=RP_PERIODS.find(x=>x[0]===rpPeriod); return t(r?r[1]:'rp_month'); }
+function rangeBarHTML(){
+  const {from,to}=rpRange();
+  return '<div class="rngbar" onclick="rpPickPeriod()">'
+    +'<span class="rngname">'+esc(rpPeriodName())+' \u25BE</span>'
+    +'<span class="rngdates">'+fmtDate(from)+' \u2192 '+fmtDate(to)+'</span></div>';
+}
+function rpPickPeriod(){
+  const r=rpRange();
+  modal('\uD83D\uDCC5 '+t('rp_period'),
+    RP_PERIODS.map(function(x){
+      return '<div class="kv" style="padding:13px 2px;border-bottom:1px solid var(--line);cursor:pointer"'
+      +' onclick="rpChoose(\''+x[0]+'\')"><span>'+t(x[1])+'</span>'
+      +'<span style="color:var(--saffron2);font-size:18px">'+(rpPeriod===x[0]?'\u25CF':'')+'</span></div>';}).join('')
+    +'<div id="rpCustomBox" style="display:'+(rpPeriod==='custom'?'':'none')+';margin-top:12px">'
+      +'<div class="row"><div class="field"><label>'+t('rp_from')+'</label>'+dateField('rp_from',rpFrom||r.from)+'</div>'
+      +'<div class="field"><label>'+t('rp_to')+'</label>'+dateField('rp_to',rpTo||r.to)+'</div></div>'
+      +'<button class="btn primary block" onclick="rpApplyCustom()">'+t('rp_apply')+'</button></div>',
+    [{label:t('close'),cls:'ghost',fn:closeModal}]);
+}
+function rpChoose(k){
+  if(k==='custom'){ rpPeriod='custom'; const b=$('#rpCustomBox'); if(b)b.style.display=''; return; }
+  rpPeriod=k; closeModal(); rpRedraw();
+}
+function rpApplyCustom(){
+  rpPeriod='custom';
+  if($('#rp_from'))rpFrom=$('#rp_from').value;
+  if($('#rp_to'))rpTo=$('#rp_to').value;
+  closeModal(); rpRedraw();
 }
 /* ══════════ v265 — GST ══════════
    He confirmed on 23 Aug that he is registered, and that cloth is 5% while readymade
@@ -28356,7 +28493,7 @@ function trialBalance(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F4CB} ${t('tb_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
-    <p class="hint" style="margin-bottom:12px">${fmtDate(from)} \u2192 ${fmtDate(to)}</p>
+    ${rangeBarHTML()}
     <div class="card" style="padding:12px 14px;margin-bottom:10px">
       <div class="il" style="font-weight:700;color:var(--mut)">
         <span>${t('tb_acc')}</span><span>${t('tb_dr')} \u00B7 ${t('tb_cr')}</span></div>
@@ -28465,7 +28602,7 @@ function gstReport(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F9FE} ${t('gst_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
-    <p class="hint" style="margin-bottom:10px">${t('gst_sub')} \u00B7 ${fmtDate(from)} \u2192 ${fmtDate(to)}</p>
+    <p class="hint" style="margin-bottom:8px">${t('gst_sub')}</p>${rangeBarHTML()}
     ${myGstin?'':`<p class="hint" style="color:var(--saffron2)">\u26A0\uFE0F ${t('gst_noreg')}</p>`}
     ${(o.n||i.n)?`
     <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
@@ -28530,7 +28667,7 @@ function plReport(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">📈 ${t('rp_pl')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
-    <p class="hint" style="margin-bottom:8px">${fmtDate(from)} → ${fmtDate(to)}</p>
+    ${rangeBarHTML()}
     ${/* v351: P&L had no way to choose a period at all */''}
     ${rpPickerHTML('plReport')}
     <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
@@ -28594,7 +28731,7 @@ function cashflowReport(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">💵 ${t('rp_cashflow')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
-    <p class="hint" style="margin-bottom:12px">${fmtDate(from)} → ${fmtDate(to)}</p>
+    ${rangeBarHTML()}
     <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
       <div class="il"><span>${t('rp_opening')}</span><b>${money(c.T.open)}</b></div>
       <div class="il"><span style="color:var(--ok)">↓ ${t('rp_money_in')}</span><b style="color:var(--ok)">${money(c.T.inn)}</b></div>
@@ -28693,7 +28830,7 @@ function salesmanReport(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">🧑‍💼 ${t('rp_salesman')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
-    <p class="hint" style="margin-bottom:10px">${fmtDate(from)} → ${fmtDate(to)}</p>
+    ${rangeBarHTML()}
     ${rpPickerHTML('salesmanReport')}
     <div class="card pos-total" style="padding:12px 14px;margin:10px 0 12px">
       <div class="il"><span>${t('sm_sales')}</span><b style="font-size:18px">${money(f.tot.sales)}</b></div>
@@ -28716,31 +28853,28 @@ function salesmanReport(){
     <div class="fab-pad"></div>`;
   showSheet();
 }
+/* v644: first report onto the shell. Same figures, same export, same print — but now with
+   a search box, real column headings, and a total that stays put. */
 function expHeadReport(){
   sheetAt(expHeadReport);
   const {from,to}=rpRange(), f=plFigures(from,to);
-  const top=f.heads.length?f.heads[0][1]:1;
-  $('#sheet').innerHTML=`<div class="grip"></div>
-    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">💸 ${t('rp_exp_head')}</h2>
-      <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
-    <p class="hint" style="margin-bottom:12px">${fmtDate(from)} → ${fmtDate(to)}</p>
-    <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
-      <div class="il"><span>${t('exp_total')}</span><b style="color:var(--bad);font-size:18px">${money(f.expTotal)}</b></div>
-      <div class="il" style="border-bottom:0"><span>${t('rp_exp_of_sales')}</span>
-        <b>${f.netSales?Math.round(f.expTotal/f.netSales*100):0}%</b></div></div>
-    ${f.heads.length?exportBarHTML('rp_exph',()=>({title:t('rp_exp_head'), sub:fmtDate(from)+' – '+fmtDate(to),
+  const all=f.heads.map(function(x){ return {head:x[0], amt:x[1]}; });
+  const rows=rsFilter('rp_exph',all,['head','amt']);
+  const shown=rows.reduce(function(a,r){ return a+(+r.amt||0); },0);
+  $('#sheet').innerHTML=reportShell({
+    key:'rp_exph', icon:'\uD83D\uDCB8', title:t('rp_exp_head'),
+    cols:[{n:t('exp_cat')},{n:t('amount'),w:'34%',num:1},{n:t('rp_of_total'),w:'62px',num:1}],
+    rows:rows.map(function(r){ return [esc(r.head), money(r.amt),
+      (f.expTotal?Math.round(r.amt/f.expTotal*100):0)+'%']; }),
+    total:[t('exp_total'), money(shown), f.netSales?Math.round(f.expTotal/f.netSales*100)+'%':''],
+    top:'<div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">'
+      +'<div class="il"><span>'+t('exp_total')+'</span><b style="color:var(--bad);font-size:18px">'+money(f.expTotal)+'</b></div>'
+      +'<div class="il" style="border-bottom:0"><span>'+t('rp_exp_of_sales')+'</span>'
+      +'<b>'+(f.netSales?Math.round(f.expTotal/f.netSales*100):0)+'%</b></div></div>',
+    exportBuilder:function(){ return {title:t('rp_exp_head'), sub:fmtDate(from)+' \u2013 '+fmtDate(to),
       head:[t('exp_cat'),t('amount'),t('rp_of_total')],
-      rows:f.heads.map(([h,v])=>[h,v,(f.expTotal?Math.round(v/f.expTotal*100):0)+'%'])})):''}
-    ${f.heads.map(([h,v])=>`<div class="card" style="padding:12px 14px;margin-bottom:8px">
-      <div class="kv"><b>${esc(h)}</b><b>${money(v)}</b></div>
-      ${barHTML(v/top*100,'var(--bad)')}
-      <div class="hint" style="margin-top:4px">${f.expTotal?Math.round(v/f.expTotal*100):0}% ${t('rp_of_total')}</div>
-    </div>`).join('')||`<p class="hint">${t('exp_none')}</p>`}
-    <div class="modal-actions">
-      <button class="btn ghost" style="flex:1" onclick="closeSheet()">${t('back')}</button>
-      <button class="btn primary" style="flex:1" onclick="expHeadPdf()">\u{1F4C4} ${t('rp_pdf')}</button>
-      <button class="btn ghost" style="flex:0 0 auto" title="${t('print')}" onclick="expHeadPrint()">🖨️</button></div>
-    <div class="fab-pad"></div>`;
+      rows:rows.map(function(r){ return [r.head, r.amt, (f.expTotal?Math.round(r.amt/f.expTotal*100):0)+'%']; })}; }
+  });
   showSheet();
 }
 function expHeadPrint(){
@@ -29092,8 +29226,16 @@ function psPrint(pid,kind){
       <td class="n">${money(Math.abs(run))} ${run<0?esc(t('ob_pay')):esc(t('ob_get'))}</td></tr></table>`;
   reportPrint(p.name, body, t(PK_LBL[p.kind]||'pt_other'));
 }
-function setRpPeriod(p){rpPeriod=p;if(p==='custom'){if($('#rp_from'))rpFrom=$('#rp_from').value;if($('#rp_to'))rpTo=$('#rp_to').value;}renderReports();}
-function applyRpCustom(){rpPeriod='custom';rpFrom=$('#rp_from').value;rpTo=$('#rp_to').value;renderReports();}
+/* v643: the chips moved onto the summary sheet, so the redraw has to follow them — a
+   chip that changes the period and redraws the screen behind it is fault 1 all over again. */
+/* v643: the bar is on a dozen screens now, so the redraw must be whichever screen is
+   actually open. _sheetCur already knows; nothing else has to be told. */
+function rpRedraw(){
+  try{ if(typeof _sheetCur==='function' && _sheetCur){ _sheetCur(); return; } }catch(e){}
+  try{ renderReports(); }catch(e){}
+}
+function setRpPeriod(p){rpPeriod=p;if(p==='custom'){if($('#rp_from'))rpFrom=$('#rp_from').value;if($('#rp_to'))rpTo=$('#rp_to').value;}rpRedraw();}
+function applyRpCustom(){rpPeriod='custom';rpFrom=$('#rp_from').value;rpTo=$('#rp_to').value;rpRedraw();}
 /* ── STAFF REPORT ──────────────────────────────────────────────────────────────
    v213 — HIS 17 Aug: "details report kaun kitne baje aaya, kitne din aaya, kitna payment
    uthaya, kitna loan (advance) baaki hai uske paas." None of it existed — attendance was
@@ -29466,89 +29608,9 @@ function srMonth(n){
   _srMonth=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
   staffReport();
 }
-function renderReports(){
-  const el=$('#reportsPane');
-  /* v228: the four money reports lead, because these are the ones he opens to decide
-     something. The lists below them are for looking a number up. */
-  /* v401 — HIS 29 Aug, with the Vyapar screenshots: "report wala button click karta hoon to
-     pura page bhara hua lagta hai." Seventeen buttons in a grid, every one the same weight,
-     nothing telling him which is which. Vyapar does the obvious thing and it is right — a
-     report list is a LIST: quiet headings, one thin line per report, no colour, no boxes.
-     Same seventeen reports, same functions, nothing removed; they just stop shouting.
-     They are grouped the way a shop thinks about them: the books, the people you deal with,
-     the shop floor, and the two doors he uses for entry. */
-  const _rpRow=(icon,label,fn)=>`<div class="kv" style="padding:11px 2px;border-bottom:1px solid var(--line);cursor:pointer"
-      onclick="${fn}"><span style="flex:1;min-width:0">${icon} ${esc(label)}</span>
-      <span style="color:var(--saffron2)">\u203A</span></div>`;
-  const _rpSec=(title,rows)=>`<div class="card" style="padding:4px 12px 2px;margin-bottom:12px">
-      <div class="section-h" style="margin:8px 0 2px">${esc(title)}</div>
-      ${rows.filter(Boolean).map(r=>_rpRow(r[0],r[1],r[2])).join('')}</div>`;
-  /* ══════════ v610 — WHAT IS OUTSTANDING, IN THREE LINES ══════════
-     HIS 10 Sept: "reports mein khali dekhna hai ki creditors total outstanding kitne hain?
-     Debtors kitne hain? Loan kitna hai? To reports mein sabka section alag alag ho."
-     Each of these figures already existed and each lived on a different screen, so reading
-     the three together meant opening three places and holding the numbers in his head. They
-     are one section now, with the figure on the row, and each one opens its own report. */
-  const _rpOut=(()=>{
-    const A=(openBS().date||fyStartISO()), B=todayISO();
-    let f={A:{},L:{}}; try{ f=bsFigures(A,B); }catch(e){}
-    const money0=v=>money(r2(Math.abs(+v||0)));
-    return `<div class="card" style="padding:4px 12px 2px;margin-bottom:12px">
-      <div class="section-h" style="margin:8px 0 2px">${t('rps_outstanding')}</div>
-      <div class="il tappable" onclick="closeSheet();debtorsHome()">
-        <span>\u{1F4D2} ${t('rp_out_debtors')}</span><b>${money0(f.A.debtors)}</b></div>
-      <div class="il tappable" onclick="closeSheet();creditorsHome()">
-        <span>\u{1F4D5} ${t('rp_out_creditors')}</span><b>${money0(f.L.creditors)}</b></div>
-      ${/* v610: there is no separate loans screen and there does not need to be — every loan
-           is a ledger in the Loans group, so this row opens the ledger master already
-           filtered to that group, which is where the detail lives. */''}
-      <div class="il tappable" style="border-bottom:0" onclick="closeSheet();lgOpenGroup('loans')">
-        <span>\u{1F3E6} ${t('rp_out_loans')}</span><b>${money0(f.L.loans)}</b></div>
-    </div>`;
-  })();
-  const _mainRp = _rpOut +
-    _rpSec(t('rps_entry'),[
-      ['\u2B06\uFE0F',t('mo_title'),'moneyOut()'],
-      ['\u{1F4E5}',t('bi_title'),'bankImport()']])
-  + _rpSec(t('rps_books'),[
-      /* ══════════ v545 — EIGHT REPORTS THAT LIVED OUTSIDE REPORTS ══════════
-         HIS 7 Sept, with the Vyapar screenshots again: "reports mein reports nahi hai. Day
-         book mein report hai — kyun hai bhai Day book mein report? Maine day one se bol raha
-         hoon ki sab kuch ek jagah ho, systematic ho, koi bhi bikhraav na ho."
-         He has said it from the start and I kept building reports and leaving them wherever
-         the work happened to be. Counted them: seventeen were in here and EIGHT were not —
-         the Day book under Expenses, the Ledger master under Expenses, the income book, the
-         karigar's account, the karigar report, the payments-to-check list, the staff report,
-         and the growth figures. Every one of them works; not one of them could be found from
-         the screen called Reports.
-         They are in, in the section a shopkeeper would look for them. Nothing new was built
-         and nothing was moved out of its old door — those still work — but Reports is now
-         the one place where all of them are listed. */
-      ['\u{1F4C8}',t('rp_pl'),'plReport()'],
-      ['\u{1F3E6}',t('bs_title'),'balanceSheet()'],
-      ['\u{1F4CB}',t('tb_title'),'trialBalance()'],
-      ['\u{1F4B5}',t('rp_cashflow'),'cashflowReport()'],
-      ['\u{1F4D2}',t('db_title'),'dayBook()'],
-      ['\u{1F4D7}',t('lg_title'),'ledgerMaster()'],
-      ['\u{1F4D3}',t('jv_title'),'journalBook()'],
-      ['\u{1F9FE}',t('gst_title'),'gstReport()']])
-  + _rpSec(t('rps_people'),[
-      ['\u{1F4D2}',t('rp_party_stmt'),'partyStatement()'],
-      ['\u{1F4E4}',t('creditors_report'),'creditors()'],
-      ['\u{1F514}',t('fu_title'),'followUps()'],
-      ['\u{1F3E6}',t('brs_title'),'brsOpen()']])
-  + _rpSec(t('rps_floor'),[
-      ['\u{1F4E4}',t('ki_title'),'karIssue()'],
-      ['\u{1F4E5}',t('kr_title'),'karReceive()'],
-      ['\u{1F9F5}',t('kb_title'),'karigarBook()'],
-      ['\u{1F50E}',t('krp_title'),'karPayRiskReport()'],
-      ['\u{1F69A}',t('ontime_title'),'ontimeReport()'],
-      ['\u{1F4B0}',t('op_title'),'orderProfitReport()'],
-      ['\u{1F4B8}',t('rp_exp_head'),'expHeadReport()']])
-  + _rpSec(t('rps_staff'),[
-      ['\u{1F465}',t('sh_title'),'staffHub()'],
-      ['\u{1F9D1}\u200D\u{1F4BC}',t('rp_salesman'),'salesmanReport()']]);
-  const {from,to}=rpRange();
+/* v643: the four blocks that used to be printed on the Reports hub are worked out here,
+   once, for whichever period the chips are on. Reports itself now computes nothing. */
+function rpSummaryParts(from,to){
   const invs=allInvoices().filter(x=>{const d=String(x.inv.date||'');return d>=from&&d<=to;});
   let sales=0,gst=0;
   invs.forEach(x=>{const c=invCompute(x.inv);sales+=c.total;gst+=c.cgst+c.sgst+c.igst;});
@@ -29596,51 +29658,170 @@ function renderReports(){
     <div><b>${esc(d.name)}</b><div class="hint">${esc(d.phone||'')} · ${d.count} ${t('rp_items')}</div></div>
     <b style="color:var(--saffron2);font-size:16px">${money(r2(d.total))}</b></div>`).join('');
 
+  return {debtors,debTotal,debRows,purch,purchTotal,purchRows,creditors,credTotal,credRows};
+}
+/* v645: each hub is the same quiet list — a row per report, nothing else on the screen. */
+const RPT_HUBS={
+  sales:['\u{1F9FE}','rh_sales',[
+    ['\u{1F4B0}','rp_summary','salesSummary()'],
+    ['\u{1F4B0}','op_title','orderProfitReport()'],
+    ['\u{1F9D1}\u200D\u{1F4BC}','rp_salesman','salesmanReport()'],
+    ['\u{1F69A}','ontime_title','ontimeReport()'],
+    ['\u{1F514}','fu_title','followUps()']]],
+  purchase:['\u{1F4E6}','rh_purchase',[
+    ['\u{1F4E4}','creditors_report','creditors()'],
+    ['\u{1F4D2}','rp_party_stmt','partyStatement()']]],
+  expense:['\u{1F4B8}','rh_expense',[
+    ['\u{1F4B8}','rp_exp_head','expHeadReport()'],
+    ['\u{1F4B8}','exp_title','expenses()']]],
+  accounts:['\u{1F4D7}','rh_accounts',[
+    ['\u{1F4C8}','rp_pl','plReport()'],
+    ['\u{1F3E6}','bs_title','balanceSheet()'],
+    ['\u{1F4CB}','tb_title','trialBalance()'],
+    ['\u{1F4D3}','jv_title','journalBook()'],
+    ['\u{1F4D7}','lg_title','ledgerMaster()'],
+    ['\u{1F9FE}','gst_title','gstReport()']]],
+  cash:['\u{1F3E6}','rh_cash',[
+    ['\u2696\uFE0F','rec_title','recOpen()'],
+    ['\u{1F4D2}','db_title','dayBook()'],
+    ['\u{1F4B5}','rp_cashflow','cashflowReport()'],
+    ['\u{1F3E6}','brs_title','brsOpen()'],
+    ['\u{1F4E5}','bi_title','bankImport()']]],
+  floor:['\u{1F9F5}','rh_floor',[
+    ['\u{1F4E4}','ki_title','karIssue()'],
+    ['\u{1F4E5}','kr_title','karReceive()'],
+    ['\u{1F9F5}','kb_title','karigarBook()'],
+    ['\u{1F50E}','krp_title','karPayRiskReport()'],
+    ['\u{1F465}','sh_title','staffHub()']]]
+};
+let _rptHub='sales';
+function rptHub(k){
+  _rptHub=k||'sales'; sheetAt(()=>rptHub(_rptHub));
+  const h=RPT_HUBS[_rptHub]; if(!h)return;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:12px"><h2 style="margin:0">${h[0]} ${t(h[1])}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
+    ${h[2].map(r=>`<div class="kv" style="padding:13px 2px;border-bottom:1px solid var(--line);cursor:pointer"
+        onclick="${r[2]}"><span style="flex:1;min-width:0">${r[0]} ${t(r[1])}</span>
+        <span style="color:var(--saffron2)">\u203A</span></div>`).join('')}
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function renderReports(){
+  const el=$('#reportsPane');
+  /* v228: the four money reports lead, because these are the ones he opens to decide
+     something. The lists below them are for looking a number up. */
+  /* v401 — HIS 29 Aug, with the Vyapar screenshots: "report wala button click karta hoon to
+     pura page bhara hua lagta hai." Seventeen buttons in a grid, every one the same weight,
+     nothing telling him which is which. Vyapar does the obvious thing and it is right — a
+     report list is a LIST: quiet headings, one thin line per report, no colour, no boxes.
+     Same seventeen reports, same functions, nothing removed; they just stop shouting.
+     They are grouped the way a shop thinks about them: the books, the people you deal with,
+     the shop floor, and the two doors he uses for entry. */
+  const _rpRow=(icon,label,fn)=>`<div class="kv" style="padding:11px 2px;border-bottom:1px solid var(--line);cursor:pointer"
+      onclick="${fn}"><span style="flex:1;min-width:0">${icon} ${esc(label)}</span>
+      <span style="color:var(--saffron2)">\u203A</span></div>`;
+  const _rpSec=(title,rows)=>`<div class="card" style="padding:4px 12px 2px;margin-bottom:12px">
+      <div class="section-h" style="margin:8px 0 2px">${esc(title)}</div>
+      ${rows.filter(Boolean).map(r=>_rpRow(r[0],r[1],r[2])).join('')}</div>`;
+  /* ══════════ v610 — WHAT IS OUTSTANDING, IN THREE LINES ══════════
+     HIS 10 Sept: "reports mein khali dekhna hai ki creditors total outstanding kitne hain?
+     Debtors kitne hain? Loan kitna hai? To reports mein sabka section alag alag ho."
+     Each of these figures already existed and each lived on a different screen, so reading
+     the three together meant opening three places and holding the numbers in his head. They
+     are one section now, with the figure on the row, and each one opens its own report. */
+  const _rpOut=(()=>{
+    const A=(openBS().date||fyStartISO()), B=todayISO();
+    let f={A:{},L:{}}; try{ f=bsFigures(A,B); }catch(e){}
+    const money0=v=>money(r2(Math.abs(+v||0)));
+    return `<div class="card" style="padding:4px 12px 2px;margin-bottom:12px">
+      <div class="section-h" style="margin:8px 0 2px">${t('rps_outstanding')}</div>
+      <div class="il tappable" onclick="closeSheet();debtorsHome()">
+        <span>\u{1F4D2} ${t('rp_out_debtors')}</span><b>${money0(f.A.debtors)}</b></div>
+      <div class="il tappable" onclick="closeSheet();creditorsHome()">
+        <span>\u{1F4D5} ${t('rp_out_creditors')}</span><b>${money0(f.L.creditors)}</b></div>
+      ${/* v610: there is no separate loans screen and there does not need to be — every loan
+           is a ledger in the Loans group, so this row opens the ledger master already
+           filtered to that group, which is where the detail lives. */''}
+      <div class="il tappable" style="border-bottom:0" onclick="closeSheet();lgOpenGroup('loans')">
+        <span>\u{1F3E6} ${t('rp_out_loans')}</span><b>${money0(f.L.loans)}</b></div>
+    </div>`;
+  })();
+  /* ══════════════ v645 — SIX HUBS, NOT ONE LONG LIST ══════════════
+     HIS 13 Sept: "expense ka alag hub banao, purchase ka alag, sales ka alag, balance
+     accounting ka alag, cash ka alag, bank ki alag hogi. Purchase mein sale nahi, expense
+     kahin beech mein ghusa diya hai — aisa mat karo."
+     Twenty-three report rows sat in one column under five headings that meant nothing to
+     a shopkeeper — Expenses by head was filed under SHOP FLOOR, the day book under BOOKS,
+     payables under PARTIES. He named the six groups a shop actually thinks in. These are
+     those six. Nothing was built and nothing was removed; every report is where a man
+     would go looking for it. */
+  const _mainRp = _rpOut + _rpSec('',[
+      ['\u{1F9FE}',t('rh_sales'),"rptHub('sales')"],
+      ['\u{1F4E6}',t('rh_purchase'),"rptHub('purchase')"],
+      ['\u{1F4B8}',t('rh_expense'),"rptHub('expense')"],
+      ['\u{1F4D7}',t('rh_accounts'),"rptHub('accounts')"],
+      ['\u{1F3E6}',t('rh_cash'),"rptHub('cash')"],
+      ['\u{1F9F5}',t('rh_floor'),"rptHub('floor')"]]);
   el.innerHTML=`
     <div class="detail-hd"><button class="back" onclick="go('invoices')">←</button><div style="flex:1"><h2>📊 ${t('reports')}</h2></div></div>
+    ${/* ══════════ v643 — REPORTS WAS NOT A LIST OF REPORTS ══════════
+         HIS 13 Sept, holding up Vyapar's backup screen: "app mein aur kahin par bhi gandagi
+         hai to use bhi theek kiya ya nahi?" Measured every screen after that. Reports came
+         back at 31 controls — the heaviest in the app.
+         The rows were never the problem. Under the list sat a whole sales report, its date
+         chips, every invoice of the period, the receivables, the purchases and the payables
+         — a screen's worth of data on a screen whose job is to route. The app's own law says
+         a HUB carries routes and nothing else, and this one carried four reports open on the
+         floor. They are one row now, and that row opens exactly what used to be printed
+         here, chips and all. Nothing was removed and no figure changed. */''}
     ${_mainRp}
-    ${/* v213: every report the shop keeps, reachable from the one place reports live */''}
-    ${/* v399 — HIS 29 Aug, off his own screen: "Staff report" appeared twice on the Reports
-         page. It was added here in v213 and again beside the salesman report; the second
-         one stays, next to the report it belongs with. */''}
-    <div class="row" style="gap:6px;margin-bottom:12px">
-      <button class="btn ghost" style="flex:1" onclick="expenses()">💸 ${t('exp_title')}</button>
-    </div>
-    ${/* v325 — writing a purchase bill is not analysis, and it already has three homes of
-         its own: the + button (which is where this app creates everything), the Purchases
-         screen's own full-width button, and the Home shortcut. Sitting here as well made
-         Reports read like a place you enter transactions, and put a create action in the
-         one screen a person opens to look rather than to type. Removed from here only —
-         nothing about purchase entry itself changes. */''}
-    <div class="section-h" style="margin-top:4px">💰 ${t('sales_report')}</div>
-    <div class="gtags" style="margin-bottom:10px">${chip('week',t('rp_week'))}${chip('month',t('rp_month'))}${chip('custom',t('rp_custom'))}</div>
-    ${rpPeriod==='custom'?`<div class="row" style="margin-bottom:10px"><div class="field"><label>${t('rp_from')}</label><input id="rp_from" type="date" value="${esc(rpFrom||from)}" onchange="rpFrom=this.value"></div>
-      <div class="field"><label>${t('rp_to')}</label><input id="rp_to" type="date" value="${esc(rpTo||to)}" onchange="rpTo=this.value"></div></div>
-      <button class="btn sm primary block" style="margin-bottom:10px" onclick="applyRpCustom()">${t('rp_apply')}</button>`:''}
+    <div class="fab-pad"></div>`;
+}
+/* the four blocks that used to sit open on the Reports hub — same figures, same period
+   chips, one door instead of four */
+function salesSummary(){
+  sheetAt(salesSummary);
+  const {from,to}=rpRange();
+  const invs=allInvoices().filter(x=>{const d=String(x.inv.date||'');return d>=from&&d<=to;});
+  let sales=0,gst=0;
+  invs.forEach(x=>{const c=invCompute(x.inv);sales+=c.total;gst+=c.cgst+c.sgst+c.igst;});
+  const chip=(pp,label)=>`<span class="gtag" onclick="setRpPeriod('${pp}')" style="cursor:pointer;${rpPeriod===pp?'background:var(--saffron);color:#1a1206;border-color:var(--saffron)':''}">${label}</span>`;
+  const invRows=invs.map(x=>{const c=invCompute(x.inv);
+    return `<div class="card ocard" onclick="openInvoicePreview('${x.kind}','${x.rec.id}')" style="padding:10px 12px">
+      <div class="top"><div><div class="ono" style="font-size:14px">🧾 ${esc(x.inv.no)}</div>
+        <div class="meta">${esc(x.rec.customerName||'—')} · ${fmtDate(x.inv.date)}</div></div>
+        <div style="text-align:right;font-weight:800">${money(c.total)}</div></div></div>`;}).join('');
+  const R=rpSummaryParts(from,to);
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:8px"><h2 style="margin:0">💰 ${t('rp_summary')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
+    ${rangeBarHTML()}
     <div class="card">
       <div class="kv"><span>${t('rp_invoices')}</span><b>${invs.length}</b></div>
       <div class="kv"><span>${t('rp_total_sales')}</span><b style="font-size:18px">${money(r2(sales))}</b></div>
       <div class="kv"><span>${t('rp_total_gst')}</span><b>${money(r2(gst))}</b></div>
-      <div class="hint" style="margin-top:6px">${fmtDate(from)} → ${fmtDate(to)}</div>
+      
     </div>
     ${invs.length?exportBarHTML('rp_sales',()=>({title:t('sales_report'), sub:fmtDate(from)+' \u2013 '+fmtDate(to),
       head:[t('pay_date'),t('invoice'),t('customer'),t('amount')],
       rows:invs.map(x=>[fmtDate(x.inv.date), x.inv.no, x.rec.customerName||'', r2(invCompute(x.inv).total)])})):''}
     ${invRows||`<p class="hint">${t('rp_no_data')}</p>`}
     <div class="section-h">🔴 ${t('debtors_report')}</div>
-    ${debtors.length?`<div class="card"><div class="kv"><span>${t('rp_debtor_total')}</span><b style="color:var(--saffron2);font-size:18px">${money(r2(debTotal))}</b></div></div>`+debRows:`<p class="hint">${t('rp_no_debtors')}</p>`}
+    ${R.debtors.length?`<div class="card"><div class="kv"><span>${t('rp_debtor_total')}</span><b style="color:var(--saffron2);font-size:18px">${money(r2(R.debTotal))}</b></div></div>`+R.debRows:`<p class="hint">${t('rp_no_debtors')}</p>`}
     <div class="section-h">📦 ${t('purchases_report')}</div>
     <div class="card">
-      <div class="kv"><span>${t('rp_total_purchases')}</span><b style="font-size:18px">${money(r2(purchTotal))}</b></div>
-      <div class="hint" style="margin-top:6px">${fmtDate(from)} → ${fmtDate(to)}</div>
+      <div class="kv"><span>${t('rp_total_purchases')}</span><b style="font-size:18px">${money(r2(R.purchTotal))}</b></div>
+      
     </div>
-    ${purch.length?exportBarHTML('rp_purch',()=>({title:t('purchases_report'), sub:fmtDate(from)+' \u2013 '+fmtDate(to),
+    ${R.purch.length?exportBarHTML('rp_purch',()=>({title:t('purchases_report'), sub:fmtDate(from)+' \u2013 '+fmtDate(to),
       head:[t('pay_date'),t('supplier'),t('purch_bill_no'),t('amount')],
-      rows:purch.map(p=>[fmtDate(p.date), p.supplier||'', p.billNo||'', r2(+p.total||0)])})):''}
-    ${purchRows||`<p class="hint">${t('rp_no_data')}</p>`}
+      rows:R.purch.map(p=>[fmtDate(p.date), p.supplier||'', p.billNo||'', r2(+p.total||0)])})):''}
+    ${R.purchRows||`<p class="hint">${t('rp_no_data')}</p>`}
     <div class="section-h">🟠 ${t('creditors_report')}</div>
-    ${creditors.length?`<div class="card"><div class="kv"><span>${t('rp_creditor_total')}</span><b style="color:var(--saffron2);font-size:18px">${money(r2(credTotal))}</b></div></div>`+credRows:`<p class="hint">${t('rp_no_creditors')}</p>`}
+    ${R.creditors.length?`<div class="card"><div class="kv"><span>${t('rp_creditor_total')}</span><b style="color:var(--saffron2);font-size:18px">${money(r2(R.credTotal))}</b></div></div>`+R.credRows:`<p class="hint">${t('rp_no_creditors')}</p>`}
     <div class="fab-pad"></div>`;
+  showSheet();
 }
 
 function focusItem(oid,gid){openDetail(oid,gid);}
@@ -32779,7 +32960,7 @@ function rentSetup(){
         ${heads.map(h=>`<option value="${esc(h)}" ${c.head===h?'selected':''}>${esc(h)}</option>`).join('')}</select>
       <p class="hint" style="margin-top:4px">${t('rc_head_hint')}</p></div>
     ${rentOn()?`<div class="card pos-total" style="padding:12px 14px;margin-top:14px">
-      <p class="hint" style="margin:0 0 6px">${fmtDate(from)} \u2192 ${fmtDate(to)}</p>
+      ${rangeBarHTML()}
       ${(()=>{ const bs2=rentBase(from,to);
         return `<div class="il"><span class="hint">${t('rc_base')}</span><b>${money(bs2.gross)}</b></div>
         ${bs2.ret?`<div class="il"><span class="hint">${t('rc_ret')}</span><b style="color:var(--ok)">− ${money(bs2.ret)}</b></div>`:''}`; })()}
@@ -33230,6 +33411,85 @@ function partyById(id){ return partyAll().find(x=>x.id===id); }
    Everything else posts here, through the SAME writers the old screens used — settleParty
    for obligations, the same expense row shape for costs. No second accounting engine. */
 function moExpenseGroups(){ return ['indirect','direct','salary','jobwork']; }
+/* ══════════════════ v646 — THE GALLA NEVER MATCHES THE BOOK ══════════════════
+   HIS 13 Sept: "cash gale se nahi milta hai to adjust karna padta hai, ya bank account se
+   nahi milta hai to suspense entry... jiska provision ya adjust cash karke, wo bhi hota
+   hai."
+   Every shop has this and the app had no answer to it. He could SEE that the drawer said
+   one thing and the book another, and the only ways out were to invent a fake expense or
+   to leave the book wrong. Both are worse than the problem.
+   This counts the difference and posts it as a proper double entry: the account moves to
+   what he actually has, and the difference lands in a head he names — Suspense while it is
+   still unexplained, Cash short or Cash excess when it is just the drawer. Nothing is
+   silently corrected; the entry carries the date, the reason and both figures, and it
+   reads back in the Day book like any other line. */
+function recOpen(accId){
+  sheetAt(()=>recOpen(accId));
+  const accs=(DB.accounts||[]);
+  const id=accId||((cashAcc()||{}).id)||'';
+  const bal=id?accBalance(id):0;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:12px"><h2 style="margin:0">\u2696\uFE0F ${t('rec_title')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
+    <div class="field"><label>${t('rec_acc')}</label>
+      <select id="rc_acc" onchange="recOpen(this.value)">
+        ${accs.map(a=>`<option value="${esc(a.id)}" ${a.id===id?'selected':''}>${esc(a.name)}</option>`).join('')}
+      </select></div>
+    <div class="card pos-total" style="padding:12px 14px;margin:10px 0">
+      <div class="il"><span>${t('rec_book')}</span><b style="font-size:18px">${money(bal)}</b></div>
+      <div class="il" style="border-bottom:0"><span>${t('rec_diff')}</span>
+        <b id="rc_diff" style="color:var(--mut)">\u2014</b></div></div>
+    <div class="field"><label>${t('rec_actual')}</label>
+      <input id="rc_act" type="number" inputmode="decimal" placeholder="0"
+        oninput="recDiff('${jq(id)}')"></div>
+    <div class="field"><label>${t('rec_head')}</label>
+      <select id="rc_head">
+        <option value="${esc(t('rec_h_susp'))}">${esc(t('rec_h_susp'))}</option>
+        <option value="${esc(t('rec_h_short'))}">${esc(t('rec_h_short'))}</option>
+        <option value="${esc(t('rec_h_excess'))}">${esc(t('rec_h_excess'))}</option>
+      </select></div>
+    <div class="field"><label>${t('note')}</label>
+      <input id="rc_note" placeholder="${esc(t('rec_note_ph'))}"></div>
+    <div class="field"><label>${t('pay_date')}</label>${dateField('rc_date',todayISO())}</div>
+    <div class="save-dock">
+      <button class="btn ghost" style="flex:1" onclick="closeSheet()">${t('cancel')}</button>
+      <button class="btn primary" style="flex:2" onclick="recPost('${jq(id)}')">\u2696\uFE0F ${t('rec_go')}</button></div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function recDiff(id){
+  const el=$('#rc_diff'); if(!el)return;
+  const act=$('#rc_act'), v=act?act.value:'';
+  if(String(v).trim()===''){ el.textContent='\u2014'; el.style.color='var(--mut)'; return; }
+  const d=r2((+v||0)-accBalance(id));
+  el.textContent=(d>0?'+':'')+money(d);
+  el.style.color = d===0 ? 'var(--ok)' : 'var(--bad)';
+}
+function recPost(id){
+  const act=$('#rc_act'); const raw=act?String(act.value).trim():'';
+  if(raw===''){ toast(t('rec_no_count'),'bad'); return; }
+  const bal=accBalance(id), actual=r2(+raw||0), diff=r2(actual-bal);
+  if(diff===0){ toast(t('rec_already'),'ok'); return; }
+  const head=(($('#rc_head')||{}).value||t('rec_h_susp'));
+  const note=(($('#rc_note')||{}).value||'');
+  const date=(($('#rc_date')||{}).value||todayISO());
+  const a=ACC(id)||{};
+  confirmModal('\u2696\uFE0F '+t('rec_title'),
+    t('rec_confirm',{a:esc(a.name||''),b:money(bal),c:money(actual),
+      d:(diff>0?'+':'')+money(diff),h:esc(head)}),
+    ()=>{
+      closeModal();
+      /* short in the drawer = money has left it; excess = money has come in. Either way it
+         is a real posting against a named head, never a quiet edit of the balance. */
+      const r = diff<0
+        ? moPost({name:head, amt:Math.abs(diff), date, acc:id, note:note||t('rec_auto')})
+        : miPost({name:head, amt:Math.abs(diff), date, acc:id, note:note||t('rec_auto')});
+      if(!r||!r.ok){ toast((r&&r.msg)||t('t_saved'),'bad'); return; }
+      save(); closeSheet();
+      toast(t('rec_done',{d:(diff>0?'+':'')+money(diff),h:head}),'ok');
+      try{ if(typeof cashBank==='function')cashBank(); }catch(e){}
+    }, closeModal, {yes:t('rec_go'), cls:'primary'});
+}
 function moPost(d){
   /* ══════════════ v456 — A SUPPLIER PAYMENT BOOKED AS AN EXPENSE ══════════════
      HIS 3 Sep: "Om Creation ab dikhai nahi de raha... payment kahan chala gaya?"
