@@ -1050,7 +1050,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v679</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v680</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -5564,9 +5564,13 @@ function enLockScreens(){
       const w=enScreen(f); w.__enWrapped=1; window[n]=w; } });
 }
 function enScreen(fn){
-  return function(){ _enLock++;
+  const w=function(){ _enLock++;
     try{ return fn.apply(this,arguments); }
     finally{ _enLock--; } };
+  /* v680: same reason as the PIN wrapper — the 27 English-locked screens were all
+     anonymous once wrapped, so the trail could not name any of them. */
+  try{ Object.defineProperty(w,'name',{value:fn.name||'',configurable:true}); }catch(e){}
+  return w;
 }
 
 /* ---- status workflow ---- */
@@ -6214,6 +6218,22 @@ function bkMoney(){
   return out;
 }
 /* collections this device has data in that the file does not - the dangerous direction */
+/* ══════════ v680 — THE WARNING RANKED THE WRONG THINGS FIRST ══════════
+   v673 built this list so a file that would gut the book says so before anything is
+   written, and only the first eight lines are shown with a … under them. Sorted by COUNT,
+   which is what it did until now, those eight slots go to whatever collection happens to
+   hold the most rows — and on a real device that is the seeded configuration:
+   expHeadCfg 20, expCats 20, inclLib 15, relLib 8, customItems 7, numCfg 5, modules 5,
+   itemCfg 4. Driven through the real picker with a file carrying orders and nothing else,
+   the eight lines he was shown were eight config lists, and "2 customers here, none in the
+   file" sat below the fold with his sales, his ledger and his karigar accounts.
+   Every one of those config lists is something the app seeds again by itself. His orders,
+   his customers, his bills, his cloth and his karigars' money are the things that exist
+   nowhere else. So the list is ranked by what cannot be re-entered, and the count only
+   breaks ties inside a rank. Nothing is dropped from the list — only the order changes,
+   which is the order the eight visible lines are taken in. */
+const BK_IRREPLACEABLE=['orders','customers','sales','purchases','ledger','thaans','moves',
+  'karigars','staff','expenses','estimates','alterations','samples','att','payments'];
 function bkLosses(incoming){
   const mine=bkManifest(DB), theirs=bkManifest(incoming||{}), lost=[];
   Object.keys(mine).forEach(k=>{
@@ -6221,7 +6241,8 @@ function bkLosses(incoming){
     const a=mine[k]||0, b=theirs[k]||0;
     if(a>0 && b===0) lost.push({k,had:a});
   });
-  return lost.sort((x,y)=>y.had-x.had);
+  const rank=k=>{ const i=BK_IRREPLACEABLE.indexOf(k); return i<0?BK_IRREPLACEABLE.length:i; };
+  return lost.sort((x,y)=>(rank(x.k)-rank(y.k)) || (y.had-x.had));
 }
 function bkDiff(want,got){
   const out=[];
@@ -6883,6 +6904,12 @@ function pinLockScreens(){
       const w=function(){ const args=arguments, self=this;
         if(!pinOn()||pinFresh())return f.apply(self,args);
         pinAsk(()=>f.apply(self,args)); return undefined; };
+      /* v680: the wrapper is what every caller, every onclick and sheetAt() now reach, so
+         without this the screen's own name is lost and all 21 money screens sat on the
+         trail as the single name "w". Nothing in the app read that name before; the screen
+         identity stamp does, and a stamp that cannot tell Cash & bank from Trial balance
+         is no better than the blank-screen check it replaces. */
+      try{ Object.defineProperty(w,'name',{value:f.name||n,configurable:true}); }catch(e){}
       w.__pinWrapped=1; window[n]=w; } });
 }
 /* v312 AUDIT — opening party balances, both halves of a pair that behaved differently.
@@ -12838,7 +12865,7 @@ function incBook(){
   showSheet();
 }
 function incEdit(id){
-  sheetAt(()=>incEdit(id));
+  sheetAt(()=>incEdit(id),'incEdit');
   const c=incCampaigns().find(x=>x.id===id)||{id:'',name:'',from:todayISO(),to:'',staffIds:[],
     scope:'item',match:'',rateType:'pct',rate:'',off:false};
   const staff=staffAll().filter(x=>!x.left);
@@ -13712,7 +13739,7 @@ let _dlv={oid:'',pick:{},date:'',pay:'',acc:''};
 function deliverPieces(oid){
   const o=(DB.orders||[]).find(x=>x.id===oid); if(!o){toast(t('nothing'),'bad');return;}
   if(_dlv.oid!==oid)_dlv={oid:oid,pick:{},date:todayISO(),pay:'',acc:''};
-  sheetAt(()=>deliverPieces(oid));
+  sheetAt(()=>deliverPieces(oid),'deliverPieces');
   const left=(o.items||[]).filter(g=>itemStatusOf(o,g)!=='delivered');
   const gone=(o.items||[]).filter(g=>itemStatusOf(o,g)==='delivered');
   const due=orderBaaki(o);
@@ -16020,7 +16047,7 @@ function magicSearchRender(q){
 }
 function magicGo(fn){ closeSheet(); try{ eval(fn); }catch(e){ toast(t('scr_lost'),'bad'); } }
 function magicOpen(q){
-  sheetAt(()=>magicOpen(_msQ));
+  sheetAt(()=>magicOpen(_msQ),'magicOpen');
   _msQ=String(q||'');
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F50D} ${t('msr_title')}</h2></div>
@@ -18014,6 +18041,17 @@ function memberBlockHTML(f,mem,idx,multi){
 }
 
 function renderForm(){
+  /* ══════════ v680 — THE ONE FORM WITH NO NAME ══════════
+     The alteration form, the bill form and the purchase form all open with sheetAt(renderX).
+     This one never did, so the busiest screen in the app sat on the glass as nobody: the
+     identity stamp read empty and no check could tell the order form from a screen that had
+     failed to draw.
+     It is NOT given a trail entry to match the other three. This form runs its own back —
+     ordStage() between the stages, cancelOrderForm() out of it — and showSheet() injects a
+     ← the moment the trail has anything on it, which would put a second arrow on the one
+     screen that already draws its own (the v489 fault, on the screen that can least afford
+     it). So it takes the name and not the stack. Identity, not navigation. */
+  try{ _sheetName='renderForm'; }catch(e){}
   const f=form;
   ensureFormMembers(f);
   msRecheckAll(f);          /* v369: every figure on the form, however it arrived */
@@ -23433,7 +23471,7 @@ function previewInvoice(){
      same screen for anyone who wants paper or a PDF. */
   _invPrevHTML=html;
   const back=_sheetCur;
-  sheetAt(()=>{});
+  sheetAt(()=>{},'invPreview');
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:8px"><h2 style="margin:0">\u{1F441}\uFE0F ${t('inv_preview')}</h2>
       <button class="btn sm ghost" onclick="invPrevBack()">\u2715</button></div>
@@ -26630,7 +26668,7 @@ function puItemSheet(idx){
   const src=(_puItIdx>=0)?((purchForm.items||[])[_puItIdx]||{}):{};
   _puIt=Object.assign({label:'',qty:'',unit:(_purD&&_purD.unit)||'Mtr',rate:'',
     hsn:'',design:'',colour:'',serials:[],photos:[],note:''}, JSON.parse(JSON.stringify(src)));
-  sheetAt(()=>puItemSheet(_puItIdx));
+  sheetAt(()=>puItemSheet(_puItIdx),'puItemSheet');
   puItemRender();
 }
 function puItemCap(){
@@ -29012,7 +29050,7 @@ function journalBook(){
   showSheet();
 }
 function journalEdit(id){
-  sheetAt(()=>journalEdit(id));
+  sheetAt(()=>journalEdit(id),'journalEdit');
   const ex=(DB.journal||[]).find(v=>v.id===id);
   _jv = ex ? {id:ex.id,date:ex.date,narration:ex.narration,lines:(ex.lines||[]).map(L=>({...L}))}
            : {id:null,date:todayISO(),narration:'',lines:[{acc:'',dr:'',cr:''},{acc:'',dr:'',cr:''}]};
@@ -29725,7 +29763,7 @@ function expHeadReport(){
 /* v656: one head, every entry that made it, and the type it is filed under - changeable
    right here, because that is where he finds out it is wrong. */
 function expHeadOpen(head){
-  sheetAt(function(){ expHeadOpen(head); });
+  sheetAt(function(){ expHeadOpen(head); },'expHeadOpen');
   const {from,to}=rpRange();
   const hc=expHeadCfg(head)||{};
   const lines=moneyLines(from,to).filter(function(l){
@@ -29809,7 +29847,7 @@ function expHeadPrint(){
 
 /* ── PARTY STATEMENT — one person, everything, on paper ── */
 function partyStatement(pid,kind){
-  sheetAt(()=>partyStatement(pid,kind));
+  sheetAt(()=>partyStatement(pid,kind),'partyStatement');
   const who=peopleAll();
   if(!pid){
     /* v403: the screenshot he sent — every name in the shop on one scroll. Same names,
@@ -30106,7 +30144,7 @@ function retView(kind,id){
   const isSale=kind==='sale';
   const r=((isSale?DB.salesReturns:DB.purchaseReturns)||[]).find(x=>x.id===id);
   if(!r){ toast(t('ps_open_fail'),'bad'); return; }
-  sheetAt(()=>retView(kind,id));
+  sheetAt(()=>retView(kind,id),'retView');
   const parent=isSale?(DB.sales||[]).find(x=>x.id===r.saleId)
                      :(DB.purchases||[]).find(x=>x.id===r.purId);
   const pLabel=parent?(isSale?((parent.invoice&&parent.invoice.no)||'—'):(parent.billNo||'—')):'—';
@@ -30265,7 +30303,7 @@ function payBalance(sid,mon){
   return {earned, drawn, bal:r2(earned-drawn)};
 }
 function payrollHub(mon){
-  sheetAt(()=>payrollHub(_payMon));
+  sheetAt(()=>payrollHub(_payMon),'payrollHub');
   _payMon = mon || _payMon || payPrevMonth(todayISO().slice(0,7));
   const m=_payMon;
   const all=staffAll().filter(x=>!x.left);
@@ -30406,7 +30444,7 @@ function paySalaryHead(){
    with the balance carried down the page the way a ledger reads. This is where the
    answer to "kitna baaki hai" is proved, not just stated. */
 function staffKhata(sid){
-  sheetAt(()=>staffKhata(sid));
+  sheetAt(()=>staffKhata(sid),'staffKhata');
   const st=staffById(sid); if(!st){ toast(t('scr_lost'),'bad'); return payrollHub(); }
   const upto=_payMon||todayISO().slice(0,7);
   const months=payMonthsUpto(sid,upto);
@@ -30620,7 +30658,7 @@ const RPT_HUBS={
 };
 let _rptHub='sales';
 function rptHub(k){
-  _rptHub=k||'sales'; sheetAt(()=>rptHub(_rptHub));
+  _rptHub=k||'sales'; sheetAt(()=>rptHub(_rptHub),'rptHub');
   const h=RPT_HUBS[_rptHub]; if(!h)return;
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:12px"><h2 style="margin:0">${h[0]} ${t(h[1])}</h2>
@@ -33106,7 +33144,7 @@ function kdSave(){
     ()=>closeModal(), {yes:t('save'), no:t('cancel'), cls:'primary'});
 }
 function karBulk(kid){
-  sheetAt(()=>karBulk(kid));
+  sheetAt(()=>karBulk(kid),'karBulk');
   _kbKid=kid||_kbKid;
   const k=(DB.karigars||[]).find(x=>x.id===_kbKid);
   if(!k){ toast(t('no_karigars'),'bad'); return; }
@@ -34551,7 +34589,7 @@ function moExpenseGroups(){ return ['indirect','direct','salary','jobwork']; }
    silently corrected; the entry carries the date, the reason and both figures, and it
    reads back in the Day book like any other line. */
 function recOpen(accId){
-  sheetAt(()=>recOpen(accId));
+  sheetAt(()=>recOpen(accId),'recOpen');
   const accs=(DB.accounts||[]);
   const id=accId||((cashAcc()||{}).id)||'';
   const bal=id?accBalance(id):0;
@@ -35307,7 +35345,7 @@ function lgRangeApply(id){
 function lgRangeClear(id){ _lgFrom=''; _lgTo=''; ledgerView(id); }
 function ledgerView(id){
   const l=lgById(id); if(!l)return;
-  sheetAt(()=>ledgerView(id));
+  sheetAt(()=>ledgerView(id),'ledgerView');
   const G=lgGroup(l.group)||{label:'',side:'dr'};
   const n=nameNorm(l.name);
   const all=[];
@@ -35804,7 +35842,7 @@ function partiesHome(keep){
      saw "Nobody yet", and had no idea an old search was still filtering it. ptySearch()
      re-renders the rows only, so typing is untouched. */
   if(!keep){ _ptyQ=''; _ptyOpen={}; _ptyAll={}; }
-  sheetAt(()=>partiesHome(1));
+  sheetAt(()=>partiesHome(1), _ptyKind==='creditors'?'creditorsHome':'debtorsHome');
   const rows=partiesRows(_ptyKind);
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">\u{1F4D2} ${
@@ -36059,7 +36097,7 @@ function rowOf(p){
 
 /* ── one person, one hat ── */
 function partyCard(name,kind){
-  sheetAt(()=>partyCard(name,kind));
+  sheetAt(()=>partyCard(name,kind),'partyCard');
   const st=openingState(name,kind);
   const pays=openingPays(name,kind).slice().sort((a,b)=>String(a.date).localeCompare(String(b.date)));
   const pp=partyByName(name);
@@ -39035,6 +39073,22 @@ function showSheet(){
       syncX();
     }
   }catch(e){}
+  /* ══════════ v680 — A SCREEN THAT IS NOT BLANK IS NOT THE RIGHT SCREEN ══════════
+     The audit has always asked "did something draw?" and never "did the thing I asked for
+     draw?". That is exactly how v645 measured HOME twice and printed it as Expenses and
+     Stock: go('expenses') pointed at a tab that does not exist, go() fell back to Home,
+     and every check passed because Home is not blank.
+     A screen has always known its own name — sheetAt(fn) is called by all 142 of them and
+     is the trail's own record of where he is. Writing that name onto the sheet as it is
+     SHOWN costs one line and makes "is Orders really Orders" answerable from outside, for
+     every screen at once, instead of one hand-written marker per screen.
+     Stamped here rather than in sheetAt() on purpose: several screens call sheetAt() and
+     then bail (a module that is switched off), and a screen that never drew must not be
+     able to claim it did. showSheet() runs only when the sheet is actually put up.
+     Nothing in the app reads this; it exists so the suite can. */
+  try{ const shn=$('#sheet');
+    if(shn) shn.dataset.screen=_sheetName||((_sheetCur&&_sheetCur.name)?_sheetCur.name:'');
+  }catch(e){}
   restorePlace();
   /* Lock the page behind the sheet. Without this the list underneath scrolls with the
      same finger drag and two things move at once — reported on the iPad, Aug 2. */
@@ -39238,6 +39292,9 @@ function closeSheet(){
   _handoffSync=true;
   try{ Promise.resolve().then(()=>{ _handoffSync=false; }); }catch(e){ _handoffSync=false; }
   sheetReset();
+  /* v680: a closed sheet must not go on claiming to be the screen it was — a stale stamp
+     would let a check pass on a screen that is no longer on the glass. */
+  try{ const shn=$('#sheet'); if(shn) shn.removeAttribute('data-screen'); }catch(e){}
   $('#scrim').classList.remove('show');$('#scrim').classList.remove('full');
   $('#fracbar').classList.remove('show');document.body.classList.remove('fb-on');
   _place=null;                                    // don't restore a place into a later visit
@@ -39351,6 +39408,9 @@ $('#mscrim').addEventListener('click',e=>{
    back one page instead of leaping to Home. The order form keeps its own step logic and
    is asked first. */
 let _sheetStack=[], _sheetCur=null;
+/* v680: the name of the screen now on the glass. Kept beside the trail because it is the
+   same fact — see sheetAt() below. */
+let _sheetName='';
 
 /* v244 — AUDIT FINDING: every re-render of a sheet threw him back to the top.
    The order form was protected (it captures _sheetScroll before each redraw), but nothing
@@ -39396,7 +39456,11 @@ function _shT(v){
    closed, and the screen it replaced belongs on the trail. A sheet he genuinely shuts and
    walks away from still clears it, because nothing opens after. */
 let _handoff=null, _handoffAt=0, _handoffTrail=null, _handoffSync=false;
-function sheetAt(fn){
+/* v680: a screen that re-opens itself with an argument — a ledger account, one party's
+   card, one karigar's book — has to hand sheetAt() a closure, and a closure has no name of
+   its own. Those eighteen screens were the whole of the trail's blind spot, so sheetAt()
+   takes the name beside the function. */
+function sheetAt(fn,name){
   if(typeof fn!=='function')return;
   if(!_sheetCur && _handoff && _handoff!==fn && (Date.now()-_handoffAt)<600){
     /* v489: a same-tick hand-off brings the pages behind it back too, so a trail three or
@@ -39408,6 +39472,7 @@ function sheetAt(fn){
   _handoff=null; _handoffTrail=null; _handoffSync=false;
   if(_sheetCur && _sheetCur!==fn)_sheetStack.push(_sheetCur);
   _sheetCur=fn;
+  _sheetName=name||(fn&&fn.name)||'';
 }
 function sheetBack(){
   const prev=_sheetStack.pop();
@@ -39415,7 +39480,7 @@ function sheetBack(){
   _sheetCur=null;                       // prev re-registers itself when it paints
   try{ prev(); return true; }catch(e){ _sheetCur=null; return false; }
 }
-function sheetReset(){ _sheetStack=[]; _sheetCur=null; }
+function sheetReset(){ _sheetStack=[]; _sheetCur=null; _sheetName=''; }
 function backOneStep(){
   try{
     // the order form: measurement card -> item list -> (then the sheet closes)
