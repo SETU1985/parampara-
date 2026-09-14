@@ -1044,13 +1044,26 @@
     main{max-width:1600px}
     .home-grid{grid-template-columns:repeat(5,1fr)}
   }
+/* v683 — a ledger row that reads on a phone: when, what, how much (with its own word),
+   and where that leaves the balance. Wraps without ever losing which figure is which. */
+.lg-row2{padding:10px 2px;border-bottom:1px solid var(--line);display:flex;
+  flex-wrap:wrap;gap:4px 10px;align-items:flex-end}
+.lg-row2:last-child{border-bottom:0}
+.lg-when{flex:1 1 100%;min-width:0}
+.lg-when b{font-size:14px}
+.lg-what{display:block;color:var(--txt2);font-size:12.5px;white-space:normal;line-height:1.45}
+.lg-fig{flex:1 1 auto;display:flex;flex-direction:column;gap:1px}
+.lg-fig .hint{font-size:11px;letter-spacing:.02em}
+.lg-fig b{font-size:15px;white-space:nowrap}
+.lg-run{text-align:right;margin-left:auto}
+.lg-run b{color:var(--saffron2)}
 </style>
 </head>
 <body>
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v680</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v684</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -2242,6 +2255,14 @@ const T={
   pty_title:'Receivables', pty_sub:'',
   pty_cred_title:'Payables',
   rp_out_debtors:'Debtors Outstanding', rp_out_creditors:'Creditors Outstanding',
+  cr_rec:'Where the difference is', cr_rec_title:'Where the difference is',
+  cr_rec_sheet:'Balance sheet says', cr_rec_list:'The payables list adds up to',
+  cr_rec_gap:'Difference', cr_rec_none:'The two agree \u2014 nothing to explain',
+  cr_rec_loans:'Loans \u2014 on the list, on its own line on the sheet',
+  cr_rec_onlysheet:'On the sheet, not on the list',
+  cr_rec_onlylist:'On the list, not on the sheet',
+  cr_rec_rounding:'Still unexplained',
+  cr_rec_note:'This screen changes nothing. It only says which names make the two figures differ, so the real question can be asked of the right record.',
   rp_out_loans:'Loans Outstanding',
   pty_search:'Search a name…', pty_add:'Add a party', pty_none:'Nobody yet',
   pty_open:'Opening', pty_open_left:'Opening still open', pty_open_none:'No opening entered',
@@ -2777,6 +2798,12 @@ const T={
   kb_part:'Part payment',
   kb_short:'Balance after this payment',
   kb_settle:'Settle the balance — do not carry forward',
+  /* v681: the settlement works both ways now, so the word for it must too */
+  kb_settle_over:'Close the account — pay this much more than the book says',
+  kb_settle_why:'Why (bargained, rounded off, old account\u2026)',
+  kb_settle_need_why:'Say in two words why the amount is different',
+  kb_settle_extra_hint:'For extra WORK on one piece, put it on that piece as Extra — this line is only for a difference in the account itself.',
+  kb_settled_more:'Paid — {a} more than the book',
   kb_settle_hint:'Use when you negotiate the amount down. Without this, the shortfall stays as his balance for next week.',
   kb_note_ph:'e.g. Saturday settlement',
   kb_need_amt:'Enter the amount',
@@ -3086,6 +3113,18 @@ const T={
   rec_title:'Match the book', rec_acc:'Which account', rec_book:'Book says',
   rec_actual:'Actually there', rec_diff:'Difference', rec_head:'Put the difference in',
   rec_h_susp:'Suspense', rec_h_short:'Cash short', rec_h_excess:'Cash excess',
+  /* v681 — the reconcile line on Cash & bank */
+  cb_recon:'Match the account', cb_recon_hint:'Count what is actually there and park the difference',
+  cb_recon_title:'Match the account',
+  cb_recon_book:'The book says', cb_recon_real:'What is actually there',
+  cb_recon_date:'Which day was it counted',
+  cb_recon_short:'short', cb_recon_over:'more than the book',
+  cb_recon_same:'The two agree \u2014 nothing to park',
+  cb_recon_why:'Note (optional \u2014 leave it blank if the reason is not known)',
+  cb_recon_go:'Park it in Suspense',
+  cb_recon_what:'This does not change your profit. It parks the difference on the balance sheet until somebody knows the reason. Move it out with a journal entry when you do.',
+  cb_recon_done:'{a} parked in Suspense',
+  cb_recon_need:'Count the cash first',
   rec_note_ph:'why, if you know', rec_go:'Post the difference',
   rec_no_count:'Enter what is actually there', rec_already:'It already matches',
   rec_auto:'Balancing entry',
@@ -3120,6 +3159,7 @@ dl_show_hidden:'Show hidden ({n})',
   lg_cash:'Cash-in-hand', lg_bank:'Bank Accounts', lg_debtors:'Sundry Debtors',
   lg_stock:'Stock-in-hand', lg_fixed:'Fixed Assets', lg_advances:'Advances (Asset)',
   lg_creditors:'Sundry Creditors', lg_loans:'Loans (Liability)', lg_taxes:'Duties & Taxes',
+  lg_gave:'Given', lg_got:'Taken', lg_left:'Balance', lg_open_row:'Opening balance',
   lg_capital:'Capital Account', lg_drawings:'Drawings', lg_sales:'Sales',
   lg_otherinc:'Other Income', lg_direct:'Direct Expenses', lg_jobwork:'Job Work',
   lg_salary:'Salary & Wages', lg_indirect:'Indirect Expenses',
@@ -3288,6 +3328,7 @@ dl_show_hidden:'Show hidden ({n})',
   pt_near_yes:'Yes, separate party',
   pur_add_items:'Add items', pur_edit_item:'Edit item', pur_no_items_yet:'No items on this bill yet',
   pur_tot_qty:'Total qty', pur_rate:'Rate (price per unit)', pur_rate_x_qty:'rate \u00D7 qty',
+  qty_pcs:'{n} pcs', qty_mtr:'{n} mtr',
   pur_more_item:'HSN, design, colour, note', pur_design:'Design', pur_colour:'Colour',
   pur_save_new_item:'Save & add another', pur_drop_line:'Remove \u201C{n}\u201D from this bill?',
   pur_new_item:'Add a new item', pur_saved_item:'Saved item',
@@ -4434,6 +4475,14 @@ dl_show_hidden:'Show hidden ({n})',
   pty_title:'मुझे मिलने हैं', pty_sub:'',
   pty_cred_title:'मुझे देने हैं',
   rp_out_debtors:'देनदार बकाया', rp_out_creditors:'लेनदार बकाया',
+  cr_rec:'फ़र्क़ कहाँ है', cr_rec_title:'फ़र्क़ कहाँ है',
+  cr_rec_sheet:'Balance sheet कहती है', cr_rec_list:'Payables list का जोड़',
+  cr_rec_gap:'फ़र्क़', cr_rec_none:'दोनों बराबर हैं \u2014 कुछ समझाने को नहीं',
+  cr_rec_loans:'Loans \u2014 list में है, sheet पर अपनी अलग लाइन पर',
+  cr_rec_onlysheet:'Sheet पर है, list में नहीं',
+  cr_rec_onlylist:'List में है, sheet पर नहीं',
+  cr_rec_rounding:'अब भी बिना वजह',
+  cr_rec_note:'यह स्क्रीन कुछ नहीं बदलती। सिर्फ़ यह बताती है कि किन नामों की वजह से दोनों आँकड़े अलग हैं, ताकि सवाल सही रिकॉर्ड से पूछा जा सके।',
   rp_out_loans:'ऋण बकाया',
   pty_search:'नाम ढूंढें…', pty_add:'पार्टी जोड़ें', pty_none:'अभी कोई नहीं',
   pty_open:'शुरुआती बाकी', pty_open_left:'शुरुआती बकाया बचा है', pty_open_none:'कोई शुरुआती बकाया नहीं',
@@ -4968,6 +5017,11 @@ dl_show_hidden:'Show hidden ({n})',
   kb_part:'कुछ हिस्सा',
   kb_short:'इस भुगतान के बाद बचेगा',
   kb_settle:'बाकी सेटल — अगले हफ़्ते नहीं जाएगा',
+  kb_settle_over:'हिसाब बंद — किताब से इतना ज़्यादा दिया',
+  kb_settle_why:'किस वजह से (मोल-भाव, गोल किया, पुराना हिसाब\u2026)',
+  kb_settle_need_why:'दो शब्द में लिखिए रकम अलग क्यों है',
+  kb_settle_extra_hint:'किसी एक पीस पर ज़्यादा काम हुआ हो तो उसे उसी पीस के Extra में डालिए — यह लाइन सिर्फ़ हिसाब के फ़र्क़ के लिए है।',
+  kb_settled_more:'दिया — किताब से {a} ज़्यादा',
   kb_settle_hint:'जब आप बात करके रकम कम कराते हैं तब लगाएँ। बिना इसके बची रकम अगले हफ़्ते उसके हिसाब में रहेगी।',
   kb_note_ph:'जैसे शनिवार का हिसाब',
   kb_need_amt:'रकम भरें',
@@ -5276,6 +5330,17 @@ dl_show_hidden:'Show hidden ({n})',
   rec_title:'खाता मिलाओ', rec_acc:'कौन सा खाता', rec_book:'किताब कहती है',
   rec_actual:'असल में है', rec_diff:'अंतर', rec_head:'अंतर कहाँ डालें',
   rec_h_susp:'Suspense', rec_h_short:'Cash short', rec_h_excess:'Cash excess',
+  cb_recon:'हिसाब मिलाओ', cb_recon_hint:'जितना सचमुच है वो गिनकर, फ़र्क़ अलग रख दीजिए',
+  cb_recon_title:'हिसाब मिलाओ',
+  cb_recon_book:'किताब में', cb_recon_real:'सचमुच कितना है',
+  cb_recon_date:'किस दिन की गिनती है',
+  cb_recon_short:'कम', cb_recon_over:'किताब से ज़्यादा',
+  cb_recon_same:'दोनों बराबर हैं \u2014 कुछ रखने को नहीं',
+  cb_recon_why:'लिखावट (मर्ज़ी से \u2014 वजह पता न हो तो खाली छोड़ दीजिए)',
+  cb_recon_go:'Suspense में रख दीजिए',
+  cb_recon_what:'इससे आपका मुनाफ़ा नहीं बदलेगा। फ़र्क़ बैलेंस शीट पर तब तक रखा रहेगा जब तक वजह पता न चले। पता चलने पर journal से वहाँ से हटा दीजिए।',
+  cb_recon_done:'{a} Suspense में रख दिया',
+  cb_recon_need:'पहले गिनती कीजिए',
   rec_note_ph:'क्यों, अगर पता हो', rec_go:'अंतर दर्ज करो',
   rec_no_count:'जितना असल में है वह लिखिए', rec_already:'यह पहले से मिला हुआ है',
   rec_auto:'मिलान की एंट्री',
@@ -5310,6 +5375,7 @@ dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
   lg_cash:'Cash-in-hand', lg_bank:'Bank Accounts', lg_debtors:'Sundry Debtors',
   lg_stock:'Stock-in-hand', lg_fixed:'Fixed Assets', lg_advances:'Advances (Asset)',
   lg_creditors:'Sundry Creditors', lg_loans:'Loans (Liability)', lg_taxes:'Duties & Taxes',
+  lg_gave:'दिया', lg_got:'लिया', lg_left:'बाकी', lg_open_row:'शुरुआती बकाया',
   lg_capital:'Capital Account', lg_drawings:'Drawings', lg_sales:'Sales',
   lg_otherinc:'Other Income', lg_direct:'Direct Expenses', lg_jobwork:'Job Work',
   lg_salary:'Salary & Wages', lg_indirect:'Indirect Expenses',
@@ -5478,6 +5544,7 @@ dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
   pt_near_yes:'हाँ, अलग पार्टी',
   pur_add_items:'आइटम जोड़ें', pur_edit_item:'आइटम बदलें', pur_no_items_yet:'इस बिल में अभी कोई आइटम नहीं',
   pur_tot_qty:'कुल मात्रा', pur_rate:'रेट (प्रति यूनिट)', pur_rate_x_qty:'रेट \u00D7 मात्रा',
+  qty_pcs:'{n} पीस', qty_mtr:'{n} मीटर',
   pur_more_item:'HSN, डिज़ाइन, रंग, नोट', pur_design:'डिज़ाइन', pur_colour:'रंग',
   pur_save_new_item:'सेव करके अगला', pur_drop_line:'\u201C{n}\u201D को इस बिल से हटाएँ?',
   pur_new_item:'नया आइटम जोड़ें', pur_saved_item:'सेव किया आइटम',
@@ -6482,6 +6549,38 @@ function nextInvoiceNo(){
 const invIsFabric=it=>!!(it && (it.thaanId||it.fabId||String(it.unit||'')==='Mtr'));
 const invRate=(p,it)=>invIsFabric(it)?5:((+p||0)>2500?18:5);
 const r2=n=>Math.round((+n||0)*100)/100;
+/* ══════════ v683 — THE CALCULATION LAW ══════════
+   HIS 14 Sept: "calculation ke upar bhi koi restriction lagao ki calculation mein mistake
+   kisi bhi haalat mein na ho. Meter mein meter ka calculation ho, quantity mein quantity
+   ka, amount mein amount ka."
+   His own purchase said Total qty 102.19999999999999. The rows were 10 + 13 + 7.8 + 7.8 +
+   13 + 10 + 10 + 10 + 7.8 + 5 + 7.8, which is 102.2 — but 7.8 cannot be held exactly in
+   binary, so adding four of them leaves a tail. Two of the three places that total a
+   quantity already rounded; this one did not, and it is the one he opened.
+   Rounding at each of those places separately is how the third one came to be missed. So
+   there is ONE function now, and quantity goes through it the way money goes through r2().
+   THREE decimals, not two: cloth is cut to a tenth of a metre and a shop that measures to
+   0.125 must not be rounded away. */
+const rq=n=>Math.round((+n||0)*1000)/1000;
+/* A quantity total is only meaningful inside one unit. One suit plus one metre is not "2" —
+   the sale screen learned that in v625; every screen that totals a quantity obeys it now.
+   Rows with no unit are counted as pieces, which is what an untyped row has always been. */
+function qtySplit(items){
+  let pcs=0, mtr=0;
+  (items||[]).forEach(it=>{
+    const u=String((it&&it.unit)||'').trim().toLowerCase();
+    const q=+((it&&it.qty))||0;
+    if(u==='mtr'||u==='meter'||u==='metre'||u==='m') mtr+=q; else pcs+=q;
+  });
+  return {pcs:rq(pcs), mtr:rq(mtr)};
+}
+function qtyText(items){
+  const s=qtySplit(items);
+  const bits=[];
+  if(s.pcs) bits.push(t('qty_pcs',{n:s.pcs}));
+  if(s.mtr) bits.push(t('qty_mtr',{n:s.mtr}));
+  return bits.join(' \u00b7 ') || '0';
+}
 function invCompute(inv){
   /* ══════════ v561 — ONE DOOR FOR A CANCELLED BILL'S MONEY ══════════
      Caught by the test, not by reading: zeroing a cancelled bill in orderTotal alone took
@@ -9448,6 +9547,84 @@ function jvCashAdj(upto){
   return r2(jvNet(E,'sys:cash')+jvNet(E,'sys:bank'));
 }
 function totalCashBank(upto){ return r2(allBalances(upto).reduce((s,x)=>s+x.bal,0)+jvCashAdj(upto)); }
+/* ══════════ v681 — MATCH THE ACCOUNT, AND PARK WHAT IS LEFT ══════════
+   HIS 14 Sept: "aksar hota hai lakh koshishon ke bawajood kuch na kuch reh hi jaata hai ki
+   galla mein paisa ghat gaya ya kabhi badh gaya. Phir sab busy hain, entry nahi ho payi...
+   to adjustment karna padta hai."
+   Everything this needs already existed and none of it was reachable from here: the journal
+   posts to sys:cash and sys:bank, the balance sheet already adds those in, and v681 gave
+   Suspense a key of its own. What was missing was the one screen where the question is
+   actually asked - standing at the drawer at night with the cash counted.
+   So it writes an ordinary journal voucher. Nothing bespoke, nothing hidden: the entry shows
+   in the Day book and the Journal like any other, and can be edited or deleted there. Cash
+   on one side, Suspense on the other - which is exactly why the trial balance cannot move
+   and the profit cannot move. */
+let _cbRecAcc='';
+function cbRecon(accId){
+  _cbRecAcc=accId||'';
+  const a=ACC(_cbRecAcc)||{};
+  const row=allBalances().find(x=>x.acc.id===_cbRecAcc)||{bal:0};
+  const book=r2(row.bal);
+  modal('\u2696\uFE0F '+t('cb_recon_title')+' \u00b7 '+esc(a.name||''),
+    `<div class="kv" style="padding:6px 2px;border-bottom:1px solid var(--line)">
+       <span class="hint">${t('cb_recon_book')}</span><b>${money(book)}</b></div>
+     ${/* v681b: HIS OWN WORDS, and the reason this box exists: "sab busy hain, entry nahi
+          ho payi" - the drawer is almost never counted and reconciled on the same evening.
+          Today's date was hard-coded, which would have filed every one of these under the
+          day he got round to it. Both as-of dates in the app (v670, v671) mean a back-dated
+          entry now genuinely lands on the day it happened, so the date has to be his. */''}
+     <div class="field" style="margin-top:12px"><label>${t('cb_recon_date')}</label>
+       ${dateField('cb_date',todayISO())}</div>
+     <div class="field" style="margin-top:10px"><label>${t('cb_recon_real')} \u20B9</label>
+       <input id="cb_real" type="number" inputmode="decimal" placeholder="0"
+         oninput="cbReconCalc(${book})"></div>
+     <div class="kv" style="padding:8px 2px;margin-top:6px">
+       <span class="hint" id="cbDiffLbl">\u2014</span><b id="cbDiff">\u2014</b></div>
+     <div class="field" style="margin-top:6px"><label>${t('cb_recon_why')}</label>
+       <input id="cb_why" placeholder="${t('cb_recon_why')}"></div>
+     <p class="hint" style="white-space:normal;margin-top:10px;font-size:12px">${t('cb_recon_what')}</p>`,
+    [{label:t('cancel'),cls:'ghost',fn:closeModal},
+     {label:t('cb_recon_go'),cls:'primary',fn:()=>cbReconSave(book)}]);
+  setTimeout(()=>{const e=$('#cb_real'); if(e)e.focus();},60);
+}
+function cbReconCalc(book){
+  const raw=(($('#cb_real')||{}).value||'').trim();
+  const lbl=$('#cbDiffLbl'), out=$('#cbDiff');
+  if(!lbl||!out)return;
+  if(raw===''){ lbl.textContent='\u2014'; out.textContent='\u2014'; out.style.color=''; return; }
+  const d=r2((+raw||0)-book);
+  if(!d){ lbl.textContent=t('cb_recon_same'); out.textContent=money(0); out.style.color=''; return; }
+  lbl.textContent=(d<0)?t('cb_recon_short'):t('cb_recon_over');
+  out.textContent=money(Math.abs(d));
+  out.style.color=(d<0)?'var(--bad)':'var(--saffron2)';
+}
+function cbReconSave(book){
+  const raw=(($('#cb_real')||{}).value||'').trim();
+  if(raw===''){ toast(t('cb_recon_need'),'bad'); return; }
+  const d=r2((+raw||0)-book);
+  if(!d){ toast(t('cb_recon_same'),'ok'); closeModal(); return; }
+  const a=ACC(_cbRecAcc)||{};
+  const why=(($('#cb_why')||{}).value||'').trim();
+  const amt=Math.abs(d);
+  /* v681: a voucher, exactly as an accountant would write it. Short in the drawer means the
+     cash goes down and the question goes up; over means the opposite. Never a minus in a
+     column - the app has refused that since v415 and this must not be the one exception. */
+  const cashKey=(a.type==='cash')?'sys:cash':'sys:bank';
+  const lines=(d<0)
+    ? [{acc:'sys:suspense',dr:amt,cr:0},{acc:cashKey,dr:0,cr:amt}]
+    : [{acc:cashKey,dr:amt,cr:0},{acc:'sys:suspense',dr:0,cr:amt}];
+  const narr=(d<0?t('rec_h_short'):t('rec_h_excess'))+' \u00b7 '+(a.name||'')
+             +(why?(' \u00b7 '+why):'');
+  const when=(($('#cb_date')||{}).value||'').trim()||todayISO();
+  if(!svOnce(['cbrec',_cbRecAcc,String(d),when,why].join('|'),()=>{})){
+    toast(t('sv_dup'),'bad'); return; }
+  DB.journal=DB.journal||[];
+  DB.journal.push({id:uid(),date:when,narration:narr,lines,
+    created:new Date().toISOString()});
+  save(); closeModal();
+  toast(t('cb_recon_done',{a:money(amt)}),'ok');
+  cashBank();
+}
 
 /* payables = what we still owe suppliers */
 
@@ -9475,6 +9652,11 @@ function cashBank(){
       <div class="kv"><div><b style="font-size:15px">📓 ${t('cb_jv_adj')}</b>
         <div class="hint">${t('cb_jv_adj_hint')}</div></div>
       <div style="font-size:18px;font-weight:900;color:${adj<0?'var(--bad)':'var(--saffron2)'}">${money(adj)}</div></div></div>`:''}
+    ${/* v681: the entry his cash book has always had and this screen never did. One button
+         per account, because a drawer and a bank are counted in completely different ways. */''}
+    ${bals.map(x=>`<button class="btn ghost block" style="margin-top:6px"
+        onclick="cbRecon('${jq(x.acc.id)}')">\u2696\uFE0F ${t('cb_recon')} \u00b7 ${esc(x.acc.name)}</button>`).join('')}
+    <p class="hint" style="white-space:normal;margin:6px 2px 10px;font-size:12px">${t('cb_recon_hint')}</p>
     <button class="btn ghost block" style="margin-top:6px;margin-bottom:8px" onclick="accEdit()">\u2795 ${t('cb_add_bank')}</button>
     ${/* ============== v657 - THE GULLAK ==============
          HIS 13 Sept: "season mein bazaar uthta hai to kuch paisa alag nikaalte jaate hain,
@@ -12421,6 +12603,94 @@ function acctOpen(name,kind){
    worse than a blink, so it waited until there was room to do it properly.
    All five now live in one function, called by both the screen and the search. They
    cannot drift apart because there is only one of them. */
+/* ══════════ v682 — TWO SCREENS, ONE QUESTION, TWO ANSWERS ══════════
+   HIS 14 Sept, off his own phone: Home said he owed ₹22,94,858 and Reports said
+   ₹23,23,696 for the same moment — ₹28,838 apart. He tapped the Reports row and the list
+   that opened added up, to the rupee, to the OTHER figure. So the number on the row could
+   not be traced to a single record on the screen it opened.
+   That breaks his own law — every management number must be traceable to its source — and
+   it is the more dangerous half of the two, because a figure that cannot be reconciled is
+   one nobody can ever correct.
+   The two are computed from different places on purpose and neither is simply wrong:
+     · the balance sheet walks every OPENING LINE IN THE LEDGER, whatever party it names
+     · the payables list walks the PARTY MASTER, and falls back to the ledger only for
+       names it has not already seen — asking for them under the kind 'supplier'
+     · and the list carries LOANS, which the sheet keeps on a line of its own
+   So an opening filed under the kind 'other', for a name the party master does not hold,
+   is on one and not the other.
+   THIS FUNCTION CHANGES NO FIGURE. It names the difference so the right question can be
+   asked of the right record — which is step one of the two he agreed to, deliberately
+   shipped before any figure is touched. */
+function credReconcile(){
+  const A=(openBS().date||fyStartISO()), B=todayISO();
+  let sheet=0; try{ sheet=r2(Math.abs((bsFigures(A,B).L||{}).creditors||0)); }catch(e){}
+  const cg=credGroups('');
+  const list=r2(cg.total||0);
+
+  /* the list's own loans, which the sheet keeps apart */
+  let loans=0;
+  (cg.groups||[]).forEach(g=>{ if(g._loan)loans=r2(loans+(+g._loan||0)); });
+
+  /* every opening the SHEET counts, by name */
+  const onSheet={};
+  (DB.ledger||[]).filter(l=>l.refKind==='opening' && l.dir==='out'
+      && (pkNorm(l.partyKind)==='supplier'||pkNorm(l.partyKind)==='other'))
+    .forEach(l=>{
+      const nm=String(l.party||'').trim(); if(!nm)return;
+      if((DB.karigars||[]).some(k=>nameNorm(k.name)===nameNorm(nm)))return;
+      if((DB.staff||[]).some(k=>nameNorm(k.name)===nameNorm(nm)))return;
+      const left=openingLeft(nm, pkNorm(l.partyKind), 'out');
+      if(left)onSheet[nameNorm(nm)]={name:nm, amt:r2(left), kind:pkNorm(l.partyKind)};
+    });
+
+  /* every name the LIST shows */
+  const onList={};
+  (cg.groups||[]).forEach(g=>{ onList[nameNorm(g.name)]={name:g.name, amt:r2(g.due||0)}; });
+
+  const onlySheet=[], onlyList=[];
+  Object.keys(onSheet).forEach(k=>{ if(!onList[k])onlySheet.push(onSheet[k]); });
+  Object.keys(onList).forEach(k=>{
+    const g=onList[k];
+    if(!onSheet[k] && !(cg.groups||[]).some(x=>nameNorm(x.name)===k && (x.recs||[]).length))
+      onlyList.push(g); });
+  onlySheet.sort((a,b)=>b.amt-a.amt); onlyList.sort((a,b)=>b.amt-a.amt);
+
+  const gap=r2(sheet-list);
+  const explainedSheet=r2(onlySheet.reduce((s,x)=>s+x.amt,0));
+  const explainedList=r2(onlyList.reduce((s,x)=>s+x.amt,0));
+  const left=r2(gap - explainedSheet + explainedList + loans);
+  return {sheet, list, gap, loans, onlySheet, onlyList, explainedSheet, explainedList, left};
+}
+function credReconScreen(){
+  sheetAt(credReconScreen);
+  const r=credReconcile();
+  const row=(lbl,val,col)=>`<div class="kv" style="padding:9px 2px;border-bottom:1px solid var(--line)">
+    <span>${lbl}</span><b style="${col?'color:'+col:''}">${money(val)}</b></div>`;
+  const names=(title,list,col)=>list.length?`<div class="section-h">${title}</div>
+    <div class="card" style="padding:0;margin-bottom:12px;overflow:hidden">
+      ${list.map(x=>`<div class="krow"><span class="kn">${esc(x.name)}
+        ${x.kind?`<div class="hint">${esc(x.kind)}</div>`:''}</span>
+        <b style="color:${col}">${money(x.amt)}</b></div>`).join('')}</div>`:'';
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin:0 0 10px">\u2696\uFE0F ${t('cr_rec_title')}</h2>
+    <div class="card" style="padding:4px 12px;margin-bottom:12px">
+      ${row(t('cr_rec_sheet'), r.sheet)}
+      ${row(t('cr_rec_list'), r.list)}
+      ${row('<b>'+t('cr_rec_gap')+'</b>', r.gap, r.gap?'var(--bad)':'')}
+    </div>
+    ${!r.gap?`<p class="hint" style="padding:16px 4px;text-align:center">${t('cr_rec_none')}</p>`:''}
+    ${r.loans?`<div class="card" style="padding:10px 12px;margin-bottom:12px">
+      <div class="kv"><span class="hint" style="white-space:normal">${t('cr_rec_loans')}</span>
+      <b>${money(r.loans)}</b></div></div>`:''}
+    ${names(t('cr_rec_onlysheet'), r.onlySheet, 'var(--bad)')}
+    ${names(t('cr_rec_onlylist'), r.onlyList, 'var(--saffron2)')}
+    ${r.left?`<div class="card" style="padding:10px 12px;margin-bottom:12px;border-color:var(--bad)">
+      <div class="kv"><span class="hint">${t('cr_rec_rounding')}</span>
+      <b style="color:var(--bad)">${money(r.left)}</b></div></div>`:''}
+    <p class="hint" style="white-space:normal;margin-top:10px">${t('cr_rec_note')}</p>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
 function credGroups(q){
   const list=(DB.purchases||[]).filter(p=>orderBaaki(p)>0);
   const map={};
@@ -26648,8 +26918,10 @@ function purDraftHTML(){
     return `<div id="puDraft" style="margin-bottom:12px">${addBtn}
       <p class="hint" style="margin:8px 2px 0;text-align:center">${t('pur_no_items_yet')}</p></div>`;
   }
-  const qty=its.reduce((a,it)=>a+(+it.qty||0),0);
-  const sub=its.reduce((a,it)=>a+r2((+it.qty||0)*(+it.rate||0)),0);
+  /* v683: was a bare reduce with no rounding and no unit — the exact line that printed
+     102.19999999999999 on his phone. */
+  const qty=qtyText(its);
+  const sub=r2(its.reduce((a,it)=>a+r2((+it.qty||0)*(+it.rate||0)),0));
   return `<div id="puDraft" style="margin-bottom:12px">
     <div class="billed-bar" style="margin-bottom:6px"><span>\u{1F9FE} ${t('pur_billed')}</span>
       <span class="hint" style="color:inherit">${t('inv_items_n',{n:its.length})}</span></div>
@@ -27322,7 +27594,8 @@ function purchDelItemDo(i){
 /* What this supplier is still owed across their unpaid bills — shown while billing. */
 function purBilledSummary(comp){
   const f=purchForm; if(!f.items.length)return '';
-  const qty=r2(f.items.reduce((s,it)=>s+(+it.qty||0),0));
+  /* v683: rounded already, but still added a suit to a metre. One helper, both rules. */
+  const qty=qtyText(f.items);
   return `<div class="billed-sum">
     <span>${t('pur_total_qty')}: <b>${qty}</b></span>
     <span>${t('pur_subtotal')}: <b>${money(comp.gross!=null?comp.gross:comp.total)}</b></span>
@@ -28656,6 +28929,20 @@ const JV_SYS=[
   ['creditors','bs_creditors','l'], ['karigar','bs_karigar','l'], ['cc','bs_cc','l'],
   ['loans','bs_loans','l'], ['gst','bs_gst','l'],
   ['capital','bs_opencap','c'], ['drawings','bs_draw','c'],
+  /* ══════════ v681 — SUSPENSE, WITH A DOOR ON IT ══════════
+     HIS 14 Sept: "galla mein paisa ghat gaya ya kabhi badh gaya... manual mein itna rupya
+     likhkar aage doosre din ka hisaab kar lete hain, lekin is software mein kaise karenge?"
+     The book-keeping answer is two hundred years old and this app already had half of it:
+     the balance sheet has printed a "Suspense - not yet explained" line for a long time,
+     but it was only ever fed by money the app itself could not name. There was no way for
+     HIM to put anything there, so the honest entry a shopkeeper makes every week - the
+     drawer is 500 short, nobody knows why, write it and carry on - simply could not be
+     made, and the app stopped being usable at exactly the point where paper does not.
+     Suspense is not an expense and not an income. It sits on the balance sheet holding the
+     question until somebody answers it, which is the whole reason the trial balance still
+     agrees and the profit does not move. When the reason turns up - or the CA writes it off
+     at the year end - it is moved out with another voucher. */
+  ['suspense','bs_suspense','l'],
   ['sales','rp_net_sales','i'], ['purchases','rp_purch_net','e'],
   ['direct','rp_direct','e'], ['indirect','rp_running','e']
 ];
@@ -28904,6 +29191,13 @@ function bsFigures(from,to){
     const v=jvNet(E,'sys:'+k); if(v)A[k]=r2((A[k]||0)+v); });
   ['creditors','karigar','cc','loans','gst'].forEach(k=>{
     const v=jvNet(E,'sys:'+k); if(v)L[k]=r2((L[k]||0)+v); });
+  /* v681: suspense sits on whichever side it lands, exactly like the app's own unexplained
+     money below - a drawer that is SHORT leaves an asset-side balance, one that is OVER
+     leaves a liability. Added to whatever that computation already found rather than
+     replacing it, so his adjustment and the app's own unnamed money are both visible. */
+  { const v=jvNet(E,'sys:suspense');
+    if(v>0)L.suspense=r2((L.suspense||0)+v);
+    else if(v<0)A.suspense=r2((A.suspense||0)-v); }
   const jvCap=jvNet(E,'sys:capital'), jvDraw=jvNet(E,'sys:drawings');
   cap.opening=r2(cap.opening+jvCap);
   /* v350: money he puts into the shop is capital, not a sale. It raises what the business
@@ -30702,6 +30996,15 @@ function renderReports(){
         <span>\u{1F4D2} ${t('rp_out_debtors')}</span><b>${money0(f.A.debtors)}</b></div>
       <div class="il tappable" onclick="closeSheet();creditorsHome()">
         <span>\u{1F4D5} ${t('rp_out_creditors')}</span><b>${money0(f.L.creditors)}</b></div>
+      ${/* v682: this row and the list it opens have been disagreeing by 28,838 on his own
+           phone. The door to the explanation belongs beside the figure that cannot be
+           traced, not buried somewhere else. It appears only WHEN they disagree - a row
+           that explains nothing is a row he does not need. */''}
+      ${(()=>{ let g=0; try{ g=r2(credReconcile().gap); }catch(e){}
+         return g ? `<div class="il tappable" style="border-bottom:0"
+             onclick="closeSheet();credReconScreen()">
+           <span class="hint">\u2696\uFE0F ${t('cr_rec')}</span>
+           <b style="color:var(--bad)">${money0(g)}</b></div>` : ''; })()}
       ${/* v610: there is no separate loans screen and there does not need to be — every loan
            is a ledger in the Loans group, so this row opens the ledger master already
            filtered to that group, which is where the detail lives. */''}
@@ -31355,7 +31658,7 @@ function setItemKarigar(oid,gid,kid){const o=DB.orders.find(x=>x.id===oid);if(!o
    change by itself. The cut is written to the SAME move() ledger every other screen reads,
    with the order as refId, so deleting the order gives the cloth back through the reversal
    that already exists. No second stock system. */
-let _ki={kid:'',pick:{},rate:{},q:'',oid:'',cloth:'cust',th:{},mtr:{}};
+let _ki={kid:'',pick:{},rate:{},q:'',oid:'',cloth:'cust',th:{},mtr:{},extra:{},note:{}};
 function karIssue(kid,oid){
   sheetAt(karIssue);
   if(oid!==undefined)_ki.oid=oid||'';
@@ -31547,8 +31850,31 @@ function karReceive(kid){
               <div class="hint">${esc(r.who)}${r.dd?' · '+fmtDate(r.dd):''}</div></span>
           </label>
           <span style="flex:0 0 96px"><input type="number" inputmode="numeric" placeholder="${t('ki_rate')}"
-            value="${_ki.rate[r.key]!=null?esc(_ki.rate[r.key]):(r.rate||'')}"
+            value="${_ki.rate[r.key]!=null?esc(_ki.rate[r.key]):(r.base||'')}"
             oninput="kiRate('${jq(r.key)}',this.value)" style="width:96px;text-align:right"></span></div>
+        ${/* ══════════ v681 — THE EXTRA WAS ASKED FOR AT THE WRONG END ══════════
+             HIS 14 Sept: "kai baar karigar ka rate designing ke hisaab se badh jaata hai...
+             full pasting mein maal bana hai uska rate alag hai... jab maal jama kar rahe hain
+             to remark ka likhne ka ho, bagal mein rate ho."
+             He is right and the app was already half way there: karExtra - an amount and a
+             line saying what it is for - has existed per piece since v408, and the ledger
+             already prints "1,500 + 300 double palla" instead of an unexplainable 1,800.
+             But those three boxes sat only on the ISSUE screen, and nobody knows about the
+             pasting when the cloth goes OUT. It is known when the piece comes BACK, which is
+             this screen, and this screen had one bare rate box.
+             Same three boxes, same storage, moved to the end where the fact is known. The
+             agreed rate stays the agreed rate; the extra stays its own figure with its own
+             reason, so a month later the ledger still answers "what was the 500 for". */''}
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+          <div class="field" style="margin:0;flex:1 1 96px"><label>${t('ki_extra')}</label>
+            <input type="number" min="0" inputmode="numeric" placeholder="0"
+              value="${_ki.extra[r.key]!=null?esc(_ki.extra[r.key]):(r.extra||'')}"
+              oninput="kiExtra('${jq(r.key)}',this.value)"></div>
+          <div class="field" style="margin:0;flex:2 1 150px"><label>${t('ki_extra_why')}</label>
+            <input placeholder="${t('ki_extra_why_ph')}"
+              value="${_ki.note[r.key]!=null?esc(_ki.note[r.key]):(r.exNote||'')}"
+              oninput="kiExNote('${jq(r.key)}',this.value)"></div>
+        </div>
       </div>`).join('')
       :`<div class="empty" style="padding:26px 10px"><div class="big">🎉</div><p>${t('kr_none')}</p></div>`}
     ${n?`<button class="btn primary block" style="margin-top:10px" onclick="krTake()">
@@ -31567,7 +31893,14 @@ function karHoldingPool(kid){
       out.push({key:o.id+'|'+gid, oid:o.id, gid,
         ono:memberOno(o,memberOf(gid))||o.orderNo||'—',
         label:(g&&g.n)||gid, who:o.customerName||'', dd:o.deliveryDate||'',
-        rate:karRateFor(o,gid)||''});
+        /* v681: the box holds the AGREED rate and the extra sits in its own box beside it.
+           karRateFor() is rate+extra added together - putting that in the rate box would
+           fold the extra back into the rate the moment he saved, which is the one thing
+           the separate figures exist to prevent. */
+        rate:karRateFor(o,gid)||'',
+        base:karBaseRateFor(o,gid)||'',
+        extra:karExtraFor(o,gid)||'',
+        exNote:karExtraNote(o,gid)||''});
     });
   });
   return out.sort((a,b)=>String(a.dd||'9999').localeCompare(String(b.dd||'9999')));
@@ -31577,7 +31910,7 @@ function krSearch(v){
   karReceive(_ki.kid);
   const e=$('#kr_q'); if(e){ e.focus(); try{e.setSelectionRange(v.length,v.length);}catch(err){} }
 }
-function krPickKarigar(v){ _ki.kid=v; _ki.pick={}; _ki.rate={}; karReceive(); }
+function krPickKarigar(v){ _ki.kid=v; _ki.pick={}; _ki.rate={}; _ki.extra={}; _ki.note={}; karReceive(); }
 function kiTick2(k,on){ _ki.pick[k]=!!on; karReceive(); }
 /* ══════════ v541 — WORK TAKEN BACK WITH NO PRICE ON IT ══════════
    HIS 7 Sept: "pant mein rate nahi hai koi dikkat nahi hai, lekin receive karte time mein
@@ -31620,6 +31953,18 @@ function krTakeDo(){
     const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
     const r=_ki.rate[key];
     if(r!=null && String(r).trim()!==''){ o.karAmt=o.karAmt||{}; o.karAmt[gid]=r2(+r||0); }
+    /* v681: the extra for this piece and what it was for. Written to the same karExtra the
+       issue screen has always used, so the ledger, the statement and the print all show it
+       without one of them being taught a new field. An empty box clears the extra rather
+       than leaving a stale one behind - he may be correcting a mistake. */
+    { const ex=_ki.extra[key], nt=_ki.note[key];
+      if(ex!==undefined || nt!==undefined){
+        o.karExtra=o.karExtra||{};
+        const amt=r2(+(ex!==undefined?ex:karExtraFor(o,gid))||0);
+        const why=String(nt!==undefined?nt:karExtraNote(o,gid)||'').trim();
+        if(amt>0||why) o.karExtra[gid]={amt:amt, note:why};
+        else delete o.karExtra[gid];
+      } }
     o.recv=o.recv||{}; o.recv[gid]=when;
     advanceStatus(o,gid,'checking');        /* back in the shop, not yet passed */
     const g=G(gid);
@@ -31629,7 +31974,7 @@ function krTakeDo(){
     touchOrder(o.id); n++;
   });
   const left=karOutCount(_ki.kid);
-  _ki.pick={}; _ki.rate={};
+  _ki.pick={}; _ki.rate={}; _ki.extra={}; _ki.note={};
   save();
   toast(left?t('kr_done_left',{n:n,r:left}):t('kr_done',{n:n}),'ok');
   karReceive();
@@ -31651,6 +31996,9 @@ function kiThaanType(key,val){
 function kiThaan(k,v){ _ki.th[k]=String(v||''); karIssue(_ki.kid,_ki.oid); }
 function kiMtr(k,v){ _ki.mtr[k]=v; }
 function kiRate(k,v){ _ki.rate[k]=v; }
+/* v681: the extra and its reason, typed on the receive screen where the fact is known */
+function kiExtra(k,v){ _ki.extra[k]=v; }
+function kiExNote(k,v){ _ki.note[k]=v; }
 function kiSearch(v){ _ki.q=String(v||''); karIssue();
   setTimeout(()=>{const e=$('#ki_q'); if(e){const x=e.value;e.focus();
     try{e.setSelectionRange(x.length,x.length);}catch(err){}}},0); }
@@ -33342,6 +33690,11 @@ function karPaySave(kid,bal){
      ()=>{})){ toast(t('sv_dup'),'bad'); return; }
   const acc=($('#kp_acc')&&$('#kp_acc').value!=='__new')?$('#kp_acc').value:(defaultAcc()||{}).id;
   const settle=!!($('#kp_settle')||{}).checked;
+  /* v681 HELD BACK: this was made signed so paying MORE than the book could close the
+     account too. Measuring it first (money.js) showed the settlement has been breaking the
+     TRIAL BALANCE by exactly the settled amount since the day it was built - a fault that
+     pre-dates this change. Making it signed would have added a second direction to break
+     in, so the change is held until the underlying posting is fixed and proved. */
   const short=r2(Math.max(0,bal-amt));
   DB.karigarPays=DB.karigarPays||[];
   if(_kpEdit){                                   // correcting an existing payment
@@ -35382,12 +35735,27 @@ function ledgerView(id){
        it there. A line he can read is a line he should be able to open. Each row now goes
        back to the record that made it — the expense, the payment, the bill, the order — and
        once that is corrected or removed, the ledger can go too. */
-    return `<div class="lg-row"${r.go?` style="cursor:pointer" onclick="${esc(r.go)}"`:''}>
-      <div class="lg-c1"><b>${r.date?fmtDate(r.date):'\u2014'}</b>
-        <div class="hint" style="white-space:normal">${esc(r.ref||'')}</div></div>
-      <div class="lg-n">${r.dr?money(r.dr):''}</div>
-      <div class="lg-n">${r.cr?money(r.cr):''}</div>
-      <div class="lg-n lg-bal">${money(Math.abs(run))}<span class="hint"> ${run<0?'Cr':'Dr'}</span></div></div>`;
+    /* ══════════ v683 — THE COLUMNS WERE STILL UNREADABLE ON A PHONE ══════════
+       HIS 14 Sept, on Kanchan's ledger: "left right dancing kyun hai? teen row ban gayi hai...
+       opening balance wah bhi dhang se pata nahi chal raha hai ki wah opening hai."
+       v493 moved this to a grid so the figures could not overlap, and that worked. What it
+       could not fix is that a grid needs its HEADER to be readable, and on a narrow phone a
+       narration wraps to three lines — by which point the words Debit and Credit are far up
+       the screen and the amount below has nothing saying which of the two it is.
+       So the amount carries its own word. No column has to be remembered, the row reads the
+       same whether it wraps to one line or four, and the opening says out loud that it is
+       the opening rather than sitting in the list as an ordinary entry. */
+    const isOpen = r.ref===t('lg_open') || r.ref===t('lg_open_row');
+    const amt = r.dr ? {w:t('lg_gave'), v:r.dr} : {w:t('lg_got'), v:r.cr||0};
+    return `<div class="lg-row2"${r.go?` style="cursor:pointer" onclick="${esc(r.go)}"`:''}>
+      <div class="lg-when"><b>${r.date?fmtDate(r.date):'\u2014'}</b>
+        <span class="lg-what">${isOpen?('\u{1F4D6} '+esc(t('lg_open_row'))):esc(r.ref||'')}</span></div>
+      ${/* v683: the opening already names itself on the line above - saying it twice is
+           the crowding he keeps objecting to */''}
+      <div class="lg-fig"><span class="hint">${isOpen?'\u00a0':esc(amt.w)}</span>
+        <b>${money(Math.abs(amt.v))}</b></div>
+      <div class="lg-fig lg-run"><span class="hint">${esc(t('lg_left'))}</span>
+        <b>${money(Math.abs(run))} <span class="hint">${run<0?'Cr':'Dr'}</span></b></div></div>`;
   }).join('');
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F4D2} ${esc(l.name)}</h2>
@@ -35419,12 +35787,9 @@ function ledgerView(id){
       head:[t('jv_date'),t('jv_narr'),t('jv_dr'),t('jv_cr'),t('lg_closing')],
       rows:(function(){let rr=0;return lgRowsFor(l).map(r=>{rr=r2(rr+(r.dr||0)-(r.cr||0));
         return [r.date?fmtDate(r.date):'', r.ref||'', r.dr||'', r.cr||'', money(Math.abs(rr))+' '+(rr<0?'Cr':'Dr')];});})()}))}
-    ${rows.length?`<div class="lg-row lg-head">
-        <div></div>
-        <div class="lg-n hint">${t('jv_dr')}</div>
-        <div class="lg-n hint">${t('jv_cr')}</div>
-        <div class="lg-n hint">${t('lg_closing')}</div></div>
-      <div class="card" style="padding:8px 12px;margin-bottom:12px">${body}</div>`
+    ${/* v683: the header row is gone. Every row says what its own figures are, so a column
+         heading three wraps above it has nothing left to explain. */''}
+    ${rows.length?`<div class="card" style="padding:4px 12px;margin-bottom:12px">${body}</div>`
       :`<div class="empty" style="padding:26px 10px"><p>${t('lg_no_rows')}</p></div>`}
     ${/* v506 — HIS 5 Sept: "edit ledger ka button neeche hone ke karan kai baar kaafi
          scroll karke neeche jaana padta hai." A ledger with two hundred entries put the one
@@ -35762,10 +36127,28 @@ function partyBalance(p,kind){
 function pkNorm(v){ return String(v||'').trim().toLowerCase(); }
 /* one opening line per person per hat — the bulk screen files by name, the party card by
    name too, so both find the same row whichever way it was entered */
+/* ══════════ v683 — "Pvt Ltd" AND "Pvt. Ltd" WERE TWO DIFFERENT MEN ══════════
+   HIS 14 Sept, from his own book. Kanchan Syntex: the ledger closed at 5,90,047 and
+   Payables said 8,59,131 — 2,69,084 apart. The two bank payments that were missing are
+   filed as "Kanchan Syntex Pvt. Ltd." while the opening and the bills say "Pvt Ltd". One
+   full stop.
+   The cause is that this app has TWO name-matchers and they had drifted apart:
+     nameNorm()  strips punctuation and spacing — used by the balance sheet, the party
+                 screens, the karigar and staff checks
+     pkNorm()    only lowercases — used here, by the one computation that decides whether a
+                 payment lands against an opening balance
+   So every screen built on nameNorm saw one supplier and this one saw two, and the
+   difference was exactly the money he had already paid.
+   Proof, to the rupee: 8,59,131 - 5,90,047 = 2,69,084, and the rows that were not counted
+   are 1,16,819 + 1,52,165 + 100 = 2,69,084.
+   Names now match the way the rest of the app already matches them. NOTHING STORED IS
+   CHANGED — not one ledger row is rewritten and no name is edited. Only the comparison
+   changes, so a payment he has already made is finally seen against the balance it was
+   made against. The KIND keeps pkNorm: 'supplier' and 'other' are fixed words, not names. */
 function openingLine(name,kind){
-  const nm=pkNorm(name);
+  const nm=nameNorm(name);
   return (DB.ledger||[]).find(l=>l.refKind==='opening' && pkNorm(l.partyKind)===pkNorm(kind)
-    && pkNorm(l.party)===nm) || null;
+    && nameNorm(l.party)===nm) || null;
 }
 /* ══════════════ v491 — PAYABLES IGNORED EVERY PAYMENT HE HAD MADE ══════════════
    HIS 5 Sept, with two screenshots off the same supplier: Payables said he owed Kanchan
@@ -35801,14 +36184,16 @@ function openingLine(name,kind){
    Direction is checked: only money moving the same way as the opening can settle it. A
    receipt from a supplier is not a payment to him. */
 function openingPays(name,kind){
-  const nm=pkNorm(name);
+  /* v683: the other half of the same fault — see the note above openingLine(). The payment
+     side was matching on pkNorm too, so "Pvt. Ltd" never reached "Pvt Ltd"'s opening. */
+  const nm=nameNorm(name);
   const pid=(partyByName(name)||{}).id||null;
   const o=openingLine(name,kind);
   const dir=o?o.dir:null;
   return (DB.ledger||[]).filter(l=>
        (l.refKind==='openpay' || l.refKind==='manual')
     && (!dir || l.dir===dir)
-    && (pkNorm(l.party)===nm || (pid && l.partyId===pid)));
+    && (nameNorm(l.party)===nm || (pid && l.partyId===pid)));
 }
 /* {amt, paid, left, dir, date} — dir 'out' = I have to pay, 'in' = I have to receive */
 function openingState(name,kind){
