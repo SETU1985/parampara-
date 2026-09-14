@@ -1063,7 +1063,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v684</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v689</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -2262,6 +2262,8 @@ const T={
   cr_rec_onlysheet:'On the sheet, not on the list',
   cr_rec_onlylist:'On the list, not on the sheet',
   cr_rec_rounding:'Still unexplained',
+  cr_rec_ret:'Purchase returns \u2014 taken off the list, not off the sheet',
+  cr_rec_floor:'Overpaid suppliers \u2014 shown as zero on the list',
   cr_rec_note:'This screen changes nothing. It only says which names make the two figures differ, so the real question can be asked of the right record.',
   rp_out_loans:'Loans Outstanding',
   pty_search:'Search a name…', pty_add:'Add a party', pty_none:'Nobody yet',
@@ -3160,6 +3162,7 @@ dl_show_hidden:'Show hidden ({n})',
   lg_stock:'Stock-in-hand', lg_fixed:'Fixed Assets', lg_advances:'Advances (Asset)',
   lg_creditors:'Sundry Creditors', lg_loans:'Loans (Liability)', lg_taxes:'Duties & Taxes',
   lg_gave:'Given', lg_got:'Taken', lg_left:'Balance', lg_open_row:'Opening balance',
+  find_ph:'Search by name\u2026',
   lg_capital:'Capital Account', lg_drawings:'Drawings', lg_sales:'Sales',
   lg_otherinc:'Other Income', lg_direct:'Direct Expenses', lg_jobwork:'Job Work',
   lg_salary:'Salary & Wages', lg_indirect:'Indirect Expenses',
@@ -4482,6 +4485,8 @@ dl_show_hidden:'Show hidden ({n})',
   cr_rec_onlysheet:'Sheet पर है, list में नहीं',
   cr_rec_onlylist:'List में है, sheet पर नहीं',
   cr_rec_rounding:'अब भी बिना वजह',
+  cr_rec_ret:'खरीद वापसी \u2014 list से घटी, sheet से नहीं',
+  cr_rec_floor:'जिन्हें ज़्यादा दे दिया \u2014 list में शून्य दिखते हैं',
   cr_rec_note:'यह स्क्रीन कुछ नहीं बदलती। सिर्फ़ यह बताती है कि किन नामों की वजह से दोनों आँकड़े अलग हैं, ताकि सवाल सही रिकॉर्ड से पूछा जा सके।',
   rp_out_loans:'ऋण बकाया',
   pty_search:'नाम ढूंढें…', pty_add:'पार्टी जोड़ें', pty_none:'अभी कोई नहीं',
@@ -5376,6 +5381,7 @@ dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
   lg_stock:'Stock-in-hand', lg_fixed:'Fixed Assets', lg_advances:'Advances (Asset)',
   lg_creditors:'Sundry Creditors', lg_loans:'Loans (Liability)', lg_taxes:'Duties & Taxes',
   lg_gave:'दिया', lg_got:'लिया', lg_left:'बाकी', lg_open_row:'शुरुआती बकाया',
+  find_ph:'नाम से खोजें\u2026',
   lg_capital:'Capital Account', lg_drawings:'Drawings', lg_sales:'Sales',
   lg_otherinc:'Other Income', lg_direct:'Direct Expenses', lg_jobwork:'Job Work',
   lg_salary:'Salary & Wages', lg_indirect:'Indirect Expenses',
@@ -6562,6 +6568,51 @@ const r2=n=>Math.round((+n||0)*100)/100;
    THREE decimals, not two: cloth is cut to a tenth of a metre and a shop that measures to
    0.125 must not be rounded away. */
 const rq=n=>Math.round((+n||0)*1000)/1000;
+/* ══════════ v685 — FOUR LISTS HE COULD ONLY SCROLL ══════════
+   Karigar, Staff, Samples and Estimates drew no search box at all — found by live.js when
+   it was given twelve rows of each instead of one, which is the size a real shop reaches in
+   a month. His own note has said "~50 long lists with no search" for weeks, and his rule is
+   plainer still: search on every list.
+   ONE helper, not four hand-written boxes. Four separate ones is exactly how the quantity
+   total came to be rounded in two places and raw in the third. The box lives OUTSIDE
+   whatever the typing re-renders — trap class (4), which has bitten this app three times —
+   by keeping the query in a variable and re-rendering the whole screen, the same way the
+   bill list has always done it. */
+function listSearchHTML(id, val, fn, ph){
+  return `<div class="field" style="margin-bottom:10px">
+    <input id="${id}" value="${esc(val||'')}" autocomplete="off"
+      placeholder="\u{1F50D} ${ph||t('find_ph')}" oninput="${fn}(this.value)"></div>`;
+}
+/* keep the caret where his finger is when the screen redraws under it */
+/* ══════════ v689 — DO NOT REBUILD THE BOX HE IS TYPING IN ══════════
+   HIS 14 Sept, with the proof on screen: he typed "kanchan" and the box held
+   "kancha165227u". The screen was being rebuilt on every letter and the cursor put back
+   afterwards from a timer. On a phone that destroys the input mid-word — Android shuts the
+   keyboard against the dead element, reopens it against the new one, and the letters that
+   arrive in between land wherever the caret happens to be.
+   Re-focusing afterwards was the plaster. This is the fix: the rows that are already on the
+   screen are hidden and shown in place. No innerHTML is written, no element is replaced,
+   and the box his finger is in is never touched.
+   It searches the row's whole visible text, so HIS OWN SUGGESTION — "amount se bhi search
+   ka option hoga to khojne mein aasani hogi" — comes with it: the amount is printed on the
+   row, so the amount is searchable, on every list this is used on, without one more line. */
+function listFilterDOM(bodyId,q){
+  const body=document.getElementById(bodyId); if(!body)return false;
+  const s=String(q||'').trim().toLowerCase();
+  let shown=0;
+  [...body.children].forEach(el=>{
+    const hit=!s || (el.textContent||'').toLowerCase().indexOf(s)>=0;
+    el.style.display=hit?'':'none';
+    if(hit)shown++;
+  });
+  const none=document.getElementById(bodyId+'None');
+  if(none)none.style.display=shown?'none':'';
+  return true;
+}
+const listQMatch=(q,...bits)=>{
+  const s=String(q||'').trim().toLowerCase(); if(!s)return true;
+  return bits.filter(Boolean).map(x=>String(x).toLowerCase()).some(x=>x.indexOf(s)>=0);
+};
 /* A quantity total is only meaningful inside one unit. One suit plus one metre is not "2" —
    the sale screen learned that in v625; every screen that totals a quantity obeys it now.
    Rows with no unit are counted as pieces, which is what an untyped row has always been. */
@@ -11737,16 +11788,27 @@ function payListDraw(isIn,from,to){
     <button class="btn primary block" style="margin-bottom:10px"
       onclick="${isIn?"payEntry('in',1)":'moneyOut()'}">+ ${t(isIn?'pl_new_in':'pl_new_out')}</button>
     <div class="field" style="margin-bottom:10px">
+      ${/* ══════════ v688 — EVERY LETTER REBUILT THE WHOLE SCREEN ══════════
+           HIS 14 Sept, with the proof in a screenshot: he typed "kanchan" and the box held
+           "kancha165227u". Not a stray keystroke — his letters landing in the wrong order,
+           mixed with what was there before.
+           This box rewrote the ENTIRE sheet on every single letter and then tried to put the
+           cursor back from a setTimeout. On a desktop that is invisible. On his phone the
+           input he is typing into is destroyed mid-word: Android closes the keyboard (the
+           blink he kept describing), reopens it against a brand-new element, and whichever
+           letters arrive in between land wherever the caret happens to be.
+           Trap class (4), the fourth time this app has been bitten by it — and my own live
+           suite missed it because it accepted a REBUILT box as long as the id matched. A
+           rebuilt box IS the fault.
+           The input is never touched now. Only the rows below it are redrawn. */''}
       <input id="plQ" value="${esc(_plQ)}" placeholder="🔍 ${t('pl_find')}"
-        oninput="_plQ=this.value;payListDraw(${isIn},'${from}','${to}');
-          setTimeout(()=>{const b=document.getElementById('plQ');if(b){b.focus();
-            b.setSelectionRange(b.value.length,b.value.length);}},0)"></div>
+        autocomplete="off" oninput="plFilter(this.value,${isIn},'${from}','${to}')"></div>
     <div class="gtags" style="margin:-2px 0 10px">
       ${chip('month',t('rp_month'))}${chip('last',t('rp_lastmonth'))}${chip('all',t('pl_all'))}</div>
     <div class="kv" style="margin:0 0 10px;padding:7px 10px;border:1px solid var(--line);border-radius:10px">
       <span><span class="hint" style="display:block">${t('inv_total_shown')}</span>
-        <b style="font-size:16px;color:${isIn?'var(--ok)':'var(--bad)'}">${money(tot)}</b></span>
-      <span class="hint">${lines.length}${q?' / '+all:''}</span></div>
+        <b id="plTot" style="font-size:16px;color:${isIn?'var(--ok)':'var(--bad)'}">${money(tot)}</b></span>
+      <span class="hint" id="plCount">${lines.length}${q?' / '+all:''}</span></div>
     ${/* ══════════ v620 — THE PDF BUTTON EXISTED ON ONE SCREEN OUT OF MANY ══════════
          HIS 11 Sept: "jab ek jagah bana diya to kai jagah bana sakte ho... har page hi
          rakhna hai phir." Right, and it was never a build problem — the PDF engine and the
@@ -11758,9 +11820,24 @@ function payListDraw(isIn,from,to){
       title:t(isIn?'pl_title_in':'pl_title_out'), sub:(from?fmtDate(from)+' – ':'')+fmtDate(to),
       head:[t('ps_date'),t(isIn?'customer':'supplier'),t('cb_into'),t('amount')],
       rows:lines.map(l=>[fmtDate(l.date), (l.party||l.ref||''), accName(l.acc), l.amt])})):''}
-    ${dbBodyHTML(lines)}
+    <div id="plBody">${dbBodyHTML(lines)}</div>
     <div class="fab-pad"></div>`;
   showSheet();
+}
+/* v688: the rows, and the one figure above them — nothing else. The search box, the chips
+   and the new-payment button are left exactly as they are, so his finger never loses them. */
+function plFilter(v,isIn,from,to){
+  _plQ=String(v||'');
+  const q=_plQ.trim().toLowerCase();
+  let lines=[];
+  try{ lines=(moneyLines(from,to)||[]).filter(l=>!l._contra && l.dir===(isIn?'in':'out')); }catch(e){}
+  const all=lines.length;
+  if(q) lines=lines.filter(l=>[l.party,l.ref,l.note,l.cat,accName(l.acc),String(l.amt)]
+    .join(' ').toLowerCase().indexOf(q)>=0);
+  lines.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+  const body=$('#plBody'); if(body)body.innerHTML=dbBodyHTML(lines);
+  const tv=$('#plTot'); if(tv)tv.textContent=money(r2(lines.reduce((s,l)=>s+(+l.amt||0),0)));
+  const cn=$('#plCount'); if(cn)cn.textContent=lines.length+(q?' / '+all:'');
 }
 function dbBodyHTML(lines){
   return lines.map(l=>`<div class="card" onclick="dbOpen('${jq(l.id||'')}')" style="margin-bottom:6px;padding:11px;cursor:pointer">
@@ -12655,11 +12732,27 @@ function credReconcile(){
       onlyList.push(g); });
   onlySheet.sort((a,b)=>b.amt-a.amt); onlyList.sort((a,b)=>b.amt-a.amt);
 
+  /* ══════════ v687 — THE TWO REASONS A NAME IS ON BOTH AND STILL DIFFERS ══════════
+     His own book: of a 28,838 gap, naming the missing supplier explained 12,316 and 16,522
+     was left saying nothing. A difference this screen cannot explain is the same failure it
+     was built to fix, one level down.
+     Two more reasons, and neither is a bug in either figure - they are two honest views:
+       · a purchase RETURN reduces what the list says he owes that supplier, while the
+         balance sheet takes returns off in its own separate step
+       · the list floors each supplier at zero, because "he owes you money" is not a payable;
+         the sheet keeps the negative. A supplier he has overpaid therefore reads 0 on one
+         and less-than-nothing on the other. */
+  let rets=0, floored=0;
+  (cg.groups||[]).forEach(g=>{ try{ rets=r2(rets+supplierCredit(g.name)); }catch(e){} });
+  try{
+    (DB.purchases||[]).forEach(pu=>{ const b=orderBaaki(pu); if(b<0)floored=r2(floored-b); });
+  }catch(e){}
   const gap=r2(sheet-list);
   const explainedSheet=r2(onlySheet.reduce((s,x)=>s+x.amt,0));
   const explainedList=r2(onlyList.reduce((s,x)=>s+x.amt,0));
-  const left=r2(gap - explainedSheet + explainedList + loans);
-  return {sheet, list, gap, loans, onlySheet, onlyList, explainedSheet, explainedList, left};
+  const left=r2(gap - explainedSheet + explainedList + loans - rets - floored);
+  return {sheet, list, gap, loans, rets, floored, onlySheet, onlyList,
+          explainedSheet, explainedList, left};
 }
 function credReconScreen(){
   sheetAt(credReconScreen);
@@ -12679,9 +12772,12 @@ function credReconScreen(){
       ${row('<b>'+t('cr_rec_gap')+'</b>', r.gap, r.gap?'var(--bad)':'')}
     </div>
     ${!r.gap?`<p class="hint" style="padding:16px 4px;text-align:center">${t('cr_rec_none')}</p>`:''}
-    ${r.loans?`<div class="card" style="padding:10px 12px;margin-bottom:12px">
-      <div class="kv"><span class="hint" style="white-space:normal">${t('cr_rec_loans')}</span>
-      <b>${money(r.loans)}</b></div></div>`:''}
+    ${(()=>{ const bits=[[r.loans,'cr_rec_loans'],[r.rets,'cr_rec_ret'],[r.floored,'cr_rec_floor']]
+        .filter(x=>x[0]);
+      return bits.length?`<div class="card" style="padding:4px 12px;margin-bottom:12px">
+        ${bits.map(([v,k])=>`<div class="kv" style="padding:8px 0">
+          <span class="hint" style="white-space:normal">${t(k)}</span>
+          <b>${money(v)}</b></div>`).join('')}</div>`:''; })()}
     ${names(t('cr_rec_onlysheet'), r.onlySheet, 'var(--bad)')}
     ${names(t('cr_rec_onlylist'), r.onlyList, 'var(--saffron2)')}
     ${r.left?`<div class="card" style="padding:10px 12px;margin-bottom:12px;border-color:var(--bad)">
@@ -13816,9 +13912,12 @@ function statementText(g){
   return L.join('\n');
 }
 let _fuQ='';
-function fuSearch(v){ _fuQ=String(v||''); followUps();
-  const e=$('#fuSearch');
-  if(e){ e.value=_fuQ; e.focus(); try{e.setSelectionRange(_fuQ.length,_fuQ.length);}catch(err){} } }
+function fuSearch(v){
+  /* v689: rows in place, box untouched — see listFilterDOM(). Falls back to the full redraw
+     only if the container is missing, which an older render would be. */
+  _fuQ=String(v||'');
+  if(!listFilterDOM('fuBody',_fuQ)) followUps();
+}
 function fuAddPhone(key){
   const g=dueGroups().find(x=>x.key===key); if(!g)return;
   modal('📞 '+t('fu_add_phone'),
@@ -13917,7 +14016,7 @@ function followUps(){
     ${exportBarHTML('debtors',()=>({title:t('fu_title'), sub:t('stat_total_due')+': '+money(total),
       head:[t('pt_name'),t('phone'),t('amount'),t('ag_cur'),t('ag_30'),t('ag_60'),t('ag_90'),t('ag_oldest',{n:''}).trim()],
       rows:groups.map(g=>[g.name,ph10(g.phone),r2(g.due),g.age.cur,g.age.b30,g.age.b60,g.age.b90,g.age.oldest])}))}`:''}
-    ${rows||`<div class="empty" style="padding:30px 10px"><div class="big">🎉</div><p>${t('fu_all_clear')}</p></div>`}
+    <div id="fuBody">${rows||`<div class="empty" style="padding:30px 10px"><div class="big">🎉</div><p>${t('fu_all_clear')}</p></div>`}</div>
     
     <div class="fab-pad"></div>`;
   showSheet();
@@ -16754,18 +16853,19 @@ function campCSV(){
    scrolling an alphabetical wall. Name, phone or city, and it narrows as he types. */
 let _custQ='';
 function custListSearch(v){
+  /* v689: the search input lives inside #custCampBar, and renderCustomers() rewrites that
+     bar — so every letter destroyed the box he was typing in. The rows are redrawn; the bar
+     is left exactly as it is. Same fault, same fix, as the Payment list. */
   _custQ=String(v||'');
-  renderCustomers();
-  const e=$('#custListQ');
-  if(e){ e.focus(); try{ e.setSelectionRange(e.value.length,e.value.length); }catch(x){} }
+  renderCustomers(true);
 }
-function renderCustomers(){
+function renderCustomers(keepBar){
   const el=$('#custList');
   const _q=String(_custQ||'').trim().toLowerCase();
   const list=DB.customers.slice()
     .filter(c=>!_q||[c.name,c.phone,c.city,c.area].some(v=>String(v||'').toLowerCase().indexOf(_q)>=0))
     .sort((a,b)=>(a.name||'').localeCompare(b.name||''));
-  const bar=$('#custCampBar');
+  const bar=keepBar?null:$('#custCampBar');   /* v689: never while he is typing */
   if(bar)bar.innerHTML=tabHead(t('nav_customers'))+`<button class="btn primary block" style="margin-bottom:8px" onclick="newCustomer()">➕ ${t('cust_new')}</button>`
     +((DB.customers||[]).length>=8?`<input id="custListQ" value="${esc(_custQ)}" placeholder="🔍 ${t('search_ph')}"
         autocomplete="off" style="margin-bottom:8px" oninput="custListSearch(this.value)">`:'')
@@ -20872,9 +20972,28 @@ function odDelOrderPhoto(oid,pid){
 
 /* ====================== ALTERATIONS (separate lightweight order type) ====================== */
 let purQ='', purSort='new';
-function setPurQ(v){purQ=v;renderPurchases(true);}
+function setPurQ(v){
+  /* v689: rows only. renderPurchases() rewrites the whole pane including the box he is
+     typing in; purRedraw() replaces just #purBody and leaves the input alone. */
+  purQ=v;
+  if(!purRedraw()) renderPurchases(true);
+}
+function purRedraw(){
+  const body=document.getElementById('purBody'); if(!body)return false;
+  try{ renderPurchases(true,true); }catch(e){ return false; }
+  return true;
+}
 function setPurSort(v){purSort=v;renderPurchases();}
-function renderPurchases(keepFocus){
+function renderPurchases(keepFocus,rowsOnly){
+  /* v689: rowsOnly redraws #purBody in place and never touches the search input */
+  if(rowsOnly){
+    const _b=document.getElementById('purBody');
+    if(_b){ const _q=String(purQ||'').trim().toLowerCase();
+      [...(_b.querySelectorAll('.pur-card, .card'))].forEach(el=>{
+        const hit=!_q || (el.textContent||'').toLowerCase().indexOf(_q)>=0;
+        el.style.display=hit?'':'none'; });
+      return; }
+  }
   const el=$('#purchList');
   const all=(DB.purchases||[]);
   /* v368 — HIS 27 Aug: Sales reads as "+ New, then search, then the list", and he wants the
@@ -20930,9 +21049,12 @@ function renderPurchases(keepFocus){
      Sales list already reads — the same question ("what did I buy in June") answered the
      same way in both places. Only on the two date sorts; by amount a month heading is
      meaningless. */
-  el.innerHTML=addBtn+searchBox+selRow+summary+title
+  /* v689: everything that changes as he types goes inside #purBody, so setPurQ can redraw
+     the rows without rebuilding the search input above them — the same fault, and the same
+     fix, as the Payment list and the Customers list. */
+  el.innerHTML=addBtn+searchBox+selRow+`<div id="purBody">`+summary+title
     +((purSort==='new'||purSort==='old')?purMonthsHTML(list):list.map(purCardHTML).join(''))
-    +pageMoreBtn('pur',_pgAll.length)
+    +pageMoreBtn('pur',_pgAll.length)+`</div>`
   + (_purSelMode&&_purSel.size?`<div class="save-dock">
       <span class="hint" style="flex:1;padding-left:4px"><b>${_purSel.size}</b> ${t('fab_selected')}</span>
       <button class="btn ghost" onclick="purSelUnpaid()">↩️ ${t('pur_mark_unpaid')}</button>
@@ -21591,9 +21713,14 @@ function billGaps(){
    Customer says OK (or asks to change) → edit freely → "Convert to sale" makes a real
    sale (which then deducts stock and takes payment through the normal invoice flow). */
 let _est=null;
+let _estQ='';
+function estSearch(v){ _estQ=String(v||'');
+  /* v689: rows hidden in place - the box is never rebuilt */
+  if(!listFilterDOM('estBody',_estQ)) estimateList(); }
 function estimateList(){
   sheetAt(estimateList);
-  const rows=(DB.estimates||[]).slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)))
+  /* v685 */
+  const rows=(DB.estimates||[]).slice()   /* v689 */.sort((a,b)=>String(b.date).localeCompare(String(a.date)))
     .map(e=>`<div class="cust-result" style="margin-bottom:6px" onclick="estimateOpen('${e.id}')">
       <div style="min-width:0"><b>📄 ${esc(e.no)}</b>
         <div class="hint">${esc(e.customerName||'—')} · ${fmtDate(e.date)}${e.convertedSaleId?` · ✅ ${t('est_converted')}`:''}</div></div>
@@ -21602,7 +21729,8 @@ function estimateList(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">📄 ${t('estimate')}</h2>
     <button class="btn primary block" style="margin-bottom:10px" onclick="estimateNew()">➕ ${t('est_new')}</button>
-    ${rows}
+    ${((DB.estimates||[]).length>5||_estQ)?listSearchHTML('estQ',_estQ,'estSearch'):''}
+    <div id="estBody">${rows}</div>
     
     <div class="fab-pad"></div>`;
   showSheet();
@@ -25200,10 +25328,16 @@ function smpPickHTML(f){
     </div>`;
 }
 function smpPickSet(id){ captureForm(); form.sampleId=id||''; renderForm(); }
+let _smpQ='';
+function smpSearch(v){ _smpQ=String(v||'');
+  /* v689: rows hidden in place - the box is never rebuilt */
+  if(!listFilterDOM('smpBody',_smpQ)) samplesHome(); }
 function samplesHome(){
   sheetAt(samplesHome);
   if(!modOn('samples')){toast(t('mod_off'),'bad');return;}
-  const list=smpAll().slice().sort((a,b)=>new Date(b.created||0)-new Date(a.created||0));
+  /* v685. The counts below stay on the WHOLE book on purpose - "how many samples do I
+     have" must not change because he is looking for one of them. */
+  const list=smpAll().slice()   /* v689 */.sort((a,b)=>new Date(b.created||0)-new Date(a.created||0));
   const shown=_smpF==='none' ? list.filter(s=>!sampleOrders(s).length)
             : _smpF==='stock'? list.filter(s=>smpSizes(s).some(z=>smpPieceState(s,z)==='stock'))
             : _smpF==='sold' ? list.filter(s=>smpSizes(s).every(z=>smpPieceState(s,z)==='sold'))
@@ -25212,6 +25346,7 @@ function samplesHome(){
   const earned=list.reduce((a,s)=>a+sampleEarned(s),0);
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">🧥 ${t('smp_title')}</h2>
+    ${(smpAll().length>5||_smpQ)?listSearchHTML('smpQ',_smpQ,'smpSearch'):''}
     
     <div class="home-stats" style="margin-bottom:12px">
       <div class="stat"><b>${list.length}</b><span>${t('smp_n')}</span></div>
@@ -25223,7 +25358,7 @@ function samplesHome(){
       ${[['all','smp_f_all'],['stock','smp_f_stock'],['sold','smp_f_sold'],['none','smp_f_none']].map(([k,l])=>
         `<span class="gtag ${_smpF===k?'on-tag':''}" style="cursor:pointer" onclick="_smpF='${k}';samplesHome()">${t(l)}</span>`).join('')}
     </div>
-    ${shown.length?`<div class="smp-grid">${shown.map(smpTileHTML).join('')}</div>`
+    ${shown.length?`<div class="smp-grid" id="smpBody">${shown.map(smpTileHTML).join('')}</div>`
       :`<p class="hint" style="padding:24px 0;text-align:center">${t('smp_none')}</p>`}
     <div class="fab-pad"></div>`;
   showSheet();
@@ -33016,9 +33151,14 @@ function stlApply(){
   if(f)_stlFrom=f.value; if(t2)_stlTo=t2.value;
   settleDay();
 }
+let _jwQ='';
+function jwSearch(v){ _jwQ=String(v||'');
+  /* v689: rows hidden in place - the box is never rebuilt */
+  if(!listFilterDOM('jwBody',_jwQ)) jobWork(); }
 function jobWork(){
   sheetAt(jobWork);
-  const ks=DB.karigars||[];
+  /* v685: one of the four lists he could only scroll */
+  const ks=(DB.karigars||[]);   /* v689: filtering happens in the DOM, see listFilterDOM */
   const b=abBuckets();
   const unassigned=b.noKar.length;
   const rows=ks.map(k=>{
@@ -33037,12 +33177,13 @@ function jobWork(){
   }).join('') || `<p class="hint" style="padding:20px 0;text-align:center">${t('no_karigars')}</p>`;
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">🧵 ${t('jw_title')}</h2>
+    ${((DB.karigars||[]).length>5||_jwQ)?listSearchHTML('jwQ',_jwQ,'jwSearch'):''}
     
     ${unassigned?`<div class="card fu-open" style="padding:12px 14px;margin-bottom:12px;border-color:var(--saffron)" onclick="actionList('nokar')">
       <div class="kv"><span>⚠️ ${t('ab_nokar')}</span><b style="color:var(--saffron2)">${unassigned}</b></div></div>`:''}
     ${b.stuck.length?`<div class="card fu-open" style="padding:12px 14px;margin-bottom:12px" onclick="actionList('stuck')">
       <div class="kv"><span>⏳ ${t('ab_stuck',{n:AB_STUCK})}</span><b>${b.stuck.length}</b></div></div>`:''}
-    ${rows}
+    <div id="jwBody">${rows}</div>
     ${ks.length?`<button class="btn primary block" style="margin-top:12px" onclick="settleDay()">📆 ${t('stl_title')}</button>`:''}
     <div class="row" style="gap:8px;margin-top:10px">
       <button class="btn ${ks.length?'ghost':'primary'}" style="flex:2" onclick="karigarEdit()">➕ ${t('add_karigar')}</button>
@@ -34872,10 +35013,29 @@ function lgAll(){ DB.ledgers=DB.ledgers||[]; return DB.ledgers; }
 function lgByName(name){ const n=nameNorm(name); return lgAll().find(l=>nameNorm(l.name)===n)||null; }
 function lgById(id){ return lgAll().find(l=>l.id===id)||null; }
 /* Every name the shop already uses, present in the master from the first open. */
+/* ══════════ v686 — DELETE WORKED, AND lgSync PUT IT STRAIGHT BACK ══════════
+   HIS 14 Sept: "delete karne ke baad bhi wah wahin rahta hai, delete nahi ho raha hai."
+   He is right and the cause is this function. ledgerDel() removes the row correctly — and
+   lgSync(), which runs on the very next screen, walks every name the shop uses and creates
+   any ledger it cannot find. A ledger with nothing filed under it is exactly the kind whose
+   name still appears somewhere, so it came back every time, silently, within a second.
+   A name he has deliberately removed is remembered. It is NOT a blacklist: the moment
+   anything real is filed under that name again — a bill, an entry, an expense head — the
+   tombstone is lifted and the ledger returns, because then it is a ledger the books need. */
+function lgGone(){ DB.lgGone=DB.lgGone||[]; return DB.lgGone; }
 function lgSync(){
   const have={}; lgAll().forEach(l=>{ have[nameNorm(l.name)]=1; });
+  const gone={}; lgGone().forEach(n=>{ gone[n]=1; });
   const put=(name)=>{ const nm=String(name||'').trim(); if(!nm)return;
-    if(have[nameNorm(nm)])return; have[nameNorm(nm)]=1;
+    const key=nameNorm(nm);
+    if(have[key])return;
+    if(gone[key]){
+      /* deleted on purpose. It comes back only when it is genuinely in use again. */
+      let used=0; try{ used=ledgerUse(nm); }catch(e){ used=0; }
+      if(!used)return;
+      DB.lgGone=lgGone().filter(x=>x!==key); delete gone[key];
+    }
+    have[key]=1;
     lgAll().push({id:uid(), name:nm, group:lgGuessGroup(nm), openAmt:0, openDir:'', openDate:''}); };
   (DB.expCats||[]).forEach(put);
   (DB.parties||[]).forEach(p=>put(p.name));
@@ -35775,9 +35935,20 @@ function ledgerView(id){
     ${/* v506: the two things he can do to a ledger, at the top with its name — not at the
          far end of two hundred entries. Move is here because it is the honest answer to
          "delete": the entries have to go somewhere. */''}
+    ${/* ══════════ v686 — DELETE WAS HIDDEN INSIDE EDIT ══════════
+         HIS 14 Sept: "jab koi bana hua ledger ho, account ho, koi entry ho, usko jab click
+         karte hain to edit aur delete ka option aata hai — kyunki jab wah entry mein dobara
+         ghus rahe hain, ya to edit karne ke liye ghus rahe hain ya to delete. Uska reason
+         accha tha. Tumhari koi reasoning nahi hai."
+         There was none. A man opens a record he has already made for one of two reasons, and
+         only one of the two was on the screen. Both are here now, side by side, where he is
+         already looking. Nothing about what delete DOES changes — it still refuses to remove
+         a ledger that has entries filed under it and offers to archive instead. */''}
     <div class="row" style="gap:8px;margin-bottom:12px">
       <button class="btn ghost sm" style="flex:1" onclick="ledgerEdit('${jq(l.id)}')">\u270F\uFE0F ${t('lg_edit')}</button>
-      <button class="btn ghost sm" style="flex:1" onclick="lgMerge('${jq(l.id)}')">\u{1F500} ${t('lg_merge_go')}</button></div>
+      <button class="btn ghost sm" style="flex:1" onclick="lgMerge('${jq(l.id)}')">\u{1F500} ${t('lg_merge_go')}</button>
+      <button class="btn ghost sm" style="flex:0 0 auto;color:var(--bad)"
+        onclick="ledgerDel('${jq(l.id)}')" aria-label="${t('delete')}">\u{1F5D1}\uFE0F</button></div>
     <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
       <div class="il"><span>${t('lg_dr_total')}</span><b>${money(drTot)}</b></div>
       <div class="il"><span>${t('lg_cr_total')}</span><b>${money(crTot)}</b></div>
@@ -36022,7 +36193,10 @@ function lgFlipDir(){
 function ledgerDel(id){
   const l=lgById(id); if(!l)return;
   delOrHide(l.name, ledgerUse(l.name),
-    ()=>{ DB.ledgers=lgAll().filter(x=>x.id!==id); save(); ledgerMaster(); },
+    ()=>{ DB.ledgers=lgAll().filter(x=>x.id!==id);
+          /* v686: so lgSync does not rebuild it a second later */
+          const k=nameNorm(l.name); if(lgGone().indexOf(k)<0)lgGone().push(k);
+          save(); ledgerMaster(); },
     ()=>{ l.archived=1; save(); ledgerMaster(); });
 }
 function partyByName(name){
@@ -37384,9 +37558,14 @@ function attSummary(sid,mon,days){
           otHrs:Math.round((extraMin/60)*100)/100};
 }
 /* ── the profile: everything about one person in one place ─────────────────── */
+let _stQ='';
+function stSearch(v){ _stQ=String(v||'');
+  /* v689: rows hidden in place - the box is never rebuilt */
+  if(!listFilterDOM('stBody',_stQ)) staffMaster(); }
 function staffMaster(){
   sheetAt(staffMaster);
-  const ks=staffAll();
+  /* v685 */
+  const ks=staffAll();          /* v689 */
   $('#sheet').innerHTML=`<div class="grip"></div>
     ${/* v522: the sheet's own ✕ is pinned to the top-right corner, and this screen put its
          settings gear in the same corner — measured 4px of overlap, so a tap on the edge of
@@ -37394,12 +37573,13 @@ function staffMaster(){
     <div class="kv" style="margin:0 0 2px;padding-right:46px"><h2 style="margin:0">👥 ${t('st_title')}</h2></div>
     <div class="kv" style="margin:0 0 12px">
       <button class="btn sm ghost" style="flex:0 0 auto" onclick="staffSettings()">⚙️</button></div>
+    ${(staffAll().length>5||_stQ)?listSearchHTML('stQ',_stQ,'stSearch'):''}
     ${/* v213 — HIS 17 Aug: "staff permanent nahi, aaj hai, nahi samajh me aaya to wo chhod
          bhi sakte hain aur main hata bhi sakta hun." So every person can be edited or taken
          off the list from here. Taken off, never deleted: his attendance, his advances and
          his loan are a year of history, and a report that silently loses a man who worked
          nine months of it is worse than no report. He shows as left, and can come back. */''}
-    ${ks.map(k=>`<div class="cust-result" style="align-items:center">
+    <div id="stBody">${ks.map(k=>`<div class="cust-result" style="align-items:center">
       <div style="flex:1;min-width:0;cursor:pointer" onclick="staffEdit('${k.id}')">
         <b>${k.left?'⚪ ':(k.owner?'👑 ':'🧑‍💼 ')}${esc(k.name)}${k.left?' · '+t('st_gone'):(k.owner?' · '+t('st_owner_tag'):'')}</b>
         <div class="hint">${esc(k.role||'')}${k.salary?' · '+money(k.salary):''}${k.startTime?' · 🕘 '+esc(k.startTime):''}</div></div>
@@ -39148,7 +39328,7 @@ async function stockAudit(){
           return `<div class="krow fu-open" onclick="closeSheet();stockHome('fabric');setTimeout(()=>thaanDetail('${th.id}'),120)">
             <span class="kn">#${esc(th.serial)}${f.name?' · '+esc(f.name):''}
               <div class="hint">${thaanBal(th)} m ${t('stk_left')} · ${th.mtr||0} m</div></span>
-            <span style="color:var(--saffron2)">›</span></div>`;}).join('')}</div>`;})()}
+            <span style="color:var(--saffron2)">›</span></div>`;}).join('')}</div></div>`;})()}
     ${now.gaps.length?`<div class="section-h" style="margin-top:0">${t('au_gaps')}</div>
       <div class="card" style="padding:10px 12px;margin-bottom:12px">
         ${now.gaps.slice(0,30).map(g=>`<span class="gtag" style="margin:2px">${g.from===g.to?g.from:g.from+'–'+g.to}</span>`).join('')}
@@ -39473,6 +39653,19 @@ function showSheet(){
      Nothing in the app reads this; it exists so the suite can. */
   try{ const shn=$('#sheet');
     if(shn) shn.dataset.screen=_sheetName||((_sheetCur&&_sheetCur.name)?_sheetCur.name:'');
+    /* ══════════ v685 — HE CAME BACK AND THE APP HAD MOVED ══════════
+       HIS 14 Sept: "screenshot liya, Claude mein daala, phir us screen mein gaya to screen
+       apni jagah se hatkar home screen par aa jaati hai... baar baar process karke us
+       screen par jao, yah irritating lagta hai."
+       Android reclaims a backgrounded tab and the page boots again. v503 already put him
+       back on the last TAB — but a sheet is not a tab, and every screen in this app that is
+       worth standing on is a sheet, so he landed on Home every single time.
+       The name is now remembered with it. Only the screen name, nothing about its contents:
+       reopening it simply calls the same function his own tap would have. */
+    if(shn && _sheetName){
+      try{ localStorage.setItem('pb_ob_lastsheet',
+        JSON.stringify({s:_sheetName, at:Date.now()})); }catch(e){}
+    }
   }catch(e){}
   restorePlace();
   /* Lock the page behind the sheet. Without this the list underneath scrolls with the
@@ -39680,6 +39873,8 @@ function closeSheet(){
   /* v680: a closed sheet must not go on claiming to be the screen it was — a stale stamp
      would let a check pass on a screen that is no longer on the glass. */
   try{ const shn=$('#sheet'); if(shn) shn.removeAttribute('data-screen'); }catch(e){}
+  /* v685: he shut it on purpose - do not put it back on the next boot */
+  try{ localStorage.removeItem('pb_ob_lastsheet'); }catch(e){}
   $('#scrim').classList.remove('show');$('#scrim').classList.remove('full');
   $('#fracbar').classList.remove('show');document.body.classList.remove('fb-on');
   _place=null;                                    // don't restore a place into a later visit
@@ -40226,6 +40421,27 @@ async function init(){
      otherwise — reopenForm lands him on Home when it finds an interrupted order, which is
      right, and it must have the last word. A sheet already on screen keeps it too: if he
      is being put back into an order, that is where he wants to be, not on a list. */
+  /* ══════════ v685 — PUT THE SCREEN BACK, NOT JUST THE TAB ══════════
+     Deliberately narrow. Only screens that are LISTS come back: a form is half-typed work
+     and reopening it from a name would lose what was in it, which is far worse than landing
+     on Home. reopenForm() above already handles the one form that must return, and if it
+     has put a sheet up this leaves it alone.
+     Five minutes, not thirty: coming back from a screenshot is seconds. Coming back the
+     next morning, he wants Home. */
+  const SAFE_BACK=['stockHome','jobWork','staffMaster','expenses','dayBook','cashBank',
+    'ledgerMaster','creditors','debtorsHome','creditorsHome','payListIn','payListOut',
+    'samplesHome','estimateList','followUps','menuHome','trialBalance','balanceSheet',
+    'karigarBook','staffPunch','poList','retListSale','retListPur','purchaseHub','saleHub',
+    'ordersHub','stockAudit','backupMenu','cloudScreen','rptHub','partiesHome'];
+  try{
+    const r=JSON.parse(localStorage.getItem('pb_ob_lastsheet')||'null');
+    if(r && r.s && SAFE_BACK.indexOf(r.s)>=0 && (Date.now()-(+r.at||0))<5*60*1000
+       && !_sheetOn && !formIsOpen() && typeof window[r.s]==='function'){
+      /* late and guarded: a throw here must never be the reason a screen is blank - the
+         v640 lesson, on a line added after it */
+      setTimeout(()=>{ try{ window[r.s](); }catch(e){} }, 260);
+    }
+  }catch(e){}
   if(_last && _last!=='home' && $('#tab-'+_last) && !_sheetOn){
     /* ══════════ v640 — THE BLANK SCREEN ON OPEN ══════════
        HIS 13 Sept: "screen kai baar aise kholo to blank aa rahi hai. Home dabao tab theek
