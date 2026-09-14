@@ -50,7 +50,44 @@
            screen-drawing failure. reg.update() is a promise; the try/catch around it never
            caught its rejection. Offline caching is a convenience — when its update fails
            the app is completely fine, so this must stay silent. */
-        try{ const up=reg.update(); if(up&&up.catch)up.catch(function(){}); }catch(e){}
+        /* ══════════ v677 — A DELETED sw.js USED TO FREEZE THE APP FOR EVER ══════════
+           HIS 14 Sept: "kaam hone ke baad main purani file delete kar deta hoon, to sw.js
+           bhi delete ho gayi." Deleting it does NOT remove it from the phone. The worker
+           already installed there keeps running and keeps handing over its own cached copy
+           of the page. This update() call is what should notice - but its rejection was
+           swallowed, so the 404 never reached anything and the old build stayed for ever.
+           That is his v646 / v642 / v666 on one phone, two of them showing an update bar
+           that could never land.
+           A missing file must mean NO worker, not a frozen one. If the update fails
+           because sw.js is gone, the worker is unregistered and its caches are dropped, so
+           the app goes back to loading straight off the host - exactly as it did before
+           there ever was a worker. Offline stops; nothing else does, and his data is in
+           IndexedDB which none of this touches.
+           Only a 404/410 does this. A failure because the phone has no signal must change
+           nothing at all, or a shop with bad network would lose offline for good. */
+        try{
+          const up=reg.update();
+          if(up&&up.catch)up.catch(function(){
+            try{
+              fetch('sw.js',{cache:'no-store'}).then(function(r){
+                if(r && (r.status===404||r.status===410)){
+                  reg.unregister();
+                  /* v678 — HIS 14 Sept: "expense tracker jo app banaya hai usme bhi sw.js
+                     dete ho to confusion ho jayega." caches.keys() is per ORIGIN, not per
+                     folder. Both his apps sit on the same domain, so dropping every cache
+                     here would take the expense tracker's offline copy down with this
+                     one - an app he never touched, broken by a cleanup that was not its
+                     own. Only the caches this app owns are removed. sw.js names them all
+                     with the same prefix for exactly this reason. */
+                  if(window.caches)caches.keys().then(function(ks){
+                    ks.forEach(function(k){
+                      if(String(k).indexOf('parampara-')===0)caches.delete(k); });
+                  });
+                }
+              }).catch(function(){});      /* no signal - leave everything alone */
+            }catch(e){}
+          });
+        }catch(e){}
         if(!navigator.serviceWorker.controller){
           /* first ever install — say it once, so he knows it is safe to lose the net */
           navigator.serviceWorker.addEventListener('controllerchange',function(){
@@ -1013,7 +1050,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v669</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v679</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -1431,6 +1468,9 @@ const T={
   bk_shrink_auto:'Daily backup stopped \u2014 this book is much smaller than the linked file.',
   /* v582 \u2014 the bill run, for the CA */
   gap_title:'Missing bill numbers',
+  dup_title:'Numbers used twice',
+  dup_help:'Two records carry the same number. This usually comes from a handover, where both devices issued it while apart. Nothing is changed here \u2014 a bill already given to a customer should keep its number, and it is for you to decide which record to correct.',
+  dup_ord_one:'Order {n}',
   gap_sub:'Every number this series has used, and the ones with no bill against them.',
   gap_none:'No gaps. {a} to {b} \u2014 every number has a bill.',
   gap_found_lbl:'numbers with no bill against them',
@@ -2261,6 +2301,17 @@ const T={
   vm_left:'Last one. Still blank: {f}',
   sw_ready:'Saved on this device — works without internet now',
   sw_update:'New version ready — close and open the app once',
+  stale_title:'This is an older copy of the app',
+  bk_lost_head:'This file has nothing in {n} {n|place|places} where your device has data:',
+  au_moves_come:'{n} movement {n|record|records} come with them, so their earlier dates read correctly.',
+  au_moves_blind:'{n} {n|roll has|rolls have} been cut but bring no movement history. Their balance today is right; on earlier dates they will read as they do today.',
+  bk_lost_one:'{n} here, none in the file',
+  bk_meant:'meant {a}, found {b}',
+  bk_noread:'the book could not be read back after writing',
+  bk_fail_title:'Restore did NOT complete',
+  bk_fail_msg:'What was read back does not match what the file carried, so your old book has been put back exactly as it was. Nothing was lost. Try the backup file again, or use an earlier one.',
+  stale_msg:'This window is running {a} but your book has already been used on {b}. An older copy can undo fixes that are already in your data, so it will not save anything. Tap below to come back on the current version \u2014 nothing of yours is touched.',
+  stale_go:'Get the current version',
   vm_idle:'Mic off — nothing heard for a while',
   vm_last:'This was the last piece',
   inv_draft_back:'Your unfinished bill is back',
@@ -3618,6 +3669,9 @@ dl_show_hidden:'Show hidden ({n})',
   bk_shrink_go:'फिर भी लिखो',
   bk_shrink_auto:'रोज़ का बैकअप रोका — ये किताब जुड़ी फ़ाइल से बहुत छोटी है।',
   gap_title:'Missing bill numbers',
+  dup_title:'दो बार लगे हुए नंबर',
+  dup_help:'दो रिकॉर्ड पर एक ही नंबर है। आमतौर पर यह हैंडओवर से आता है, जब दोनों डिवाइस ने अलग-अलग रहते हुए वही नंबर दे दिया। यहाँ कुछ बदला नहीं जाता — जो बिल ग्राहक को दे दिया गया है उसका नंबर वैसा ही रहना चाहिए, और कौन सा रिकॉर्ड ठीक करना है यह आपका फ़ैसला है।',
+  dup_ord_one:'ऑर्डर {n}',
   gap_sub:'Every number this series has used, and the ones with no bill against them.',
   gap_none:'No gaps. {a} to {b} — every number has a bill.',
   gap_found_lbl:'numbers with no bill against them',
@@ -4439,6 +4493,17 @@ dl_show_hidden:'Show hidden ({n})',
   vm_left:'आखिरी नाप। अभी खाली: {f}',
   sw_ready:'इसी डिवाइस में सेव हो गया — अब बिना इंटरनेट भी चलेगा',
   sw_update:'नया वर्ज़न तैयार — ऐप एक बार बंद करके खोलिए',
+  stale_title:'यह ऐप की पुरानी कॉपी है',
+  bk_lost_head:'इस फ़ाइल में {n} जगह कुछ नहीं है, जबकि आपके डिवाइस में डेटा है:',
+  au_moves_come:'इनके साथ {n} मूवमेंट रिकॉर्ड भी आ रहे हैं, इसलिए पुरानी तारीखें सही पढ़ेंगी।',
+  au_moves_blind:'{n} थान कटे हुए हैं पर उनका मूवमेंट इतिहास नहीं आ रहा। आज का बैलेंस सही रहेगा; पुरानी तारीखों में वे आज जैसे ही दिखेंगे।',
+  bk_lost_one:'यहाँ {n}, फ़ाइल में एक भी नहीं',
+  bk_meant:'{a} होने थे, {b} मिले',
+  bk_noread:'लिखने के बाद बही पढ़ी नहीं जा सकी',
+  bk_fail_title:'रिस्टोर पूरा नहीं हुआ',
+  bk_fail_msg:'जो वापस पढ़ा गया वो फ़ाइल से मेल नहीं खाता, इसलिए आपकी पुरानी बही जैसी थी वैसी ही वापस रख दी गई है। कुछ भी नहीं गया। बैकअप फ़ाइल दोबारा आज़माइए, या कोई पुरानी वाली लीजिए।',
+  stale_msg:'यह विंडो {a} चला रही है, जबकि आपकी बही {b} पर चल चुकी है। पुरानी कॉपी वो गलतियाँ वापस ला सकती है जो ठीक हो चुकी हैं, इसलिए यह कुछ भी सेव नहीं करेगी। नीचे दबाकर मौजूदा वर्ज़न पर आ जाइए — आपका डेटा बिलकुल नहीं छुआ जाएगा।',
+  stale_go:'मौजूदा वर्ज़न लाइए',
   vm_idle:'माइक बंद — कुछ देर से कोई आवाज़ नहीं आई',
   vm_last:'यही आख़िरी कपड़ा था',
   inv_draft_back:'आपका अधूरा बिल वापस आ गया',
@@ -5897,6 +5962,10 @@ function save(oid){
   /* v482: the book could not be read this session — writing now would replace it with
      whatever is in memory, which is nothing. Refuse, every time, and keep saying so. */
   if(_dbReadFailed){ try{ toast(t('dbf_toast'),'bad'); }catch(e){} return; }
+  /* v672: an older copy of the app must not write over a book a newer one has kept. The
+     guard sits here, at the one door every write goes through, not on the screens. */
+  if(typeof _staleBuild!=='undefined' && _staleBuild){
+    try{ toast(t('stale_title'),'bad'); }catch(e){} return; }
   if(oid)touchOrder(oid);
   /* v449: a record has actually been written, so a save that was waiting on the double-tap
      latch is now genuinely done and the latch closes. A save that never got here — because
@@ -6107,6 +6176,111 @@ function autoSnapshot(s){ if(!idb)return; try{
    restore is about to happen. This takes one regardless, right before the overwrite, so
    the way back always exists. It lands in the same snapshot store the "Restore auto-backup"
    screen already reads, so nothing new has to be learnt to use it. */
+/* ══════════════ v673 — "RESTORE SUCCESSFUL" PROVED ALMOST NOTHING ══════════════
+   The door opened on `if(!d||!d.orders)` and the verification afterwards compared ONE
+   number: how many orders came back. A backup can carry every order and have lost every
+   customer, the whole ledger, the karigars, the rolls — and it would have been accepted,
+   written over the live book, and reported as successful.
+   For a shop whose data lives on the device and nowhere else, that is the one failure
+   that cannot be undone by any amount of re-entering.
+   What is checked now, on every collection the book actually has rather than a list
+   invented here:
+     BEFORE overwriting - what the file carries, set against what is on this device. A
+       collection that is full here and empty there is named, counted and shown, and he
+       decides with the figures in front of him instead of a word.
+     AFTER writing - the store is read back and every collection is compared again, and
+       so are the figures that decide money: what is owed to the shop, what the shop owes,
+       cash, bank and the value of the shelf.
+   If the read-back disagrees with what was meant to be written, the restore is NOT
+   reported as done: the snapshot taken a moment earlier is put back and he is told which
+   part failed. */
+function bkManifest(db){
+  const m={};
+  Object.keys(db||{}).forEach(k=>{
+    const v=db[k];
+    if(Array.isArray(v))m[k]=v.length;
+    else if(v&&typeof v==='object')m[k]=Object.keys(v).length;
+  });
+  return m;
+}
+/* the figures a shopkeeper would notice immediately if they moved */
+function bkMoney(){
+  const out={};
+  try{ out.toCollect=r2(receivableTotal()); }catch(e){ out.toCollect='?'; }
+  try{ out.toPay=r2((credGroups('')||{}).total||0); }catch(e){ out.toPay='?'; }
+  try{ let c=0; (DB.accounts||[]).forEach(a=>{ c=r2(c+accBalance(a.id)); }); out.cash=c; }
+  catch(e){ out.cash='?'; }
+  try{ out.stock=r2(stockNowValue()); }catch(e){ out.stock='?'; }
+  return out;
+}
+/* collections this device has data in that the file does not - the dangerous direction */
+function bkLosses(incoming){
+  const mine=bkManifest(DB), theirs=bkManifest(incoming||{}), lost=[];
+  Object.keys(mine).forEach(k=>{
+    if(k==='lastVer')return;
+    const a=mine[k]||0, b=theirs[k]||0;
+    if(a>0 && b===0) lost.push({k,had:a});
+  });
+  return lost.sort((x,y)=>y.had-x.had);
+}
+function bkDiff(want,got){
+  const out=[];
+  Object.keys(want||{}).forEach(k=>{
+    const a=want[k]||0, b=(got||{})[k]||0;
+    if(a!==b) out.push(k+': '+t('bk_meant',{a:a,b:b}));
+  });
+  return out;
+}
+/* ══════════════ v674 — THE SAME CHECK ON ALL THREE DOORS ══════════════
+   v673 hardened the JSON restore and left the other two alone: a ZIP - which is what a
+   one-file backup actually is - and a snapshot step-back both still proved a restore by
+   counting orders. Three copies of the same twenty lines, and only one of them had been
+   corrected, which is precisely the shape this app has been bitten by before: one job
+   written twice, drifting apart.
+   They are one function now. Whatever comes through any door is written, read back, and
+   compared collection by collection; if the read-back disagrees the book that was on the
+   device a second ago goes straight back and the caller is told which part failed.
+   Nothing about how a figure is worked out changes here. */
+async function writeRestoredBook(d){
+  const before=dbSerialize();                 /* the way back, held in hand */
+  const want=bkManifest(d);
+  DB=d;
+  if(!DB.customers)DB.customers=[]; if(!DB.designLib)DB.designLib={}; if(!DB.karigars)DB.karigars=[];
+  (DB.orders||[]).forEach(o=>{ try{ touchOrder(o.id); }catch(e){} });
+  _coreDirty=true; _dbDirty=true;
+  let ok=false, bad=[];
+  if(idb){
+    try{
+      ok=await writeStoreV2();
+      if(ok){ const check=await readStoreV2();
+        bad=check?bkDiff(want,bkManifest(check)):[t('bk_noread')];
+        ok=!!check && bad.length===0; }
+    }catch(e){ ok=false; bad=[String((e&&e.message)||e)]; }
+  }
+  if(!ok){
+    /* the legacy copy is still written - it is how a book without IndexedDB survives -
+       but it is no longer allowed to pass as a verified restore */
+    try{ const s=dbSerialize();
+      if(s.length<4200000)localStorage.setItem('pb_ob_v1',s);
+      if(idb)await mPut('__db', s);
+    }catch(e){}
+  }
+  if(idb && !ok){
+    try{
+      DB=JSON.parse(before);
+      (DB.orders||[]).forEach(o=>{ try{ touchOrder(o.id); }catch(e){} });
+      _coreDirty=true; _dbDirty=true;
+      await writeStoreV2();
+    }catch(e){}
+  }
+  return {ok:(idb?ok:true), bad, rolledBack:(idb&&!ok)};
+}
+function restoreFailedModal(bad){
+  try{ modal('\u26A0\uFE0F '+t('bk_fail_title'),
+    '<p>'+esc(t('bk_fail_msg'))+'</p><p class="hint" style="margin-top:8px">'
+    +esc((bad||[]).slice(0,6).join(' \u00B7 '))+'</p>',
+    [{label:t('close'),cls:'primary',fn:closeModal}]); }catch(e){}
+}
 async function preRestorePoint(){
   if(!idb)return false;
   try{
@@ -6552,6 +6726,28 @@ const orderTotal=o=>{ if(!o)return 0;
   if(o.invoice && o.invoice.cancelled) return 0;
   if(o.invoice)return invCompute(o.invoice).total; return +o.total||0; };
 const orderBaaki=o=>Math.max(0,orderTotal(o)-orderReceived(o));
+/* ══════════════ v670 — A BALANCE SHEET THAT COULD SEE TOMORROW ══════════════
+   A balance sheet is a photograph of ONE day. receivableTotal() had no date at all: it
+   read every bill in the book and every rupee ever received against them, so asking for
+   the sheet as at an earlier day still answered with today's figure.
+   Proved: on an empty book, a bill dated TOMORROW put 5,000 into the debtors of a sheet
+   drawn up to TODAY. Every back-dated sheet, and every figure a CA reads off one, was
+   wrong by whatever happened after that date.
+   Two halves have to move together, and missing either one is worse than missing both:
+   a bill counts only if it was RAISED by that day, and a payment reduces it only if it
+   was RECEIVED by that day. Counting the bill but not its later payment would overstate
+   what was owed; the reverse would understate it.
+   asOf is optional everywhere. Called with nothing — which is every live screen — these
+   behave exactly as before, so nothing that works today changes. */
+const dayOfRec=r=>String((r&&(r.date||r.orderDate||(r.created||'').slice(0,10)))||'');
+const orderReceivedAsOf=(o,asOf)=>{ migratePayments(o);
+  return (o.payments||[]).reduce((s,p)=>{
+    if(asOf && String(p.date||'')>asOf) return s;      /* money that had not arrived yet */
+    return s+(+p.amt||0); },0); };
+const orderBaakiAsOf=(o,asOf)=>{
+  if(!asOf)return orderBaaki(o);
+  const d=dayOfRec(o); if(d && d>asOf)return 0;        /* the bill did not exist yet */
+  return Math.max(0,orderTotal(o)-orderReceivedAsOf(o,asOf)); };
 /* ══ v254 AUDIT — P1: ONE QUESTION, THREE ANSWERS ══
    "How much is still to collect?" was being answered three different ways on ONE screen:
      · the header ran DB.orders through orderBaaki  — orders only, no alterations, no
@@ -6773,11 +6969,11 @@ function openingPartyTotal(kind,dir){
    Alterations are left alone deliberately: v304 already counts an unbilled alteration
    as income, so its balance is a real receivable with a matching credit. */
 function ordIsBillable(r){ return !!(r && r.invoice); }
-function receivableTotal(){
+function receivableTotal(asOf){
   const per={};
   [DB.orders,DB.alterations,DB.sales].forEach(arr=>(arr||[]).forEach(r=>{
     if(arr===DB.orders && !ordIsBillable(r))return;    /* not billed → not a debt */
-    const bal=orderBaaki(r); if(!bal)return;
+    const bal=orderBaakiAsOf(r,asOf); if(!bal)return;
     const k=custKeyOf(r); per[k]=r2((per[k]||0)+bal); }));
   const cm=custCreditMap();
   Object.keys(cm).forEach(k=>{ per[k]=r2(Math.max(0,(per[k]||0)-cm[k])); });
@@ -20451,6 +20647,47 @@ function appVerOf(html){
   const m=String(html||'').match(/>\s*(v\d+)\s*<\/span>/);
   return m?m[1]:'';
 }
+/* ══════════════ v672 — TWO VERSIONS WRITING IN ONE BOOK ══════════════
+   HIS 14 Sept, from his own screenshots taken minutes apart: one screen's header read
+   v646, the next read v642, a third read v666, and two of them carried the "new version
+   ready" bar. Not the clock and not his imagination - three copies of the app were open
+   on one phone, each holding whatever the cache had handed it, and every one of them was
+   writing into the same book.
+   That is worse than a stale screen. v642 did not know that a blank phone is not an
+   identity, and v668 had not yet stopped a karigar's dues being filed under suppliers.
+   An older copy saving over a newer book re-applies the exact faults that were fixed, and
+   leaves no trace that it did.
+   sw.js decides WHICH copy the browser hands over and it is not in this file. What this
+   file can do is refuse to be the older copy. The highest version that has ever run
+   against this book is remembered in it; a build older than that stops, says so, and
+   offers the button that clears the cached copy and comes back on the current one.
+   It never blocks on equal or newer, and it never touches his data. */
+const _verNum=v=>{ const m=String(v||'').match(/(\d+)/); return m?+m[1]:0; };
+var _staleBuild=false;
+function staleBuildCheck(){
+  try{
+    const here=_verNum(appVerHere()); if(!here)return;         /* cannot read - say nothing */
+    const seen=_verNum(DB.lastVer);
+    if(seen && here<seen){ _staleBuild=true; showStaleBar(here,seen); return; }
+    if(here>seen){ DB.lastVer='v'+here; try{ save(); }catch(e){} }
+  }catch(e){}
+}
+function showStaleBar(here,seen){
+  try{
+    if(document.getElementById('staleBar'))return;
+    const d=document.createElement('div'); d.id='staleBar';
+    d.style.cssText='position:fixed;left:0;right:0;top:0;bottom:0;z-index:99999;'
+      +'display:flex;flex-direction:column;align-items:center;justify-content:center;'
+      +'gap:14px;padding:28px;text-align:center;background:#2b1a05;color:#ffe6b0';
+    d.innerHTML='<div style="font-size:40px">\u26A0\uFE0F</div>'
+      +'<div style="font-size:17px;font-weight:800;line-height:1.5">'+esc(t('stale_title'))+'</div>'
+      +'<div style="font-size:14px;opacity:.9;line-height:1.6">'
+        +esc(t('stale_msg',{a:'v'+here,b:'v'+seen}))+'</div>'
+      +'<button class="btn primary" style="margin-top:6px;min-width:200px" '
+        +'onclick="updateNow()">'+esc(t('stale_go'))+'</button>';
+    document.body.appendChild(d);
+  }catch(e){}
+}
 let _updChk=0, _updBusy=false;
 async function checkNewBuild(manual){
   if(_updBusy)return; 
@@ -20784,6 +21021,12 @@ function captureAltForm(){const f=altForm;
 function saveAlteration(){
   captureAltForm();const f=altForm;
   if(!f.itemDesc){toast(t('t_no_alt_item'),'bad');return;}
+  /* v678: the duplicate alteration number check already stops the common double tap, but
+     it only helps while the number is unique - an edit carries an id and slips past it.
+     Same latch as every other writer, so the protection does not depend on which screen
+     he happens to be on. */
+  if(!svOnce(['al',f.editId||'',f.altNo||'',f.customerName||'',f.itemDesc||'',
+     f.charge||'',f.date||''].join('|'),()=>{})){ toast(t('sv_dup'),'bad'); return; }
   if(DB.alterations.find(a=>String(a.altNo)===String(f.altNo)&&a.id!==f.editId)){toast(t('t_alt_dup'),'bad');return;}
   if(f.editId){
     const a=altById(f.editId);
@@ -20945,6 +21188,45 @@ function gapScan(){
   (DB.sales||[]).forEach(s=>add(s,'sale'));
   return map;
 }
+/* ══════════════ v676 — A CLASH HE AGREED TO, AND THEN COULD NOT FIND ══════════════
+   Handover already catches this before it lands: hoClashes() compares every incoming
+   order number and bill number against what is here, and the confirm screen shows them in
+   red before he decides. That part was already right and is left alone - an issued
+   document is never silently renumbered.
+   What was missing is afterwards. He accepts, quite reasonably, because both records are
+   real work and both belong in the book; and from that moment the two bills carrying the
+   same number are indistinguishable from any other pair in a list of hundreds.
+   The screen that already answers "which numbers am I missing" is the only sensible place
+   to answer "which numbers do I have twice". Same screen, same series chips, nothing new
+   to find. It reports; it never renumbers and never deletes - that is his call on a
+   document that may already be in a customer's hand. */
+function dupScan(){
+  const seen={};                      /* series -> number -> [labels] */
+  const put=(no,who)=>{
+    const str=String(no||'').trim(); if(!str)return;
+    const m=str.match(/^(.*?)[\/-]?(\d+)$/); if(!m)return;
+    const ser=(m[1]||'').replace(/[\/-]$/,'')||'—', num=+m[2];
+    seen[ser]=seen[ser]||{}; (seen[ser][num]=seen[ser][num]||[]).push(who);
+  };
+  (DB.orders||[]).forEach(o=>{ if(o.invoice&&o.invoice.no)put(o.invoice.no,o.customerName||''); });
+  [DB.sales,DB.alterations].forEach(a=>(a||[]).forEach(r=>{
+    if(r&&r.invoice&&r.invoice.no)put(r.invoice.no,r.customerName||''); }));
+  const out={};
+  Object.keys(seen).forEach(ser=>{
+    Object.keys(seen[ser]).forEach(num=>{
+      if(seen[ser][num].length>1){ out[ser]=out[ser]||{}; out[ser][num]=seen[ser][num]; }
+    });
+  });
+  return out;
+}
+function dupOrderScan(){
+  const seen={};
+  (DB.orders||[]).forEach(o=>{ const k=String(o.orderNo||'').trim(); if(!k)return;
+    (seen[k]=seen[k]||[]).push(o.customerName||''); });
+  const out={};
+  Object.keys(seen).forEach(k=>{ if(seen[k].length>1)out[k]=seen[k]; });
+  return out;
+}
 function billGaps(){
   sheetAt(billGaps);
   const map=gapScan();
@@ -20972,6 +21254,20 @@ function billGaps(){
     <h2 style="margin-bottom:4px">🔢 ${t('gap_title')}</h2>
     
     ${sers.length>1?`<div class="chips" style="margin-bottom:10px">${chips}</div>`:''}
+    ${(()=>{                      /* v676: the other half of the same question */
+       const dup=(dupScan()[_gapSeries])||{}, dNums=Object.keys(dup).map(Number).sort((a,b)=>a-b);
+       const dOrd=dupOrderScan(), dOrdKeys=Object.keys(dOrd);
+       if(!dNums.length && !dOrdKeys.length)return '';
+       const row=(label,who)=>`<div class="cust-result" style="margin-bottom:6px">
+         <div style="min-width:0"><b style="color:var(--bad)">${esc(label)}</b>
+         <div class="hint">${esc(who.join(' \u00B7 '))}</div></div></div>`;
+       return `<div class="card" style="margin-bottom:10px;border-color:var(--bad)">
+         <b style="color:var(--bad)">\u26A0\uFE0F ${t('dup_title')}</b>
+         <div class="hint" style="white-space:normal;margin:6px 0 8px">${t('dup_help')}</div>
+         ${dNums.map(x=>row(_gapSeries+'/'+pad(x), dup[x])).join('')}
+         ${dOrdKeys.map(k=>row(t('dup_ord_one',{n:k}), dOrd[k])).join('')}
+       </div>`;
+     })()}
     <div class="card" style="margin-bottom:10px">
       <div class="hint">${t('gap_range',{s:esc(_gapSeries),a:pad(lo),b:pad(hi),u:nums.length})}</div>
       <div style="font-size:22px;font-weight:800;color:${miss.length?'var(--bad)':'var(--ok,#3ec46d)'}">${miss.length}</div>
@@ -23278,6 +23574,16 @@ function saveInvoice(){
 
   // Make-to-order: this bill belongs on a real ORDER, not a counter sale.
   // Create the order (or reuse the number), move everything onto it, drop the sale stub.
+  /* v679 — DEAD SINCE v489, KEPT ON PURPOSE, AND NOW WATCHED.
+     saleType is set to 'rdy' when the form opens and is never changed anywhere in this
+     file, so this branch cannot run. The business need it was written for - a saved bill
+     belonging on a real order - is answered by invMoveSaleToOrder(), which MOVES the bill
+     instead of making a second one.
+     It is not deleted. Thirty lines that create customers, orders and numbers are not
+     worth the risk of removing on a guess, and the comment above invMoveSaleToOrder
+     explains exactly why it was replaced. What was missing is a way to notice if it ever
+     came back to life: regress.js now fails if saleType is assigned 'mto' anywhere, so
+     whoever does that has to decide deliberately rather than by accident. */
   if(f.kind==='sale' && f.saleType==='mto'){
     const ono=(f.orderNo||'').trim() || nextOrderNo();
     let o=(DB.orders||[]).find(x=>String(x.orderNo).toLowerCase()===ono.toLowerCase());
@@ -23976,6 +24282,10 @@ function saveSalesReturn(){
   if($('#sr_acc'))_sret.acc=$('#sr_acc').value==='__new'?(defaultAcc()||{}).id:$('#sr_acc').value;
   const lines=_sret.lines.filter(l=>(+l.ret||0)>0);
   if(!lines.length){toast(t('sr_pick_qty'),'bad');return;}
+  /* v678: a return put in twice takes the goods back twice and refunds twice */
+  if(!svOnce(['sr',_sret.saleId||'',_sret.acc||'',_sret.date||'',
+     lines.map(l=>l.id+':'+l.ret).join(',')].join('|'),()=>{})){
+    toast(t('sv_dup'),'bad'); return; }
   const sv=(DB.sales||[]).find(x=>x.id===_sret.saleId); if(!sv)return;
   /* v307: the same hole the purchase side had — the screen capped each line as it was
      typed, but nothing checked it again at the moment of saving. A credit note is a claim
@@ -27824,6 +28134,10 @@ function savePurchaseReturn(){
   if($('#pr_acc'))_pret.acc=$('#pr_acc').value==='__new'?(defaultAcc()||{}).id:$('#pr_acc').value;
   const lines=_pret.lines.filter(l=>(+l.ret||0)>0);
   if(!lines.length){toast(t('sr_pick_qty'),'bad');return;}
+  /* v678: same for a debit note - twice means the supplier is credited twice */
+  if(!svOnce(['pr',_pret.purId||'',_pret.acc||'',_pret.date||'',
+     lines.map(l=>l.id+':'+l.ret).join(',')].join('|'),()=>{})){
+    toast(t('sv_dup'),'bad'); return; }
   const p=(DB.purchases||[]).find(x=>x.id===_pret.purId); if(!p)return;
   /* v305: the screen caps each line as it is typed, but the cap lived only there. A debit
      note is a claim against a supplier — it must never be able to exceed what that bill
@@ -28362,9 +28676,9 @@ function bsFigures(from,to){
     if(a.cc){ add(L,'cc', Math.max(0,-bal)); if(bal>0)add(A,'bank',bal); }
     else add(A, a.type==='cash'?'cash':'bank', bal);
   });
-  add(A,'debtors', receivableTotal());
+  add(A,'debtors', receivableTotal(to));   /* v670: as at the closing date, not today */
   /* v282: the shelf, not a number he typed months ago */
-  add(A,'stock', stockNowValue());
+  add(A,'stock', stockNowValue(to));   /* v671: the shelf as at the closing date */
   add(A,'fixed', +ob.fixed||0);
   let staffAdv=0;
   (DB.staff||[]).forEach(st=>{ const b=staffAdvBal(st.id); if(b>0)staffAdv=r2(staffAdv+b); });
@@ -28384,7 +28698,7 @@ function bsFigures(from,to){
      master document lists customer advances under liabilities and warns they are not
      automatically sales revenue. */
   let karAdv=0;
-  (DB.karigars||[]).forEach(k=>{ const bal=karBalance(k.id); if(bal<0)karAdv=r2(karAdv-bal); });
+  (DB.karigars||[]).forEach(k=>{ const bal=karBalance(k.id,to); if(bal<0)karAdv=r2(karAdv-bal); });
   add(A,'karadv', karAdv);
 
   /* ---- liabilities ---- */
@@ -28421,7 +28735,7 @@ function bsFigures(from,to){
      month" quietly changed what the balance sheet said the shop owed. karBalance() is
      the same all-time figure the karigar's own screen shows him, and is what the karigar
      ADVANCE line above already uses, so the two halves of the pair finally agree. */
-  (DB.karigars||[]).forEach(k=>{ const bal=karBalance(k.id); if(bal>0)karPay=r2(karPay+bal); });
+  (DB.karigars||[]).forEach(k=>{ const bal=karBalance(k.id,to); if(bal>0)karPay=r2(karPay+bal); });
   /* v668: an old balance he typed on the opening screen is owed to the karigar exactly as
      this month's stitching is. Same man, same line. */
   karPay=r2(karPay+_ks.kar);
@@ -28788,6 +29102,11 @@ function jvLineDel(i){ jvCap(); _jv.lines.splice(i,1);
 function jvSave(){
   jvCap();
   const d=_jv;
+  /* v678: a journal voucher entered twice posts both sides twice. The trial balance still
+     balances - which is what makes it hard to find. */
+  if(!svOnce(['jv',d.id||'',d.date||'',d.note||'',
+     (d.lines||[]).map(L=>(L.acc||'')+':'+(L.dr||0)+':'+(L.cr||0)).join(',')].join('|'),
+     ()=>{})){ toast(t('sv_dup'),'bad'); return; }
   const lines=(d.lines||[]).filter(L=>L.acc && (+L.dr||+L.cr))
     .map(L=>({acc:L.acc, dr:r2(+L.dr||0), cr:r2(+L.cr||0)}));
   if(lines.length<2){ toast(t('jv_need2'),'bad'); return; }
@@ -31665,11 +31984,26 @@ function karPastWork(kid){
   return r2((DB.karigarPays||[]).filter(p=>p.karigarId===kid)
     .reduce((s,p)=>s+(+p.pastWork||0),0));
 }
-function karEarned(kid){ return r2(karJobs(kid).reduce((s,j)=>s+(+j.amt||0),0)+karPastWork(kid)); }
+/* ══════════════ v679 — THE THIRD PLACE THE SHEET COULD SEE TOMORROW ══════════════
+   Debtors was fixed in v670 and stock in v671. The karigar line was the one left: a piece
+   handed back TOMORROW already showed in what the shop owed TODAY. Proved on an empty
+   book - a 900 job received tomorrow put 900 on today's sheet.
+   Every job row already carries the date the piece actually came back (j.date), which is
+   the moment the work is earned, so the filter is the same one the other two use.
+   asOf is optional. Called with nothing - the karigar's own screen, his statement, the
+   payables list - this is the old function, unchanged. */
+function karEarned(kid,asOf){
+  const jobs=karJobs(kid).filter(j=>!asOf || !j.date || String(j.date)<=asOf);
+  return r2(jobs.reduce((s,j)=>s+(+j.amt||0),0)+karPastWork(kid));
+}
 function karPays(kid){ return (DB.karigarPays||[]).filter(p=>p.karigarId===kid)
   .sort((a,b)=>String(b.date).localeCompare(String(a.date))); }
-function karPaid(kid){ return r2(karPays(kid).reduce((s,p)=>s+(+p.amt||0)+(+p.settled||0),0)); }
-function karBalance(kid){ return r2(karEarned(kid)-karPaid(kid)); }
+function karPaid(kid,asOf){
+  /* v679: money handed over after the closing day had not been handed over on it */
+  return r2(karPays(kid).filter(p=>!asOf || !p.date || String(p.date)<=asOf)
+    .reduce((s,p)=>s+(+p.amt||0)+(+p.settled||0),0));
+}
+function karBalance(kid,asOf){ return r2(karEarned(kid,asOf)-karPaid(kid,asOf)); }
 /* how many pieces are still lying with him right now */
 function karOutCount(kid){ return (DB.orders||[]).reduce((n,o)=>n+(o.items||[])
   .filter(gid=>((o.assign&&o.assign[gid])||'')===kid && !karRecvDate(o,gid)).length,0); }
@@ -32957,6 +33291,17 @@ function karPaySave(kid,bal){
   const amt=+($('#kp_amt')||{}).value||0;
   if(amt<=0){toast(t('kb_need_amt'),'bad');return;}
   const date=($('#kp_date')||{}).value||todayISO();
+  /* ══════════ v678 — TWO TAPS, TWO PAYMENTS ══════════
+     Driven for real, not read: karPaySave called twice in one tick wrote TWO rows. The
+     karigar's book then shows he was paid twice and his balance is short by the amount -
+     which is exactly the argument nobody can settle a month later.
+     The latch the bill, the purchase, the expense and the payment screen already use is
+     the same one, and it is signature-based rather than a timer: two DIFFERENT payments a
+     second apart still both go in, while the same one twice does not. It closes only when
+     save() actually writes, so a payment that failed a check leaves the next press free -
+     that was the v449 lesson and it is not undone here. */
+  if(!svOnce(['kp',kid,amt,date,($('#kp_acc')||{}).value||'',($('#kp_note')||{}).value||''].join('|'),
+     ()=>{})){ toast(t('sv_dup'),'bad'); return; }
   const acc=($('#kp_acc')&&$('#kp_acc').value!=='__new')?$('#kp_acc').value:(defaultAcc()||{}).id;
   const settle=!!($('#kp_settle')||{}).checked;
   const short=r2(Math.max(0,bal-amt));
@@ -33608,10 +33953,42 @@ function sampleStockValue(){
   }catch(e){}
   return r2(v);
 }
-function stockNowValue(){
-  const fab=r2((DB.thaans||[]).reduce((a,th)=>a+thaanValue(th),0));
+/* ══════════════ v671 — THE SHELF AS IT STOOD THAT DAY ══════════════
+   stockNowValue() read the balance sitting on each roll, which is today's balance and
+   nothing else. A balance sheet drawn up to an earlier day still valued the shelf as it
+   stands this morning - proved with a roll dated TOMORROW putting 10,000 of stock onto a
+   sheet drawn to TODAY.
+   The movement ledger makes the earlier day recoverable, and it was checked before being
+   relied on: every roll's own 'used' equals the sum of its movement rows, a revert keeps
+   the two in step, and replaying 12m + 8m of cutting to a day in between gave 38m against
+   50m bought. The invariant holds, so the replay is safe.
+   It runs BACKWARDS from today rather than forwards from an opening figure: take what is
+   on the shelf now and UNDO every movement dated after the closing day. Forwards would
+   need an opening quantity per roll and per size that the app does not keep, and would be
+   wrong on any book whose history is short. Backwards needs only what is already true.
+   A roll bought after the closing day is not on that shelf at all, whatever its balance.
+   asOf is optional. Called with nothing - every live screen - this is the old function. */
+function movesAfter(asOf,pick){
+  if(!asOf)return 0;
+  return r2((DB.moves||[]).filter(m=>String(m.date||'')>asOf&&pick(m))
+    .reduce((s,m)=>s+((m.dir===MV_OUT?1:-1)*(+m.qty||0)),0));
+}
+function thaanBalAsOf(th,asOf){
+  if(!asOf)return thaanBal(th);
+  if(String(th.date||'')>asOf)return 0;          /* the roll was not bought yet */
+  /* undo what was cut after the closing day: an OUT after it goes back on the roll */
+  return r2(thaanBal(th)+movesAfter(asOf,m=>m.thaanId===th.id));
+}
+function readyTotalAsOf(m,asOf){
+  if(!asOf)return readyTotal(m);
+  return Math.max(0, r2(readyTotal(m)+movesAfter(asOf,x=>x.itemId===m.id&&x.target==='ready')));
+}
+function stockNowValue(asOf){
+  const fab=r2((DB.thaans||[]).reduce((a,th)=>a+r2(thaanBalAsOf(th,asOf)*(+th.rate||0)),0));
   let rdy=0;
-  try{ rdy=r2(readyItems().reduce((a,m)=>a+readyTotal(m)*(+m.cost||+m.rate||0),0)); }catch(e){}
+  try{ rdy=r2(readyItems().reduce((a,m)=>a+readyTotalAsOf(m,asOf)*(+m.cost||+m.rate||0),0)); }catch(e){}
+  /* samples carry no movement rows, so they cannot be replayed. They are left at today's
+     figure rather than guessed at, and that is stated here so the next reader knows. */
   return r2(fab+rdy+sampleStockValue());
 }
 function fabricCutSince(from){
@@ -37604,9 +37981,16 @@ async function zipRestore(file){
   if(!d||!d.orders){ closeModal(); toast(t('zr_bad'),'bad'); return; }
   const media=entries.filter(x=>x.name.indexOf('media/')===0);
   closeModal();
+  /* v674: name what this file does not carry that the device does, before overwriting */
+  const _zlost=bkLosses(d);
+  const _zlostMsg=_zlost.length
+    ? '\n\n\u26A0\uFE0F '+t('bk_lost_head',{n:_zlost.length})+'\n'
+      +_zlost.slice(0,8).map(x=>'\u2022 '+x.k+' \u2014 '+t('bk_lost_one',{n:x.had})).join('\n')
+      +(_zlost.length>8?'\n\u2026':'')
+    : '';
   confirmModal('🗜️ '+t('restore_title'),
     t('bk_found',{o:(d.orders||[]).length,c:(d.customers||[]).length,r:(d.thaans||[]).length,p:media.length})
-      +'\n\n'+t('restore_msg'),
+      +_zlostMsg+'\n\n'+t('restore_msg'),
     async ()=>{
       closeModal();
       /* v279: this used to open with NO actions at all. If anything went wrong inside the
@@ -37648,23 +38032,10 @@ async function zipRestore(file){
          __db as a second net — so a device with no history of its own still has
          somewhere to land. */
       await preRestorePoint();                 /* v333: the way back, taken first */
-      DB=d;
-      (d.orders||[]).forEach(o=>{ try{ touchOrder(o.id); }catch(e){} });
-      _coreDirty=true; _dbDirty=true;
-      let restoredOk=false;
-      if(idb){
-        try{
-          restoredOk=await writeStoreV2();
-          if(restoredOk){ const check=await readStoreV2();
-            restoredOk=!!(check && (check.orders||[]).length===(d.orders||[]).length); }
-        }catch(e){ restoredOk=false; }
-      }
-      if(!restoredOk){
-        try{ const s=dbSerialize();
-          if(s.length<4200000)localStorage.setItem('pb_ob_v1',s);
-          if(idb)await mPut('__db', s);
-        }catch(e){}
-      }
+      /* v674: a one-file backup IS a zip, so this door carries as much weight as the
+         other two. Same write, same read-back, same collection-by-collection check. */
+      const _zres=await writeRestoredBook(d);
+      if(!_zres.ok){ closeModal(); restoreFailedModal(_zres.bad); return; }
       closeModal();
       toast(t('t_restored'),'ok');
       location.reload();
@@ -38290,29 +38661,27 @@ function doImport(){const inp=document.createElement('input');inp.type='file';in
       const nMedia=mediaCount(pack);
       const found=t('bk_found',{o:(d.orders||[]).length, c:(d.customers||[]).length,
                                 r:(d.thaans||[]).length, p:nMedia});
-      confirmModal(t('restore_title'), found+'\n\n'+t('restore_msg'),async ()=>{
+      /* v673: say what this file does NOT carry that the device does, before anything is
+         written over. The list is built from the book itself, so a collection added later
+         is covered without this code being touched again. */
+      const _lost=bkLosses(d);
+      const _lostMsg=_lost.length
+        ? '\n\n\u26A0\uFE0F '+t('bk_lost_head',{n:_lost.length})+'\n'
+          +_lost.slice(0,8).map(x=>'\u2022 '+x.k+' \u2014 '+t('bk_lost_one',{n:x.had})).join('\n')
+          +(_lost.length>8?'\n\u2026':'')
+        : '';
+      const _wantMan=bkManifest(d);
+      confirmModal(t('restore_title'), found+_lostMsg+'\n\n'+t('restore_msg'),async ()=>{
         /* v290: same root cause as the zip path — DB.orders was never touchOrder()'d, so
            the per-order store had nothing to write and the next boot found none of them.
            Fixed the same way: touch every order, write, verify by reading it back, and
            fall back to a raw legacy copy if that check doesn't pass. */
         await preRestorePoint();               /* v333 */
-        DB=d;if(!DB.customers)DB.customers=[];if(!DB.designLib)DB.designLib={};if(!DB.karigars)DB.karigars=[];
-        (DB.orders||[]).forEach(o=>{ try{ touchOrder(o.id); }catch(e){} });
-        _coreDirty=true; _dbDirty=true;
-        let restoredOk=false;
-        if(idb){
-          try{
-            restoredOk=await writeStoreV2();
-            if(restoredOk){ const check=await readStoreV2();
-              restoredOk=!!(check && (check.orders||[]).length===(DB.orders||[]).length); }
-          }catch(e){ restoredOk=false; }
-        }
-        if(!restoredOk){
-          try{ const s=dbSerialize();
-            if(s.length<4200000)localStorage.setItem('pb_ob_v1',s);
-            if(idb)await mPut('__db', s);
-          }catch(e){}
-        }
+        /* v673: the book exactly as it stands this second, held in hand. The snapshot on
+           disk is the long-term safety net; this is the one that puts things back within
+           the same breath if the write does not verify. */
+        const _res=await writeRestoredBook(d);       /* v674: one door, one check */
+        if(!_res.ok){ closeSheet(); restoreFailedModal(_res.bad); return; }
         if(nMedia){ toast(t('bk_restoring'),'ok'); await restoreMedia(pack.media); }
         closeSheet();go('orders');toast(t('t_restored'),'ok');
       });
@@ -38380,7 +38749,7 @@ async function auditScan(){
       if(typeof raw!=='string')continue;
       try{ const d=JSON.parse(raw); const st=rollStats(d.thaans||[]);
         _auditSrc.push({key:k,label:String(k).replace('snap_','').replace('_',' '),st,
-          thaans:d.thaans||[], fabItems:d.fabItems||[]});
+          thaans:d.thaans||[], fabItems:d.fabItems||[], moves:d.moves||[]});
       }catch(e){}
     }
   }catch(e){}
@@ -38406,13 +38775,42 @@ function auditMerge(i){
     return k && !have.has(k) && !haveIds.has(t.id);
   });
   if(!add.length){ toast(t('au_nothing_new'),'bad'); return; }
-  confirmModal(t('au_merge'), t('au_merge_confirm',{n:add.length}), ()=>{
+  /* ══════════════ v675 — THE ROLLS CAME BACK WITHOUT THEIR HISTORY ══════════════
+     This brought across the rolls and the fabric records they point at, and never
+     DB.moves. Each roll arrived carrying its own 'used', so today's balance was right -
+     and the movement rows behind that figure did not exist on this device at all.
+     Two things break on that, and only one of them was visible before v671:
+       the roll's own 'used' no longer equals the sum of its movement rows, which is the
+       invariant the app's stock reports are built on; and
+       historical stock, which since v671 is worked out by undoing movements back to the
+       closing day, has nothing to undo - so every earlier date reads as today. Cloth cut
+       last month looks as though it was never on the shelf.
+     The movement rows for exactly these rolls come across with them. Nothing else does.
+     They cannot double-count: a roll is only added when this device has neither its
+     serial nor its id, so its movements are new here too, and any row whose id is already
+     present is skipped.
+     An older snapshot may hold no movements at all. That history cannot be conjured and
+     is not guessed at - the rolls still come, and he is told plainly which of them arrive
+     without their past and what that means for earlier dates. */
+  const addIds=new Set(add.map(t=>t.id));
+  const haveMoveIds=new Set((DB.moves||[]).map(m=>m&&m.id).filter(Boolean));
+  const bringMoves=(src.moves||[]).filter(m=>m&&m.thaanId&&addIds.has(m.thaanId)
+                                             &&!(m.id&&haveMoveIds.has(m.id)));
+  /* a roll that has been cut but brings no movement rows has no recoverable past */
+  const movedIds=new Set(bringMoves.map(m=>m.thaanId));
+  const blind=add.filter(t=>r2(+t.used||0)>0 && !movedIds.has(t.id)).length;
+  const extra=(bringMoves.length?'\n\n\u{1F9F5} '+t('au_moves_come',{n:bringMoves.length}):'')
+            +(blind?'\n\u26A0\uFE0F '+t('au_moves_blind',{n:blind}):'');
+  confirmModal(t('au_merge'), t('au_merge_confirm',{n:add.length})+extra, ()=>{
     DB.thaans=(DB.thaans||[]).concat(JSON.parse(JSON.stringify(add)));
     // bring across the fabric design records those rolls point at, or their names show blank
     const haveFab=new Set((DB.fabItems||[]).map(f=>f.id));
     const wantFab=new Set(add.map(t=>t.fabId).filter(Boolean));
     const bring=(src.fabItems||[]).filter(f=>wantFab.has(f.id)&&!haveFab.has(f.id));
     if(bring.length)DB.fabItems=(DB.fabItems||[]).concat(JSON.parse(JSON.stringify(bring)));
+    if(bringMoves.length){
+      DB.moves=(DB.moves||[]).concat(JSON.parse(JSON.stringify(bringMoves)));
+    }
     save(); flushDBNow();
     toast(t('au_merged',{n:add.length}),'ok');
     stockAudit();
@@ -38428,24 +38826,10 @@ async function restoreSnapshot(key){
   if(data instanceof Blob)data=await data.text();
   confirmModal(t('restore_title'),t('restore_msg'),async()=>{try{const d=JSON.parse(data);if(!d.orders)throw 0;
     await preRestorePoint();               /* v333: stepping back must itself be reversible */
-    /* v290: the same fix as the other two restore paths — see zipRestore's note. */
-    DB=d;if(!DB.customers)DB.customers=[];if(!DB.designLib)DB.designLib={};if(!DB.karigars)DB.karigars=[];
-    (DB.orders||[]).forEach(o=>{ try{ touchOrder(o.id); }catch(e){} });
-    _coreDirty=true; _dbDirty=true;
-    let restoredOk=false;
-    if(idb){
-      try{
-        restoredOk=await writeStoreV2();
-        if(restoredOk){ const check=await readStoreV2();
-          restoredOk=!!(check && (check.orders||[]).length===(DB.orders||[]).length); }
-      }catch(e){ restoredOk=false; }
-    }
-    if(!restoredOk){
-      try{ const s=dbSerialize();
-        if(s.length<4200000)localStorage.setItem('pb_ob_v1',s);
-        if(idb)await mPut('__db', s);
-      }catch(e){}
-    }
+    /* v674: the third door onto the same check. Stepping back to yesterday's snapshot is
+       still a restore, and it can still land short. */
+    const _sres=await writeRestoredBook(d);
+    if(!_sres.ok){ closeSheet(); restoreFailedModal(_sres.bad); return; }
     closeSheet();go('orders');toast(t('t_restored'),'ok');}catch(e){toast(t('t_wrong'),'bad');}});
 }
 
@@ -39364,6 +39748,9 @@ async function init(){
   if(usedV2){ (DB.orders||[]).forEach(o=>{ _ordFp[o.id]=JSON.stringify(o); }); }
   _coreDirty=false; _dirtyOrd.clear(); _dbDirty=false;
   syncShopNameKey();applyModules();applyLang();paintHeaderLogo();preloadShopLogo();
+  /* v672: the book is in hand and the header is painted, so the version can be read
+     and compared with the highest one this book has ever been opened on. */
+  try{ staleBuildCheck(); }catch(e){}
   document.body.classList.toggle('simple-mode',localStorage.getItem('pb_ob_simple')==='1');
   enLockScreens();                     /* v264: accounts screens speak English */
   pinLockScreens();                    /* v271: and the money ones ask first */
