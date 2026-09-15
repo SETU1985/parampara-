@@ -1063,7 +1063,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v692</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v694</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -12793,6 +12793,21 @@ function partyAudit(){
   (DB.ledger||[]).forEach(l=>{
     const nm=String(l.party||'').trim(); if(!nm)return;
     if(isKarStaff(nm))return;
+    /* ══════════ v694 — MY OWN SCREEN NAMED RENT AND TEA AS CREDITORS ══════════
+       Off his book: 75 names, and the list opened with Bank, Rent, Salary, Tea, Electricity,
+       Parking, Stationery. An EXPENSE row carries its head in the party field, so every head
+       he has ever spent under read as "money paid to a party with no opening balance".
+       A screen that names seventy-five things when three matter is a screen he stops
+       opening — the same failure as naming none. An expense head is not a creditor. */
+    if(l.refKind==='expense'||l.cat)return;
+    /* expCats is a list; expHeadCfg is an object keyed by head. Reading either one the
+       wrong way throws, and a throw here would blank the whole screen — the v640 lesson. */
+    try{
+      if((DB.expCats||[]).some(c=>nameNorm(c)===nameNorm(nm)))return;
+      const hc=DB.expHeadCfg;
+      const heads=Array.isArray(hc)?hc.map(c=>(c&&c.name)||c):Object.keys(hc||{});
+      if(heads.some(c=>nameNorm(c)===nameNorm(nm)))return;
+    }catch(e){}
     const k=nameNorm(nm); seen[k]=seen[k]||{name:nm, open:0, out:0, moves:0};
     const a=r2(+l.amt||0);
     if(l.refKind==='opening'){ if(l.dir==='out')seen[k].open=r2(seen[k].open+a); }
@@ -29551,8 +29566,24 @@ function tbRows(from,to){
      adjustment then appears once, on its own line, which is what a trial balance should
      show anyway. */
   const raw=(bucket,key)=>r2((bucket||0)-jvNet(E0,'sys:'+key));
-  const dr=(k,v)=>{ if(v)R.push({acc:t(k),dr:v,cr:0}); };
-  const cr=(k,v)=>{ if(v)R.push({acc:t(k),dr:0,cr:v}); };
+  /* ══════════ v693 — NOT ONE FIGURE ON THIS SCREEN COULD BE OPENED ══════════
+     HIS 15 Sept: "trial balance mein jo difference hai usko click kar raha hoon to woh
+     clickable nahi hai. Wahan par loan bhi to dikh raha hai, usko bhi click kar raha hoon
+     to clickable nahi hai."
+     The balance sheet has opened its lines for versions; the trial balance — built from the
+     same figures, by a man checking the same books — opened none of them. The same number
+     behaving differently on two screens is the fault this app keeps coming back to.
+     Each line now carries where it goes. A line with nowhere to go stays plain rather than
+     pretending to be a door. */
+  const TB_GO={
+    bs_cash:'cashBank()', bs_bank:'cashBank()',
+    bs_debtors:'debtorsHome()', bs_creditors:'creditors()',
+    bs_stock:"stockHome()", bs_loans:'loansScreen()',
+    bs_karigar:'jobWork()', bs_staffadv:'staffMaster()',
+    bs_gst:'gstSetup()', bs_opencap:'openBSEdit()'
+  };
+  const dr=(k,v)=>{ if(v)R.push({acc:t(k),dr:v,cr:0,go:TB_GO[k]||''}); };
+  const cr=(k,v)=>{ if(v)R.push({acc:t(k),dr:0,cr:v,go:TB_GO[k]||''}); };
   dr('bs_cash',raw(f.A.cash,'cash')); dr('bs_bank',raw(f.A.bank,'bank'));
   dr('bs_debtors',raw(f.A.debtors,'debtors'));
   dr('bs_stock',raw(f.A.stock,'stock')); dr('bs_fixed',raw(f.A.fixed,'fixed'));
@@ -29924,7 +29955,8 @@ function trialBalance(){
     <div class="card" style="padding:12px 14px;margin-bottom:10px">
       <div class="il" style="font-weight:700;color:var(--mut)">
         <span>${t('tb_acc')}</span><span>${t('tb_dr')} \u00B7 ${t('tb_cr')}</span></div>
-      ${T.rows.map(r=>`<div class="il"><span>${esc(r.acc)}</span>
+      ${T.rows.map(r=>`<div class="il${r.go?' tappable':''}"${r.go?` onclick="closeSheet();${r.go}"`:''}>
+        <span>${esc(r.acc)}${r.go?' \u203A':''}</span>
         <b>${r.dr?money(r.dr):'\u2014'} \u00B7 ${r.cr?money(r.cr):'\u2014'}</b></div>`).join('')}
       <div class="il" style="font-weight:800;border-top:1px solid var(--line);margin-top:4px;padding-top:6px">
         <span>${t('total')}</span><b>${money(T.tDr)} \u00B7 ${money(T.tCr)}</b></div>
@@ -29932,7 +29964,11 @@ function trialBalance(){
     ${Math.abs(T.diff)>1
       ? `<div class="card" style="border-color:var(--bad);padding:12px 14px;margin-bottom:10px">
           <div class="il"><span><b>\u26A0\uFE0F ${t('bs_diff')}</b></span><b style="color:var(--bad)">${money(Math.abs(T.diff))}</b></div>
-          <p class="hint" style="margin-top:6px">${t('bs_diff_why')}</p></div>`
+          <p class="hint" style="margin-top:6px">${t('bs_diff_why')}</p>
+          ${/* v693: the balance sheet offers this door beside the same figure. A man reading
+               the trial balance is the one most likely to want it. */''}
+          <button class="btn ghost block" style="margin-top:8px"
+            onclick="closeSheet();openBSEdit()">\u{1F4D2} ${t('ob_title')}</button></div>`
       : `<div class="card" style="border-color:var(--ok);padding:10px 14px;margin-bottom:10px">
           <b style="color:var(--ok)">\u2705 ${t('bs_ok')}</b></div>`}
     ${exportBarHTML('rp_tb',()=>({title:t('tb_title'), sub:fmtDate(from)+' \u2013 '+fmtDate(to),
@@ -34667,14 +34703,26 @@ function stockNowValue(asOf){
      figure rather than guessed at, and that is stated here so the next reader knows. */
   return r2(fab+rdy+sampleStockValue());
 }
+/* ══════════ v694 — CLOTH THAT LEFT BY THE COUNTER WAS NOT COUNTED ══════════
+   HIS 15 Sept, from the calculator on his own book: "Fabric cut into orders since 1 Apr —
+   ₹0", on a shop with 1327 rolls and 31 lakh of sales behind it. Zero is plainly wrong, and
+   an opening stock worked out from a wrong zero is worse than no figure at all.
+   The cause: this counted only cloth CUT INTO A TAILORING ORDER. His shop also sells cloth
+   over the counter on a sale bill, and that cloth leaves the shelf without ever being a cut.
+   So the one route it watched was the one route his practice book barely uses.
+   Counted from the ROLLS now instead of from the paperwork: every thaan knows how much of
+   it has gone, whoever took it and by whatever door. That is the same source stockNowValue()
+   reads for what is left, so the two figures can never disagree with each other. */
 function fabricCutSince(from){
   let v=0;
-  (DB.orders||[]).forEach(o=>{
-    const d=String(o.orderDate||(o.created||'').slice(0,10));
-    if(from && d<from)return;
-    Object.keys(o.cost||{}).forEach(k=>{
-      ((o.cost[k]||{}).cuts||[]).forEach(c=>{ v+=r2((+c.mtr||0)*(+c.rate||0)); });
-    });
+  (DB.thaans||[]).forEach(th=>{
+    const rate=+th.rate||0; if(!rate)return;
+    /* how much of this roll was there at the start, and how much is there now */
+    let then=0, now=0;
+    try{ then=+thaanBalAsOf(th,from)||0; }catch(e){ then=+th.mtr||0; }
+    try{ now =+thaanBalAsOf(th)||0;      }catch(e){ now =+th.mtr||0; }
+    const gone=then-now;
+    if(gone>0) v=r2(v+gone*rate);
   });
   return r2(v);
 }
