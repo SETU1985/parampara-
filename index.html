@@ -1063,7 +1063,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v689</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v692</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -2266,6 +2266,17 @@ const T={
   cr_rec_floor:'Overpaid suppliers \u2014 shown as zero on the list',
   cr_rec_note:'This screen changes nothing. It only says which names make the two figures differ, so the real question can be asked of the right record.',
   rp_out_loans:'Loans Outstanding',
+  rp_loan_title:'Loans outstanding', rp_loan_none:'Nothing makes up this figure yet',
+  rp_loan_open:'Opening \u2014 entered on the Opening screen',
+  rp_loan_taken:'Taken', rp_loan_repaid:'Repaid',
+  rp_loan_note:'Every line below is a record in the book. Interest is not here \u2014 it is a cost and has already gone to Profit & loss.',
+  rh_stock:'Stock',
+  pa_title:'Parties worth a second look', pa_row:'Parties worth a second look',
+  pa_paid_no_open:'Paid, but no opening balance was ever entered',
+  pa_open_no_move:'Opening entered, but nothing has moved since',
+  pa_over:'Paid more than the book says is owed',
+  pa_note:'This screen changes nothing. Each name below is one the books cannot fully explain \u2014 open it and the ledger will show why.',
+  pa_none:'Nothing here needs a second look',
   pty_search:'Search a name…', pty_add:'Add a party', pty_none:'Nobody yet',
   pty_open:'Opening', pty_open_left:'Opening still open', pty_open_none:'No opening entered',
   pty_open_set:'Set opening balance', pty_open_edit:'Change opening', pty_open_del:'Remove opening',
@@ -4489,6 +4500,17 @@ dl_show_hidden:'Show hidden ({n})',
   cr_rec_floor:'जिन्हें ज़्यादा दे दिया \u2014 list में शून्य दिखते हैं',
   cr_rec_note:'यह स्क्रीन कुछ नहीं बदलती। सिर्फ़ यह बताती है कि किन नामों की वजह से दोनों आँकड़े अलग हैं, ताकि सवाल सही रिकॉर्ड से पूछा जा सके।',
   rp_out_loans:'ऋण बकाया',
+  rp_loan_title:'ऋण बकाया', rp_loan_none:'अभी इस आँकड़े के पीछे कुछ नहीं है',
+  rp_loan_open:'शुरुआती \u2014 Opening स्क्रीन से',
+  rp_loan_taken:'लिया', rp_loan_repaid:'चुकाया',
+  rp_loan_note:'नीचे की हर लाइन किताब का एक रिकॉर्ड है। ब्याज यहाँ नहीं है \u2014 वह ख़र्च है और Profit & loss में जा चुका है।',
+  rh_stock:'स्टॉक',
+  pa_title:'जिन्हें दोबारा देखना चाहिए', pa_row:'जिन्हें दोबारा देखना चाहिए',
+  pa_paid_no_open:'पैसा दिया, पर शुरुआती बकाया कभी चढ़ाया ही नहीं',
+  pa_open_no_move:'शुरुआती बकाया है, पर उसके बाद कुछ हुआ ही नहीं',
+  pa_over:'किताब जितना कहती है, उससे ज़्यादा दे दिया',
+  pa_note:'यह स्क्रीन कुछ नहीं बदलती। नीचे हर नाम वह है जिसे किताब पूरी तरह समझा नहीं पाती \u2014 खोलिए, खाता वजह बता देगा।',
+  pa_none:'दोबारा देखने लायक कुछ नहीं है',
   pty_search:'नाम ढूंढें…', pty_add:'पार्टी जोड़ें', pty_none:'अभी कोई नहीं',
   pty_open:'शुरुआती बाकी', pty_open_left:'शुरुआती बकाया बचा है', pty_open_none:'कोई शुरुआती बकाया नहीं',
   pty_open_set:'शुरुआती बकाया डालें', pty_open_edit:'शुरुआती बकाया बदलें', pty_open_del:'शुरुआती बकाया हटाएँ',
@@ -12742,17 +12764,111 @@ function credReconcile(){
        · the list floors each supplier at zero, because "he owes you money" is not a payable;
          the sheet keeps the negative. A supplier he has overpaid therefore reads 0 on one
          and less-than-nothing on the other. */
+  /* v690: read the figures credGroups actually applied, not a second guess at them */
   let rets=0, floored=0;
-  (cg.groups||[]).forEach(g=>{ try{ rets=r2(rets+supplierCredit(g.name)); }catch(e){} });
-  try{
-    (DB.purchases||[]).forEach(pu=>{ const b=orderBaaki(pu); if(b<0)floored=r2(floored-b); });
-  }catch(e){}
+  (cg.groups||[]).forEach(g=>{ rets=r2(rets+(+g._credit||0)); floored=r2(floored+(+g._floored||0)); });
   const gap=r2(sheet-list);
   const explainedSheet=r2(onlySheet.reduce((s,x)=>s+x.amt,0));
   const explainedList=r2(onlyList.reduce((s,x)=>s+x.amt,0));
   const left=r2(gap - explainedSheet + explainedList + loans - rets - floored);
   return {sheet, list, gap, loans, rets, floored, onlySheet, onlyList,
           explainedSheet, explainedList, left};
+}
+/* ══════════ v692 — THE NAMES THE BOOKS CANNOT EXPLAIN ══════════
+   HIS 14 Sept: "kuch creditors hain jiska ya to opening balance chadhaya hua hai, ya to
+   payment kharche mein daal diya hai... ya to khali payment chadha diya hai, opening balance
+   daala nahi hai."
+   He is describing three shapes, and every one of them is findable from the book itself
+   rather than by scrolling 179 ledgers by eye:
+     · money went OUT to a supplier and no opening balance was ever entered for him — the
+       payment has nothing to sit against, so it reads as if the shop paid a stranger
+     · an opening balance sits there and nothing has ever moved against it
+     · more has been paid than was ever owed
+   THIS SCREEN CHANGES NOTHING. It names them so he can open each one and decide. */
+function partyAudit(){
+  const out={paidNoOpen:[], openNoMove:[], over:[]};
+  const seen={};
+  const isKarStaff=nm=>(DB.karigars||[]).some(k=>nameNorm(k.name)===nameNorm(nm))
+                     ||(DB.staff||[]).some(k=>nameNorm(k.name)===nameNorm(nm));
+  (DB.ledger||[]).forEach(l=>{
+    const nm=String(l.party||'').trim(); if(!nm)return;
+    if(isKarStaff(nm))return;
+    const k=nameNorm(nm); seen[k]=seen[k]||{name:nm, open:0, out:0, moves:0};
+    const a=r2(+l.amt||0);
+    if(l.refKind==='opening'){ if(l.dir==='out')seen[k].open=r2(seen[k].open+a); }
+    else { seen[k].moves++; if(l.dir==='out')seen[k].out=r2(seen[k].out+a); }
+  });
+  (DB.purchases||[]).forEach(pu=>{
+    const nm=String(pu.supplier||'').trim(); if(!nm)return;
+    const k=nameNorm(nm); seen[k]=seen[k]||{name:nm, open:0, out:0, moves:0};
+    seen[k].moves++; seen[k].bills=r2((seen[k].bills||0)+(+pu.total||0));
+  });
+  Object.values(seen).forEach(p=>{
+    const bills=r2(p.bills||0);
+    if(p.out>0 && !p.open && !bills) out.paidNoOpen.push({name:p.name, amt:p.out});
+    else if(p.open>0 && !p.moves)    out.openNoMove.push({name:p.name, amt:p.open});
+    else if(p.out > r2(p.open+bills)+0.5)
+      out.over.push({name:p.name, amt:r2(p.out-p.open-bills)});
+  });
+  [out.paidNoOpen,out.openNoMove,out.over].forEach(a=>a.sort((x,y)=>y.amt-x.amt));
+  out.n=out.paidNoOpen.length+out.openNoMove.length+out.over.length;
+  return out;
+}
+function partyAuditScreen(){
+  sheetAt(partyAuditScreen);
+  const a=partyAudit();
+  const sec=(title,list,col)=>list.length?`<div class="section-h">${title}</div>
+    <div class="card" style="padding:0;margin-bottom:12px;overflow:hidden">
+      ${list.map(x=>`<div class="krow tappable"
+        onclick="closeSheet();partyCard('${jq(x.name)}','supplier')">
+        <span class="kn">${esc(x.name)}</span>
+        <b style="color:${col}">${money(x.amt)}</b></div>`).join('')}</div>`:'';
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin:0 0 10px">\u{1F50E} ${t('pa_title')}</h2>
+    ${a.n?'':`<p class="hint" style="padding:22px 4px;text-align:center">${t('pa_none')}</p>`}
+    ${sec(t('pa_paid_no_open'), a.paidNoOpen, 'var(--bad)')}
+    ${sec(t('pa_open_no_move'), a.openNoMove, 'var(--saffron2)')}
+    ${sec(t('pa_over'), a.over, 'var(--bad)')}
+    <p class="hint" style="white-space:normal;margin-top:10px">${t('pa_note')}</p>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+/* v691 — what the loans figure is actually made of */
+function loansScreen(){
+  sheetAt(loansScreen);
+  const ob=openBS()||{}, from=(ob.date||fyStartISO()), to=todayISO();
+  const rows=[];
+  (ob.loans||[]).filter(x=>x.kind!=='personal'&&(+x.amt||0)).forEach(x=>{
+    rows.push({d:from, who:String(x.name||'').trim()||t('rp_loan_open'),
+      what:t('rp_loan_open'), amt:r2(+x.amt||0), sign:1}); });
+  (DB.ledger||[]).forEach(l=>{
+    if(l.refKind!=='loan')return;
+    const d=String(l.date||''); if(d<from||d>to)return;
+    const pr=(l.loanPrincipal!=null)?r2(+l.loanPrincipal||0):r2(+l.amt||0);
+    rows.push({d, who:String(l.party||'').trim()||'\u2014',
+      what:(l.dir==='out')?t('rp_loan_repaid'):t('rp_loan_taken'),
+      amt:pr, sign:(l.dir==='out')?-1:1, go:l.id}); });
+  rows.sort((a,b)=>String(a.d).localeCompare(String(b.d)));
+  let run=0;
+  const body=rows.map(r=>{ run=r2(run+r.sign*r.amt);
+    return `<div class="lg-row2">
+      <div class="lg-when"><b>${r.d?fmtDate(r.d):'\u2014'}</b>
+        <span class="lg-what">${esc(r.who)} \u00b7 ${esc(r.what)}</span></div>
+      <div class="lg-fig"><span class="hint">${esc(r.what)}</span>
+        <b>${money(r.amt)}</b></div>
+      <div class="lg-fig lg-run"><span class="hint">${t('lg_left')}</span>
+        <b>${money(Math.abs(run))}</b></div></div>`; }).join('');
+  let tot=0; try{ tot=r2(Math.abs((bsFigures(from,to).L||{}).loans||0)); }catch(e){}
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin:0 0 10px">\u{1F3E6} ${t('rp_loan_title')}</h2>
+    <div class="card" style="padding:4px 12px;margin-bottom:12px">
+      <div class="kv" style="padding:10px 2px"><span><b>${t('rp_out_loans')}</b></span>
+        <b style="font-size:17px">${money(tot)}</b></div></div>
+    ${rows.length?`<div class="card" style="padding:4px 12px;margin-bottom:12px">${body}</div>`
+      :`<p class="hint" style="padding:22px 4px;text-align:center">${t('rp_loan_none')}</p>`}
+    <p class="hint" style="white-space:normal">${t('rp_loan_note')}</p>
+    <div class="fab-pad"></div>`;
+  showSheet();
 }
 function credReconScreen(){
   sheetAt(credReconScreen);
@@ -12822,7 +12938,16 @@ function credGroups(q){
     const left=openingLeft(k,'supplier','out'); if(!left)return;
     map[k]={name:k,phone:(partyByName(k)||{}).phone||'',recs:[],due:left,_open:left};
   });
-  Object.values(map).forEach(g=>{ g.due=r2(Math.max(0,g.due-supplierCredit(g.name)));
+  Object.values(map).forEach(g=>{
+    /* v690: record what the credit ACTUALLY took off, not what it could have. A debit note
+       bigger than the balance only reduces to zero — the rest is the supplier holding HIS
+       money and belongs on the other side of the sheet, not here. The reconciliation screen
+       used the full return figure and over-explained the gap by the difference, which is why
+       it printed a NEGATIVE "still unexplained". Exactness is the whole point of that screen. */
+    const _pre=r2(g.due), _cr=r2(supplierCredit(g.name));
+    g._credit=r2(Math.min(_cr, Math.max(0,_pre)));
+    g._floored=r2(Math.max(0, _cr-_pre));
+    g.due=r2(Math.max(0,g.due-supplierCredit(g.name)));
     /* v247: same ageing as the debtors side, read off each supplier bill's own date */
     const rows=g.recs.map(p=>({date:recDateOf(p), amt:orderBaaki(p)}));
     if(g._open){ const o=openingLine(g.name,'supplier'); rows.push({date:(o&&o.date)||'', amt:g._open}); }
@@ -31143,7 +31268,22 @@ function renderReports(){
       ${/* v610: there is no separate loans screen and there does not need to be — every loan
            is a ledger in the Loans group, so this row opens the ledger master already
            filtered to that group, which is where the detail lives. */''}
-      <div class="il tappable" style="border-bottom:0" onclick="closeSheet();lgOpenGroup('loans')">
+      ${/* ══════════ v691 — THE FIGURE DID NOT REACH ITS OWN RECORDS ══════════
+           HIS 14 Sept: "loan outstanding dikh raha hai par Hemant ji par click karne se 0."
+           He is right, and v610's reasoning was wrong. That row opened the ledger master
+           filtered to the Loans group, on the assumption that every loan is a ledger in it.
+           It is not: a loan taken through Money in is a ledger ROW carrying refKind 'loan',
+           and it creates no ledger of its own. So the balance sheet counted 50,000 and the
+           screen the row opened held one empty ledger — his own law broken, on the figure
+           that is hardest to check by hand.
+           It opens the records themselves now: the opening loans he typed, every loan taken
+           and every repayment, each with its date and amount, adding to the figure above. */''}
+      ${/* v692: appears only when the books actually hold names that cannot be explained */''}
+      ${(()=>{ let n=0; try{ n=partyAudit().n; }catch(e){}
+         return n ? `<div class="il tappable" onclick="closeSheet();partyAuditScreen()">
+           <span class="hint">\u{1F50E} ${t('pa_row')}</span>
+           <b style="color:var(--bad)">${n}</b></div>` : ''; })()}
+      <div class="il tappable" style="border-bottom:0" onclick="closeSheet();loansScreen()">
         <span>\u{1F3E6} ${t('rp_out_loans')}</span><b>${money0(f.L.loans)}</b></div>
     </div>`;
   })();
@@ -31162,7 +31302,11 @@ function renderReports(){
       ['\u{1F4B8}',t('rh_expense'),"rptHub('expense')"],
       ['\u{1F4D7}',t('rh_accounts'),"rptHub('accounts')"],
       ['\u{1F3E6}',t('rh_cash'),"rptHub('cash')"],
-      ['\u{1F9F5}',t('rh_floor'),"rptHub('floor')"]]);
+      ['\u{1F9F5}',t('rh_floor'),"rptHub('floor')"],
+      /* v691: "reports mein stock hai hi nahi." 54 lakh of cloth on the shelf and no way to
+         it from the screen a man opens to read his shop. It is the largest figure on his
+         balance sheet. */
+      ['\u{1F4E6}',t('rh_stock'),"closeSheet();stockHome('reports')"]]);
   /* ============== v658 - BACK WENT SOMEWHERE HE HAD NEVER BEEN ==============
      HIS 13 Sept: "Reports mein gaya, back gaya to seedha invoices wali list aa jaa rahi
      hai. Do baar teen baar karke dekha."
@@ -34677,6 +34821,16 @@ function openBSEdit(){
       <div class="kv" style="margin-top:6px"><span class="hint">${t('ob_stock_now')}</span>
         <b>${money(stockNowValue())}</b></div>
       <button class="btn sm ghost block" style="margin-top:6px" onclick="obsUseNow()">\u{1F4E6} ${t('ob_stock_use_now')}</button>
+      ${/* ══════════ v692 — THE ONE ANSWER HE NEEDED WAS TWO TAPS DOWN ══════════
+           HIS 14 Sept: "opening stock mere paas aisa kuch hai nahi. Kuch maine jo liya baad
+           mein liya, kuch maal bika tha aur kuch maal purchase bhi hua tha, to ek adjusted
+           hi dena padega opening balance."
+           That is what obsCalcOpening() does — today's shelf, MINUS what was bought since,
+           PLUS the cost of what was sold since — and it was reachable only behind a link
+           reading "I do not have today's figure", which sounds like giving up rather than
+           working it out. No shop has an exact opening stock; almost every one of them needs
+           this button. It belongs beside "use today's figure", not under it. */''}
+      <button class="btn sm ghost block" style="margin-top:6px" onclick="obsCalcOpening()">\u{1F9EE} ${t('ob_calc')}</button>
       <p class="hint" style="margin-top:6px;cursor:pointer" onclick="obsStockOther()"><u>${t('ob_stock_other')}</u></p>
       ${o.stockEst?`<p class="hint" style="margin-top:6px;color:var(--saffron2);cursor:pointer"
         onclick="obsEstToggle()">\u26A0\uFE0F ${t('ob_est_flag')} \u00B7 <u>${t('ob_est_off')}</u></p>`:''}</div>
