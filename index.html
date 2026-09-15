@@ -1063,7 +1063,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v696</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v697</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -2680,6 +2680,8 @@ const T={
   shr_title:'Shrink stored photos', shr_go:'Shrink them',
   shr_busy:'Already running', shr_saved:'{n} MB saved',
   shr_need_backup:'Take a photo backup first. This makes every stored photo smaller and it cannot be undone \u2014 the backup is the only way back.',
+  pur_future_t:'Bill date is after today', pur_future_q:'This bill is dated {d}. It will stay out of stock value, payables and reports until that day. Is the date right?',
+  pur_future_yes:'Yes, save', cr_why_future:'Bill dated {d} — after today, so the balance sheet leaves it out', cr_why_two:'Two opening balances under this one name — the list shows one', cr_why_notlist:'Not on the Payables list', cr_why_notsheet:'Not on the balance sheet', cr_why_ret:'Purchase returns the balance sheet takes off in one sum', pur_future_fix:'Fix the date',
   shr_ask:'Every photo already stored is made smaller (800px). Design, cloth and colour stay readable. This cannot be undone, and it may take a few minutes \u2014 you can stop it at any time and carry on later.',
   shr_done:'{a} {a|photo|photos} shrunk \u00b7 {n} MB saved',
   bk_auto_done:'\u2713 Backed up to your file',
@@ -4916,6 +4918,8 @@ dl_show_hidden:'Show hidden ({n})',
   shr_title:'पुरानी फ़ोटो छोटी करें', shr_go:'छोटी करें',
   shr_busy:'पहले से चल रहा है', shr_saved:'{n} MB बची',
   shr_need_backup:'पहले फ़ोटो का बैकअप लें। यह हर पुरानी फ़ोटो को छोटा कर देगा और वापस नहीं हो सकता — बैकअप ही वापसी का एकमात्र रास्ता है।',
+  pur_future_t:'बिल की तारीख़ आज के बाद की है', pur_future_q:'इस बिल की तारीख़ {d} है। उस दिन तक यह स्टॉक, देनदारी और रिपोर्ट में नहीं गिना जाएगा। क्या तारीख़ सही है?',
+  pur_future_yes:'हाँ, सेव करें', cr_why_future:'बिल की तारीख़ {d} — आज के बाद की, इसलिए बैलेंस शीट में नहीं', cr_why_two:'एक ही नाम पर दो शुरुआती बकाया — सूची में एक ही दिखता है', cr_why_notlist:'देनदारी सूची में नहीं', cr_why_notsheet:'बैलेंस शीट में नहीं', cr_why_ret:'ख़रीद वापसी जो बैलेंस शीट एक साथ घटाती है', pur_future_fix:'तारीख़ ठीक करें',
   shr_ask:'सारी पुरानी फ़ोटो छोटी कर दी जाएँगी (800px)। डिज़ाइन, कपड़ा और रंग साफ़ दिखते रहेंगे। यह वापस नहीं हो सकता, और कुछ मिनट लग सकते हैं — बीच में रोक सकते हैं, बाद में जारी रख सकते हैं।',
   shr_done:'{a} फ़ोटो छोटी हुईं · {n} MB बची',
   bk_auto_done:'\u2713 आपकी फ़ाइल में बैकअप हो गया',
@@ -6905,11 +6909,18 @@ function migratePayments(o){ if(!Array.isArray(o.payments)){ o.payments=(+o.adva
    No amount, date, mode or account is touched — only a name is added to something that
    never had one. The tick itself has always been stored on the payment object, so every
    tick he has already made survives this. */
+/* v697 — THIS NEVER REACHED THE DISK. init() calls it and then, two lines later, clears
+   every dirty flag; an order also only gets written when it is marked. So an old receipt
+   was given a fresh id on EVERY open, and a bank-reconciliation tick stored against
+   yesterday's id pointed at nothing today. Measured: three reloads, three different ids.
+   The orders it changes are now marked, and init() runs it after the flags are cleared. */
 function payIdMigrate(){
   let n=0;
-  [DB.orders,DB.sales,DB.alterations,DB.purchases].forEach(arr=>(arr||[]).forEach(r=>{
+  [DB.orders,DB.sales,DB.alterations,DB.purchases].forEach((arr,ai)=>(arr||[]).forEach(r=>{
     if(!r||!Array.isArray(r.payments))return;
-    r.payments.forEach(p=>{ if(p && !p.id){ p.id='pay_'+uid(); n++; } });
+    let hit=0;
+    r.payments.forEach(p=>{ if(p && !p.id){ p.id='pay_'+uid(); n++; hit=1; } });
+    if(hit && ai===0)touchOrder(r.id);
   }));
   if(n){ _coreDirty=true; _dbDirty=true; try{ save(); }catch(e){} }
   return n;
@@ -6938,7 +6949,10 @@ const orderBaaki=o=>Math.max(0,orderTotal(o)-orderReceived(o));
    what was owed; the reverse would understate it.
    asOf is optional everywhere. Called with nothing — which is every live screen — these
    behave exactly as before, so nothing that works today changes. */
-const dayOfRec=r=>String((r&&(r.date||r.orderDate||(r.created||'').slice(0,10)))||'');
+/* v697 — a billed record is a debt from its BILL's date, the same date the P&L books the
+   sale on. HIS BOOK: April bills typed in July carried only created=July, so every balance
+   sheet before July saw the sale and the cash but not the part still owed. */
+const dayOfRec=r=>String((r&&((r.invoice&&r.invoice.date)||r.date||r.orderDate||(r.created||'').slice(0,10)))||'');
 const orderReceivedAsOf=(o,asOf)=>{ migratePayments(o);
   return (o.payments||[]).reduce((s,p)=>{
     if(asOf && String(p.date||'')>asOf) return s;      /* money that had not arrived yet */
@@ -7146,22 +7160,22 @@ function openingIsKarStaff(nm){
 /* the 'other' openings that belong to a karigar or a staff member, split by whose they
    are. Walks the ledger exactly the way openingPartyTotal does, so one name is counted
    once and the two engines read the same rows. */
-function openingKarStaffOut(){
+function openingKarStaffOut(asOf){
   const seen={}; let kar=0, stf=0;
   (DB.ledger||[]).filter(l=>l.refKind==='opening'&&pkNorm(l.partyKind)==='other'&&l.dir==='out')
     .forEach(l=>{ const nm=pkNorm(l.party); if(!nm||seen[nm])return; seen[nm]=1;
-      const left=openingLeft(String(l.party||'').trim(),'other','out'); if(!left)return;
+      const left=openingLeft(String(l.party||'').trim(),'other','out',asOf); if(!left)return;
       const k=nameNorm(l.party);
       if((DB.karigars||[]).some(x=>nameNorm(x.name)===k)) kar=r2(kar+left);
       else if((DB.staff||[]).some(x=>nameNorm(x.name)===k)) stf=r2(stf+left);
     });
   return {kar:r2(kar), staff:r2(stf)};
 }
-function openingPartyTotal(kind,dir){
+function openingPartyTotal(kind,dir,asOf){
   const seen={}; let v=0;
   (DB.ledger||[]).filter(l=>l.refKind==='opening'&&pkNorm(l.partyKind)===pkNorm(kind)&&l.dir===dir)
     .forEach(l=>{ const nm=pkNorm(l.party); if(!nm||seen[nm])return; seen[nm]=1;
-      v=r2(v+openingLeft(String(l.party||'').trim(),kind,dir)); });
+      v=r2(v+openingLeft(String(l.party||'').trim(),kind,dir,asOf)); });
   return r2(v);
 }
 /* v343 — HIS 27 Aug, his decision: "bina bill wala order receivable hai hi nahi."
@@ -7173,6 +7187,11 @@ function openingPartyTotal(kind,dir){
    any money already taken on it is an ADVANCE — see the liability added in bsFigures.
    Alterations are left alone deliberately: v304 already counts an unbilled alteration
    as income, so its balance is a real receivable with a matching credit. */
+function tagKind(x,k){
+  try{ Object.defineProperty(x,'_kind',{value:k,enumerable:false,writable:true,configurable:true}); }
+  catch(e){ x._kind=k; }
+  return x;
+}
 function ordIsBillable(r){ return !!(r && r.invoice); }
 function receivableTotal(asOf){
   const per={};
@@ -7183,8 +7202,8 @@ function receivableTotal(asOf){
   const cm=custCreditMap();
   Object.keys(cm).forEach(k=>{ per[k]=r2(Math.max(0,(per[k]||0)-cm[k])); });
   let v=Object.values(per).reduce((a,x)=>r2(a+x),0);
-  v=r2(v+openingPartyTotal('customer','in'));
-  v=r2(v+openingPartyTotal('other','in'));   /* v366: a debtor is a debtor, whatever the label */
+  v=r2(v+openingPartyTotal('customer','in',asOf));
+  v=r2(v+openingPartyTotal('other','in',asOf));   /* v366: a debtor is a debtor, whatever the label */
   return r2(v);
 }
 const orderStatus=o=>o.status||'new';
@@ -9501,7 +9520,7 @@ function autoBankAcc(){
   DB.accounts=DB.accounts||[];
   let a=DB.accounts.find(x=>x.type==='bank'&&x._auto);
   if(a)return a;
-  a={id:'acc'+uid(),type:'bank',name:t('acc_auto_name'),opening:0,openingDate:todayISO(),_auto:1};
+  a={id:'acc'+uid(),type:'bank',name:t('acc_auto_name'),opening:0,openingDate:(((DB.openBS||{}).date)||todayISO()),_auto:1};
   DB.accounts.push(a); save();
   try{ toast(t('acc_auto_made',{n:a.name}),'ok'); }catch(e){}
   return a;
@@ -9545,7 +9564,7 @@ function addBankQuick(cb){
     [{label:t('cancel'),cls:'ghost',fn:closeSheet},
      {label:t('save'),cls:'primary',fn:()=>{
         const nm=($('#qb_name')||{}).value||''; if(!nm.trim()){toast(t('acc_name_req'),'bad');return;}
-        const rec={id:uid(),type:'bank',name:nm.trim(),opening:+(($('#qb_open')||{}).value||0),openingDate:todayISO()};
+        const rec={id:uid(),type:'bank',name:nm.trim(),opening:+(($('#qb_open')||{}).value||0),openingDate:(((DB.openBS||{}).date)||todayISO())};
         DB.accounts=DB.accounts||[]; DB.accounts.push(rec); save(); closeSheet();
         toast(t('acc_added'),'ok'); if(cb)cb(rec.id);
      }}]);
@@ -9602,10 +9621,24 @@ function moneyLines(from,to){
 }
 
 /* ---- balances ---- */
+/* ══════════ v697 — ₹35,40,771 OF THE BALANCE SHEET WAS THIS ONE LINE ══════════
+   Found on HIS book, 15 Sept. An account is created with openingDate = the day it was
+   made. His Cash account was made on 15 Jul and ICICI on 19 Aug — and every balance read
+   started counting from that day. 476 cash lines and 349 bank lines dated April to July
+   were in the P&L but not in Cash or Bank, so the two sides of the sheet could never meet.
+   An account's opening is its balance on the day the BOOKS start. Nothing before that day
+   is counted (it is inside the opening); nothing after it is ever skipped. An account opened
+   later than the books has no lines before its own date anyway, so for it nothing changes. */
+function accFrom(a){
+  const od=String((a&&a.openingDate)||''), bs=String(((DB.openBS||{}).date)||'');
+  if(!od)return bs;
+  if(!bs)return od;
+  return od<bs?od:bs;
+}
 function accBalance(accId,upto){
   const a=ACC(accId); if(!a)return 0;
   let bal=+a.opening||0;
-  moneyLines(a.openingDate||'', upto||'9999-12-31').forEach(l=>{
+  moneyLines(accFrom(a), upto||'9999-12-31').forEach(l=>{
     if(l.acc!==accId)return;
     bal += (l.dir==='in') ? l.amt : -l.amt;
   });
@@ -9723,7 +9756,7 @@ function cashBank(){
       <div class="kv"><div>
         <b style="font-size:15px">${x.acc.type==='cash'?'💵':'🏦'} ${esc(x.acc.name)}${(primaryAcc()||{}).id===x.acc.id?' <span style="font-size:12px;color:var(--saffron2)">⭐</span>':''}</b>
         ${x.acc.bankName?`<div class="hint">${esc(x.acc.bankName)}${x.acc.accNo?' · ****'+esc(String(x.acc.accNo).slice(-4)):''}</div>`:''}
-        <div class="hint">${t('cb_opening')}: ${money(x.acc.opening||0)} · ${fmtDate(x.acc.openingDate)}</div>
+        <div class="hint">${t('cb_opening')}: ${money(x.acc.opening||0)} · ${fmtDate(accFrom(x.acc))}</div>
       </div><div style="text-align:right">
         <div style="font-size:18px;font-weight:900;color:${x.bal<0?'var(--bad)':'var(--saffron2)'}">${money(x.bal)}</div>
         <div class="hint">${t('cb_balance')}</div></div></div></div>`).join('')}
@@ -9760,7 +9793,7 @@ function accEdit(id,kind){
   const ex=id?ACC(id):null;
   _acc = ex ? {...ex} : {id:null,type:(kind||'bank'),
     name:(kind==='provision'?t('cb_prov_name'):''),
-    bankName:'',accNo:'',ifsc:'',upi:'',opening:'',openingDate:todayISO()};
+    bankName:'',accNo:'',ifsc:'',upi:'',opening:'',openingDate:(((DB.openBS||{}).date)||todayISO())};
   const d=_acc;
   modal((d.id?t('edit'):t('cb_add_bank')),
     `<div class="field"><label>${t('cb_acc_name')} *</label><input id="ac_name" value="${esc(d.name)}" placeholder="${t('cb_acc_ph')}"></div>
@@ -10039,7 +10072,7 @@ function brsToggle(lineId){
 function brsLines(){
   const a=(DB.accounts||[]).find(x=>x.id===_brsAcc);
   if(!a)return [];
-  return moneyLines(_brsFrom||a.openingDate||'', _brsTo||todayISO())
+  return moneyLines(_brsFrom||accFrom(a), _brsTo||todayISO())
     .filter(l=>l.acc===_brsAcc)
     .sort((x,y)=>String(x.date).localeCompare(String(y.date)));   /* like a statement */
 }
@@ -10123,7 +10156,7 @@ function brsRender(){
 function accDetail(id){
   sheetAt(accDetail);
   const a=ACC(id); if(!a)return;
-  const lines=moneyLines(a.openingDate||'', '9999-12-31').filter(l=>l.acc===id)
+  const lines=moneyLines(accFrom(a), '9999-12-31').filter(l=>l.acc===id)
     .sort((x,y)=>String(y.date).localeCompare(String(x.date))).slice(0,60);
   let run=accBalance(id);
   const rows=lines.map(l=>{
@@ -10144,9 +10177,11 @@ function accDetail(id){
     <div class="kv" style="margin-bottom:6px"><h2 style="margin:0">${a.type==='cash'?'💵':'🏦'} ${esc(a.name)}</h2><button class="btn sm ghost" onclick="cashBank()" title="Back">←</button></div>
     <p class="hint" style="margin-bottom:12px">${a.bankName?esc(a.bankName):''}${a.accNo?' · '+esc(a.accNo):''}</p>
     <div class="card pos-total" style="margin-bottom:12px">
-      <div class="sum-row"><span>${t('cb_opening')} (${fmtDate(a.openingDate)})</span><b>${money(a.opening||0)}</b></div>
+      <div class="sum-row"><span>${t('cb_opening')} (${fmtDate(accFrom(a))})</span><b>${money(a.opening||0)}</b></div>
       <div class="sum-row grand"><span>${t('cb_balance')}</span><b>${money(accBalance(id))}</b></div></div>
-    <button class="btn ghost block" style="margin-bottom:10px" onclick="accEdit('${id}')">✏️ ${t('edit')}</button>
+    <div class="row" style="gap:8px;margin-bottom:10px">
+      <button class="btn ghost" style="flex:1" onclick="accEdit('${id}')">✏️ ${t('edit')}</button>
+      ${a.type==='cash'?'':`<button class="btn ghost" style="flex:0 0 auto;color:var(--bad)" onclick="accDel('${id}')" aria-label="${t('delete')}">🗑️</button>`}</div>
     ${/* v495: a bank or cash statement is what his accountant asks for most often, and this
          screen had no way to send it. Same bar every other report uses; it sends exactly
          the lines on screen. */''}
@@ -11183,7 +11218,40 @@ function expEdit(id){
   const ex=id?(DB.ledger||[]).find(l=>l.id===id):null;
   _exp = ex ? {...ex, photos:[...(ex.photos||[])]}
             : {id:null,dir:'out',date:todayISO(),amt:'',acc:(cashAcc()||{}).id,cat:'',note:'',photos:[]};
+  /* v697 — the ledger row keeps the man's name in `party`; this form reads `partyName`.
+     Opening a named expense therefore showed an EMPTY chip, and Save wrote the head's name
+     over his (Akhil → "Rent"). The name is now read back from the link itself. A link that
+     leads to nobody is dropped, so a nameless chip can never be drawn or saved. */
+  if(ex){
+    _exp.partyName=expPartyNameOf(ex);
+    if(!_exp.partyName){ _exp.partyId=null; _exp.partyKind=''; }
+  }
   expRender();
+}
+/* one door for "who is this expense row's man" — every master that can own a partyId */
+function expPartyNameOf(l){
+  if(!l||!l.partyId)return '';
+  const id=String(l.partyId);
+  const hit=a=>((a||[]).find(x=>x&&x.id===id)||{}).name||'';
+  const nm=String(l.partyName||hit(DB.karigars)||hit(DB.staff)||hit(DB.parties)||hit(DB.customers)
+    ||(id.indexOf('sup:')===0?id.slice(4):'')).trim();
+  if(nm)return nm;
+  /* the row's own label, unless it is merely the head standing in for a missing name */
+  const p=String(l.party||'').trim();
+  return (p && p!==String(l.cat||'').trim())?p:'';
+}
+/* v697 — boot repair for the rows the bug above already damaged: a named expense whose
+   `party` had been overwritten with its head gets the man's name back from its link; a link
+   that leads to nobody is removed. Amounts, dates and accounts are never touched. */
+function expPartyRepair(){
+  let n=0;
+  (DB.ledger||[]).forEach(l=>{
+    if(!l||l.refKind!=='expense'||!l.partyId)return;
+    const nm=expPartyNameOf(Object.assign({},l,{partyName:'',party:(l.party===l.cat?'':l.party)}));
+    if(!nm){ l.partyId=null; l.partyKind=''; if(!l.party)l.party=l.cat||''; n++; return; }
+    if(String(l.party||'').trim()!==nm && String(l.party||'').trim()===String(l.cat||'').trim()){ l.party=nm; n++; }
+  });
+  return n;
 }
 function expRender(){
   /* v406 AUDIT — his rule: a screen must degrade, never go blank. This one draws from _exp, which the screen that opens it fills in. Reached any other way — a stale link, a reload, a back gesture landing here — that draft is null, the first line throws, and he gets a white sheet with no way to tell what happened. */
@@ -11226,7 +11294,7 @@ function expRender(){
       const ppl = tagged ? partyList(hc.who) : expHeadNames(d.cat);
       return `<div class="field" style="margin-top:10px">
         <label>${t('exp_party')}${tagged?' *':''}</label>
-        ${d.partyId
+        ${(d.partyId && String(d.partyName||'').trim())
           ? `<div class="gtags"><span class="gtag on-tag">${esc(d.partyName||'')}</span>
              <span class="gtag" style="cursor:pointer;border-style:dashed" onclick="expPickParty('')">✕ ${t('clear')}</span></div>`
           : (tagged||_expWantName)
@@ -11592,6 +11660,8 @@ function expSave(next){
   if(!svOnce(sig,()=>expSaveDo(next))){ toast(t('sv_dup'),'bad'); return; }
 }
 function expSaveDo(next){ expCapture(); const d=_exp;
+  /* v697: a money row never links to a man without a name */
+  if(d.partyId && !String(d.partyName||'').trim()){ d.partyId=null; d.partyKind=''; }
   if(_expMLOn)return expSaveMulti(next);
   const amt=+d.amt||0;
   if(amt<=0){toast(t('t_no_amount'),'bad');return;}
@@ -12726,58 +12796,47 @@ function acctOpen(name,kind){
    THIS FUNCTION CHANGES NO FIGURE. It names the difference so the right question can be
    asked of the right record — which is step one of the two he agreed to, deliberately
    shipped before any figure is touched. */
+/* ══════════ v697 — THE RECONCILIATION NOW WORKS NAME BY NAME ══════════
+   It used to guess at categories (returns, floors, "only on one side") and on HIS book
+   printed −₹1,70,414 still unexplained — the v690 failure again. The real cause was that
+   the list's own total was only its top fifteen (fixed in credGroups). Now it adds up each
+   supplier exactly as the balance sheet does, compares with the same supplier on the list,
+   and names every supplier where the two differ, with the reason when the book shows one.
+   Nothing is left over by construction — and the gate checks it on a real shape. */
 function credReconcile(){
   const A=(openBS().date||fyStartISO()), B=todayISO();
   let sheet=0; try{ sheet=r2(Math.abs((bsFigures(A,B).L||{}).creditors||0)); }catch(e){}
   const cg=credGroups('');
   const list=r2(cg.total||0);
-
-  /* the list's own loans, which the sheet keeps apart */
-  let loans=0;
-  (cg.groups||[]).forEach(g=>{ if(g._loan)loans=r2(loans+(+g._loan||0)); });
-
-  /* every opening the SHEET counts, by name */
-  const onSheet={};
+  const isKS=n=>(DB.karigars||[]).some(k=>nameNorm(k.name)===nameNorm(n))||(DB.staff||[]).some(k=>nameNorm(k.name)===nameNorm(n));
+  const sh={}, disp={};
+  const put=(n,v)=>{ const k=nameNorm(n); if(!k)return; disp[k]=disp[k]||String(n).trim(); sh[k]=r2((sh[k]||0)+v); };
+  (DB.purchases||[]).forEach(pu=>{ if(String(pu.date||'')>B)return; put(pu.supplier||'—', orderBaakiAsOf(pu,B)); });
+  const seen={}, opens={};
   (DB.ledger||[]).filter(l=>l.refKind==='opening' && l.dir==='out'
-      && (pkNorm(l.partyKind)==='supplier'||pkNorm(l.partyKind)==='other'))
-    .forEach(l=>{
-      const nm=String(l.party||'').trim(); if(!nm)return;
-      if((DB.karigars||[]).some(k=>nameNorm(k.name)===nameNorm(nm)))return;
-      if((DB.staff||[]).some(k=>nameNorm(k.name)===nameNorm(nm)))return;
-      const left=openingLeft(nm, pkNorm(l.partyKind), 'out');
-      if(left)onSheet[nameNorm(nm)]={name:nm, amt:r2(left), kind:pkNorm(l.partyKind)};
-    });
-
-  /* every name the LIST shows */
-  const onList={};
-  (cg.groups||[]).forEach(g=>{ onList[nameNorm(g.name)]={name:g.name, amt:r2(g.due||0)}; });
-
+      && (pkNorm(l.partyKind)==='supplier'||pkNorm(l.partyKind)==='other') && !isKS(l.party))
+    .forEach(l=>{ const k=nameNorm(l.party); opens[k]=(opens[k]||0)+1;
+      const key=pkNorm(l.partyKind)+'|'+pkNorm(l.party); if(seen[key])return; seen[key]=1;
+      put(l.party, openingLeft(String(l.party||'').trim(), pkNorm(l.partyKind), 'out')); });
+  const unref=r2(purRetFigures('',B).unref||0);
+  const li={};
+  (cg.full||cg.groups||[]).forEach(g=>{ const k=nameNorm(g.name); disp[k]=disp[k]||g.name; li[k]=r2((li[k]||0)+(+g.due||0)); });
+  const future={}; (DB.purchases||[]).forEach(pu=>{ if(String(pu.date||'')>B)future[nameNorm(pu.supplier)]=pu.date; });
   const onlySheet=[], onlyList=[];
-  Object.keys(onSheet).forEach(k=>{ if(!onList[k])onlySheet.push(onSheet[k]); });
-  Object.keys(onList).forEach(k=>{
-    const g=onList[k];
-    if(!onSheet[k] && !(cg.groups||[]).some(x=>nameNorm(x.name)===k && (x.recs||[]).length))
-      onlyList.push(g); });
+  Object.keys(Object.assign({},sh,li)).forEach(k=>{
+    const d=r2((sh[k]||0)-(li[k]||0)); if(Math.abs(d)<0.5)return;
+    const why = future[k] ? t('cr_why_future',{d:fmtDate(future[k])})
+              : (opens[k]>1 ? t('cr_why_two') : (!li[k] ? t('cr_why_notlist') : (!sh[k] ? t('cr_why_notsheet') : '')));
+    (d>0?onlySheet:onlyList).push({name:disp[k], amt:Math.abs(d), kind:why});
+  });
+  if(unref)onlyList.push({name:t('cr_why_ret'), amt:unref, kind:''});
   onlySheet.sort((a,b)=>b.amt-a.amt); onlyList.sort((a,b)=>b.amt-a.amt);
-
-  /* ══════════ v687 — THE TWO REASONS A NAME IS ON BOTH AND STILL DIFFERS ══════════
-     His own book: of a 28,838 gap, naming the missing supplier explained 12,316 and 16,522
-     was left saying nothing. A difference this screen cannot explain is the same failure it
-     was built to fix, one level down.
-     Two more reasons, and neither is a bug in either figure - they are two honest views:
-       · a purchase RETURN reduces what the list says he owes that supplier, while the
-         balance sheet takes returns off in its own separate step
-       · the list floors each supplier at zero, because "he owes you money" is not a payable;
-         the sheet keeps the negative. A supplier he has overpaid therefore reads 0 on one
-         and less-than-nothing on the other. */
-  /* v690: read the figures credGroups actually applied, not a second guess at them */
-  let rets=0, floored=0;
-  (cg.groups||[]).forEach(g=>{ rets=r2(rets+(+g._credit||0)); floored=r2(floored+(+g._floored||0)); });
   const gap=r2(sheet-list);
   const explainedSheet=r2(onlySheet.reduce((s,x)=>s+x.amt,0));
   const explainedList=r2(onlyList.reduce((s,x)=>s+x.amt,0));
-  const left=r2(gap - explainedSheet + explainedList + loans - rets - floored);
-  return {sheet, list, gap, loans, rets, floored, onlySheet, onlyList,
+  /* the sheet puts a NET debit balance on the asset side instead — then the two differ by that too */
+  const left=r2(gap - explainedSheet + explainedList);
+  return {sheet, list, gap, loans:0, rets:0, floored:0, onlySheet, onlyList,
           explainedSheet, explainedList, left};
 }
 /* ══════════ v692 — THE NAMES THE BOOKS CANNOT EXPLAIN ══════════
@@ -13023,10 +13082,15 @@ function credGroups(q){
   if(_crQ)groups=groups.filter(g=>String(g.name).toLowerCase().includes(_crQ)
     ||String(Math.round(g.due)).includes(_crQ)||String(g.phone||'').includes(_crQ));
   /* v399: biggest first, then stop — the rest are one search away */
+  /* v697 — FOUND ON HIS BOOK: the total was added up AFTER the list was cut to fifteen, so
+     "Creditors Outstanding" on Reports was the top fifteen suppliers only. Prakhi ₹9,891,
+     Shree Balaji ₹12,316 and the rest of the small ones owed money that no total showed —
+     which is where the "Where the difference is" figure came from. Total first, then cut. */
+  const total=r2(groups.reduce((s,g)=>s+g.due,0));
+  const _crFull=groups.slice();
   const _crMore=(!_crQ && groups.length>15) ? groups.length-15 : 0;
   if(_crMore)groups=groups.slice(0,15);
-  const total=r2(groups.reduce((s,g)=>s+g.due,0));
-  return {groups:groups, total:total, more:_crMore, all:_crAll, q:_crQ};
+  return {groups:groups, total:total, more:_crMore, all:_crAll, q:_crQ, full:_crFull};
 }
 function creditors(){
   sheetAt(creditors); if(!modOn('billing')){toast(t('mod_off'),'bad');return;}
@@ -13845,7 +13909,9 @@ function custKeyOf(r){
 
 /* every record (order + alteration + sale) that still owes money, grouped per customer */
 function dueGroups(){
-  const tag=(arr,k)=>(arr||[]).filter(o=>orderBaaki(o)>0).map(x=>{x._kind=k;return x;});
+  /* v697: a display tag, not data — non-enumerable, so it never reaches the saved book
+     (opening Follow-ups was rewriting every unpaid order with a stray _kind field) */
+  const tag=(arr,k)=>(arr||[]).filter(o=>orderBaaki(o)>0).map(x=>tagKind(x,k));
   const all=[].concat(tag(DB.orders,'order'),tag(DB.alterations,'alt'),tag(DB.sales,'sale'));
   const map={};
   all.forEach(r=>{
@@ -15093,6 +15159,7 @@ function catOpenFolder(id){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">${f.ico||'📁'} ${esc(f.name)}</h2>
       <span><button class="btn sm ghost" onclick="catFolderEdit('${id}')">✏️</button>
+      <button class="btn sm ghost" style="color:var(--bad)" onclick="catFolderDel('${id}')" aria-label="${t('delete')}">🗑️</button>
       <button class="btn sm ghost" onclick="catalogue()" title="Back">←</button></span></div>
     <p class="hint" style="margin-bottom:10px">${(f.pids||[]).length} ${t('cat_photos')}</p>
     <button class="btn primary block" style="margin-bottom:12px" onclick="catPickOpen('${id}')">➕ ${t('cat_add_photos')}</button>
@@ -15194,7 +15261,7 @@ function catUse(i){
 let _catSeed=null;
 function statDetail(mode){
   sheetAt(statDetail);
-  const tag=(arr,k)=>(arr||[]).map(x=>{x._kind=k;return x;});
+  const tag=(arr,k)=>(arr||[]).map(x=>tagKind(x,k));   /* v697: see tagKind */
   let list=[], title='', sub='', total=0;
 
   if(mode==='pending'){
@@ -20698,8 +20765,10 @@ $('#filePickCam').addEventListener('change',processPhoto);
    smaller, and a real garment photo lands around 40-60 KB. Going below 720px starts losing
    the embroidery and the tag, which is the one thing these photos exist for — so this is as
    low as it goes with the pictures still doing their job.
-   ONLY NEW PHOTOS. Nothing already stored is touched or re-compressed: old photos are the
-   only copy the shop has and re-encoding them would quietly make every one of them worse. */
+   v697 — the old line here said "only new photos, nothing stored is ever re-compressed".
+   That was overruled by HIM on 15 Sept: "photo ekdum kharab dikhne mein ho ya achhi ho,
+   koi farq nahi padta... file chhoti ho jayegi to Google Drive pe roz ka backup le sakunga."
+   shrinkOldPhotos() (Backup screen) brings every stored photo down to this same size. */
 const PHOTO_MAX=800, PHOTO_Q=0.50;
 function downscale(file){return new Promise(res=>{const img=new Image(),rd=new FileReader();
   rd.onload=()=>{img.onload=()=>{const max=PHOTO_MAX;let{width:w,height:h}=img;if(w>h&&w>max){h=h*max/w;w=max;}else if(h>max){w=w*max/h;h=max;}
@@ -21671,7 +21740,8 @@ async function openAltDetail(id){
 
     <div class="section-h">${t('voice_notes')}</div>${voiceSection('advn')}
     <div id="ad_photos" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"></div>
-    <div class="row" style="margin-top:14px;gap:6px"><button class="btn ghost" onclick="openAltForm('${a.id}')">✏️ ${t('edit')}</button><button class="btn ghost" onclick="waAlteration('${a.id}')">💬 ${t('customer')}</button></div>
+    <div class="row" style="margin-top:14px;gap:6px"><button class="btn ghost" onclick="openAltForm('${a.id}')">✏️ ${t('edit')}</button><button class="btn ghost" onclick="waAlteration('${a.id}')">💬 ${t('customer')}</button>
+      <button class="btn ghost" style="flex:0 0 auto;color:var(--bad)" onclick="delAlteration('${a.id}')" aria-label="${t('delete')}">🗑️</button></div>
     <div class="fab-pad"></div>`;
 
   renderAltTimeline(a);
@@ -24440,32 +24510,59 @@ function invIsCancelled(rec){ return !!(rec && rec.invoice && rec.invoice.cancel
    untouched, and pressing it again carries on from there. Nothing is deleted, ever —
    each file is replaced by a smaller version of itself, or left exactly as it was. */
 let _shrBusy=false, _shrStop=false;
+/* v697 — a photo restored from a zip backup is stored with NO type at all (the zip keeps
+   only the bytes). Such a blob was read as application/octet-stream, and whether Safari will
+   draw an image from that is not something this app should bet the whole job on. The type is
+   now read from the file's own first bytes, and the picture is loaded through an object URL,
+   which also avoids holding a base64 copy of every 400 KB photo in memory on the iPad. */
+async function mediaSniff(blob){
+  try{
+    const b=new Uint8Array(await blob.slice(0,16).arrayBuffer());
+    const asc=(i,n)=>String.fromCharCode.apply(null,Array.from(b.slice(i,i+n)));
+    if(b[0]===0xFF&&b[1]===0xD8&&b[2]===0xFF)return 'image/jpeg';
+    if(b[0]===0x89&&asc(1,3)==='PNG')return 'image/png';
+    if(asc(0,4)==='RIFF'&&asc(8,4)==='WEBP')return 'image/webp';
+    if(asc(0,3)==='GIF')return 'image/gif';
+    if(asc(4,4)==='ftyp'){ const br=asc(8,4); if(/^(heic|heix|mif1|msf1|hevc)/.test(br))return 'image/heic'; return 'audio/mp4'; }
+    if(b[0]===0x1A&&b[1]===0x45&&b[2]===0xDF&&b[3]===0xA3)return 'audio/webm';
+    if(asc(0,4)==='OggS')return 'audio/ogg';
+    if(asc(0,4)==='RIFF'&&asc(8,4)==='WAVE')return 'audio/wav';
+    if(asc(0,3)==='ID3'||(b[0]===0xFF&&(b[1]&0xE0)===0xE0))return 'audio/mpeg';
+  }catch(e){}
+  return '';
+}
 async function shrinkBlob(blob){
+  let src=blob;
+  if(!/^image\//.test(blob.type||'')){
+    const ty=await mediaSniff(blob);
+    if(!/^image\//.test(ty))return null;                     // a voice note, or unknown — leave it
+    src=new Blob([blob],{type:ty});
+  }
   return new Promise(res=>{
-    const rd=new FileReader();
-    rd.onload=()=>{ const img=new Image();
-      img.onload=()=>{ let{width:w,height:h}=img; const max=PHOTO_MAX;
-        if(Math.max(w,h)<=max){ res(null); return; }          // already small — leave it
-        if(w>h){ h=Math.round(h*max/w); w=max; } else { w=Math.round(w*max/h); h=max; }
-        const c=document.createElement('canvas'); c.width=w; c.height=h;
-        c.getContext('2d').drawImage(img,0,0,w,h);
-        c.toBlob(b=>res(b||null),'image/jpeg',PHOTO_Q); };
-      img.onerror=()=>res(null); img.src=rd.result; };
-    rd.onerror=()=>res(null); rd.readAsDataURL(blob);
+    const url=URL.createObjectURL(src), img=new Image();
+    const done=v=>{ try{ URL.revokeObjectURL(url); }catch(e){} res(v); };
+    img.onload=()=>{ let{width:w,height:h}=img; const max=PHOTO_MAX;
+      if(Math.max(w,h)<=max){ done(null); return; }          // already small — leave it
+      if(w>h){ h=Math.round(h*max/w); w=max; } else { w=Math.round(w*max/h); h=max; }
+      const c=document.createElement('canvas'); c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      c.toBlob(b=>{ c.width=c.height=0; done(b||null); },'image/jpeg',PHOTO_Q); };
+    img.onerror=()=>done(null); img.src=url;
   });
 }
+/* a photo already at the new size is 40-80 KB; anything this small is not worth decoding,
+   which is what makes pressing the button a second time fast */
+const SHR_SKIP_BYTES=90*1024;
 async function shrinkOldPhotos(){
   if(_shrBusy){ toast(t('shr_busy'),'bad'); return; }
-  /* the gate: no photo backup on record, no shrinking. */
+  /* v697 — HIS 15 Sept: "ek baar mein bina dare kar do." The backup is advised, not demanded:
+     the question says when the last one was taken, in red if there is none, and he decides. */
   const last=localStorage.getItem('pb_ob_lastbackup')||'';
-  if(!last){
-    modal('⚠️ '+t('shr_title'),
-      `<p style="color:var(--txt2);font-size:14px;line-height:1.6">${t('shr_need_backup')}</p>`,
-      [{label:t('close'),cls:'ghost',fn:closeModal}]);
-    return;
-  }
-  confirmModal('🗜️ '+t('shr_title'), t('shr_ask'), async ()=>{
+  const bkLine=last?`<br><br><b style="color:var(--ok)">${t('dg_lastbk',{w:fmtDate(last)})}</b>`
+                   :`<br><br><b style="color:var(--bad)">${t('shr_need_backup')}</b>`;
+  confirmModal('🗜️ '+t('shr_title'), t('shr_ask')+bkLine, async ()=>{
     closeModal(); _shrBusy=true; _shrStop=false;
+    let _wl=null; try{ if(navigator.wakeLock)_wl=await navigator.wakeLock.request('screen'); }catch(e){}
     const keys=(await mKeys()).filter(k=>String(k).indexOf('snap_')!==0 && String(k).indexOf('rec_o_')!==0
       && ['__db','__core','__meta','__db_prev','__bkfile'].indexOf(String(k))<0);
     let done=0, shrunk=0, saved=0, skipped=0;
@@ -24478,7 +24575,7 @@ async function shrinkOldPhotos(){
       if(_shrStop)break;
       try{
         const b=await mGet(k);
-        if(b && b.size && /image/.test(b.type||'image/jpeg')){
+        if(b && b.size>SHR_SKIP_BYTES && !/^(audio|video)\//.test(b.type||'')){
           const nb=await shrinkBlob(b);
           if(nb && nb.size>0 && nb.size < b.size*0.9){    // only if it genuinely helps
             await mPut(k,nb); shrunk++; saved+=(b.size-nb.size);
@@ -24493,6 +24590,7 @@ async function shrinkOldPhotos(){
       }
     }
     _shrBusy=false; closeModal();
+    try{ if(_wl)_wl.release(); }catch(e){}
     try{ localStorage.removeItem('pb_ob_szcache'); }catch(e){}   // sizes changed
     toast(t('shr_done',{a:shrunk,n:(saved/1048576).toFixed(1)}),'ok');
   }, null, {yes:t('shr_go'), no:t('cancel'), cls:'primary'});
@@ -25913,7 +26011,7 @@ function shopInfoSave(){DB.shopInfo={name:($('#si_name').value||'').trim(),bless
   let acc=pid?(DB.accounts||[]).find(x=>x.id===pid):null;
   if(!acc && (bn||an||ic)){        // nothing set up yet — create the account from what he typed
     const nm=bn||(($('#si_name')&&$('#si_name').value.trim())||'Bank');
-    acc={id:uid(),type:'bank',name:nm,bankName:bn,accNo:an,ifsc:ic,upi:'',opening:0,openingDate:todayISO()};
+    acc={id:uid(),type:'bank',name:nm,bankName:bn,accNo:an,ifsc:ic,upi:'',opening:0,openingDate:(((DB.openBS||{}).date)||todayISO())};
     DB.accounts=DB.accounts||[]; DB.accounts.push(acc);
   }
   if(acc){ acc.bankName=bn; acc.accNo=an; acc.ifsc=ic; setPrimaryAcc(acc.id); }
@@ -28360,6 +28458,7 @@ function purNearUse(i){
   save(); closeModal(); renderPurchaseForm();
   toast(t('pur_near_fixed',{n:esc(x.found)}),'ok');
 }
+let _purFutureOK=false;
 function savePurchase(){
   /* v376: a purchase booked twice moves stock twice — worse than a duplicate expense */
   {const _f=purchForm||{};
@@ -28388,6 +28487,17 @@ function savePurchase(){
     if(near.length){ purNearAsk(near); return; }
   }
   _purNameOK=false;
+  /* v697: a bill dated after today is almost always a typo (21 for 01) and it quietly
+     stays out of every report until that day comes. Asked once, with the date named. */
+  if(!_purFutureOK && String(f.date||'')>todayISO()){
+    /* modal, not confirmModal: "fix the date" must leave the bill he is typing open */
+    modal('\u{1F4C5} '+t('pur_future_t'),
+      `<p style="color:var(--txt2);font-size:14px;line-height:1.6">${t('pur_future_q',{d:fmtDate(f.date)})}</p>`,
+      [{label:t('pur_future_fix'),cls:'ghost',fn:()=>{ closeModal(); const e=$('#pu_date')||document.querySelector('[id*="date"]'); try{ e&&e.focus(); }catch(_){} }},
+       {label:t('pur_future_yes'),cls:'primary',fn:()=>{ closeModal(); _purFutureOK=true; savePurchase(); }}]);
+    return;
+  }
+  _purFutureOK=false;
   /* only once every real validation has passed does a repeat tap become a genuine risk —
      checked here, not at the top, so fixing a typo and tapping Save again right away is
      never mistaken for the same double-tap this guards against. */
@@ -29051,8 +29161,17 @@ function plFigures(from,to){
   });
 
   /* v282: what was SOLD, not what was bought. */
-  const openStk=r2(+((DB.openBS||{}).stock)||0);
-  const closeStk=stockNowValue();
+  /* ══════════ v697 — THE P&L READ TODAY'S SHELF FOR EVERY PERIOD ══════════
+     closeStk was always today's stock and openStk always the books' opening, whatever
+     period was picked. So "this month" set 1 Sept's sales against April's opening stock —
+     the 1776% gross margin in his handover — and any balance sheet before today could not
+     close. Now the period's own two ends are read: stock the day before it began (or the
+     books' opening, if it begins there) and stock on its last day. */
+  const _bs0=String(((DB.openBS||{}).date)||fyStartISO()), _td=todayISO();
+  const _to=(!to||to>_td)?'':to;
+  const _dayBefore=d=>{ const x=new Date(d+'T00:00:00'); x.setDate(x.getDate()-1); return isoOf(x); };
+  const openStk=(from && from>_bs0) ? r2(stockNowValue(_dayBefore(from))) : r2(+((DB.openBS||{}).stock)||0);
+  const closeStk=_to ? r2(stockNowValue(_to)) : stockNowValue();
   /* v311: a deliberate valuation difference is pulled OUT of cost of sales and shown on
      its own line. Without this, choosing "the stock rate is right" made COGS appear on a
      month with no sale at all. */
@@ -29287,7 +29406,7 @@ function bsFigures(from,to){
   add(A,'stock', stockNowValue(to));   /* v671: the shelf as at the closing date */
   add(A,'fixed', +ob.fixed||0);
   let staffAdv=0;
-  (DB.staff||[]).forEach(st=>{ const b=staffAdvBal(st.id); if(b>0)staffAdv=r2(staffAdv+b); });
+  (DB.staff||[]).forEach(st=>{ const b=staffAdvBal(st.id,to); if(b>0)staffAdv=r2(staffAdv+b); });
   add(A,'staffadv', staffAdv);
   /* v300 AUDIT — caught by a balance sheet that was out by exactly ₹3,000 on a test set.
      Two advances had nowhere to sit, so the two sides could not agree:
@@ -29309,8 +29428,12 @@ function bsFigures(from,to){
 
   /* ---- liabilities ---- */
   let creditors=0;
-  (DB.purchases||[]).forEach(pu=>{ creditors=r2(creditors+orderBaaki(pu)); });
-  creditors=r2(creditors+openingPartyTotal('supplier','out'));   /* v312: see the note on
+  /* v697 — HIS BOOK: Senso Ethnic's bill A2072 is dated 21 Sept. The shelf, the GST and the
+     P&L all read "as at" the sheet's date and so left it out; payables took it in anyway —
+     ₹1,10,029 of the difference. A bill counts from its own date, like everything else. */
+  (DB.purchases||[]).forEach(pu=>{ if(to && String(pu.date||'')>to)return;
+    creditors=r2(creditors+orderBaakiAsOf(pu,to)); });
+  creditors=r2(creditors+openingPartyTotal('supplier','out',to));   /* v312: see the note on
     openingPartyTotal — this used to depend on the supplier having a purchase bill */
   /* v366 — HIS 27 Aug: "₹2,20,798 I have to pay... paisa pata hi nahi kahan se aaya, kya
      aaya." Meghraj Parasmal's old balance had been filed under the kind 'other', and only
@@ -29319,10 +29442,10 @@ function bsFigures(from,to){
      Money that is owed is owed whatever label the row carries. An opening that says money
      goes OUT is a creditor; one that says it comes IN is a debtor. Karigar and staff keep
      their own lines below, so they are left out of this one. */
-  creditors=r2(creditors+openingPartyTotal('other','out'));
+  creditors=r2(creditors+openingPartyTotal('other','out',to));
   /* v668: and out again for the two kinds that have their own line — see the note above
      openingKarStaffOut. They are added back below, under the man's own heading. */
-  const _ks=openingKarStaffOut();
+  const _ks=openingKarStaffOut(to);
   creditors=r2(creditors-_ks.kar-_ks.staff);
   /* v305: a debit note the supplier has not yet settled reduces what is owed him */
   creditors=r2(creditors-purRetFigures('',to).unref);
@@ -29353,13 +29476,16 @@ function bsFigures(from,to){
      advance. The second was being dropped outright by the if(b>0) guard on staffadv —
      money quietly off the sheet, the same defect v300 fixed for the karigar advance. */
   let staffPay=_ks.staff;
-  (DB.staff||[]).forEach(st=>{ const b=staffAdvBal(st.id); if(b<0)staffPay=r2(staffPay-b); });
+  (DB.staff||[]).forEach(st=>{ const b=staffAdvBal(st.id,to); if(b<0)staffPay=r2(staffPay-b); });
   add(L,'staffpay', staffPay);
   /* v300: the other half of the pair above — what customers have paid beyond their bill. */
   let custAdv=0;
   [['order',DB.orders],['alt',DB.alterations],['sale',DB.sales]].forEach(([,list])=>{
     (list||[]).forEach(rec=>{
-      const over=r2(orderReceived(rec)-orderTotal(rec));
+      /* v697: as at the sheet's date — a bill or receipt after it had not happened yet */
+      /* money taken before the bill's own date is an advance until that date */
+      const _d=dayOfRec(rec); const _tot=(_d && to && _d>to)?0:orderTotal(rec);
+      const over=r2(orderReceivedAsOf(rec,to)-_tot);
       if(over>0)custAdv=r2(custAdv+over);
     });
   });
@@ -29384,7 +29510,7 @@ function bsFigures(from,to){
   {
     let ordAdv=0;
     (DB.orders||[]).forEach(o2=>{ if(ordIsBillable(o2))return;
-      const got=orderReceived(o2); if(got>0)ordAdv=r2(ordAdv+got); });
+      const got=orderReceivedAsOf(o2,to); if(got>0)ordAdv=r2(ordAdv+got); });   /* v697: as at */
     add(L,'ordadv', ordAdv);
   }
   /* v313: incentive earned but not yet handed over is money owed to staff */
@@ -29461,7 +29587,11 @@ function bsFigures(from,to){
      If he has typed a figure, it is honoured — some shops carry a real opening capital from
      a previous set of books. If he has not, it is derived, and the sheet is simply right. */
   const cap={opening:(+ob.capital||0), profit:pl.net, drawings:pl.drawings||0};
-  if(!(+ob.capital)){ try{ cap.opening=r2(obsCapGap().should); }catch(e){} }
+  /* v697 — HIS BOOK: the capital saved on the Opening screen is a SNAPSHOT of "worked out
+     from that day's books". Ramesh's and Vicky's old advances were added on 23 Aug, after the
+     last save, and the snapshot never moved — ₹33,000 of difference. Unless he has typed his
+     own figure, capital is worked out fresh every time, from the same rows the sheet uses. */
+  if(!(+ob.capital) || !ob.capManual){ try{ cap.opening=r2(obsCapGap().should); }catch(e){} }
   const capTotal=r2(cap.opening+cap.profit-cap.drawings);
 
   /* v273: journal adjustments land on the same buckets. They are added here, at the end,
@@ -33184,7 +33314,9 @@ function karMaster(kid){
     <div class="row" style="gap:8px;margin-top:10px">
       <button class="btn ghost" style="flex:1" onclick="karPayEntry('${kid}')">💰 ${t('kb_pay')}</button>
       <button class="btn ghost" style="flex:1" onclick="karigarLedger('${kid}')">📊 ${t('kb_title')}</button></div>
-    <button class="btn ghost block" style="margin-top:8px" onclick="karigarEdit('${kid}')">✏️ ${t('edit')}</button>
+    <div class="row" style="gap:8px;margin-top:8px">
+      <button class="btn ghost" style="flex:1" onclick="karigarEdit('${kid}')">✏️ ${t('edit')}</button>
+      <button class="btn ghost" style="flex:0 0 auto;color:var(--bad)" onclick="karigarDelete('${kid}')" aria-label="${t('delete')}">🗑️</button></div>
     <div class="modal-actions"><button class="btn ghost block" onclick="jobWork()">${t('back')}</button></div>
     <div class="fab-pad"></div>`;
   showSheet();
@@ -34695,11 +34827,15 @@ function thaanBalAsOf(th,asOf){
   if(!asOf)return thaanBal(th);
   if(String(th.date||'')>asOf)return 0;          /* the roll was not bought yet */
   /* undo what was cut after the closing day: an OUT after it goes back on the roll */
-  return r2(thaanBal(th)+movesAfter(asOf,m=>m.thaanId===th.id));
+  /* v697 — HIS BOOK: 1326 rolls were typed in on 20-23 July as "Opening stock". Their IN
+     movement is dated July, so every balance sheet before July replayed it away and saw an
+     empty shelf — −₹46 lakh on 30 April. An OPENING roll was on the shelf on the day the
+     books began, whatever day it was typed; only real movements are replayed. */
+  return r2(thaanBal(th)+movesAfter(asOf,m=>m.thaanId===th.id && m.reason!=='opening'));
 }
 function readyTotalAsOf(m,asOf){
   if(!asOf)return readyTotal(m);
-  return Math.max(0, r2(readyTotal(m)+movesAfter(asOf,x=>x.itemId===m.id&&x.target==='ready')));
+  return Math.max(0, r2(readyTotal(m)+movesAfter(asOf,x=>x.itemId===m.id&&x.target==='ready'&&x.reason!=='opening')));   /* v697: see thaanBalAsOf */
 }
 function stockNowValue(asOf){
   const fab=r2((DB.thaans||[]).reduce((a,th)=>a+r2(thaanBalAsOf(th,asOf)*(+th.rate||0)),0));
@@ -34732,7 +34868,13 @@ function fabricCutSince(from){
   });
   return r2(v);
 }
+/* v697 — "bought since" must be the SAME purchases the P&L charges, or cost of goods can
+   never come out right: HIS BOOK read ₹6,30,683 here (every bill, even one dated 21 Sept,
+   before returns) against ₹4,82,740 in the P&L, and the ₹1,47,943 between them showed up as
+   a MINUS cost of goods. Opening = today + cut − what the P&L says was bought; then the P&L's
+   cost of goods is exactly what was cut, which is what it should be. */
 function fabricBoughtSince(from){
+  try{ const pl=plFigures(from, todayISO()); if(pl && pl.netPurch!=null)return r2(pl.netPurch); }catch(e){}
   let v=0;
   (DB.purchases||[]).forEach(p=>{
     const d=String(p.date||'');
@@ -35004,7 +35146,8 @@ function obsCap(){
      must be right BEFORE it is relied on, not after. */
   const put=(id,k)=>{ const e=$('#'+id); if(e)o[k]=r2(+e.value||0); };
   if($('#obs_date'))o.date=$('#obs_date').value||fyStartISO();
-  put('obs_stock','stock'); put('obs_fixed','fixed'); put('obs_cap','capital');
+  put('obs_stock','stock'); put('obs_fixed','fixed');
+  if($('#obs_cap')){ put('obs_cap','capital'); o.capManual=false; }   /* v697: the worked-out one */
 }
 function obsLoanAdd(){ obsCap(); openBS().loans.push({name:'',amt:0,kind:'business'});
   const b=$('#obsLoans'); if(b)b.innerHTML=obsLoanRows(); }
@@ -35027,6 +35170,11 @@ function obsCapGap(){
       .forEach(l=>{ const nm=pkNorm(l.party); if(!nm||seen[nm])return; seen[nm]=1; v=r2(v+(+l.amt||0)); });
     return v; };
   assets=r2(assets+raw('customer','in')+raw('other','in'));
+  /* v697 — HIS BOOK: Ramesh ₹18,000 and Vicky ₹15,000 old advance are on the balance sheet
+     as Staff advances (staffAdvBal counts every opening row as an advance), but were never
+     part of opening capital — ₹33,000 of the difference. Same rows, same rule, both sides. */
+  (DB.staff||[]).forEach(st=>{ staffAdvLines(st.id).forEach(l=>{
+    if(l.refKind==='opening' && pkNorm(l.partyKind)==='staff')assets=r2(assets+(+l.amt||0)); }); });
   liabs=r2(liabs+raw('supplier','out')+raw('other','out'));
   liabs=r2(liabs+(o.loans||[]).filter(x=>x.kind!=='personal').reduce((a,x)=>r2(a+(+x.amt||0)),0));
   const should=r2(assets-liabs);
@@ -35052,7 +35200,7 @@ function obsCapManual(){
      <input id="obsCapM" type="number" inputmode="numeric" value="${esc(openBS().capital||d.should)}">`,
     [{label:t('cancel'),cls:'ghost',fn:()=>{closeModal();openBSEdit();}},
      {label:t('save'),cls:'primary',fn:()=>{const e=$('#obsCapM');
-       openBS().capital=r2(+((e&&e.value)||0)); save(); closeModal(); openBSEdit(); toast(t('t_saved'),'ok'); }}]);
+       openBS().capital=r2(+((e&&e.value)||0)); openBS().capManual=true; save(); closeModal(); openBSEdit(); toast(t('t_saved'),'ok'); }}]);
 }
 function obsSave(){ obsCap();
   openBS().loans=openBS().loans.filter(L=>String(L.name||'').trim()||+L.amt);
@@ -35986,10 +36134,10 @@ function lgPushRows(rows,l,n){
      Cash & bank screen reads, so the two can never differ again. */
   const acct=(DB.accounts||[]).find(a=>nameNorm(a.name)===n);
   if(acct){
-    if(+acct.opening)rows.push({date:acct.openingDate||'', ref:t('cb_opening'),
+    if(+acct.opening)rows.push({date:accFrom(acct), ref:t('cb_opening'),
       dr:(+acct.opening>0?r2(+acct.opening):0), cr:(+acct.opening<0?r2(-acct.opening):0)});
     try{
-      moneyLines(acct.openingDate||'','9999-12-31').filter(x=>x.acc===acct.id).forEach(x=>{
+      moneyLines(accFrom(acct),'9999-12-31').filter(x=>x.acc===acct.id).forEach(x=>{
         rows.push({date:x.date||'', ref:String(x.ref||x.cat||x.party||''),
           dr:(x.dir==='in'?r2(+x.amt||0):0), cr:(x.dir==='out'?r2(+x.amt||0):0)});
       });
@@ -36602,28 +36750,38 @@ function openingLine(name,kind){
    everything and nothing was ever applied to an opening balance.
    Direction is checked: only money moving the same way as the opening can settle it. A
    receipt from a supplier is not a payment to him. */
-function openingPays(name,kind){
+function openingPays(name,kind,asOf){
   /* v683: the other half of the same fault — see the note above openingLine(). The payment
      side was matching on pkNorm too, so "Pvt. Ltd" never reached "Pvt Ltd"'s opening. */
   const nm=nameNorm(name);
   const pid=(partyByName(name)||{}).id||null;
   const o=openingLine(name,kind);
   const dir=o?o.dir:null;
+  /* v697 — HIS BOOK: Shree Panchmukhi has TWO openings (supplier ₹27,266 and other
+     ₹24,754) and one ₹10,789 payment. Matching by name alone spent that payment against
+     BOTH openings, so payables fell by ₹21,578 while the bank fell by ₹10,789. A payment
+     now belongs to exactly one opening: the one whose kind it carries, or — when its kind
+     matches none of them — the first one this name was given. */
+  const mine=(DB.ledger||[]).filter(l=>l.refKind==='opening' && nameNorm(l.party)===nm && (!dir||l.dir===dir));
+  const home=l=>{ const k=pkNorm(l.partyKind||'');
+    return (mine.find(x=>pkNorm(x.partyKind)===k) || mine[0] || null); };
   return (DB.ledger||[]).filter(l=>
        (l.refKind==='openpay' || l.refKind==='manual')
     && (!dir || l.dir===dir)
-    && (nameNorm(l.party)===nm || (pid && l.partyId===pid)));
+    && (nameNorm(l.party)===nm || (pid && l.partyId===pid))
+    && (!o || mine.length<2 || home(l)===o)
+    && (!asOf || String(l.date||'')<=asOf));      /* v697: a payment after the sheet's date had not happened yet */
 }
 /* {amt, paid, left, dir, date} — dir 'out' = I have to pay, 'in' = I have to receive */
-function openingState(name,kind){
+function openingState(name,kind,asOf){
   const o=openingLine(name,kind);
   if(!o)return null;
   const amt=r2(+o.amt||0);
-  const paid=r2(openingPays(name,kind).reduce((a,l)=>a+(+l.amt||0),0));
+  const paid=r2(openingPays(name,kind,asOf).reduce((a,l)=>a+(+l.amt||0),0));
   return {amt, paid, left:r2(Math.max(0,amt-paid)), dir:o.dir, date:o.date||'', id:o.id};
 }
-function openingLeft(name,kind,dir){
-  const st=openingState(name,kind);
+function openingLeft(name,kind,dir,asOf){
+  const st=openingState(name,kind,asOf);
   if(!st||st.dir!==dir)return 0;
   return st.left;
 }
@@ -36931,7 +37089,8 @@ function partyCard(name,kind){
 
     <div class="card" style="padding:12px 14px;margin-bottom:10px">${partyBalHTML({id:(pp&&pp.id)||'',name})}</div>
     <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();partyStatement('${jq((pp&&pp.id)||'')}','${jq(kind)}')">\u{1F4D2} ${t('pty_stmt')}</button>
-    ${pp?`<button class="btn ghost block" onclick="partyEdit('${jq(pp.id)}',()=>partyCard('${jq(name)}','${jq(kind)}'))">\u{1F464} ${t('pt_profile')}</button>`:''}
+    ${pp?`<div class="row" style="gap:8px"><button class="btn ghost" style="flex:1" onclick="partyEdit('${jq(pp.id)}',()=>partyCard('${jq(name)}','${jq(kind)}'))">\u{1F464} ${t('pt_profile')}</button>
+      <button class="btn ghost" style="flex:0 0 auto;color:var(--bad)" onclick="partyDel('${jq(pp.id)}')" aria-label="${t('delete')}">🗑️</button></div>`:''}
     <div class="fab-pad"></div>`;
   showSheet();
 }
@@ -37346,9 +37505,11 @@ function payKindOf(l){
   const c=expHeadCfg(String((l&&l.cat)||''));
   return c.pay||'';
 }
-function staffAdvBal(sid){
+function staffAdvBal(sid,asOf){
   let bal=0;
   staffAdvLines(sid).forEach(l=>{
+    /* v697: as at the sheet's date — except an opening row, which stands on the day the books began */
+    if(asOf && !l.opening && String(l.date||'')>asOf)return;
     const p=payKindOf(l);
     if(p==='adv')bal += (+l.amt||0);
     else if(p==='rec')bal -= (+l.amt||0);
@@ -38853,7 +39014,9 @@ async function zipRestore(file){
       for(const m of media){
         if(_zrStop)return;                       /* nothing has touched DB yet */
         const key=m.name.replace(/^media\//,'');
-        try{ await mPut(key, new Blob([await zipEntryBytes(m)])); }catch(e){}
+        try{ const raw=new Blob([await zipEntryBytes(m)]);
+          const ty=await mediaSniff(raw);            /* v697: the zip keeps no type — read it back */
+          await mPut(key, ty?new Blob([raw],{type:ty}):raw); }catch(e){}
         i++;
         if(i%10===0){ const bar=$('#zrBar'); if(bar)bar.style.width=Math.round(i*100/media.length)+'%';
           const sub=$('#zrSub'); if(sub)sub.textContent=t('zb_progress',{a:i,b:media.length});
@@ -40633,10 +40796,14 @@ async function init(){
     load(boot.raw);
     if(idb && boot.raw){ const ok=await migrateToV2(DB); if(!ok && boot.from!=='live'){ try{ await mPut('__db', boot.raw); }catch(e){} } }
   }
-  payIdMigrate();                      /* v404: every receipt gets a permanent id, once */
   _knownOrdIds=new Set((DB.orders||[]).map(o=>o.id));
   if(usedV2){ (DB.orders||[]).forEach(o=>{ _ordFp[o.id]=JSON.stringify(o); }); }
   _coreDirty=false; _dirtyOrd.clear(); _dbDirty=false;
+  /* v697: repairs run AFTER the flags are cleared, so what they change is actually written */
+  if(!_dbReadFailed){
+    try{ payIdMigrate(); }catch(e){}     /* v404: every receipt gets a permanent id, once */
+    try{ if(expPartyRepair()){ _coreDirty=true; _dbDirty=true; save(); } }catch(e){}
+  }
   syncShopNameKey();applyModules();applyLang();paintHeaderLogo();preloadShopLogo();
   /* v672: the book is in hand and the header is painted, so the version can be read
      and compared with the highest one this book has ever been opened on. */
