@@ -1063,7 +1063,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v694</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v696</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -2271,6 +2271,9 @@ const T={
   rp_loan_taken:'Taken', rp_loan_repaid:'Repaid',
   rp_loan_note:'Every line below is a record in the book. Interest is not here \u2014 it is a cost and has already gone to Profit & loss.',
   rh_stock:'Stock',
+  ob_calc_blind:'Your rolls carry no record of WHEN cloth left them \u2014 so the starting stock cannot be worked out from the book. Count the shelf on the starting day, or put your own figure in.',
+  ob_calc_blind_t:'Nothing has left the shelf since then',
+  ob_calc_assume:'\u26A0\uFE0F This figure assumes NO cloth has left the shelf since {d} \u2014 nothing cut for an order, nothing issued to a karigar, nothing reduced by hand. If any of that has happened outside the app, the real opening was LOWER than this.',
   pa_title:'Parties worth a second look', pa_row:'Parties worth a second look',
   pa_paid_no_open:'Paid, but no opening balance was ever entered',
   pa_open_no_move:'Opening entered, but nothing has moved since',
@@ -4505,6 +4508,9 @@ dl_show_hidden:'Show hidden ({n})',
   rp_loan_taken:'लिया', rp_loan_repaid:'चुकाया',
   rp_loan_note:'नीचे की हर लाइन किताब का एक रिकॉर्ड है। ब्याज यहाँ नहीं है \u2014 वह ख़र्च है और Profit & loss में जा चुका है।',
   rh_stock:'स्टॉक',
+  ob_calc_blind:'आपके थान में यह लिखा ही नहीं है कि कपड़ा कब गया \u2014 इसलिए किताब से शुरुआती स्टॉक निकाला नहीं जा सकता। शुरू वाले दिन की गिनती डालिए, या अपना आँकड़ा भरिए।',
+  ob_calc_blind_t:'तब से शेल्फ़ से कुछ गया ही नहीं',
+  ob_calc_assume:'\u26A0\uFE0F यह आँकड़ा यह मानकर है कि {d} के बाद शेल्फ़ से कुछ गया ही नहीं \u2014 न ऑर्डर में कटा, न कारीगर को दिया, न हाथ से घटाया। अगर ऐसा कुछ ऐप के बाहर हुआ है, तो असली शुरुआती स्टॉक इससे कम था।',
   pa_title:'जिन्हें दोबारा देखना चाहिए', pa_row:'जिन्हें दोबारा देखना चाहिए',
   pa_paid_no_open:'पैसा दिया, पर शुरुआती बकाया कभी चढ़ाया ही नहीं',
   pa_open_no_move:'शुरुआती बकाया है, पर उसके बाद कुछ हुआ ही नहीं',
@@ -34770,6 +34776,43 @@ function obsCalcOpening(){
   const from=openBS().date||fyStartISO();
   const now=stockNowValue(), cut=fabricCutSince(from), buy=fabricBoughtSince(from);
   const res=r2(now+cut-buy);
+  /* ══════════ v695 — ZERO WAS NOT AN ANSWER, IT WAS A SILENCE ══════════
+     HIS 15 Sept, twice: "fabric cut into orders since 1 Apr — ₹0", on a shop with 1327 rolls
+     and 31 lakh of sales behind it. v694 changed where that figure is read from, and it is
+     STILL zero — because his rolls carry no movement rows at all. The `used` on each roll was
+     set straight onto it, so the book knows how much has gone and has no idea WHEN.
+     Without a date, nothing can be attributed to a period, and an opening stock built on a
+     silent zero is a wrong figure wearing the clothes of a worked-out one. It would have put
+     47,91,001 into his books as if it had been derived.
+     So it refuses. A screen that cannot answer must say so — his own law, that a number must
+     reach its records. There is no record here, so there is no number. */
+  let anyMove=false;
+  try{ anyMove=(DB.moves||[]).some(m=>String(m.date||'')>=from); }catch(e){}
+  /* ══════════ v696 — THE ZERO WAS TRUE, AND I READ IT AS A SILENCE ══════════
+     HIS 15 Sept: "abhi tak maine app se stock kuch ghataya hi nahi hai. Maine khali sales ka
+     order bill banaya hai, order liya hai, lekin karigar ko dena aur stock ghatana ye sab
+     kuch kiya hi nahi hai."
+     So nothing HAS left the shelf, and "cut since 1 Apr = 0" was a fact, not a missing
+     record. v695 refused to answer on it — which was the same mistake in the other
+     direction: treating a true zero as an absence.
+     The app cannot tell "nothing left" from "nothing was written down"; the two look
+     identical from here. Only he knows which it is. So it shows the figure AND states the
+     assumption in the plainest words available, and he decides. */
+  if(!anyMove && !cut){
+    modal('\u{1F9EE} '+t('ob_calc_blind_t'),
+      `<div class="il"><span>${t('ob_calc_now')}</span><b>${money(now)}</b></div>
+       <div class="il"><span>${t('ob_calc_buy',{d:fmtDate(from)})}</span><b style="color:var(--bad)">${money(buy)}</b></div>
+       <div class="il" style="font-weight:800;border-top:1px solid var(--line);margin-top:4px;padding-top:6px">
+         <span>${t('ob_calc_res',{d:fmtDate(from)})}</span>
+         <b style="color:var(--saffron2)">${money(res)}</b></div>
+       <p class="hint" style="white-space:normal;margin-top:12px;color:var(--bad)">${t('ob_calc_assume',{d:fmtDate(from)})}</p>
+       <p class="hint" style="white-space:normal;margin-top:8px">${t('ob_calc_ready')}</p>`,
+      [{label:t('cancel'),cls:'ghost',fn:()=>{closeModal();openBSEdit();}},
+       res>0?{label:t('ob_calc_use'),cls:'primary',fn:()=>{
+          openBS().stock=res; save(); closeModal(); openBSEdit(); toast(t('t_saved'),'ok'); }}:null
+      ].filter(Boolean));
+    return;
+  }
   const row=(l,v,col)=>`<div class="il"><span>${l}</span><b style="${col?'color:'+col:''}">${money(v)}</b></div>`;
   modal('\u{1F9EE} '+t('ob_calc_t'),
     `${row(t('ob_calc_now'),now)}
