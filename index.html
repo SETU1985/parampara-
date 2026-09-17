@@ -793,11 +793,18 @@
   .rngbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;cursor:pointer;
     border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin:0 0 12px}
   .rngbar .rngname{font-weight:800;color:var(--saffron2)}
+  .hot-search input{border:2px solid var(--saffron);background:var(--card)}
+  .stk-line{font-size:12px;color:var(--txt2);margin:0 2px 8px}
+  .od-media{display:flex;gap:8px;align-items:center;margin-top:8px}
+  .od-media .btn{flex:0 0 auto;padding:6px 16px;font-size:18px;min-height:0}
   .mh .od-x-piece{flex:0 0 auto;padding:0 9px;min-height:0;height:28px;margin-right:6px;color:var(--bad);border-color:rgba(217,83,79,.35)}
   /* v715 — the bill list: one line of tools, one strip of figures, two lines a bill */
   .ivtools{display:flex;gap:8px;align-items:center;margin-bottom:8px}
   .ivtools .field{flex:1;margin:0;min-width:0}
-  .ivtools .rngbar{margin:0;white-space:nowrap;padding:8px 10px}
+  .ivtools .rngbar{margin:0;white-space:nowrap;padding:5px 12px;flex:0 0 auto;border-radius:999px}
+  .ivtools .ivsort{flex:0 0 auto;margin-left:auto}
+  .ivtools .ivsort>*{margin:0}
+  .ivrow .l2 .mt{text-overflow:clip}
   .ivtools .rngbar .rngdates{display:none}
   .ivstrip{display:flex;gap:8px;margin:0 0 10px}
   .ivstrip>div{flex:1;min-width:0;border:1px solid var(--line);border-radius:12px;padding:8px 11px;background:var(--card)}
@@ -1098,7 +1105,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v716</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v717</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -2702,6 +2709,16 @@ const T={
   ph_missing_title:'No mobile number', ph_missing_msg:'This customer has no mobile number. Names repeat, so he will be hard to find next time, and no status or delivery message can reach him. Save the order without a mobile number?',
   ph_add_now:'Add number', ph_save_anyway:'Save without number',
   inv_close_title:'Leave without saving the bill?', inv_close_msg:'The order is already saved. Only what you typed on this bill will be dropped — you can bill the order any time.',
+  stk_new_with:'New roll with serial {s}', fab_cat_old:'Old category — pick one of the five to tidy it', none:'None', filter:'Filter',
+  inv_roll_t:'Link these lines to their rolls?',
+  inv_roll_q:'These lines name a roll that is in stock but are not linked to it — its metres will not come off the roll unless they are linked.',
+  inv_roll_is:'roll #{s} · {m} m left',
+  inv_roll_yes:'Link & save', inv_roll_no:'Save without linking',
+  inv_zero_t:'A line has no rate',
+  inv_zero_q:'The bill has amounts, but these lines are at ₹0. Given free, or is the rate still to be filled?',
+  inv_zero_free:'Given free — save', inv_zero_fill:'Fill the rate',
+  inv_close_msg_saved:'Only the changes you just made will be dropped — the bill stays as it was saved.',
+  inv_close_msg_new:'This bill is not saved yet — leaving drops it.',
   inv_close_yes:'Leave the bill', inv_need_amt:'Put an amount on at least one line, or close the bill and do it later — the order is already saved.',
   inv_now_title:'Make the bill now?', inv_now_msg:'Order #{n} is saved. You can bill it now, or carry on taking orders and bill it later from the order.',
   inv_later:'Later', inv_now:'Bill now',
@@ -2736,6 +2753,12 @@ const T={
   bk_auto_t:'Back up on its own, once a day',
   bk_auto_hint:'Writes to the file you linked above, quietly, when you are not in the middle of something. Keep that file in a Drive folder and Drive takes it off the device for you.',
   bk_book_now:'Back up the book', bk_photos_now:'Back up photos too',
+  od_whole_order:'Whole order', pur_select_many:'Select many bills',
+  pur_twin_t:'This bill is already booked',
+  pur_twin_q:'Bill {b} for {m} is already saved under {s} ({d}). Saving it again counts the same money twice.',
+  pur_twin_yes:'It is a different bill — save',
+  cb_cc_drawn:'Drawn on that date ₹ (what the bank had lent)',
+  bk_one:'Take backup', bk_one_hint:'One new file with today\u2019s date: the whole book, plus only the photos added since the last backup. Old files are never changed \u2014 keep them in one folder.',
   bk_book_hint:'Orders, bills, payments, measurements, stock, karigar \u2014 a small file, a few seconds. Do this every evening.',
   bk_data_only:'Send data-only backup (no photos)',
   bk_data_only_hint:'A small file — orders, measurements, stock and karigar accounts. Sends on WhatsApp even when the full backup will not.',
@@ -4954,6 +4977,16 @@ dl_show_hidden:'Show hidden ({n})',
   ph_missing_title:'मोबाइल नंबर नहीं है', ph_missing_msg:'इस ग्राहक का मोबाइल नंबर नहीं है। नाम एक जैसे होते हैं, इसलिए अगली बार ढूँढ़ना मुश्किल होगा, और कोई स्टेटस या डिलीवरी मैसेज भी नहीं पहुँचेगा। बिना मोबाइल नंबर के ऑर्डर सेव करें?',
   ph_add_now:'नंबर जोड़ें', ph_save_anyway:'बिना नंबर सेव करें',
   inv_close_title:'बिल सेव किए बिना निकलें?', inv_close_msg:'ऑर्डर पहले ही सेव है। सिर्फ़ इस बिल पर लिखा हुआ जाएगा — ऑर्डर का बिल कभी भी बना सकते हैं।',
+  stk_new_with:'सीरियल {s} से नया थान', fab_cat_old:'पुरानी श्रेणी — ठीक करने के लिए पाँच में से एक चुनें', none:'कोई नहीं', filter:'फ़िल्टर',
+  inv_roll_t:'इन लाइनों को उनके थान से जोड़ें?',
+  inv_roll_q:'इन लाइनों में स्टॉक के थान का नंबर लिखा है, पर लाइन थान से जुड़ी नहीं है — जोड़े बिना थान से मीटर नहीं घटेंगे।',
+  inv_roll_is:'थान #{s} · {m} मी. बाकी',
+  inv_roll_yes:'जोड़ें और सेव करें', inv_roll_no:'बिना जोड़े सेव करें',
+  inv_zero_t:'एक लाइन पर रेट नहीं है',
+  inv_zero_q:'बिल में रकम है, पर इन लाइनों पर ₹0 है। मुफ़्त दिया है, या रेट भरना बाकी है?',
+  inv_zero_free:'मुफ़्त दिया — सेव करें', inv_zero_fill:'रेट भरें',
+  inv_close_msg_saved:'सिर्फ़ अभी किए बदलाव हटेंगे — बिल जैसा सेव था वैसा ही रहेगा।',
+  inv_close_msg_new:'यह बिल अभी सेव नहीं हुआ है — छोड़ने पर हट जाएगा।',
   inv_close_yes:'बिल छोड़ दें', inv_need_amt:'कम से कम एक लाइन पर रकम डालें, या बिल बंद करके बाद में कर लें — ऑर्डर पहले ही सेव है।',
   inv_now_title:'अभी बिल बनाएँ?', inv_now_msg:'ऑर्डर #{n} सेव हो गया। अभी बिल बना लें, या और ऑर्डर लेते रहें और बाद में ऑर्डर से बिल बना लें।',
   inv_later:'बाद में', inv_now:'अभी बिल',
@@ -4987,6 +5020,12 @@ dl_show_hidden:'Show hidden ({n})',
   bk_auto_done:'\u2713 आपकी फ़ाइल में बैकअप हो गया',
   bk_auto_t:'रोज़ अपने आप बैकअप लें',
   bk_auto_hint:'ऊपर जोड़ी गई फ़ाइल में चुपचाप लिखता है, जब आप बीच काम में न हों। उस फ़ाइल को Drive के फ़ोल्डर में रखें — Drive उसे डिवाइस से बाहर ले जाएगा।',
+  od_whole_order:'पूरा ऑर्डर', pur_select_many:'कई बिल चुनें',
+  pur_twin_t:'यह बिल पहले से दर्ज है',
+  pur_twin_q:'बिल {b} ({m}) पहले से {s} के नाम से सेव है ({d})। दोबारा सेव करने पर वही रकम दो बार गिनी जाएगी।',
+  pur_twin_yes:'यह अलग बिल है — सेव करें',
+  cb_cc_drawn:'उस दिन तक निकाला हुआ ₹ (बैंक का उधार)',
+  bk_one:'बैकअप लें', bk_one_hint:'आज की तारीख़ की एक नई फ़ाइल: पूरा हिसाब, और पिछले बैकअप के बाद की सिर्फ़ नई फ़ोटो। पुरानी फ़ाइलें नहीं बदलतीं \u2014 सब एक फ़ोल्डर में रखें।',
   bk_book_now:'बही का बैकअप लें', bk_photos_now:'फ़ोटो का भी बैकअप लें',
   bk_book_hint:'ऑर्डर, बिल, पेमेंट, नाप, स्टॉक, कारीगर — छोटी फ़ाइल, कुछ ही सेकंड। यह रोज़ शाम को करें।',
   bk_data_only:'सिर्फ़ डेटा भेजें (फोटो नहीं)',
@@ -7567,6 +7606,10 @@ function go(tab){
      a throw here would deactivate every pane and leave a white screen. */
   try{ if(tab!=='detail' && _curDetailId){ _curDetailId=null; _odItem=null; _odX=false; _odInfo=false; } }catch(e){}
   if(_tabFromMenu && _tabFromMenu!==tab) _tabFromMenu='';
+  /* v717 — HIS 17 Sept: "968 search kiya, band kiya, phir khola to wahi 968 aa raha hai."
+     A search belongs to one visit. Leaving a list for ANOTHER tab forgets its search;
+     opening a record from the list and coming back keeps it. */
+  if(typeof _curTab!=='undefined' && _curTab && _curTab!==tab){ try{ listQueryForgetTab(_curTab); }catch(e){} }
   _curTab=tab;
   /* v503: remember where he is, so a reload puts him back rather than at the top */
   try{ localStorage.setItem('pb_ob_lasttab', JSON.stringify({tab:tab, at:Date.now()})); }catch(e){}
@@ -7854,7 +7897,7 @@ function readySet(m,size,q){ m.stk=m.stk||{}; const v=Math.max(0,Math.round(+q||
 /* ======================= STOCK HOME ======================= */
 let _stkTab='fabric';
 function stockHome(tab){
-  sheetAt(stockHome); if(!modOn('stock')){toast(t('mod_off'),'bad');return;}
+  sheetAt(stockHome,null,arguments); if(!modOn('stock')){toast(t('mod_off'),'bad');return;}
   /* v290: select mode belongs to the fabric list only — leaving it (another tab, closing
      the sheet, coming back later) always starts clean, never half-selected by surprise. */
   if(tab && tab!==_stkTab){ _fabSelMode=false; _fabSel.clear(); }
@@ -7868,27 +7911,14 @@ function stockHome(tab){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">📦 ${t('stk_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
-    <div class="home-stats" style="margin-bottom:12px">
-      <div class="home-stat"><div class="hs-val">${fabMtr} m</div><div class="hs-lbl">${t('stk_fabric')}</div></div>
-      <div class="home-stat"><div class="hs-val">${rdyPcs}</div><div class="hs-lbl">${t('stk_pieces')}</div></div>
-      <div class="home-stat"><div class="hs-val" style="color:var(--saffron2)">${money(r2(fabVal+rdyVal))}</div><div class="hs-lbl">${t('stk_value')}</div></div>
-    </div>
-    ${/* ══════════ v445 — THE NEXT NUMBER, BEFORE HE PICKS UP THE PEN ══════════
-         HIS 1 Sep: "pehle notebook me stock lete hain aur har stock ka serial number likhte
-         hain, phir usi register se iPad me chadhate hain."
-         The register is written first, at the counter, as the bale is opened — so the number
-         is decided before the app is ever touched. The app knew what the next one should be
-         and kept it to itself until he was already typing.
-         It is on the shelf screen now, both runs side by side, so he can look at the iPad,
-         write that number in the book, and the two can never part company. */''}
-    <div class="card" style="padding:9px 12px;margin-bottom:12px">
-      <div class="kv"><span class="hint">\u{1F522} ${t('stk_next_ser')}</span>
-        <span><b style="color:var(--saffron2)">${esc(nextSerial())}</b>
-          <span class="hint"> ${t('stk_fabric')}</span>
-          &nbsp;&nbsp;<b style="color:var(--saffron2)">${esc(nextRmNo())}</b>
-          <span class="hint"> ${t('stk_pieces')}</span></span></div></div>
-    <div class="gtags" style="margin-bottom:12px">
-      ${tabs.map(([k,l])=>`<span class="gtag ${_stkTab===k?'on-tag':''}" style="cursor:pointer" onclick="stockHome('${k}')">${l}</span>`).join('')}
+    ${/* v717 — HIS 17 Sept: "1333 Fabric, RM-008 pcs — ye sab kya likha hua hai? Jitne kam
+         button, utna kam confusion." The figures are one quiet line, the next serial lives in
+         the Add form where it is used, and Reports went into ⋯. What stays is what the
+         screen is FOR: find a roll. */''}
+    <div class="stk-line" id="stkLine">${fabMtr} m · ${rdyPcs} ${t('stk_pieces')} · <b>${money(r2(fabVal+rdyVal))}</b></div>
+    <div class="gtags" style="margin-bottom:10px">
+      ${tabs.filter(x=>x[0]!=='reports').map(([k,l])=>`<span class="gtag ${_stkTab===k?'on-tag':''}" style="cursor:pointer" onclick="stockHome('${k}')">${l}</span>`).join('')}
+      ${_stkTab==='reports'?`<span class="gtag on-tag">${tabs[2][1]}</span>`:''}
     </div>
     <div id="stkBody"></div>
     
@@ -7907,6 +7937,20 @@ let _smp=null, _smpF='all';
    and there; a batch of bad entries needs a batch way out. Select mode changes nothing
    about a single row's own delete — it just lets many be picked before one confirm. */
 let _fabSelMode=false, _fabSel=new Set();
+let _fabFiltOpen=false;
+function fabFiltToggle(){ _fabFiltOpen=!_fabFiltOpen; fabricBody(); }
+function fabTools(){
+  const row=(ic,lbl,fn)=>`<div class="kv card" style="cursor:pointer;padding:12px;margin-bottom:8px" onclick="closeModal();${fn}"><b>${ic} ${lbl}</b><span>›</span></div>`;
+  modal('⋯ '+t('stk_title'),
+    row('📋',t('stk_bulk'),'bulkFabOpen()')
+    +((DB.thaans||[]).length?row('☑️',t('fab_select'),'fabSelToggle()'):'')
+    +row('📊',t('stk_reports'),"stockHome('reports')")
+    +(thaanScraps().length?row('🧵',t('scrap_n',{n:thaanScraps().length,m:scrapBelow()}),'scrapBook()'):'')
+    +((DB.fabItems||[]).length?row('⚙️',t('stk_setup'),'fabSetupMenu()'):'')
+    +`<p class="hint" style="margin-top:6px">🔢 ${t('stk_next_ser')}: <b>${esc(nextSerial())}</b> ${t('stk_fabric')} · <b>${esc(nextRmNo())}</b> ${t('stk_pieces')}</p>`,
+    [{label:t('close'),cls:'ghost',fn:closeModal}]);
+}
+function thaanEditSerial(v){ thaanEdit(); try{ if(_th && v){ _th.serial=String(v).trim(); thaanRender(); } }catch(e){} }
 function fabSelToggle(){ _fabSelMode=!_fabSelMode; _fabSel.clear(); fabricBody(); }
 function fabSelPick(id){
   if(_fabSel.has(id))_fabSel.delete(id); else _fabSel.add(id);
@@ -7957,7 +8001,9 @@ async function renderThaanDetailPhotos(th){
 /* v546: the stock rows on their own, so a keystroke rewrites only the list and never the
    box he is typing into. Same cure the other six search screens already have. */
 function fabBodyHTML(list){
-  return `    ${!list.length?`<p class="hint" style="padding:26px 6px;text-align:center">${(DB.thaans||[]).length?t('stk_none_match'):t('stk_none_yet')}</p>`:''}
+  const _q=String(_fabQ||'').trim();
+  return `    ${!list.length?`<p class="hint" style="padding:18px 6px 8px;text-align:center">${(DB.thaans||[]).length?t('stk_none_match'):t('stk_none_yet')}</p>
+      ${_q?`<button class="btn primary block" onclick="thaanEditSerial('${jq(_q)}')">➕ ${t('stk_new_with',{s:esc(_q)})}</button>`:''}`:''}
     ${pageSlice('fab',list).map(th=>{
       const f=FI(th.fabId)||{}; const bal=thaanBal(th);
       const low=bal<=3&&bal>0; const done=bal<=0.05;
@@ -8031,64 +8077,53 @@ function fabricBody(keepFocus){
   const _fbHolder=el.querySelector('#fabRows');
   if(keepFocus && _fbHolder && el.querySelector('#fabSearch')){
     _fbHolder.innerHTML=fabBodyHTML(list);
+    const tl=el.querySelector('#fabTools'); if(tl)tl.style.display=q?'none':'';
+    const ln=document.querySelector('#stkLine'); if(ln)ln.style.display=q?'none':'';
+    const ct=el.querySelector('#fabCount'); if(ct)ct.textContent=t('stk_n_thaans',{n:list.length});
     return;
   }
+  const _filtN=(_fabCat?1:0)+(_fabBand?1:0);
+  const _open=_fabFiltOpen||_filtN>0;
   el.innerHTML=`
-    <div class="field" style="margin-bottom:10px">
+    <div class="field hot-search" style="margin-bottom:8px">
       <input id="fabSearch" value="${esc(_fabQ)}" placeholder="🔍 ${t('stk_fab_search')}" oninput="setFabQ(this.value)"></div>
-    ${/* v248 - HIS 22 Aug: "fabric ke saare naam shortcut me kyon dikh rahe hain, maine
-         kaha itni baar ki mujhe page neat and clean chahiye. Search ke andar naam ho, yahan
-         to bhi chalega - itni bheed kyon?"
-         He is right and I had let it grow unchecked: every category the shop had ever typed
-         drew its own chip, so 27 of them filled half the screen before a single roll was
-         visible. A filter used now and then does not deserve more room than the stock it is
-         filtering. One line, one picker, and the search box now matches category text too -
-         so typing "velvet" finds velvet without any chip at all. */''}
-    ${/* v284: the list says so itself when short ends are sitting in it, and only then. */''}
-    ${(()=>{ const n=thaanScraps().length;
-      return n?`<div class="card" style="border-color:var(--saffron);padding:10px 12px;margin-bottom:10px;cursor:pointer" onclick="scrapBook()">
-        <div class="kv"><b>\u{1F9F5} ${t('scrap_n',{n,m:scrapBelow()})}</b>
-          <b style="color:var(--saffron2)">${money(scrapValue())} \u203A</b></div></div>`:''; })()}
-    ${cats.length?`<select id="fabCatSel" style="margin-bottom:10px" onchange="setFabCat(this.value)">
+    <div id="fabTools" style="${q?'display:none':''}">
+    <div class="gtags" style="margin-bottom:8px;align-items:center">
+      <span class="gtag ${_open?'on-tag':''}" style="cursor:pointer" onclick="fabFiltToggle()">⚲ ${t('filter')}${_filtN?' · '+_filtN:''} ${_open?'▴':'▾'}</span>
+      <span class="gtag" style="cursor:pointer" onclick="setFabSort('${_fabSort==='serial'?'new':'serial'}')">⇅ ${_fabSort==='serial'?t('stk_sort_serial'):t('stk_sort_new')}</span>
+      <span style="flex:1"></span>
+      <button class="btn sm ghost" style="padding:2px 12px" title="${t('hub_more')}" onclick="fabTools()">⋯</button>
+    </div>
+    ${_open?`<div class="card" style="padding:10px 12px;margin-bottom:10px">
+    ${cats.length?`<select id="fabCatSel" style="margin-bottom:8px" onchange="setFabCat(this.value)">
       <option value="">${t('stk_cat_all')} · ${(DB.thaans||[]).length}</option>
       ${cats.slice().sort((a,b)=>a.localeCompare(b)).map(c=>{
         const n=(DB.thaans||[]).filter(th=>thaanCat(th)===c).length;
         return `<option value="${esc(c)}" ${_fabCat===c?'selected':''}>${esc(c)} · ${n}</option>`;}).join('')}
     </select>`:''}
     <div class="hint" style="margin:0 0 5px">${t('stk_by_length')}</div>
-    <div class="gtags" style="margin-bottom:10px">
+    <div class="gtags">
       ${FAB_BANDS.map(bd=>{
         const n=(DB.thaans||[]).filter(th=>{const b=thaanBal(th);
           if(!(b>bd[2]&&b<=bd[3]))return false;
           if(_fabCat && thaanCat(th)!==_fabCat)return false;
           return true;}).length;
-        const m=r2((DB.thaans||[]).filter(th=>{const b=thaanBal(th);
-          if(!(b>bd[2]&&b<=bd[3]))return false;
-          if(_fabCat && thaanCat(th)!==_fabCat)return false;
-          return true;}).reduce((a2,th)=>a2+thaanBal(th),0));
         return `<span class="gtag ${_fabBand===bd[0]?'on-tag':''}" style="cursor:pointer" onclick="setFabBand('${bd[0]}')">${bd[1]} · ${n}</span>`;}).join('')}
-      ${_fabBand?`<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="setFabBand('${_fabBand}')">✕ ${t('all')}</span>`:''}
-    </div>
+    </div></div>`:''}
     ${_fabBand?(()=>{const bd=FAB_BANDS.find(x=>x[0]===_fabBand);
       const sel=list; const mt=r2(sel.reduce((a2,th)=>a2+thaanBal(th),0));
       const val=r2(sel.reduce((a2,th)=>a2+thaanBal(th)*(+th.rate||0),0));
       return `<div class="card pos-total" style="padding:10px 12px;margin-bottom:10px">
         <div class="il" style="border-bottom:0"><span>${bd[1]} · ${sel.length} ${t('stk_n_rolls')}</span>
           <b>${mt} m${val?' · '+money(val):''}</b></div></div>`;})():''}
-    <div class="row" style="margin-bottom:10px;gap:6px">
-      <button class="btn primary" style="flex:1" onclick="thaanEdit()">➕ ${t('stk_add_thaan')}</button>
-      <button class="btn ghost" style="flex:0 0 auto;padding:0 12px" onclick="bulkFabOpen()">📋 ${t('stk_bulk')}</button>
-      ${list.length?`<button class="btn ${_fabSelMode?'primary':'ghost'}" style="flex:0 0 auto;padding:0 12px" onclick="fabSelToggle()">${_fabSelMode?'✕ '+t('cancel'):'☑️ '+t('fab_select')}</button>`:''}
-      ${(DB.fabItems||[]).length?`<button class="btn ghost" style="flex:0 0 auto;padding:0 14px" title="${t('stk_setup')}" onclick="fabSetupMenu()">⚙️</button>`:''}</div>
-    <div class="kv" style="margin-bottom:8px">
-      <span class="hint">${t('stk_n_thaans',{n:list.length})}${finN?` · ${t('stk_fin_n',{n:finN})}`:''}</span>
-      <span class="gtags">
-        <span class="gtag ${_fabSort==='new'?'on-tag':''}" style="cursor:pointer" onclick="setFabSort('new')">${t('stk_sort_new')}</span>
-        <span class="gtag ${_fabSort==='serial'?'on-tag':''}" style="cursor:pointer" onclick="setFabSort('serial')">${t('stk_sort_serial')}</span></span></div>
+    <button class="btn primary block" style="margin-bottom:10px" onclick="thaanEdit()">➕ ${t('stk_add_thaan')}</button>
+    </div>
+    <div class="hint" id="fabCount" style="margin-bottom:6px">${t('stk_n_thaans',{n:list.length})}${finN?` · ${t('stk_fin_n',{n:finN})}`:''}</div>
     <div id="fabRows">${fabBodyHTML(list)}</div>
     ${_fabSelMode?`<div id="fabSelBar" class="save-dock" style="display:${_fabSel.size?'':'none'}">
       <span class="hint" style="flex:1;padding-left:4px"><b id="fabSelCount">${_fabSel.size}</b> ${t('fab_selected')}</span>
       <button class="btn danger" onclick="fabSelDelete()">🗑️ ${t('delete')}</button></div>`:''}`;
+  { const ln=document.querySelector('#stkLine'); if(ln)ln.style.display=q?'none':''; }
   if(keepFocus){const e=$('#fabSearch');if(e){const v=e.value;e.focus();e.setSelectionRange(v.length,v.length);}}
   loadStockThumbs();
 }
@@ -8106,6 +8141,11 @@ function thaanEdit(id){
   _thMore=false;
   thaanRender();
 }
+const FAB_CATS=['Indo Fabric','Sherwani Fabric','Suit Fabric','Kurta Fabric','Shirt Fabric'];
+let _thIdOpen=false;
+function thCatPick(c){ const e=$('#th_cat'); if(e)e.value=c; thaanCapture(); if(_th)_th.category=c; thaanRender(); }
+/* v717: Cancel goes back to the screen the form was opened from (the roll, or the list) */
+function thaanLeave(){ _th=null; _thIdOpen=false; try{ if(sheetBack())return; }catch(e){} stockHome('fabric'); }
 function thaanRender(){
   /* v406 AUDIT — his rule: a screen must degrade, never go blank. This one draws from _th, which the screen that opens it fills in. Reached any other way — a stale link, a reload, a back gesture landing here — that draft is null, the first line throws, and he gets a white sheet with no way to tell what happened. */
   if(!_th){ toast(t('scr_lost'),'bad'); try{ if(!sheetBack())closeSheet(); }catch(e){ closeSheet(); } return; }
@@ -8117,13 +8157,46 @@ function thaanRender(){
   const parties=[...new Set((DB.thaans||[]).map(t=>t.party).filter(Boolean).concat((DB.purchases||[]).map(p=>p.supplier).filter(Boolean)))];
   const racks=[...new Set((DB.thaans||[]).map(t=>t.rack).filter(Boolean))];
   $('#sheet').innerHTML=`<div class="grip"></div>
-    <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">🧵 ${d.id?t('stk_edit_thaan'):t('stk_add_thaan')}</h2><button class="btn sm ghost" onclick="stockHome('fabric')" title="Back">←</button></div>
+    <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">🧵 ${d.id?t('stk_edit_thaan'):t('stk_add_thaan')}</h2><button class="btn sm ghost" onclick="thaanLeave()" title="Back">←</button></div>
     <p class="hint" style="margin-bottom:12px">${d.id?'':t('stk_thaan_hint')}</p>
     <datalist id="fabNames">${names.map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
     <datalist id="fabCats">${cats.map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
     <datalist id="fabParties">${parties.map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
     <datalist id="fabRacks">${racks.map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
 
+    ${d.id?`
+    ${/* v717 — HIS: "roll kholo to cursor design no. par jaata hai, bahut zyada khaane, confusion."
+         Editing a roll is almost always metres, used or rate. Those come first; what the cloth
+         IS (name, design, category, party) folds under one line; the photo is last. */''}
+    <div class="section-h">${t('stk_thaan_details')}</div>
+    <div class="row"><div class="field"><label>${t('stk_serial')} *</label>
+        <input id="th_serial" value="${esc(d.serial)}"></div>
+      <div class="field"><label>${t('stk_mtr')} *</label>
+        <input id="th_mtr" type="number" inputmode="decimal" step="0.5" value="${esc(d.mtr)}" placeholder="30"></div></div>
+
+    <div class="row"><div class="field"><label>${t('stk_rate')}</label>
+        <input id="th_rate" type="number" inputmode="numeric" value="${esc(d.rate)}" placeholder="850"></div>
+      <div class="field"><label>🏷️ ${t('stk_sell')}</label>
+        <input id="th_sell" type="number" inputmode="numeric" value="${esc(d.sell)}" placeholder="1200"></div></div>
+    <p class="hint" style="margin:-4px 0 10px">${t('stk_sell_hint')}</p>
+    ${_thMore||d.rack?`<div class="field"><label>📍 ${t('stk_rack')}</label>
+      <input id="th_rack" list="fabRacks" value="${esc(d.rack)}" placeholder="A-3"></div>`
+      :`<button class="btn sm ghost block" style="margin-bottom:12px" onclick="thaanMore()">📍 ${t('stk_rack')} ▾</button>`}
+
+    ${!d.id?`<div class="field"><label>${t('stk_count')}</label>
+      <input id="th_count" type="number" inputmode="numeric" min="1" value="${esc(d.count)}">
+      <p class="hint" style="margin-top:4px">${t('stk_count_hint')}</p></div>`:''}
+
+    ${d.id?`<div class="field"><label>${t('stk_used')}</label>
+      <input id="th_used" type="number" inputmode="decimal" step="0.5" value="${esc(d.used)}">
+      <p class="hint" style="margin-top:4px">${t('stk_used_hint')}</p></div>`:''}
+
+    <div class="field"><label>${t('notes')}</label><input id="th_notes" value="${esc(d.notes)}"></div>
+
+
+    <button class="btn sm ghost block" style="text-align:left;margin:4px 0 10px" onclick="thaanCapture();_thIdOpen=!_thIdOpen;thaanRender()">
+      🏷️ ${esc([d.name,d.design?('D.'+d.design):'',d.category,d.party].filter(Boolean).join(' · ')||t('stk_fab_name'))} ${_thIdOpen?'▴':'▾'}</button>
+    ${_thIdOpen?`<div class="card" style="padding:10px 12px;margin-bottom:10px">
     <div class="field"><label>${t('stk_fab_name')}</label>
       <input id="th_name" list="fabNames" value="${esc(d.name)}" placeholder="${t('stk_fab_name_ph')}">
       <p class="hint" style="margin-top:4px">${t('stk_fab_name_hint')}</p></div>
@@ -8137,7 +8210,35 @@ function thaanRender(){
     <div class="field"><label>${t('im_dsgn')}</label>
       <input id="th_dsgn" value="${esc(d.design||'')}" placeholder="${t('im_dsgn_ph')}"></div>
     <div class="row"><div class="field"><label>${t('stk_category')}</label>
-        <input id="th_cat" list="fabCats" value="${esc(d.category)}" placeholder="Suiting"></div>
+        ${/* v717 — HIS 17 Sept: "Indo, Sherwani, Suit, Kurta, Shirt fabric — zyada se zyada." One tap, no typing. */''}
+        <input id="th_cat" type="hidden" value="${esc(d.category)}">
+        <div class="gtags" id="th_cat_chips">${FAB_CATS.map(c=>`<span class="gtag ${String(d.category||'').toLowerCase()===c.toLowerCase()?'on-tag':''}" style="cursor:pointer" onclick="thCatPick('${jq(c)}')">${esc(c)}</span>`).join('')}
+          ${d.category && !FAB_CATS.some(c=>c.toLowerCase()===String(d.category).toLowerCase())?`<span class="gtag on-tag" title="${t('fab_cat_old')}">${esc(d.category)}</span>`:''}
+          <span class="gtag ${d.category===''?'':''}" style="cursor:pointer;border-style:dashed" onclick="thCatPick('')">${t('none')||'—'}</span></div></div>
+      <div class="field"><label>${t('stk_party')}</label>
+        <input id="th_party" list="fabParties" value="${esc(d.party)}" placeholder="${t('supplier')}"></div></div>
+
+    </div>`:`<input id="th_name" type="hidden" value="${esc(d.name)}"><input id="th_dsgn" type="hidden" value="${esc(d.design||'')}">
+      <input id="th_cat" type="hidden" value="${esc(d.category)}"><input id="th_party" type="hidden" value="${esc(d.party)}">`}
+    `:`
+    <div class="field"><label>${t('stk_fab_name')}</label>
+      <input id="th_name" list="fabNames" value="${esc(d.name)}" placeholder="${t('stk_fab_name_ph')}">
+      <p class="hint" style="margin-top:4px">${t('stk_fab_name_hint')}</p></div>
+
+    ${/* v491 — HIS 5 Sept: "nayi bill jo entry kar raha hoon, lagbhag sab mein party ka
+         apna design number hota hai." Right, and until now there was nowhere to put it: a
+         roll stored a design only when a purchase happened to create it, and the rolls he
+         entered by hand in his August stock-take had no way to carry one at all. One box,
+         and from then on the purchase item search finds the roll by the number printed on
+         the supplier's bill. */''}
+    <div class="field"><label>${t('im_dsgn')}</label>
+      <input id="th_dsgn" value="${esc(d.design||'')}" placeholder="${t('im_dsgn_ph')}"></div>
+    <div class="row"><div class="field"><label>${t('stk_category')}</label>
+        ${/* v717 — HIS 17 Sept: "Indo, Sherwani, Suit, Kurta, Shirt fabric — zyada se zyada." One tap, no typing. */''}
+        <input id="th_cat" type="hidden" value="${esc(d.category)}">
+        <div class="gtags" id="th_cat_chips">${FAB_CATS.map(c=>`<span class="gtag ${String(d.category||'').toLowerCase()===c.toLowerCase()?'on-tag':''}" style="cursor:pointer" onclick="thCatPick('${jq(c)}')">${esc(c)}</span>`).join('')}
+          ${d.category && !FAB_CATS.some(c=>c.toLowerCase()===String(d.category).toLowerCase())?`<span class="gtag on-tag" title="${t('fab_cat_old')}">${esc(d.category)}</span>`:''}
+          <span class="gtag ${d.category===''?'':''}" style="cursor:pointer;border-style:dashed" onclick="thCatPick('')">${t('none')||'—'}</span></div></div>
       <div class="field"><label>${t('stk_party')}</label>
         <input id="th_party" list="fabParties" value="${esc(d.party)}" placeholder="${t('supplier')}"></div></div>
 
@@ -8166,6 +8267,7 @@ function thaanRender(){
 
     <div class="field"><label>${t('notes')}</label><input id="th_notes" value="${esc(d.notes)}"></div>
 
+    `}
     <div class="section-h">📷 ${t('stk_photo')}</div>
     <p class="hint" style="margin:0 0 8px">${t('stk_photo_hint')}</p>
     <div class="media-row" id="th_photos"></div>
@@ -8173,11 +8275,11 @@ function thaanRender(){
       <button class="btn sm ghost" onclick="pickThaanPhoto('cam')">📷 ${t('camera')}</button>
       <button class="btn sm ghost" onclick="pickThaanPhoto('lib')">🖼️ ${t('gallery')}</button></div>
 
-    <div class="modal-actions"><button class="btn ghost" onclick="stockHome('fabric')">${t('cancel')}</button>
+    <div class="modal-actions"><button class="btn ghost" onclick="thaanLeave()">${t('cancel')}</button>
       <button class="btn primary" onclick="thaanSave()">${t('save')}</button></div>
     <div class="fab-pad"></div>`;
   showSheet();
-  fastForm('#sheet',{onLast:thaanSave}); renderThaanPhotos();
+  fastForm('#sheet',{onLast:thaanSave, noFocus:!!d.id}); renderThaanPhotos();
 }
 function thaanCapture(){
   const d=_th; if(!d)return;
@@ -8536,7 +8638,7 @@ function bulkFabRender(){
 }
 
 function thaanDetail(id){
-  sheetAt(thaanDetail);
+  sheetAt(thaanDetail,null,arguments);
   const th=TH(id); if(!th)return;
   const f=FI(th.fabId)||{};
   const hist=(DB.moves||[]).filter(m=>m.thaanId===id).sort((a,b)=>b.ts.localeCompare(a.ts));
@@ -9525,7 +9627,7 @@ function growthReport(){
   const data=growthData();
   const years=Object.keys(data).map(Number).sort((a,b)=>b-a);
   if(!years.length){
-    modal('📈 '+t('gr_title'),`<p class="hint">${t('gr_none')}</p>`,[{label:t('close'),cls:'ghost',fn:closeSheet}]);
+    modal('📈 '+t('gr_title'),`<p class="hint">${t('gr_none')}</p>`,[{label:t('close'),cls:'ghost',fn:closeModal}]);
     return;
   }
   const cur=years[0], prev=years[1];
@@ -9876,29 +9978,25 @@ function cashBank(){
       <div class="kv"><div><b style="font-size:15px">📓 ${t('cb_jv_adj')}</b>
         <div class="hint">${t('cb_jv_adj_hint')}</div></div>
       <div style="font-size:18px;font-weight:900;color:${adj<0?'var(--bad)':'var(--saffron2)'}">${money(adj)}</div></div></div>`:''}
-    ${/* v681: the entry his cash book has always had and this screen never did. One button
-         per account, because a drawer and a bank are counted in completely different ways. */''}
-    ${bals.map(x=>`<button class="btn ghost block" style="margin-top:6px"
-        onclick="cbRecon('${jq(x.acc.id)}')">\u2696\uFE0F ${t('cb_recon')} \u00b7 ${esc(x.acc.name)}</button>`).join('')}
-    <p class="hint" style="white-space:normal;margin:6px 2px 10px;font-size:12px">${t('cb_recon_hint')}</p>
-    <button class="btn ghost block" style="margin-top:6px;margin-bottom:8px" onclick="accEdit()">\u2795 ${t('cb_add_bank')}</button>
-    ${/* ============== v657 - THE GULLAK ==============
-         HIS 13 Sept: "season mein bazaar uthta hai to kuch paisa alag nikaalte jaate hain,
-         ek fund ban jaaye jo dukaan ke creditors ko ya dukaan ke hi kisi kaam mein use kar
-         payein... provision account ko debit, cash credit. Phir jab fund jut jata hai to
-         wapas dukaan mein jama kar dete hain."
-         That is a THIRD account, not an expense - the money never leaves the shop, it moves
-         from one pocket to another and comes back the same way. It was being written as an
-         expense, which quietly ate his profit by whatever he had set aside.
-         Nothing new had to be invented: the transfer screen already walks every account, so
-         a provision account joins Cash and Bank and the same one button moves money between
-         all three. */''}
-    ${(DB.accounts||[]).some(a=>a.type==='provision')?'':`
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="accEdit(null,'provision')">\uD83D\uDC5B ${t('cb_add_prov')}</button>`}
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="contraEntry()">🔄 ${t('cb_contra')}</button>
-    
+    ${/* v717 — HIS 17 Sept, with Vyapar's bank screen beside ours: accounts and their
+         balances, then the two things done daily. Matching an account, the set-aside fund
+         and the journal live under ⋯. */''}
+    <div class="row" style="gap:8px;margin-top:10px">
+      <button class="btn primary" style="flex:1" onclick="contraEntry()">🔄 ${t('cb_contra')}</button>
+      <button class="btn ghost" style="flex:1" onclick="accEdit()">➕ ${t('cb_add_bank')}</button>
+      <button class="btn ghost" style="flex:0 0 auto;padding:0 14px" title="${t('hub_more')}" onclick="cbTools()">⋯</button></div>
     <div class="fab-pad"></div>`;
   showSheet();
+}
+function cbTools(){
+  const row=(lbl,fn)=>`<div class="kv card" style="cursor:pointer;padding:12px;margin-bottom:8px" onclick="closeModal();${fn}"><b>${lbl}</b><span>›</span></div>`;
+  modal('⋯ '+t('cb_title'),
+    allBalances().map(x=>row('⚖️ '+t('cb_recon')+' · '+esc(x.acc.name),`cbRecon('${jq(x.acc.id)}')`)).join('')
+    +`<p class="hint" style="margin:0 2px 10px">${t('cb_recon_hint')}</p>`
+    +((DB.accounts||[]).some(a=>a.type==='provision')?'':row('👛 '+t('cb_add_prov'),"accEdit(null,'provision')"))
+    +row('📒 '+t('db_title'),'dayBook()')
+    +row('🏦 '+t('brs_title'),'brsOpen()'),
+    [{label:t('close'),cls:'ghost',fn:closeModal}]);
 }
 let _acc=null;
 function accEdit(id,kind){
@@ -9909,6 +10007,14 @@ function accEdit(id,kind){
   const d=_acc;
   modal((d.id?t('edit'):t('cb_add_bank')),
     `<div class="field"><label>${t('cb_acc_name')} *</label><input id="ac_name" value="${esc(d.name)}" placeholder="${t('cb_acc_ph')}"></div>
+     ${/* v717 — HIS 17 Sept: "opening balance kaise daalna, mujhe hi samajh nahi aa raha."
+          The opening and its date now sit right under the name. A cash-credit account asks
+          for what was DRAWN on that day as a plain number — the minus is the app's job. */''}
+     <div class="row"><div class="field"><label id="ac_open_lbl">${d.cc?t('cb_cc_drawn'):t('cb_opening')}</label>
+        <input id="ac_open" type="number" inputmode="decimal" value="${esc(d.opening===''||d.opening==null?'':(d.cc?Math.abs(+d.opening||0):d.opening))}" placeholder="0"></div>
+       <div class="field"><label>${t('cb_open_date')}</label>
+        ${dateField("ac_odate",(!(+d.opening)&&(DB.openBS||{}).date)?(DB.openBS||{}).date:d.openingDate)}</div></div>
+     <p class="hint" style="margin-top:-4px">${t('cb_open_hint')}</p>
      ${d.type==='bank'?`
      <div class="field"><label>${t('cb_bank_name')}</label><input id="ac_bank" value="${esc(d.bankName||'')}" placeholder="ICICI Bank"></div>
      <div class="row"><div class="field"><label>${t('cb_accno')}</label><input id="ac_no" value="${esc(d.accNo||'')}"></div>
@@ -9917,13 +10023,9 @@ function accEdit(id,kind){
        <input type="checkbox" id="ac_primary" ${d.primary?'checked':''} style="width:20px;height:20px;margin-top:2px">
        <span><b style="font-size:14px">⭐ ${t('cb_primary')}</b><br><span class="hint" style="font-size:12px">${t('cb_primary_hint')}</span></span></label>
      ${d.type!=='cash'?`<label style="display:flex;align-items:flex-start;gap:8px;margin:10px 0;padding:10px;background:var(--bg2);border-radius:var(--r2);cursor:pointer">
-       <input type="checkbox" id="ac_cc" ${d.cc?'checked':''} style="width:20px;height:20px;margin-top:2px">
+       <input type="checkbox" id="ac_cc" ${d.cc?'checked':''} style="width:20px;height:20px;margin-top:2px" onchange="const l=document.getElementById('ac_open_lbl'); if(l)l.textContent=this.checked?t('cb_cc_drawn'):t('cb_opening')">
        <span><b style="font-size:14px">🏦 ${t('cb_iscc')}</b><br><span class="hint" style="font-size:12px">${t('cb_iscc_hint')}</span></span></label>`:''}
-     <div class="row"><div class="field"><label>${t('cb_opening')} ₹</label>
-        <input id="ac_open" type="number" inputmode="numeric" value="${esc(d.opening)}" placeholder="0"></div>
-       <div class="field"><label>${t('cb_open_date')}</label>
-        ${dateField("ac_odate",d.openingDate)}</div></div>
-     <p class="hint">${t('cb_open_hint')}</p>`,
+`,
     [{label:t('cancel'),cls:'ghost',fn:()=>cashBank()},
      ...(d.id&&d.type!=='cash'?[{label:'🗑️',cls:'danger',fn:()=>accDel(d.id)}]:[]),
      {label:t('save'),cls:'primary',fn:accSave}]);
@@ -9937,7 +10039,8 @@ function accSave(){
     bankName:$('#ac_bank')?$('#ac_bank').value.trim():'',
     accNo:$('#ac_no')?$('#ac_no').value.trim():'',
     ifsc:$('#ac_ifsc')?$('#ac_ifsc').value.trim():'',
-    opening:+$('#ac_open').value||0, openingDate:$('#ac_odate').value||todayISO(),
+    opening:(($('#ac_cc')&&$('#ac_cc').checked)?-Math.abs(+$('#ac_open').value||0):(+$('#ac_open').value||0)),   /* v717: CC = drawn = owed */
+    openingDate:$('#ac_odate').value||todayISO(),
     primary:!!($('#ac_primary')&&$('#ac_primary').checked),
     cc:!!($('#ac_cc')&&$('#ac_cc').checked)};   /* v270 */
   if(d.id){ Object.assign(ACC(d.id),rec); } else DB.accounts.push(rec);
@@ -9956,7 +10059,7 @@ function ledLineOpen(l){
   const q=v=>String(v||'').replace(/'/g,"\\'");
   switch(l.refKind){
     case 'expense':  return l.id?`closeSheet();expEdit('${q(l.id)}')`:'';
-    case 'purchase': return l.ref2?`closeSheet();purchMenu('${q(l.ref2)}')`:`closeSheet();go('purchases')`;
+    case 'purchase': return l.ref2?`purchMenu('${q(l.ref2)}')`:`closeSheet();go('purchases')`;
     case 'sale':     return `closeSheet();go('invoices')`;
     case 'loan':     return `closeSheet();openBSEdit()`;
     case 'capital':  return `closeSheet();openBSEdit()`;
@@ -10266,7 +10369,7 @@ function brsRender(){
   showSheet();
 }
 function accDetail(id){
-  sheetAt(accDetail);
+  sheetAt(accDetail,null,arguments);
   const a=ACC(id); if(!a)return;
   const lines=moneyLines(accFrom(a), '9999-12-31').filter(l=>l.acc===id)
     .sort((x,y)=>String(y.date).localeCompare(String(x.date))).slice(0,60);
@@ -12853,8 +12956,8 @@ function ordersHub(){
 function purchaseHub(){
   sheetAt(purchaseHub); if(!modOn('billing')){toast(t('mod_off'),'bad');return;}
   $('#sheet').innerHTML=hubHTML('🚚 '+t('hub_purchase'), t('hub_purchase_sub'), [
-    ['➕', t('new_purchase'), "closeSheet();openPurchaseForm()"],
     ['📤', t('creditors_report'), "closeSheet();creditors()"],
+    ['☑️', t('pur_select_many'), "closeSheet();go('purchases');if(!_purSelMode)purSelToggle()"],
     ['↪️', t('pr_menu'), "closeSheet();purchaseReturnPick()"],
     ['📝', t('purchase_order'), "closeSheet();poList()"],
   ]);
@@ -13113,13 +13216,26 @@ function credGroups(q){
      record, and a party with no other label reads as 'other', which this bucket accepted.
      A name that belongs to a karigar or a staff member is now skipped, whatever label it
      picked up on the way. */
+  /* v717 — HIS 17 Sept: "Kanchan ke do ledger khule hain." Two party cards ("Kanchan Syntex
+     Pvt Ltd" and "…Pvt. Ltd") both matched the ONE opening line by the loose name match, so
+     the ₹4,74,037 opening was listed twice and Payables read ₹4.57 lakh above the balance
+     sheet. An opening line now belongs to one creditor only: the card whose name is exactly
+     the line's, else the first that matched. The balance sheet was always right. */
+  const _openBy={};
   peopleAll().filter(p=>p.kind==='supplier'||p.kind==='other')
     .filter(p=>!(DB.karigars||[]).some(k=>nameNorm(k.name)===nameNorm(p.name))
              &&!(DB.staff||[]).some(k=>nameNorm(k.name)===nameNorm(p.name))).forEach(p=>{
-    const left=openingLeft(p.name,p.kind,'out'); if(!left)return;
-    const k=p.name;
+    const st=openingState(p.name,p.kind); if(!st||st.dir!=='out'||!st.left)return;
+    const o=openingLine(p.name,p.kind)||{};
+    const owner=String(o.party||'').trim()||p.name;     /* the name written on the opening line owns it */
+    const key=st.id||('n:'+nameNorm(owner));
+    if(_openBy[key])return;
+    _openBy[key]={name:owner, left:st.left};
+  });
+  Object.values(_openBy).forEach(x=>{
+    const k=x.name;
     map[k]=map[k]||{name:k,phone:(partyByName(k)||{}).phone||'',recs:[],due:0};
-    map[k].due=r2(map[k].due+left); map[k]._open=left;
+    map[k].due=r2(map[k].due+x.left); map[k]._open=x.left;
   });
   /* openings typed against a name that never had a purchase bill still belong here */
   (DB.ledger||[]).filter(l=>l.refKind==='opening'
@@ -13127,6 +13243,7 @@ function credGroups(q){
       &&!(DB.karigars||[]).some(k=>nameNorm(k.name)===nameNorm(l.party))
       &&!(DB.staff||[]).some(k=>nameNorm(k.name)===nameNorm(l.party))).forEach(l=>{
     const k=String(l.party||'').trim(); if(!k||map[k])return;
+    if(_openBy[l.id])return;                      /* v717: already on a creditor's card */
     const left=openingLeft(k,'supplier','out'); if(!left)return;
     map[k]={name:k,phone:(partyByName(k)||{}).phone||'',recs:[],due:left,_open:left};
   });
@@ -13264,7 +13381,7 @@ function credBodyHTML(groups,_crQ){
           onclick="acctOpen('${jq(g.name)}','supplier')">
         <b style="font-size:15px">${esc(g.name)} <span style="color:var(--saffron2)">\u203A</span></b>
         ${g.phone?`<div class="hint">📞 ${esc(g.phone)}</div>`:''}
-        ${g.recs.map(p=>`<div class="hint fu-open" onclick="closeSheet();purchMenu('${p.id}')">• ${esc(p.billNo||fmtDate(p.date))} — ${money(orderBaaki(p))} <span style="color:var(--saffron2)">›</span></div>`).join('')}
+        ${g.recs.map(p=>`<div class="hint fu-open" onclick="purchMenu('${p.id}')">• ${esc(p.billNo||fmtDate(p.date))} — ${money(orderBaaki(p))} <span style="color:var(--saffron2)">›</span></div>`).join('')}
         ${g._open?`<div class="hint fu-open" onclick="closeSheet();partyCard('${jq(g.name)}','supplier')">• ${t('pty_open')} — ${money(g._open)} <span style="color:var(--saffron2)">›</span></div>`:''}
         ${g._loan>0?`<div class="hint">• 🏦 ${t('cr_loan_tag')} — ${money(g._loan)}</div>`:''}
       </div><div style="text-align:right">${g._settled
@@ -14618,7 +14735,7 @@ function ontimeReport(){
     key:'rp_ontime', icon:'\uD83D\uDE9A', title:t('ontime_title'), sub:t('ontime_sub'),
     cols:[{n:t('order_no'),w:'22%'},{n:t('customer')},{n:t('as_delivered'),w:'24%'},{n:t('ontime_late'),w:'62px',num:1}],
     rows:rows.map(function(r){ return {
-      onclick:"closeSheet();orderMenu('"+jq(r.id)+"')",
+      onclick:"orderMenu('"+jq(r.id)+"')",
       cells:['#'+esc(r.no), esc(r.who), r.on,
         '<b style="color:'+(r.late===null?'var(--mut)':(r.late>0?'var(--bad)':'var(--ok)'))+'">'
         +(r.late===null?t('ontime_nodate'):(r.late>0?t('ontime_days',{n:r.late}):'\u2705'))+'</b>']}; }),
@@ -14705,7 +14822,7 @@ function orderProfitReport(keepFocus){
           <div class="hint">${t('op_unbilled_why')}</div></span>
         <span class="hint">${_opUnb?'\u25B4':'\u25BE'}</span></div>
       ${_opUnb?unbilled.map(({o})=>`<div class="il" style="cursor:pointer"
-          onclick="closeSheet();orderMenu('${jq(o.id)}')">
+          onclick="orderMenu('${jq(o.id)}')">
           <span>#${esc(onoLabel(o))} \u00B7 ${esc(o.customerName||'\u2014')}</span>
           <span class="hint">${fmtDate(o.orderDate||(o.created||'').slice(0,10))} \u203A</span></div>`).join(''):''}
       </div>`:''}
@@ -14780,7 +14897,7 @@ function trialBoard(){
     const dl=daysLeft(o.trialDate);
     const late=dl<0;
     return `<div class="card" style="padding:12px 14px;margin-bottom:8px">
-      <div class="kv"><div style="min-width:0;flex:1;cursor:pointer" onclick="closeSheet();orderMenu('${jq(o.id)}')">
+      <div class="kv"><div style="min-width:0;flex:1;cursor:pointer" onclick="orderMenu('${jq(o.id)}')">
         <b>\u{1F457} ${esc(o.customerName||'\u2014')}</b>
         <div class="hint">#${esc(onoLabel(o))} \u00B7 ${fmtDate(o.trialDate)}
           <span style="${late?'color:var(--bad)':''}">${late?' \u00B7 '+t('trial_late',{n:Math.abs(dl)}):(dl===0?' \u00B7 '+t('trial_today'):'')}</span></div>
@@ -14849,7 +14966,7 @@ function noBillList(){
   showSheet();
 }
 function actionList(kind){
-  sheetAt(actionList);
+  sheetAt(actionList,null,arguments);
   const b=abBuckets();
   const map={urgent:['🔴',t('ab_urgent'),b.urgent,false],
              late:['🔴',t('ab_late'),b.late,false],
@@ -14912,7 +15029,7 @@ function custStatusRows(c){
   return live;
 }
 function custStatus(cid){
-  sheetAt(custStatus);
+  sheetAt(custStatus,null,arguments);
   const c=custById(cid); if(!c)return;
   const live=custStatusRows(c);
   const blocks=live.map(o=>{
@@ -15253,7 +15370,7 @@ function catFolderDel(id){
   });
 }
 function catOpenFolder(id){
-  sheetAt(catOpenFolder);
+  sheetAt(catOpenFolder,null,arguments);
   const f=catFolderById(id); if(!f){catalogue();return;}
   _catFolder=id; _catPickMode=false; pageReset('cat');
   const items=(f.pids||[]).map(catLookup);
@@ -15372,7 +15489,7 @@ function catUse(i){
 }
 let _catSeed=null;
 function statDetail(mode){
-  sheetAt(statDetail);
+  sheetAt(statDetail,null,arguments);
   const tag=(arr,k)=>(arr||[]).map(x=>tagKind(x,k));   /* v697: see tagKind */
   let list=[], title='', sub='', total=0;
 
@@ -16176,6 +16293,7 @@ function menuHome(){
          saved stays exactly where it is and is still in the backup — putting the row back
          is a one-line change on the day he wants it. Customers keeps its own row, since it
          only shared this heading. */''}
+    ${modOn('accounts')?sec('💰 '+t('cb_title'),[row('💰',t('cb_title'),"cashBank()")]):''}
     ${sec('👥 '+t('nav_customers'),[
       row('👥',t('nav_customers'),"menuGoTab('customers')")])}
     ${modOn('billing')?sec('📊 '+t('reports'),[
@@ -17244,7 +17362,7 @@ function renderCustomers(keepBar){
 function openCustomer(id){
   /* v544: a different customer means a fresh card — the same rule the order screen got. */
   if(_cuOpenFor!==id){ _cuOpen=null; _cuOpenFor=id; }
-  sheetAt(openCustomer);
+  sheetAt(openCustomer,null,arguments);
   const c=custById(id); if(!c)return;
   const byNew=(a,b)=>new Date(b.created||b.date)-new Date(a.created||a.date);
   const orders=(DB.orders||[]).filter(o=>o.customerId===id).sort(byNew);
@@ -17382,7 +17500,7 @@ function delCustomer(id){
   });
 }
 function editCustomer(id,isNew){
-  sheetAt(editCustomer);const c=custById(id); _custPhotoId=id;
+  sheetAt(editCustomer,null,arguments);const c=custById(id); _custPhotoId=id;
   $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h3 style="margin:0">${t('cust_edit')}</h3><button class="btn sm ghost" onclick="${isNew?`custCancelNew('${id}')`:'closeSheet()'}">✕</button></div>
     <div class="field"><label>${t('customer')}</label><input id="ec_name" value="${esc(c.name)}"></div>
     <div class="field"><label>${t('phone')}</label><input id="ec_phone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" value="${esc(c.phone)}"></div>
@@ -18446,7 +18564,7 @@ function quickLenHTML(f,mine,only){
    the note inside the card (form.design), so whichever way he opens it he sees the same
    text. The design-token list comes along, because that is how the note is usually built. */
 function itemNoteQuick(key){
-  sheetAt(itemNoteQuick);
+  sheetAt(itemNoteQuick,null,arguments);
   _sheetScroll=$('#sheet')?$('#sheet').scrollTop:0; captureForm();
   const g=G(key); if(!g)return;
   const gid=g.id, cur=String((form.design||{})[key]||'');
@@ -21002,7 +21120,7 @@ async function renderFormPhotos(){const el=$('#f_photos');if(!el)return;el.inner
     w.querySelector('.thumb').onclick=()=>viewPhoto(url);
     w.querySelector('.thumb-x').onclick=async()=>{await mDel(id);form.photos=form.photos.filter(x=>x!==id);renderFormPhotos();};
     el.appendChild(w);}}
-function viewPhoto(url){if(!url)return;modal('',`<img src="${url}" style="width:100%;border-radius:12px">`,[{label:t('close'),cls:'ghost',fn:closeSheet}]);}
+function viewPhoto(url){if(!url)return;modal('',`<img src="${url}" style="width:100%;border-radius:12px">`,[{label:t('close'),cls:'ghost',fn:closeModal}]);}
 
 /* ====================== ORDER DETAIL ====================== */
 let _curDetailId=null;
@@ -21162,8 +21280,13 @@ async function openDetail__inner(id,focusGid){
       ${_open?`<div class="mb">
       <div class="ki-mgrid">${cells||`<span class="hint">—</span>`}</div>${dn}
       <div class="row" style="margin-top:10px;gap:8px;align-items:center">
-        <div class="media-row" id="dip_${_cid}" style="flex:1;display:flex;gap:8px;flex-wrap:wrap"></div>
-        <button class="btn sm ghost" title="${t('add_photo')}" onclick="odAddItemPhoto('${o.id}','${jq(gid)}')">📷 ${t('ph_item')}</button></div>
+        <div class="media-row" id="dip_${_cid}" style="flex:1;display:flex;gap:8px;flex-wrap:wrap"></div></div>
+      ${/* v717 — HIS 17 Sept: "camera, mic aur notes — ye teeno chahiye, ye feature tha hi, kyon hataya?"
+           Three icons, one row, for this piece. */''}
+      <div class="od-media">
+        <button class="btn ghost" title="${t('add_photo')}" onclick="odAddItemPhoto('${o.id}','${jq(gid)}')">📷</button>
+        <button class="btn ghost" id="odv_${_cid}" title="${t('voice_notes')}" onclick="odItemVoice('${o.id}','${jq(gid)}',this)">🎙️</button>
+        <button class="btn ghost" title="${t('item_notes')}" onclick="odItemNoteFocus('${_cid}')">📝</button></div>
       <div id="div_${_cid}" style="margin-top:4px"></div>
       ${/* v715 — HIS: "process, karigar yahan clumsy lagta hai… ek button se sab khule." The stage
            row now lives inside the Production fold with the karigar and urgent controls; the
@@ -21270,8 +21393,12 @@ async function openDetail__inner(id,focusGid){
     <div class="section-h" style="display:flex;justify-content:space-between;align-items:center">${t('items')} ${(focusGid&&o.items.includes(focusGid))?`<button class="btn sm ghost" style="padding:4px 10px" onclick="openDetail('${o.id}')">↩ ${t('show_all')}</button>`:''}</div>${measHTML}
     <div class="od-addpiece" onclick="openOrderForm('${o.id}')">➕ ${t('od_add_remove')}</div>
     <div class="row" style="margin-top:10px;gap:8px;align-items:center">
-      <div id="d_photos" style="flex:1;display:flex;gap:8px;flex-wrap:wrap"></div>
-      <button class="btn sm ghost" title="${t('add_photo')}" onclick="odAddOrderPhoto('${o.id}')">📷 ${t('ph_order')}</button></div>
+      <div id="d_photos" style="flex:1;display:flex;gap:8px;flex-wrap:wrap"></div></div>
+    <div class="od-media" style="margin-top:6px">
+      <span class="hint" style="flex:1">${t('od_whole_order')}</span>
+      <button class="btn ghost" title="${t('add_photo')}" onclick="odAddOrderPhoto('${o.id}')">📷</button>
+      <button class="btn ghost" title="${t('voice_notes')}" onclick="odOrderVoice('${o.id}')">🎙️</button>
+      <button class="btn ghost" title="${t('order_notes')}" onclick="odOrderNote('${o.id}')">📝</button></div>
     ${/* v404 — HIS 30 Aug, with the screenshot: "screen itna bhara hua hai ki kuch samajh
          me hi nahi aa raha." Three of the four things on this foot were already on the
          screen. "Add / remove a piece" sat here AND as the dashed box directly above the
@@ -21395,10 +21522,31 @@ function odDateSet(oid,val){
   o.log=o.log||[]; o.log.push({id:uid(),ts:new Date().toISOString(),text:t('delivery')+': '+fmtDate(val),voiceId:null});
   refreshDetail(oid); toast(t('t_saved'),'ok');
 }
-function odAddItemPhoto(oid,gid){ photoTarget={type:'oditem',oid,gid};
-  const inp=$('#filePick'); inp.value=''; inp.click(); }
-function odAddOrderPhoto(oid){ photoTarget={type:'odorder',oid};
-  const inp=$('#filePick'); inp.value=''; inp.click(); }
+function odItemVoice(oid,gid,btn){
+  const o=(DB.orders||[]).find(x=>x.id===oid); if(!o||!btn)return;
+  let lbl=document.getElementById('odvl_'+btn.id); if(!lbl){ lbl=document.createElement('span'); lbl.id='odvl_'+btn.id; lbl.className='hint'; btn.parentNode.insertBefore(lbl,btn.nextSibling); }
+  recToggle(btn,lbl,vid=>{ o.itemVoice=o.itemVoice||{}; (o.itemVoice[gid]=o.itemVoice[gid]||[]).push({id:uid(),ts:new Date().toISOString(),voiceId:vid});
+    touchOrder(oid); save(oid); refreshDetail(oid); });
+}
+function odItemNoteFocus(cid){
+  const card=document.getElementById('dip_'+cid); const mc=card&&card.closest('.mcard');
+  const box=mc&&[...mc.querySelectorAll('input,textarea')].find(e=>/odDesignSet/.test(e.getAttribute('onchange')||''));
+  if(box){ box.focus(); box.scrollIntoView({block:'center'}); }
+}
+function odOrderVoice(oid){ try{ if(!_odX){ _odX=true; refreshDetail(oid); } }catch(e){}
+  setTimeout(()=>{ const b=document.getElementById('dvnRecBtn'); if(b){ b.scrollIntoView({block:'center'}); b.click(); } },150); }
+function odOrderNote(oid){
+  const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
+  modal('📝 '+t('order_notes'), `<div class="field"><textarea id="odNoteBox" rows="4">${esc(o.notes||'')}</textarea></div>`,
+    [{label:t('cancel'),cls:'ghost',fn:closeModal},
+     {label:t('save'),cls:'primary',fn:()=>{ o.notes=($('#odNoteBox').value||'').trim(); touchOrder(oid); save(oid); closeModal(); refreshDetail(oid); toast(t('t_saved'),'ok'); }}]);
+  setTimeout(()=>{ const e=$('#odNoteBox'); if(e)e.focus(); },80);
+}
+/* v717 — HIS: "camera dabao to camera aur gallery dono ka option aaye, jaise pehle aata tha" */
+function odAddItemPhoto(oid,gid){ photoPick(src=>{ photoTarget={type:'oditem',oid,gid};
+  const inp=src==='cam'?$('#filePickCam'):$('#filePick'); inp.value=''; inp.click(); }); }
+function odAddOrderPhoto(oid){ photoPick(src=>{ photoTarget={type:'odorder',oid};
+  const inp=src==='cam'?$('#filePickCam'):$('#filePick'); inp.value=''; inp.click(); }); }
 function odDelItemPhoto(oid,gid,pid){
   confirmModal(t('del_title'),t('del_photo_q'),async()=>{
     const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
@@ -21447,7 +21595,9 @@ function renderPurchases(keepFocus,rowsOnly){
     <button class="btn primary" style="flex:1" onclick="openPurchaseForm()">+ ${t('new_purchase')}</button>
     <button class="btn ghost" style="flex:0 0 48px" title="${t('hub_more')}" onclick="purchaseHub()">⋯</button>
     </div>`;
-  const selRow=(all.length?`<div class="row" style="margin-bottom:10px;gap:8px">
+  /* v717 — HIS 17 Sept: "⋯ me koi kaam ki cheez nahi… Select, bills ka total ⋯ me ja sakta hai,
+     screen clean rahe." Select shows here only while selecting; it is started from ⋯. */
+  const selRow=(all.length&&_purSelMode?`<div class="row" style="margin-bottom:10px;gap:8px">
       <button class="btn ${_purSelMode?'primary':'ghost'}" style="flex:1" onclick="purSelToggle()">${_purSelMode?'✕ '+t('cancel'):'☑️ '+t('fab_select')}</button>
       ${_purSelMode?`<button class="btn ghost" style="flex:1" onclick="purSelAll()">${t('pur_sel_all')}</button>`:''}</div>`:'');
   if(!all.length){el.innerHTML=addBtn+`<div class="empty"><div class="big">📦</div><p><b>${t('no_purchases')}</b></p><p style="font-size:13px">${t('no_purchases_sub')}</p></div>`;return;}
@@ -21466,7 +21616,8 @@ function renderPurchases(keepFocus,rowsOnly){
     + sortChips(purSort,'setPurSort');
   const spent=r2(list.reduce((s,p)=>s+(+p.total||0),0));
   const due=r2(list.reduce((s,p)=>s+orderBaaki(p),0));
-  const title=`<div class="kv" style="margin:0 0 10px">
+  const title=``;   /* v717: the same two figures were written twice — the summary line keeps them */
+  const _titleOld=`<div class="kv" style="margin:0 0 10px">
     <span class="hint">${t('pur_count',{n:list.length})}</span>
     <span class="hint">${t('pur_spent')}: <b style="color:var(--txt)">${money(spent)}</b>${due>0?` · ${t('baaki')}: <b style="color:var(--bad)">${money(due)}</b>`:''}</span></div>`;
 
@@ -21480,7 +21631,11 @@ function renderPurchases(keepFocus,rowsOnly){
      the unpaid one opens the supplier list. */
   const sumTot=_pgAll.reduce((a,x)=>a+(+x.total||0),0);
   const sumDue=_pgAll.reduce((a,x)=>a+orderBaaki(x),0);
-  const summary=_pgAll.length?`<div class="card" style="padding:9px 12px;margin-bottom:8px">
+  const summary=_pgAll.length?`<div class="ivstrip">
+      <div><div class="lbl"><span>${t('pur_sum_bills',{n:_pgAll.length})}</span></div><div class="fig">${money(r2(sumTot))}</div></div>
+      <div class="due" onclick="closeSheet();creditors()"><div class="lbl"><span>${t('pur_sum_due')}</span><span>›</span></div>
+        <div class="fig" style="color:${sumDue>0?'var(--bad)':'var(--ok)'}">${sumDue>0?money(r2(sumDue)):'✓'}</div></div></div>`:'';
+  const _sumOld=_pgAll.length?`<div class="card" style="padding:9px 12px;margin-bottom:8px">
     <div class="kv"><span class="hint">${t('pur_sum_bills',{n:_pgAll.length})}</span>
       <b>${money(r2(sumTot))}</b></div>
     ${sumDue>0?`<div class="kv tappable" style="cursor:pointer;margin-top:2px" onclick="closeSheet();creditors()">
@@ -21658,17 +21813,16 @@ function purSelUnpaid(){
     {yes:t('save'), no:t('cancel'), cls:'primary'});
 }
 function purCardHTML(p){
+  /* v717 — same two-line row as the bill list: who, status, amount; then bill no, date,
+     what was bought, and one ⋯ that holds PDF / WhatsApp / edit. */
   const baaki=orderBaaki(p);
   const sel=_purSel.has(p.id);
-  return `<div class="card ocard" style="${_purSelMode&&sel?'border-color:var(--saffron2);border-width:2px':''}" onclick="${_purSelMode?`purSelPick('${jq(p.id)}')`:`purchMenu('${jq(p.id)}')`}">
-      <div class="top"><div style="display:flex;gap:8px;align-items:flex-start;min-width:0">
-        ${_purSelMode?`<span style="font-size:20px;line-height:1">${sel?'☑️':'⬜'}</span>`:''}
-        <div style="min-width:0"><div class="ono">📦 ${esc(p.supplier)}</div>
-        ${p.billNo?`<div class="name">${t('bill_no')}: ${esc(p.billNo)}</div>`:''}
-        <div class="meta">${esc((p.desc||'').slice(0,50))}${(p.desc||'').length>50?'…':''}</div></div></div>
-        <div class="deliv">${fmtDate(p.date)}</div></div>
-      <div class="botrow"><span style="font-weight:800">${money(p.total)}</span>${p.noStock?`<span class="pill" style="background:var(--card2);color:var(--txt2)">📦 ${t('pur_opening_tag')}</span>`:''}${baaki>0?`<span style="font-size:12px;color:var(--bad);font-weight:700">${t('baaki')}: ${money(baaki)}</span>`:`<span class="pill st-delivered">✓ ${t('inv_paid')}</span>`}</div>
-    </div>`;
+  const pill=baaki>0.5?`<span class="ivpill due">${t('baaki')} ${money(baaki)}</span>`:`<span class="ivpill ok">\u2713 ${t('inv_paid')}</span>`;
+  return `<div class="card ivrow" style="${_purSelMode&&sel?'border-color:var(--saffron2);border-width:2px':''}" onclick="${_purSelMode?`purSelPick('${jq(p.id)}')`:`purchMenu('${jq(p.id)}')`}">
+    <div class="l1">${_purSelMode?`<span style="font-size:18px">${sel?'\u2611\uFE0F':'\u2B1C'}</span>`:''}<span class="nm">${esc(p.supplier||'\u2014')}</span>${pill}<span class="amt">${money(p.total)}</span></div>
+    <div class="l2"><span class="mt">${p.billNo?esc(p.billNo)+' \u00B7 ':''}${fmtDate(p.date)}${p.noStock?' \u00B7 \uD83D\uDCE6 '+t('pur_opening_tag'):''}${p.desc?' \u00B7 '+esc(String(p.desc).slice(0,40)):''}</span>
+      ${_purSelMode?'':`<button class="btn sm ghost more" title="${t('hub_more')}" onclick="event.stopPropagation();purchMenu('${jq(p.id)}')">\u22ef</button>`}</div>
+  </div>`;
 }
 function purMonthsHTML(list){
   const groups={};
@@ -21678,9 +21832,8 @@ function purMonthsHTML(list){
   return keys.map(mk=>{
     const rows=groups[mk];
     const tot=r2(rows.reduce((a,x)=>a+(+x.total||0),0));
-    return `<div class="section-h" style="display:flex;justify-content:space-between;align-items:baseline">${esc(monthLabel(mk))}
-      <span style="font-size:12px;font-weight:600;color:var(--txt2)">${t('pur_spent')}: <b style="color:var(--txt)">${money(tot)}</b></span></div>`
-      +rows.map(purCardHTML).join('');
+    if(keys.length<2)return rows.map(purCardHTML).join('');
+    return `<div class="ivmonth"><span>${esc(monthLabel(mk))}</span><span>${money(tot)}</span></div>`+rows.map(purCardHTML).join('');
   }).join('');
 }
 /* v299 — HIS 24 Aug: "sabka pehle stock le raha hun, uske baad purchase bill bana raha
@@ -22457,7 +22610,14 @@ function invApplyMaster(i,val){
   if(!val){ invForm.items[i].masterId=''; renderInvoiceForm(); return; }
   const m=(DB.itemMaster||[]).find(x=>x.id===val); if(!m){renderInvoiceForm();return;}
   const it=invForm.items[i];
-  it.masterId=m.id; it.label=m.name; it.hsn=m.hsn||it.hsn||'';
+  /* v717 — HIS 17 Sept (bill 3014): "serial daala tha, pata nahi kaise ud gaya." Picking an
+     item replaced whatever he had typed on the line. The item name now leads and what he
+     typed stays after it. */
+  const _typed=String(it.label||'').trim();
+  const _isName=(DB.itemMaster||[]).some(x=>x.name===_typed);
+  it.masterId=m.id;
+  it.label=(!_typed||_isName||_typed.toLowerCase().startsWith(String(m.name).toLowerCase()))?(_typed&&!_isName?_typed:m.name):(m.name+' '+_typed);
+  it.hsn=m.hsn||it.hsn||'';
   it.incl=[...(m.incl||[])];
   if(!it.rate&&m.rate)it.rate=m.rate;
   renderInvoiceForm();
@@ -22468,6 +22628,7 @@ function renderInvoiceForm(){
   if(!invForm){ toast(t('scr_lost'),'bad'); try{ if(!sheetBack())closeSheet(); }catch(e){ closeSheet(); } return; }
   sheetAt(renderInvoiceForm);
   const f=invForm;
+  invSigTake();
   invNormItems(f.items);
   if(f.paymentMode==='Credit'||!f.paymentMode)f.paymentMode='UPI';
   const comp0=invCompute(f);
@@ -23500,7 +23661,7 @@ function posSearchRun(qraw){
   });
   rolls.forEach(th=>{const fi=(DB.fabItems||[]).find(x=>x.id===th.fabId)||{};
     const sl=th.sell||fi.sell||0, ct=th.rate||fi.rate||0;
-    _posItems.push({title:`${esc(fi.name||'Fabric')} · #${esc(th.serial)}`,
+    _posItems.push({title:`#${esc(th.serial)} · ${esc(fi.name||'Fabric')}`,   /* v717: the serial first — it is what he types */
       sub:`${thaanBal(th)} mtr left${sl?` · 🏷️ ₹${esc(sl)}/mtr`:''}${ct?` · ${t('stk_rate')} ₹${esc(ct)}`:''}`,
       act:()=>posAddThaan(th.id),score:qn?scoreOf([key(th.serial),key(fi.name)]):3});});
   if(qn)_posItems.sort((a,b)=>a.score-b.score);
@@ -23697,6 +23858,10 @@ function posAddTyped(){ const inp=$('#posSearchQ'); if(!inp)return; const v=(inp
 let _posTileMore=false;
 function posTileMore(){ _posTileMore=!_posTileMore; captureInvoiceForm(); renderInvoiceForm(); }
 function posAddMaster(mid){ const m=(DB.itemMaster||[]).find(x=>x.id===mid); if(!m)return;
+  /* v717 — a plain "Fabric" shortcut is not a roll: tapping it opens the roll search instead,
+     so the metres come off the right thaan. */
+  if(m.kind!=='ready' && /^(fabric|kapda|kapra|than|thaan)s?$/i.test(String(m.name||'').trim())){
+    posSearchAdd(); setTimeout(()=>{ try{ posSetFilter('fab'); const q=$('#posSearchQ'); if(q)q.focus(); }catch(e){} },60); return; }
   const billRate=(m.kind==='ready')?(m.sell||''):(m.rate||'');   // never put purchase price on a customer bill
   posPushItem({masterId:m.id,label:m.name,hsn:m.hsn||'',unit:(m.incl&&m.incl.length>1)?'Set':'Pcs',rate:billRate,incl:[...(m.incl||[])],includes:(m.incl||[]).join(', ')});
   posSearchNote(m.name); }
@@ -24465,18 +24630,61 @@ function invLeave(){
   _xAsked=1; try{ closeSheet(); }finally{ _xAsked=0; }
   if(f.kind==='order'&&f.id){ try{ openDetail(f.id); }catch(e){} }
 }
+/* v717 — HIS 17 Sept: "purana invoice khola, dekha, cross dabaya — tab bhi poochta hai save
+   karna hai? Edit kuch kiya hi nahi." The question asked whether the bill HAD amounts, not
+   whether anything had CHANGED — so every saved bill asked on the way out. A question that
+   protects nothing. The form is now fingerprinted the first time it is drawn, through the
+   very same capture the close uses, and an unchanged bill closes without a word. */
+let _invSig0=null, _invSigFor=null;
+function invSig(f){
+  const n=v=>+v||0, sx=v=>String(v==null?'':v).trim();
+  return JSON.stringify([sx(f.no),sx(f.date),sx(f.customerId),sx(f.customerName),sx(f.phone),sx(f.paymentMode),
+    sx(f.discType),n(f.discValue),n(f.courier),sx(f.notes),f.receivedNow==null?'':n(f.receivedNow),
+    f.split?[n(f.split.cash),n(f.split.upi)]:0,sx(f.deliveryDate),sx(f.orderNo),sx(f.salesmanId),!!f.interstate,
+    (f.photos||[]).length,(f.voiceNotes||[]).length,
+    (f.items||[]).map(it=>[sx(it.label),n(it.qty),sx(it.unit),n(it.rate),n(it.price),n(it.disc),sx(it.thaanId),sx(it.masterId),sx(it.size),(it.incl||[]).join(',')])]);
+}
+function invSigTake(){
+  if(!invForm || _invSigFor===invForm)return;
+  _invSigFor=invForm; _invSig0=null;
+  const me=invForm;
+  setTimeout(()=>{ try{ if(invForm===me && invFormOnScreen()){ captureInvoiceForm(); _invSig0=invSig(me); } }catch(e){} },0);
+}
 function invClose(){
   const f=invForm||{};
+  try{ captureInvoiceForm(); }catch(e){}
+  if(_invSigFor===invForm && _invSig0!==null && invSig(f)===_invSig0){ invLeave(); return; }
   const priced=(f.items||[]).some(it=>+it.price);
   if(!priced){ invLeave(); return; }
+  /* v717: the words follow the bill — an order's bill, a saved bill, or a new one */
+  const _rec=(()=>{ try{ return invRecOf(f.kind,f.id); }catch(e){ return null; } })();
+  const _saved=_rec && !_rec._pending && _rec.invoice && String(_rec.invoice.no||'')!=='';
+  const _msg=f.kind==='sale'?(_saved?t('inv_close_msg_saved'):t('inv_close_msg_new')):(_saved?t('inv_close_msg_saved'):t('inv_close_msg'));
   modal(t('inv_close_title'),
-    `<p style="color:var(--txt2);font-size:14px;line-height:1.6">${t('inv_close_msg')}</p>`,
+    `<p style="color:var(--txt2);font-size:14px;line-height:1.6">${_msg}</p>`,
     [{label:t('lv_no'),cls:'ghost',fn:()=>{ closeModal(); }},
      {label:t('inv_close_yes'),cls:'danger',fn:()=>{ closeModal(); invLeave(); }},
      {label:t('lv_save'),cls:'primary',fn:()=>{ closeModal(); saveInvoice(); }}]);
 }
+let _invRollAsk='', _invZeroAsk='', _invHadStockLines=false;
+function invRollGuess(f){
+  const out=[]; const key=v=>{ const n=String(v||'').replace(/\D/g,''); return n?String(parseInt(n,10)):''; };
+  (f.items||[]).forEach((it,i)=>{
+    if(it.thaanId)return;
+    const m=(DB.itemMaster||[]).find(x=>x.id===it.masterId); if(m&&m.kind==='ready')return;
+    const nums=(String(it.label||'').match(/\d{3,6}/g)||[]).map(key);
+    if(!nums.length)return;
+    const cands=(DB.thaans||[]).filter(th=>nums.includes(key(th.serial)));
+    if(cands.length===1)out.push({i,th:cands[0]});
+  });
+  return out;
+}
 function saveInvoice(){
   captureInvoiceForm();const f=invForm;
+  /* v717: did the bill as SAVED already carry lines that take stock? (read before anything is written) */
+  try{ const r0=invRecOf(f.kind,f.id); const it0=((r0&&r0.invoice)||{}).items||[];
+    _invHadStockLines=it0.some(it=>it.thaanId||it.fabId||(((DB.itemMaster||[]).find(x=>x.id===it.masterId)||{}).kind==='ready'));
+  }catch(e){ _invHadStockLines=true; }
   /* v376: same latch — a duplicate invoice takes a number the shop cannot get back.
      Read AFTER capture, so the signature is what is actually on the form. */
   if(!svOnce(['i',f.id||'',f.customerName||'',f.no||'',f.date||'',
@@ -24509,6 +24717,37 @@ function saveInvoice(){
   if(!f.items.length){toast(t('inv_need_line'),'bad');return;}
   if(f.split){ const sSum=r2((+f.split.cash||0)+(+f.split.upi||0));
     if(sSum>r2(invCompute(f).total)+0.5){toast(t('split_over'),'bad');return;} }
+  /* v717 — HIS 17 Sept, bill 3014: three "Fabric 1277 / 1315 / 1214" lines were typed as
+     names, never linked to their rolls, so no stock moved. A line whose name carries the
+     serial of a roll in stock, and is not linked to any roll, is offered the link — once. */
+  { const hits=invRollGuess(f);
+    const key='R|'+(f.id||'')+'|'+hits.map(h=>h.i+':'+h.th.id).join(',');
+    if(hits.length && _invRollAsk!==key){
+      const rows=hits.map(h=>`<li><b>${esc(f.items[h.i].label)}</b> → ${t('inv_roll_is',{s:esc(h.th.serial),m:thaanBal(h.th)})}</li>`).join('');
+      modal('🧵 '+t('inv_roll_t'), `<p>${t('inv_roll_q')}</p><ul style="margin:6px 0 0 18px;line-height:1.7">${rows}</ul>`,
+        [{label:t('inv_roll_no'),cls:'ghost',fn:()=>{ closeModal(); _invRollAsk=key; saveInvoice(); }},
+         {label:t('inv_roll_yes'),cls:'primary',fn:()=>{ closeModal(); _invRollAsk=key;
+            hits.forEach(h=>{ const it=f.items[h.i]; const fi=(DB.fabItems||[]).find(x=>x.id===h.th.fabId)||{};
+              it.thaanId=h.th.id; it.fabId=h.th.fabId; it.unit='Mtr';
+              const m=(DB.itemMaster||[]).find(x=>x.id===it.masterId); if(!m||m.kind!=='ready')it.masterId='';
+              if(!it.hsn&&fi.hsn)it.hsn=fi.hsn; });
+            renderInvoiceForm(); saveInvoice(); }}]);
+      return;
+    } }
+  /* v717 — bill 2995: one line of three sat at ₹0 and nobody noticed. A bill that is priced
+     but has an unpriced line asks once: given free, or a rate still to fill? (A bill with no
+     price at all is still allowed — v600.) */
+  { const priced=f.items.some(it=>+it.price>0);
+    /* only STOCK lines (a roll, a readymade piece) — pieces of an order are often priced as one set */
+    const isStock=it=>!!(it.thaanId||it.fabId||(((DB.itemMaster||[]).find(x=>x.id===it.masterId)||{}).kind==='ready'));
+    const zero=f.items.map((it,i)=>({it,i})).filter(x=>priced && isStock(x.it) && !(+x.it.price>0) && (+x.it.qty||0)>0 && !x.it.free);
+    const key='Z|'+(f.id||'')+'|'+zero.map(x=>x.i).join(',');
+    if(zero.length && _invZeroAsk!==key){
+      modal('💸 '+t('inv_zero_t'), `<p>${t('inv_zero_q')}</p><ul style="margin:6px 0 0 18px;line-height:1.7">${zero.map(x=>`<li><b>${esc(x.it.label)}</b></li>`).join('')}</ul>`,
+        [{label:t('inv_zero_fill'),cls:'ghost',fn:()=>{ closeModal(); const el=document.querySelector('[data-irate="'+zero[0].i+'"]'); if(el){ el.focus(); el.scrollIntoView({block:'center'}); } }},
+         {label:t('inv_zero_free'),cls:'primary',fn:()=>{ closeModal(); _invZeroAsk=key; zero.forEach(x=>{ x.it.free=true; }); saveInvoice(); }}]);
+      return;
+    } }
 
   // Invoice is billing only — it does NOT auto-create/sync an order.
   // (Wedding bills carry many items; the tailoring order is taken separately in Orders.)
@@ -24633,6 +24872,16 @@ function saveInvoice(){
      which is what he was having to do by hand. */
   if(f._stockDone && (DB.moves||[]).some(m=>m.refId===f.id)){
     revertStockByRef(f.id);
+    f._stockDone=false; if(rec.invoice)rec.invoice._stockDone=false;
+  }
+  /* v717 — FOUND ON BILL 3014: a bill saved once with NO stock lines is marked done with no
+     moves behind it. When a roll was linked to it later, the block above had nothing to
+     undo, the mark stayed, and the block below was skipped — the roll never moved. Such a
+     bill has made no move at all, so there is nothing to double: its roll and readymade
+     lines are applied fresh, exactly as on a first save. A bill that has moves behind it
+     is untouched by this (it was reversed and re-applied above). */
+  else if(f._stockDone && (f.items||[]).some(it=>it.thaanId||it.fabId||(((DB.itemMaster||[]).find(x=>x.id===it.masterId)||{}).kind==='ready'))
+          && !_invHadStockLines){
     f._stockDone=false; if(rec.invoice)rec.invoice._stockDone=false;
   }
   // readymade items leave stock; stitched (made-to-order) items never touch stock
@@ -24948,7 +25197,7 @@ function invRowMenu(kind,id){
      ${(!cx&&due>0)?`<button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();invDiscountAsk('${kind}','${jq(id)}')">🏷️ ${t('disc_give')}</button>`:''}
      ${/* v660: Edit and Delete are docked on the bill screen now - one job, one place. */''}
      <button class="btn ghost block" style="margin-bottom:8px;color:var(--bad)" onclick="closeSheet();invCancelAsk('${kind}','${jq(id)}')">${cx?'↩️ '+t('inv_uncancel_t'):'🚫 '+t('inv_cancel_t')}</button>`,
-    [{label:t('close'),cls:'ghost',fn:closeSheet}]);
+    [{label:t('close'),cls:'ghost',fn:closeModal}]);
 }
 function invCancelAsk(kind,id){
   const rec=invRecOf(kind,id); if(!rec||!rec.invoice)return;
@@ -24977,7 +25226,7 @@ function invCancelAsk(kind,id){
     null, {yes:t('inv_cancel_go'), no:t('cancel'), cls:'bad'});
 }
 function openInvoicePreview(kind,id){
-  sheetAt(openInvoicePreview);
+  sheetAt(openInvoicePreview,null,arguments);
   const rec=invRecOf(kind,id); if(!rec||!rec.invoice)return;
   const inv=rec.invoice, comp=invCompute(inv);
   const items=(inv.items||[]).map(it=>`<div class="kv" style="padding:5px 0;font-size:13px">
@@ -26251,7 +26500,7 @@ function sampleSave(){
 
 /* ---- the sample's own page. The line he is really paying for sits at the top. ---- */
 function sampleDetail(id){
-  sheetAt(sampleDetail);
+  sheetAt(sampleDetail,null,arguments);
   const s=smpById(id); if(!s)return;
   const g=G(s.gid)||{n:'—',ico:'👔'};
   const ords=sampleOrders(s), earned=sampleEarned(s), cost=sampleCost(s);
@@ -26785,6 +27034,10 @@ function renderInvoices(keepFocus){
   const head=`<div class="detail-hd">
       <button class="back" onclick="go('home')">\u2190</button>
       <div style="flex:1"><h2>\uD83E\uDDFE ${t('invoices')}</h2></div>
+      ${/* v717 — HIS 17 Sept: PDF and print inside the total's box "sahi nahi lag raha" — they
+           act on the whole list, so they sit beside the list's name. */''}
+      <button class="btn sm ghost" title="${t('ex_pdf')}" onclick="invListPdf()">\uD83D\uDCC4</button>
+      <button class="btn sm ghost" title="${t('print')}" onclick="invListPrint()">\uD83D\uDDA8\uFE0F</button>
       <button class="btn sm ghost" title="${t('hub_more')}" onclick="saleHub()">\u22ef</button>
     </div>`;
 
@@ -26831,10 +27084,10 @@ function renderInvoices(keepFocus){
      the total twice, and every bill spent a whole line on one button. Search and period
      now share ONE line, the figures sit in ONE strip — and the Balance half of it is the
      Unpaid filter — and a bill takes two lines. Nothing was taken away. */
-  const searchBox=`<div class="ivtools"><div class="field">
-    <input id="invSearch" value="${esc(invQ)}" placeholder="🔍 ${t('inv_search_ph')}" oninput="setInvQ(this.value)"></div>`
-    + rangeBarHTML() + `</div>`
-    + sortChips(invSort,'setInvSort')
+  /* v717 — HIS: "This month, Newest first ke saath ek line me." Search gets the full width. */
+  const searchBox=`<div class="field" style="margin-bottom:8px">
+    <input id="invSearch" value="${esc(invQ)}" placeholder="🔍 ${t('inv_search_ph')}" oninput="setInvQ(this.value)"></div>
+    <div class="ivtools">${rangeBarHTML()}<div class="ivsort">${sortChips(invSort,'setInvSort')}</div></div>`
     /* ══════════ v547 — THE BILL LIST HAD NO DATES ══════════
        HIS 7 Sept: "search bar hai, uske neeche Newest first hai... uske baad custom dates
        ka option ho jata to bahut achha ho jata."
@@ -26888,10 +27141,7 @@ function renderInvoices(keepFocus){
   const _perLbl = invPerLabel();
   const _filtered = false;   /* v710: the period is changed on the bar below, never by a ✕ that did nothing */
   const title=draftBar+`<div class="ivstrip" id="invTotBar">
-      <div><div class="lbl"><span>${t('inv_count',{n:list2.length})}${q?' / '+all.length:''}</span>
-          <span class="ivacts" onclick="event.stopPropagation()">
-            <button class="btn sm ghost" title="${t('ex_pdf')}" onclick="invListPdf()">\uD83D\uDCC4</button>
-            <button class="btn sm ghost" title="${t('print')}" onclick="invListPrint()">\uD83D\uDDA8\uFE0F</button></span></div>
+      <div><div class="lbl"><span>${t('inv_count',{n:list2.length})}${q?' / '+all.length:''}</span></div>
         <div class="fig">${money(r2(_tot))}</div>
         <div class="lbl"><span>${t('inv_tax')} ${money(r2(_gst))}</span></div></div>
       <div class="due${invDueOnly?' on':''}" onclick="invDueToggle()" title="${invDueOnly?t('inv_f_due_off'):t('inv_f_due')}">
@@ -28458,7 +28708,7 @@ function renderPurchaseForm(){
   const restored = '';
   if(!f.editId && f._fromDraft && purHasContent(f) && !_purRestSaid){ _purRestSaid=true;
     setTimeout(()=>{ try{ toast('↩️ '+t('draft_restored'),'ok'); }catch(e){} },250); }
-  $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h2 style="margin:0">📦 ${f.editId?t('edit_purchase'):t('new_purchase')}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>${restored}${purResumeHTML()}
+  $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h2 style="margin:0">📦 ${f.editId?t('edit_purchase'):t('new_purchase')}</h2><button class="btn sm ghost" onclick="sheetClose()">✕</button></div>${restored}${purResumeHTML()}
     <div class="card" style="padding:12px 14px;margin-bottom:10px">
       <div class="kv" style="align-items:baseline;margin-bottom:4px">
         <label style="margin:0">${t('supplier')} *</label>
@@ -28840,6 +29090,7 @@ function purNearUse(i){
   toast(t('pur_near_fixed',{n:esc(x.found)}),'ok');
 }
 let _purFutureOK=false;
+let _purTwinOK='';
 function savePurchase(){
   /* v376: a purchase booked twice moves stock twice — worse than a duplicate expense */
   {const _f=purchForm||{};
@@ -28867,6 +29118,19 @@ function savePurchase(){
     const near=purNearMiss(f);
     if(near.length){ purNearAsk(near); return; }
   }
+  /* v717 — HIS 17 Sept: Amit Textiles bill 26-27/993 also sat under A. K. Traders — the same
+     bill entered twice, under two names, both counted as owed. A bill number and amount
+     already booked under ANOTHER supplier is asked about once. */
+  { const bn=String(f.billNo||'').trim().toLowerCase();
+    const twin=(DB.purchases||[]).find(p=>p.id!==f.editId && String(p.billNo||'').trim().toLowerCase()===bn
+      && (Math.abs((+p.total||0)-total)<1 || Math.abs(((()=>{ try{ return purchCompute(p).total; }catch(e){ return 0; } })())-total)<1)
+      && nameNorm(p.supplier)!==nameNorm(f.supplier));
+    const key=bn+'|'+(twin&&twin.id);
+    if(twin && _purTwinOK!==key){
+      confirmModal('⚠️ '+t('pur_twin_t'), t('pur_twin_q',{b:esc(f.billNo),s:esc(twin.supplier),d:fmtDate(twin.date),m:money(+twin.total||0)}),
+        ()=>{ closeModal(); _purTwinOK=key; savePurchase(); }, closeModal, {yes:t('pur_twin_yes'), no:t('cancel')});
+      return;
+    } }
   _purNameOK=false;
   /* v697: a bill dated after today is almost always a typo (21 for 01) and it quietly
      stays out of every report until that day comes. Asked once, with the date named. */
@@ -28975,15 +29239,45 @@ function savePurchaseSmart(){
   savePurchase();
 }
 function savePurchaseNew(){ _purSaveNew=true; savePurchase(); }
+/* v717 — HIS: "Senso ka 2072 bill WhatsApp par bhejna tha, ya Claude ko — koi option hi nahi." */
+function purLines(p){
+  const c=(()=>{ try{ return purchCompute(p); }catch(e){ return {total:+p.total||0}; } })();
+  return {c, items:(p.items||[]).map(it=>[String(it.label||''), (+it.qty||0)+' '+(it.unit||''), money(+it.rate||0), money(+it.amount||((+it.qty||0)*(+it.rate||0)))])};
+}
+async function purSharePdf(id){
+  const p=(DB.purchases||[]).find(x=>x.id===id); if(!p)return;
+  const {c,items}=purLines(p);
+  const rows=items.slice();
+  const tax=r2((+c.total||0)-(+c.taxable||+c.sub||0));
+  if(tax>0.5)rows.push([t('inv_tax'),'','',money(tax)]);
+  rows.push([t('paid'),'','',money(r2((+p.total||0)-orderBaaki(p)))]);
+  rows.push([t('baaki'),'','',money(orderBaaki(p))]);
+  await sharePdf({shop:((DB.shopInfo||{}).name)||'PARAMPARA', title:t('bill_no')+' '+(p.billNo||''),
+    sub:(p.supplier||'')+' · '+fmtDate(p.date),
+    cols:[{w:46,label:t('item')||'Item'},{w:18,label:t('qty')||'Qty'},{w:16,label:t('rate')||'Rate',align:'right'},{w:20,label:t('amount'),align:'right'}],
+    rows, foot:[t('total')||'Total',money(+p.total||0)]},
+    'Purchase-'+String(p.billNo||p.id).replace(/[\\/]/g,'-')+'.pdf', p.supplier||'');
+}
+function purShareWa(id){
+  const p=(DB.purchases||[]).find(x=>x.id===id); if(!p)return;
+  const {items}=purLines(p);
+  const txt=[(p.supplier||''), t('bill_no')+': '+(p.billNo||'')+' · '+fmtDate(p.date), '',
+    ...items.map(r=>'• '+r[0]+' — '+r[1]+' × '+r[2]+' = '+r[3]), '',
+    (t('total')||'Total')+': '+money(+p.total||0), t('baaki')+': '+money(orderBaaki(p))].join('\n');
+  try{ window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank'); }catch(e){}
+}
 function purchMenu(id){const p=(DB.purchases||[]).find(x=>x.id===id);if(!p)return;
   modal(t('purch_options'),`
     <p class="hint" style="margin-bottom:10px"><b>${esc(p.supplier)}</b> · ${fmtDate(p.date)} · ${money(p.total)}<br>${esc(p.desc||'')}</p>
     ${/* v660: same shape as the bill and the order - the two he reaches for sit at the
          bottom, side by side, always in reach. */''}
     <div class="save-dock">
+      <button class="btn ghost" style="flex:1" onclick="purSharePdf('${id}')">📄 PDF</button>
+      <button class="btn ghost" style="flex:1" onclick="purShareWa('${id}')">💬 WhatsApp</button></div>
+    <div class="save-dock" style="margin-top:8px">
       <button class="btn ghost" style="flex:1;color:var(--bad)" onclick="delPurchase('${id}')">\uD83D\uDDD1\uFE0F ${t('delete')}</button>
-      <button class="btn primary" style="flex:2" onclick="closeSheet();openPurchaseForm('${id}')">\u270F\uFE0F ${t('edit')}</button></div>`,
-    [{label:t('close'),cls:'ghost',fn:closeSheet}]);}
+      <button class="btn primary" style="flex:2" onclick="closeModal();openPurchaseForm('${id}')">\u270F\uFE0F ${t('edit')}</button></div>`,
+    [{label:t('close'),cls:'ghost',fn:closeModal}]);}   /* v717: the menu closes itself, not the screen under it (his "back jaate Home aa jaata hai") */
 /* ======================= PURCHASE RETURN (debit note) =======================
    Pick a past purchase → choose which items/how many go back to the supplier →
    stock goes DOWN and the supplier's payable is reduced (or a refund is recorded
@@ -32334,7 +32628,7 @@ function orderMenu(id){const o=DB.orders.find(x=>x.id===id);const canAlt=o&&orde
      Backup came off this screen entirely: it is not an order action, and it is on the
      header of every screen already. */
   modal(t('order_options'),`
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();masterSlipMenu('${id}')">\uD83D\uDCCB ${t('send_meas')}</button>
+    <button class="btn ghost block" style="margin-bottom:8px" onclick="masterSlipMenu('${id}')">\uD83D\uDCCB ${t('send_meas')}</button>
     <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();orderPrint('${id}')">\uD83D\uDDA8\uFE0F ${t('print')} (${t('all_items')})</button>
     <button class="btn ghost block" style="margin-bottom:8px" onclick="waOrder('${id}')">\uD83D\uDCAC ${t('wa_customer')}</button>
     <button class="btn ghost block simple-hide" style="margin-bottom:8px" onclick="closeSheet();openOrderInvoice('${id}')">\uD83E\uDDFE ${t('invoice')}</button>
@@ -32615,7 +32909,7 @@ function setItemKarigar(oid,gid,kid){const o=DB.orders.find(x=>x.id===oid);if(!o
    that already exists. No second stock system. */
 let _ki={kid:'',pick:{},rate:{},q:'',oid:'',cloth:'cust',th:{},mtr:{},extra:{},note:{}};
 function karIssue(kid,oid){
-  sheetAt(karIssue);
+  sheetAt(karIssue,null,arguments);
   if(oid!==undefined)_ki.oid=oid||'';
   const ks=karigarsActive();
   if(!ks.length){
@@ -32759,7 +33053,7 @@ function kiPickKarigar(v){ _ki.kid=v; _ki.rate={}; karIssue(_ki.kid,_ki.oid); }
    back, and what is left stays on his name. The rate stays editable here too, because the
    price is often settled when the piece is seen, not when it went out. */
 function karReceive(kid){
-  sheetAt(karReceive);
+  sheetAt(karReceive,null,arguments);
   const ks=karigarsActive();
   if(!ks.length){ toast(t('ki_no_karigar'),'bad'); return; }
   if(kid)_ki.kid=kid;
@@ -33047,7 +33341,7 @@ function sendMenu(oid){const o=DB.orders.find(x=>x.id===oid);if(!o)return;
   modal(t('send_meas'),body,[
     {label:'💬 '+t('whatsapp'),cls:'primary',fn:()=>{const sel=msel();if(!sel.length){toast(t('master_none'),'bad');return;}closeSheet();shareMaster(o,sel,karigarPhoneFor(o,sel));}},
     {label:'🖨️ '+t('print'),cls:'ghost',fn:()=>{const sel=msel();if(!sel.length){toast(t('master_none'),'bad');return;}printMaster(o,sel);}},
-    {label:t('close'),cls:'ghost',fn:closeSheet}
+    {label:t('close'),cls:'ghost',fn:closeModal}
   ]);
 }
 function masterSlipMenu(oid){const o=DB.orders.find(x=>x.id===oid);if(!o)return;  const items=sortItems(o.items);
@@ -33055,7 +33349,7 @@ function masterSlipMenu(oid){const o=DB.orders.find(x=>x.id===oid);if(!o)return;
   modal(t('master_slip'),body,[
     {label:'💬 '+t('whatsapp'),cls:'primary',fn:()=>{const sel=msel();if(!sel.length){toast(t('master_none'),'bad');return;}closeSheet();shareMaster(o,sel,karigarPhoneFor(o,sel));}},
     {label:'🖨️ '+t('print'),cls:'ghost',fn:()=>{const sel=msel();if(!sel.length){toast(t('master_none'),'bad');return;}printMaster(o,sel);}},
-    {label:t('close'),cls:'ghost',fn:closeSheet}
+    {label:t('close'),cls:'ghost',fn:closeModal}
   ]);
 }
 function msel(){return Array.from(document.querySelectorAll('.msel:checked')).map(c=>c.value);}
@@ -33798,7 +34092,7 @@ function karStatementSend(kid){
    pick the master, pick the pieces, give them; later pick him again, tick what he
    brought back, date, done. The hisab is one tap further in, where it belongs. */
 function karMaster(kid){
-  sheetAt(karMaster);
+  sheetAt(karMaster,null,arguments);
   const k=(DB.karigars||[]).find(x=>x.id===kid); if(!k)return;
   const out=karOutCount(kid), free=kiItemsFree(kid).length, bal=karBalance(kid);
   const spec=(k.specialties||[]).map(id=>{const g=G(id);return g?(g.ico||'')+' '+g.n:'';}).filter(Boolean);
@@ -33840,7 +34134,7 @@ function weekStart(d){ const x=new Date(d||todayISO()); const g=x.getDay();
    at all. Old due is shown separately, so the two papers can be matched and agreed. */
 let _ksFrom='', _ksTo='';
 function karSettle(kid,from,to){
-  sheetAt(karSettle);
+  sheetAt(karSettle,null,arguments);
   const k=(DB.karigars||[]).find(x=>x.id===kid); if(!k)return;
   if(from!==undefined)_ksFrom=from; if(to!==undefined)_ksTo=to;
   const jobs=karJobs(kid);
@@ -34117,7 +34411,7 @@ function krReRender(spec){
 /* ============ ONE MASTER — tabbed so nothing is a long scroll ============ */
 let _krTab='hisab';
 function karigarLedger(kid,tab){
-  sheetAt(karigarLedger);
+  sheetAt(karigarLedger,null,arguments);
   const k=(DB.karigars||[]).find(x=>x.id===kid); if(!k)return;
   _krTab=tab||_krTab||'hisab';
   const earned=karEarned(kid), paid=karPaid(kid), bal=r2(earned-paid);
@@ -34529,7 +34823,7 @@ function karPayEdit(pid){
   _kpEdit=pid; karPayEntry(p.karigarId, p);
 }
 function karPayEntry(kid,ex){
-  sheetAt(karPayEntry);
+  sheetAt(karPayEntry,null,arguments);
   _kpEdit = ex ? _kpEdit : null;                 // opening a fresh entry clears any edit
   const bal=r2(karBalance(kid)+(ex?(+ex.amt||0)+(+ex.settled||0):0));
   $('#sheet').innerHTML=`<div class="grip"></div>
@@ -34725,7 +35019,7 @@ function karigarMaster(){
 }
 let _krSpec=new Set(), _karAfterAdd=null;
 function karigarEdit(id){
-  sheetAt(karigarEdit);const ex=id?(DB.karigars||[]).find(x=>x.id===id):null;
+  sheetAt(karigarEdit,null,arguments);const ex=id?(DB.karigars||[]).find(x=>x.id===id):null;
   _krSpec=new Set((ex&&ex.specialties)||[]);
   const rates=(ex&&ex.rates)||{};
   /* ============== v650 - THE RATE LIST COULD BE READ, NOT CHANGED ==============
@@ -36708,9 +37002,9 @@ function lgPushRows(rows,l,n){
       dr:x.dir==='out'?amt:0, cr:x.dir==='in'?amt:0});
   });
   (DB.purchases||[]).forEach(pu=>{ if(nameNorm(pu.supplier)!==n)return;
-    rows.push({go:"closeSheet();purchMenu('"+jq(pu.id)+"')", date:pu.date||'',
+    rows.push({go:"purchMenu('"+jq(pu.id)+"')", date:pu.date||'',
       ref:t('purchase')+(pu.billNo?' '+pu.billNo:''), dr:0, cr:r2(orderTotal(pu))});
-    (pu.payments||[]).forEach(pp=>rows.push({date:pp.date||'', ref:t('pay_out'), dr:r2(+pp.amt||0), cr:0}));
+    (pu.payments||[]).forEach(pp=>rows.push({go:"purchMenu('"+jq(pu.id)+"')", date:pp.date||'', ref:t('pay_out'), dr:r2(+pp.amt||0), cr:0}));
   });
   /* ══════════════ v462 — GOODS WENT BACK, THE LEDGER NEVER HEARD ══════════════
      Traced with one purchase of 4,200 and a return of 1,600 against it:
@@ -36723,9 +37017,12 @@ function lgPushRows(rows,l,n){
      came off and not just a smaller number. A refund taken in cash is shown separately
      because that is money moving, not the credit note itself. */
   (DB.purchaseReturns||[]).forEach(pr=>{ if(nameNorm(pr.supplier)!==n)return;
-    rows.push({date:pr.date||'', ref:t('pur_return')+(pr.no?' '+pr.no:''),
+    /* v717 — HIS 17 Sept: "Senso ka purchase return khul hi nahi raha — upar wala bill khul
+       raha hai." This row had no door of its own. */
+    const _go="closeSheet();retView('purchase','"+jq(pr.id)+"')";
+    rows.push({go:_go, date:pr.date||'', ref:t('pur_return')+(pr.no?' '+pr.no:''),
       dr:r2(+pr.total||0), cr:0});
-    if(+pr.refunded>0)rows.push({date:pr.date||'', ref:t('refund'), dr:0, cr:r2(+pr.refunded||0)});
+    if(+pr.refunded>0)rows.push({go:_go, date:pr.date||'', ref:t('refund'), dr:0, cr:r2(+pr.refunded||0)});
   });
   [DB.sales,DB.orders,DB.alterations].forEach(list=>{
     (list||[]).forEach(r=>{ if(nameNorm(r.customerName)!==n)return;
@@ -38089,7 +38386,7 @@ function staffDrawn(sid,upToMon){
 }
 /* read-only: where the figure on the profile comes from, line by line */
 function staffLedger(sid){
-  sheetAt(staffLedger);
+  sheetAt(staffLedger,null,arguments);
   const st=staffById(sid); if(!st)return;
   _stDraft={ id:sid,
     name:(($('#stName')||{}).value||''), role:(($('#stRole')||{}).value||''),
@@ -38568,7 +38865,7 @@ function staffMaster(){
   showSheet();
 }
 function staffEdit(id){
-  sheetAt(staffEdit);
+  sheetAt(staffEdit,null,arguments);
   const ex=id?staffById(id):null, c=staffCfg();
   const dr=(_stDraft&&_stDraft.id===(id||''))?_stDraft:null; _stDraft=null;
   const V=(k,fb)=>dr?(dr[k]||''):fb;
@@ -38754,7 +39051,7 @@ function salesmanMaster(){
   showSheet();
 }
 function salesmanEdit(id){
-  sheetAt(salesmanEdit);const ex=id?salesmenAll().find(x=>x.id===id):null;
+  sheetAt(salesmanEdit,null,arguments);const ex=id?salesmenAll().find(x=>x.id===id):null;
   $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${ex?t('edit'):t('add_salesman')}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     <div class="field"><label>${t('salesman_name')}</label><input id="smName" value="${ex?esc(ex.name):''}" placeholder="${t('salesman_name')}"></div>
     <div class="field" style="margin-top:10px"><label>${t('phone')}</label><input id="smPhone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" value="${ex?esc(ex.phone||''):''}" placeholder="${t('phone')}"></div>
@@ -39284,11 +39581,12 @@ function backupMenu(){
         the big button now, the one to press every evening, and the photos have their own
         button underneath for when there is time and wifi. Neither has been changed; only
         which one is asked for daily. */''}
-    <button class="btn primary block" style="padding:18px;font-size:17px" onclick="closeModal();shareBackup(true)">
-      💾 ${t('bk_book_now')}</button>
-    <p class="hint" style="text-align:center;margin:6px 0 10px">${t('bk_book_hint')}</p>
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();dailyBackup()">
-      🖼️ ${t('bk_photos_now')}</button>
+    ${/* v717 — HIS 17 Sept: "backup lete itne button, confusion — book me photo aayega ki
+         nahi? photos too me shuru se ya latest?" One button now: the whole book PLUS only the
+         photos taken since the last backup, in one dated file. Book-only is under More. */''}
+    <button class="btn primary block" style="padding:18px;font-size:17px" onclick="closeModal();dailyBackup()">
+      💾 ${t('bk_one')}</button>
+    <p class="hint" style="text-align:center;margin:6px 0 0">${t('bk_one_hint')}</p>
     <p class="hint" id="bkFreshLine" style="text-align:center;margin:6px 0 0"></p>
     <p class="hint" style="text-align:center;margin:8px 0 12px">${d!==null&&d>2?'⚠️ ':''}${when}</p>
     ${/* ══════════ v642 — SIXTEEN CONTROLS FOR ONE JOB ══════════
@@ -39339,7 +39637,7 @@ function backupMenu(){
       <button class="btn ghost block" onclick="stockAudit()">🩺 ${t('au_title')}</button>
     </div>
     <button class="btn sm ghost block" style="margin-top:10px" id="bkMoreBtn" onclick="bkMoreToggle()">${t('bk_more')}</button>`,
-  [{label:t('close'),cls:'ghost',fn:closeSheet}]);
+  [{label:t('close'),cls:'ghost',fn:closeModal}]);
   setTimeout(bkFreshCount,80);
 }
 function bkMoreToggle(){
@@ -40391,7 +40689,7 @@ function auditMerge(i){
 async function restoreSnapshotMenu(){
   const keys=(await mKeys()).filter(k=>String(k).indexOf('snap_')===0).sort().reverse();
   if(!keys.length){toast(t('no_snapshots'),'bad');return;}
-  modal(t('auto_backups'),`<p class="hint" style="margin-bottom:10px">${t('auto_backups_desc')}</p>`+keys.map(k=>`<button class="btn ghost block" style="margin-bottom:8px" onclick="restoreSnapshot('${k}')">🕑 ${String(k).replace('snap_','')}</button>`).join(''),[{label:t('close'),cls:'ghost',fn:closeSheet}]);
+  modal(t('auto_backups'),`<p class="hint" style="margin-bottom:10px">${t('auto_backups_desc')}</p>`+keys.map(k=>`<button class="btn ghost block" style="margin-bottom:8px" onclick="restoreSnapshot('${k}')">🕑 ${String(k).replace('snap_','')}</button>`).join(''),[{label:t('close'),cls:'ghost',fn:closeModal}]);
 }
 async function restoreSnapshot(key){
   let data=await mGet(key); if(!data){toast(t('t_wrong'),'bad');return;}
@@ -40491,6 +40789,14 @@ function sheetClose(){
        the generic close and the bill the app had pre-filled stayed behind as a draft ("draft
        galat jagah ban gaya"). The totals box is on every bill. */
     if(invFormOnScreen())return invClose();          // confirms before discarding
+    /* v717 — HIS 17 Sept: "roll 1315 edit karte ✕ dabaya to Home aa gaya, Stock par aana
+       chahiye tha." ✕ on a FORM (a roll, a readymade item, a kharcha) closes that form and
+       returns to the screen it was opened from. On every other screen ✕ still closes all
+       (his 9 Sept rule). */
+    if(_sheetStack.length && ['thaanRender','readyRender','expRender','renderPurchaseForm','editCustomer','staffEdit','salesmanEdit','karigarEdit','karPayEntry'].includes(_sheetName||(_sheetCur&&_sheetCur.name)||'')){
+      try{ if((_sheetName||_sheetCur.name)==='thaanRender'){ _th=null; _thIdOpen=false; } }catch(e){}
+      try{ if(sheetBack())return; }catch(e){}
+    }
   }
   /* ══════════ v586 — ✕ AND ← WERE THE SAME BUTTON, AND HE FELT IT ══════════
      HIS 9 Sept: "ek screen band kar raha hun to doosri screen aa ja rahi hai, aur usko
@@ -40741,6 +41047,17 @@ let _xAsked=0;
    path calls it the moment its record is written. One helper, called from each save, rather
    than a timer or a special case inside the guard. */
 function sheetSaved(){ try{ _xAsked=0; sheetStamp(1); }catch(e){} }
+/* v717 — every list's search, in one place, so none can be missed */
+function listQueryForgetSheets(){
+  _fabQ=''; _fabCat=''; _fabBand=''; _rdyQ=''; _colQ=''; _expQ=''; _expCatQ=''; _dbQ=''; _plQ=''; _credQ=''; _fuQ=''; _opQ='';
+  _msQ=''; _rsQ={}; _estQ=''; _invOrdQ=''; _retQ=''; _smpQ=''; _karQ={}; _jwQ=''; _kbQ=''; _lgQ=''; _ptyQ=''; _stQ='';
+}
+function listQueryForgetTab(tab){
+  if(tab==='orders')ordQ='';
+  else if(tab==='invoices'){ invQ=''; invDueOnly=false; }
+  else if(tab==='customers')_custQ='';
+  else if(tab==='purchases')purQ='';
+}
 function closeSheet(){
   if(modalIsOpen()){ closeModal(); return; }      // a modal on top closes first — the form stays
   if(!_xAsked && sheetDirty()){
@@ -40848,7 +41165,8 @@ function closeSheet(){
      below has already run by the time his next tap arrives. */
   _handoff=_sheetCur; _handoffAt=Date.now(); _handoffTrail=_sheetStack.slice();
   _handoffSync=true;
-  try{ Promise.resolve().then(()=>{ _handoffSync=false; }); }catch(e){ _handoffSync=false; }
+  /* v717: a screen he really shut (no other sheet painted in this same tick) forgets its search */
+  try{ Promise.resolve().then(()=>{ _handoffSync=false; if(!_sheetCur){ try{ listQueryForgetSheets(); }catch(e){} } }); }catch(e){ _handoffSync=false; }
   sheetReset();
   /* v680: a closed sheet must not go on claiming to be the screen it was — a stale stamp
      would let a check pass on a screen that is no longer on the glass. */
@@ -41020,9 +41338,23 @@ let _handoff=null, _handoffAt=0, _handoffTrail=null, _handoffSync=false;
    card, one karigar's book — has to hand sheetAt() a closure, and a closure has no name of
    its own. Those eighteen screens were the whole of the trail's blind spot, so sheetAt()
    takes the name beside the function. */
-function sheetAt(fn,name){
+function sheetAt(fn,name,args){
   if(typeof fn!=='function')return;
-  if(!_sheetCur && _handoff && _handoff!==fn && (Date.now()-_handoffAt)<600){
+  /* v717 — HIS 17 Sept: "Payables → party → bill edit → back/✕ → seedha Home." Found with
+     it: a screen that needs its record (a roll, a customer, a karigar) registered itself
+     WITHOUT the record, so stepping back to it re-ran it empty and nothing was drawn.
+     Such a screen now registers a way back that carries its own arguments. Two visits to
+     the same record count as one page, so a redraw never stacks a copy of itself. */
+  if(args && args.length){
+    const base=fn, a=Array.prototype.slice.call(args);
+    let key=''; try{ key=(base.name||name||'')+'|'+JSON.stringify(a); }catch(e){ key=(base.name||name||'')+'|?'; }
+    const w=function(){ return base.apply(null,a); };
+    w._k=key; w._n=base.name||name||'';
+    try{ Object.defineProperty(w,'name',{value:w._n}); }catch(e){}   /* it still answers to its own name */
+    name=name||w._n; fn=w;
+  }
+  const _same=(x,y)=>x===y || !!(x && y && x._k && x._k===y._k);
+  if(!_sheetCur && _handoff && !_same(_handoff,fn) && (Date.now()-_handoffAt)<600){
     /* v489: a same-tick hand-off brings the pages behind it back too, so a trail three or
        four deep survives a menu row. A later re-open inside the 600ms window keeps the old
        one-step behaviour — safe, because a stale trail is worse than a short one. */
@@ -41030,9 +41362,9 @@ function sheetAt(fn,name){
     _sheetStack.push(_handoff);          // he came from there — keep the way back
   }
   _handoff=null; _handoffTrail=null; _handoffSync=false;
-  if(_sheetCur && _sheetCur!==fn)_sheetStack.push(_sheetCur);
+  if(_sheetCur && !_same(_sheetCur,fn))_sheetStack.push(_sheetCur);
   _sheetCur=fn;
-  _sheetName=name||(fn&&fn.name)||'';
+  _sheetName=name||(fn&&(fn._n||fn.name))||'';
 }
 function sheetBack(){
   const prev=_sheetStack.pop();
