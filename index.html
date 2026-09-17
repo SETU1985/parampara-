@@ -244,7 +244,7 @@
   .bf-l2{display:flex;gap:6px;align-items:center}
   .bf-l2 .bf-name{flex:1;min-width:0}
   .bf-cam.has{border-color:var(--saffron);color:var(--saffron2)}
-  .pos-tile{background:var(--card2);border:1px solid var(--line2);border-radius:10px;padding:7px 8px;text-align:center;
+  .pos-tile{background:var(--card2);border:1.5px solid rgba(212,137,26,.55);border-radius:10px;padding:7px 8px;text-align:center;
     cursor:pointer;user-select:none;transition:transform .08s,background .15s;min-height:42px;
     display:flex;flex-direction:column;justify-content:center;gap:2px;position:relative}
   .pos-tile:active{transform:scale(.95);background:var(--saffron);color:#1a1206}
@@ -793,6 +793,34 @@
   .rngbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;cursor:pointer;
     border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin:0 0 12px}
   .rngbar .rngname{font-weight:800;color:var(--saffron2)}
+  .mh .od-x-piece{flex:0 0 auto;padding:0 9px;min-height:0;height:28px;margin-right:6px;color:var(--bad);border-color:rgba(217,83,79,.35)}
+  /* v715 — the bill list: one line of tools, one strip of figures, two lines a bill */
+  .ivtools{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+  .ivtools .field{flex:1;margin:0;min-width:0}
+  .ivtools .rngbar{margin:0;white-space:nowrap;padding:8px 10px}
+  .ivtools .rngbar .rngdates{display:none}
+  .ivstrip{display:flex;gap:8px;margin:0 0 10px}
+  .ivstrip>div{flex:1;min-width:0;border:1px solid var(--line);border-radius:12px;padding:8px 11px;background:var(--card)}
+  .ivstrip .lbl{font-size:11px;color:var(--txt2);display:flex;justify-content:space-between;gap:6px}
+  .ivstrip .fig{font-size:17px;font-weight:800;white-space:nowrap}
+  .ivstrip .due{cursor:pointer;border-color:var(--saffron)}
+  .ivstrip .due.on{background:rgba(212,137,26,.12);border-width:2px}
+  .ivstrip .ivacts{display:flex;gap:4px}
+  .ivstrip .ivacts button{padding:2px 8px;min-height:0;font-size:15px}
+  .ivrow{padding:10px 12px;margin-bottom:8px;cursor:pointer;border-left:3px solid var(--saffron)}
+  .ivrow .l1,.ivrow .l2{display:flex;align-items:center;gap:8px;min-width:0}
+  .ivrow .l1 .nm{font-weight:800;font-size:15px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ivrow .l1 .amt{font-weight:800;font-size:16px;white-space:nowrap}
+  .ivrow .l2{margin-top:4px;font-size:12px;color:var(--txt2)}
+  .ivrow .l2 .mt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ivpill{font-size:11px;font-weight:800;border-radius:999px;padding:2px 8px;white-space:nowrap}
+  .ivpill.ok{color:var(--ok);background:rgba(46,160,90,.12)}
+  .ivpill.due{color:var(--saffron2);background:rgba(212,137,26,.13)}
+  .ivpill.late{color:var(--bad);background:rgba(217,83,79,.13)}
+  .ivpill.cx{color:var(--bad);background:transparent;border:1px solid var(--bad)}
+  .ivrow .more{flex:0 0 auto;padding:0 12px;min-height:0;height:28px;font-size:16px;line-height:1}
+  .ivmonth{display:flex;justify-content:space-between;font-size:11px;font-weight:800;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--txt2);margin:12px 2px 6px}
   .rngbar .rngdates{color:var(--txt);opacity:.85;font-size:13px}
   /* v644: the report shell. Headings so he can tell which column is which, rows that read
      as rows, and a total that stays on the screen while the list scrolls under it. */
@@ -1070,7 +1098,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v712</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v716</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -1784,6 +1812,7 @@ const T={
   inv_p_lastm:'Last month',
   inv_p_custom:'Custom dates',
   inv_total_shown:'Total of what is shown',
+  inv_f_due:'Unpaid only', inv_f_due_off:'Showing unpaid · tap for all',
   rp_sales_list:'Sales list',
   rp_inv_no:'Invoice no',
   save_generate:'Save & generate',
@@ -2143,7 +2172,9 @@ const T={
   bk_take:'Take a backup', bk_more:'More options', bk_less:'Hide',
   inv_no_taken:'{a} was already used — this bill is {b}',
   od_cust_edit:'Customer', od_cust_saved:'Customer updated',
-  od_add_remove:'Add / remove a piece',
+  od_add_remove:'Add a piece',
+  od_x_busy:'This piece is already with a karigar or in work — use ✏️ Edit to take it off.',
+  od_x_last:'An order needs at least one piece — delete the order instead.',
   exp_party:'Whose account', exp_party_none:'Nobody on this list yet — add them first',
   exp_need_party:'Pick whose account this goes to',
   eh_title:'Expense heads', eh_sub:'Set who each head is paid to, and whether it is a cost of goods or of running the shop.',
@@ -3229,6 +3260,7 @@ dl_show_hidden:'Show hidden ({n})',
   sh_att_sub:'Present, absent and what the month comes to',
   sh_perf_sub:'Who sold how much, and how much of it came in',
   sh_master:'Staff master', sh_master_sub:'Names, salary, joining date',
+  sh_sub_att:'Attendance, salary and advance, month by month', sh_sub_sm:'What each salesman sold', sh_sub_master:'Add staff, change details, mark who has left',
   rps_entry:'Daily entry', rps_books:'Books', rps_people:'Parties & bank', rps_floor:'Shop floor', rps_staff:'People',
   ho_title:'Move work between devices', ho_sub:'Take what the other device MADE and add it here. Nothing here is changed or removed.',
   ho_send:'Send this device\u2019s work', ho_take:'Bring in the other device\u2019s work',
@@ -4033,6 +4065,7 @@ dl_show_hidden:'Show hidden ({n})',
   inv_p_lastm:'पिछले महीने',
   inv_p_custom:'तारीख़ चुनें',
   inv_total_shown:'जो दिख रहा है उसका जोड़',
+  inv_f_due:'सिर्फ़ बाकी वाले', inv_f_due_off:'सिर्फ़ बाकी वाले दिख रहे हैं · सब के लिए दबाएँ',
   rp_sales_list:'बिक्री सूची',
   rp_inv_no:'बिल नंबर',
   save_generate:'सहेजें और बनाएँ',
@@ -4392,7 +4425,9 @@ dl_show_hidden:'Show hidden ({n})',
   bk_take:'बैकअप लें', bk_more:'और विकल्प', bk_less:'छुपाएँ',
   inv_no_taken:'{a} पहले ही इस्तेमाल हो चुका है — यह बिल {b} है',
   od_cust_edit:'ग्राहक', od_cust_saved:'ग्राहक बदल दिया',
-  od_add_remove:'पीस जोड़ें / हटाएँ',
+  od_add_remove:'पीस जोड़ें',
+  od_x_busy:'यह पीस कारीगर के पास है या काम में है — हटाने के लिए ✏️ एडिट करें।',
+  od_x_last:'ऑर्डर में कम से कम एक पीस चाहिए — पूरा ऑर्डर डिलीट करें।',
   exp_party:'किसके नाम पर', exp_party_none:'इस सूची में अभी कोई नहीं — पहले जोड़िए',
   exp_need_party:'चुनिए यह किसके खाते में जाएगा',
   eh_title:'Expense heads', eh_sub:'हेड बताता है ख़र्च किसको दिया, और वह माल पर लगा या दुकान पर।',
@@ -5474,6 +5509,7 @@ dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
   sh_att_sub:'हाज़िर, ग़ैरहाज़िर और महीने का हिसाब',
   sh_perf_sub:'किसने कितना बेचा, और कितना वसूला',
   sh_master:'स्टाफ़ मास्टर', sh_master_sub:'नाम, तनख़्वाह, जॉइनिंग',
+  sh_sub_att:'हाज़िरी, तनख़्वाह और एडवांस — महीने के हिसाब से', sh_sub_sm:'हर सेल्समैन ने कितना बेचा', sh_sub_master:'स्टाफ़ जोड़ें, बदलें, छोड़ने वाले चिह्नित करें',
   rps_entry:'रोज़ की entry', rps_books:'किताबें', rps_people:'पार्टी और बैंक', rps_floor:'दुकान का काम', rps_staff:'स्टाफ़',
   ho_title:'दो device के बीच काम ले जाना', ho_sub:'दूसरे device ने जो बनाया वो यहाँ जोड़ दीजिए। यहाँ का कुछ बदलेगा या हटेगा नहीं।',
   ho_send:'इस device का काम भेजें', ho_take:'दूसरे device का काम लें',
@@ -5850,10 +5886,17 @@ function itemKey(mid,gid,inst){
 }
 /* the label a user sees for one garment instance: the variant they typed, else the garment name */
 function variantOf(o,key){ return ((o&&o.variant)||{})[key]||''; }
+/* v715 — HIS 17 Sept: "Coat, Coat 2 bahut confusing hai — quantity hai ki ek number do number?"
+   Two coats for one person are two pieces, each with its own naap. They now read
+   "Coat (1/2)" and "Coat (2/2)" — which piece, out of how many. One piece reads just "Coat". */
+function instBase(key){ const s=String(key||''); const h=s.indexOf(ISEP); return h<0?s:s.slice(0,h); }
+function instCount(items,key){ const b=instBase(key); return (items||[]).filter(k=>instBase(k)===b).length; }
+function instSuffix(items,key){ const n=instCount(items,key); return n>1?(' ('+instOf(key)+'/'+n+')'):''; }
+function instTagHTML(items,key){ const n=instCount(items,key); return n>1?(' <span class="inst-tag">'+instOf(key)+'/'+n+'</span>'):''; }
 function itemTitle(o,key){
   const g=G(key); if(!g)return '';
   const v=variantOf(o,key);
-  return v ? (g.n+' — '+v) : (instOf(key)>1 ? (g.n+' '+instOf(key)) : g.n);
+  return v ? (g.n+' — '+v) : (g.n+instSuffix((o&&o.items)||[],key));
 }
 const G=key=>allItems().find(g=>g.id===garmentOf(key));
 function memberList(o){ return Array.isArray(o&&o.members)?o.members:[]; }
@@ -6580,18 +6623,22 @@ function numHWSet(k,v){
   DB.numCfg=DB.numCfg||{}; DB.numCfg.hw=DB.numCfg.hw||{};
   if(v>(+DB.numCfg.hw[k]||0))DB.numCfg.hw[k]=v;
 }
-const numDigits=v=>parseInt(String(v==null?'':v).replace(/\D/g,''),10)||0;
+/* v713  "2620/2621" (two people's numbers on one old order) was read by gluing every digit
+   together, 26202621, so the next order came out 26202622 and the high-water mark stuck there.
+   A number string is now read as the LARGEST run of digits in it: "2620/2621" -> 2621,
+   "PB-0042" -> 42, "2637" -> 2637. */
+const numDigits=v=>{ const r=String(v==null?'':v).match(/\d+/g); return r?Math.max(...r.map(x=>parseInt(x,10)||0)):0; };
 function nextOrderNo(){
   numRelease();                       /* v621 */
   const c=DB.numCfg||{};
   let mx=0;
-  (DB.orders||[]).forEach(o=>{const n=parseInt(String(o.orderNo).replace(/\D/g,''),10);if(!isNaN(n)&&n>mx)mx=n;
+  (DB.orders||[]).forEach(o=>{const n=numDigits(o.orderNo);if(n>mx)mx=n;
     (o.members||[]).forEach(m=>{const k=numDigits(m.ono); if(k>mx)mx=k;});});
   const n=Math.max(mx+1, numHW('ord')+1, +c.ordStart||0, 1);
   const pre=(c.ordPrefix||'').trim();
   return pre?pre+n:String(n);
 }
-function nextAltNo(){let mx=0;(DB.alterations||[]).forEach(a=>{const n=parseInt(String(a.altNo).replace(/\D/g,''));if(!isNaN(n)&&n>mx)mx=n;});return 'A'+(mx?mx+1:1);}
+function nextAltNo(){let mx=0;(DB.alterations||[]).forEach(a=>{const n=numDigits(a.altNo);if(n>mx)mx=n;});return 'A'+(mx?mx+1:1);}
 function altById(id){return (DB.alterations||[]).find(a=>a.id===id);}
 function altsForOrder(oid){return (DB.alterations||[]).filter(a=>a.origOrderId===oid);}
 function invSeries(){
@@ -14393,16 +14440,16 @@ function deliverPieces(oid){
   const row=(gid,out)=>{ const g=G(gid)||{ico:'',n:gid};
     const when=(o.delivOn&&o.delivOn[gid])?fmtDate(o.delivOn[gid]):'';
     if(out)return `<div class="kv" style="padding:9px 2px;opacity:.6">
-      <span style="flex:1;min-width:0">${g.ico} ${esc(g.n)}${instOf(gid)>1?' '+instOf(gid):''}</span>
+      <span style="flex:1;min-width:0">${g.ico} ${esc(itemTitle(o,gid))}</span>
       <span class="hint">\u2713 ${esc(when||t('dl_went'))}</span></div>`;
     return `<label class="kv" style="padding:11px 2px;cursor:pointer">
       <input type="checkbox" ${_dlv.pick[gid]?'checked':''}
         onchange="dlvTick('${jq(gid)}',this.checked)" style="width:20px;height:20px;margin-right:10px">
-      <span style="flex:1;min-width:0"><b>${g.ico} ${esc(g.n)}${instOf(gid)>1?' '+instOf(gid):''}</b>
+      <span style="flex:1;min-width:0"><b>${g.ico} ${esc(itemTitle(o,gid))}</b>
         <div class="hint">${esc(sLabel(itemStatusOf(o,gid)))}</div></span></label>`;};
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin:0 0 2px">\ud83d\udce6 ${t('dl_title')}</h2>
-    <p class="hint" style="margin:0 0 12px">#${esc(o.orderNo||'')} \u00b7 ${esc(o.customerName||'')}</p>
+    <p class="hint" style="margin:0 0 12px">#${esc(onoLabel(o))} \u00b7 ${esc(o.customerName||'')}</p>
     ${due>0?`<div class="card" style="padding:10px 12px;margin-bottom:10px">
       <b>${t('dl_due')}</b> ${money(due)}
       <div class="hint">${t('dl_due_hint')}</div></div>`:''}
@@ -14626,7 +14673,7 @@ function orderProfitReport(keepFocus){
            and those are folded away below anyway — if one is ever tapped it still opens the
            order, because that is all there is. */''}
       <div class="kv" style="cursor:pointer" onclick="closeSheet();${p.billed?`openInvoicePreview('order','${jq(o.id)}')`:`orderMenu('${jq(o.id)}')`}">
-        <div style="min-width:0;flex:1"><b>#${esc(o.orderNo||'')} \u00B7 ${esc(o.customerName||'\u2014')}</b>
+        <div style="min-width:0;flex:1"><b>#${esc(onoLabel(o))} \u00B7 ${esc(o.customerName||'\u2014')}</b>
           <div class="hint">${fmtDate(o.orderDate||(o.created||'').slice(0,10))} \u00B7 ${p.billed?t('op_billed'):t('op_unbilled')}</div></div>
         <div style="text-align:right"><b style="font-size:17px;color:${p.gross>=0?'var(--ok)':'var(--bad)'}">${money(p.gross)}</b>
           <div class="hint">${p.pct}% ${t('op_margin')}</div></div></div>
@@ -14659,7 +14706,7 @@ function orderProfitReport(keepFocus){
         <span class="hint">${_opUnb?'\u25B4':'\u25BE'}</span></div>
       ${_opUnb?unbilled.map(({o})=>`<div class="il" style="cursor:pointer"
           onclick="closeSheet();orderMenu('${jq(o.id)}')">
-          <span>#${esc(o.orderNo||'')} \u00B7 ${esc(o.customerName||'\u2014')}</span>
+          <span>#${esc(onoLabel(o))} \u00B7 ${esc(o.customerName||'\u2014')}</span>
           <span class="hint">${fmtDate(o.orderDate||(o.created||'').slice(0,10))} \u203A</span></div>`).join(''):''}
       </div>`:''}
     <p class="hint" style="margin-top:10px">${t('op_note')}</p>
@@ -14735,7 +14782,7 @@ function trialBoard(){
     return `<div class="card" style="padding:12px 14px;margin-bottom:8px">
       <div class="kv"><div style="min-width:0;flex:1;cursor:pointer" onclick="closeSheet();orderMenu('${jq(o.id)}')">
         <b>\u{1F457} ${esc(o.customerName||'\u2014')}</b>
-        <div class="hint">#${esc(o.orderNo||'')} \u00B7 ${fmtDate(o.trialDate)}
+        <div class="hint">#${esc(onoLabel(o))} \u00B7 ${fmtDate(o.trialDate)}
           <span style="${late?'color:var(--bad)':''}">${late?' \u00B7 '+t('trial_late',{n:Math.abs(dl)}):(dl===0?' \u00B7 '+t('trial_today'):'')}</span></div>
         ${o.deliveryDate?`<div class="hint">\u{1F69A} ${fmtDate(o.deliveryDate)}</div>`:''}</div>
         <span style="color:var(--saffron2)">\u203A</span></div>
@@ -14828,7 +14875,7 @@ function actionList(kind){
    with a ready-to-send WhatsApp update. */
 function statusEnquiry(q){
   const term=(q==null?(($('#se_q')||{}).value||''):q).trim().toLowerCase();
-  const digits=term.replace(/\D/g,'');
+  const digits=/^[\d\s+\-()]+$/.test(term)?term.replace(/\D/g,''):'';   /* v713: same rule as custHits */
   let hits=[];
   if(term){
     hits=(DB.customers||[]).filter(c=>
@@ -15053,7 +15100,7 @@ function courierSendForm(oid){
   const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
   const d=o.dispatch||{};
   modal('📦 '+t('cu_mark_sent'),`
-    <p class="hint" style="margin-bottom:10px">#${esc(o.orderNo||'')} · ${esc(o.customerName||'')}</p>
+    <p class="hint" style="margin-bottom:10px">#${esc(onoLabel(o))} · ${esc(o.customerName||'')}</p>
     ${!orderAllReady(o)?`<p class="hint" style="color:var(--saffron2);margin-bottom:8px">⚠️ ${t('cu_warn_not_ready')}</p>`:''}
     <div class="field"><label>${t('cu_date')}</label>${dateField('cu_d',todayISO())}</div>
     <div class="field"><label>${t('cu_company')}</label><input id="cu_co" value="${esc(d.company||'')}" placeholder="${t('cu_company_ph')}" list="cuCos">
@@ -15999,6 +16046,15 @@ function menuHome(){
     <span class="mnu-go">›</span></button>`;
   const sec=(title,rows)=>{
     const list=rows.filter(Boolean); if(!list.length)return '';
+    /* v716 — HIS 17 Sept: "Reports click karo to phir Reports aata hai, uske baad reports."
+       ORDERS, CUSTOMERS and REPORTS each dropped open onto a single row with their own name.
+       A heading with one door IS that door: tapping it goes straight there. */
+    if(list.length===1){
+      const m=/onclick="([^"]*)"/.exec(list[0]);
+      if(m)return `<div class="section-h mnu-one" onclick="${m[1]}"
+        style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px">
+        <span>${title}</span><span class="mnu-go">›</span></div>`;
+    }
     const k='ms'+(_secN++), open=!!_mnuOpen[k];
     return `<div class="section-h" data-sec="${k}" onclick="menuSecToggle('${k}')"
         style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px">
@@ -16155,7 +16211,10 @@ function menuFilter(q){
   q=String(q||'').trim().toLowerCase();
   document.querySelectorAll('#mnuBody .mnu-row').forEach(r=>{
     r.style.display = !q || r.textContent.toLowerCase().indexOf(q)>=0 ? '' : 'none'; });
-  document.querySelectorAll('#mnuBody .section-h').forEach(h=>{
+  /* v716: a one-door heading is itself the row — it matches on its own text */
+  document.querySelectorAll('#mnuBody .section-h.mnu-one').forEach(h=>{
+    h.style.display = !q || h.textContent.toLowerCase().indexOf(q)>=0 ? '' : 'none'; });
+  document.querySelectorAll('#mnuBody .section-h:not(.mnu-one)').forEach(h=>{
     const k=h.getAttribute('data-sec');
     const list=h.nextElementSibling;
     const any=list&&[...list.querySelectorAll('.mnu-row')].some(r=>r.style.display!=='none');
@@ -16516,8 +16575,21 @@ function renderHome(){
    pushed the real orders off the first screen. The newest one keeps its full card, because
    that is the one he was in the middle of; the rest fold into a single line that opens
    them all. Nothing is hidden and nothing is deleted — one row instead of a stack. */
+/* v713  HIS 16 Sept: "order edit kar raha tha, peeche gaya, phir aaya to draft ban gaya —
+   ye nahi banna chahiye." An EDIT of a saved order is parked only as crash insurance (boot
+   reopens it on its own). It is not an unfinished order, and the order it belongs to is
+   already on the list, so it is never shown as an UNFINISHED card. Neither is the form that
+   is open right now. */
+function listedDrafts(){
+  let cur=''; try{ if(typeof formIsOpen==='function'&&formIsOpen()&&form&&form._did)cur=form._did; }catch(e){}
+  return draftList().filter(d=>{
+    if(d.id===cur)return false;
+    const eid=d.form&&d.form.editId;
+    if(eid && (DB.orders||[]).some(o=>o.id===eid))return false;
+    return true; });
+}
 function draftCardHTML(){
-  const list=draftList(); if(!list.length)return '';
+  const list=listedDrafts(); if(!list.length)return '';
   const extra=list.length-1;
   return draftCardsFor(list.slice(0,1))
     + (extra>0?`<div class="card" style="padding:11px 13px;cursor:pointer" onclick="draftsAll()">
@@ -16526,7 +16598,7 @@ function draftCardHTML(){
 }
 function draftsAll(){
   sheetAt(draftsAll);
-  const list=draftList();
+  const list=listedDrafts();
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">📝 ${t('dft_all_title')}</h2>
     
@@ -16596,7 +16668,7 @@ function discardDraft(id){
     try{ if(window.form && String(form._did)===String(id)) form._did=''; }catch(e){}
     try{ if(_lastDraftId===id)_lastDraftId=''; }catch(e){}
     renderOrders(); renderHome();
-    try{ if(sheetIsOpen()&&_sheetCur===draftsAll){ if(draftList().length)draftsAll(); else closeSheet(); } }catch(e){}
+    try{ if(sheetIsOpen()&&_sheetCur===draftsAll){ if(listedDrafts().length)draftsAll(); else closeSheet(); } }catch(e){}
     toast(t('draft_discarded'));
   });
 }
@@ -16818,13 +16890,13 @@ function renderOrders(keepFocus){
     else if(st!=='delivered'&&dl!==null&&dl<=4){dcls='soon';dtxt=dl+'d';}
     const _mm=activeMembers(o).length>1;
     const tags=sortItems(o.items).map(gid=>{const g=G(gid);const s=itemStatusOf(o,gid);const dot=(s==='ready'||s==='delivered')?'✅':'';
-      const who=_mm?(memberName(o,memberOf(gid))||''):'';
+      const who=_mm?(memberLabel(o,memberOf(gid))||''):'';   /* v715: the customer is named, never "—" */
       return g?`<span class="gtag" style="cursor:pointer" onclick="event.stopPropagation();focusItem('${o.id}','${jq(gid)}')">${g.ico} ${who?esc(who)+' · ':''}${esc(itemTitle(o,gid))} ${dot}</span>`:'';}).join('')+pageMoreBtn('orders',list.length);
     const rc=readyCount(o),tot=(o.items||[]).length;
     const ready=st==='ready';
     const altN=altsForOrder(o.id).length;
     return `<div class="card ocard" onclick="openDetail('${o.id}')">
-      <div class="top"><div><div class="ono">#${esc(o.orderNo)} ${altN?`<span style="color:var(--saffron2)">🔧${altN}</span>`:''}${(custSampleCount(o)&&!o.custSampleBack)?`<span style="color:var(--saffron2)" title="${t('smp_hold')}">📦</span>`:''}</div>
+      <div class="top"><div><div class="ono">#${esc(onoLabel(o))} ${altN?`<span style="color:var(--saffron2)">🔧${altN}</span>`:''}${(custSampleCount(o)&&!o.custSampleBack)?`<span style="color:var(--saffron2)" title="${t('smp_hold')}">📦</span>`:''}</div>
         <div class="name">${esc(o.customerName)}</div><div class="meta">📞 ${esc(o.phone||'—')}</div></div>
         <div class="deliv ${dcls}">${dtxt}</div></div>
       <div class="gtags">${tags||'<span class="gtag">'+t('no_items')+'</span>'}</div>
@@ -16853,7 +16925,7 @@ function printDeliveries(){
   const rows=list.map(o=>{const rc=readyCount(o),tot=(o.items||[]).length;
     const items=sortItems(o.items).map(gid=>{const g=G(gid),st=itemStatusOf(o,gid),done=(st==='ready'||st==='delivered');
       return `<span style="display:inline-block;margin:2px 6px 2px 0;padding:2px 7px;border:1px solid #ccc;border-radius:10px;font-size:12px;${done?'background:#e8f6ec;border-color:#bfe3c9':''}">${esc(g?g.n:'')}: ${esc(sLabel(st))}</span>`;}).join('');
-    return `<div class="o"><div class="oh"><b>#${esc(o.orderNo)} ${esc(o.customerName)}</b><span>${fmtDate(o.deliveryDate)} · ${rc}/${tot} ready${orderBaaki(o)>0?' · Bal '+money(orderBaaki(o)):''}</span></div><div>${items}</div></div>`;}).join('');
+    return `<div class="o"><div class="oh"><b>#${esc(onoLabel(o))} ${esc(o.customerName)}</b><span>${fmtDate(o.deliveryDate)} · ${rc}/${tot} ready${orderBaaki(o)>0?' · Bal '+money(orderBaaki(o)):''}</span></div><div>${items}</div></div>`;}).join('');
   const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Deliveries</title><style>
     *{font-family:Arial,sans-serif;color:#111}body{margin:20px}
     .hd{display:flex;justify-content:space-between;border-bottom:3px solid #c97e10;padding-bottom:6px;margin-bottom:12px}
@@ -17223,7 +17295,7 @@ function openCustomer(id){
       <button class="btn sm primary" style="padding:5px 12px" onclick="cuAddGarment('${id}')">+ ${t('cu_meas_add')}</button></div>
     ${blocks||`<p class="hint">${t('cu_meas_none')}</p>`}
     <div class="section-h">${t('cust_orders')} (${orders.length})</div>
-    ${orders.map(o=>`<div class="cust-result" onclick="closeSheet();openDetail('${o.id}')"><div><b>#${esc(o.orderNo)}</b> <span class="hint">${fmtDate(o.created)}</span></div><div class="hint">${money(o.total)}${orderBaaki(o)>0?` · <span style="color:var(--saffron2)">${t('baaki')} ${money(orderBaaki(o))}</span>`:''}</div></div>`).join('')||'<p class="hint">—</p>'}
+    ${orders.map(o=>`<div class="cust-result" onclick="closeSheet();openDetail('${o.id}')"><div><b>#${esc(onoLabel(o))}</b> <span class="hint">${fmtDate(o.created)}</span></div><div class="hint">${money(o.total)}${orderBaaki(o)>0?` · <span style="color:var(--saffron2)">${t('baaki')} ${money(orderBaaki(o))}</span>`:''}</div></div>`).join('')||'<p class="hint">—</p>'}
     ${bills.length?`<div class="section-h">${t('cust_bills')} (${bills.length})</div>
       ${bills.map(b=>`<div class="cust-result" onclick="closeSheet();openInvoicePreview('sale','${b.id}')"><div><b>${esc((b.invoice&&b.invoice.no)||b.no||b.invNo||'—')}</b> <span class="hint">${fmtDate(b.date||b.created)}</span></div><div class="hint">${money(orderTotal(b))}${orderBaaki(b)>0?` · <span style="color:var(--saffron2)">${t('baaki')} ${money(orderBaaki(b))}</span>`:''} <span style="color:var(--saffron2)">›</span></div></div>`).join('')}`:''}
     ${alts.length?`<div class="section-h">${t('cust_alts')} (${alts.length})</div>
@@ -17964,6 +18036,10 @@ function memberBillTag(o,mid,multi){
   const ono=memberOno(o,mid);
   return nm + ((ono && ono!==o.orderNo) ? (' (#'+ono+')') : '');
 }
+/* v713  HIS 16 Sept: "family member add kiya, 30 aur 31 hai, lekin kahin pata nahi chalta."
+   A family order holds one number per person, but every list, card and header showed only
+   the first. They now show all of them: "26202630 + 26202631". One person = unchanged. */
+function onoLabel(o){ try{ return orderNosOf(o||{}).filter(Boolean).join(' + ') || String((o&&o.orderNo)||''); }catch(e){ return String((o&&o.orderNo)||''); } }
 function orderNosOf(rec){
   const out=[];
   const push=v=>{v=String(v||'').trim(); if(v&&out.indexOf(v)<0)out.push(v);};
@@ -18280,11 +18356,15 @@ function ordNoPillHTML(f){
   return `<span class="gtag" style="border-style:dashed;display:inline-flex;align-items:center;gap:2px;padding:2px 8px">#
     <input id="f_ono" value="${esc(n)}" inputmode="numeric" autocomplete="off" aria-label="${t('ono_set')}"
       onchange="ordNoCheck(this)" onfocus="this.select&&this.select()"
-      style="width:${Math.max(5,String(n).length+1)}ch;margin:0;padding:4px 2px;border:0;background:transparent;font-weight:800;min-height:0">✏️</span>`;
+      style="width:${Math.max(5,String(n).length+1)}ch;margin:0;padding:4px 2px;border:0;background:transparent;font-weight:800;min-height:0">✏️</span>${(()=>{
+      const more=(f.members||[]).slice(1).map(m=>String(m.ono||'').trim()).filter(x=>x&&x!==String(n));
+      return more.length?` <span class="gtag" style="padding:2px 8px">👥 ${more.map(x=>'#'+esc(x)).join(' ')}</span>`:''; })()}`;
 }
 function ordNoCheck(el){
   const v=String((el&&el.value)||'').trim();
-  if(v && (DB.orders||[]).some(o=>String(o.orderNo)===v && o.id!==form.editId)){
+  /* v713: a number already given to a PERSON on another family order is taken too */
+  if(v && ((DB.orders||[]).some(o=>o.id!==form.editId && orderNosOf(o).includes(v))
+        || (form.members||[]).slice(1).some(m=>String(m.ono||'')===v))){
     toast(t('t_dup'),'bad'); el.value=form.orderNo||nextOrderNo(); el.focus(); return; }
   form.orderNo=v; try{ save(); }catch(e){}
 }
@@ -18349,7 +18429,7 @@ function quickLenHTML(f,mine,only){
     const sum=measSummary(f,k);
     const smp=!!((f.custSample||{})[k]);
     return `<div class="ql-row ${open?'ql-on':''}" id="ql_${cssId(k)}" onclick="ordStage(2,'${jq(k)}')">
-      <span class="ql-nm">${g.ico} ${esc(g.n)}${instOf(k)>1?' <span class="inst-tag">'+instOf(k)+'</span>':''}</span>
+      <span class="ql-nm">${g.ico} ${esc(g.n)}${instTagHTML(f.items,k)}</span>
       <span class="ql-sum ${(smp||sum)?'':'empty'}">${smp?('📦 '+t('smp_from')):(sum?esc(sum):t('ql_no_meas'))}</span>
       <span class="ql-ic ${pc?'has':''}" onclick="event.stopPropagation();pickItemPhotoQuick('${jq(k)}')" title="${t('photo_label')}">📷${pc>1?'<i>'+pc+'</i>':''}</span>
       <span class="ql-ic ${nt?'has':''}" onclick="event.stopPropagation();itemNoteQuick('${jq(k)}')" title="${t('item_notes')}">📝</span>
@@ -18493,7 +18573,7 @@ function measCardHTML(f,key){
   if(!isOpen){
     return `<div class="mcard collapsed" data-key="${cssId(key)}">
       <div class="mh mh-tap" onclick="itemOpen('${dkey}')">
-        <b>${st.len?'✅':'⬜'} ${g.ico} ${g.n}${instOf(key)>1?' <span class="inst-tag">'+instOf(key)+'</span>':''}</b>
+        <b>${st.len?'✅':'⬜'} ${g.ico} ${g.n}${instTagHTML(f.items,key)}</b>
         <span class="hint" style="margin-left:auto;text-align:right">${st.len?`L <b style="color:var(--saffron2)">${esc(st.len)}</b> · `:`<span style="color:var(--bad)">${t('it_empty')}</span> · `}${st.done}/${st.total}</span>
         <span style="color:var(--saffron2);margin-left:8px">▾</span>
       </div></div>`;
@@ -18743,7 +18823,7 @@ function renderForm(){
         <button class="btn sm ghost" onclick="ordStage(1)">\u{1F465} ${t('wk_back')}</button>
         <span class="wk-pos">${pos} / ${walk.length}</span>
         ${ordNoPillHTML(f)}</div>
-      <h2 style="margin:0 0 12px">${g?g.ico+' '+esc(g.n):''}${instOf(_openItem)>1?' <span class="inst-tag">'+instOf(_openItem)+'</span>':''}</h2>
+      <h2 style="margin:0 0 12px">${g?g.ico+' '+esc(g.n):''}${instTagHTML(f.items,_openItem)}</h2>
       ${measCardHTML(f,_openItem)}
       <div class="fab-pad"></div>`;
     _sheetFull=true; showSheet(); bindMeasInputs(); bindDraftAutosave();
@@ -19085,7 +19165,18 @@ function measLabelOf(gid,k,fallback){
 }
 function mcols(g){return itemCols(g).map(c=>({...c,n:measLabelOf(g.id,c.k,c.n)}))
   .concat(((DB.measLib&&DB.measLib[g.id])||[]).map(l=>({k:'x_'+l,n:measLabelOf(g.id,'x_'+l,l)})));}
-function measHidden(gid){return (DB.measHide&&DB.measHide[gid])||[];}
+/* v714 - HIS 16 Sept (and 13 Sept before it): "Upper Belly, Bicep har order me aa jaate hain,
+   hide karta hoon phir bhi next order me aa jaate hain." His rule: Length, Chest, Belly, Hip,
+   Shoulder, Sleeve, Neck always; Upper Belly, Bicep, Pindli only when he asks, for that order.
+   Those three were hidden only on garments where he had switched them off one by one, so a
+   Kurta still showed them. They are now OFF by default on every garment, unless the shop has
+   starred them for that garment (measShow). A value already written always shows (cardCols). */
+function measHidden(gid){
+  const h=(DB.measHide&&DB.measHide[gid])||[];
+  const on=(DB.measShow&&DB.measShow[gid])||[];
+  const sec=MEAS_SECONDARY.filter(k=>!on.includes(k)&&!h.includes(k));
+  return sec.length?h.concat(sec):h;
+}
 function vcols(g){const h=measHidden(g.id);return mcols(g).filter(c=>!h.includes(c.k));}
 /* ══════════ v640 — A NAAP FOR THIS ORDER ONLY ══════════
    HIS 13 Sept: "Length, Chest, Belly, Hip, Shoulder, Sleeve, Neck ye to mandatory hai hi.
@@ -19209,9 +19300,12 @@ function manageMeas(gid,ctx){ctx=ctx||'order';const rerender=ctx==='alt'?renderA
 }
 function toggleMeasField(gid,k,ctx){
   const sc=$('#sheet')?$('#sheet').scrollTop:0;      // keep the list exactly where it was
+  const wasOff=measHidden(gid).includes(k);          /* v714: the state he SEES, defaults included */
   DB.measHide=DB.measHide||{}; DB.measHide[gid]=DB.measHide[gid]||[];
-  const i=DB.measHide[gid].indexOf(k);
-  if(i>=0)DB.measHide[gid].splice(i,1); else DB.measHide[gid].push(k);
+  const i0=DB.measHide[gid].indexOf(k);
+  if(wasOff){ if(i0>=0)DB.measHide[gid].splice(i0,1); }
+  else if(i0<0)DB.measHide[gid].push(k);
+  const i=wasOff?0:-1;
   /* v189: turning a field ON is remembered as an explicit choice, not just as "absent
      from the hidden list". Bicep and the other few auto-folded columns look identical
      to an untouched default otherwise, which is why switching Bicep on appeared to do
@@ -19474,7 +19568,10 @@ function custHits(q,limit){
   const raw=String(q||'').trim();
   const all=(DB.customers||[]);
   if(!raw)return all.slice().reverse().slice(0,lim);
-  const lc=raw.toLowerCase(), dq=phDigits(raw);
+  /* v713  HIS 16 Sept: "Test Order" offered "add as new", "Test Order 1" listed six
+     strangers. The "1" was being matched against every phone number. Digits are a phone
+     search only when the box holds nothing but a phone (digits, spaces, + - ( )). */
+  const lc=raw.toLowerCase(), dq=/^[\d\s+\-()]+$/.test(raw)?phDigits(raw):'';
   return all.filter(c=>{
     if((c.name||'').toLowerCase().includes(lc))return true;
     if(!dq)return false;
@@ -19607,6 +19704,17 @@ function removeItem(key){
       }
     }
     renderForm();
+    /* v713  HIS 16 Sept: "Removed · Undo bahut der tak rehta hai, uska koi sense nahi."
+       A chip is a switch. Taking off a piece that holds nothing he wrote — no naap of his
+       own, no design, photo, voice, note or variant — needs no Undo: tapping the chip again
+       IS the undo. Undo stays only when real work would otherwise be gone. */
+    const _own=(()=>{ const m=snap.m||{}, a=snap.auto||{};
+      if(Object.keys(m).some(k=>String(m[k]||'').trim()!==''&&!a[k]))return true;
+      if(snap.design&&Object.keys(snap.design).some(k=>{ const v=snap.design[k]; return Array.isArray(v)?v.length:String(v||'').trim()!==''; }))return true;
+      if((snap.photos||[]).length||(snap.voice||[]).length)return true;
+      if(String(snap.notes||'').trim()||snap.variant)return true;
+      return false; })();
+    if(!_own)return;
     undoOffer(t('t_removed'), ()=>{
       if(!form)return;
       form.items.splice(Math.min(snap.i,form.items.length),0,key);
@@ -20022,7 +20130,14 @@ function saveOrder(){
     return;
   }
   if(!f.items.length){toast(t('t_no_item'),'bad');return;}
-  if(DB.orders.find(o=>String(o.orderNo)===String(f.orderNo)&&o.id!==f.editId)){toast(t('t_dup'),'bad');return;}
+  /* v713: every number this order claims — its own and each person's — must be free in the
+     whole book (other orders' people included) and must not repeat inside this order. */
+  { const _own=String(f.orderNo||'').trim();
+    const _ppl=(f.members||[]).slice(1).map(m=>String(m.ono||'').trim()).filter(Boolean);
+    const _clash=[_own].concat(_ppl).filter(Boolean)
+      .find(v=>DB.orders.some(o=>o.id!==f.editId && orderNosOf(o).map(x=>String(x).trim()).includes(v)));
+    const _inner=_ppl.some((v,i)=>v===_own || _ppl.indexOf(v)!==i);
+    if(_clash||_inner){ toast(t('t_dup')+(_clash?' #'+_clash:''),'bad'); return; } }
   /* v187 — HIS #1: "mobile number agar same hai to save karne se pehle poochna chahiye."
      The number was already treated as the identity, but SILENTLY: a salesman typing a
      fresh name against an old number quietly attached the order to the old customer and
@@ -21024,6 +21139,9 @@ async function openDetail__inner(id,focusGid){
     const _open=(_odItem===gid);
     const _nm=cols.filter(col=>v[col.k]).length;
     return `<div class="mcard${urg?' mcard-urg':''}"><div class="mh mh-tap" onclick="odItemToggle('${gid}')">
+        ${/* v715 — HIS: "har item ke bagal me cross do, hatane ke baad undo." */''}
+        <button class="btn sm ghost od-x-piece" title="${t('remove_piece')}" aria-label="${t('remove_piece')}"
+          onclick="event.stopPropagation();odRemovePiece('${o.id}','${jq(gid)}')">\u2715</button>
         <b>${g.ico} ${esc(itemTitle(o,gid))}${_who?` <span class="who-tag">${esc(_who)}</span>`:''}${urg?` <span class="urg-tag">🔴 ${t('urgent')}</span>`:''}</b>
         <span class="hint">${v.L?('L '+esc(v.L)+' · '):''}${_nm} ${t('meas')} · ${sLabel(itemStatusOf(o,gid))} ${_open?'▴':'▾'}</span></div>
       ${/* v422: the one line that answers the phone. The full journey lives inside
@@ -21047,9 +21165,12 @@ async function openDetail__inner(id,focusGid){
         <div class="media-row" id="dip_${_cid}" style="flex:1;display:flex;gap:8px;flex-wrap:wrap"></div>
         <button class="btn sm ghost" title="${t('add_photo')}" onclick="odAddItemPhoto('${o.id}','${jq(gid)}')">📷 ${t('ph_item')}</button></div>
       <div id="div_${_cid}" style="margin-top:4px"></div>
-      ${sStat}
-      <button class="btn sm ghost block" style="margin-top:10px;text-align:left" onclick="odProdToggle('${jq(gid)}')">⚙️ ${t('od_production')}${_prodMark?` · ${_prodMark}`:''} ${_odProd[gid]?'▴':'▾'}</button>
+      ${/* v715 — HIS: "process, karigar yahan clumsy lagta hai… ek button se sab khule." The stage
+           row now lives inside the Production fold with the karigar and urgent controls; the
+           fold's own line already says the stage. */''}
+      <button class="btn sm ghost block" style="margin-top:10px;text-align:left" onclick="odProdToggle('${jq(gid)}')">⚙️ ${t('od_production')} · ${sLabel(ist)}${_prodMark?` · ${_prodMark}`:''} ${_odProd[gid]?'▴':'▾'}</button>
       ${_odProd[gid]?`
+        ${sStat}
         <button class="btn sm ${urg?'danger':'ghost'} block" style="margin-top:8px" onclick="toggleUrgent('${o.id}','${gid}')">${urg?'🔴 '+t('urgent_on'):'⚪ '+t('urgent_off')}</button>
         ${legLine}${sQc}${ksel}
         <div class="row" style="margin-top:10px;gap:6px"><button class="btn sm ghost ic-btn" title="${t('whatsapp')}" onclick="itemWA('${o.id}','${gid}')">💬</button><button class="btn sm ghost ic-btn" title="${t('print')}" onclick="itemPrint('${o.id}','${gid}')">🖨️</button></div>`:''}
@@ -21057,7 +21178,7 @@ async function openDetail__inner(id,focusGid){
 
   $('#detailPane').innerHTML=`
     <div class="detail-hd"><button class="back" onclick="go('orders')">←</button>
-      <div style="flex:1"><div style="color:var(--saffron);font-size:13px;font-weight:700">#${esc(o.orderNo)} <span title="${t('od_edit_no')}" onclick="event.stopPropagation();odEditNo('${o.id}')" style="cursor:pointer;opacity:.7;text-decoration:underline">${t('change')}</span></div><h2 onclick="odEditCust('${o.id}')" style="cursor:pointer">${esc(o.customerName)}</h2></div>
+      <div style="flex:1"><div style="color:var(--saffron);font-size:13px;font-weight:700">#${esc(onoLabel(o))} <span title="${t('od_edit_no')}" onclick="event.stopPropagation();odEditNo('${o.id}')" style="cursor:pointer;opacity:.7;text-decoration:underline">${t('change')}</span></div><h2 onclick="odEditCust('${o.id}')" style="cursor:pointer">${esc(o.customerName)}</h2></div>
       ${/* v639: look at it · fix it · send it — the three things anyone does with a saved
            record. Sending was on the face and fixing was two taps inside ⋯. HIS words:
            "entry hone ke baad edit sabse pehle saamne hi rehna chahiye." */''}
@@ -21905,6 +22026,7 @@ function delAlteration(id){
   if(payGuard(_a0,{force:()=>{ _a0.payments=[]; save(); delAlteration(id); },
                    msg:(n,amt)=>t('del_alt_pay',{n:n,amt:amt}),
                    how:t('del_ord_pay_how'), open:()=>openAltDetail(id)}))return;
+  _delWhat=delWhat((_a0||{}).altNo,(_a0||{}).customerName,0);
   delAsk(t('confirm_alt_del_msg'),async()=>{const a=altById(id);
   for(const p of(a.photos||[]))await mDel(p);
   for(const e of(a.log||[]))if(e.voiceId)await mDel(e.voiceId);
@@ -22412,12 +22534,13 @@ function renderInvoiceForm(){
          button instead of owning a line. The phone box appears only when it is actually
          needed: a customer nobody has saved yet, which is when the number matters. */''}
     <div id="invCustSearchWrap" style="${(f.customerId||f.customerName)?'display:none':''};margin-bottom:10px">
-      <div style="position:relative">
+      <div style="display:flex;gap:8px;align-items:center">
+        ${/* v715 — HIS 17 Sept: the 📇 button sat on top of the search box's own edge. Side by side now. */''}
         <input id="inv_cname" placeholder="🔍 ${t('inv_cust_ph')}" autocomplete="off"
           onfocus="invCustSearch(this.value)" oninput="invCustSearch(this.value);cbPaint('inv')"
-          value="${esc(f.customerName||'')}" style="padding-right:46px">
-        ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost"
-          style="position:absolute;right:5px;top:50%;transform:translateY(-50%);padding:5px 9px;flex:0 0 auto"
+          value="${esc(f.customerName||'')}" style="flex:1;min-width:0;margin:0">
+        ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn ghost"
+          style="flex:0 0 auto;padding:0 12px;align-self:stretch"
           title="${t('from_contacts')}" onclick="invPickContact()">📇</button>`:''}
       </div>
       <div id="invCustResults"></div>
@@ -22571,13 +22694,15 @@ function renderInvoiceForm(){
       <div class="field" style="margin:0"><label>👔 ${t('pos_orderno')}</label>
         <div style="display:flex;gap:4px">
           <input id="pos_ono" list="posOrderList" class="bold-in" value="${esc(f.orderNo||'')}"
-            placeholder="${t('pos_ono_auto')}" style="flex:1;min-width:0" onchange="posLinkOrder(this.value)">
-          <button class="btn ghost" style="flex:0 0 auto;padding:0 8px" onclick="invLoadFromOrder()">🔍</button>
+            placeholder="🔍 ${t('pos_ono_auto')}" style="flex:1;min-width:0" onchange="posLinkOrder(this.value)"
+            ${/* v715 — HIS: "search likha hi hai, to alag search button kyon?" The box offers matching
+                 orders as he types; a tap on an empty box opens the full order list once. */''}
+            onclick="if(!this.value&&!this._opened){this._opened=1;invLoadFromOrder();}">
         </div>
         ${(()=>{ if(f.orderNo)return ''; const oo=invCustOpenOrders(f); if(!oo.length)return '';
           return `<div class="gtags" style="margin-top:6px">${oo.slice(0,6).map(o=>{
             const d=o.orderDate||(o.created||'').slice(0,10);
-            return `<span class="gtag" style="cursor:pointer" onclick="invLinkOrder('${jq(o.id)}')">#${esc(o.orderNo||'')}${d?' \u00B7 '+fmtDate(d):''}</span>`;}).join('')}</div>`; })()}
+            return `<span class="gtag" style="cursor:pointer" onclick="invLinkOrder('${jq(o.id)}')">#${esc(onoLabel(o))}${d?' \u00B7 '+fmtDate(d):''}</span>`;}).join('')}</div>`; })()}
         ${/* ══════════ v534 — TWO ORDERS, ONE NAME, NO WAY TO TELL ══════════
              HIS 7 Sept: "Rohit Sarraf ke naam se purana bhi tha naya bhi tha, to samajh
              mein nahi aa raha tha naya kaunsa tha, purana kaunsa tha."
@@ -22666,7 +22791,7 @@ function renderInvoiceForm(){
            one tap, they have simply stopped being a second block. */''}
       ${tiles?`<div class="tap-mini" style="display:flex;justify-content:space-between;align-items:center">
         <span>\uD83D\uDECD\uFE0F ${t('pos_items_hd')}</span>
-        <button class="btn sm ghost" style="padding:3px 12px;font-size:12px" onclick="posManageItems()">\u270F\uFE0F ${t('pos_edit_short')}</button>
+        <button class="btn sm ghost" style="padding:3px 12px;font-size:14px" title="${t('pos_edit_short')}" aria-label="${t('pos_edit_short')}" onclick="posManageItems()">\u270F\uFE0F</button>
       </div>
       <div class="pos-tiles">${tilesTop}${_posTileMore?tilesRest:''}
         <div class="pos-tile add" onclick="posAddMenu()"><b>\uD83D\uDD0E ${t('pos_add_item')}</b></div>
@@ -23819,7 +23944,7 @@ function ordAddSalesman(){
 let _invOrdQ='';
 function invOrderRows(){
   const raw=String(_invOrdQ||'').trim().toLowerCase();
-  const dq=phDigits(raw);
+  const dq=/^[\d\s+\-()]+$/.test(raw)?phDigits(raw):'';   /* v713: a name with a digit is not a phone */
   let list=(DB.orders||[]).filter(o=>(o.items||[]).length);
   if(raw){
     list=list.filter(o=>{
@@ -23846,7 +23971,7 @@ function invOrderRowsHTML(){
     const names=sortItems(o.items||[]).map(g=>{const x=G(g);return x?x.n:g;}).join(', ');
     const billed=!!o.invoice;
     return `<div class="cust-result" style="margin-bottom:8px${billed?';opacity:.62':''}" onclick="invLinkOrder('${jq(o.id)}')">
-      <div style="min-width:0"><b>#${esc(o.orderNo)} · ${esc(o.customerName||'')}</b>
+      <div style="min-width:0"><b>#${esc(onoLabel(o))} · ${esc(o.customerName||'')}</b>
       <div class="hint">${esc(names)}</div>
       <div class="hint">${o.phone?'📞 '+esc(o.phone)+' · ':''}📅 ${fmtDate(o.deliveryDate)}${o.total?' · ₹'+esc(o.total):''}</div>
       ${billed?`<div class="hint" style="color:var(--ok)">🧾 ${t('inv_ord_billed')} · ${esc((o.invoice||{}).no||'')}</div>`:''}</div>
@@ -25315,6 +25440,7 @@ function delSale(id){
     }
   }
   const nRet=(DB.salesReturns||[]).filter(r=>r.saleId===id).length;
+  { const _r=(DB.sales||[]).find(x=>x.id===id)||{}; _delWhat=delWhat((_r.invoice||{}).no,_r.customerName,orderTotal?orderTotal(_r):0); }
   delAsk(nRet?t('del_with_returns',{n:nRet}):t('confirm_del_msg'),()=>{
   unwindReturnsFor('sale',id);
   revertStockByRef(id);                       // put sold pieces / meters back in stock
@@ -26284,7 +26410,8 @@ function allInvoices(){
   list.sort((x,y)=>String(y.inv.date||'').localeCompare(String(x.inv.date||'')));
   return list;
 }
-let invQ='', invSort='new';
+let invQ='', invSort='new', invDueOnly=false;
+function invDueToggle(){ invDueOnly=!invDueOnly; renderInvoices(); }
 let invPeriod='all', invFrom='', invTo='';
 /* v547: which bills the period lets through. 'all' is the old behaviour, unchanged. */
 /* v648: one period for the whole app - the bill list stops keeping its own. */
@@ -26658,8 +26785,6 @@ function renderInvoices(keepFocus){
   const head=`<div class="detail-hd">
       <button class="back" onclick="go('home')">\u2190</button>
       <div style="flex:1"><h2>\uD83E\uDDFE ${t('invoices')}</h2></div>
-      <button class="btn sm ghost" title="${t('ex_pdf')}" onclick="invListPdf()">\uD83D\uDCC4</button>
-      <button class="btn sm ghost" title="${t('print')}" onclick="invListPrint()">\uD83D\uDDA8\uFE0F</button>
       <button class="btn sm ghost" title="${t('hub_more')}" onclick="saleHub()">\u22ef</button>
     </div>`;
 
@@ -26698,9 +26823,17 @@ function renderInvoices(keepFocus){
       return no.includes(q)||nm.includes(q)||ph.includes(q)||ref.includes(q)||(!!amt&&amt.includes(q));
     }catch(e){ return false; }
   }):all;
+  const _listAll=list;
+  const list2=invDueOnly?_listAll.filter(x=>{ try{ return orderBaaki(x.rec)>0.5 && !invIsCancelled(x.rec); }catch(e){ return false; } }):_listAll;
 
-  const searchBox=`<div class="field" style="margin-bottom:10px">
+  /* v715 — HIS 17 Sept, Vyapar's Sale list beside ours: "barabar hi information, lekin
+     hamara kitna clumsy." The period was written three times (bar, heading, month line),
+     the total twice, and every bill spent a whole line on one button. Search and period
+     now share ONE line, the figures sit in ONE strip — and the Balance half of it is the
+     Unpaid filter — and a bill takes two lines. Nothing was taken away. */
+  const searchBox=`<div class="ivtools"><div class="field">
     <input id="invSearch" value="${esc(invQ)}" placeholder="🔍 ${t('inv_search_ph')}" oninput="setInvQ(this.value)"></div>`
+    + rangeBarHTML() + `</div>`
     + sortChips(invSort,'setInvSort')
     /* ══════════ v547 — THE BILL LIST HAD NO DATES ══════════
        HIS 7 Sept: "search bar hai, uske neeche Newest first hai... uske baad custom dates
@@ -26715,7 +26848,7 @@ function renderInvoices(keepFocus){
        month / Custom, with its own pair of date boxes. Same bar as every report now, so a
        date is picked the same way wherever he is. Sort stays: Newest / Oldest / Custom is
        his own idea and Vyapar has nothing like it. */
-    + rangeBarHTML();
+    ;
 
   /* ══════════════ v494 — THE UNFINISHED BILLS HAD NO SHELF ══════════════
      HIS 5 Sept: "invoice ke andar abhi bhi draft ban raha hai kya, ki sale wali list par
@@ -26738,8 +26871,9 @@ function renderInvoices(keepFocus){
      nothing else — so the one figure he wants after picking a date range, what the whole
      thing comes to, was the one figure missing. It totals what is ON SCREEN, so it follows
      the period and the search: pick July and it shows July's. */
-  const _tot=list.reduce((a,x)=>a+(invCompute(x.inv).total||0),0);
-  const _due=list.reduce((a,x)=>a+Math.max(0,orderBaaki(x.rec)||0),0);
+  const _tot=list2.reduce((a,x)=>a+(invCompute(x.inv).total||0),0);
+  const _gst=list2.reduce((a,x)=>{ try{ const c=invCompute(x.inv); return a+(c.cgst||0)+(c.sgst||0)+(c.igst||0); }catch(e){ return a; } },0);
+  const _due=list2.reduce((a,x)=>a+Math.max(0,orderBaaki(x.rec)||0),0);
   /* ══════════ v619 — THE HEADING SAID "ALL INVOICES" WHILE A FILTER WAS ON ══════════
      HIS 10 Sept, with Custom dates lit up and one bill on screen: "custom date apne aap
      kaise aa raha hai?"
@@ -26753,27 +26887,18 @@ function renderInvoices(keepFocus){
      A filter he cannot see is a filter he cannot trust. */
   const _perLbl = invPerLabel();
   const _filtered = false;   /* v710: the period is changed on the bar below, never by a ✕ that did nothing */
-  const title=draftBar+`<div class="kv" style="margin:0 0 4px">
-    <h3 style="margin:0;font-size:16px">📋 ${esc(_perLbl)}${_filtered?`<button class="btn sm ghost"
-      style="margin-left:8px;padding:2px 9px" onclick="setInvPeriod('all')" title="${t('inv_clear')}">✕</button>`:''}</h3>
-    <span class="hint">${t('inv_count',{n:list.length})}${q?' / '+all.length:''}</span></div>`
-    +(list.length?`<div class="kv" id="invTotBar" style="margin:0 0 10px;padding:7px 10px;border:1px solid var(--line);border-radius:10px">
-      <span style="flex:1;min-width:0">
-        <span class="hint" style="display:block">${t('inv_total_shown')}</span>
-        <b style="font-size:15px">${money(r2(_tot))}${_due>0?' \u00B7 '+t('baaki')+' '+money(r2(_due)):''}</b>
-      </span>
-      ${/* ══════════ v550 — THE ANSWER WAS ON SCREEN AND COULD NOT LEAVE IT ══════════
-           HIS 7 Sept: "is screen mein kahin PDF ka scope baith sakta hai kya? To bhi ek baar
-           mera kaam nikal jayega."
-           It can, and this is the right spot for it — the button belongs beside the figure it
-           prints, not in a menu three taps away. He has already chosen the period and the
-           search; the sheet takes exactly what is in front of him, in the order shown, with
-           the same total underneath. It is not the full Sale Report yet — no missing-number
-           check, no sort by number — but it is the thing he actually needs today, and it
-           costs him one tap. */''}
-      ${/* v648: PDF and print moved into the one header bar - they were here AND up there,
-           two doors to the same job on one screen. Print lives beside PDF now. */''}
-    </div>`:'');
+  const title=draftBar+`<div class="ivstrip" id="invTotBar">
+      <div><div class="lbl"><span>${t('inv_count',{n:list2.length})}${q?' / '+all.length:''}</span>
+          <span class="ivacts" onclick="event.stopPropagation()">
+            <button class="btn sm ghost" title="${t('ex_pdf')}" onclick="invListPdf()">\uD83D\uDCC4</button>
+            <button class="btn sm ghost" title="${t('print')}" onclick="invListPrint()">\uD83D\uDDA8\uFE0F</button></span></div>
+        <div class="fig">${money(r2(_tot))}</div>
+        <div class="lbl"><span>${t('inv_tax')} ${money(r2(_gst))}</span></div></div>
+      <div class="due${invDueOnly?' on':''}" onclick="invDueToggle()" title="${invDueOnly?t('inv_f_due_off'):t('inv_f_due')}">
+        <div class="lbl"><span>${t('baaki')}</span><span>${invDueOnly?'\u2715':'\u25BE'}</span></div>
+        <div class="fig" style="color:${_due>0?'var(--bad)':'var(--ok)'}">${money(r2(_due))}</div>
+        <div class="lbl"><span>${invDueOnly?t('inv_f_due_off'):t('inv_f_due')}</span></div></div>
+    </div>`;
 
   /* ══════════ v514 — THE LAST SEARCH BOX THAT REBUILT ITSELF ══════════
      HIS 5 Sept: "koi letter type karte hi keyboard blink ho raha hai." Ledger was cured in
@@ -26787,7 +26912,7 @@ function renderInvoices(keepFocus){
      touched, so it cannot lose focus and the keyboard has nothing to react to. */
   let body='';
   const amtOf=x=>invCompute(x.inv).total;
-  if(!list.length){
+  if(!list2.length){
     /* v560: say WHICH of the two emptied it — the range or the search — and give the way
        out right there, because the chips above are easy to miss when the list is bare. */
     const _rangeEmpty = !all.length;   /* v710: the book has bills (the empty-book exit ran earlier) — the PERIOD emptied it */
@@ -26795,7 +26920,7 @@ function renderInvoices(keepFocus){
       ${_rangeEmpty?`<button class="btn ghost" style="margin-top:10px" onclick="rpPickPeriod()">📅 ${t('rp_period')}</button>`:''}</div>`;
   }
   else if(invSort==='hi'||invSort==='lo'){
-    const flat=applySort(list,invSort,x=>x.inv.date,amtOf);
+    const flat=applySort(list2,invSort,x=>x.inv.date,amtOf);
     /* Orders and customers were paginated long ago; these three were missed, so a shop
        with a few thousand bills paints the whole list in one go and the iPad locks. */
     body=pageSlice('inv',flat).map(x=>invCardHTML(x)).join('')+pageMoreBtn('inv',flat.length);
@@ -26806,19 +26931,22 @@ function renderInvoices(keepFocus){
      painted every bill in the shop on every keystroke: 403 cards, ~240ms a letter on a
      four-hundred-bill book, and far worse on a real one. It pages like the others now, and
      the month a bill sits under does not change because fewer are shown. */
-  const shown=pageSlice('inv',list);
+  const shown=pageSlice('inv',list2);
   const groups={};
   shown.forEach(x=>{const mk=String(x.inv.date||'').slice(0,7)||'—';(groups[mk]=groups[mk]||[]).push(x);});
   const monthName=mk=>{if(mk==='—')return '—';const[y,m]=mk.split('-');return new Date(+y,+m-1,1).toLocaleDateString('en-IN',{month:'long',year:'numeric'});};
 
-  body=Object.keys(groups).sort().reverse().map(mk=>{
+  const _months=Object.keys(groups);
+  body=_months.sort().reverse().map(mk=>{
     const rows=applySort(groups[mk],invSort,x=>x.inv.date,x=>invCompute(x.inv).total);
     let sales=0,tax=0;
     rows.forEach(x=>{const c=invCompute(x.inv);sales+=c.total;tax+=c.cgst+c.sgst+c.igst;});
+    if(_months.length<2)return rows.map(x=>invCardHTML(x)).join('');
+    return `<div class="ivmonth"><span>${monthName(mk)}</span><span>${money(r2(sales))}</span></div>`+rows.map(x=>invCardHTML(x)).join('');
     return `<div class="section-h" style="display:flex;justify-content:space-between;align-items:baseline">${monthName(mk)}
       <span style="font-size:12px;font-weight:600;color:var(--txt2)">${t('inv_sales')}: <b style="color:var(--txt)">${money(r2(sales))}</b> · ${t('inv_tax')}: <b style="color:var(--txt)">${money(r2(tax))}</b></span></div>`+
       rows.map(x=>invCardHTML(x)).join('');
-  }).join('')+pageMoreBtn('inv',list.length);
+  }).join('')+pageMoreBtn('inv',list2.length);
   }
   /* v514: one write for the frame, one for the rows — and when only the rows changed,
      only the rows are written. */
@@ -26835,42 +26963,18 @@ function renderInvoices(keepFocus){
 }
 function invCardHTML(x){
   const c=invCompute(x.inv);
-  const ref=x.kind==='alt'?('🔧 #'+esc(x.rec.altNo)):(x.kind==='sale'?('🧾 '+t('inv_tag_direct')):('👔 #'+esc(x.rec.orderNo)));
+  const ref=x.kind==='alt'?('#'+esc(x.rec.altNo)):(x.kind==='sale'?t('inv_tag_direct'):('#'+esc(onoLabel(x.rec))));
   const due=orderBaaki(x.rec);
   const _cx=invIsCancelled(x.rec);
-  return `<div class="card ocard" style="${_cx?'opacity:.55':''}" onclick="openInvoicePreview('${x.kind}','${x.rec.id}')">
-    <div class="top"><div><div class="ono">🧾 ${esc(x.inv.no)}${_cx?` <span style="color:var(--bad);font-weight:800">· ${t('inv_cancel_tag')}</span>`:''}</div>
-      <div class="name">${esc(x.rec.customerName||'—')}</div>
-      ${/* v548: "#2619 · 7 Sept · 📅 24 Sept" broke across two rows and left the word
-           "Sept" sitting alone underneath — on every one of 225 cards. It holds one line
-           now and trims instead of wrapping. */''}
-      <div class="meta" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ref} · ${fmtDate(x.inv.date)}${x.rec.deliveryDate?' · 📅 '+fmtDate(x.rec.deliveryDate):''}</div></div>
-      <div style="text-align:right"><div style="font-weight:800;font-size:16px">${money(c.total)}</div>
-      ${/* ══════════ v548 — A LIST THAT LOOKED LIKE AN EMERGENCY ══════════
-           HIS 7 Sept: every card carried "Balance (customer pays) ₹3,280" in red. Money
-           still to come is ordinary — most bills in a tailoring shop sit part-paid for a
-           week — and painting all 225 of them red says nothing, because when everything is
-           an alarm nothing is. Red is kept for the case that IS a problem: the delivery date
-           has gone and the money has not come. The rest read as a quiet figure, and the long
-           sentence goes with it: "Balance ₹3,280" is the whole of it. */''}
-      ${(()=>{
-        if(due<=0)return `<div style="font-size:11px;color:var(--ok);font-weight:700">\u2713 ${t('inv_paid')}</div>`;
-        const dd=x.rec.deliveryDate||'';
-        const late=dd&&dd<todayISO();
-        return `<div style="font-size:11px;font-weight:700;color:${late?'var(--bad)':'var(--txt2)'}">${t('baaki')} ${money(due)}</div>`;
-      })()}</div></div>
-    ${/* v359 — HIS 27 Aug: "invoice par click kiya to itne saare option aa jaate hain.
-         Ya to edit karna hoga, ya delete, ya kisi ko bhejna hoga... teen chhote chhote
-         button rahe har invoice ke bagal me to kaam ho jaye."
-         Right: seven choices for three jobs. The three he actually does sit on the row
-         itself, one tap each. Tapping the card still opens the full bill, where print and
-         the payment QR live — nothing has been taken away, only moved off the hot path. */''}
-    ${/* v562: the four buttons that used to sit here are all inside ⋯ now, together with
-         Cancel and Print which the row never had. One control, everything a bill can do. */''}
-    <div class="row" style="gap:6px;margin-top:8px;justify-content:flex-end" onclick="event.stopPropagation()">
-      <button class="btn sm ghost" style="flex:0 0 auto;padding:6px 18px;font-size:17px;line-height:1"
-        title="${t('hub_more')}" onclick="invRowMenu('${x.kind}','${jq(x.rec.id)}')">⋯</button>
-    </div>
+  const dd=x.rec.deliveryDate||'';
+  const pill=_cx?`<span class="ivpill cx">${t('inv_cancel_tag')}</span>`
+    :(due<=0?`<span class="ivpill ok">\u2713 ${t('inv_paid')}</span>`
+    :`<span class="ivpill ${dd&&dd<todayISO()?'late':'due'}">${t('baaki')} ${money(due)}</span>`);
+  /* v715: two lines. Who and how much, then which bill, which order, when — and its one menu. */
+  return `<div class="card ivrow" style="${_cx?'opacity:.55':''}" onclick="openInvoicePreview('${x.kind}','${x.rec.id}')">
+    <div class="l1"><span class="nm">${esc(x.rec.customerName||'\u2014')}</span>${pill}<span class="amt">${money(c.total)}</span></div>
+    <div class="l2"><span class="mt">${esc(x.inv.no)} \u00B7 ${ref} \u00B7 ${fmtDate(x.inv.date)}${dd?' \u00B7 \uD83D\uDCC5 '+fmtDate(dd):''}</span>
+      <button class="btn sm ghost more" title="${t('hub_more')}" onclick="event.stopPropagation();invRowMenu('${x.kind}','${jq(x.rec.id)}')">\u22ef</button></div>
   </div>`;
 }
 function focusInvSearch(){const el=$('#invSearch');if(el){const v=el.value;el.focus();el.setSelectionRange(v.length,v.length);}}
@@ -29266,6 +29370,7 @@ function delPurchase(id){
                    msg:(n,amt)=>t('del_pur_pay',{n:n,amt:amt}),
                    how:t('del_pur_pay_how'), open:()=>openPurchaseForm(id)}))return;
   const nRet=(DB.purchaseReturns||[]).filter(r=>r.purId===id).length;
+  _delWhat=delWhat((_p0||{}).billNo,(_p0||{}).supplier,(_p0||{}).total);
   delAsk(nRet?t('del_with_returns',{n:nRet}):t('confirm_del_msg'),async()=>{
   const p=(DB.purchases||[]).find(x=>x.id===id);
   if(p)for(const ph of(p.photos||[]))await mDel(ph);
@@ -31312,9 +31417,12 @@ function staffHub(){
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">👥 ${t('sh_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     
-    ${row('🗓️',t('srp_title'),"staffReport()")}
-    ${row('🧑‍💼',t('rp_salesman'),"salesmanReport()")}
-    ${row('👤',t('sh_master'),"closeSheet();staffSettings()")}
+    ${/* v716 — FOUND BY THE EVERY-BUTTON CRAWL: row() takes (icon, title, SUBTITLE, action),
+         these three passed the action third — it was printed as grey text and the tile did
+         nothing when tapped. */''}
+    ${row('🗓️',t('srp_title'),t('sh_sub_att'),"staffReport()")}
+    ${row('🧑‍💼',t('rp_salesman'),t('sh_sub_sm'),"salesmanReport()")}
+    ${row('👤',t('sh_master'),t('sh_sub_master'),"closeSheet();staffSettings()")}
     <div class="fab-pad"></div>`;
   showSheet();
 }
@@ -31990,7 +32098,8 @@ function odEditNo(oid){
      {label:t('save'),cls:'primary',fn:()=>{
         const v=(($('#odNoIn')||{}).value||'').trim();
         if(!v){toast(t('t_no_ono'),'bad');return;}
-        const dup=(DB.orders||[]).some(x=>x.id!==o.id&&String(x.orderNo||'').trim()===v);
+        const dup=(DB.orders||[]).some(x=>x.id!==o.id&&orderNosOf(x).map(y=>String(y).trim()).includes(v))
+          || (o.members||[]).slice(1).some(m=>String(m.ono||'').trim()===v);   /* v713: people's numbers count */
         if(dup){toast(t('t_dup'),'bad');return;}
         o.orderNo=v; touchOrder(o.id); save(o.id); closeSheet(); refreshDetail(oid);
      }}]);
@@ -32080,6 +32189,28 @@ function toggleUrgent(oid,gid){
   const g=G(gid); o.log=o.log||[];
   o.log.push({id:uid(),ts:new Date().toISOString(),text:(g?g.n+': ':'')+(on?t('urgent_marked'):t('urgent_cleared')),voiceId:null});
   touchOrder(o.id); save(o.id); refreshDetail(oid);
+}
+/* v715 — remove ONE piece from a saved order, right where he is looking, with Undo.
+   Only a piece that has not started its journey: no karigar, still New, no bill line of its
+   own. Anything further along goes through the full edit, which knows how to unwind it. */
+function odRemovePiece(oid,gid){
+  const o=(DB.orders||[]).find(x=>x.id===oid); if(!o||!(o.items||[]).includes(gid))return;
+  const busy=((o.assign||{})[gid]) || (((o.jobs||{})[gid]||[]).length) || itemStatusOf(o,gid)!=='new'
+    || (DB.moves||[]).some(m=>m.refId===oid && m.itemKey===gid);
+  if(busy){ toast(t('od_x_busy'),'bad'); return; }
+  if((o.items||[]).length<=1){ toast(t('od_x_last'),'bad'); return; }
+  const snap=JSON.parse(JSON.stringify(o));
+  o.items=o.items.filter(k=>k!==gid);
+  ['m','design','itemPhotos','itemVoice','itemNotes','variant','mAuto','urgent','custSample','mOn','delivOn','itemStatus','qc']
+    .forEach(f=>{ if(o[f]&&typeof o[f]==='object')delete o[f][gid]; });
+  touchOrder(oid); save(oid);
+  if(_odItem===gid)_odItem=null;
+  refreshDetail(oid);
+  undoOffer(t('t_removed'),()=>{
+    const cur=(DB.orders||[]).find(x=>x.id===oid); if(!cur)return;
+    Object.keys(cur).forEach(k=>{ delete cur[k]; }); Object.assign(cur,snap);
+    touchOrder(oid); save(oid); refreshDetail(oid);
+  });
 }
 function refreshDetail(oid){
   const sh=$('#sheet'); const y=sh?sh.scrollTop:0;
@@ -32244,8 +32375,13 @@ function orderMenu(id){const o=DB.orders.find(x=>x.id===id);const canAlt=o&&orde
    this?" would be fault 8 on his own list: a question that protects nothing. This flag
    carries his answer through, and is spent the moment it is read. */
 let _delForced=0;
-function delAsk(msg,go){ if(_delForced){ _delForced=0; go(); return; }
-  confirmModal(t('confirm_del'), msg, go); }
+/* v714  HIS 16 Sept: "order invoice, purchase invoice ko delete karne se pehle chetavni jaroor."
+   The question was always asked, but it said only "Delete this?". It now names WHAT is going,
+   in bold, and the yes-button says Delete in red. */
+let _delWhat='';
+function delAsk(msg,go,what){ what=what||_delWhat; _delWhat=''; if(_delForced){ _delForced=0; go(); return; }
+  confirmModal(t('confirm_del'), (what?`<b>${esc(what)}</b><br>`:'')+msg, go, null, {yes:t('delete'), no:t('cancel'), cls:'danger'}); }
+function delWhat(no,name,amt){ return [no,name,(+amt?money(+amt):'')].filter(x=>String(x||'').trim()).join(' · '); }
 function payGuard(rec,opt){
   const n=((rec&&rec.payments)||[]).filter(p=>+p.amt).length;
   const got=rec?orderReceived(rec):0;
@@ -32266,6 +32402,7 @@ function delOrder(id){
   if(payGuard(_o0,{msg:(n,amt)=>t('del_ord_pay',{no:esc(_o0.orderNo||''),n:n,amt:amt}),
                    how:t('del_ord_pay_how'), open:()=>openDetail(id),
                    force:()=>{ _o0.payments=[]; save(); delOrder(id); }}))return;
+  _delWhat=delWhat('#'+onoLabel(_o0||{}),(_o0||{}).customerName,orderTotal?orderTotal(_o0||{}):0);
   delAsk(t('confirm_del_msg'),async()=>{
   const i=DB.orders.findIndex(x=>x.id===id); if(i<0)return;
   const o=DB.orders[i];
@@ -32983,7 +33120,7 @@ function buildPrintHTML(o,itemId){
     .dn{margin-top:8px;font-size:14px;color:#444;font-style:italic}
     @media print{@page{margin:12mm}body{margin:0}}
   </style></head><body>
-    <div class="hd"><div class="b">PARAMPARA</div><div class="o">Order #${esc(o.orderNo)}</div></div>
+    <div class="hd"><div class="b">PARAMPARA</div><div class="o">Order #${esc(onoLabel(o))}</div></div>
     <div class="meta"><b>Customer:</b> ${esc(o.customerName)} &nbsp;&nbsp; <b>Phone:</b> ${esc(o.phone||'-')}<br>
       <b>Delivery:</b> ${fmtDate(masterDate(o.deliveryDate))} &nbsp;&nbsp; <b>Order date:</b> ${fmtDate(o.orderDate)}</div>
     ${blocks}
