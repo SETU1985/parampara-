@@ -1105,7 +1105,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v718</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v719</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -2327,6 +2327,7 @@ const T={
   pa_none:'Nothing here needs a second look',
   pty_search:'Search a name…', pty_add:'Add a party', pty_none:'Nobody yet',
   pty_open:'Opening', pty_open_left:'Opening still open', pty_open_none:'No opening entered',
+  sp_title:'Paid to a supplier, filed as an expense', sp_note:'These went out through the Expenses screen under the supplier\u2019s own name, so his balance never moved and the money was counted as an expense. Moving a row puts it against his bills and opening instead. The amount, date and account do not change.', sp_none:'Nothing here \u2014 every supplier payment is where it belongs', sp_count:'{n} to move', sp_move:'Move it', sp_ask:'{a} paid to {n} on {d} will stop being an expense and count against what you owe him. The amount, date and account stay as they are.', sp_done:'Moved',
   pty_open_set:'Set opening balance', pty_open_edit:'Change opening', pty_open_del:'Remove opening',
   pty_ason:'As on', pty_ason_hint:'The day this balance stood. Usually 1 April. No cash moves.',
   pty_settle:'Record a payment', pty_settled:'Paid against opening',
@@ -4596,6 +4597,7 @@ dl_show_hidden:'Show hidden ({n})',
   pa_none:'दोबारा देखने लायक कुछ नहीं है',
   pty_search:'नाम ढूंढें…', pty_add:'पार्टी जोड़ें', pty_none:'अभी कोई नहीं',
   pty_open:'शुरुआती बाकी', pty_open_left:'शुरुआती बकाया बचा है', pty_open_none:'कोई शुरुआती बकाया नहीं',
+  sp_title:'सप्लायर को दिया, पर ख़र्चे में लिखा गया', sp_note:'ये पैसे ख़र्चे वाली स्क्रीन से, सप्लायर के ही नाम के हेड में गए — इसलिए उसका बकाया कम नहीं हुआ और रकम ख़र्चे में गिन ली गई। लाइन हटाने पर वह उसके बिल और शुरुआती बकाया में लगेगी। रकम, तारीख़ और खाता वैसे ही रहेंगे।', sp_none:'कुछ नहीं — हर सप्लायर पेमेंट सही जगह है', sp_count:'{n} लाइन हटानी हैं', sp_move:'सही जगह ले जाएँ', sp_ask:'{d} को {n} को दिए {a} अब ख़र्चा नहीं रहेंगे, उसके बकाया में लगेंगे। रकम, तारीख़ और खाता वैसे ही रहेंगे।', sp_done:'हो गया',
   pty_open_set:'शुरुआती बकाया डालें', pty_open_edit:'शुरुआती बकाया बदलें', pty_open_del:'शुरुआती बकाया हटाएँ',
   pty_ason:'इस तारीख को', pty_ason_hint:'जिस दिन यह बकाया था। आमतौर पर 1 अप्रैल। इससे नकद नहीं हिलता।',
   pty_settle:'भुगतान दर्ज करें', pty_settled:'शुरुआती बाकी में जमा',
@@ -13083,6 +13085,53 @@ function credReconcile(){
      · an opening balance sits there and nothing has ever moved against it
      · more has been paid than was ever owed
    THIS SCREEN CHANGES NOTHING. It names them so he can open each one and decide. */
+/* ══════════ v719 — A SUPPLIER'S PAYMENT FILED AS A HOUSEHOLD EXPENSE ══════════
+   HIS 18 Sept, off Neha Enterprise's own ledger: opening ₹39,943 to pay, five payments made
+   totalling ₹89,789 — and Payables still showed the full ₹39,943 as owing. Every one of
+   those five had been entered from the Expenses screen, so each carried refKind 'expense'
+   with the SUPPLIER'S OWN NAME as its head. Two things went wrong at once and neither is
+   visible on the screen he was reading: openingPays() counts 'openpay' and 'manual' and
+   never 'expense', so the opening stayed untouched; and the money landed in Operating
+   Expenses, so profit was under-reported by the same amount.
+   Staff and karigars are deliberately NOT in this list — Ramesh's and Vicky's rows carry the
+   'staff' hat and the वेतन head, and salary belongs in expenses. Only a name the PURCHASE
+   side already knows, filed under a head that is his own name, is a payment wearing the
+   wrong coat. A supplier paid under Rent or Transport is a real expense that merely names
+   him, and is none of this screen's business.
+   This only FINDS them. Nothing moves until he says so, one row at a time. */
+function supPayFind(){
+  const sup={};
+  (DB.ledger||[]).forEach(l=>{ if(l.refKind==='opening'&&!['karigar','staff'].includes(pkNorm(l.partyKind)))
+    sup[nameNorm(l.party)]=String(l.party||'').trim(); });
+  (DB.purchases||[]).forEach(p=>{ const k=nameNorm(p.supplier); if(k)sup[k]=sup[k]||String(p.supplier||'').trim(); });
+  const isKarStaff=nm=>(DB.karigars||[]).some(k=>nameNorm(k.name)===nameNorm(nm))
+                     ||(DB.staff||[]).some(k=>nameNorm(k.name)===nameNorm(nm));
+  const rows=(DB.ledger||[]).filter(l=>{
+    if(l.refKind!=='expense'||l.dir!=='out')return false;
+    if(['karigar','staff'].includes(pkNorm(l.partyKind)))return false;
+    const nm=String(l.party||'').trim(); if(!nm||isKarStaff(nm))return false;
+    if(!sup[nameNorm(nm)])return false;
+    return nameNorm(l.cat)===nameNorm(nm);
+  });
+  const by={};
+  rows.forEach(l=>{ const k=nameNorm(l.party);
+    by[k]=by[k]||{name:String(l.party||'').trim(), rows:[], amt:0};
+    by[k].rows.push(l); by[k].amt=r2(by[k].amt+(+l.amt||0)); });
+  const list=Object.values(by).sort((a,b)=>b.amt-a.amt);
+  return {list, n:rows.length, total:r2(rows.reduce((s,l)=>s+(+l.amt||0),0))};
+}
+/* Turn ONE row from a household expense into what it always was: money paid to this
+   supplier. refKind 'manual' is what openingPays() already reads, so the payment reaches
+   his opening and his bills through the same door every other payment uses — no new
+   matcher, no second engine. The head, the expense hat and the indirect flag go, because
+   the row is no longer an expense. Date, amount and account are never touched. */
+function supPayFix(id){
+  const l=(DB.ledger||[]).find(x=>x.id===id); if(!l||l.refKind!=='expense')return false;
+  l.refKind='manual'; l.ref=t('pay_out');
+  l.partyKind=pkNorm(l.partyKind)||'supplier';
+  l.cat=''; delete l.expKind;
+  return true;
+}
 function partyAudit(){
   const out={paidNoOpen:[], openNoMove:[], over:[]};
   const seen={};
@@ -13145,6 +13194,38 @@ function partyAuditScreen(){
     <p class="hint" style="white-space:normal;margin-top:10px">${t('pa_note')}</p>
     <div class="fab-pad"></div>`;
   showSheet();
+}
+/* v719 — the rows supPayFind() names, each one openable and each one fixed on its own.
+   One row, one question, one change. No "fix all" button: 13 rows moved by one tap is
+   exactly the kind of thing that cannot be checked afterwards, and money that moves
+   without being looked at is how this list came to exist. */
+function supPayScreen(){
+  sheetAt(supPayScreen);
+  const f=supPayFind();
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin:0 0 4px">\u{1F9FE} ${t('sp_title')}</h2>
+    <p class="hint" style="white-space:normal;margin:0 0 12px">${t('sp_note')}</p>
+    ${!f.n?`<p class="hint" style="padding:22px 4px;text-align:center">${t('sp_none')}</p>`:`
+      <div class="card" style="padding:4px 12px;margin-bottom:12px">
+        <div class="kv" style="padding:9px 2px"><span>${t('sp_count',{n:f.n})}</span>
+          <b style="color:var(--bad)">${money(f.total)}</b></div></div>
+      ${f.list.map(g=>`<div class="card" style="padding:10px 12px;margin-bottom:10px">
+        <div class="kv" style="padding:0 0 6px;border-bottom:1px solid var(--line)">
+          <span class="kn"><b>${esc(g.name)}</b></span><b style="color:var(--bad)">${money(g.amt)}</b></div>
+        ${g.rows.map(l=>`<div class="kv" style="padding:8px 0">
+          <span class="hint">${fmtDate(l.date)}${l.note?' \u00B7 '+esc(String(l.note).trim()):''}</span>
+          <span><b>${money(l.amt)}</b>
+            <button class="btn sm primary" style="margin-left:10px"
+              onclick="supPayAsk('${jq(l.id)}')">\u{1F501} ${t('sp_move')}</button></span></div>`).join('')}
+      </div>`).join('')}`}
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function supPayAsk(id){
+  const l=(DB.ledger||[]).find(x=>x.id===id); if(!l)return;
+  confirmModal('\u{1F501} '+t('sp_move'),
+    t('sp_ask',{n:esc(String(l.party||'').trim()), a:money(+l.amt||0), d:fmtDate(l.date)}),
+    ()=>{ if(supPayFix(id)){ save(); toast(t('sp_done'),'ok'); } closeModal(); supPayScreen(); });
 }
 /* v691 — what the loans figure is actually made of */
 function loansScreen(){
@@ -32254,6 +32335,12 @@ function renderReports(){
            It opens the records themselves now: the opening loans he typed, every loan taken
            and every repayment, each with its date and amount, adding to the figure above. */''}
       ${/* v692: appears only when the books actually hold names that cannot be explained */''}
+      ${/* v719: money paid to a supplier that is sitting in Operating Expenses. Beside the
+           other two doors, and like them it appears only when the books actually hold some. */''}
+      ${(()=>{ let f={n:0,total:0}; try{ f=supPayFind(); }catch(e){}
+         return f.n ? `<div class="il tappable" onclick="closeSheet();supPayScreen()">
+           <span class="hint">\u{1F9FE} ${t('sp_title')}</span>
+           <b style="color:var(--bad)">${money0(f.total)}</b></div>` : ''; })()}
       ${(()=>{ let n=0; try{ n=partyAudit().n; }catch(e){}
          return n ? `<div class="il tappable" onclick="closeSheet();partyAuditScreen()">
            <span class="hint">\u{1F50E} ${t('pa_row')}</span>

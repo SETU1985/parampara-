@@ -32,7 +32,7 @@
 /* Bump this whenever the app is redeployed. Any cache not named this is removed on
    activate, which is what stops an old copy surviving underneath a new one. */
 const PREFIX = 'parampara-';
-const CACHE  = PREFIX + 'v718';
+const CACHE  = PREFIX + 'v719';
 
 /* The app is one file. These are resolved against this worker's own scope, so the same
    file works whether the site sits at the domain root or in a sub-folder. */
