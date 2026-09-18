@@ -1105,7 +1105,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v717</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v718</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -13033,7 +13033,25 @@ function credReconcile(){
     .forEach(l=>{ const k=nameNorm(l.party); opens[k]=(opens[k]||0)+1;
       const key=pkNorm(l.partyKind)+'|'+pkNorm(l.party); if(seen[key])return; seen[key]=1;
       put(l.party, openingLeft(String(l.party||'').trim(), pkNorm(l.partyKind), 'out')); });
-  const unref=r2(purRetFigures('',B).unref||0);
+  /* ══════════ v718 — THE SAME RUPEE PRINTED ON BOTH SIDES ══════════
+     HIS 18 Sept: "Senso Ethnic ye kya hai, kuch samajh nahi aa raha."
+     Right — because it was not a difference at all. A purchase return comes off the balance
+     sheet's TOTAL in one sum, and off the supplier's own row in the list. So Senso Ethnic
+     read ₹64,546 "on the sheet, not on the list", and one card below the identical ₹64,546
+     read "on the list, not on the sheet". Two rows, one fact, nothing wrong — on a screen
+     whose only job is to name what IS wrong. The arithmetic was right and the reading was
+     impossible, which on a reconciliation is the same as being wrong.
+     The credit is now taken off the sheet side exactly as the list takes it — clamped at the
+     supplier's own balance, because a return bigger than what is owed only reduces to zero
+     (v690). A matched pair cancels and never reaches the screen. Whatever the list could not
+     absorb is still named, so nothing is explained away. */
+  let _retCut=0;
+  Object.keys(sh).forEach(k=>{
+    const cr=r2(supplierCredit(disp[k]||'')); if(!cr)return;
+    const cut=r2(Math.min(cr, Math.max(0, sh[k])));
+    sh[k]=r2(sh[k]-cut); _retCut=r2(_retCut+cut);
+  });
+  const unref=r2(Math.max(0, r2((purRetFigures('',B).unref||0) - _retCut)));
   const li={};
   (cg.full||cg.groups||[]).forEach(g=>{ const k=nameNorm(g.name); disp[k]=disp[k]||g.name; li[k]=r2((li[k]||0)+(+g.due||0)); });
   const future={}; (DB.purchases||[]).forEach(pu=>{ if(String(pu.date||'')>B)future[nameNorm(pu.supplier)]=pu.date; });
@@ -13042,9 +13060,9 @@ function credReconcile(){
     const d=r2((sh[k]||0)-(li[k]||0)); if(Math.abs(d)<0.5)return;
     const why = future[k] ? t('cr_why_future',{d:fmtDate(future[k])})
               : (opens[k]>1 ? t('cr_why_two') : (!li[k] ? t('cr_why_notlist') : (!sh[k] ? t('cr_why_notsheet') : '')));
-    (d>0?onlySheet:onlyList).push({name:disp[k], amt:Math.abs(d), kind:why});
+    (d>0?onlySheet:onlyList).push({name:disp[k], amt:Math.abs(d), kind:why, dup:(opens[k]>1?1:0)});
   });
-  if(unref)onlyList.push({name:t('cr_why_ret'), amt:unref, kind:''});
+  if(unref)onlyList.push({name:t('cr_why_ret'), amt:unref, kind:'', noTap:1});
   onlySheet.sort((a,b)=>b.amt-a.amt); onlyList.sort((a,b)=>b.amt-a.amt);
   const gap=r2(sheet-list);
   const explainedSheet=r2(onlySheet.reduce((s,x)=>s+x.amt,0));
@@ -13170,10 +13188,19 @@ function credReconScreen(){
   const r=credReconcile();
   const row=(lbl,val,col)=>`<div class="kv" style="padding:9px 2px;border-bottom:1px solid var(--line)">
     <span>${lbl}</span><b style="${col?'color:'+col:''}">${money(val)}</b></div>`;
-  const names=(title,list,col)=>list.length?`<div class="section-h">${title}</div>
-    <div class="card" style="padding:0;margin-bottom:12px;overflow:hidden">
-      ${list.map(x=>`<div class="krow"><span class="kn">${esc(x.name)}
-        ${x.kind?`<div class="hint">${esc(x.kind)}</div>`:''}</span>
+  /* ══════════ v718 — ONE NUMBER, ONE LINE ══════════
+     HIS 18 Sept: "customer to apna baal noch lega... har screen pe utni cheezein jitni us
+     screen ke liye zaroori hain."
+     This screen held two headed sections, a reason under each name and a closing paragraph
+     to explain the headings — for a book where exactly ONE name differs. The words outnumbered
+     the fact. Every name that makes the two figures differ now sits in one card, coloured by
+     which side carries it, with its reason on the row and nothing else on the screen. And each
+     row OPENS — a name he cannot act on is a name he reads twice and forgets. */
+  const names=(list,col)=>list.length?`<div class="card" style="padding:0;margin-bottom:12px;overflow:hidden">
+      ${list.map(x=>`<div class="krow${x.noTap?'':' tappable'}"${x.noTap?'':` onclick="closeSheet();${x.dup
+          ?`partyCard('${jq(x.name)}','supplier')`
+          :`acctOpen('${jq(x.name)}','supplier')`}"`}><span class="kn">${esc(x.name)}
+        ${x.kind?`<div class="hint" style="white-space:normal">${esc(x.kind)}</div>`:''}</span>
         <b style="color:${col}">${money(x.amt)}</b></div>`).join('')}</div>`:'';
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin:0 0 10px">\u2696\uFE0F ${t('cr_rec_title')}</h2>
@@ -13189,12 +13216,11 @@ function credReconScreen(){
         ${bits.map(([v,k])=>`<div class="kv" style="padding:8px 0">
           <span class="hint" style="white-space:normal">${t(k)}</span>
           <b>${money(v)}</b></div>`).join('')}</div>`:''; })()}
-    ${names(t('cr_rec_onlysheet'), r.onlySheet, 'var(--bad)')}
-    ${names(t('cr_rec_onlylist'), r.onlyList, 'var(--saffron2)')}
+    ${names(r.onlySheet, 'var(--bad)')}
+    ${names(r.onlyList, 'var(--saffron2)')}
     ${r.left?`<div class="card" style="padding:10px 12px;margin-bottom:12px;border-color:var(--bad)">
       <div class="kv"><span class="hint">${t('cr_rec_rounding')}</span>
       <b style="color:var(--bad)">${money(r.left)}</b></div></div>`:''}
-    <p class="hint" style="white-space:normal;margin-top:10px">${t('cr_rec_note')}</p>
     <div class="fab-pad"></div>`;
   showSheet();
 }
@@ -13242,10 +13268,18 @@ function credGroups(q){
       &&(pkNorm(l.partyKind)==='supplier'||pkNorm(l.partyKind)==='other')&&l.dir==='out'
       &&!(DB.karigars||[]).some(k=>nameNorm(k.name)===nameNorm(l.party))
       &&!(DB.staff||[]).some(k=>nameNorm(k.name)===nameNorm(l.party))).forEach(l=>{
-    const k=String(l.party||'').trim(); if(!k||map[k])return;
+    /* v718: it used to stop at `map[k]` — if the name was already on the list from a bill or
+       from another opening, this line was dropped in silence. That is how ₹16,477 owed to
+       Shree Panchmukhi stayed off Payables while the balance sheet counted it. A line that
+       has not already been claimed by a creditor card is ADDED to that name now, not
+       skipped; and it is read under its OWN kind, because reading an 'other' line as
+       'supplier' fetches the wrong line entirely. */
+    const k=String(l.party||'').trim(); if(!k)return;
     if(_openBy[l.id])return;                      /* v717: already on a creditor's card */
-    const left=openingLeft(k,'supplier','out'); if(!left)return;
-    map[k]={name:k,phone:(partyByName(k)||{}).phone||'',recs:[],due:left,_open:left};
+    const left=openingLeft(k,pkNorm(l.partyKind),'out'); if(!left)return;
+    map[k]=map[k]||{name:k,phone:(partyByName(k)||{}).phone||'',recs:[],due:0};
+    map[k].due=r2(map[k].due+left);
+    map[k]._open=r2((map[k]._open||0)+left);
   });
   Object.values(map).forEach(g=>{
     /* v690: record what the credit ACTUALLY took off, not what it could have. A debit note
@@ -37621,6 +37655,24 @@ function openingLeft(name,kind,dir,asOf){
   if(!st||st.dir!==dir)return 0;
   return st.left;
 }
+/* ══════════ v718 — A SECOND OPENING LINE WAS REAL MONEY AND NOBODY COULD SEE IT ══════════
+   HIS 18 Sept, off his own phone: the balance sheet said ₹21,03,276 and Payables said
+   ₹20,86,799 — ₹16,477 apart, and the difference screen named Shree Panchmukhi.
+   His book holds that name TWICE: ₹27,266 filed as 'supplier' and ₹24,754 filed as 'other',
+   both dated 1 April, with one ₹10,789 payment against the first. The balance sheet walks
+   ledger lines, so it counted both and was RIGHT at ₹41,231. Payables walks party cards and
+   asks openingLine() for one line per name+kind, then bailed the moment the name was already
+   on the list — so it showed ₹24,754 and hid ₹16,477 of money he actually owes.
+   Worse than the figure: the hidden line was unreachable. The card opens on ONE kind, so the
+   🗑️ beside it would have removed the ₹27,266 he wanted to keep, not the ₹24,754 he wanted
+   gone. A record the books count and the screen cannot show is the shape his own rule names —
+   never hide a wrong number to make a screen look tidy.
+   openingLine() is left alone: reading the first line for a name+kind is correct for the one
+   line it was written for. What is added is the ability to ASK how many there are. */
+function openingLinesAll(name){
+  const nm=nameNorm(name); if(!nm)return [];
+  return (DB.ledger||[]).filter(l=>l.refKind==='opening' && nameNorm(l.party)===nm);
+}
 
 /* ── the Parties screen: one place to add a person and see where he stands ── */
 let _ptyQ='';
@@ -37923,6 +37975,23 @@ function partyCard(name,kind){
         <button class="btn ghost block" onclick="openingAsk('${jq(name)}','${jq(kind)}')">\u2795 ${t('pty_open_set')}</button>`}
     </div>
 
+    ${/* v718: the card above shows ONE opening — the one filed under the hat this screen was
+         opened with. When the books hold more than one for this name, every line is shown
+         here with its own date, hat, amount and its own 🗑️, so the right one can be removed.
+         Without this the only delete on the screen removed whichever line the card happened
+         to be standing on, which on his book was the ₹27,266 he wanted to keep. */''}
+    ${(()=>{ const all=(typeof openingLinesAll==='function')?openingLinesAll(name):[];
+      if(all.length<2)return '';
+      return `<div class="card" style="padding:12px 14px;margin-bottom:10px;border-color:var(--bad)">
+        <div class="dl-hd" style="padding:0 0 4px">\u26A0\uFE0F ${t('pty_open')} \u00D7 ${all.length}</div>
+        <p class="hint" style="white-space:normal;margin:0 0 8px">${t('cr_why_two')}</p>
+        ${all.map(l=>`<div class="kv" style="padding:7px 0;border-top:1px solid var(--line)">
+          <span class="hint">${fmtDate(l.date)} \u00B7 ${t(PK_LBL[pkNorm(l.partyKind)]||'pt_other')} \u00B7 ${l.dir==='out'?t('ob_pay'):t('ob_get')}</span>
+          <span><b>${money(l.amt)}</b>
+            <a onclick="openingDropById('${jq(l.id)}','${jq(name)}','${jq(kind)}')"
+               style="color:var(--bad);cursor:pointer;margin-left:10px">\u{1F5D1}\uFE0F</a></span></div>`).join('')}
+      </div>`; })()}
+
     ${/* ══════════ v707 — HIS 15 Sept, on Sumit Bhaiya's card: "opening balance... uske neeche
          Customers ₹4,000 I have to receive... Full statement — confusion." The card said nothing
          about the ₹4,00,000 that made this name show up, and a bare "Customers ₹4,000" line gave
@@ -37983,6 +38052,18 @@ function openingSave(name,kind){
   else DB.ledger.push({id:uid(), dir, date, amt, acc:'', party:name, partyId:null,
     partyKind:kind, ref:t('ob_ref'), refKind:'opening', cat:'', note:'', opening:true, photos:[]});
   save(); closeModal(); toast(t('pty_open_saved'),'ok'); partyCard(name,kind);
+}
+/* v718 — remove ONE named opening line. openingDrop() below removes "the opening for this
+   name and hat", which is the right thing when there is one and the wrong thing when there
+   are two. This one is told exactly which line, and the question names its date and amount
+   so he is never guessing which of the two he is about to lose. */
+function openingDropById(id,name,kind){
+  const l=(DB.ledger||[]).find(x=>x.id===id); if(!l)return;
+  confirmModal('\u{1F5D1}\uFE0F '+t('pty_open_del'),
+    fmtDate(l.date)+' \u00B7 '+money(l.amt)+' \u00B7 '+t(PK_LBL[pkNorm(l.partyKind)]||'pt_other')
+      +' \u2014 '+t('confirm_del_msg'),
+    ()=>{ DB.ledger=(DB.ledger||[]).filter(x=>x.id!==id);
+      save(); closeModal(); toast(t('pty_open_removed'),'ok'); partyCard(name,kind); });
 }
 function openingDrop(name,kind){
   const n=openingPays(name,kind).length;
