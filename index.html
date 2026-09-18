@@ -1105,7 +1105,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v719</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v720</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -31450,9 +31450,30 @@ function expHeadPrint(){
 }
 
 /* ── PARTY STATEMENT — one person, everything, on paper ── */
-function partyStatement(pid,kind){
-  sheetAt(()=>partyStatement(pid,kind),'partyStatement');
+/* ══════════ v720 — THE BUTTON SAID "HIS STATEMENT" AND OPENED EVERYBODY'S ══════════
+   HIS 18 Sept, on Sumit Bhaiya's card: "full statement pe click karne pe uska statement
+   nahi aa raha hai, dekho kya aa raha hai" — and what came up was the ledger picker,
+   Customers / Suppliers / Staff / Other.
+   The reason is the oldest fault on this app's own list: a button whose words and whose
+   action disagree. This screen was reached by party ID, and an empty ID has always meant
+   "he has not chosen anybody yet, show the directory". Sumit has no party-master record at
+   all — only one payment typed against his name — so the card handed over an empty id and
+   the screen did exactly what it was told. His books are full of such people.
+   A statement is owed to a NAME, not to a record that may never have been created. The name
+   is accepted now, and only a call with neither name nor id opens the directory. */
+function partyStatement(pid,kind,nameHint){
+  sheetAt(()=>partyStatement(pid,kind,nameHint),'partyStatement');
   const who=peopleAll();
+  if(!pid && nameHint){
+    const nm=nameNorm(nameHint);
+    const hit=who.find(x=>nameNorm(x.name)===nm && x.kind===kind) || who.find(x=>nameNorm(x.name)===nm);
+    if(hit){ pid=hit.id; kind=hit.kind; }
+    else {
+      /* nobody by that name in any list — say so plainly instead of opening a screen he
+         did not ask for. A dead end named is better than a wrong turn taken silently. */
+      toast(t('pt_no_bal'),'bad'); return;
+    }
+  }
   if(!pid){
     /* v403: the screenshot he sent — every name in the shop on one scroll. Same names,
        same data, now behind the one directory shape. */
@@ -36966,7 +36987,8 @@ function lgBodyHTML(){
       || String((lgGroup(l.group)||{}).label||'').toLowerCase().includes(q))
       .sort((a,b)=>a.name.localeCompare(b.name)).slice(0,60);
     body = hits.length ? hits.map(l=>lgRowHTML(l)).join('')
-      : `<div class="empty" style="padding:26px 10px"><div class="big">\u{1F50D}</div><p>${t('lg_none')}</p></div>`;
+      : `<div class="empty" style="padding:26px 10px"><div class="big">\u{1F50D}</div><p>${t('lg_none')}</p></div>
+         <button class="btn primary block" onclick="ledgerEdit(null)">\u2795 ${t('cr_new_named',{n:esc(_lgQ)})}</button>`;
   } else if(_lgGroup){
     const G=lgGroup(_lgGroup)||{label:''};
     body = `<button class="btn sm ghost" style="margin-bottom:8px" onclick="lgBackToGroups()">\u2190 ${t('lg_all_groups')}</button>
@@ -36995,8 +37017,19 @@ function lgBodyHTML(){
   }
   return body;
 }
-function ledgerMaster(){
-  sheetAt(ledgerMaster);
+/* ══════════ v720 — IT OPENED WHEREVER HE HAD LAST BEEN ══════════
+   HIS 18 Sept, with the screenshot: "All groups ke neeche Duties & Taxes aur Provision, ye
+   kyun dikha raha hai... bahut confusing aur nonsense screen hai."
+   Exactly so, and nothing on that screen was his doing. _lgGroup is remembered for as long
+   as the app is open, so a group he opened once — perhaps hours earlier, perhaps by a
+   mistap — was still open. The screen came up inside Duties & Taxes with one ledger showing
+   and a "\u2190 All groups" button offering to take him back from a place he had not gone.
+   Opening a screen fresh is not the same as returning to it. ledgerMaster(1) keeps the
+   place, which is what \u2190 All groups and a group tap need; every other door starts at
+   the top, with nothing unfolded and the caret in the search box. */
+function ledgerMaster(keep){
+  sheetAt(()=>ledgerMaster(1),'ledgerMaster');
+  if(!keep){ _lgGroup=''; _lgQ=''; }
   /* ══════════ v451 — LOOKING AT A SCREEN WAS CHANGING THE BOOKS ══════════
      PHASE 1 measured it: DB.ledgers went 0 → 23 the first time this screen was opened, and
      the 23 rows survived a reload. Nothing had been edited. A chart of accounts appearing
@@ -37013,11 +37046,14 @@ function ledgerMaster(){
   const body=lgBodyHTML();
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F4D7} ${t('lg_title')}</h2>
-      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
-    
+      <span><button class="btn sm ghost" onclick="lgMenu()">\u22EF</button>
+      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></span></div>
+    ${/* v720: "New ledger" sat across the screen every time it opened, above a list of 184.
+         Making one is a monthly job; finding one is why he is here. Payables learned this in
+         v461 — the button now lives in \u22EF, and appears in his way only at the one moment
+         it is the answer: he has typed a name and the books do not hold it. */''}
     <div class="field" style="margin-bottom:8px">
       <input id="lgQ" value="${esc(_lgQ)}" placeholder="\u{1F50D} ${t('lg_search')}" oninput="lgSearch(this.value)" autocomplete="off"></div>
-    <button class="btn ghost block" style="margin-bottom:12px" onclick="ledgerEdit(null)">\u2795 ${t('lg_new')}</button>
     <p class="hint" style="margin-bottom:6px">${t('lg_count',{n:lgAll().filter(l=>!l.archived).length})}</p>
     <div id="lgList">${body}</div>
     <div class="fab-pad"></div>`;
@@ -37069,8 +37105,12 @@ function lgFixGroup(id,g){
     ()=>{ l.group=g; save(); ledgerMaster(); toast('\u2705 '+t('lg_group_moved',{b:esc(GG.label)}),'ok'); },
     ()=>ledgerMaster(), {yes:t('save'), no:t('cancel'), cls:'primary'});
 }
-function lgOpenGroup(g){ _lgGroup=g; _lgQ=''; ledgerMaster(); }
-function lgBackToGroups(){ _lgGroup=''; ledgerMaster(); }
+function lgMenu(){
+  modal(t('lg_title'),
+    `<button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();ledgerEdit(null)">\u2795 ${t('lg_new')}</button>`);
+}
+function lgOpenGroup(g){ _lgGroup=g; _lgQ=''; ledgerMaster(1); }
+function lgBackToGroups(){ _lgGroup=''; ledgerMaster(1); }
 
 /* One statement for any ledger — supplier, customer, expense head or bank. It reads the
    SAME rows every other screen reads; nothing is recalculated its own way. */
@@ -38033,77 +38073,111 @@ function rowOf(p){
 }
 
 /* ── one person, one hat ── */
+/* ══════════ v720 — A CARD THAT ANSWERED EVERY QUESTION EXCEPT THE ONE ASKED ══════════
+   HIS 18 Sept, standing on Sumit Bhaiya's card trying to fix one entry: "screen dekh ke hi
+   confuse ho gaya... samajh mein nahi aa raha ki kya karun aur kaise karun."
+   He was right, and the fault is not in any one line of it. This card had been built one
+   request at a time — an OPENING card, a MONEY WITH THIS NAME card, a SAME NAME ELSEWHERE
+   card — until it was a drawer rather than a screen, with two explanatory paragraphs doing
+   the work the layout should have done. A button that needs a sentence under it is in the
+   wrong place. And what he actually came for — the entries — was not on it at all: it sat
+   one tap away behind "Full statement", which on this very name went to the ledger PICKER,
+   because the button was wired to a party id and Sumit has no party record at all. Label
+   and action disagreeing, again.
+   One question this screen answers: what is my account with this man. So: the balance, then
+   every entry with the balance carried down after it, then Payment and ✏️. Everything else
+   — opening, statement, call, profile, delete, share — is in \u22EF, where things that are
+   used once a month belong. The lines come from psLines(), the same engine the full
+   statement reads, so the card and the statement can never disagree. */
 function partyCard(name,kind){
   sheetAt(()=>partyCard(name,kind),'partyCard');
-  const st=openingState(name,kind);
-  const pays=openingPays(name,kind).slice().sort((a,b)=>String(a.date).localeCompare(String(b.date)));
   const pp=partyByName(name);
-  const payWord = (st&&st.dir==='in') ? t('pty_settle_in') : t('pty_settled');
+  const who=(typeof peopleAll==='function')?peopleAll():[];
+  const person=(pp&&who.find(x=>x.id===pp.id))
+    || who.find(x=>nameNorm(x.name)===nameNorm(name) && x.kind===kind)
+    || who.find(x=>nameNorm(x.name)===nameNorm(name))
+    || {id:(pp&&pp.id)||'', name:name, kind:kind||'other'};
+  let lines=[];
+  try{ lines=psLines(person)||[]; }catch(e){ lines=[]; }
+  lines=lines.slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+  /* dir 'out' = money the shop owes or paid out on his account; 'in' = the other way.
+     One colour rule for the whole app: what is owed is red, what has been settled is green. */
+  /* The signs are taken from the full statement, line for line — dir 'in' is a debit,
+     dir 'out' a credit, the balance runs dr − cr, and a negative balance means the shop
+     owes him. Working it out a second way here is exactly how two screens come to give two
+     answers for one man, which is the fault this whole build exists to stop. */
+  let run=0, dr=0, cr=0;
+  const rows=lines.map(l=>{
+    const amt=r2(+l.amt||0);
+    if(l.dir==='in'){ run=r2(run+amt); dr=r2(dr+amt); } else { run=r2(run-amt); cr=r2(cr+amt); }
+    return {l, amt, run};
+  });
+  const bal=run;                         /* − = the shop owes him · + = he owes the shop */
   $('#sheet').innerHTML=`<div class="grip"></div>
-    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">${PK_ICON[kind]||''} ${esc(name)}</h2>
-      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
-    <p class="hint" style="margin-bottom:12px">${t(PK_LBL[kind]||'pt_other')}${pp&&pp.phone?' \u00B7 '+esc(pp.phone):''}${pp&&pp.gstin?' \u00B7 '+esc(pp.gstin):''}</p>
+    <div class="kv" style="margin-bottom:2px"><h2 style="margin:0;min-width:0">${PK_ICON[kind]||''} ${esc(name)}</h2>
+      <span style="flex:0 0 auto"><button class="btn sm ghost" onclick="ptyCardMenu('${jq(name)}','${jq(kind)}')">\u22EF</button>
+      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></span></div>
+    <p class="hint" style="margin-bottom:12px">${t(PK_LBL[pkNorm(kind)]||'pt_other')}${pp&&pp.phone?' \u00B7 '+esc(pp.phone):''}${pp&&pp.gstin?' \u00B7 '+esc(pp.gstin):''}</p>
 
-    <div class="card" style="padding:12px 14px;margin-bottom:10px">
-      <div class="dl-hd" style="padding:0 0 8px">\u{1F4C5} ${t('pty_open')}</div>
-      ${st?`
-        <div class="kv"><span class="hint">${st.dir==='out'?t('ob_pay'):t('ob_get')} \u00B7 ${t('pty_ason')} ${fmtDate(st.date)}</span>
-          <b>${money(st.amt)}</b></div>
-        ${st.paid?`<div class="kv"><span class="hint">${payWord}</span><b style="color:var(--ok)">\u2212 ${money(st.paid)}</b></div>`:''}
-        <div class="kv" style="border-top:1px solid var(--line);margin-top:6px;padding-top:6px">
-          <span>${st.left?t('pty_open_left'):t('pty_clear')}</span>
-          <b style="font-size:18px;color:${st.left?(st.dir==='out'?'var(--bad)':'var(--saffron2)'):'var(--ok)'}">${money(st.left)}</b></div>
-        ${pays.map(l=>`<div class="hint" style="margin-top:6px">\u2022 ${fmtDate(l.date)} \u00B7 ${money(l.amt)}${l.acc?' \u00B7 '+esc(accName(l.acc)):''}
-            <a onclick="openPayDrop('${jq(l.id)}','${jq(name)}','${jq(kind)}')" style="color:var(--bad);cursor:pointer;margin-left:6px">\u2715</a></div>`).join('')}
-        <div class="row" style="gap:6px;margin-top:10px">
-          ${st.left?`<button class="btn sm primary" style="flex:1" onclick="openSettleAsk('${jq(name)}','${jq(kind)}')">\u{1F4B5} ${t('pty_settle')}</button>`:''}
-          <button class="btn sm ghost" onclick="openingAsk('${jq(name)}','${jq(kind)}')">\u270F\uFE0F ${t('pty_open_edit')}</button></div>`
-      :`<p class="hint" style="margin:0 0 10px">${t('pty_no_open_yet')}</p>
-        <button class="btn ghost block" onclick="openingAsk('${jq(name)}','${jq(kind)}')">\u2795 ${t('pty_open_set')}</button>`}
+    <div class="card" style="padding:0;margin-bottom:12px;overflow:hidden">
+      <div class="kv" style="padding:10px 14px"><span class="hint">${t('ps_dr')}</span><b>${money(dr)}</b></div>
+      <div class="kv" style="padding:10px 14px;border-top:1px solid var(--line)"><span class="hint">${t('ps_cr')}</span><b>${money(cr)}</b></div>
+      <div class="kv" style="padding:12px 14px;border-top:1px solid var(--line)">
+        <span><b>${bal<0?t('ob_pay'):(bal>0?t('ob_get'):t('pty_clear'))}</b></span>
+        <b style="font-size:19px;color:${bal<0?'var(--bad)':(bal>0?'var(--ok)':'var(--mut)')}">${money(Math.abs(bal))}</b></div>
     </div>
 
-    ${/* v718: the card above shows ONE opening — the one filed under the hat this screen was
-         opened with. When the books hold more than one for this name, every line is shown
-         here with its own date, hat, amount and its own 🗑️, so the right one can be removed.
-         Without this the only delete on the screen removed whichever line the card happened
-         to be standing on, which on his book was the ₹27,266 he wanted to keep. */''}
-    ${(()=>{ const all=(typeof openingLinesAll==='function')?openingLinesAll(name):[];
-      if(all.length<2)return '';
-      return `<div class="card" style="padding:12px 14px;margin-bottom:10px;border-color:var(--bad)">
-        <div class="dl-hd" style="padding:0 0 4px">\u26A0\uFE0F ${t('pty_open')} \u00D7 ${all.length}</div>
-        <p class="hint" style="white-space:normal;margin:0 0 8px">${t('cr_why_two')}</p>
-        ${all.map(l=>`<div class="kv" style="padding:7px 0;border-top:1px solid var(--line)">
-          <span class="hint">${fmtDate(l.date)} \u00B7 ${t(PK_LBL[pkNorm(l.partyKind)]||'pt_other')} \u00B7 ${l.dir==='out'?t('ob_pay'):t('ob_get')}</span>
-          <span><b>${money(l.amt)}</b>
-            <a onclick="openingDropById('${jq(l.id)}','${jq(name)}','${jq(kind)}')"
-               style="color:var(--bad);cursor:pointer;margin-left:10px">\u{1F5D1}\uFE0F</a></span></div>`).join('')}
-      </div>`; })()}
+    ${rows.length?`<div class="card" style="padding:0;margin-bottom:12px;overflow:hidden">
+      ${rows.map(({l,amt,run})=>`<div class="krow${l._id?' tappable':''}"${l._id?` onclick="ptyCardGo('${jq(l._src)}','${jq(l._id)}')"`:''}>
+        <span class="kn"><b>${esc(l.ref||'')}</b>
+          <div class="hint">${fmtDate(l.date)}${l.acc?' \u00B7 '+esc(accName(l.acc)):''}${l.note?' \u00B7 '+esc(String(l.note).trim()):''}</div></span>
+        <span style="text-align:right">
+          <b style="color:${l.dir==='in'?'var(--ok)':'var(--bad)'}">${money(amt)}</b>
+          <div class="hint">${money(Math.abs(run))} ${run<0?t('ps_cr'):t('ps_dr')}</div></span></div>`).join('')}
+      </div>`
+     :`<p class="hint" style="padding:22px 4px;text-align:center">${t('pty_moved_none')}</p>`}
 
-    ${/* ══════════ v707 — HIS 15 Sept, on Sumit Bhaiya's card: "opening balance... uske neeche
-         Customers ₹4,000 I have to receive... Full statement — confusion." The card said nothing
-         about the ₹4,00,000 that made this name show up, and a bare "Customers ₹4,000" line gave
-         no hint that it is the SAME man under a second hat. Now: what actually moved, in plain
-         words, with the statement right under it; and each other hat is named as such and opens. */''}
-    ${(()=>{ const nm=nameNorm(name), pid=(pp&&pp.id)||'';
-      let out=0, inn=0, n=0;
-      (DB.ledger||[]).forEach(l=>{ if(l.refKind==='opening')return;
-        if(!(nameNorm(l.party)===nm || (pid && l.partyId===pid)))return;
-        n++; if(l.dir==='out')out=r2(out+(+l.amt||0)); else if(l.dir==='in')inn=r2(inn+(+l.amt||0)); });
-      return `<div class="card" style="padding:12px 14px;margin-bottom:10px">
-        <div class="dl-hd" style="padding:0 0 8px">\u{1F4B8} ${t('pty_moved')}</div>
-        ${n?`${out?`<div class="kv"><span class="hint">${t('pty_paid_him')}</span><b style="color:var(--bad)">${money(out)}</b></div>`:''}
-          ${inn?`<div class="kv"><span class="hint">${t('pty_got_him')}</span><b style="color:var(--ok)">${money(inn)}</b></div>`:''}
-          <p class="hint" style="margin:6px 0 0">${t('pty_moved_n',{n})}</p>`
-          :`<p class="hint" style="margin:0">${t('pty_moved_none')}</p>`}
-        <button class="btn primary block" style="margin-top:10px" onclick="closeSheet();partyStatement('${jq(pid)}','${jq(kind)}')">\u{1F4D2} ${t('pty_stmt')}</button>
-      </div>`; })()}
-    ${(()=>{ const other=partyBalHTML({id:(pp&&pp.id)||'',name},kind,name); return other?`<div class="card" style="padding:12px 14px;margin-bottom:10px">
-        <div class="dl-hd" style="padding:0 0 8px">\u{1F465} ${t('pty_other_hats')}</div>${other}</div>`:''; })()}
-    ${pp?`<div class="row" style="gap:8px"><button class="btn ghost" style="flex:1" onclick="partyEdit('${jq(pp.id)}',()=>partyCard('${jq(name)}','${jq(kind)}'))">\u{1F464} ${t('pt_profile')}</button>
-      <button class="btn ghost" style="flex:0 0 auto;color:var(--bad)" onclick="partyDel('${jq(pp.id)}')" aria-label="${t('delete')}">🗑️</button></div>`:''}
+    <div class="row" style="gap:8px">
+      <button class="btn primary" style="flex:1" onclick="closeSheet();payEntry('${bal<0?'out':'in'}',1)">${bal<0?'\u2B06\uFE0F '+t('pay_out'):'\u2B07\uFE0F '+t('pay_in')}</button>
+      ${pp?`<button class="btn ghost" style="flex:0 0 auto" onclick="partyEdit('${jq(pp.id)}',()=>partyCard('${jq(name)}','${jq(kind)}'))">\u270F\uFE0F</button>`:''}
+    </div>
     <div class="fab-pad"></div>`;
   showSheet();
 }
+/* the once-a-month things, out of the way but never further than one tap */
+function ptyCardMenu(name,kind){
+  const pp=partyByName(name), st=openingState(name,kind);
+  const all=(typeof openingLinesAll==='function')?openingLinesAll(name):[];
+  const b=(lbl,fn)=>`<button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();${fn}">${lbl}</button>`;
+  let h='';
+  h+=b('\u{1F4C5} '+(st?t('pty_open_edit'):t('pty_open_set')), `openingAsk('${jq(name)}','${jq(kind)}')`);
+  if(st&&st.left)h+=b('\u{1F4B5} '+t('pty_settle'), `openSettleAsk('${jq(name)}','${jq(kind)}')`);
+  /* v720: this carried closeSheet() and so tore the card off the stack on its way out —
+     \u2190 from the statement landed on Payables instead of the card he opened it from.
+     The statement opens ON TOP of the card; going back means going back. */
+  h+=b('\u{1F4D2} '+t('pty_stmt'), `partyStatement('${jq((pp&&pp.id)||'')}','${jq(kind)}','${jq(name)}')`);
+  if(pp&&pp.phone)h+=b('\u{1F4DE} '+esc(pp.phone), `callNum('${jq(pp.phone)}')`);
+  if(pp)h+=b('\u{1F464} '+t('pt_profile'), `partyEdit('${jq(pp.id)}',()=>partyCard('${jq(name)}','${jq(kind)}'))`);
+  /* v718 kept: more than one opening under one name is real money the list used to hide */
+  if(all.length>1)h+=`<div class="card" style="padding:10px 12px;margin-bottom:8px;border-color:var(--bad)">
+    <p class="hint" style="white-space:normal;margin:0 0 6px">\u26A0\uFE0F ${t('cr_why_two')}</p>
+    ${all.map(l=>`<div class="kv" style="padding:6px 0;border-top:1px solid var(--line)">
+      <span class="hint">${fmtDate(l.date)} \u00B7 ${t(PK_LBL[pkNorm(l.partyKind)]||'pt_other')}</span>
+      <span><b>${money(l.amt)}</b>
+        <a onclick="closeModal();openingDropById('${jq(l.id)}','${jq(name)}','${jq(kind)}')"
+           style="color:var(--bad);cursor:pointer;margin-left:10px">\u{1F5D1}\uFE0F</a></span></div>`).join('')}</div>`;
+  if(pp)h+=b('<span style="color:var(--bad)">\u{1F5D1}\uFE0F '+t('delete')+'</span>', `partyDel('${jq(pp.id)}')`);
+  modal(esc(name), h);
+}
+/* every line on the card opens the record it was made from */
+function ptyCardGo(src,id){
+  closeSheet();
+  if(src==='purchase'||src==='pay'){ if(typeof purchMenu==='function'&&(DB.purchases||[]).some(x=>x.id===id))return purchMenu(id); }
+  if(typeof openRecord==='function')return openRecord(id);
+  if(typeof saleMenu==='function'&&(DB.sales||[]).some(x=>x.id===id))return saleMenu(id);
+  if(typeof orderOpen==='function')return orderOpen(id);
+}
+
 
 /* ── set / change / remove one opening ── */
 function openingAsk(name,kind){
