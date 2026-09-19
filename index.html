@@ -1105,7 +1105,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v720</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v723</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -1291,7 +1291,7 @@ const T={
   rc_on:'On', rc_gross:'Gross sale (bill total)', rc_net:'Net sale (after GST)',
   rc_off:'Not set up', rc_earned:'Earned this period', rc_paid:'Paid', rc_owed:'Still to pay',
   rc_ret:'Less sales returns', rc_base:'Sale it is charged on',
-  rc_head:'Which expense head', rc_head_hint:'Payments recorded under this head count as paid against it.',
+  rc_head:'Which expense head', rc_open:'Owed from before this arrangement', rc_open_hint:'What was still owed on the day the commission started \u2014 old rent, dues, anything. Counted in the balance below.', rc_owed_all:'Total owed to him', rc_head_hint:'Payments recorded under this head count as paid against it.',
   rc_note:'Worked out from bills, never stored twice. Pay it from Expenses under the head you pick here.',
   rc_saved:'Rent on sales saved', rc_remove:'Remove',
   hm_rent:'Rent on sales', bs_rentcomm:'Rent payable',
@@ -2328,6 +2328,7 @@ const T={
   pty_search:'Search a name…', pty_add:'Add a party', pty_none:'Nobody yet',
   pty_open:'Opening', pty_open_left:'Opening still open', pty_open_none:'No opening entered',
   sp_title:'Paid to a supplier, filed as an expense', sp_note:'These went out through the Expenses screen under the supplier\u2019s own name, so his balance never moved and the money was counted as an expense. Moving a row puts it against his bills and opening instead. The amount, date and account do not change.', sp_none:'Nothing here \u2014 every supplier payment is where it belongs', sp_count:'{n} to move', sp_move:'Move it', sp_ask:'{a} paid to {n} on {d} will stop being an expense and count against what you owe him. The amount, date and account stay as they are.', sp_done:'Moved',
+  db_no_route:'This line has nowhere to open \u2014 tell me and I\u2019ll give it a door',
   pty_open_set:'Set opening balance', pty_open_edit:'Change opening', pty_open_del:'Remove opening',
   pty_ason:'As on', pty_ason_hint:'The day this balance stood. Usually 1 April. No cash moves.',
   pty_settle:'Record a payment', pty_settled:'Paid against opening',
@@ -3250,6 +3251,7 @@ dl_show_hidden:'Show hidden ({n})',
   lg_stock:'Stock-in-hand', lg_fixed:'Fixed Assets', lg_advances:'Advances (Asset)',
   lg_creditors:'Sundry Creditors', lg_loans:'Loans (Liability)', lg_taxes:'Duties & Taxes',
   lg_gave:'Given', lg_got:'Taken', lg_left:'Balance', lg_open_row:'Opening balance',
+  lg_w_bill:'Bill', lg_w_receipt:'Receipt', lg_w_payment:'Payment', lg_w_purchase:'Purchase',
   find_ph:'Search by name\u2026',
   lg_capital:'Capital Account', lg_drawings:'Drawings', lg_sales:'Sales',
   lg_otherinc:'Other Income', lg_direct:'Direct Expenses', lg_jobwork:'Job Work',
@@ -3574,7 +3576,7 @@ dl_show_hidden:'Show hidden ({n})',
   rc_on:'On', rc_gross:'कुल बिक्री (बिल का पूरा)', rc_net:'शुद्ध बिक्री (GST के बाद)',
   rc_off:'अभी सेट नहीं', rc_earned:'इस अवधि का बना', rc_paid:'दिया', rc_owed:'अभी देना है',
   rc_ret:'बिक्री वापसी घटाकर', rc_base:'किस बिक्री पर लगेगा',
-  rc_head:'किस ख़र्च के नाम से', rc_head_hint:'इस नाम से किए भुगतान इसी में गिने जाएँगे।',
+  rc_head:'किस ख़र्च के नाम से', rc_open:'इस व्यवस्था से पहले का बकाया', rc_open_hint:'कमीशन शुरू होने के दिन तक जो बाक़ी था — पुराना किराया, कोई भी बकाया। नीचे के हिसाब में जुड़ेगा।', rc_owed_all:'कुल देना है', rc_head_hint:'इस नाम से किए भुगतान इसी में गिने जाएँगे।',
   rc_note:'बिलों से हिसाब बनता है, दो बार कहीं नहीं रखा जाता। जो नाम यहाँ चुनोगे, ख़र्च में उसी से पैसा दो।',
   rc_saved:'बिक्री पर किराया सेव हुआ', rc_remove:'हटाएँ',
   hm_rent:'बिक्री पर किराया', bs_rentcomm:'Rent payable',
@@ -4598,6 +4600,7 @@ dl_show_hidden:'Show hidden ({n})',
   pty_search:'नाम ढूंढें…', pty_add:'पार्टी जोड़ें', pty_none:'अभी कोई नहीं',
   pty_open:'शुरुआती बाकी', pty_open_left:'शुरुआती बकाया बचा है', pty_open_none:'कोई शुरुआती बकाया नहीं',
   sp_title:'सप्लायर को दिया, पर ख़र्चे में लिखा गया', sp_note:'ये पैसे ख़र्चे वाली स्क्रीन से, सप्लायर के ही नाम के हेड में गए — इसलिए उसका बकाया कम नहीं हुआ और रकम ख़र्चे में गिन ली गई। लाइन हटाने पर वह उसके बिल और शुरुआती बकाया में लगेगी। रकम, तारीख़ और खाता वैसे ही रहेंगे।', sp_none:'कुछ नहीं — हर सप्लायर पेमेंट सही जगह है', sp_count:'{n} लाइन हटानी हैं', sp_move:'सही जगह ले जाएँ', sp_ask:'{d} को {n} को दिए {a} अब ख़र्चा नहीं रहेंगे, उसके बकाया में लगेंगे। रकम, तारीख़ और खाता वैसे ही रहेंगे।', sp_done:'हो गया',
+  db_no_route:'इस लाइन के लिए कोई रास्ता नहीं है — बताइए, बना दूँगा',
   pty_open_set:'शुरुआती बकाया डालें', pty_open_edit:'शुरुआती बकाया बदलें', pty_open_del:'शुरुआती बकाया हटाएँ',
   pty_ason:'इस तारीख को', pty_ason_hint:'जिस दिन यह बकाया था। आमतौर पर 1 अप्रैल। इससे नकद नहीं हिलता।',
   pty_settle:'भुगतान दर्ज करें', pty_settled:'शुरुआती बाकी में जमा',
@@ -5515,7 +5518,8 @@ dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
   lg_cash:'Cash-in-hand', lg_bank:'Bank Accounts', lg_debtors:'Sundry Debtors',
   lg_stock:'Stock-in-hand', lg_fixed:'Fixed Assets', lg_advances:'Advances (Asset)',
   lg_creditors:'Sundry Creditors', lg_loans:'Loans (Liability)', lg_taxes:'Duties & Taxes',
-  lg_gave:'दिया', lg_got:'लिया', lg_left:'बाकी', lg_open_row:'शुरुआती बकाया',
+  lg_gave:'दिया', lg_got:'लिया',
+  lg_w_bill:'बिल', lg_w_receipt:'रसीद', lg_w_payment:'भुगतान', lg_w_purchase:'ख़रीद', lg_left:'बाकी', lg_open_row:'शुरुआती बकाया',
   find_ph:'नाम से खोजें\u2026',
   lg_capital:'Capital Account', lg_drawings:'Drawings', lg_sales:'Sales',
   lg_otherinc:'Other Income', lg_direct:'Direct Expenses', lg_jobwork:'Job Work',
@@ -12265,18 +12269,41 @@ function dayBook(keepFocus){
       try{ e.setSelectionRange(pos,pos); }catch(x){} }
   } else showSheet();
 }
+/* ══════════ v721 — THE ROW THAT SWALLOWED THE TAP ══════════
+   HIS 18 Sept, on Sumit's ledger: "28 May 2875 bill me click karne se bill to khul gaya
+   very nice, lekin 30 July ka receipt me click karne se kuch nahi ho raha."
+   That receipt is not in DB.ledger at all — it lives inside the invoice, in its payments,
+   and the ledger view draws it from there. dbOpen only ever looked in DB.ledger, found
+   nothing, and returned. No error, no message, nothing: the tap simply vanished, so he
+   could not tell a broken row from a row that was not meant to open.
+   Two things now. The invoice's own payments are findable, so the row opens its bill. And
+   when there is genuinely no way through, the app SAYS so — because a screen that goes
+   quiet is the fault he has hit four separate times today. */
 function dbOpen(id){
-  const l=(DB.ledger||[]).find(x=>x.id===id); if(!l)return;
+  const l=(DB.ledger||[]).find(x=>x.id===id);
+  if(!l){
+    /* a payment recorded inside a bill — open the bill it belongs to */
+    let hit=null;
+    (DB.sales||[]).forEach(v=>{ (v.payments||[]).forEach(pm=>{ if(pm && pm.id===id)hit=v; }); });
+    if(hit){ closeSheet(); if(typeof openInvoice==='function')return openInvoice(hit.id);
+             if(typeof invOpen==='function')return invOpen(hit.id);
+             return go('invoices'); }
+    (DB.purchases||[]).forEach(v=>{ (v.payments||[]).forEach(pm=>{ if(pm && pm.id===id)hit=v; }); });
+    if(hit){ closeSheet(); return purchMenu(hit.id); }
+    return toast(t('db_no_route'),'warn');
+  }
   try{
     if(l.refKind==='manual'||l.refKind==='openpay') return payEdit(l.id);
     if(l.refKind==='expense') return expEdit(l.id);
     if(l.refKind==='purchase')return (closeSheet(),purchMenu(l.refId||l.ref2));
     if(l.refKind==='sale')    return (closeSheet(),go('invoices'));
     if(l.refKind==='order')   return (closeSheet(),openDetail(l.refId));
+    if(l.refKind==='loan')    return (closeSheet(),loansScreen());
     if(l.refKind==='opening')
       return (closeSheet(),partyCard(l.party,l.partyKind||'supplier'));
     if(l.party) return (closeSheet(),partyCard(l.party,l.partyKind||''));
   }catch(e){}
+  return toast(t('db_no_route'),'warn');
 }
 /* v379 — CAUGHT IN AUDIT, and he had asked for this himself: "edit, delete ka har jagah
    option hona chahiye." A payment typed straight into Payment in/out was the one money
@@ -12313,7 +12340,7 @@ function payEdit(id){
         if(!(amt>0)){toast(t('t_no_amount'),'bad');return;}
         Object.assign(ex,{party, amt, date:g('pe_date')||ex.date,
           acc:g('pe_acc')||ex.acc||'', note:g('pe_note').trim()});
-        save(); closeModal(); toast(t('t_updated'),'ok'); dayBook();
+        save(); closeModal(); toast(t('t_updated'),'ok'); afterSave(dayBook);
      }}]);
 }
 /* One payment, one sheet: who, how much, when, into which account, and what it was for.
@@ -12346,7 +12373,7 @@ function payDelete(id){
        what a tailor is owed is the kind of error nobody catches until he asks for his money.
        One deletion, both halves — the same as expDel. */
     DB.karigarPays=(DB.karigarPays||[]).filter(p=>p.id!=='exp:'+id);
-    save(); closeModal(); toast(t('t_deleted'),'ok'); dayBook(); });
+    save(); closeModal(); toast(t('t_deleted'),'ok'); afterSave(dayBook); });
 }
 function yesterdayISO(){ const d=new Date(); d.setDate(d.getDate()-1); return isoOf(d); }
 
@@ -16021,6 +16048,15 @@ const QR_ALL=[
   ['purchase','🚚','qr_purchase',"go('purchases')",'billing'],
   ['newpurchase','➕','qr_newpurchase',"openPurchaseForm()",'billing'],
   ['ledgers','📗','lg_title',"ledgerMaster()",'accounts'],
+  /* ══════════ v722 — THE SCREEN HE LOOKED FOR TWICE AND DID NOT FIND ══════════
+     HIS 18 Sept: "day book kahan hai" — and after I sent him to Reports → Cash & bank → ...
+     he came back with "de book me koi kaise khojega, koi sense hai yahan pe day book
+     ghusane ka."
+     None. The Day book is where a wrong entry gets put right, so he opens it the moment a
+     figure looks wrong — and a figure looks wrong while he is standing in front of it, not
+     while he is browsing Reports. It was three taps deep behind a menu inside a report. It
+     is a tile now, on Home, with the rest of the day's work. */
+  ['daybook','📒','qr_daybook',"dayBook()",'accounts'],
   ['payin','💵','qr_payin',"payEntry('in',1)",null],
   /* v350: Expense is no longer its own door. Every rupee leaving the shop now goes through
      Payment out, which asks what it was for — so it can never land in the wrong book. The
@@ -16054,7 +16090,9 @@ function qrCfg(){
      book; after that his own arrangement is his and this never runs again. */
   if(!DB.qrCfg.todayOff){ DB.qrCfg.order=DB.qrCfg.order.filter(k=>k!=='today');
     DB.qrCfg.hidden=DB.qrCfg.hidden.filter(k=>k!=='today'); DB.qrCfg.todayOff=1; }
-  [['neworder','order'],['newpurchase','purchase']].forEach(([add,after])=>{
+  /* v722: the Day book goes beside the ledgers, where he is already looking at figures —
+     not on the end of a row he arranged months ago. Placed once; after that it is his. */
+  [['neworder','order'],['newpurchase','purchase'],['daybook','ledgers']].forEach(([add,after])=>{
     if(DB.qrCfg.order.indexOf(add)>=0)return;
     const i=DB.qrCfg.order.indexOf(after);
     if(i<0)DB.qrCfg.order.push(add); else DB.qrCfg.order.splice(i+1,0,add);
@@ -17058,9 +17096,11 @@ let _ordBody='';
 function _ordPaint(el,head,remind,searchBox,bar,srcBar,banner,dcard,keepFocus){
   const holder=el.querySelector('#ordRows');
   if(keepFocus && holder && el.querySelector('#ordSearch')){ holder.innerHTML=_ordBody; return; }
-  el.innerHTML=head+enqBarHTML()+remind+searchBox+bar+srcBar+banner+dcard+'<div id="ordRows">'+_ordBody+'</div>'
-    +'<div class="listfab"><button class="btn primary" onclick="openOrderForm()">+ '+t('new_order')+'</button></div>'
-    +'<div class="fab-pad" style="height:76px"></div>';
+  /* v721: "+ New order" floated over the rows here too. Same law, same place — first. */
+  el.innerHTML=head
+    +'<button class="btn primary block" style="margin:0 0 10px" onclick="openOrderForm()">\u2795 '+t('new_order')+'</button>'
+    +enqBarHTML()+remind+searchBox+bar+srcBar+banner+dcard+'<div id="ordRows">'+_ordBody+'</div>'
+    +'<div class="fab-pad"></div>';
   if(keepFocus)focusOrdSearch();
 }
 function renderOrders(keepFocus){
@@ -17519,7 +17559,9 @@ function openCustomer(id){
     <div class="card" style="padding:12px 14px;margin:10px 0">
       <div class="il"><span>${t('cust_business')}</span><b>${money(sm.spent)}</b></div>
       <div class="il"><span>${t('baaki')}</span>
-        <b style="color:${sm.due>0?'var(--saffron2)':'var(--ok)'}">${sm.due>0?money(sm.due):'✓ 0'}</b></div>
+        ${/* v721: a customer's baaki is money he will GET — green by the one rule, not
+             saffron here and red elsewhere. */''}
+        <b style="color:${balColor(sm.due)}">${sm.due>0?money(sm.due):'\u2713 '+money(0)}</b></div>
       <div class="il"><span>${t('cust_visits')}</span><b>${sm.visits}</b></div>
       ${sm.last?`<div class="il"><span>${t('cust_lastvisit')}</span><b>${fmtDate(sm.last)}</b></div>`:''}
     </div>
@@ -18416,8 +18458,21 @@ function walkOrder(f){
      somebody else. */
   if(_memFocus)picked=picked.filter(k=>memberOf(k)===_memFocus);
   const pickR={}; picked.forEach((k,i)=>pickR[k]=i);
+  /* ══════════ v722 — THE TAPE WENT UP AND DOWN ALL DAY ══════════
+     HIS 18 Sept: "order lete samay agar maan lo 2 coat hai, 2 kurta hai, 4 pant hai, to
+     pehle saare uppers ka measurement hona chahiye fir lowers ka, per abhi app me aisa
+     nahi hai."
+     v458 took this sort OUT, and the note there says why: the arrows walked one sequence
+     while the All-items list and the "1 / 3" counter showed another, so he kept landing on
+     the wrong garment. That was real — but the fault was the DISAGREEMENT, not the sort.
+     Since v458 the arrows, the list, the counter, Done and Start measuring all read this
+     one function, so there is nothing left to disagree with. Sorting here now moves all
+     five together.
+     So: his people first, as before; then every upper garment, then every lower, then the
+     accessories; and inside each, the order he picked them. The tape comes down once. */
+  const cat=k=>{ try{ return catRank(G(k))||0; }catch(e){ return 0; } };
   return picked.sort((a,b)=>
-    memR(a)-memR(b) || pickR[a]-pickR[b]);
+    memR(a)-memR(b) || cat(a)-cat(b) || pickR[a]-pickR[b]);
 }
 /* the piece after this one, or null if this is the last */
 function walkNext(f,key){
@@ -27321,9 +27376,18 @@ function renderInvoices(keepFocus){
     holder.innerHTML=body;
     return;
   }
-  el.innerHTML=head+searchBox+`<div id="invListTitle">${title}</div><div id="invBody">${body}</div>
-    <div class="listfab"><button class="btn primary" onclick="openSaleForm()">+ ${t('new_sale')}</button></div>
-    <div class="fab-pad" style="height:76px"></div>`;
+  /* ══════════ v721 — THE SAME LIST, TWO DIFFERENT SHAPES ══════════
+     HIS 18 Sept: "purchase invoice me new invoice upar hai per sales me niche.. aisi hi
+     problem har screen me hai jinhe tum khud analyse karke thik karna hoga."
+     Right, and it is worse than untidy: the one button he presses most on this screen was
+     floating over the rows near his thumb on one list and pinned to the top on another, so
+     the same hand movement did different things depending on which list he was in. It goes
+     where Purchase keeps it — first thing on the screen, above the search. lawcheck.js now
+     holds every list to this, so the next one cannot drift. */
+  el.innerHTML=head+`<button class="btn primary block" style="margin:0 0 10px"
+      onclick="openSaleForm()">\u2795 ${t('new_sale')}</button>`+searchBox
+    +`<div id="invListTitle">${title}</div><div id="invBody">${body}</div>
+    <div class="fab-pad"></div>`;
   if(keepFocus)focusInvSearch();
 }
 function invCardHTML(x){
@@ -27571,7 +27635,15 @@ function invDraftDrop(id){
       try{renderInvoiceForm();}catch(e){} refreshBehind(); });
 }
 const PUR_DRAFT_KEY='pb_ob_purdraft';
-function purHasContent(f){ return !!(f && (f.supplier || f.phone || (f.items||[]).length || (f.notes||'').trim() || (f.photos||[]).length)); }
+/* ══════════ v721 — A DRAFT THAT WAS NOTHING AT ALL ══════════
+   HIS 18 Sept: "An unfinished purchase was saved \u2014 No name yet \u00b7 0 items. yahan pe hona hi
+   nahi chahiye jab item bhi zero hai."
+   A phone number on its own passed this test. The supplier picker fills the phone the moment
+   a name is touched, so clearing the name again left a "bill" made of one phone number \u2014 and
+   every New Purchase after that opened with a draft card offering to resume nothing.
+   A bill is a name, or goods, or a photograph of the bill (he photographs first and fills
+   later). A phone number alone is none of those, and neither is a note. */
+function purHasContent(f){ return !!(f && (f.supplier || (f.items||[]).length || (f.photos||[]).length)); }
 function getPurDraft(){ try{ const d=JSON.parse(localStorage.getItem(PUR_DRAFT_KEY)||'null'); return (d&&purHasContent(d))?d:null; }catch(e){ return null; } }
 function savePurDraft(){
   if(!purchForm||purchForm.editId)return;      // never draft an edit of a saved bill
@@ -35957,6 +36029,22 @@ function rentSetup(){
         <select id="rc_on">
           <option value="gross" ${c.on!=='net'?'selected':''}>${t('rc_gross')}</option>
           <option value="net" ${c.on==='net'?'selected':''}>${t('rc_net')}</option></select></div></div>
+    ${/* ══════════ v723 — THE PART OF THE RENT THAT WAS NOT RENT ══════════
+         HIS 18 Sept: "Akhil ji jinki shop maine li hai, april se pahle ka 5.85L rent baki
+         hai aur april se sale per 15% commission. inka hisab mujhe ekdum saaf suthra
+         chahiye, inka bahut pressure rahta hai aur ye beech beech me paisa maangte rahte
+         hain."
+         The commission side has worked since v285. What had nowhere to sit was the
+         ₹5,80,251 owed from before April, so this screen could show what the year had
+         earned and never what he actually owes the man. When Akhil asks at the counter,
+         the older and larger half of the answer was missing.
+         It goes in here, with its own date, and the balance below counts it. */''}
+    <div class="field" style="margin-top:8px"><label>${t('rc_open')}</label>
+      <div class="row2">
+        <input id="rc_open" type="number" inputmode="decimal" value="${c.open?esc(c.open):''}" placeholder="0">
+        <input id="rc_opendate" type="date" value="${esc(c.openDate||'')}">
+      </div>
+      <p class="hint" style="margin-top:4px">${t('rc_open_hint')}</p></div>
     <div class="field" style="margin-top:8px"><label>${t('rc_head')}</label>
       <select id="rc_head"><option value="">\u2014</option>
         ${heads.map(h=>`<option value="${esc(h)}" ${c.head===h?'selected':''}>${esc(h)}</option>`).join('')}</select>
@@ -35968,9 +36056,11 @@ function rentSetup(){
         ${bs2.ret?`<div class="il"><span class="hint">${t('rc_ret')}</span><b style="color:var(--ok)">− ${money(bs2.ret)}</b></div>`:''}`; })()}
       <div class="il"><span>${t('rc_earned')}</span><b>${money(earned)}</b></div>
       <div class="il"><span>${t('rc_paid')}</span><b style="color:var(--ok)">${money(paid)}</b></div>
+      ${(+c.open>0)?`<div class="il"><span class="hint">${t('rc_open')}${c.openDate?' \u00B7 '+fmtDate(c.openDate):''}</span>
+        <b>${money(+c.open)}</b></div>`:''}
       <div class="il" style="font-weight:800;border-top:1px solid var(--line);margin-top:4px;padding-top:6px">
-        <span>${t('rc_owed')}</span>
-        <b style="color:${owed>0?'var(--bad)':'var(--ok)'}">${money(Math.abs(owed))}</b></div></div>`:''}
+        <span>${t('rc_owed_all')}</span>
+        <b style="color:${balColor(-(owed+(+c.open||0)))}">${money(Math.abs(r2(owed+(+c.open||0))))}</b></div></div>`:''}
     <p class="hint" style="margin-top:10px">${t('rc_note')}</p>
     <div class="modal-actions">
       ${rentOn()?`<button class="btn danger" onclick="rentRemove()">${t('rc_remove')}</button>`:''}
@@ -35984,6 +36074,9 @@ function rentSave(){
   if(!who||!(pct>0)){ toast(t('rc_need'),'bad'); return; }
   const c=rentCfg();
   c.who=who; c.pct=pct; c.on=g('rc_on')||'gross'; c.head=g('rc_head')||'';
+  /* v723: the arrears from before the commission began — a figure with its own date, not a
+     ledger row, because it is the opening of THIS arrangement. */
+  c.open=+g('rc_open')||0; c.openDate=g('rc_opendate')||'';
   save(); toast(t('rc_saved'),'ok'); rentSetup();
 }
 function rentRemove(){
@@ -36935,8 +37028,18 @@ function moFind(v){
         <span class="hint">${t('mo_notfound')}</span>
         <button class="btn sm ghost" onclick="moNew()">➕ ${t('lg_new')}</button></div>`:'');
 }
+/* ══════════ v721 — CHOSEN, AND THE LIST STAYED UP ══════════
+   HIS 18 Sept: "Meghraj Parasmal select karne ke baad bhi neeche dikha raha hai Meghraj
+   Parasmal Select, jabki maine select kar li."
+   moPick put the name in the box and then called moFind(name) again — which searched for
+   that exact name and of course found it, so the suggestion sat there with its Select
+   button still offering the thing he had just done. He could not tell whether the choice
+   had taken, and the same Select invited a second press.
+   Choosing ends the search. The list goes, the name stands in the box, and the cursor is
+   already in the amount. To change it he types again and the list comes back. */
 function moPick(name){ moCap(); _mo.name=name; _mo.q=name;
-  const e=$('#mo_q'); if(e)e.value=name; moFind(name);
+  const e=$('#mo_q'); if(e)e.value=name;
+  const box=$('#mo_hits'); if(box)box.innerHTML='';
   const a=$('#mo_amt'); if(a&&!a.value)a.focus(); }
 function moNew(){ moCap(); const pre=_mo.q;
   ledgerEdit(null);
@@ -37228,9 +37331,26 @@ function lgBalance(l){
   try{ if(_lgBalMemo && l.id)_lgBalMemo[l.id]=run; }catch(e){}
   return run;                                   /* +ve = Dr, -ve = Cr */
 }
+/* v721 — HIS 18 Sept, on the Sumit list: "pehle screenshot mein Sumit Bhaiya mein dash,
+   kuch nahi dikha raha hai." A dash means "not known". Zero is known: it is zero, and on a
+   man's balance that is the most reassuring number there is — settled. Say it. */
+/* ══════════ v721 — ONE RULE FOR RED AND GREEN ══════════
+   HIS 18 Sept: "ek to colour red aur green ka concept rakho hai na — jo dena hai wo red
+   hai, jo de diya wo green hua, jo baki hai wo red hua, jo lena hai wo green hua."
+   The app had both colours everywhere and no rule behind them: a customer's due was saffron
+   on one screen, red on another and green on a third, so the colour told him nothing and he
+   had to read the words anyway. One function decides it now, and every screen that shows a
+   balance asks this instead of choosing for itself.
+     money he will GET  -> green      money he must GIVE -> red      nothing left -> plain  */
+function balColor(v){
+  const n=r2(+v||0);
+  if(!n)return 'var(--ink)';
+  return n>0 ? 'var(--ok)' : 'var(--bad)';
+}
 function lgBalHTML(v){
-  const a=Math.abs(r2(v)); if(!a)return `<span class="hint">\u2014</span>`;
-  return `<b>${money(a)}</b> <span class="hint">${v<0?'Cr':'Dr'}</span>`;
+  const a=Math.abs(r2(v)); if(!a)return `<b>${money(0)}</b>`;
+  /* v721: a ledger's Dr is money owed TO the shop, Cr is money the shop owes. Same rule. */
+  return `<b style="color:${balColor(v)}">${money(a)}</b> <span class="hint">${v<0?'Cr':'Dr'}</span>`;
 }
 /* ══════════ v609 — A LEDGER IS READ BETWEEN TWO DATES ══════════
    HIS 10 Sept: "custom dates ho — kis date se kis date tak uska ledger dekhna hai... opening
@@ -37296,7 +37416,24 @@ function ledgerView(id){
        same whether it wraps to one line or four, and the opening says out loud that it is
        the opening rather than sitting in the list as an ordinary entry. */
     const isOpen = r.ref===t('lg_open') || r.ref===t('lg_open_row');
-    const amt = r.dr ? {w:t('lg_gave'), v:r.dr} : {w:t('lg_got'), v:r.cr||0};
+    /* ══════════ v721 — THE WORD ON THE LINE WAS NOT WHAT HAPPENED ══════════
+       HIS 18 Sept, on Sumit's ledger: "amount ke upar given kyon hai, maine maal becha hai
+       paise diye nahi hain."
+       Right. v683 gave every amount its own word so a wrapped row still said which column
+       it belonged to — but it took the word from the BOOKS: debit became "Given", credit
+       became "Taken". On a bill, a debit means the customer has to pay; nothing was given.
+       So the line now says what actually happened — Bill, Receipt, Payment, Purchase,
+       Opening — and Dr/Cr stay where the accountant needs them, on the Trial balance and
+       the Balance sheet. */
+    const _k=String(r.kind||r.refKind||'');
+    const _word=(function(){
+      if(isOpen)                       return t('lg_open_row');
+      if(_k==='sale'||/INV\//.test(r.ref||''))   return t('lg_w_bill');
+      if(_k==='purchase')              return t('lg_w_purchase');
+      if(r.dr)                         return t('lg_w_receipt');   /* money came in */
+      return t('lg_w_payment');                                    /* money went out */
+    })();
+    const amt = r.dr ? {w:_word, v:r.dr} : {w:_word, v:r.cr||0};
     return `<div class="lg-row2"${r.go?` style="cursor:pointer" onclick="${esc(r.go)}"`:''}>
       <div class="lg-when"><b>${r.date?fmtDate(r.date):'\u2014'}</b>
         <span class="lg-what">${isOpen?('\u{1F4D6} '+esc(t('lg_open_row'))):esc(r.ref||'')}</span></div>
@@ -38212,7 +38349,7 @@ function openingSave(name,kind){
   if(ex)Object.assign(ex,{amt,dir,date});
   else DB.ledger.push({id:uid(), dir, date, amt, acc:'', party:name, partyId:null,
     partyKind:kind, ref:t('ob_ref'), refKind:'opening', cat:'', note:'', opening:true, photos:[]});
-  save(); closeModal(); toast(t('pty_open_saved'),'ok'); partyCard(name,kind);
+  save(); closeModal(); toast(t('pty_open_saved'),'ok'); afterSave(()=>partyCard(name,kind));
 }
 /* v718 — remove ONE named opening line. openingDrop() below removes "the opening for this
    name and hat", which is the right thing when there is one and the wrong thing when there
@@ -38256,7 +38393,7 @@ function openSettleAsk(name,kind){
         DB.ledger.push({id:uid(), dir:st.dir, date, amt, acc, party:name, partyId:null,
           partyKind:kind, ref:t('pty_settled'), refKind:'openpay', cat:'',
           note:(($('#op_note')||{}).value||'').trim(), photos:[]});
-        save(); closeModal(); toast(t('pty_settle_saved'),'ok'); partyCard(name,kind);
+        save(); closeModal(); toast(t('pty_settle_saved'),'ok'); afterSave(()=>partyCard(name,kind));
      }}]);
 }
 function openPayDrop(id,name,kind){
@@ -41242,10 +41379,18 @@ let _sheetFromTab=null;
    A search box is ignored: filtering a list is not unsaved work. */
 /* the form's own Save button — the guard needs it twice over: to know this is a form at
    all, and so "Save & close" can press the very button he would have pressed himself. */
+/* v721 — HIS 18 Sept: "Save & close karne ke baad Payment Out ka new window khul jata hai."
+   It did, and the reason is here. This took the FIRST button whose words contain "save",
+   and on most forms that is "Save & next" — which by design clears the fields and opens a
+   fresh one. So the dialog's "Save & close" saved his entry and then handed him an empty
+   form, which is the opposite of close. The plain Save is the one that closes, so it is
+   the one that gets pressed; "& next" is only used if a screen has nothing else. */
 function sheetSaveBtn(){
   const sh=$('#sheet'); if(!sh)return null;
-  return [...sh.querySelectorAll('button')]
-    .find(b=>b.offsetParent && /save|सहेज|सेव/i.test(b.innerText||'')) || null;
+  const all=[...sh.querySelectorAll('button')]
+    .filter(b=>b.offsetParent && /save|सहेज|सेव/i.test(b.innerText||''));
+  const isNext=b=>/next|&|और|\+/i.test(b.innerText||'');
+  return all.find(b=>!isNext(b)) || all[0] || null;
 }
 function sheetDirty(){
   const sh=$('#sheet'); if(!sh||!sh.offsetParent)return false;
@@ -41320,8 +41465,16 @@ function closeSheet(){
     const _sv=sheetSaveBtn();
     modal(t('lv_t'),
       `<p style="color:var(--txt2);font-size:14px;line-height:1.6">${t('lv_m')}</p>`,
-      [{label:t('lv_no'),cls:'ghost',fn:()=>{ closeModal(); _xAsked=0; }},
-       {label:t('lv_yes'),cls:'danger',fn:()=>{ closeModal(); _xAsked=1; closeSheet(); _xAsked=0; }},
+      /* ══════════ v721 — THREE ANSWERS TO A QUESTION WITH TWO ══════════
+         HIS 18 Sept: "save karne pe Save & close, Leave don't save aur Stay here — teen
+         option aa rahe hain, kya ye teeno zaroori hain? teen option diye to aadmi confuse
+         hi hoga na."
+         v476 added the third because pressing ✕ on a filled form only offered "stay" or
+         "lose it". That was right. But "Stay here" answers nothing — he is already here,
+         and he reaches this dialog by trying to LEAVE. It is the Cancel of a dialog he did
+         not open. Two answers now, which is what the question has: keep it, or drop it.
+         The ✕ on the dialog itself is how he stays, and that is on every dialog in the app. */
+      [{label:t('lv_yes'),cls:'danger',fn:()=>{ closeModal(); _xAsked=1; closeSheet(); _xAsked=0; }},
        {label:t('lv_save'),cls:'primary',fn:()=>{ closeModal(); _xAsked=0;
           /* press his Save. If it succeeds the screen closes itself; if it refuses, it
              stays up with its own message and nothing is lost. */
@@ -41615,6 +41768,26 @@ function sheetBack(){
   try{ prev(); return true; }catch(e){ _sheetCur=null; return false; }
 }
 function sheetReset(){ _sheetStack=[]; _sheetCur=null; _sheetName=''; }
+/* ══════════ v721 — SAVE THREW AWAY THE WAY BACK ══════════
+   HIS 18 Sept: "back ho to abhi bhi home screen per hi chale jata hun, ye irritating hai,
+   baar baar reports me jao fir ledger me fir entry ko edit, fir next edit karne ke liye
+   fir se home screen se jana padta hai."
+   Every edit ended by naming where to go next — dayBook(), partyCard(name,kind) — as if
+   there were only one door in. There are four. He reached that same payment from Reports,
+   from the ledger, from Payables and from the party card, and whichever door he used, the
+   save sent him somewhere else and he had to walk the whole way back for the next one.
+   The trail was already being kept (sheetAt/sheetBack, v717). The save simply never asked
+   for it. Now it does: back to the page he was standing on, redrawn with the new figure.
+   The named screen stays as the fallback for when there is genuinely nothing behind. */
+function afterSave(fallback){
+  /* The page he is standing on is still the right page — the edit happened in a modal on
+     top of it. So redraw THAT, with the new figure, and the next entry is already under
+     his thumb. Only when nothing is open does it step back, and only then does the old
+     named screen get used at all. */
+  try{ if(_sheetCur){ const cur=_sheetCur; _sheetCur=null; cur(); return; } }catch(e){ _sheetCur=null; }
+  try{ if(sheetBack())return; }catch(e){}
+  try{ if(typeof fallback==='function')fallback(); }catch(e){}
+}
 function backOneStep(){
   try{ if(invFormOnScreen()){ invClose(); return true; } }catch(e){}   /* v709: one door out of a bill */
   try{
