@@ -1105,7 +1105,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v727</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v728</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -1293,6 +1293,7 @@ const T={
   rc_on:'On', rc_gross:'Gross sale (bill total)', rc_net:'Net sale (after GST)',
   rc_off:'Not set up', rc_earned:'Earned this period', rc_paid:'Paid', rc_owed:'Still to pay',
   rc_ret:'Less sales returns', rc_base:'Sale it is charged on',
+  bk_ph_fail:'{n} could not be written', bk_ph_fail_title:'Some photos did not go in', bk_ph_fail_msg:'{n} of {of} photo(s) could not be written to this device.', bk_ph_fail_how:'This usually means the device is out of space. Free some space and restore the same file again \u2014 nothing is overwritten, the photos that did go in stay.',
   rc_head:'Which expense head', bk_ph_gap_title:'Some photos are not on this device', bk_ph_gap_msg:'The book is complete, but {n} photo(s) it refers to are not here.', bk_ph_gap_how:'Each backup file carries only the photos added since the one before it. Restore your older backup files too \u2014 any order, nothing is overwritten and nothing is lost.', eh_parent:'Comes under', eh_parent_none:'\u2014 it is a main head \u2014', eh_parent_hint:'Only the grouping changes. No entry and no figure is touched.', eh_parent_self:'A head cannot come under itself', eh_parent_busy:'Other heads come under this one \u2014 move them first', eh_parent_deep:'That one already comes under another head', dash_title:'Dashboard', dash_more:'Open the full report', rc_open:'Owed from before this arrangement', rc_open_hint:'What was still owed on the day the commission started \u2014 old rent, dues, anything. Counted in the balance below.', rc_owed_all:'Total owed to him', rc_head_hint:'Payments recorded under this head count as paid against it.',
   rc_note:'Worked out from bills, never stored twice. Pay it from Expenses under the head you pick here.',
   rc_saved:'Rent on sales saved', rc_remove:'Remove',
@@ -3578,6 +3579,7 @@ dl_show_hidden:'Show hidden ({n})',
   rc_on:'On', rc_gross:'कुल बिक्री (बिल का पूरा)', rc_net:'शुद्ध बिक्री (GST के बाद)',
   rc_off:'अभी सेट नहीं', rc_earned:'इस अवधि का बना', rc_paid:'दिया', rc_owed:'अभी देना है',
   rc_ret:'बिक्री वापसी घटाकर', rc_base:'किस बिक्री पर लगेगा',
+  bk_ph_fail:'{n} नहीं लिखी जा सकीं', bk_ph_fail_title:'कुछ फ़ोटो अंदर नहीं गईं', bk_ph_fail_msg:'{of} में से {n} फ़ोटो इस डिवाइस पर लिखी नहीं जा सकीं।', bk_ph_fail_how:'आम तौर पर डिवाइस में जगह नहीं बची होती है। जगह ख़ाली करके वही फ़ाइल दोबारा रिस्टोर कीजिए \u2014 कुछ मिटेगा नहीं, जो फ़ोटो अंदर चली गई हैं वे रहेंगी।',
   rc_head:'किस ख़र्च के नाम से', bk_ph_gap_title:'कुछ फ़ोटो इस डिवाइस पर नहीं हैं', bk_ph_gap_msg:'किताब पूरी है, लेकिन उसमें लगी {n} फ़ोटो यहाँ नहीं हैं।', bk_ph_gap_how:'हर बैकअप फ़ाइल में सिर्फ़ उसके पिछले बैकअप के बाद जुड़ी फ़ोटो होती हैं। पुरानी बैकअप फ़ाइलें भी रिस्टोर कर लें — किसी भी क्रम में, कुछ मिटेगा नहीं।', eh_parent:'किसके अंदर', eh_parent_none:'\u2014 यह ख़ुद मुख्य हेड है \u2014', eh_parent_hint:'सिर्फ़ ग्रुपिंग बदलेगी। कोई एंट्री और कोई रक़म नहीं बदलेगी।', eh_parent_self:'हेड ख़ुद के अंदर नहीं आ सकता', eh_parent_busy:'इसके अंदर दूसरे हेड हैं — पहले उन्हें हटाइए', eh_parent_deep:'वह पहले से किसी और हेड के अंदर है', dash_title:'डैशबोर्ड', dash_more:'पूरी रिपोर्ट खोलें', rc_open:'इस व्यवस्था से पहले का बकाया', rc_open_hint:'कमीशन शुरू होने के दिन तक जो बाक़ी था — पुराना किराया, कोई भी बकाया। नीचे के हिसाब में जुड़ेगा।', rc_owed_all:'कुल देना है', rc_head_hint:'इस नाम से किए भुगतान इसी में गिने जाएँगे।',
   rc_note:'बिलों से हिसाब बनता है, दो बार कहीं नहीं रखा जाता। जो नाम यहाँ चुनोगे, ख़र्च में उसी से पैसा दो।',
   rc_saved:'बिक्री पर किराया सेव हुआ', rc_remove:'हटाएँ',
@@ -19678,6 +19680,10 @@ function delMeas(gid,i,ctx){
       undoToast('🗑️ '+String(row), tid, rec=>{
         const r=rec.row; DB.measLib[r.gid]=DB.measLib[r.gid]||[];
         DB.measLib[r.gid].splice(Math.min(r.i,DB.measLib[r.gid].length),0,r.row);
+        /* v728: the delete branch four lines down repaints; this one put the row back into
+           the book and left the open list showing it gone. One job, two branches, drifting
+           apart - and the undo is the branch he taps when he did not mean to delete. */
+        try{ addMeas(r.gid,ctx); }catch(e){}
       });
       addMeas(gid,ctx);
     },
@@ -21160,7 +21166,11 @@ function measRangeEdit(){
           if(a[0]!=null&&a[1]!=null&&a[0]<a[1])clean[k]=[a[0],a[1]]; });
         /* v209 audit: t('saved') is not a key anywhere — this toast came up blank.
            The real one has always been t_saved. */
-        DB.measRange=clean; save(); closeModal(); toast(t('t_saved'),'ok'); }}]);
+        /* v728: Reset (the button beside this one) reopens the screen so the new limits are
+           on it; Save closed without one, leaving every measurement behind still judged
+           against the old range. Same modal, same job, two different endings. */
+        DB.measRange=clean; save(); closeModal(); toast(t('t_saved'),'ok');
+        try{ if(typeof renderForm==='function' && document.querySelector('#sheet'))renderForm(); }catch(e){} }}]);
 }
 function vmFieldName(g,k){ const c=vcols(g||{}).find(x=>x.k===k); return c?c.n:k; }
 function vmAllFilled(f,key){
@@ -27354,7 +27364,16 @@ function renderInvoices(keepFocus){
      bills at all gets the bare screen; a range that matches nothing keeps the chips, the
      dates and the search above it, says so plainly, and offers one tap back to All. */
   const _bookEmpty = !allInvoices().length;
-  if(_bookEmpty){ el.innerHTML=head+invDraftBarHTML()+`<div class="empty"><div class="big">🧾</div><p><b>${t('no_invoices')}</b></p><p style="font-size:13px">${t('no_invoices_sub2')}</p></div>`; return; }
+  /* v728 - A NEW SHOP COULD NOT WRITE ITS FIRST BILL FROM THIS SCREEN.
+     Driven on an empty book: Orders, Customers, Purchase, Alterations, Expenses, Receipts
+     and Payments all keep their "new" button on the empty screen. Invoices was the only
+     one of the eight that returned early and painted the empty state WITHOUT it - so the
+     one screen you open to make a bill offered no way to make one until a bill already
+     existed. Same family as the empty-filter fault: an early exit that redraws without
+     the control the screen is for. The button now sits in the empty state too, in the
+     same place it sits on a full one. */
+  if(_bookEmpty){ el.innerHTML=head+`<button class="btn primary block" style="margin:0 0 10px"
+      onclick="openSaleForm()">\u2795 ${t('new_sale')}</button>`+invDraftBarHTML()+`<div class="empty"><div class="big">🧾</div><p><b>${t('no_invoices')}</b></p><p style="font-size:13px">${t('no_invoices_sub2')}</p></div>`; return; }
 
   /* ══════════ v552 — HE TYPED ONE BILL NUMBER AND GOT THREE ══════════
      HIS 8 Sept: searched 2783 and 2773 and 2831 stayed on the list. "2783" cannot match
@@ -29207,7 +29226,11 @@ function purRateAsk(off,purId){
         const pu=(DB.purchases||[]).find(x=>x.id===purId);
         if(pu){ pu.rateDiff=r2((+pu.rateDiff||0)+off.reduce((s2,o)=>s2+r2(o.mtr*(o.bill-o.roll)),0));
           if(!pu.rateDiff)delete pu.rateDiff; save(); }
-        closeModal(); toast(t('pur_rate_kept'),'ok'); }}]);
+        closeModal(); toast(t('pur_rate_kept'),'ok');
+        /* v728: the "use the bill rate" button above repaints the list, this one did not -
+           so the same modal left two different screens behind depending on which side he
+           tapped, and the rate difference he had just recorded was nowhere to be seen. */
+        if(typeof renderPurchases==='function'){ try{ renderPurchases(); }catch(e){} } }}]);
 }
 function purMatchThaan(it,key){
   let th=(DB.thaans||[]).find(x=>x._key===key); if(th)return th;
@@ -30722,22 +30745,72 @@ function bsFigures(from,to){
          A payment that has already been set against an opening is spent. Only what is left
          over after the opening is exhausted is genuinely money sitting with the supplier,
          and that is what is counted now. */
+      /* ══════════ v728 — HIS ₹39,943, AND THE SAME FAULT ON THE OTHER SIDE ══════════
+         His books were out by exactly ₹39,943 — Neha Enterprise's opening balance, to the
+         rupee. Reproduced on a clean book: an opening filed under one party kind with its
+         payments filed under another is counted TWICE. The payment knocks the payable down
+         AND stands as an advance, so one rupee moves both sides. It is the very fault v501
+         was written to kill; it came back through the kind.
+         The line below asked the PARTY MASTER for the kind. Neha's party master carries
+         kinds:{supplier:true} and no `kind` field at all, so that read undefined and fell
+         through to the payment row's own 'supplier' — while the opening itself is filed as
+         'other'. openingLine() matches name AND kind, found nothing, and the whole payment
+         became an advance. The gap then caps at the opening amount, which is why it read
+         as one clean figure.
+         The kind is a label on the party, not on the rupee — v491's own words. So the
+         opening is found by NAME (openingLinesAll, v718), and only then is a kind chosen:
+         the one that matches if there is one, otherwise the kind the opening actually
+         carries. Where a kind already matched, nothing changes.
+         The 'in' side had never had the v501 fix at all — one job written twice, drifting
+         apart. A receipt against a customer's opening reduced the receivable AND stood as
+         a customer advance, out by the receipt every time. It now settles the opening
+         first, exactly as the 'out' side does. */
+      const _openKind=(guess)=>{ try{
+          const all=openingLinesAll(named)||[];
+          if(!all.length)return guess;
+          const m=all.find(x=>pkNorm(x.partyKind)===pkNorm(guess));
+          return (m||all[0]).partyKind||guess;
+        }catch(e){ return guess; } };
+      /* ══════════ v728 — WHAT THIS ONE PAYMENT IS STILL OWED AGAINST ══════════
+         The old line read `st.amt - (st.paid - amt)`: the opening, less EVERY payment
+         except this one. With a single payment that is right. With four it is not — each
+         of Neha's four was measured against the other three, every one came out fully
+         "left over", and all ₹74,866 stood as an asset while payables had already been
+         knocked to nil. That is the whole ₹39,943.
+         A payment settles what was still owed when IT was made, so the opening is spent in
+         date order and this row is asked only about the part that reached it. Deterministic
+         (date, then id, so two payments on one day cannot swap places between redraws) and
+         the total left over is exactly the overpayment, never more. */
+      const _leftOverOf=(st,pays)=>{
+        const ord=(pays||[]).slice().sort((a,b)=>
+          String(a.date||'').localeCompare(String(b.date||''))||String(a.id||'').localeCompare(String(b.id||'')));
+        let before=0;
+        for(const q of ord){ if(q.id===l.id)break; before=r2(before+(+q.amt||0)); }
+        const absorbed=Math.max(0, Math.min(amt, r2((+st.amt||0)-before)));
+        return r2(amt-absorbed);
+      };
       if(named && l.dir==='out'){
         let leftOver=amt;
         try{
-          /* the row's own partyKind is unreliable — Money out writes 'other' when the name
-             was typed rather than picked, which is the very thing v491 had to work around
-             in openingPays. The party master is asked first, exactly as it is there. */
-          const st=openingState(named, ((partyByName(named)||{}).kind)||l.partyKind||'supplier');
-          if(st && st.dir==='out'){
-            const used=Math.min(amt, Math.max(0, r2(st.amt-(st.paid-amt))));
-            leftOver=r2(amt-Math.max(0,used));
-          }
+          const _g=((partyByName(named)||{}).kind)||l.partyKind||'supplier';
+          const _k=_openKind(_g);
+          const st=openingState(named,_k);
+          if(st && st.dir==='out') leftOver=_leftOverOf(st, openingPays(named,_k,to));
         }catch(e){}
         if(leftOver>0)supAdv=r2(supAdv+leftOver);
         return;
       }
-      if(named && l.dir==='in'){ custAdv=r2(custAdv+amt); return; }
+      if(named && l.dir==='in'){
+        let leftOver=amt;
+        try{
+          const _g=((partyByName(named)||{}).kind)||l.partyKind||'customer';
+          const _k=_openKind(_g);
+          const st=openingState(named,_k);
+          if(st && st.dir==='in') leftOver=_leftOverOf(st, openingPays(named,_k,to));
+        }catch(e){}
+        if(leftOver>0)custAdv=r2(custAdv+leftOver);
+        return;
+      }
       susp = (l.dir==='in') ? r2(susp+amt) : r2(susp-amt);
     });
     if(custAdv>0)add(L,'custadv',custAdv);   /* his money, held against goods not yet billed */
@@ -40420,13 +40493,13 @@ async function zipRestore(file){
       modal('🗜️ '+t('zr_working'),`<p class="hint" id="zrSub">…</p>
         <div class="prog"><div id="zrBar" class="bar" style="width:0%"></div></div>`,
         [{label:t('zr_stop'),cls:'ghost',fn:()=>{ _zrStop=true; closeModal(); toast(t('zr_stopped'),'bad'); }}]);
-      let i=0;
+      let i=0; let _zrOk=0;                      /* v728: photos that actually landed */
       for(const m of media){
         if(_zrStop)return;                       /* nothing has touched DB yet */
         const key=m.name.replace(/^media\//,'');
         try{ const raw=new Blob([await zipEntryBytes(m)]);
           const ty=await mediaSniff(raw);            /* v697: the zip keeps no type — read it back */
-          await mPut(key, ty?new Blob([raw],{type:ty}):raw); }catch(e){}
+          await mPut(key, ty?new Blob([raw],{type:ty}):raw); _zrOk++; }catch(e){}
         i++;
         if(i%10===0){ const bar=$('#zrBar'); if(bar)bar.style.width=Math.round(i*100/media.length)+'%';
           const sub=$('#zrSub'); if(sub)sub.textContent=t('zb_progress',{a:i,b:media.length});
@@ -40458,6 +40531,17 @@ async function zipRestore(file){
       const _zres=await writeRestoredBook(d);
       if(!_zres.ok){ closeModal(); restoreFailedModal(_zres.bad); return; }
       closeModal();
+      /* v728: this door reloads, so a toast about missing photos would never be read. If
+         the media store refused any of them he is told in a modal he has to close, and the
+         reload waits for it - the same fault the photos-only door had, same cure. */
+      const _zrShort=Math.max(0,(media||[]).length-_zrOk);
+      if(_zrShort){
+        modal('\u26A0\uFE0F '+t('bk_ph_fail_title'),
+          '<p>'+esc(t('bk_ph_fail_msg',{n:_zrShort,of:(media||[]).length}))+'</p>'
+          +'<p class="hint" style="margin-top:8px;white-space:normal">'+esc(t('bk_ph_fail_how'))+'</p>',
+          [{label:t('close'),cls:'primary',fn:()=>{closeModal();location.reload();}}]);
+        return;
+      }
       toast(t('t_restored'),'ok');
       location.reload();
     },
@@ -40984,14 +41068,24 @@ async function photoGapWarn(){
     [{label:t('close'),cls:'primary',fn:closeModal}]); }catch(e){}
   return miss.length;
 }
+/* v728 - IT SAID "2 PHOTOS RESTORED" AND WROTE NONE.
+   Proven in the container: with the media store refusing every write - an iPad with a
+   full disk, which is the day this matters - every put failed into an empty catch and
+   this returned keys.length, the number OFFERED. The screen then said "2 photos
+   restored" in green. He would have put the file away believing the photos were back.
+   The photo capture path at mPut() already fails loudly ("t_nomedia"); only this one
+   counted hope instead of fact. It now returns what actually landed, and the doors
+   above state the shortfall. */
 async function restoreMedia(media){
   const keys=Object.keys(media||{});
+  let ok=0;
   for(let i=0;i<keys.length;i++){
     const k=keys[i];
-    try{ const r=await fetch(media[k]); const b=await r.blob(); await mPut(k,b); }catch(e){}
+    try{ const r=await fetch(media[k]); const b=await r.blob(); await mPut(k,b); ok++; }catch(e){}
     if(i%3===0){ bkProgress(i+1,keys.length); await bkYield(); }
   }
-  return keys.length;
+  restoreMedia.lastOwed=keys.length; restoreMedia.lastOk=ok;
+  return ok;
 }
 function mediaCount(o){return Object.keys((o&&o.media)||{}).length;}
 /* THE ONE GATE. A one-file backup with every photo is fine for a small shop and a bad
@@ -41083,8 +41177,13 @@ function doImport(){const inp=document.createElement('input');inp.type='file';in
           t('bk_found_photos',{n:nPh, p:raw.part||'?'})+'\n\n'+t('restore_photos_msg'),
           async ()=>{
             closeModal(); bkBusyModal();
-            let n=0; try{ n=await restoreMedia(raw.media); }catch(e){}
+            let n=0; const _owed=mediaCount(raw);
+            try{ n=await restoreMedia(raw.media); }catch(e){}
             closeSheet(); closeModal();
+            /* v728: n is now what the device actually holds. If the store refused any of
+               them the message says so, in red, with the number - never a green tick over
+               a write that did not happen. */
+            const _short=Math.max(0,_owed-n);
             /* v333 — P1 from the audit: restoring parts 1 and 3 and skipping 2 used to pass
                in silence. The photos that arrived were always correct; what was missing was
                any word that more were owed. Said in the SAME message as the count, because
@@ -41101,7 +41200,12 @@ function doImport(){const inp=document.createElement('input');inp.type='file';in
                 else tail=' · '+t('pb_parts_all',{of});
               }
             }catch(e){}
+            if(_short){ good=false; tail+=' \u00b7 '+t('bk_ph_fail',{n:_short}); }
             toast(t('bk_photos_back',{n})+tail, good?'ok':'bad');
+            if(_short){ try{ modal('\u26A0\uFE0F '+t('bk_ph_fail_title'),
+              '<p>'+esc(t('bk_ph_fail_msg',{n:_short,of:_owed}))+'</p>'
+              +'<p class="hint" style="margin-top:8px;white-space:normal">'+esc(t('bk_ph_fail_how'))+'</p>',
+              [{label:t('close'),cls:'primary',fn:closeModal}]); }catch(e){} }
             try{ renderOrders(); }catch(e){}
           }, closeModal, {yes:t('restore_backup'), no:t('cancel'), cls:'primary'});
         return;
