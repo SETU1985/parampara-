@@ -1105,7 +1105,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v728</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v729</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -2327,6 +2327,12 @@ const T={
   pa_open_no_move:'Opening entered, but nothing has moved since',
   pa_over:'Paid more than the book says is owed',
   pa_note:'This screen changes nothing. Each name below is one the books cannot fully explain \u2014 open it and the ledger will show why.',
+  pa_two_opens:'The same opening entered twice, at two figures',
+  pa_two_opens_sub:'ledger entry {a} · ledger master {b} — make the two agree',
+  pa_master_only:'Opening on the ledger master, nothing in the ledger',
+  pa_master_only_sub:'this figure is in no report — enter the opening, or set the master to 0',
+  pa_two_names:'One party, two spellings',
+  pa_two_names_sub:'ledger “{a}” · master “{b}” — rename the master to match',
   pa_none:'Nothing here needs a second look',
   pty_search:'Search a name…', pty_add:'Add a party', pty_none:'Nobody yet',
   pty_open:'Opening', pty_open_left:'Opening still open', pty_open_none:'No opening entered',
@@ -3319,6 +3325,9 @@ dl_show_hidden:'Show hidden ({n})',
   lg_bs:'Balance sheet', lg_pl:'Profit & loss', lg_saved:'Ledger saved', lg_count:'{n} {n|ledger|ledgers}',
   lg_sub:'Every name the shop uses, and the group it belongs to.',
   lg_search:'Search a ledger or a group...', lg_none:'Nothing matches that',
+  lg_dir_q:'This money is', lg_owe:'💸 I have to give', lg_own:'💰 I have to take',
+  lg_inc:'💰 Income', lg_cost:'💸 A cost',
+  lg_dir_normal:'{g} is normally “{d}”.',
   lg_dr:'Dr — the shop owns it / it is a cost',
   lg_cr:'Cr — the shop owes it / it is income',
   lg_grp_hint:'The group decides which statement this lands on and which side it sits.',
@@ -4600,6 +4609,12 @@ dl_show_hidden:'Show hidden ({n})',
   pa_open_no_move:'शुरुआती बकाया है, पर उसके बाद कुछ हुआ ही नहीं',
   pa_over:'किताब जितना कहती है, उससे ज़्यादा दे दिया',
   pa_note:'यह स्क्रीन कुछ नहीं बदलती। नीचे हर नाम वह है जिसे किताब पूरी तरह समझा नहीं पाती \u2014 खोलिए, खाता वजह बता देगा।',
+  pa_two_opens:'एक ही ओपनिंग दो जगह, दो अलग रक़म',
+  pa_two_opens_sub:'लेजर एंट्री {a} · लेजर मास्टर {b} — दोनों एक कीजिए',
+  pa_master_only:'लेजर मास्टर पर ओपनिंग है, लेजर में कुछ नहीं',
+  pa_master_only_sub:'यह रक़म किसी रिपोर्ट में नहीं चल रही — ओपनिंग डालिए, या मास्टर को 0 कीजिए',
+  pa_two_names:'एक ही पार्टी, दो स्पेलिंग',
+  pa_two_names_sub:'लेजर “{a}” · मास्टर “{b}” — मास्टर का नाम मिला दीजिए',
   pa_none:'दोबारा देखने लायक कुछ नहीं है',
   pty_search:'नाम ढूंढें…', pty_add:'पार्टी जोड़ें', pty_none:'अभी कोई नहीं',
   pty_open:'शुरुआती बाकी', pty_open_left:'शुरुआती बकाया बचा है', pty_open_none:'कोई शुरुआती बकाया नहीं',
@@ -5588,6 +5603,9 @@ dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
   lg_bs:'Balance sheet', lg_pl:'Profit & loss', lg_saved:'Ledger saved', lg_count:'{n} ledgers',
   lg_sub:'हर नाम जो दुकान में चलता है, और वो किस group में है।',
   lg_search:'नाम या group खोजें…', lg_none:'कोई नहीं मिला',
+  lg_dir_q:'यह पैसा', lg_owe:'💸 इनको देना है', lg_own:'💰 इनसे लेना है',
+  lg_inc:'💰 आमदनी', lg_cost:'💸 ख़र्चा',
+  lg_dir_normal:'{g} आम तौर पर “{d}” होता है।',
   lg_dr:'Dr — दुकान का है / ख़र्च है',
   lg_cr:'Cr — दुकान को देना है / आमदनी है',
   lg_grp_hint:'Group तय करता है कि ये किस statement में जाएगा और किस तरफ़ बैठेगा।',
@@ -13238,7 +13256,7 @@ function supPayFix(id){
   return true;
 }
 function partyAudit(){
-  const out={paidNoOpen:[], openNoMove:[], over:[]};
+  const out={paidNoOpen:[], openNoMove:[], over:[], twoOpens:[], masterOnly:[], twoNames:[]};
   const seen={};
   const isKarStaff=nm=>(DB.karigars||[]).some(k=>nameNorm(k.name)===nameNorm(nm))
                      ||(DB.staff||[]).some(k=>nameNorm(k.name)===nameNorm(nm));
@@ -13277,13 +13295,48 @@ function partyAudit(){
     else if(p.out > r2(p.open+bills)+0.5)
       out.over.push({name:p.name, amt:r2(p.out-p.open-bills)});
   });
-  [out.paidNoOpen,out.openNoMove,out.over].forEach(a=>a.sort((x,y)=>y.amt-x.amt));
-  out.n=out.paidNoOpen.length+out.openNoMove.length+out.over.length;
+  /* ══════════ v729 — THE SCREEN FOR THIS MISSED EVERY ONE OF THEM ══════════
+     His books were out by ₹39,943 and the cause was an opening this shop holds TWICE, in
+     two places, at two different figures — Neha Enterprise ₹39,943 in the ledger and
+     ₹54,866 on the ledger master. Four names carry that split. Two more carry an opening
+     on the master with no ledger line behind it, so the money is in no report at all. One
+     is the same supplier under two spellings.
+     Not one of the seven showed on this screen, whose whole job is to name what the books
+     cannot explain. It only ever compared a name against ITSELF; it never compared the two
+     places the same name is written. These three checks read only — nothing is changed —
+     and each row carries both figures, so he can see which one to correct. */
+  try{
+    const lineOpen={}, lineName={};
+    (DB.ledger||[]).forEach(l=>{ if(l.refKind!=='opening')return;
+      const nm=String(l.party||'').trim(); if(!nm)return; const k=nameNorm(nm);
+      if(isKarStaff(nm))return;
+      lineOpen[k]=r2((lineOpen[k]||0)+(+l.amt||0)); lineName[k]=lineName[k]||nm; });
+    (DB.ledgers||[]).forEach(m=>{
+      const nm=String(m.name||'').trim(); const oa=r2(+m.openAmt||0);
+      if(!nm||!oa) return; const k=nameNorm(nm);
+      if(isKarStaff(nm))return;
+      if(lineOpen[k]===undefined){ out.masterOnly.push({name:nm, amt:oa, dir:m.openDir||''}); return; }
+      if(Math.abs(lineOpen[k]-oa)>0.5)
+        out.twoOpens.push({name:nm, amt:Math.abs(r2(oa-lineOpen[k])), line:lineOpen[k], master:oa});
+      if(lineName[k] && lineName[k]!==nm)
+        out.twoNames.push({name:nm, amt:oa, line:lineName[k], master:nm});
+    });
+  }catch(e){}
+  [out.paidNoOpen,out.openNoMove,out.over,out.twoOpens,out.masterOnly,out.twoNames]
+    .forEach(a=>a.sort((x,y)=>y.amt-x.amt));
+  out.n=out.paidNoOpen.length+out.openNoMove.length+out.over.length
+       +out.twoOpens.length+out.masterOnly.length+out.twoNames.length;
   return out;
 }
 function partyAuditScreen(){
   sheetAt(partyAuditScreen);
   const a=partyAudit();
+  const sec2=(title,list,sub)=>list.length?`<div class="section-h">${title}</div>
+    <div class="card" style="padding:0;margin-bottom:12px;overflow:hidden">
+      ${list.map(x=>`<div class="krow tappable"
+        onclick="closeSheet();partyCard('${jq(x.name)}','supplier')">
+        <span class="kn"><b>${esc(x.name)}</b><div class="hint" style="white-space:normal">${sub(x)}</div></span>
+        <b style="color:var(--bad)">${money(x.amt)}</b></div>`).join('')}</div>`:'';
   const sec=(title,list,col)=>list.length?`<div class="section-h">${title}</div>
     <div class="card" style="padding:0;margin-bottom:12px;overflow:hidden">
       ${list.map(x=>`<div class="krow tappable"
@@ -13296,6 +13349,13 @@ function partyAuditScreen(){
     ${sec(t('pa_paid_no_open'), a.paidNoOpen, 'var(--bad)')}
     ${sec(t('pa_open_no_move'), a.openNoMove, 'var(--saffron2)')}
     ${sec(t('pa_over'), a.over, 'var(--bad)')}
+    ${/* v729: these three carry two figures each - one figure alone would not tell him
+         which of the two places to correct. */''}
+    ${sec2(t('pa_two_opens'), a.twoOpens,
+       x=>t('pa_two_opens_sub',{a:money(x.line), b:money(x.master)}))}
+    ${sec2(t('pa_master_only'), a.masterOnly, x=>t('pa_master_only_sub'))}
+    ${sec2(t('pa_two_names'), a.twoNames,
+       x=>t('pa_two_names_sub',{a:esc(x.line), b:esc(x.master)}))}
     <p class="hint" style="white-space:normal;margin-top:10px">${t('pa_note')}</p>
     <div class="fab-pad"></div>`;
   showSheet();
@@ -30789,6 +30849,26 @@ function bsFigures(from,to){
         const absorbed=Math.max(0, Math.min(amt, r2((+st.amt||0)-before)));
         return r2(amt-absorbed);
       };
+      /* ══════════ v728 — THE STAFF ADVANCE IS THE OPPOSITE OF A SUPPLIER'S DUE ══════════
+         A supplier's opening is money the shop OWES; a staff or karigar opening is money
+         the shop GAVE — an asset. Both are written dir 'out', so this block was settling
+         the one against the other: a loose money-out row against a staff name was absorbed
+         into his opening advance and then counted in no account at all. It left the cash
+         box and simply vanished, and the two sides went apart by it. Driven on a clean
+         book: opening 10,000, pay 4,000, books out by 4,000.
+         staffAdvBal() already claims any row whose expense head is tagged "Advance given"
+         or "Advance recovered". v251 deliberately refuses to GUESS for an untagged head —
+         an old head nobody has classified must not silently become an advance. That rule
+         stands: the rupee is not guessed here either. It goes to suspense, where he can
+         see it and tag it, and the books agree while he does.
+         His own book is untouched by this — every staff payment in it is written as an
+         expense, and expenses never reach this block. */
+      if(named && openingIsKarStaff(named)){
+        let claimed=false;
+        try{ const pk=payKindOf(l); claimed=(pk==='adv'||pk==='rec'); }catch(e){}
+        if(!claimed) susp = (l.dir==='in') ? r2(susp+amt) : r2(susp-amt);
+        return;
+      }
       if(named && l.dir==='out'){
         let leftOver=amt;
         try{
@@ -37797,13 +37877,34 @@ function ledgerEdit(id,draft){
           overdrawn — is one small line away, and it says plainly what it is doing. */''}
      <div class="field"><label>${t('lg_open')} ₹</label>
        <input id="lgOpen" type="number" inputmode="numeric" value="${fv.openAmt?esc(fv.openAmt):''}" placeholder="0"></div>
+     ${/* ══════════ v729 — THE LINE SAID THE OPPOSITE OF THE TRUTH ══════════
+          HIS 20 Sept, off his own phone, on Vinyam Fashion: group Sundry Creditors, and the
+          screen read "Opening will be Dr — that is the side Sundry Creditors sits on", with
+          the odd-side warning directly underneath contradicting it. Sundry Creditors sits on
+          Cr. The sentence named whichever side was CURRENTLY set and then claimed that was
+          the group's own side — true only while nothing had been flipped, and a lie exactly
+          when he most needed it right: an opening balance landing on the wrong side.
+          His second point is the better one: "koi option hi nahi aa raha hai dena hai lena
+          hai". There was no switch — only Dr/Cr bookkeeping words inside a sentence, with
+          the way to change it hidden in an underlined phrase. A shop owner setting an
+          opening balance is answering one plain question, and now the screen asks it: is
+          this money you have to GIVE them, or money you have to TAKE from them. Two
+          buttons, the group's normal answer stated as a separate fact that is always true,
+          and the warning only when he has deliberately chosen the odd one.
+          The Dr/Cr words stay for the P&L groups, where "dena/lena" would be nonsense. */''}
      ${(()=>{ const gid=fv.group||'indirect';
-       const nat=(lgGroup(gid)||{side:'dr'}).side;
+       const G=lgGroup(gid)||{side:'dr',stmt:'bs',label:''};
+       const nat=G.side;
        const cur=fv.openDir||nat;
        const flipped=(cur!==nat);
+       const bs=(G.stmt==='bs');
+       const word=d=>bs?(d==='cr'?t('lg_owe'):t('lg_own')):(d==='cr'?t('lg_inc'):t('lg_cost'));
+       const btn=d=>`<button type="button" class="btn ${cur===d?'primary':'ghost'}"
+           style="flex:1;margin:0" onclick="lgSetDir('${d}')">${cur===d?'✓ ':''}${word(d)}</button>`;
        return `<input type="hidden" id="lgDir" value="${esc(cur)}">
-         <p class="hint" style="margin-top:-4px">${t('lg_dir_auto',{d:(cur==='cr'?t('lg_cr'):t('lg_dr')),g:esc((lgGroup(gid)||{}).label||'')})}
-           · <u style="cursor:pointer" onclick="lgFlipDir()">${t('lg_dir_flip',{d:(cur==='cr'?t('lg_dr'):t('lg_cr'))})}</u></p>
+         <div class="field" style="margin-top:-2px"><label>${t('lg_dir_q')}</label>
+           <div style="display:flex;gap:8px">${btn('cr')}${btn('dr')}</div></div>
+         <p class="hint" style="margin-top:-6px">${t('lg_dir_normal',{g:esc(G.label||''),d:word(nat)})}</p>
          ${flipped?`<p class="hint" style="color:var(--saffron2)">⚠️ ${t('lg_dir_odd')}</p>`:''}`; })()}
      <div class="field"><label>${t('lg_opendate')}</label>
        ${dateField('lgDate',fv.openDate||fyStartISO())}</div>`,
@@ -37958,9 +38059,14 @@ function lgGrpChanged(){
 }
 function lgFlipDir(){
   const e=$('#lgDir'); if(!e)return;
+  lgSetDir(e.value==='cr'?'dr':'cr');
+}
+/* v729: the two buttons say which side outright, so nothing has to be worked out from the
+   word on a link. One door, so a flip and a tap cannot drift apart. */
+function lgSetDir(d){
   const nm=$('#lgName'), gp=$('#lgGrp'), op=$('#lgOpen'), od=$('#lgDate');
   ledgerEdit(_lgEditId, {name:nm?nm.value:'', group:gp?gp.value:'',
-    open:op?op.value:'', dir:(e.value==='cr'?'dr':'cr'), date:od?od.value:''});
+    open:op?op.value:'', dir:(d==='cr'?'cr':'dr'), date:od?od.value:''});
 }
 function ledgerDel(id){
   const l=lgById(id); if(!l)return;
