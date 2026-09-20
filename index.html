@@ -1105,7 +1105,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v723</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v726</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -1291,7 +1291,7 @@ const T={
   rc_on:'On', rc_gross:'Gross sale (bill total)', rc_net:'Net sale (after GST)',
   rc_off:'Not set up', rc_earned:'Earned this period', rc_paid:'Paid', rc_owed:'Still to pay',
   rc_ret:'Less sales returns', rc_base:'Sale it is charged on',
-  rc_head:'Which expense head', rc_open:'Owed from before this arrangement', rc_open_hint:'What was still owed on the day the commission started \u2014 old rent, dues, anything. Counted in the balance below.', rc_owed_all:'Total owed to him', rc_head_hint:'Payments recorded under this head count as paid against it.',
+  rc_head:'Which expense head', bk_ph_gap_title:'Some photos are not on this device', bk_ph_gap_msg:'The book is complete, but {n} photo(s) it refers to are not here.', bk_ph_gap_how:'Each backup file carries only the photos added since the one before it. Restore your older backup files too \u2014 any order, nothing is overwritten and nothing is lost.', eh_parent:'Comes under', eh_parent_none:'\u2014 it is a main head \u2014', eh_parent_hint:'Only the grouping changes. No entry and no figure is touched.', eh_parent_self:'A head cannot come under itself', eh_parent_busy:'Other heads come under this one \u2014 move them first', eh_parent_deep:'That one already comes under another head', rc_open:'Owed from before this arrangement', rc_open_hint:'What was still owed on the day the commission started \u2014 old rent, dues, anything. Counted in the balance below.', rc_owed_all:'Total owed to him', rc_head_hint:'Payments recorded under this head count as paid against it.',
   rc_note:'Worked out from bills, never stored twice. Pay it from Expenses under the head you pick here.',
   rc_saved:'Rent on sales saved', rc_remove:'Remove',
   hm_rent:'Rent on sales', bs_rentcomm:'Rent payable',
@@ -3576,7 +3576,7 @@ dl_show_hidden:'Show hidden ({n})',
   rc_on:'On', rc_gross:'कुल बिक्री (बिल का पूरा)', rc_net:'शुद्ध बिक्री (GST के बाद)',
   rc_off:'अभी सेट नहीं', rc_earned:'इस अवधि का बना', rc_paid:'दिया', rc_owed:'अभी देना है',
   rc_ret:'बिक्री वापसी घटाकर', rc_base:'किस बिक्री पर लगेगा',
-  rc_head:'किस ख़र्च के नाम से', rc_open:'इस व्यवस्था से पहले का बकाया', rc_open_hint:'कमीशन शुरू होने के दिन तक जो बाक़ी था — पुराना किराया, कोई भी बकाया। नीचे के हिसाब में जुड़ेगा।', rc_owed_all:'कुल देना है', rc_head_hint:'इस नाम से किए भुगतान इसी में गिने जाएँगे।',
+  rc_head:'किस ख़र्च के नाम से', bk_ph_gap_title:'कुछ फ़ोटो इस डिवाइस पर नहीं हैं', bk_ph_gap_msg:'किताब पूरी है, लेकिन उसमें लगी {n} फ़ोटो यहाँ नहीं हैं।', bk_ph_gap_how:'हर बैकअप फ़ाइल में सिर्फ़ उसके पिछले बैकअप के बाद जुड़ी फ़ोटो होती हैं। पुरानी बैकअप फ़ाइलें भी रिस्टोर कर लें — किसी भी क्रम में, कुछ मिटेगा नहीं।', eh_parent:'किसके अंदर', eh_parent_none:'\u2014 यह ख़ुद मुख्य हेड है \u2014', eh_parent_hint:'सिर्फ़ ग्रुपिंग बदलेगी। कोई एंट्री और कोई रक़म नहीं बदलेगी।', eh_parent_self:'हेड ख़ुद के अंदर नहीं आ सकता', eh_parent_busy:'इसके अंदर दूसरे हेड हैं — पहले उन्हें हटाइए', eh_parent_deep:'वह पहले से किसी और हेड के अंदर है', rc_open:'इस व्यवस्था से पहले का बकाया', rc_open_hint:'कमीशन शुरू होने के दिन तक जो बाक़ी था — पुराना किराया, कोई भी बकाया। नीचे के हिसाब में जुड़ेगा।', rc_owed_all:'कुल देना है', rc_head_hint:'इस नाम से किए भुगतान इसी में गिने जाएँगे।',
   rc_note:'बिलों से हिसाब बनता है, दो बार कहीं नहीं रखा जाता। जो नाम यहाँ चुनोगे, ख़र्च में उसी से पैसा दो।',
   rc_saved:'बिक्री पर किराया सेव हुआ', rc_remove:'हटाएँ',
   hm_rent:'बिक्री पर किराया', bs_rentcomm:'Rent payable',
@@ -6106,6 +6106,8 @@ function load(raw){
        he has set himself is never touched. */
     else if(!DB.expHeadCfg[nm].kind) DB.expHeadCfg[nm].kind=kind;
   });
+  /* v726: the main-head grouping, applied once, only between names that already exist */
+  try{ expParentSeed(); }catch(e){}
     if(!DB.numCfg)DB.numCfg={invPrefix:'INV',invMode:'fy',invStart:0,ordPrefix:'',ordStart:0};
   if(!DB.fabItems)DB.fabItems=[];      // fabric qualities
   if(!DB.thaans)DB.thaans=[];          // every thaan (roll) with its own serial
@@ -11816,7 +11818,50 @@ function expHeadCfg(cat){ DB.expHeadCfg=DB.expHeadCfg||{};
   const c=DB.expHeadCfg[cat]||{who:'',kind:'indirect'};
   /* v251: '' | 'adv' | 'sal' | 'rec' — see payKindOf below for why this exists */
   if(c.pay==null)c.pay='';
+  /* v726: which MAIN head this one rolls up into. '' = it is a main head itself. */
+  if(c.parent==null)c.parent='';
   return c; }
+/* ══════════ v726 — THIRTY-ONE HEADS, AND NO WAY TO READ THEM ══════════
+   HIS 18 Sept: "ye mereko limited heads ke andar dalna hai... vyapar me ek main category
+   hai aur ek sub category hai to dono tarah se report mil sakta hai. General expenses ek
+   main category, usme tea, parking, water, flower — to flower me kitna kharcha dekhna hai
+   to sub category ka bhi report hai aur category ka bhi."
+   Right, and cutting the list down is the wrong fix: every one of those thirty-one names
+   is something he actually spent on, and merging them would destroy the detail he wants.
+   What was missing is the level ABOVE them. A head now names its main head, and the report
+   adds up both — the main to see where the month went, the sub to see where the main went.
+   NOTHING MOVES. Every entry keeps the head it was filed under to the letter; this is a
+   label on the head, not on the money, so no figure changes and nothing has to be re-keyed. */
+function expParentOf(cat){ const c=expHeadCfg(cat); const pp=String(c.parent||'').trim();
+  return (pp && pp!==cat) ? pp : ''; }
+function expMainOf(cat){ return expParentOf(cat) || String(cat||''); }
+/* one-time: the grouping he approved on 18 Sept, applied only where BOTH names already
+   exist in his own list, so nothing is invented and nothing he set himself is overwritten */
+function expParentSeed(){
+  /* the flag lives on DB, NOT inside expHeadCfg: other code reads that object's KEYS as
+     head names (partyAudit does), and a flag sitting among them would read as a head. */
+  if(!DB.expCats || DB.expParentSeeded)return;
+  const has=n=>(DB.expCats||[]).some(c=>nameNorm(c)===nameNorm(n));
+  const find=n=>(DB.expCats||[]).find(c=>nameNorm(c)===nameNorm(n));
+  const pairs=[
+    ['Salary Advance','वेतन / Salary'],
+    ['Mal Bhara','ट्रांसपोर्ट / Transport'], ['Travelling','ट्रांसपोर्ट / Transport'],
+    ['Rapido','ट्रांसपोर्ट / Transport'],    ['Parking','ट्रांसपोर्ट / Transport'],
+    ['Stationery','पैकिंग / Packing'],
+    ['चाय-नाश्ता / Tea','General expenses'], ['Prasad','General expenses'],
+    ['Drinking Water','General expenses'],   ['Others expences','General expenses'],
+  ];
+  DB.expHeadCfg=DB.expHeadCfg||{};
+  pairs.forEach(([kid,mum])=>{
+    if(!has(kid)||!has(mum))return;
+    const k=find(kid), m=find(mum);
+    const c=DB.expHeadCfg[k]||{who:'',kind:'indirect',pay:''};
+    if(!c.parent)c.parent=m;
+    DB.expHeadCfg[k]=c;
+  });
+  DB.expParentSeeded=1;
+  try{ save(); }catch(e){}
+}
 /* the people a head draws on — one door, so every screen offers the same names */
 function partyList(who){
   if(who==='staff')   return staffAll().filter(x=>!x.left).map(x=>({id:x.id,name:x.name}));
@@ -13131,6 +13176,22 @@ function supPayFind(){
   (DB.ledger||[]).forEach(l=>{ if(l.refKind==='opening'&&!['karigar','staff'].includes(pkNorm(l.partyKind)))
     sup[nameNorm(l.party)]=String(l.party||'').trim(); });
   (DB.purchases||[]).forEach(p=>{ const k=nameNorm(p.supplier); if(k)sup[k]=sup[k]||String(p.supplier||'').trim(); });
+  /* ══════════ v724 — THE NAME HAD NO BILL YET, SO NOBODY CALLED IT A PARTY ══════════
+     HIS 18 Sept: "shri shiv textiles, megraj parasmal aur b.pos creditor hain, rohit
+     sarraf debtor hai."
+     v719 found these rows by asking "does the PURCHASE side already know this name" — an
+     opening balance or a bill. Four of his did not: he has paid them, but their bills and
+     openings are not in the app yet, so they were invisible to that search and their money
+     stayed in Operating Expenses under their own names — ₹95,613 across 7 rows.
+     The party book knows them even when the purchase book does not. A name he has entered
+     as a party IS a party, bill or no bill, and the same is true of a ledger sitting in the
+     creditors or debtors group. Karigars and staff are still excluded below, so salary
+     rows are untouched. */
+  (DB.parties||[]).forEach(x=>{ const k=nameNorm(x.name);
+    if(k && !['karigar','staff'].includes(pkNorm(x.kind||'')))sup[k]=sup[k]||String(x.name||'').trim(); });
+  (DB.ledgers||[]).forEach(x=>{ const g=String(x.group||'');
+    if(g!=='creditors' && g!=='debtors')return;
+    const k=nameNorm(x.name); if(k)sup[k]=sup[k]||String(x.name||'').trim(); });
   const isKarStaff=nm=>(DB.karigars||[]).some(k=>nameNorm(k.name)===nameNorm(nm))
                      ||(DB.staff||[]).some(k=>nameNorm(k.name)===nameNorm(nm));
   const rows=(DB.ledger||[]).filter(l=>{
@@ -31411,9 +31472,24 @@ function salesmanReport(){
 function expHeadReport(){
   sheetAt(expHeadReport);
   const {from,to}=rpRange(), f=plFigures(from,to);
-  const all=f.heads.map(function(x){ return {head:x[0], amt:x[1]}; });
+  /* v726: the same figures, read at two levels. Every head keeps its own line; the main
+     head it rolls up into carries the sum above it. He asked for both and both are here —
+     "General expenses mein kitna gaya" and "Flower mein kitna gaya" on one screen. */
+  const flat=f.heads.map(function(x){ return {head:x[0], amt:x[1]}; });
+  const mainOf={}, kids={};
+  flat.forEach(function(r){ const m=expMainOf(r.head);
+    mainOf[m]=r2((mainOf[m]||0)+(+r.amt||0));
+    (kids[m]=kids[m]||[]).push(r); });
+  const all=[];
+  Object.keys(mainOf).sort(function(a,b){ return mainOf[b]-mainOf[a]; }).forEach(function(m){
+    const ch=(kids[m]||[]).slice().sort(function(a,b){ return b.amt-a.amt; });
+    const own=ch.length===1 && ch[0].head===m;
+    all.push({head:m, amt:mainOf[m], main:1, kids:own?0:ch.length});
+    if(!own)ch.forEach(function(r){ all.push({head:r.head, amt:r.amt, sub:1}); });
+  });
   const rows=rsFilter('rp_exph',all,['head','amt']);
-  const shown=rows.reduce(function(a,r){ return a+(+r.amt||0); },0);
+  /* only the main lines count toward the footer, or every rupee would be added twice */
+  const shown=rows.reduce(function(a,r){ return a+(r.main?(+r.amt||0):0); },0);
   $('#sheet').innerHTML=reportShell({
     key:'rp_exph', icon:'\uD83D\uDCB8', title:t('rp_exp_head'),
     cols:[{n:t('exp_cat')},{n:t('amount'),w:'34%',num:1},{n:t('rp_of_total'),w:'62px',num:1}],
@@ -31423,7 +31499,9 @@ function expHeadReport(){
        his own rule. Every head opens its own entries now. */
     rows:rows.map(function(r){ return {
       onclick:"expHeadOpen('"+jq(r.head)+"')",
-      cells:[esc(r.head), money(r.amt),
+      cells:[(r.main?'<b>'+esc(r.head)+'</b>'+(r.kids?' <span class="hint">\u00B7 '+r.kids+'</span>':'')
+                    :'<span style="padding-left:14px;opacity:.85">'+esc(r.head)+'</span>'),
+        (r.main?'<b>'+money(r.amt)+'</b>':money(r.amt)),
         (f.expTotal?Math.round(r.amt/f.expTotal*100):0)+'%']}; }),
     total:[t('exp_total'), money(shown), f.netSales?Math.round(f.expTotal/f.netSales*100)+'%':''],
     top:'<div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">'
@@ -31432,7 +31510,7 @@ function expHeadReport(){
       +'<b>'+(f.netSales?Math.round(f.expTotal/f.netSales*100):0)+'%</b></div></div>',
     exportBuilder:function(){ return {title:t('rp_exp_head'), sub:fmtDate(from)+' \u2013 '+fmtDate(to),
       head:[t('exp_cat'),t('amount'),t('rp_of_total')],
-      rows:rows.map(function(r){ return [r.head, r.amt, (f.expTotal?Math.round(r.amt/f.expTotal*100):0)+'%']; })}; }
+      rows:rows.map(function(r){ return [(r.sub?'   ':'')+r.head, r.amt, (f.expTotal?Math.round(r.amt/f.expTotal*100):0)+'%']; })}; }
   });
   showSheet();
 }
@@ -31460,6 +31538,15 @@ function expHeadOpen(head){
       +'<select onchange="expHeadKindSet(\''+jq(head)+'\',this.value)">'
       +kinds.map(function(k){ return '<option value="'+k[0]+'"'+(cur===k[0]?' selected':'')+'>'+t(k[1])+'</option>'; }).join('')
       +'</select></div>'
+      /* v726: which main head this one belongs under. Only heads that are themselves main
+         heads are offered, so a chain two deep can never be built. */
+      +'<div class="field" style="margin-bottom:10px"><label>'+t('eh_parent')+'</label>'
+      +'<select onchange="expHeadParentSet(\''+jq(head)+'\',this.value)">'
+      +'<option value="">'+t('eh_parent_none')+'</option>'
+      +(DB.expCats||[]).filter(function(c){ return c!==head && !expParentOf(c); })
+        .map(function(c){ return '<option value="'+esc(c)+'"'+(expParentOf(head)===c?' selected':'')+'>'+esc(c)+'</option>'; }).join('')
+      +'</select>'
+      +'<p class="hint" style="margin-top:4px">'+t('eh_parent_hint')+'</p></div>'
       +'<button class="btn ghost block" style="margin-bottom:10px" onclick="expHeadToTransfer(\''+jq(head)+'\')">'
       +'\uD83D\uDD04 '+t('eh_mv_title')+'</button>',
     exportBuilder:function(){ return {title:head, sub:fmtDate(from)+' \u2013 '+fmtDate(to),
@@ -31476,6 +31563,21 @@ function expHeadOpen(head){
    WHOLE head into transfers in one action - but only after naming the count, the amount
    and the two accounts, and only on his word. Nothing is deleted: each row keeps its date,
    its amount and its note, and stops being a cost. */
+/* v726 — set or clear the main head. A label on the head, never on the money: not one
+   entry is touched, so every figure on every screen stays exactly as it was; only the line
+   they are added up under changes. */
+function expHeadParentSet(head,val){
+  const v=String(val||'').trim();
+  if(v===head){ toast(t('eh_parent_self'),'bad'); return; }
+  /* a main head cannot be given a parent while others sit under it — that would hide them */
+  if(v && (DB.expCats||[]).some(c=>c!==head && expParentOf(c)===head)){
+    toast(t('eh_parent_busy'),'bad'); return; }
+  /* and the one chosen must itself be a main head */
+  if(v && expParentOf(v)){ toast(t('eh_parent_deep'),'bad'); return; }
+  DB.expHeadCfg=DB.expHeadCfg||{};
+  DB.expHeadCfg[head]=Object.assign({who:'',kind:'indirect',pay:''},DB.expHeadCfg[head]||{},{parent:v});
+  save(); toast(t('t_saved'),'ok'); expHeadOpen(head);
+}
 function expHeadToTransfer(head){
   const accs=(DB.accounts||[]).slice();
   if(accs.length<2){ toast(t('eh_mv_need2'),'bad'); return; }
@@ -40399,7 +40501,19 @@ async function dailyBackup(){
     parts.push('}}');
     const blob=acc?new Blob([acc,...parts],{type:'application/json'}):new Blob(parts,{type:'application/json'});
     acc=null; parts=null;
-    const name='PARAMPARA-daily-'+todayISO()+'.txt';
+    /* ══════════ v725 — TWO BACKUPS IN ONE DAY, ONE FILENAME ══════════
+       HIS 18 Sept: "take backup karne per jo backup hota hai usme sayad sirf naya backup
+       ata hai aur use restore karne per purana sara backup khatam ho jata hai."
+       Driven in the container to see what really happens. The BOOK is whole in every file
+       and a restore never loses it. The PHOTOS are incremental — each file carries only the
+       ones added since the last backup — and that is sound, except for this: every file
+       made on the same day was called PARAMPARA-daily-<date>.txt. Two backups in one day,
+       two files with one name, and whichever the phone keeps is anybody's guess.
+       That is not untidy, it is lossy. A photo is marked "sent" the moment its file is
+       handed over and is never packed again, so a file that gets overwritten takes those
+       photos out of every future backup too. The time goes in the name. */
+    const _hm=new Date().toTimeString().slice(0,5).replace(':','');
+    const name='PARAMPARA-daily-'+todayISO()+'-'+_hm+'.txt';
     /* v295 — HIS 24 Aug: the share sheet is where his backups kept going missing —
        tapped a file in it and nothing happened, tried again and it opened the backup
        AS A WEBPAGE instead of saving it (content://media…, the raw filename staring
@@ -40783,6 +40897,23 @@ async function buildBackupBlob(dataOnly){
   return {blob, count:wrote};
 }
 /* kept for older callers / very small shops */
+/* v725 — every photo the book refers to, against what this device actually holds */
+async function photoGapWarn(){
+  let have={};
+  try{ (await mKeys()).forEach(k=>{ have[k]=1; }); }catch(e){ return 0; }
+  const want={};
+  const eat=o=>{ ((o&&o.photos)||[]).forEach(k=>{ if(k)want[k]=1; }); };
+  (DB.orders||[]).forEach(eat); (DB.sales||[]).forEach(eat);
+  (DB.purchases||[]).forEach(eat); (DB.ledger||[]).forEach(eat);
+  (DB.thaans||[]).forEach(eat); (DB.alterations||[]).forEach(eat);
+  const miss=Object.keys(want).filter(k=>!have[k]);
+  if(!miss.length)return 0;
+  try{ modal('\u{1F5BC}️ '+t('bk_ph_gap_title'),
+    '<p>'+esc(t('bk_ph_gap_msg',{n:miss.length}))+'</p>'
+    +'<p class="hint" style="margin-top:8px;white-space:normal">'+esc(t('bk_ph_gap_how'))+'</p>',
+    [{label:t('close'),cls:'primary',fn:closeModal}]); }catch(e){}
+  return miss.length;
+}
 async function restoreMedia(media){
   const keys=Object.keys(media||{});
   for(let i=0;i<keys.length;i++){
@@ -40933,6 +41064,15 @@ function doImport(){const inp=document.createElement('input');inp.type='file';in
         if(!_res.ok){ closeSheet(); restoreFailedModal(_res.bad); return; }
         if(nMedia){ toast(t('bk_restoring'),'ok'); await restoreMedia(pack.media); }
         closeSheet();go('orders');toast(t('t_restored'),'ok');
+        /* v725: the book is whole, but its photos may not be. On a NEW device, restoring
+           only the newest file brings only the newest photos — proven in the container:
+           three orders came back and two of their three photos were simply not in that
+           file. The app knew and said nothing, so he would have found out months later
+           with an order open in front of a customer.
+           It counts what the book asks for against what the device actually holds, and
+           says plainly how many are missing and what to do — restore the older files too,
+           in any order, nothing is overwritten. */
+        try{ await photoGapWarn(); }catch(e){}
       });
     }catch(_){toast(t('t_wrong'),'bad');}};r.readAsText(f);};inp.click();}
 /* ================= STOCK AUDIT / ROLL RECOVERY =================
