@@ -1105,7 +1105,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v730</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v731</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -36840,11 +36840,31 @@ function lgSync(){
     if(owes||hasOpen)put(c.name);
   });
   (DB.ledger||[]).forEach(l=>{ if(l.party)put(l.party); });
-  /* an opening already recorded against a name is that ledger's opening — read, not re-keyed */
+  /* ══════════ v731 — ONE NUMBER, TWO PLACES, AND NO WAY TO KEEP THEM TOGETHER ══════════
+     HIS 20 Sept: "main poora confuse ho ja raha hoon." Four suppliers showed one opening
+     in the ledger and a different one on the ledger master — Neha ₹39,943 against ₹54,866,
+     Panchmukhi ₹52,020 against ₹27,266 — and fixing one did nothing to the other. Driven in
+     the container both ways: changing the master left the ledger line untouched, and
+     changing the line left the master untouched. He was being asked to type the same fact
+     into two screens and keep them in step by hand, for ever.
+     The line above already said the right thing — an opening recorded against a name IS
+     that ledger's opening, read and not re-keyed. The guard under it undid that. It is
+     false only for a master that has never carried a figure, so every master that got one
+     once was frozen with it and drifted from that day on. Ask what a flag is FALSE for.
+     The ledger line is the one the books actually use — the balance sheet, payables and
+     the trial balance all walk it, and the master's copy is read only to print a line on
+     this screen. So the copy follows the line, always. A master carrying an opening with
+     NO line behind it keeps what he typed — nothing of his is thrown away — and the
+     second-look screen goes on naming it until he gives it a line or clears it. */
   lgAll().forEach(l=>{
-    if(l.openAmt)return;
-    const op=(DB.ledger||[]).find(x=>x.refKind==='opening'&&nameNorm(x.party)===nameNorm(l.name));
-    if(op){ l.openAmt=+op.amt||0; l.openDir=op.dir==='out'?'cr':'dr'; l.openDate=op.date||''; }
+    const op=(DB.ledger||[]).filter(x=>x.refKind==='opening'&&nameNorm(x.party)===nameNorm(l.name));
+    if(!op.length)return;                      /* nothing to read - leave his figure alone */
+    /* a name may carry more than one opening line (v718). They are all money he owes or is
+       owed, so the ledger's opening is their net, on whichever side that lands. */
+    const net=op.reduce((sum,x)=>sum+((x.dir==='out'?1:-1)*(+x.amt||0)),0);
+    l.openAmt=Math.abs(r2(net));
+    l.openDir=net<0?'dr':'cr';
+    l.openDate=(op.map(x=>x.date||'').filter(Boolean).sort()[0])||l.openDate||'';
   });
   return lgAll();
 }
