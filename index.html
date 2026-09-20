@@ -1105,7 +1105,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v729</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v730</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -38658,12 +38658,29 @@ function ptyCardMenu(name,kind){
   modal(esc(name), h);
 }
 /* every line on the card opens the record it was made from */
+/* ══════════ v730 — THE ROW CLOSED THE CARD AND WENT NOWHERE ══════════
+   HIS 20 Sept, on Kanchan Syntex: two "Payment out" rows, ₹1,16,819 and ₹1,52,165, and
+   tapping either one put him back on Reports. Reproduced exactly.
+   Two faults, one line apart. closeSheet() ran FIRST, before this knew where it was
+   going — so when the row was a loose ledger payment (refKind 'manual'), which none of
+   the four branches below could place, the card was already gone and nothing opened and
+   nothing was said. A tap must not spend the screen it is standing on until it has
+   somewhere to put him.
+   And it is the same job dbOpen() already does, correctly, for every refKind there is —
+   'manual' and 'openpay' straight to payEdit, expense to expEdit, and db_no_route said
+   out loud when there is genuinely no door. dbOpen was given that in v721; this copy of
+   the same job never got it and quietly drifted. It routes through the one door now, so
+   the next refKind added has to be handled in one place, not two. */
 function ptyCardGo(src,id){
-  closeSheet();
-  if(src==='purchase'||src==='pay'){ if(typeof purchMenu==='function'&&(DB.purchases||[]).some(x=>x.id===id))return purchMenu(id); }
-  if(typeof openRecord==='function')return openRecord(id);
-  if(typeof saleMenu==='function'&&(DB.sales||[]).some(x=>x.id===id))return saleMenu(id);
-  if(typeof orderOpen==='function')return orderOpen(id);
+  /* a ledger line is the common case and dbOpen knows every one of them */
+  if((DB.ledger||[]).some(x=>x.id===id)){ try{ return dbOpen(id); }catch(e){} }
+  if(src==='purchase'||src==='pay'){
+    if(typeof purchMenu==='function'&&(DB.purchases||[]).some(x=>x.id===id))return (closeSheet(),purchMenu(id)); }
+  if(typeof saleMenu==='function'&&(DB.sales||[]).some(x=>x.id===id))return (closeSheet(),saleMenu(id));
+  if(typeof orderOpen==='function'&&(DB.orders||[]).some(x=>x.id===id))return (closeSheet(),orderOpen(id));
+  /* a payment held inside a bill, and anything else dbOpen can place */
+  try{ return dbOpen(id); }catch(e){}
+  toast(t('db_no_route'),'warn');
 }
 
 
