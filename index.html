@@ -1105,7 +1105,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v731</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v733</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -2333,6 +2333,10 @@ const T={
   pa_master_only_sub:'this figure is in no report — enter the opening, or set the master to 0',
   pa_two_names:'One party, two spellings',
   pa_two_names_sub:'ledger “{a}” · master “{b}” — rename the master to match',
+  pa_same_phone:'One phone number, more than one party',
+  pa_same_phone_sub:'{p} — {l}. Likely one firm entered more than once; keep one name and rename the rest to it.',
+  pa_half_names:'A name that looks half typed',
+  pa_half_names_sub:'probably the start of “{b}” · {n} {n|entry|entries} on it',
   pa_none:'Nothing here needs a second look',
   pty_search:'Search a name…', pty_add:'Add a party', pty_none:'Nobody yet',
   pty_open:'Opening', pty_open_left:'Opening still open', pty_open_none:'No opening entered',
@@ -4615,6 +4619,10 @@ dl_show_hidden:'Show hidden ({n})',
   pa_master_only_sub:'यह रक़म किसी रिपोर्ट में नहीं चल रही — ओपनिंग डालिए, या मास्टर को 0 कीजिए',
   pa_two_names:'एक ही पार्टी, दो स्पेलिंग',
   pa_two_names_sub:'लेजर “{a}” · मास्टर “{b}” — मास्टर का नाम मिला दीजिए',
+  pa_same_phone:'एक ही फ़ोन नंबर, एक से ज़्यादा पार्टी',
+  pa_same_phone_sub:'{p} — {l}. लगता है एक ही फ़र्म कई बार बनी है; एक नाम रखिए और बाक़ी को उसी नाम से बदल दीजिए।',
+  pa_half_names:'नाम अधूरा टाइप हुआ लगता है',
+  pa_half_names_sub:'शायद “{b}” की शुरुआत · इस पर {n} एंट्री',
   pa_none:'दोबारा देखने लायक कुछ नहीं है',
   pty_search:'नाम ढूंढें…', pty_add:'पार्टी जोड़ें', pty_none:'अभी कोई नहीं',
   pty_open:'शुरुआती बाकी', pty_open_left:'शुरुआती बकाया बचा है', pty_open_none:'कोई शुरुआती बकाया नहीं',
@@ -13256,7 +13264,8 @@ function supPayFix(id){
   return true;
 }
 function partyAudit(){
-  const out={paidNoOpen:[], openNoMove:[], over:[], twoOpens:[], masterOnly:[], twoNames:[]};
+  const out={paidNoOpen:[], openNoMove:[], over:[], twoOpens:[], masterOnly:[], twoNames:[],
+             samePhone:[], halfNames:[]};
   const seen={};
   const isKarStaff=nm=>(DB.karigars||[]).some(k=>nameNorm(k.name)===nameNorm(nm))
                      ||(DB.staff||[]).some(k=>nameNorm(k.name)===nameNorm(nm));
@@ -13322,15 +13331,49 @@ function partyAudit(){
         out.twoNames.push({name:nm, amt:oa, line:lineName[k], master:nm});
     });
   }catch(e){}
+  /* ══════════ v733 — ONE FIRM, THREE RECORDS, AND NOBODY TOLD HIM ══════════
+     HIS 20 Sept, on Vrudhi: the purchase sat under one name and the payment under another,
+     so one card said he owed ₹21,193 and the other said he had paid ₹21,193, and neither
+     showed the pair. His book also held "Vrudhi Impex", "Vrudhi" and "Vru" — three party
+     records on ONE phone number, left behind by typing a name a letter at a time while the
+     list offered to make each stump a new party. Amit Textiles has the same three.
+     Neither of these could be caught by the checks above: they compare a name with ITSELF
+     in two places, and these are two DIFFERENT names for one firm. So they are found the
+     way a person would find them - by the phone number, and by one name being the start of
+     another. It only ever warns, like the near-name check the party form already does: two
+     firms may honestly share a landline, and "Uncle" may not be short for "Uncle ji". */
+  try{
+    const byPhone={};
+    (DB.parties||[]).forEach(x=>{ const ph=String(x.phone||'').replace(/\D/g,'');
+      if(ph.length<6)return; (byPhone[ph]=byPhone[ph]||[]).push(String(x.name||'').trim()); });
+    Object.keys(byPhone).forEach(ph=>{ const names=[...new Set(byPhone[ph].filter(Boolean))];
+      if(names.length>1) out.samePhone.push({name:names[0], amt:names.length, phone:ph, names}); });
+    const all=(DB.parties||[]).map(x=>String(x.name||'').trim()).filter(Boolean);
+    const rows=(DB.ledger||[]), purs=(DB.purchases||[]);
+    all.forEach(a=>{ const ka=nameNorm(a); if(ka.length<3)return;
+      const longer=all.find(b=>b!==a && nameNorm(b).indexOf(ka)===0 && nameNorm(b).length>ka.length+1);
+      if(!longer)return;
+      const used=rows.filter(l=>nameNorm(l.party)===ka).length
+               + purs.filter(x=>nameNorm(x.supplier)===ka).length;
+      out.halfNames.push({name:a, amt:used, full:longer, used});
+    });
+  }catch(e){}
   [out.paidNoOpen,out.openNoMove,out.over,out.twoOpens,out.masterOnly,out.twoNames]
     .forEach(a=>a.sort((x,y)=>y.amt-x.amt));
   out.n=out.paidNoOpen.length+out.openNoMove.length+out.over.length
-       +out.twoOpens.length+out.masterOnly.length+out.twoNames.length;
+       +out.twoOpens.length+out.masterOnly.length+out.twoNames.length
+       +out.samePhone.length+out.halfNames.length;
   return out;
 }
 function partyAuditScreen(){
   sheetAt(partyAuditScreen);
   const a=partyAudit();
+  const secN=(title,list,sub,cnt)=>list.length?`<div class="section-h">${title}</div>
+    <div class="card" style="padding:0;margin-bottom:12px;overflow:hidden">
+      ${list.map(x=>`<div class="krow tappable"
+        onclick="closeSheet();partyCard('${jq(x.name)}','supplier')">
+        <span class="kn"><b>${esc(x.name)}</b><div class="hint" style="white-space:normal">${sub(x)}</div></span>
+        <b style="color:var(--saffron2)">${cnt(x)}</b></div>`).join('')}</div>`:'';
   const sec2=(title,list,sub)=>list.length?`<div class="section-h">${title}</div>
     <div class="card" style="padding:0;margin-bottom:12px;overflow:hidden">
       ${list.map(x=>`<div class="krow tappable"
@@ -13356,6 +13399,10 @@ function partyAuditScreen(){
     ${sec2(t('pa_master_only'), a.masterOnly, x=>t('pa_master_only_sub'))}
     ${sec2(t('pa_two_names'), a.twoNames,
        x=>t('pa_two_names_sub',{a:esc(x.line), b:esc(x.master)}))}
+    ${/* v733: these two carry a count, not money - the number beside them is how many
+         records, so the row does not pretend to be a rupee figure. */''}
+    ${secN(t('pa_same_phone'), a.samePhone, x=>t('pa_same_phone_sub',{p:esc(x.phone), l:esc(x.names.join(' · '))}), x=>x.names.length)}
+    ${secN(t('pa_half_names'), a.halfNames, x=>t('pa_half_names_sub',{b:esc(x.full), n:x.used}), x=>x.used)}
     <p class="hint" style="white-space:normal;margin-top:10px">${t('pa_note')}</p>
     <div class="fab-pad"></div>`;
   showSheet();
@@ -32115,13 +32162,32 @@ function psLines(p){
     if(+r.refunded)out.push({date:r.date,dir:'in',amt:r2(+r.refunded||0),acc:r.acc||'',
       ref:t('rp_refund'),note:'',_src:'sretpay',_id:r.id});
   });
-  /* anything he entered by hand against this party that is not tied to a document */
+  /* ══════════ v732 — PAID HIM, AND THE CARD STILL SAID "I HAVE TO PAY" ══════════
+     HIS 20 Sept, on Vrudhi Impex: one ₹21,193 payment out on 3 August, nothing else on the
+     name — and the card read Credit ₹21,193, "I have to pay ₹21,193". He asked the right
+     question: it should be nil. Reproduced on a clean book, and the balance sheet had it
+     RIGHT the whole time — cash down ₹21,193 and Advance with suppliers up ₹21,193, books
+     balanced. Only the card was wrong, so the data was never in danger; the screen was.
+     Why: a row's dir says which way the MONEY went, not which side of his account it
+     lands on. An OPENING of dir 'out' means the shop owes him — a credit, raw. A PAYMENT
+     of dir 'out' means the shop has paid him — a debit, the opposite. Every path in here
+     that recognises a payment already flips it: the openpay branch does, addSup's bill
+     payments do, addDoc's do. This branch — the one for money entered by hand, with no
+     document behind it — pushed the raw dir, so a plain payment read as a fresh debt.
+     ONLY 'manual' is flipped here, and deliberately so. That is the Payment in / Payment
+     out door — money handed to or taken from this man, nothing else. The first cut of this
+     flipped every kind that reaches this line, and driving his real book showed what that
+     costs: expense heads like Rent and drawings under his own name turned over too, 146
+     cards moved, and I could not show that any of those new answers was the right one. A
+     fault I have proven gets fixed; a figure I have not is left alone and said out loud.
+     expense, loan, capital and drawings are untouched and still read as they always did. */
   (DB.ledger||[]).forEach(l=>{
     if(l.dir!=='in'&&l.dir!=='out')return;
     if(l.refKind==='opening'||l.refKind==='openpay')return;
     if(l.refKind==='purchase'||l.refKind==='sale')return;      // already listed above
     if(l.partyId!==p.id && String(l.party||'').trim().toLowerCase()!==nm)return;
-    out.push({date:l.date,dir:l.dir,amt:r2(+l.amt||0),acc:l.acc,
+    const pay=(l.refKind==='manual');       /* the Payment in / Payment out door */
+    out.push({date:l.date,dir:(pay?(l.dir==='out'?'in':'out'):l.dir),amt:r2(+l.amt||0),acc:l.acc,
       ref:l.cat||l.ref||'',note:l.note||'',_src:l.refKind||'manual',_id:l.id});
   });
   return out.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
