@@ -1105,7 +1105,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v733</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v735</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -2337,6 +2337,8 @@ const T={
   pa_same_phone_sub:'{p} — {l}. Likely one firm entered more than once; keep one name and rename the rest to it.',
   pa_half_names:'A name that looks half typed',
   pa_half_names_sub:'probably the start of “{b}” · {n} {n|entry|entries} on it',
+  pa_near_names:'Two names a letter or two apart',
+  pa_near_names_sub:'almost the same as “{b}” — {n} {n|entry|entries} here, {m} there. One firm split in two?',
   pa_none:'Nothing here needs a second look',
   pty_search:'Search a name…', pty_add:'Add a party', pty_none:'Nobody yet',
   pty_open:'Opening', pty_open_left:'Opening still open', pty_open_none:'No opening entered',
@@ -4623,6 +4625,8 @@ dl_show_hidden:'Show hidden ({n})',
   pa_same_phone_sub:'{p} — {l}. लगता है एक ही फ़र्म कई बार बनी है; एक नाम रखिए और बाक़ी को उसी नाम से बदल दीजिए।',
   pa_half_names:'नाम अधूरा टाइप हुआ लगता है',
   pa_half_names_sub:'शायद “{b}” की शुरुआत · इस पर {n} एंट्री',
+  pa_near_names:'दो नाम, एक-दो अक्षर का फ़र्क़',
+  pa_near_names_sub:'“{b}” से लगभग मिलता है — यहाँ {n} एंट्री, वहाँ {m}। एक ही फ़र्म दो हिस्सों में?',
   pa_none:'दोबारा देखने लायक कुछ नहीं है',
   pty_search:'नाम ढूंढें…', pty_add:'पार्टी जोड़ें', pty_none:'अभी कोई नहीं',
   pty_open:'शुरुआती बाकी', pty_open_left:'शुरुआती बकाया बचा है', pty_open_none:'कोई शुरुआती बकाया नहीं',
@@ -13265,7 +13269,7 @@ function supPayFix(id){
 }
 function partyAudit(){
   const out={paidNoOpen:[], openNoMove:[], over:[], twoOpens:[], masterOnly:[], twoNames:[],
-             samePhone:[], halfNames:[]};
+             samePhone:[], halfNames:[], nearNames:[]};
   const seen={};
   const isKarStaff=nm=>(DB.karigars||[]).some(k=>nameNorm(k.name)===nameNorm(nm))
                      ||(DB.staff||[]).some(k=>nameNorm(k.name)===nameNorm(nm));
@@ -13357,12 +13361,41 @@ function partyAudit(){
                + purs.filter(x=>nameNorm(x.supplier)===ka).length;
       out.halfNames.push({name:a, amt:used, full:longer, used});
     });
+    /* ══════════ v734 — ONE LETTER APART, AND THE MONEY SPLIT IN TWO ══════════
+       His book holds "Megraj Parasmal" with a ₹10,000 payment on it and "Meghraj Parasmal"
+       — the same man, one missing h — with the opening and every other payment. The same
+       thing happened to Vrudhi. Neither check above can see it: one compares a name with
+       itself in two places, the other needs one name to be the START of the other, and a
+       letter dropped in the MIDDLE is neither.
+       So the two are compared letter by letter, and a pair a couple of slips apart is
+       named. Long names only, and only when BOTH carry entries — two short names that
+       happen to look alike, or a stray with nothing on it, are not worth interrupting him
+       for. It warns and changes nothing, like everything else on this screen. */
+    const near=(a,b)=>{ if(Math.abs(a.length-b.length)>2)return 9;
+      const d=[]; for(let i=0;i<=a.length;i++){ d[i]=[i];
+        for(let j=1;j<=b.length;j++){ d[i][j]=i?Math.min(d[i-1][j]+1,d[i][j-1]+1,
+          d[i-1][j-1]+(a[i-1]===b[j-1]?0:1)):j; } }
+      return d[a.length][b.length]; };
+    const cnt=nm=>rows.filter(l=>nameNorm(l.party)===nm).length
+                 + purs.filter(x=>nameNorm(x.supplier)===nm).length;
+    const seenPair={};
+    all.forEach(a=>{ const ka=nameNorm(a); if(ka.length<7)return;
+      all.forEach(bb=>{ if(bb===a)return; const kb=nameNorm(bb); if(kb.length<7)return;
+        if(kb.indexOf(ka)===0||ka.indexOf(kb)===0)return;     /* the half-name check has these */
+        const d=near(ka,kb); if(d<1||d>2)return;
+        const key=[ka,kb].sort().join('|'); if(seenPair[key])return;
+        const ca=cnt(ka), cb=cnt(kb); if(!ca||!cb)return;      /* both must actually be in use */
+        seenPair[key]=1;
+        out.nearNames.push({name:(ca<=cb?a:bb), amt:Math.min(ca,cb),
+          other:(ca<=cb?bb:a), few:Math.min(ca,cb), many:Math.max(ca,cb)});
+      });
+    });
   }catch(e){}
   [out.paidNoOpen,out.openNoMove,out.over,out.twoOpens,out.masterOnly,out.twoNames]
-    .forEach(a=>a.sort((x,y)=>y.amt-x.amt));
+    .concat([out.nearNames]).forEach(a=>a.sort((x,y)=>y.amt-x.amt));
   out.n=out.paidNoOpen.length+out.openNoMove.length+out.over.length
        +out.twoOpens.length+out.masterOnly.length+out.twoNames.length
-       +out.samePhone.length+out.halfNames.length;
+       +out.samePhone.length+out.halfNames.length+out.nearNames.length;
   return out;
 }
 function partyAuditScreen(){
@@ -13403,6 +13436,7 @@ function partyAuditScreen(){
          records, so the row does not pretend to be a rupee figure. */''}
     ${secN(t('pa_same_phone'), a.samePhone, x=>t('pa_same_phone_sub',{p:esc(x.phone), l:esc(x.names.join(' · '))}), x=>x.names.length)}
     ${secN(t('pa_half_names'), a.halfNames, x=>t('pa_half_names_sub',{b:esc(x.full), n:x.used}), x=>x.used)}
+    ${secN(t('pa_near_names'), a.nearNames, x=>t('pa_near_names_sub',{b:esc(x.other), n:x.few, m:x.many}), x=>x.few)}
     <p class="hint" style="white-space:normal;margin-top:10px">${t('pa_note')}</p>
     <div class="fab-pad"></div>`;
   showSheet();
@@ -36906,6 +36940,23 @@ function lgSync(){
     if(owes||hasOpen)put(c.name);
   });
   (DB.ledger||[]).forEach(l=>{ if(l.party)put(l.party); });
+  /* ══════════ v734 — A LEDGER WITH MONEY ON IT, HIDDEN FROM ITS OWN LIST ══════════
+     HIS 20 Sept: "ledger master par search karne me Vrudhi Impex koi dikhai nahi de raha
+     hai" — and he was right, it was not there. The master existed, carried ₹21,193 of his
+     money, and had been archived. Archiving takes a ledger out of this list and does
+     nothing else: the entries stay on the books, the party card goes on showing them, and
+     the balance sheet goes on counting them. So a name can disappear out of the chart of
+     accounts while its money keeps being counted, with nothing anywhere to say so.
+     His book held three of them — Vrudhi Impex ₹21,193, Om Creation ₹50,000 and Megraj
+     Parasmal ₹10,000 — all hidden, all live.
+     The rule for a DELETED ledger has been right since v506, four lines up: it comes back
+     the moment it is genuinely in use again. Hiding never got the same rule. It has it now.
+     A ledger nobody has written anything against stays hidden, exactly as he left it. */
+  lgAll().forEach(l=>{
+    if(!l.archived)return;
+    let used=0; try{ used=ledgerUse(l.name); }catch(e){ used=0; }
+    if(used)delete l.archived;
+  });
   /* ══════════ v731 — ONE NUMBER, TWO PLACES, AND NO WAY TO KEEP THEM TOGETHER ══════════
      HIS 20 Sept: "main poora confuse ho ja raha hoon." Four suppliers showed one opening
      in the ledger and a different one on the ledger master — Neha ₹39,943 against ₹54,866,
@@ -37782,11 +37833,19 @@ function ledgerView(id){
   sheetAt(()=>ledgerView(id),'ledgerView');
   const G=lgGroup(l.group)||{label:'',side:'dr'};
   const n=nameNorm(l.name);
-  const all=[];
-  if(l.openAmt)all.push({date:l.openDate||'', ref:t('lg_open'),
-    dr:l.openDir==='dr'?l.openAmt:0, cr:l.openDir==='cr'?l.openAmt:0});
-  lgPushRows(all,l,n);
-  all.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+  /* ══════════ v735 — THE ONE ROW HIS ACCOUNTANT COULD NOT TOUCH ══════════
+     HIS 20 Sept, walking the ledger: every entry on this screen opens the record that made
+     it — except the opening balance, which did nothing. Driven on Meghraj Parasmal: eight
+     rows drawn, seven of them tappable.
+     It is one job written twice. lgRowsFor() builds this same list and gives the opening
+     row its door — go: lgOpenOpening(...) — which is exactly the v508 fix, written for
+     exactly this complaint ("Om Creation ka kuch galat entry ho gayi hai, delete karna hai
+     to ho nahi raha"). This function built its own copy of the list four lines long, and
+     that copy never got the door. Two copies of one job, drifting apart, and the fix went
+     into the one he was not looking at.
+     There is one copy now. Everything else on this screen — the date window, the folding
+     of everything before it into one opening line, the totals — is unchanged. */
+  const all=lgRowsFor(l);
   /* everything before the window is folded into ONE opening line, which is what an opening
      balance is — the sum of the past, not a list of it */
   let opening=0; const rows=[];
