@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PARAMPARA Data Check</title>
+<style>
+  :root{ --bg:#fbf8f3; --card:#fff; --txt:#1d1a16; --mut:#6b6358; --line:#e6ded2; --ok:#1f8a4c; --bad:#c0392b; --saf:#c8871a; }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#15130f; --card:#1f1c17; --txt:#f3eee6; --mut:#a89f92; --line:#353028; } }
+  body{ margin:0; background:var(--bg); color:var(--txt); font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+  .w{ max-width:560px; margin:0 auto; padding:16px; }
+  h1{ font-size:22px; margin:6px 0 4px; }
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 14px; margin:12px 0; }
+  .row{ display:flex; justify-content:space-between; gap:10px; padding:6px 0; border-top:1px solid var(--line); }
+  .row:first-child{ border-top:0; }
+  .k{ color:var(--mut); } .v{ font-weight:700; text-align:right; word-break:break-all; }
+  .ok{ color:var(--ok); } .bad{ color:var(--bad); }
+  button{ width:100%; padding:14px; border-radius:12px; border:0; background:var(--saf); color:#fff; font-size:17px; font-weight:800; margin-top:8px; }
+  .hint{ color:var(--mut); font-size:14px; }
+  #verdict{ font-size:18px; font-weight:800; }
+</style>
+</head>
+<body>
+<div class="w">
+  <h1>🔎 PARAMPARA — data jaanch</h1>
+  <p class="hint">Ye page sirf PADHTA hai. Kuch likhta ya mitata nahi.</p>
+  <div class="card"><div id="verdict">Padh raha hoon…</div></div>
+  <div class="card" id="where"></div>
+  <div class="card" id="rows"></div>
+  <div class="card">
+    <button id="dl" style="display:none">⬇️ Jo mila uska backup file download karo</button>
+    <p class="hint" id="dlhint" style="display:none">Ye file sirf aapke phone mein save hogi. Is file ko app mein restore mat karna — pehle Claude ko bhejna.</p>
+  </div>
+</div>
+<script>
+(function(){
+  var out=[], best=null, bestFrom='';
+  function row(k,v,cls){ out.push('<div class="row"><span class="k">'+k+'</span><span class="v '+(cls||'')+'">'+v+'</span></div>'); }
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function mb(n){ return (n/1048576).toFixed(1)+' MB'; }
+  function sum(o){ if(!o||typeof o!=='object')return 'kuch nahi';
+    var s=[]; ['orders','customers','sales','purchases','ledger'].forEach(function(k){ s.push(k+' '+((o[k]||[]).length)); });
+    return esc(((o.shopInfo||{}).name||'(naam nahi)')+' · '+s.join(' · ')); }
+  function real(o){ return !!(o && ((o.orders||[]).length||(o.customers||[]).length||(o.sales||[]).length||(o.ledger||[]).length)); }
+  function consider(o,from){ if(real(o) && (!best || (o.ledger||[]).length+(o.orders||[]).length+(o.sales||[]).length > (best.ledger||[]).length+(best.orders||[]).length+(best.sales||[]).length)){ best=o; bestFrom=from; } }
+  document.getElementById('where').innerHTML='<div class="row"><span class="k">Address</span><span class="v">'+esc(location.origin+location.pathname)+'</span></div>'
+    +'<div class="row"><span class="k">Browser</span><span class="v">'+esc(navigator.userAgent.replace(/.*?\) /,'').slice(0,60))+'</span></div>';
+
+  function ls(){
+    var keys=[]; try{ for(var i=0;i<localStorage.length;i++)keys.push(localStorage.key(i)); }catch(e){}
+    var mine=keys.filter(function(k){return k.indexOf('pb_ob')===0;});
+    row('localStorage — app ki keys', mine.length? mine.length+' ('+esc(mine.slice(0,8).join(', '))+')' : '0', mine.length?'':'bad');
+    try{ var n=localStorage.getItem('pb_ob_shopname'); row('Dukaan ka naam (yaad)', n?esc(n):'nahi', n?'ok':'bad'); }catch(e){}
+    try{ var r=localStorage.getItem('pb_ob_v1'); if(r){ var o=JSON.parse(r); row('localStorage copy', sum(o)); consider(o,'localStorage'); } else row('localStorage copy','nahi'); }catch(e){ row('localStorage copy','padh nahi paya','bad'); }
+    try{ var lv=localStorage.getItem('pb_ob_lastver')||localStorage.getItem('pb_ob_maxver'); if(lv)row('Last version',esc(lv)); }catch(e){}
+  }
+  function get(db,k){ return new Promise(function(res){ try{ var q=db.transaction('m','readonly').objectStore('m').get(k); q.onsuccess=function(){res(q.result);}; q.onerror=function(){res(null);}; }catch(e){ res(null); } }); }
+  function keys(db){ return new Promise(function(res){ try{ var q=db.transaction('m','readonly').objectStore('m').getAllKeys(); q.onsuccess=function(){res(q.result||[]);}; q.onerror=function(){res([]);}; }catch(e){ res([]); } }); }
+  function txt(v){ return (v && v.text) ? v.text() : Promise.resolve(v); }
+
+  async function idbCheck(){
+    var list=[]; try{ if(indexedDB.databases)list=await indexedDB.databases(); }catch(e){}
+    if(list.length)row('IndexedDB databases', esc(list.map(function(d){return d.name;}).join(', ')));
+    var db=await new Promise(function(res){ var done=false; var t=setTimeout(function(){ if(!done){done=true;res('timeout');} },8000);
+      try{ var r=indexedDB.open('pb_ob_media',1); r.onsuccess=function(){ if(!done){done=true;clearTimeout(t);res(r.result);} };
+        r.onerror=function(){ if(!done){done=true;clearTimeout(t);res('error');} }; r.onblocked=function(){ if(!done){done=true;clearTimeout(t);res('blocked');} };
+        r.onupgradeneeded=function(){ /* same as the app itself would do on first open, so the app still finds its store */ try{ r.result.createObjectStore('m'); }catch(e){} };
+      }catch(e){ done=true; res('error'); } });
+    if(typeof db==='string'){ row('App ka store (pb_ob_media)', 'khula nahi: '+db, 'bad'); return; }
+    if(!db.objectStoreNames.contains('m')){ row('App ka store (pb_ob_media)','khaali — koi data nahi','bad'); return; }
+    var ks=await keys(db);
+    var ord=ks.filter(function(k){return String(k).indexOf('rec_o_')===0;}).length;
+    var media=ks.filter(function(k){ k=String(k); return k.indexOf('__')!==0 && k.indexOf('rec_')!==0 && k.indexOf('snap_')!==0; }).length;
+    var snaps=ks.filter(function(k){return String(k).indexOf('snap_')===0;}).sort();
+    row('App ka store — kul keys', ks.length, ks.length?'ok':'bad');
+    row('Photos / voice', media);
+    var meta=null; try{ meta=JSON.parse(await get(db,'__meta')||'null'); }catch(e){}
+    if(meta){ row('Book v2 — orders listed', (meta.ids||[]).length+' (store mein '+ord+')', (meta.ids||[]).length===ord?'ok':'bad'); }
+    var core=null; try{ core=JSON.parse(await get(db,'__core')||'null'); }catch(e){}
+    if(core){
+      var orders=[]; if(meta&&meta.ids){ for(var i=0;i<meta.ids.length;i++){ try{ var r1=await get(db,'rec_o_'+meta.ids[i]); if(r1)orders.push(JSON.parse(r1)); }catch(e){} } }
+      core.orders=orders; row('Book v2 (asli)', sum(core), real(core)?'ok':'bad'); consider(core,'store v2'); }
+    else row('Book v2 (asli)','nahi mila','bad');
+    try{ var d=JSON.parse(await get(db,'__db')||'null'); if(d){ row('Purani copy (__db)', sum(d)); consider(d,'__db'); } }catch(e){}
+    try{ var p=JSON.parse(await get(db,'__db_prev')||'null'); if(p){ row('Pichhli copy (__db_prev)', sum(p)); consider(p,'__db_prev'); } }catch(e){}
+    if(snaps.length){ try{ var s=JSON.parse(await txt(await get(db,snaps[snaps.length-1]))); row('Snapshot ('+snaps.length+', latest '+esc(snaps[snaps.length-1].slice(5,25))+')', sum(s)); consider(s,'snapshot'); }catch(e){ row('Snapshot','padh nahi paya','bad'); } }
+    try{ db.close(); }catch(e){}
+  }
+  (async function(){
+    try{ if(navigator.storage&&navigator.storage.estimate){ var q=await navigator.storage.estimate(); row('Is address ka kul data', mb(q.usage||0)); }
+         if(navigator.storage&&navigator.storage.persisted){ row('Pakka storage (persisted)', (await navigator.storage.persisted())?'haan':'nahi'); } }catch(e){}
+    ls();
+    await idbCheck();
+    document.getElementById('rows').innerHTML=out.join('');
+    var v=document.getElementById('verdict');
+    if(best){ v.innerHTML='<span class="ok">✅ Aapki kitaab is phone par hai</span><div class="hint">Mili: '+sum(best)+' — ('+esc(bestFrom)+')</div>';
+      var b=document.getElementById('dl'); b.style.display='block'; document.getElementById('dlhint').style.display='block';
+      b.onclick=function(){ var blob=new Blob([JSON.stringify({__v:1,db:best,savedAt:new Date().toISOString(),from:'diag:'+bestFrom})],{type:'application/json'});
+        var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='parampara-diag-'+new Date().toISOString().slice(0,10)+'.json'; document.body.appendChild(a); a.click(); a.remove(); };
+    } else v.innerHTML='<span class="bad">❌ Is browser mein PARAMPARA ki kitaab nahi mili</span><div class="hint">Neeche ki lines ka screenshot Claude ko bhejo.</div>';
+  })();
+})();
+</script>
+</body>
+</html>
