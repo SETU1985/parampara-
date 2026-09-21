@@ -789,6 +789,14 @@
     border-radius:8px; padding:6px 14px; font-weight:800; font-size:14px; pointer-events:auto}
   #railToggle{display:none}
   .fab-pad{height:10px}
+  /* v736 Go To: its own layer so it is reachable over every screen (see the note at the
+     button). 44px wide - a thumb target, not a mouse one. Lined up with the backup button. */
+  #goToBtn{position:fixed;top:12px;right:78px;z-index:95;min-width:44px;height:32px;
+    padding:0 10px;border-radius:999px;border:1px solid var(--line);background:var(--card);
+    color:var(--ink);font-size:16px;line-height:30px;cursor:pointer;
+    box-shadow:0 1px 3px rgba(0,0,0,.12)}
+  body.modal-on #goToBtn{visibility:hidden}
+  @media print{ #goToBtn{display:none} }
   /* v643: one date bar, and it must look like a control, not a caption */
   .rngbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;cursor:pointer;
     border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin:0 0 12px}
@@ -1105,7 +1113,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v735</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v739</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -1127,6 +1135,15 @@
     <input id="search" oninput="searchType()">
   </div>
 </header>
+<!-- v736: Go To. It is NOT inside the header on purpose. Measured: with any screen open over
+     the page, a tap on a button inside the header lands on the dimming layer instead
+     (header z-index 40, that layer 90), so a search that lived there worked from the five
+     main tabs and from none of the hundred-and-forty screens he actually works in - the
+     opposite of "from anywhere". Lifting the whole header would have put it over the top
+     edge of full-height screens, where their own ✕ and ← sit. So only this one button is
+     lifted, drawn at the spot it would have had in the header row, and hidden whenever a
+     dialog is up so it can never replace a question he is in the middle of answering. -->
+<button id="goToBtn" type="button" onclick="goTo()" aria-label="Go To" title="Go To">🔍</button>
 
 <main>
   <section class="tabpane active" id="tab-home"><div id="homePane"></div></section>
@@ -1226,6 +1243,8 @@ const T={
   del_unlink_msg:'The bill goes. Order #{n} stays exactly as it is and can be billed again.',
   lg_opening_as:'Opening as on {d}', lg_period:'Period', lg_from:'From', lg_to:'To',
   rps_outstanding:'Outstanding',
+  rpf_profit:'Profit {m}', rpf_loss:'Loss {m}', rp_bs_off:'Off by {m}',
+  bs_adv_asof:'As on {d}', bs_adv_n:'{n} records', bs_adv_dn:'Debit notes more than what was owed', bs_adv_rest:'Other',
   lg_dr_total:'Total Debit', lg_cr_total:'Total Credit', lg_all_dates:'All dates',
   lg_nomove:'No entries in this period',
   mi_use_contra:'Cash and bank move by transfer, not by receipt',
@@ -1784,6 +1803,8 @@ const T={
   lg_merge_go:'Move it',
   lg_merge_ask:'Every entry under {a} ({n}) becomes part of {b}, and {a} goes. Nothing is deleted and no figure changes.',
   lg_merged:'{a} is now part of {b}',
+  lg_two_open:'This name has two opening balances — fix them from Parties worth a second look first',
+  lg_mv_msg:'{n} entries are filed under {a}. Pick the name they belong to — they move there and {a} is deleted.', lg_mv_search:'Search a name', lg_mv_best:'Most likely', lg_mv_none:'No name matches', lg_mv_type:'Type the name they belong to', lg_mv_yes:'Move & delete', lg_mv_ask:'Move {n} entries from {a} to {b}, and delete {a}?',
   lg_merge_none:'There is no other ledger to move it into',
   lg_dir_auto:'Opening will be {d} \u2014 that is the side {g} sits on.',
   lg_dir_flip:'Make it {d} instead',
@@ -2326,6 +2347,7 @@ const T={
   pa_paid_no_open:'Paid, but no opening balance was ever entered',
   pa_open_no_move:'Opening entered, but nothing has moved since',
   pa_over:'Paid more than the book says is owed',
+  pa_rm:'Remove', pa_no_ledger:'No ledger under this name', pa_n_entries:'{n} {n|entry|entries}', pa_left:'{n} to fix. 🗑️ Remove deletes an empty name, or moves its entries to the right name first.',
   pa_note:'This screen changes nothing. Each name below is one the books cannot fully explain \u2014 open it and the ledger will show why.',
   pa_two_opens:'The same opening entered twice, at two figures',
   pa_two_opens_sub:'ledger entry {a} · ledger master {b} — make the two agree',
@@ -2339,6 +2361,16 @@ const T={
   pa_half_names_sub:'probably the start of “{b}” · {n} {n|entry|entries} on it',
   pa_near_names:'Two names a letter or two apart',
   pa_near_names_sub:'almost the same as “{b}” — {n} {n|entry|entries} here, {m} there. One firm split in two?',
+  goto_title:'Go to', goto_ph:'Type a report, a name, a phone or a bill number…',
+  goto_none:'Nothing called “{q}”',
+  goto_recent:'Recent', goto_common:'Most used', goto_reports:'Reports', goto_parties:'Parties',
+  goto_ledgers:'Ledgers', goto_customers:'Customers', goto_orders:'Orders', goto_bills:'Bills',
+  lg_join_title:'Join the two?', lg_join_yes:'Yes, join them',
+  lg_join_ask:'“{b}” already exists. Join “{a}” into it? {n} {n|entry moves|entries move} across and no amount changes. “{a}” is removed.',
+  lg_dup_open:'“{b}” already exists — opened it', lg_exists_hint:'Already in your book — tap one to use it:',
+  nm_ask_title:'Is this a name you already have?',
+  nm_ask_q:'“{a}” is not in your book, but “{b}” is. Using the one you have keeps everything under one name.',
+  nm_ask_use:'Use “{b}”', nm_ask_keep:'Keep “{a}” as new',
   pa_none:'Nothing here needs a second look',
   pty_search:'Search a name…', pty_add:'Add a party', pty_none:'Nobody yet',
   pty_open:'Opening', pty_open_left:'Opening still open', pty_open_none:'No opening entered',
@@ -3527,6 +3559,8 @@ dl_show_hidden:'Show hidden ({n})',
   del_unlink_msg:'बिल मिट जाएगा। ऑर्डर #{n} जैसा है वैसा ही रहेगा और दोबारा बिल बन सकेगा।',
   lg_opening_as:'{d} तक का ओपनिंग', lg_period:'अवधि', lg_from:'से', lg_to:'तक',
   rps_outstanding:'बकाया',
+  rpf_profit:'मुनाफ़ा {m}', rpf_loss:'घाटा {m}', rp_bs_off:'{m} का फ़र्क',
+  bs_adv_asof:'{d} तक', bs_adv_n:'{n} रिकॉर्ड', bs_adv_dn:'डेबिट नोट बकाया से ज़्यादा', bs_adv_rest:'बाकी',
   lg_dr_total:'कुल डेबिट', lg_cr_total:'कुल क्रेडिट', lg_all_dates:'सभी तारीख़ें',
   lg_nomove:'इस अवधि में कोई एंट्री नहीं',
   mi_use_contra:'कैश और बैंक के बीच पैसा ट्रांसफ़र से जाता है, रसीद से नहीं',
@@ -4080,6 +4114,8 @@ dl_show_hidden:'Show hidden ({n})',
   lg_merge_go:'ले जाएँ',
   lg_merge_ask:'{a} की हर एंट्री ({n}) {b} का हिस्सा बन जाएगी, और {a} हट जाएगा। कुछ मिटेगा नहीं और कोई आँकड़ा नहीं बदलेगा।',
   lg_merged:'{a} अब {b} का हिस्सा है',
+  lg_two_open:'इस नाम पर दो ओपनिंग हैं — पहले “दोबारा देखने लायक पार्टियाँ” से ठीक करें',
+  lg_mv_msg:'{a} में {n} एंट्री हैं। चुनें ये किस नाम की हैं — वहाँ चली जाएँगी और {a} मिट जाएगा।', lg_mv_search:'नाम खोजें', lg_mv_best:'सबसे मिलते नाम', lg_mv_none:'कोई नाम नहीं मिला', lg_mv_type:'जिस नाम की एंट्री हैं वो लिखें', lg_mv_yes:'भेजो और मिटाओ', lg_mv_ask:'{a} की {n} एंट्री {b} में भेजें और {a} मिटा दें?',
   lg_merge_none:'ले जाने के लिए दूसरा लेजर है ही नहीं',
   lg_dir_auto:'ओपनिंग {d} जाएगी — {g} इसी तरफ़ बैठता है।',
   lg_dir_flip:'{d} कर दें',
@@ -4614,6 +4650,7 @@ dl_show_hidden:'Show hidden ({n})',
   pa_paid_no_open:'पैसा दिया, पर शुरुआती बकाया कभी चढ़ाया ही नहीं',
   pa_open_no_move:'शुरुआती बकाया है, पर उसके बाद कुछ हुआ ही नहीं',
   pa_over:'किताब जितना कहती है, उससे ज़्यादा दे दिया',
+  pa_rm:'हटाओ', pa_no_ledger:'इस नाम का कोई खाता नहीं', pa_n_entries:'{n} एंट्री', pa_left:'{n} ठीक करने हैं। 🗑️ हटाओ — खाली नाम मिट जाता है, एंट्री वाले नाम की एंट्री पहले सही नाम में जाती हैं।',
   pa_note:'यह स्क्रीन कुछ नहीं बदलती। नीचे हर नाम वह है जिसे किताब पूरी तरह समझा नहीं पाती \u2014 खोलिए, खाता वजह बता देगा।',
   pa_two_opens:'एक ही ओपनिंग दो जगह, दो अलग रक़म',
   pa_two_opens_sub:'लेजर एंट्री {a} · लेजर मास्टर {b} — दोनों एक कीजिए',
@@ -4627,6 +4664,16 @@ dl_show_hidden:'Show hidden ({n})',
   pa_half_names_sub:'शायद “{b}” की शुरुआत · इस पर {n} एंट्री',
   pa_near_names:'दो नाम, एक-दो अक्षर का फ़र्क़',
   pa_near_names_sub:'“{b}” से लगभग मिलता है — यहाँ {n} एंट्री, वहाँ {m}। एक ही फ़र्म दो हिस्सों में?',
+  goto_title:'जाइए', goto_ph:'रिपोर्ट, नाम, फ़ोन या बिल नंबर लिखिए…',
+  goto_none:'“{q}” नाम का कुछ नहीं मिला',
+  goto_recent:'हाल में', goto_common:'सबसे ज़्यादा', goto_reports:'रिपोर्ट', goto_parties:'पार्टी',
+  goto_ledgers:'लेजर', goto_customers:'ग्राहक', goto_orders:'ऑर्डर', goto_bills:'बिल',
+  lg_join_title:'दोनों एक कर दें?', lg_join_yes:'हाँ, एक कर दो',
+  lg_join_ask:'“{b}” पहले से है। “{a}” को उसी में मिला दें? इसकी {n} एंट्री उसमें चली जाएँगी, कोई रक़म नहीं बदलेगी। “{a}” हट जाएगा।',
+  lg_dup_open:'“{b}” पहले से है — वही खोल दिया', lg_exists_hint:'आपकी किताब में पहले से हैं — जो सही हो उस पर टैप करें:',
+  nm_ask_title:'क्या यह नाम पहले से है?',
+  nm_ask_q:'“{a}” आपकी किताब में नहीं है, पर “{b}” है। वही नाम लेंगे तो सब एक ही जगह रहेगा।',
+  nm_ask_use:'“{b}” ही लें', nm_ask_keep:'“{a}” नया रखें',
   pa_none:'दोबारा देखने लायक कुछ नहीं है',
   pty_search:'नाम ढूंढें…', pty_add:'पार्टी जोड़ें', pty_none:'अभी कोई नहीं',
   pty_open:'शुरुआती बाकी', pty_open_left:'शुरुआती बकाया बचा है', pty_open_none:'कोई शुरुआती बकाया नहीं',
@@ -5610,7 +5657,7 @@ dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
   ki_rate:'रेट', ki_none:'देने को कुछ नहीं है', ki_go:'{n} पीस दें',
   ki_done:'{k} को {n} पीस दे दिए', ki_no_karigar:'पहले कारीगर जोड़िए',
   qc_arrange:'क्रम बदलें',
-  lg_dup:'A ledger with that name already exists', lg_title:'Ledger master', lg_new:'New ledger', lg_group:'Group', lg_name:'Ledger name',
+  lg_dup:'इस नाम का लेजर पहले से है', lg_title:'Ledger master', lg_new:'New ledger', lg_group:'Group', lg_name:'Ledger name',
   lg_open:'Opening balance', lg_opendir:'Dr / Cr', lg_opendate:'Opening as on',
   lg_bs:'Balance sheet', lg_pl:'Profit & loss', lg_saved:'Ledger saved', lg_count:'{n} ledgers',
   lg_sub:'हर नाम जो दुकान में चलता है, और वो किस group में है।',
@@ -7629,7 +7676,46 @@ function refreshMoney(){
     else if(tb==='reports')safeRender('Reports',renderReports);
   }catch(e){}
 }
+/* ══════════ v736 — BACK FROM AN ORDER WENT HOME, OR TO THE WRONG LIST ══════════
+   HIS 21 Sept, and before that 14 Aug, 6 Sept, 17 Sept, 18 Sept: "kaun si screen se peeche
+   aane pe kahan pahunch jaate hain wo sahi hai hi nahi... maine kai baar bataya hai."
+   Measured, with the PHONE's own back key this time (every earlier check pressed only the
+   arrow on screen): Orders -> open an order -> back landed on HOME. Seven daily paths were
+   walked; that was the one wrong, and it is the one he walks most.
+   Two faults on the same page, and they disagreed with each other. The order page is a TAB,
+   not a sheet, so the phone's back fell into the rule "any tab except Home -> Home". And the
+   arrow drawn on the page was wired to go('orders') whatever door he came in by — a
+   customer, Go To, a reminder, the day book — so it was right only when he had come from
+   the Orders list. The alteration page had exactly the same two.
+   A record page is a CHILD of wherever it was opened. That is remembered here, in go(),
+   the one door every entry into those pages passes through — not at each of the dozens of
+   places that open an order. Both ways back, the arrow and the phone's key, now call
+   recBack(), so the same press cannot land in two places again.
+   var and try/catch on purpose: go() runs at boot, above the lets it reads — a throw here
+   deactivates every pane and the whole app goes white. */
+var _recFrom=null;
+const REC_TABS={detail:'orders', altdetail:'alterations'};
+function recFromNote(tab){
+  try{
+    if(!REC_TABS[tab])return;
+    if(REC_TABS[_curTab]!==undefined)return;      /* a redraw, or a hop between two records: keep the way out */
+    let sheet=null, trail=null;
+    try{ if(typeof sheetIsOpen==='function' && sheetIsOpen() && _sheetCur){ sheet=_sheetCur; trail=(_sheetStack||[]).slice(); } }catch(e){}
+    try{ if(!sheet && _handoff && (Date.now()-_handoffAt)<600){ sheet=_handoff; trail=(_handoffTrail||[]).slice(); } }catch(e){}
+    _recFrom={tab:_curTab||'home', sheet, trail};
+  }catch(e){ _recFrom=null; }
+}
+function recBack(fallback){
+  const o=_recFrom; _recFrom=null;
+  if(!o || !o.tab){ go(fallback); return; }
+  go(o.tab);
+  if(o.sheet){
+    try{ _sheetStack=(o.trail||[]).slice(); _sheetCur=null; o.sheet(); }
+    catch(e){ try{ sheetReset(); }catch(e2){} }
+  }
+}
 function go(tab){
+  try{ recFromNote(tab); }catch(e){}
   /* v386 AUDIT — go() threw on any name that is not a real tab, and a throw here leaves
      EVERY pane deactivated: the whole app goes white with nothing to tap. His rule is that
      a screen must degrade, never go blank, so an unknown name falls back to Home instead
@@ -10099,6 +10185,9 @@ function accDel(id){
 function ledLineOpen(l){
   if(!l)return '';
   const q=v=>String(v||'').replace(/'/g,"\\'");
+  /* v739: an expense or payment opens its edit ON TOP of the account screen (dbOpen), so
+     Save redraws this screen instead of leaving him on nothing — same fix as lgOpenRow. */
+  if(l.id && (l.refKind==='expense'||l.refKind==='manual'||l.refKind==='openpay'))return `dbOpen('${q(l.id)}')`;
   switch(l.refKind){
     case 'expense':  return l.id?`closeSheet();expEdit('${q(l.id)}')`:'';
     case 'purchase': return l.ref2?`purchMenu('${q(l.ref2)}')`:`closeSheet();go('purchases')`;
@@ -10913,11 +11002,50 @@ function payApplyDiscount(dir,party,partyId,disc){
   });
   return {left,touched};
 }
+var _pyNameOk='';
+function pyAskClear(){ const bx=$('#pyNameAsk'); if(bx)bx.innerHTML=''; }
+function pyAskUse(){ const o=window._pyAsk; if(!o)return; pyAskClear();
+  const e=$('#py_party'); if(e){ e.value=o.b; try{ payPartyDue(); }catch(x){} }
+  _pyNameOk=nameNorm(o.b); payEntryDo(o.dir,o.again); }
+function pyAskKeep(){ const o=window._pyAsk; if(!o)return; pyAskClear();
+  _pyNameOk=nameNorm(o.a); payEntryDo(o.dir,o.again); }
 function payEntryDo(dir,again){
   const party=($('#py_party').value||'').trim(), amt=+$('#py_amt').value||0;
   const disc=r2(+(($('#py_disc')||{}).value||0)||0);
   if(!party){toast(t('t_no_name'),'bad');return;}
   if(amt<=0 && disc<=0){toast(t('t_no_amount'),'bad');return;}
+  /* ══════════ v737 — THE LAST CHANCE BEFORE A SECOND NAME IS BORN ══════════
+     The list under the name box now shows a name he already has even when one letter is
+     off. If he saves anyway with a name that is NOT in the book but sits a letter or two
+     from one that is, he is asked once — use the one you have, or keep this as new. A name
+     that resembles nothing is not questioned; a name he has already said to keep is not
+     asked again. This is the net under the list, the same rule, so the two cannot disagree. */
+  if(_pyNameOk!==nameNorm(party)){
+    const pool=[...new Set([].concat((DB.parties||[]).map(x=>x.name),(lgAll()||[]).map(x=>x.name),
+      (DB.customers||[]).map(x=>x.name)).filter(Boolean))];
+    if(!pool.some(n=>nameNorm(n)===nameNorm(party))){
+      const near=pool.map(n=>({n,sc:nameLike(party,n)})).filter(o=>o.sc>=1&&o.sc<=4)
+        .sort((a,b)=>a.sc-b.sc||String(a.n).length-String(b.n).length)[0];
+      if(near){
+        /* the Payment screen is itself a sheet — a second sheet would close it and lose
+           what he typed. The question sits inside the form, right under the name. */
+        const bx=$('#pyNameAsk');
+        if(bx){
+          window._pyAsk={dir,again,a:party,b:near.n};
+          bx.innerHTML=`<div style="border:1.5px solid var(--saffron,#f59e0b);border-radius:12px;padding:10px 12px;margin-top:8px">
+            <div style="font-weight:700;margin-bottom:4px">\u26A0\uFE0F ${t('nm_ask_title')}</div>
+            <div style="line-height:1.5;font-size:14px">${t('nm_ask_q',{a:esc(party),b:esc(near.n)})}</div>
+            <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+              <button type="button" class="btn primary" style="flex:1 1 100%;min-height:44px" onclick="pyAskUse()">${t('nm_ask_use',{b:esc(near.n)})}</button>
+              <button type="button" class="btn ghost" style="flex:1 1 100%;min-height:44px" onclick="pyAskKeep()">${t('nm_ask_keep',{a:esc(party)})}</button>
+            </div></div>`;
+          try{ bx.scrollIntoView({block:'center'}); }catch(e){}
+          return;
+        }
+      }
+    }
+  }
+  _pyNameOk='';
   if(!svOnce(['p',dir,party,amt,($('#py_date')||{}).value||'',($('#py_note')||{}).value||''].join('|'),
     ()=>{})){ toast(t('sv_dup'),'bad'); return; }
   const date=$('#py_date').value||todayISO();
@@ -11055,7 +11183,9 @@ function payPartyPick(q){
   const dir=(_pay&&_pay.dir)||'in';
   const s=String(q||'').trim().toLowerCase();
   let rows=payPartyRowsCached(dir);
-  if(s) rows=rows.filter(r=>r.nm.toLowerCase().includes(s)||String(r.ph).includes(s));
+  /* v737: the one matching rule — a slipped letter still finds the name he already has */
+  if(s) rows=rows.map(r=>({r, sc:(String(r.ph).includes(s)?1:nameLike(s,r.nm))}))
+                 .filter(x=>x.sc<9).sort((x,y)=>x.sc-y.sc).map(x=>x.r);
   if(!rows.length){
     /* v592 — HIS question: "koi nahi aa raha hai to add new ka option aayega?" It was on the
        screen but as a separate button further down, so an empty result was a dead end with
@@ -11193,8 +11323,9 @@ function payEntry(dir,skipAsk,prefill){
           when nothing is pending. autocomplete is off, so the phone stops offering. */''}
      <div class="field"><label>${dir==='in'?t('customer'):t('supplier')} *</label>
        <input id="py_party" autocomplete="off" placeholder="${t('name_ph')}"
-         onfocus="payPartyPick(this.value)" oninput="payPartyPick(this.value);payPartyDue()">
+         onfocus="payPartyPick(this.value)" oninput="payPartyPick(this.value);payPartyDue();pyAskClear()">
        <div id="pyPartyResults"></div>
+       <div id="pyNameAsk"></div>
        ${/* ══════════ v596 — TWO DOORS TO ONE ROOM ══════════
             HIS 9 Sept: "Setu naam select kiya hua hai uske baad bhi add new party dikha raha
             hai... isse confusion badhega."
@@ -13393,51 +13524,67 @@ function partyAudit(){
   }catch(e){}
   [out.paidNoOpen,out.openNoMove,out.over,out.twoOpens,out.masterOnly,out.twoNames]
     .concat([out.nearNames]).forEach(a=>a.sort((x,y)=>y.amt-x.amt));
-  out.n=out.paidNoOpen.length+out.openNoMove.length+out.over.length
-       +out.twoOpens.length+out.masterOnly.length+out.twoNames.length
-       +out.samePhone.length+out.halfNames.length+out.nearNames.length;
+  /* ══════════ v737 — "14 KAISE HO GAYA APNE AAP?" ══════════
+     HIS 21 Sept. The book had not changed; the screen had. Every check added (v729, v733,
+     v734) added its rows to the count, and one firm was counted once per section it fell
+     in — Vrudhi Impex, Vru and Vrudhi were three rows under "same phone" AND again under
+     "half names". The number on the door now counts FIRMS that need a look, each once.
+     A half name already shown inside its phone group is not listed a second time.
+     "Opening, nothing since" is dropped: an old balance with no bill this year is a normal
+     book, not a mistake, and a door that cries about normal books stops being opened. */
+  const inPhone={};
+  out.samePhone.forEach(g=>g.names.forEach(n=>{ inPhone[nameNorm(n)]=g.phone; }));
+  out.halfNames=out.halfNames.filter(x=>!(inPhone[nameNorm(x.name)] && inPhone[nameNorm(x.name)]===inPhone[nameNorm(x.full)]));
+  out.openNoMove=[];
+  const firms={};
+  const mark=n=>{ const k=nameNorm(n); if(k)firms[k]=1; };
+  [out.paidNoOpen,out.over,out.twoOpens,out.masterOnly,out.twoNames].forEach(a=>a.forEach(x=>mark(x.name)));
+  out.samePhone.forEach(g=>mark(g.names[0]));
+  out.halfNames.forEach(x=>mark(x.full));
+  out.nearNames.forEach(x=>mark(x.other));
+  out.n=Object.keys(firms).length;
   return out;
 }
+/* ══════════ v738 — "THEEK KARNE KA SYSTEM HI THEEK NAHI HAI" ══════════
+   HIS 21 Sept. The screen named 13–14 parties and fixed none of them: every row closed the
+   list and opened a party card, where the fix was somewhere else again, and after it he had
+   to find his way back and could not see what was left. Now each row carries its own fix:
+   a name that is a copy of another gets 🗑️ Remove right on the row (empty → deleted; entries
+   → he picks where they belong, they move there, then it is deleted); any other row opens
+   that ledger, where Edit and the opening are. After a fix he lands back HERE, redrawn,
+   with the count one smaller. */
+function paOpen(name){ const l=lgByName(name);
+  if(l){ ledgerView(l.id); } else { closeSheet(); partyCard(name,'supplier'); } }
+function paFix(name){ const l=lgByName(name);
+  if(l){ ledgerDel(l.id,'pa'); } else { toast(t('pa_no_ledger'),'bad'); } }
 function partyAuditScreen(){
   sheetAt(partyAuditScreen);
+  try{ lgSync(); }catch(e){}
   const a=partyAudit();
-  const secN=(title,list,sub,cnt)=>list.length?`<div class="section-h">${title}</div>
-    <div class="card" style="padding:0;margin-bottom:12px;overflow:hidden">
-      ${list.map(x=>`<div class="krow tappable"
-        onclick="closeSheet();partyCard('${jq(x.name)}','supplier')">
-        <span class="kn"><b>${esc(x.name)}</b><div class="hint" style="white-space:normal">${sub(x)}</div></span>
-        <b style="color:var(--saffron2)">${cnt(x)}</b></div>`).join('')}</div>`:'';
-  const sec2=(title,list,sub)=>list.length?`<div class="section-h">${title}</div>
-    <div class="card" style="padding:0;margin-bottom:12px;overflow:hidden">
-      ${list.map(x=>`<div class="krow tappable"
-        onclick="closeSheet();partyCard('${jq(x.name)}','supplier')">
-        <span class="kn"><b>${esc(x.name)}</b><div class="hint" style="white-space:normal">${sub(x)}</div></span>
-        <b style="color:var(--bad)">${money(x.amt)}</b></div>`).join('')}</div>`:'';
-  const sec=(title,list,col)=>list.length?`<div class="section-h">${title}</div>
-    <div class="card" style="padding:0;margin-bottom:12px;overflow:hidden">
-      ${list.map(x=>`<div class="krow tappable"
-        onclick="closeSheet();partyCard('${jq(x.name)}','supplier')">
-        <span class="kn">${esc(x.name)}</span>
-        <b style="color:${col}">${money(x.amt)}</b></div>`).join('')}</div>`:'';
+  const use=n=>{ try{ return ledgerUse(n); }catch(e){ return 0; } };
+  const fixBtn=n=>`<button class="btn sm danger" style="flex:0 0 auto;min-height:40px;margin-left:8px"
+      onclick="event.stopPropagation();paFix('${jq(n)}')">\u{1F5D1}\uFE0F ${t('pa_rm')}</button>`;
+  const line=(n,sub,right,fix)=>`<div class="krow tappable" onclick="paOpen('${jq(n)}')">
+      <span class="kn"><b>${esc(n)}</b>${sub?`<div class="hint" style="white-space:normal">${sub}</div>`:''}</span>
+      ${right?`<b style="color:var(--saffron2);flex:0 0 auto">${right}</b>`:''}${fix?fixBtn(n):''}</div>`;
+  const card=(title,rows)=>rows.length?`<div class="section-h">${title}</div>
+    <div class="card" style="padding:0;margin-bottom:12px;overflow:hidden">${rows.join('')}</div>`:'';
+  const ent=n=>t('pa_n_entries',{n:use(n)});
+  /* copies of one firm: every name in the group, each with its own Remove */
+  const phoneRows=a.samePhone.map(g=>`<div style="padding:8px 12px 2px" class="hint">\u{1F4DE} ${esc(g.phone)}</div>`
+    + g.names.map(n=>line(n,ent(n),'',true)).join(''));
   $('#sheet').innerHTML=`<div class="grip"></div>
-    <h2 style="margin:0 0 10px">\u{1F50E} ${t('pa_title')}</h2>
+    <h2 style="margin:0 0 4px">\u{1F50E} ${t('pa_title')}</h2>
+    <p class="hint" style="white-space:normal;margin:0 0 10px">${a.n?t('pa_left',{n:a.n}):''}</p>
     ${a.n?'':`<p class="hint" style="padding:22px 4px;text-align:center">${t('pa_none')}</p>`}
-    ${sec(t('pa_paid_no_open'), a.paidNoOpen, 'var(--bad)')}
-    ${sec(t('pa_open_no_move'), a.openNoMove, 'var(--saffron2)')}
-    ${sec(t('pa_over'), a.over, 'var(--bad)')}
-    ${/* v729: these three carry two figures each - one figure alone would not tell him
-         which of the two places to correct. */''}
-    ${sec2(t('pa_two_opens'), a.twoOpens,
-       x=>t('pa_two_opens_sub',{a:money(x.line), b:money(x.master)}))}
-    ${sec2(t('pa_master_only'), a.masterOnly, x=>t('pa_master_only_sub'))}
-    ${sec2(t('pa_two_names'), a.twoNames,
-       x=>t('pa_two_names_sub',{a:esc(x.line), b:esc(x.master)}))}
-    ${/* v733: these two carry a count, not money - the number beside them is how many
-         records, so the row does not pretend to be a rupee figure. */''}
-    ${secN(t('pa_same_phone'), a.samePhone, x=>t('pa_same_phone_sub',{p:esc(x.phone), l:esc(x.names.join(' · '))}), x=>x.names.length)}
-    ${secN(t('pa_half_names'), a.halfNames, x=>t('pa_half_names_sub',{b:esc(x.full), n:x.used}), x=>x.used)}
-    ${secN(t('pa_near_names'), a.nearNames, x=>t('pa_near_names_sub',{b:esc(x.other), n:x.few, m:x.many}), x=>x.few)}
-    <p class="hint" style="white-space:normal;margin-top:10px">${t('pa_note')}</p>
+    ${card(t('pa_same_phone'), phoneRows)}
+    ${card(t('pa_half_names'), a.halfNames.map(x=>line(x.name, t('pa_half_names_sub',{b:esc(x.full), n:x.used}),'',true)))}
+    ${card(t('pa_near_names'), a.nearNames.map(x=>line(x.name, t('pa_near_names_sub',{b:esc(x.other), n:x.few, m:x.many}),'',true)))}
+    ${card(t('pa_two_names'), a.twoNames.map(x=>line(x.name, t('pa_two_names_sub',{a:esc(x.line), b:esc(x.master)}), money(x.amt))))}
+    ${card(t('pa_two_opens'), a.twoOpens.map(x=>line(x.name, t('pa_two_opens_sub',{a:money(x.line), b:money(x.master)}), money(x.amt))))}
+    ${card(t('pa_master_only'), a.masterOnly.map(x=>line(x.name, t('pa_master_only_sub'), money(x.amt))))}
+    ${card(t('pa_paid_no_open'), a.paidNoOpen.map(x=>line(x.name,'',money(x.amt))))}
+    ${card(t('pa_over'), a.over.map(x=>line(x.name,'',money(x.amt))))}
     <div class="fab-pad"></div>`;
   showSheet();
 }
@@ -16656,6 +16803,8 @@ function menuHome(){
          of cloth while the books were told the shop opened with nothing, so the whole ₹51
          lakh landed in Cost of goods sold as a negative. */''}
     ${modOn('accounts')?sec('💸 '+t('exp_title'),[
+      /* v739 C: the Day book leads — it is where a wrong entry is found and put right */
+      row('📒',t('db_title'),"dayBook()"),
       row('📗',t('lg_title'),"ledgerMaster()"),
       row('🏦',t('ob_shop'),"openBSEdit()"),
       /* ══════════ v529 — MONEY IN HAD NO DOOR IN THE MENU ══════════
@@ -16672,7 +16821,6 @@ function menuHome(){
          Nothing is unreachable - every one of the four is still a tap from Sale or
          Purchase, exactly where he was already going. */
       row('💸',t('exp_title'),"expenses()"),
-      row('📒',t('db_title'),"dayBook()"),
       row('🏦',t('cb_title'),"cashBank()"),
       row('📒',t('pty_title'),"debtorsHome()"),
       row('📕',t('pty_cred_title'),"creditorsHome()"),
@@ -21752,7 +21900,7 @@ async function openDetail__inner(id,focusGid){
       </div>`:''}</div>`;}).join('');
 
   $('#detailPane').innerHTML=`
-    <div class="detail-hd"><button class="back" onclick="go('orders')">←</button>
+    <div class="detail-hd"><button class="back" onclick="recBack('orders')">←</button>
       <div style="flex:1"><div style="color:var(--saffron);font-size:13px;font-weight:700">#${esc(onoLabel(o))} <span title="${t('od_edit_no')}" onclick="event.stopPropagation();odEditNo('${o.id}')" style="cursor:pointer;opacity:.7;text-decoration:underline">${t('change')}</span></div><h2 onclick="odEditCust('${o.id}')" style="cursor:pointer">${esc(o.customerName)}</h2></div>
       ${/* v639: look at it · fix it · send it — the three things anyone does with a saved
            record. Sending was on the face and fixing was two taps inside ⋯. HIS words:
@@ -22531,7 +22679,7 @@ async function openAltDetail(id){
   const selStyle='flex:1;background:var(--bg2);border:1px solid var(--line);color:var(--txt);padding:9px 10px;border-radius:var(--r2);font-size:15px';
 
   $('#altDetailPane').innerHTML=`
-    <div class="detail-hd"><button class="back" onclick="go('alterations')">←</button>
+    <div class="detail-hd"><button class="back" onclick="recBack('alterations')">←</button>
       <div style="flex:1"><div style="color:var(--saffron);font-size:11px;font-weight:700">🔧 #${esc(a.altNo)}</div><h2>${esc(a.customerName||'—')}</h2></div>
       <button class="btn sm ghost" onclick="altMenu('${a.id}')">⋯</button></div>
 
@@ -28268,7 +28416,9 @@ function puSupSug(){
   const box=$('#puSupSug'), el=$('#pu_supplier'); if(!box||!el)return;
   const q=String(el.value||'').trim().toLowerCase();
   let list=pastSuppliers();
-  if(q)list=list.filter(x=>x.name.toLowerCase().includes(q)||String(x.phone||'').includes(q));
+  /* v737: the one matching rule */
+  if(q)list=list.map(x=>({x, sc:(String(x.phone||'').includes(q)?1:nameLike(q,x.name))}))
+                .filter(o=>o.sc<9).sort((o,p)=>o.sc-p.sc).map(o=>o.x);
   list=list.slice(0,6);
   if(q&&list.length===1&&list[0].name.toLowerCase()===q){box.innerHTML='';return;}
   /* v374 — HIS 28 Aug, off his own screenshot: "Not in the list? ➕ New" was sitting under
@@ -29478,6 +29628,50 @@ let _purLastSave=0;
    folded so "Alok" and "Álok" still meet, but Devanagari matras are KEPT — drop them and
    "कमल" and "कमला" become the same man. The old rule stays as a fallback for any engine
    without Unicode property escapes. */
+/* ══════════ v737 — ONE WRONG LETTER AND THE NAME HE ALREADY HAD WAS INVISIBLE ══════════
+   HIS 21 Sept: "koi baar type karne par saved results nahi dikhne se ye ledger ya entries
+   galat hoti hai. Tumhe bhi sochna padega ki ye galtiyan kyon ho rahi hai aur inhe roka
+   kaise jaye." Measured at five doors where a party's name is typed, with a spelling one
+   slip away from a name already in the book: "Vrudhi Fashion" for Vruudhi Fashion was
+   missed by Payment in, Payment out and New party; "Megraj" for Meghraj Parasmal was missed
+   by ALL FIVE. Every picker matched only an exact run of letters, so one letter dropped in
+   the middle showed nothing — and what he had typed was saved as a brand-new party. That
+   is exactly how Vrudhi Impex and Vruudhi Fashion, and Megraj and Meghraj, came to exist.
+   This is the one rule every picker now uses, so they cannot drift apart again:
+     0 same name · 1 he typed its start · 2 he typed part of it ·
+     3 a letter added or left out near its START (Megraj ~ Meghraj Parasmal) ·
+     4 the same for the WHOLE name (Vrudhi Fashion ~ Vruudhi Fashion) · 9 no match.
+   Under four letters nothing is guessed — "Ram" is not a typo for anything. A lower score
+   is closer, and every list shows closest first. */
+function nameLev(a,b,cap){
+  /* an INSERTED or DROPPED letter costs 1; a CHANGED letter costs 2. Measured on his 191
+     names: the real duplicates are a letter added or left out — Wasim/Washim, Megraj/
+     Meghraj, Anam/Aanam, Subham/Subbham, Vrudhi/Vruudhi — while names one letter CHANGED
+     apart are nearly always two different people: Ramesh/Rajesh, Aman/Aryan, Cash/Wash. */
+  if(Math.abs(a.length-b.length)>cap)return cap+1;
+  let prev=[]; for(let j=0;j<=b.length;j++)prev[j]=j;
+  for(let i=1;i<=a.length;i++){ const cur=[i]; let low=i;
+    for(let j=1;j<=b.length;j++){ cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:2)); if(cur[j]<low)low=cur[j]; }
+    if(low>cap)return cap+1; prev=cur; }
+  return prev[b.length];
+}
+function nameLike(q,name){
+  try{
+    const a=nameNorm(q), b=nameNorm(name);
+    if(!a||!b)return 9;
+    if(a===b)return 0;
+    if(b.indexOf(a)===0)return 1;
+    if(b.indexOf(a)>=0)return 2;
+    /* five letters before anything is guessed; a word-for-word rule was tried and dropped —
+       it offered every Agarwal for any Agarwal and every Creation for any Creation */
+    if(a.length<5)return 9;
+    const lim=a.length>=8?2:1;
+    for(const L of [a.length-1,a.length,a.length+1]){
+      if(L>=5 && L<=b.length && nameLev(a,b.slice(0,L),lim)<=lim)return 3; }
+    if(nameLev(a,b,lim)<=lim)return 4;
+    return 9;
+  }catch(e){ return 9; }
+}
 function nameNorm(v){
   try{ return String(v||'').trim().toLocaleLowerCase().normalize('NFKD')
     .replace(/[\u0300-\u036f]/g,'').replace(/[^\p{L}\p{N}\p{M}]/gu,''); }
@@ -29518,7 +29712,12 @@ function purNearMiss(f){
   const out=[];
   const sup=String(f.supplier||'').trim();
   if(sup && !nearOK('sup',sup) && !pastSuppliers().some(x=>nameNorm(x.name)===nameNorm(sup))){
-    const hit=pastSuppliers().find(x=>nameClose(sup,x.name));
+    /* v737: nameClose gives up past three letters of length difference, so "Megraj" never
+       reached "Meghraj Parasmal" here — the live list now offers it, and this net at Save
+       uses the same rule as the list, so ignoring the one cannot slip past the other. */
+    const hit=pastSuppliers().find(x=>nameClose(sup,x.name))
+      || pastSuppliers().map(x=>({x,sc:nameLike(sup,x.name)})).filter(o=>o.sc>=1&&o.sc<=4)
+           .sort((a,b)=>a.sc-b.sc).map(o=>o.x)[0];
     if(hit)out.push({kind:'sup', typed:sup, found:hit.name});
   }
   /* ══════════ v490 — "IS THIS THE SAME ONE?" ON EVERY SINGLE BILL ══════════
@@ -30611,6 +30810,7 @@ function bsFigures(from,to){
   const A={}, L={};   /* L is filled below and by the cash-credit branch above it */
   const add=(o,k,v)=>{ if(!v)return; o[k]=r2((o[k]||0)+v); };
   const ob=openBS();
+  const _loose={cust:[], sup:[]};   /* v737: the receipts behind the advance lines, for the drill */
 
   /* ---- assets ---- */
   (DB.accounts||[]).forEach(a=>{
@@ -30705,16 +30905,10 @@ function bsFigures(from,to){
   (DB.staff||[]).forEach(st=>{ const b=staffAdvBal(st.id,to); if(b<0)staffPay=r2(staffPay-b); });
   add(L,'staffpay', staffPay);
   /* v300: the other half of the pair above — what customers have paid beyond their bill. */
-  let custAdv=0;
-  [['order',DB.orders],['alt',DB.alterations],['sale',DB.sales]].forEach(([,list])=>{
-    (list||[]).forEach(rec=>{
-      /* v697: as at the sheet's date — a bill or receipt after it had not happened yet */
-      /* money taken before the bill's own date is an advance until that date */
-      const _d=dayOfRec(rec); const _tot=(_d && to && _d>to)?0:orderTotal(rec);
-      const over=r2(orderReceivedAsOf(rec,to)-_tot);
-      if(over>0)custAdv=r2(custAdv+over);
-    });
-  });
+  /* v737: the records behind this line are read by bsAdvRows — the same function the
+     drill screen lists — so the figure and the list it opens cannot disagree. */
+  const _adv=bsAdvRows(to);
+  let custAdv=0; _adv.cust.forEach(x=>{ custAdv=r2(custAdv+x.amt); });
   add(L,'custadv', custAdv);
   /* v301: a return he has NOT refunded is money owed back to the customer in goods or
      cash — carried against their name until it is used. Without it the shop looked richer
@@ -30734,9 +30928,7 @@ function bsFigures(from,to){
   /* v343: what he has already taken against orders he has not yet billed. Cash went up
      when it came in; without this the sheet would simply be short by that much. */
   {
-    let ordAdv=0;
-    (DB.orders||[]).forEach(o2=>{ if(ordIsBillable(o2))return;
-      const got=orderReceivedAsOf(o2,to); if(got>0)ordAdv=r2(ordAdv+got); });   /* v697: as at */
+    let ordAdv=0; _adv.ord.forEach(x=>{ ordAdv=r2(ordAdv+x.amt); });   /* v697: as at */
     add(L,'ordadv', ordAdv);
   }
   /* v313: incentive earned but not yet handed over is money owed to staff */
@@ -30958,7 +31150,7 @@ function bsFigures(from,to){
           const st=openingState(named,_k);
           if(st && st.dir==='out') leftOver=_leftOverOf(st, openingPays(named,_k,to));
         }catch(e){}
-        if(leftOver>0)supAdv=r2(supAdv+leftOver);
+        if(leftOver>0){ supAdv=r2(supAdv+leftOver); _loose.sup.push({l, amt:leftOver}); }
         return;
       }
       if(named && l.dir==='in'){
@@ -30969,7 +31161,7 @@ function bsFigures(from,to){
           const st=openingState(named,_k);
           if(st && st.dir==='in') leftOver=_leftOverOf(st, openingPays(named,_k,to));
         }catch(e){}
-        if(leftOver>0)custAdv=r2(custAdv+leftOver);
+        if(leftOver>0){ custAdv=r2(custAdv+leftOver); _loose.cust.push({l, amt:leftOver}); }
         return;
       }
       susp = (l.dir==='in') ? r2(susp+amt) : r2(susp-amt);
@@ -30981,7 +31173,7 @@ function bsFigures(from,to){
   }
   const totA=r2(Object.values(A).reduce((a,b)=>a+b,0));
   const totL=r2(Object.values(L).reduce((a,b)=>a+b,0)+capTotal2);
-  return {A,L,cap,capTotal:capTotal2,totA,totL,diff:r2(totA-totL),from,to,startDate:ob.date,jv:E};
+  return {A,L,cap,capTotal:capTotal2,totA,totL,diff:r2(totA-totL),from,to,startDate:ob.date,jv:E,loose:_loose};
 }
 /* one row per account, both columns, so the two sides can be seen to agree */
 function tbRows(from,to){
@@ -31267,17 +31459,90 @@ function bsApplyCustom(){
 }
 /* Where each line comes from, so tapping it opens the record behind the number rather
    than leaving him to hunt for it. */
+/* ══════════ v737 — B: EVERY FIGURE ON THE BALANCE SHEET OPENS ══════════
+   HIS 21 Sept, choosing the second proposal: Reports should work the way Tally does — the
+   Balance sheet and P&L first, and every figure on them opens what it is made of.
+   Measured on his book before a line changed: ten lines on the sheet opened nothing, among
+   them Customer advances (11.68 lakh) and Cash credit drawn (29.77 lakh). And three that did
+   open went somewhere different from the SAME figure on the Reports screen — Debtors, Creditors
+   and Loans each had two doors to two different places.
+   The two advance lines had no list anywhere, so their records are read here once, and both
+   the sheet and the drill list use this one function. */
+/* the P&L opened on the SAME span the balance sheet's profit line covers — books opening
+   day to the chosen date — or the two figures would differ and the drill would prove
+   nothing. Used by the sheet's profit line and by the front of Reports: one door. */
+function rpOpenPL(to){ rpPeriod='custom'; rpFrom=(openBS().date||fyStartISO()); rpTo=to||todayISO(); plReport(); }
+function bsAdvRows(to){
+  const out={cust:[], ord:[]};
+  [['order',DB.orders],['alt',DB.alterations],['sale',DB.sales]].forEach(([kind,list])=>{
+    (list||[]).forEach(rec=>{
+      /* v697: as at the sheet's date — a bill or receipt after it had not happened yet */
+      /* money taken before the bill's own date is an advance until that date */
+      const _d=dayOfRec(rec); const _tot=(_d && to && _d>to)?0:orderTotal(rec);
+      const over=r2(orderReceivedAsOf(rec,to)-_tot);
+      if(over>0)out.cust.push({kind, rec, amt:over});
+    });
+  });
+  (DB.orders||[]).forEach(o2=>{ if(ordIsBillable(o2))return;
+    const got=orderReceivedAsOf(o2,to); if(got>0)out.ord.push({kind:'order', rec:o2, amt:r2(got)}); });
+  out.cust.sort((a,b)=>b.amt-a.amt); out.ord.sort((a,b)=>b.amt-a.amt);
+  return out;
+}
+function bsAdvScreen(which){
+  sheetAt(bsAdvScreen,null,arguments);
+  const to=rpRange().to, from=(openBS().date||fyStartISO());
+  let f={A:{},L:{},loose:{cust:[],sup:[]}}; try{ f=bsFigures(from,to); }catch(e){}
+  const figure=r2(which==='sup'?(f.A.supadv||0):which==='cust'?(f.L.custadv||0):(f.L.ordadv||0));
+  const rows=[];
+  const recNo=x=>x.kind==='order'?'#'+(x.rec.orderNo||'\u2014'):x.kind==='alt'?'#'+(x.rec.altNo||'\u2014')
+    :((x.rec.invoice&&x.rec.invoice.no)||'\u2014');
+  if(which!=='sup') (bsAdvRows(to)[which]||[]).forEach(x=>rows.push({name:x.rec.customerName||'\u2014',
+    sub:recNo(x)+' \u00B7 '+fmtDate(dayOfRec(x.rec)||x.rec.date||x.rec.created), amt:x.amt,
+    go:x.kind==='order'?`openDetail('${jq(x.rec.id)}')`:x.kind==='alt'?`openAltDetail('${jq(x.rec.id)}')`
+      :(x.rec.invoice?`openInvoicePreview('sale','${jq(x.rec.id)}')`:'')}));
+  /* money in or out against a NAME with no bill or opening to settle — the larger part of
+     his customer advances. Each opens that party's own card, where the fix is made. */
+  if(which!=='ord') ((f.loose||{})[which]||[]).forEach(x=>{ const nm=String(x.l.party||'').trim();
+    rows.push({name:nm||'\u2014', sub:fmtDate(x.l.date)+(x.l.note?' \u00B7 '+String(x.l.note).trim():''), amt:x.amt,
+      go:nm?`partyCard('${jq(nm)}','${which==='sup'?'supplier':'customer'}')`:''}); });
+  let sum=0; rows.forEach(x=>{ sum=r2(sum+x.amt); });
+  /* the rest of Advance with suppliers is debit notes that exceed what was owed */
+  if(Math.abs(figure-sum)>0.5) rows.push({name:t(which==='sup'?'bs_adv_dn':'bs_adv_rest'), sub:'', amt:r2(figure-sum),
+    go:which==='sup'?'closeSheet();creditorsHome()':''});
+  rows.sort((a,b)=>b.amt-a.amt);
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin:0 0 4px">\u{1F4B0} ${t(which==='cust'?'bs_custadv':which==='ord'?'bs_ordadv':'bs_supadv')}</h2>
+    <p class="hint" style="margin:0 0 10px">${t('bs_adv_asof',{d:fmtDate(to)})}</p>
+    <div class="card" style="padding:4px 12px;margin-bottom:10px">
+      <div class="kv" style="padding:9px 2px"><span>${t('bs_adv_n',{n:rows.length})}</span><b>${money(figure)}</b></div></div>
+    ${rows.length?`<div class="card" style="padding:0;overflow:hidden">
+      ${rows.map(x=>`<div class="krow${x.go?' tappable':''}"${x.go?` onclick="${x.go}"`:''}>
+          <span class="kn"><b>${esc(x.name)}</b>${x.sub?`<div class="hint">${esc(x.sub)}</div>`:''}</span>
+          <b>${money(x.amt)}</b></div>`).join('')}</div>`
+      :`<p class="hint" style="padding:22px 4px;text-align:center">${t('rp_no_data')}</p>`}
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
 function bsOpenLine(key){
   try{
     switch(key){
-      case 'bs_cash': case 'bs_bank': return (closeSheet(),cashBank());
-      case 'bs_debtors': return (closeSheet(),followUps());
-      case 'bs_creditors': return (closeSheet(),creditors());
+      case 'bs_cash': case 'bs_bank': case 'bs_cc': return (closeSheet(),cashBank());
+      /* v737: the same figure opens the same place from every screen that shows it */
+      case 'bs_debtors': return (closeSheet(),debtorsHome());
+      case 'bs_creditors': return (closeSheet(),creditorsHome());
+      case 'bs_supadv': return bsAdvScreen('sup');
+      case 'bs_custadv': return bsAdvScreen('cust');
+      case 'bs_ordadv': return bsAdvScreen('ord');
+      /* the P&L opens on the SAME span the sheet's profit line covers, or the two figures
+         would differ and the drill would prove nothing */
+      case 'bs_profit': return rpOpenPL(rpRange().to);
+      case 'bs_incentive': return (closeSheet(),staffReport());
       case 'bs_stock': return (closeSheet(),stockHome('fabric'));
       case 'bs_karigar': case 'bs_karadv': return (closeSheet(),karigarBook());
       case 'bs_staffadv': return (closeSheet(),staffReport());
       case 'bs_staffpay': return (closeSheet(),staffReport());
-      case 'bs_loans': case 'bs_fixed': case 'bs_cap': return (closeSheet(),openBSEdit());
+      case 'bs_loans': return (closeSheet(),loansScreen());
+      case 'bs_fixed': case 'bs_cap': case 'bs_opencap': return (closeSheet(),openBSEdit());
       case 'bs_gst': case 'bs_gstcredit': return (closeSheet(),gstReport&&gstReport());
       case 'bs_suspense': return (closeSheet(),dayBook());
       default: return;
@@ -31293,7 +31558,8 @@ function balanceSheet(){
   const from=(openBS().date||fyStartISO());
   const f=bsFigures(from,to);
   const OPEN={bs_cash:1,bs_bank:1,bs_debtors:1,bs_creditors:1,bs_stock:1,bs_karigar:1,
-    bs_karadv:1,bs_staffadv:1,bs_staffpay:1,bs_loans:1,bs_fixed:1,bs_gst:1,bs_gstcredit:1,bs_suspense:1};
+    bs_karadv:1,bs_staffadv:1,bs_staffpay:1,bs_loans:1,bs_fixed:1,bs_gst:1,bs_gstcredit:1,bs_suspense:1,
+    bs_cc:1,bs_supadv:1,bs_custadv:1,bs_ordadv:1,bs_profit:1,bs_incentive:1,bs_opencap:1};
   const row=(k,v,col)=>{ if(!v)return '';
     const tap=OPEN[k];
     return `<div class="il"${tap?` onclick="bsOpenLine('${k}')" style="cursor:pointer"`:''}>
@@ -31365,7 +31631,7 @@ function balanceSheet(){
       ${row('bs_cc',f.L.cc)}${row('bs_rentcomm',f.L.rentcomm)}${row('bs_loans',f.L.loans)}${row('bs_gst',f.L.gst)}
       <div class="dl-hd" style="margin-top:10px">${t('bs_cap')}</div>
       ${row('bs_opencap',f.cap.opening)}
-      <div class="il"><span>${t('bs_profit')}</span><b style="color:${f.cap.profit>=0?'var(--ok)':'var(--bad)'}">${money(f.cap.profit)}</b></div>
+      <div class="il" onclick="bsOpenLine('bs_profit')" style="cursor:pointer"><span>${t('bs_profit')} <span class="hint">›</span></span><b style="color:${f.cap.profit>=0?'var(--ok)':'var(--bad)'}">${money(f.cap.profit)}</b></div>
       ${f.cap.drawings?`<div class="il"><span>${t('bs_draw')}</span><b style="color:var(--bad)">\u2212 ${money(f.cap.drawings)}</b></div>`:''}
       ${tot(t('bs_total_l'),f.totL)}</div>`}
     ${Math.abs(f.diff)>1
@@ -31940,6 +32206,9 @@ function expHeadPrint(){
    A statement is owed to a NAME, not to a record that may never have been created. The name
    is accepted now, and only a call with neither name nor id opens the directory. */
 function partyStatement(pid,kind,nameHint){
+  /* v739 C: a name with a ledger opens the ledger — one screen, the one the books agree with */
+  if(pid||nameHint){ const _w=peopleAll(); const _p=pid?(_w.find(x=>x.id===pid&&x.kind===kind)||_w.find(x=>x.id===pid)):null;
+    const L=lgDoor(_p?_p.name:nameHint, _p?_p.kind:kind); if(L){ ledgerView(L.id); return; } }
   sheetAt(()=>partyStatement(pid,kind,nameHint),'partyStatement');
   const who=peopleAll();
   if(!pid && nameHint){
@@ -32765,15 +33034,14 @@ const RPT_HUBS={
     ['\u{1F4B8}','rp_exp_head','expHeadReport()'],
     ['\u{1F4B8}','exp_title','expenses()']]],
   accounts:['\u{1F4D7}','rh_accounts',[
-    ['\u{1F4C8}','rp_pl','plReport()'],
-    ['\u{1F3E6}','bs_title','balanceSheet()'],
+    /* v737: P&L and Balance sheet lead the Reports screen itself now — one door each */
     ['\u{1F4CB}','tb_title','trialBalance()'],
     ['\u{1F4D3}','jv_title','journalBook()'],
     ['\u{1F4D7}','lg_title','ledgerMaster()'],
     ['\u{1F9FE}','gst_title','gstReport()']]],
   cash:['\u{1F3E6}','rh_cash',[
-    ['\u2696\uFE0F','rec_title','recOpen()'],
     ['\u{1F4D2}','db_title','dayBook()'],
+    ['\u2696\uFE0F','rec_title','recOpen()'],
     ['\u{1F4B5}','rp_cashflow','cashflowReport()'],
     ['\u{1F3E6}','brs_title','brsOpen()'],
     ['\u{1F4E5}','bi_title','bankImport()']]],
@@ -32784,6 +33052,184 @@ const RPT_HUBS={
     ['\u{1F50E}','krp_title','karPayRiskReport()'],
     ['\u{1F465}','sh_title','staffHub()']]]
 };
+/* ══════════════════════════ v736 — GO TO ══════════════════════════
+   HIS 21 Sept: "hamare app mein bahut zyada complication hai ... Tally ko follow karo chahe
+   Vyapar ko follow karo, itne limited buttons hain aur jo data dete hain wo sabko samajh mein
+   aata hai." And, choosing the first of three proposals: "A se hi start karo."
+   Measured before a line was written: thirty reports behind seven hubs, two taps each, and
+   no way to reach any of them by name. Tally answers exactly this with Alt+G — type what you
+   want from anywhere, without leaving what you were doing, and it understands other names for
+   the same thing ("daily entries" finds the Day Book). This is that, for a thumb.
+   Three rules it keeps:
+   · ONE LIST. The reports are read straight out of RPT_HUBS, the same table the hubs draw.
+     A report added to a hub is in Go To the moment it exists; nothing is copied, so the two
+     can never drift apart — the fault this app has paid for more than any other.
+   · IT IS A LAYER, NOT A SCREEN. It opens over whatever he was looking at and closes before
+     the destination opens, so ← from where he lands goes back to where he WAS — not to a
+     search box he has finished with.
+   · BOTH LANGUAGES, ALWAYS. A report is found by its English name, its Hindi name, and the
+     everyday words for it, whichever language the app is showing. */
+const GOTO_EXTRA=[
+  ['\u{1F4C8}','rp_pl',"rpOpenPL()"],
+  ['\u{1F3E6}','bs_title',"balanceSheet()"],
+  /* doors that are not inside a hub — the front of Reports, and the main lists */
+  ['\u{1F4D2}','rp_out_debtors',"debtorsHome()"],
+  ['\u{1F4D5}','rp_out_creditors',"creditorsHome()"],
+  ['\u{1F3E6}','rp_out_loans',"loansScreen()"],
+  ['\u{1F4E6}','rh_stock',"stockHome('reports')"],
+  ['\u{1F50E}','pa_title',"partyAuditScreen()"],
+  ['\u{1F4CA}','dash_title',"dashboard()"],
+  ['\u{1F465}','pty_title',"partiesHome()"],
+  ['\u{1F4CB}','orders',"go('orders')"],
+  ['\u{1F9D1}','customers',"go('customers')"],
+  ['\u{1F9FE}','invoices',"go('invoices')"],
+  ['\u{1F4E6}','purchase',"go('purchases')"],
+  ['➕','new_sale',"openSaleForm()"]
+];
+/* the words a man at a counter actually types, in either script. Keyed by the report's own
+   label key so an alias follows its report, not a position in a list. */
+const GOTO_ALIAS={
+  db_title:'daily din roz aaj entries daybook rojnamcha रोज़ दिन आज',
+  td_title:'today aaj daily summary आज',
+  rp_pl:'profit loss munafa faayda nuksan pnl मुनाफा फायदा नुकसान',
+  bs_title:'balance sheet tally assets liabilities बैलेंस',
+  tb_title:'trial tally tb',
+  jv_title:'journal voucher jv',
+  lg_title:'ledger khata account master खाता लेजर',
+  gst_title:'gst tax kar टैक्स',
+  rec_title:'match cash count galla गल्ला',
+  rp_cashflow:'cash flow paisa पैसा',
+  brs_title:'bank reconciliation brs statement बैंक',
+  bi_title:'bank import statement',
+  creditors_report:'payable dena supplier baaki creditor देना',
+  rp_out_creditors:'payable dena supplier baaki creditor देना',
+  rp_out_debtors:'receivable lena udhaar baaki debtor customer लेना उधार बाक़ी',
+  rp_party_stmt:'statement khata party ledger',
+  rp_exp_head:'kharcha expense head kharch ख़र्चा',
+  exp_title:'kharcha expense kharch ख़र्चा',
+  rp_summary:'sales bikri summary बिक्री',
+  or_title:'order report',
+  gr_title:'growth badhat',
+  op_title:'order profit munafa',
+  rp_salesman:'salesman staff performance',
+  ontime_title:'delivery time late',
+  fu_title:'reminder payment followup yaad याद',
+  ki_title:'karigar issue darzi dena कारीगर',
+  kr_title:'karigar receive wapas lena',
+  kb_title:'karigar hisaab darzi कारीगर',
+  krp_title:'karigar payment check',
+  sh_title:'staff salary attendance स्टाफ़',
+  rh_stock:'stock maal kapda thaan roll स्टॉक कपड़ा',
+  rp_out_loans:'loan karz लोन क़र्ज़',
+  pa_title:'second look galti check mistake गलती',
+  dash_title:'dashboard home summary',
+  pty_title:'party parties supplier customer',
+  new_sale:'new bill naya invoice banao नया बिल'
+};
+const GOTO_RECENT_KEY='pb_goto_recent';
+function goToRecent(){ try{ return JSON.parse(localStorage.getItem(GOTO_RECENT_KEY)||'[]')||[]; }catch(e){ return []; } }
+function goToRemember(it){
+  try{ const r=goToRecent().filter(x=>x.go!==it.go);
+    r.unshift({ico:it.ico,label:it.label,go:it.go});
+    localStorage.setItem(GOTO_RECENT_KEY,JSON.stringify(r.slice(0,6))); }catch(e){}
+}
+/* every report this app has, once, with every word that should find it */
+function goToReports(){
+  const out=[], seen={};
+  const add=(ico,key,go)=>{ if(seen[go])return; seen[go]=1;
+    const words=[ (T.en&&T.en[key])||'', (T.hi&&T.hi[key])||'', GOTO_ALIAS[key]||'' ].join(' ');
+    out.push({kind:'rp', ico, label:t(key), go, hay:nameNormWords(words)}); };
+  try{ Object.keys(RPT_HUBS).forEach(h=>RPT_HUBS[h][2].forEach(r=>add(r[0],r[1],r[2]))); }catch(e){}
+  GOTO_EXTRA.forEach(r=>add(r[0],r[1],r[2]));
+  return out;
+}
+/* nameNorm squeezes a whole phrase into one string; a search needs the WORDS, so that
+   "day book" and "book day" and "roz" all land on the same report */
+function nameNormWords(v){
+  return String(v||'').split(/\s+/).map(nameNorm).filter(Boolean).join(' ');
+}
+let _goToHits=[];
+function goTo(){
+  modal('\u{1F50D} '+t('goto_title'),
+    `<input id="goToQ" placeholder="${esc(t('goto_ph'))}" autocomplete="off"
+       oninput="goToPaint(this.value)" style="margin-bottom:10px">
+     <div id="goToList"></div>`, []);
+  goToPaint('');
+  setTimeout(()=>{ try{ const e=$('#goToQ'); if(e)e.focus(); }catch(err){} },80);
+}
+function goToPaint(q){
+  const box=$('#goToList'); if(!box)return;
+  const qs=String(q||'').trim();
+  const words=qs.split(/\s+/).map(nameNorm).filter(Boolean);
+  const hits=[];
+  if(!words.length){
+    /* nothing typed: where he went last, then the reports he reaches for most */
+    goToRecent().forEach(r=>hits.push({grp:'goto_recent', ico:r.ico, label:r.label, go:r.go}));
+    ['db_title','rp_pl','bs_title','rp_out_debtors','rp_out_creditors','lg_title'].forEach(k=>{
+      const r=goToReports().find(x=>{ const m=String(x.label)===t(k); return m; });
+      if(r && !hits.some(h=>h.go===r.go))hits.push({grp:'goto_common', ico:r.ico, label:r.label, go:r.go});
+    });
+  } else {
+    const has=hay=>words.every(w=>hay.indexOf(w)>=0);
+    /* reports first — that is what Go To is for */
+    goToReports().forEach(r=>{ if(has(r.hay))hits.push({grp:'goto_reports', ico:r.ico, label:r.label, go:r.go}); });
+    const qn=nameNorm(qs);
+    /* parties and ledgers — one row per name, whichever list holds it */
+    const seenName={};
+    try{ (DB.parties||[]).forEach(p=>{ const k=nameNorm(p.name); if(!k||seenName[k])return;
+      if(has(nameNormWords(p.name+' '+(p.phone||'')))){ seenName[k]=1;
+        const kind=(p.kinds&&Object.keys(p.kinds).find(x=>p.kinds[x]))||'supplier';
+        hits.push({grp:'goto_parties', ico:'\u{1F464}', label:p.name, sub:p.phone||'',
+          go:"partyCard('"+jq(p.name)+"','"+jq(kind)+"')"}); } }); }catch(e){}
+    try{ lgAll().forEach(l=>{ const k=nameNorm(l.name); if(!k||seenName[k]||l.archived)return;
+      if(has(nameNormWords(l.name))){ seenName[k]=1;
+        hits.push({grp:'goto_ledgers', ico:'\u{1F4D7}', label:l.name, sub:((lgGroup(l.group)||{}).label||''),
+          go:"ledgerView('"+jq(l.id)+"')"}); } }); }catch(e){}
+    /* customers by name or phone */
+    try{ (DB.customers||[]).forEach(c=>{ const k=nameNorm(c.name); if(!k||seenName[k])return;
+      if(has(nameNormWords(c.name+' '+(c.phone||'')))){ seenName[k]=1;
+        hits.push({grp:'goto_customers', ico:'\u{1F9D1}', label:c.name, sub:c.phone||'',
+          go:"openCustomer('"+jq(c.id)+"')"}); } }); }catch(e){}
+    /* a number is most likely an order or a bill — match it exactly, not as a fragment */
+    if(/\d/.test(qs)){
+      try{ (DB.orders||[]).forEach(o=>{ if(String(o.orderNo||'')===qs.replace(/^#/,''))
+        hits.push({grp:'goto_orders', ico:'\u{1F4CB}', label:'#'+onoLabel(o), sub:o.customerName||'',
+          go:"openDetail('"+jq(o.id)+"')"}); }); }catch(e){}
+      try{ allInvoices().forEach(x=>{ const no=String((x.inv||{}).no||'');
+        if(no && nameNorm(no).indexOf(qn)>=0)
+          hits.push({grp:'goto_bills', ico:'\u{1F9FE}', label:no, sub:(x.rec||{}).customerName||'',
+            go:"openInvoicePreview('"+jq(x.kind)+"','"+jq(x.rec.id)+"')"}); }); }catch(e){}
+      try{ (DB.purchases||[]).forEach(pu=>{ const no=String(pu.billNo||'');
+        if(no && nameNorm(no).indexOf(qn)>=0)
+          hits.push({grp:'goto_bills', ico:'\u{1F4E6}', label:no, sub:pu.supplier||'',
+            go:"purchMenu('"+jq(pu.id)+"')"}); }); }catch(e){}
+    }
+  }
+  /* at most eight of a kind and forty in all: a list he has to scroll through is a menu
+     again, which is the thing this replaces */
+  const per={}; _goToHits=hits.filter(h=>{ per[h.grp]=(per[h.grp]||0)+1; return per[h.grp]<=8; }).slice(0,40);
+  if(!_goToHits.length){
+    box.innerHTML=`<p class="hint" style="padding:22px 4px;text-align:center">${esc(t('goto_none',{q:qs}))}</p>`;
+    return;
+  }
+  let last='', html='';
+  _goToHits.forEach((h,i)=>{
+    if(h.grp!==last){ html+=`<div class="section-h" style="margin-top:6px">${t(h.grp)}</div>`; last=h.grp; }
+    html+=`<div class="kv" style="padding:12px 4px;border-bottom:1px solid var(--line);cursor:pointer"
+        onclick="goToGo(${i})"><span style="flex:1;min-width:0">${h.ico} <b>${esc(h.label)}</b>
+        ${h.sub?`<div class="hint">${esc(h.sub)}</div>`:''}</span>
+        <span style="color:var(--saffron2)">›</span></div>`;
+  });
+  box.innerHTML=html;
+}
+function goToGo(i){
+  const h=_goToHits[i]; if(!h)return;
+  goToRemember(h);
+  closeModal();
+  /* the layer is gone before the destination opens, so ← from there goes back to the
+     screen he was on when he asked — not to this box */
+  try{ (new Function(h.go))(); }catch(e){ toast(t('db_no_route'),'warn'); }
+}
 let _rptHub='sales';
 function rptHub(k){
   _rptHub=k||'sales'; sheetAt(()=>rptHub(_rptHub),'rptHub');
@@ -32876,7 +33322,27 @@ function renderReports(){
      payables under PARTIES. He named the six groups a shop actually thinks in. These are
      those six. Nothing was built and nothing was removed; every report is where a man
      would go looking for it. */
-  const _mainRp = _rpOut + _rpSec('',[
+  /* ══════════ v737 — B: THE BOOKS FIRST, THE WAY TALLY OPENS ══════════
+     HIS 21 Sept: "B shuru kar sakte ho." The two statements every other figure rolls up into
+     now lead Reports, each with the one thing worth knowing before opening it — is the shop
+     making money, and do the books balance. Everything else is reached by tapping down from
+     them. They left the Accounts hub, so there is still exactly one door to each here. */
+  const _rpBooks=(()=>{
+    const from=(openBS().date||fyStartISO()), to=todayISO();
+    let net=null, diff=null;
+    try{ net=r2(plFigures(from,to).net); }catch(e){}
+    try{ diff=r2(bsFigures(from,to).diff); }catch(e){}
+    return `<div class="card" style="padding:4px 12px 2px;margin-bottom:12px">
+      <div class="section-h" style="margin:8px 0 2px">${t('rps_books')}</div>
+      <div class="il tappable" onclick="closeSheet();rpOpenPL()">
+        <span>\u{1F4C8} ${t('rp_pl')}</span>
+        <b style="color:${net==null?'inherit':net>=0?'var(--ok)':'var(--bad)'}">${net==null?'\u203A':t(net>=0?'rpf_profit':'rpf_loss',{m:money(Math.abs(net))})}</b></div>
+      <div class="il tappable" style="border-bottom:0" onclick="closeSheet();rpPeriod='fy';balanceSheet()">
+        <span>\u{1F3E6} ${t('bs_title')}</span>
+        <b style="color:${diff==null?'inherit':Math.abs(diff)>1?'var(--bad)':'var(--ok)'}">${diff==null?'\u203A':Math.abs(diff)>1?t('rp_bs_off',{m:money(Math.abs(diff))}):'\u2705 '+t('bs_ok')}</b></div>
+    </div>`;
+  })();
+  const _mainRp = _rpBooks + _rpOut + _rpSec('',[
       ['\u{1F9FE}',t('rh_sales'),"rptHub('sales')"],
       ['\u{1F4E6}',t('rh_purchase'),"rptHub('purchase')"],
       ['\u{1F4B8}',t('rh_expense'),"rptHub('expense')"],
@@ -36909,7 +37375,28 @@ function lgById(id){ return lgAll().find(l=>l.id===id)||null; }
    anything real is filed under that name again — a bill, an entry, an expense head — the
    tombstone is lifted and the ledger returns, because then it is a ledger the books need. */
 function lgGone(){ DB.lgGone=DB.lgGone||[]; return DB.lgGone; }
+/* v737 — the repair for moves already made before lgMergeDo learned to finish its job.
+   HIS phone holds exactly one: the Vrudhi payment renamed to Vruudhi Fashion but still
+   carrying Vrudhi Impex's party id, so it showed on both ledgers. A row's NAME is what every
+   money report reads; the id is only a link to the party card. Where the two disagree, the
+   link is put back on the party the row is named for — or cleared if there is none. No
+   amount, date or account changes, and a row that already agrees is not touched, so this
+   is safe to run every time. Measured on his 19 Sept book: 0 rows disagree. */
+function partyIdRepair(){
+  try{
+    const parts=DB.parties||[]; if(!parts.length)return 0;
+    const byId={}, byName={}; parts.forEach(p=>{ if(p.id)byId[p.id]=p; const k=nameNorm(p.name); if(k&&!byName[k])byName[k]=p; });
+    let n=0;
+    (DB.ledger||[]).forEach(l=>{
+      const p=l.partyId&&byId[l.partyId]; if(!p)return;           /* no party behind it: nothing to disagree with */
+      const k=nameNorm(l.party); if(!k || nameNorm(p.name)===k)return;
+      const right=byName[k]; l.partyId=right?right.id:null; n++;
+    });
+    return n;
+  }catch(e){ return 0; }
+}
 function lgSync(){
+  try{ if(partyIdRepair())save(); }catch(e){}
   const have={}; lgAll().forEach(l=>{ have[nameNorm(l.name)]=1; });
   const gone={}; lgGone().forEach(n=>{ gone[n]=1; });
   const put=(name)=>{ const nm=String(name||'').trim(); if(!nm)return;
@@ -37943,7 +38430,9 @@ function ledgerView(id){
          a ledger that has entries filed under it and offers to archive instead. */''}
     <div class="row" style="gap:8px;margin-bottom:12px">
       <button class="btn ghost sm" style="flex:1" onclick="ledgerEdit('${jq(l.id)}')">\u270F\uFE0F ${t('lg_edit')}</button>
-      <button class="btn ghost sm" style="flex:1" onclick="lgMerge('${jq(l.id)}')">\u{1F500} ${t('lg_merge_go')}</button>
+      ${/* v737: "Move it" is gone from here — renaming to a name that exists does the same
+           job from Edit ledger. HIS words: "maine ledger edit delete ka option bola, vo
+           simplify tha, lekin tumne ek naya system build kar diya." One job, one button. */''}
       <button class="btn ghost sm" style="flex:0 0 auto;color:var(--bad)"
         onclick="ledgerDel('${jq(l.id)}')" aria-label="${t('delete')}">\u{1F5D1}\uFE0F</button></div>
     <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
@@ -37990,6 +38479,58 @@ function lgSearch(v){ _lgQ=String(v||'');
   const el=$('#lgList'); if(el)el.innerHTML=lgBodyHTML(); else ledgerMaster(); }
 
 let _lgEditId=null;
+/* ══════════ v739 C — THE OPENING HE TYPED IN EDIT LEDGER DID NOTHING ══════════
+   Found while making one ledger screen: Edit ledger wrote the opening onto the ledger MASTER,
+   and since v731 the master copies the ledger LINE on every sync — so for any party with a
+   line, the figure he typed was quietly put back a moment later. A form whose Save is undone.
+   The line is what the books read, so for a party ledger the opening now goes to the line:
+   one line → it is changed; none → one is written; set to 0 → it is removed. Two lines under
+   one name (the v718 case) are not guessed at — he is told, and nothing is changed. */
+function lgOpenToLine(rec,before){
+  const gname=rec.group; if(gname!=='creditors'&&gname!=='debtors')return true;
+  const k=nameNorm(rec.name);
+  const op=(DB.ledger||[]).filter(x=>x.refKind==='opening'&&nameNorm(x.party)===k);
+  const amt=r2(+rec.openAmt||0), dir=rec.openDir==='dr'?'in':'out', date=rec.openDate||fyStartISO();
+  if(op.length>1){
+    const net=r2(op.reduce((a,x)=>a+((x.dir==='out'?1:-1)*(+x.amt||0)),0));
+    const want=r2((dir==='out'?1:-1)*amt);
+    if(Math.abs(net-want)<0.5)return true;           /* nothing he changed */
+    toast(t('lg_two_open'),'bad'); return false;
+  }
+  if(op.length===1){
+    if(amt>0) Object.assign(op[0],{amt,dir,date});
+    else DB.ledger=DB.ledger.filter(x=>x!==op[0]);
+    return true;
+  }
+  if(amt>0){
+    const pp=partyByName(rec.name);
+    DB.ledger=DB.ledger||[];
+    DB.ledger.push({id:uid(), dir, date, amt, acc:'', party:rec.name, partyId:pp?pp.id:null,
+      partyKind:gname==='creditors'?'supplier':'customer', ref:t('ob_ref'), refKind:'opening',
+      cat:'', note:'', opening:true, photos:[]});
+  }
+  return true;
+}
+/* ══════════ v739 C — ONE LEDGER SCREEN ══════════
+   HIS 21 Sept: "Rohit Sarraf ... reports - Account - Ledger - select account name ... ye
+   system kaisa hai", and "pura app bikhra hua". One supplier had THREE screens — the party
+   card, the party statement and the ledger — drawn by three pieces of code, and on his own
+   book they disagreed: Shree Panchmukhi ₹16,477 on the card and ₹41,231 in the ledger (the
+   card read one of its two openings, the ledger and the balance sheet read both); Kanchan
+   Syntex split across two cards that the ledger and the books count as one. Every door to a
+   supplier or other party that has a ledger now opens THE ledger — the screen the balance
+   sheet agrees with. Customers (no ledger), karigars and staff keep their own screens. */
+function lgDoor(name,kind){
+  const k=pkNorm(kind||'');
+  if(k==='staff'||k==='karigar')return null;
+  const nm=nameNorm(name); if(!nm)return null;
+  if((DB.staff||[]).some(x=>nameNorm(x.name)===nm)||(DB.karigars||[]).some(x=>nameNorm(x.name)===nm))return null;
+  try{ lgSync(); }catch(e){}
+  const l=lgByName(name);
+  if(!l)return null;
+  if(l.group!=='creditors'&&l.group!=='debtors'&&l.group!=='loans')return null;
+  return l;
+}
 function ledgerEdit(id,draft){
   _lgEditId=id||null;
   /* v507: `ex` must keep meaning THE STORED RECORD — everything below decides whether this
@@ -38003,7 +38544,19 @@ function ledgerEdit(id,draft){
                    : (ex||{name:'',group:'indirect',openAmt:'',openDir:'',openDate:''});
   const gsel=(sel)=>LGROUPS.map(g=>`<option value="${g[0]}" ${sel===g[0]?'selected':''}>${esc(t(g[4]))}</option>`).join('');
   modal('📗 '+(ex?esc(ex.name):t('lg_new')),
-    `<div class="field"><label>${t('lg_name')} *</label><input id="lgName" value="${esc(fv.name||'')}"></div>
+    `<div class="field"><label>${t('lg_name')} *</label><input id="lgName" value="${esc(fv.name||'')}"
+        autocomplete="off" oninput="lgNameHits(this.value)"></div>
+     ${/* v737: the names that already exist, drawn in their OWN box under the field so typing
+          never re-renders the input and loses the cursor (the expense-head fault of 23 Aug). */''}
+     <div id="lgNameHits" style="margin:-6px 0 8px"></div>
+     ${/* v738 C: a party's phone and GSTIN are edited HERE, with its name and opening — one
+          form for one record, not Edit ledger in one place and Party details in another. */
+       (fv.group==='creditors'||fv.group==='debtors')?(()=>{ const pp=partyByName(fv.name)||{};
+       return `<div class="row"><div class="field"><label>${t('phone')}</label>
+           <input id="lgPhone" type="tel" inputmode="numeric" value="${esc(pp.phone||'')}"
+             oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')"></div>
+         <div class="field"><label>${t('gstin')}</label>
+           <input id="lgGstin" value="${esc(pp.gstin||'')}" oninput="this.value=this.value.toUpperCase()"></div></div>`; })():''}
      <div class="field"><label>${t('lg_group')} *</label>
        <select id="lgGrp" onchange="lgGrpChanged()">${gsel(fv.group||'indirect')}</select>
        <p class="hint" style="margin-top:4px">${t('lg_grp_hint')}</p></div>
@@ -38059,7 +38612,24 @@ function ledgerEdit(id,draft){
         const g=i=>(($('#'+i)||{}).value||'').trim();
         const nm=g('lgName'); if(!nm){ toast(t('lg_name'),'bad'); return; }
         const dup=lgAll().find(l=>nameNorm(l.name)===nameNorm(nm) && (!ex||l.id!==ex.id));
-        if(dup){ toast(t('lg_dup'),'bad'); return; }
+        /* ══════════ v737 — IT KNEW WHAT HE WANTED AND SAID NO ══════════
+           HIS 21 Sept: renamed Vrudhi Impex to Vruudhi Fashion here, which already exists —
+           "edit ledger karke name change karke vruudhi fashion karne se hi ho jana chahiye."
+           This line answered "a ledger with that name already exists" and stopped. The app
+           knew exactly what was meant — the two are one firm — and made him go and find a
+           second screen to do it. Now it offers it: one question, naming how many entries
+           move and that no amount changes, because these are his books. A NEW ledger typed
+           with a name that exists opens the one that exists instead of making a second. */
+        if(dup){
+          if(!ex){ closeModal(); ledgerView(dup.id); toast(t('lg_dup_open',{b:dup.name}),'ok'); return; }
+          const n=ledgerUse(ex.name);
+          confirmModal('\u{1F517} '+t('lg_join_title'),
+            t('lg_join_ask',{a:esc(ex.name),b:esc(dup.name),n:n}),
+            ()=>{ lgMergeDo(ex,dup); },
+            ()=>{ closeModal(); ledgerEdit(ex.id,{name:nm,group:g('lgGrp'),open:g('lgOpen'),dir:g('lgDir'),date:g('lgDate')}); },
+            {yes:t('lg_join_yes'), no:t('cancel'), cls:'primary'});
+          return;
+        }
         const rec=ex||{id:uid()};
         /* v398 LIVE TEST — renaming a ledger brought the OLD name straight back. A ledger
            called Rent is not only a row in this master: it is also the expense head the
@@ -38091,6 +38661,15 @@ function ledgerEdit(id,draft){
         }
         rec.name=nm; rec.group=g('lgGrp')||'indirect';
         rec.openAmt=r2(+g('lgOpen')||0); rec.openDir=g('lgDir'); rec.openDate=g('lgDate')||'';
+        if(!lgOpenToLine(rec, ex?{amt:+ex.openAmt||0,dir:ex.openDir,date:ex.openDate}:null))return;
+        if(rec.group==='creditors'||rec.group==='debtors'){
+          const ph=g('lgPhone'), gs=g('lgGstin');
+          if($('#lgPhone')||$('#lgGstin')){
+            let pp=partyByName(nm);
+            if(!pp && (ph||gs)){ pp={id:uid(), name:nm, kind:rec.group==='creditors'?'supplier':'customer', phone:'', gstin:'', address:''}; partyAll().push(pp); }
+            if(pp){ if($('#lgPhone'))pp.phone=ph; if($('#lgGstin'))pp.gstin=gs; }
+          }
+        }
         if(!ex)lgAll().push(rec);
         save(); closeModal(); toast(t('lg_saved'),'ok'); ledgerMaster();
      }}]);
@@ -38132,6 +38711,11 @@ function lgOpenOpening(lid){
 }
 function lgOpenRow(id){
   const l=(DB.ledger||[]).find(x=>x.id===id); if(!l)return;
+  /* v739 C: the ledger is now THE screen for a party, so a row must open ON TOP of it — the
+     edit is a modal, and after Save afterSave() redraws the ledger underneath with the new
+     figure. This closed the ledger first, so Save or Cancel left him nowhere. dbOpen is the
+     one function that knows every kind of row (the party card was moved onto it in v730). */
+  try{ return dbOpen(id); }catch(e){}
   closeSheet();
   try{
     if(l.refKind==='expense')            return expEdit(id);
@@ -38140,26 +38724,52 @@ function lgOpenRow(id){
   }catch(e){}
   try{ expEdit(id); }catch(e2){}
 }
-function lgMerge(id){
+/* ══════════ v738 — "LEDGER DELETE NAHI HO RAHA" ══════════
+   HIS 21 Sept. Two faults, both his:
+   · A ledger with entries could only be "hidden" — and since v734 the next sync un-hides any
+     ledger that carries entries. The button said Hide; nothing stayed hidden. A label and an
+     action that disagree.
+   · A ledger with NO entries was deleted, but the empty party record of the same name was
+     left standing, so the name stayed on Parties and on the second-look list.
+   Now: nothing on it → it goes, with its empty party record. Entries on it → he picks where
+   they belong (search, likeliest names first), they move there, and this name is deleted.
+   This replaces the old Move screen (a bare dropdown opened on "A. C. Market" with no search). */
+function lgMove(id,back){
   const l=lgById(id); if(!l)return;
-  const others=lgAll().filter(x=>!x.archived && x.id!==id)
-    .sort((a,b)=>String(a.name).localeCompare(String(b.name)));
-  if(!others.length){ toast(t('lg_merge_none'),'bad'); return; }
   const n=ledgerUse(l.name);
-  modal('\u{1F500} '+esc(l.name),
-    `<p class="hint" style="margin-bottom:10px">${t('lg_merge_msg',{n:n})}</p>
-     <div class="field"><label>${t('lg_merge_into')}</label>
-       <select id="lgMergeTo">${others.map(x=>`<option value="${esc(x.id)}">${esc(x.name)} \u00B7 ${esc((lgGroup(x.group)||{}).label||'')}</option>`).join('')}</select></div>`,
-    [{label:t('cancel'),cls:'ghost',fn:()=>{closeModal();ledgerView(id);}},
-     {label:t('lg_merge_go'),cls:'primary',fn:()=>{
-        const sel=$('#lgMergeTo'); const to=lgById(sel?sel.value:''); if(!to)return;
-        confirmModal('\u{1F500} '+t('lg_merge_go'),
-          t('lg_merge_ask',{a:esc(l.name),b:esc(to.name),n:n}),
-          ()=>{ lgMergeDo(l,to); }, ()=>{ closeModal(); ledgerView(id); },
-          {yes:t('save'), no:t('cancel'), cls:'primary'});
-     }}]);
+  modal('\u{1F5D1}\uFE0F '+esc(l.name),
+    `<p class="hint" style="white-space:normal;margin:0 0 10px">${t('lg_mv_msg',{n:n,a:esc(l.name)})}</p>
+     <input id="lgMvQ" autocomplete="off" placeholder="\u{1F50D} ${t('lg_mv_search')}" oninput="lgMovePaint('${jq(id)}',this.value,'${back||''}')">
+     <div id="lgMvList" style="margin-top:8px"></div>`,
+    [{label:t('cancel'),cls:'ghost',fn:closeModal}]);
+  lgMovePaint(id,'',back);
 }
-function lgMergeDo(from,to){
+function lgMovePaint(id,q,back){
+  const l=lgById(id), box=$('#lgMvList'); if(!l||!box)return;
+  const me=partyByName(l.name)||{}, ph=String(me.phone||'').replace(/\D/g,'').slice(-10);
+  const others=lgAll().filter(x=>x.id!==id && !x.archived);
+  const score=x=>{ const p=partyByName(x.name)||{};
+    if(ph.length>=6 && String(p.phone||'').replace(/\D/g,'').slice(-10)===ph)return 0;
+    const a=nameLike(l.name,x.name), b=nameLike(x.name,l.name); return Math.min(a,b)<9?1+Math.min(a,b):20; };
+  let list;
+  q=String(q||'').trim();
+  if(q){ list=others.map(x=>({x,sc:nameLike(q,x.name)})).filter(o=>o.sc<9).sort((a,b)=>a.sc-b.sc||String(a.x.name).localeCompare(String(b.x.name))).map(o=>o.x).slice(0,30); }
+  else { list=others.map(x=>({x,sc:score(x)})).filter(o=>o.sc<20).sort((a,b)=>a.sc-b.sc).map(o=>o.x).slice(0,6); }
+  const row=x=>`<div class="krow tappable" onclick="lgMoveAsk('${jq(id)}','${jq(x.id)}','${back||''}')">
+      <span class="kn"><b>${esc(x.name)}</b><div class="hint">${esc((lgGroup(x.group)||{}).label||'')}</div></span>
+      <span style="color:var(--saffron2)">\u203A</span></div>`;
+  box.innerHTML=list.length
+    ? `${q?'':`<div class="section-h" style="margin:4px 0">${t('lg_mv_best')}</div>`}<div class="card" style="padding:0;overflow:hidden">${list.map(row).join('')}</div>`
+    : `<p class="hint" style="padding:10px 2px">${t(q?'lg_mv_none':'lg_mv_type')}</p>`;
+}
+function lgMoveAsk(fromId,toId,back){
+  const l=lgById(fromId), to=lgById(toId); if(!l||!to)return;
+  const n=ledgerUse(l.name);
+  confirmModal('\u{1F5D1}\uFE0F '+t('lg_mv_yes'), t('lg_mv_ask',{n:n,a:esc(l.name),b:esc(to.name)}),
+    ()=>{ lgMergeDo(l,to,back); }, ()=>{ closeModal(); lgMove(fromId,back); },
+    {yes:t('lg_mv_yes'), no:t('cancel'), cls:'danger'});
+}
+function lgMergeDo(from,to,back){
   const oldN=nameNorm(from.name), newName=to.name;
   (DB.ledger||[]).forEach(x=>{
     if(nameNorm(x.cat)===oldN)x.cat=newName;
@@ -38186,9 +38796,39 @@ function lgMergeDo(from,to){
     to.openAmt=Math.abs(net); to.openDir=net<0?'cr':'dr';
     to.openDate=to.openDate||from.openDate;
   }
+  /* ══════════ v737 — MOVED, AND THE MONEY STAYED BEHIND ══════════
+     HIS 21 Sept: he moved Vrudhi Impex into Vruudhi Fashion and Vruudhi Fashion came right
+     — but Vrudhi Impex still showed ₹21,193 Dr. "vrudhi impex me paisa abhi bhi pada hai,
+     vo galat hai." Reproduced exactly, both figures.
+     The entries were renamed; three things were not. Each ledger row also carries the id of
+     the PARTY it belongs to, and that still pointed at the old party. The old party record
+     itself was left standing. And the next time Ledger master opened, lgSync saw that
+     party, rebuilt its ledger, and pulled the same payment back in by its id — so one
+     payment sat on two ledgers. The books were never wrong (the trial balance walks each
+     row once); the screen was, and it is the screen he corrects his books from.
+     A move now finishes the job: every row's party id follows its name, the old party is
+     folded into the one it joined — its phone, GSTIN and address carried across wherever
+     the other one had none, because Vrudhi Impex was the record that held the GSTIN — and
+     the old name is marked gone so nothing rebuilds it. */
+  try{
+    const parts=DB.parties||[];
+    const olds=parts.filter(p=>nameNorm(p.name)===oldN);
+    let tgt=parts.find(p=>nameNorm(p.name)===nameNorm(newName));
+    if(!tgt && olds.length){ tgt=olds.shift(); tgt.name=newName; }   /* nothing to join: the old record simply takes the new name */
+    if(tgt){
+      olds.forEach(o=>{
+        ['phone','gstin','address'].forEach(f=>{ if(!String(tgt[f]||'').trim() && String(o[f]||'').trim())tgt[f]=o[f]; });
+        if(o.kinds){ tgt.kinds=tgt.kinds||{}; Object.keys(o.kinds).forEach(k=>{ if(o.kinds[k])tgt.kinds[k]=true; }); }
+        (DB.ledger||[]).forEach(x=>{ if(x.partyId===o.id)x.partyId=tgt.id; });
+      });
+      const gone=olds.map(o=>o.id);
+      DB.parties=parts.filter(p=>gone.indexOf(p.id)<0);
+    }
+  }catch(e){}
   DB.ledgers=lgAll().filter(x=>x.id!==from.id);
+  try{ if(lgGone().indexOf(oldN)<0 && oldN!==nameNorm(newName))lgGone().push(oldN); }catch(e){}
   try{ _lgBalMemo={}; }catch(e){}
-  save(); closeModal(); ledgerMaster();
+  save(); closeModal(); (LG_BACK[back]||ledgerMaster)();
   toast('\u2705 '+t('lg_merged',{a:from.name,b:newName}),'ok');
 }
 /* v507: the one-line escape for the genuine exception. It changes the hidden value and
@@ -38202,6 +38842,21 @@ function lgGrpChanged(){
   ledgerEdit(_lgEditId, {name:nm?nm.value:'', group:g, open:op?op.value:'',
     dir:(lgGroup(g)||{side:'dr'}).side, date:od?od.value:''});
 }
+/* v737: the ledgers already in the book that look like what he is typing — same letters,
+   one inside the other, or a slip or two apart. Tap one and the box takes that name; Save
+   then joins the two. Only this box is redrawn, never the field he is typing in. */
+function lgNameHits(v){
+  const box=$('#lgNameHits'); if(!box)return;
+  const q=nameNorm(v); const me=_lgEditId;
+  if(q.length<2){ box.innerHTML=''; return; }
+  const hits=lgAll().filter(l=>!l.archived && l.id!==me).map(l=>({l, score:nameLike(v,l.name)}))
+    .filter(x=>x.score<9).sort((a,b)=>a.score-b.score||String(a.l.name).localeCompare(String(b.l.name))).slice(0,5);
+  if(!hits.length){ box.innerHTML=''; return; }
+  box.innerHTML=`<div class="hint" style="margin-bottom:4px">${t('lg_exists_hint')}</div>`
+    + hits.map(x=>`<button type="button" class="chip" style="margin:0 6px 6px 0"
+        onclick="(function(){ const e=$('#lgName'); e.value=${esc(JSON.stringify(x.l.name))}; lgNameHits(e.value); })()">
+        ${x.score===0?'\u2714\uFE0F ':''}${esc(x.l.name)} <span class="hint">\u00B7 ${esc((lgGroup(x.l.group)||{}).label||'')}</span></button>`).join('');
+}
 function lgFlipDir(){
   const e=$('#lgDir'); if(!e)return;
   lgSetDir(e.value==='cr'?'dr':'cr');
@@ -38213,14 +38868,19 @@ function lgSetDir(d){
   ledgerEdit(_lgEditId, {name:nm?nm.value:'', group:gp?gp.value:'',
     open:op?op.value:'', dir:(d==='cr'?'cr':'dr'), date:od?od.value:''});
 }
-function ledgerDel(id){
+const LG_BACK={pa:()=>partyAuditScreen()};   /* v738: where to land after a fix, when opened from a fix list */
+function ledgerDel(id,back){
   const l=lgById(id); if(!l)return;
-  delOrHide(l.name, ledgerUse(l.name),
+  if(ledgerUse(l.name)){ lgMove(id,back); return; }        /* v738: entries → move them, then delete */
+  delOrHide(l.name, 0,
     ()=>{ DB.ledgers=lgAll().filter(x=>x.id!==id);
           /* v686: so lgSync does not rebuild it a second later */
           const k=nameNorm(l.name); if(lgGone().indexOf(k)<0)lgGone().push(k);
-          save(); ledgerMaster(); },
-    ()=>{ l.archived=1; save(); ledgerMaster(); });
+          /* v738: and the empty party record of the same name goes with it, or the name
+             stays on Parties and on the second-look list after he has deleted it */
+          DB.parties=(DB.parties||[]).filter(p=>!(nameNorm(p.name)===k && !partyUse(p.name,p.id)));
+          save(); (LG_BACK[back]||ledgerMaster)(); },
+    ()=>{});
 }
 function partyByName(name){
   const n=String(name||'').trim().toLowerCase(); if(!n)return null;
@@ -38723,6 +39383,7 @@ function rowOf(p){
    used once a month belong. The lines come from psLines(), the same engine the full
    statement reads, so the card and the statement can never disagree. */
 function partyCard(name,kind){
+  { const L=lgDoor(name,kind); if(L){ ledgerView(L.id); return; } }   /* v739 C: one ledger screen */
   sheetAt(()=>partyCard(name,kind),'partyCard');
   const pp=partyByName(name);
   const who=(typeof peopleAll==='function')?peopleAll():[];
@@ -38975,7 +39636,8 @@ function partyNear(nm,ph){
     partyAll().forEach(x=>{
       if(nameNorm(x.name)===exact || seen[x.id])return;
       const xk=ptKey(x.name);
-      if(xk && (xk===k || (xk.length>3 && k.length>3 && (xk.startsWith(k)||k.startsWith(xk))))){
+      if(xk && (xk===k || (xk.length>3 && k.length>3 && (xk.startsWith(k)||k.startsWith(xk)))
+                 || nameLike(nm,x.name)<=4)){   /* v737: a slipped letter is a near name too */
         seen[x.id]=1; out.push(x);
       }
     });
@@ -39107,10 +39769,20 @@ function partyEdit(id,onDone,preName){
         if(!ex && !dup && !skipNear){
           const near=partyNear(nm);
           if(near.length){
-            return confirmModal('\u26A0\uFE0F '+t('pt_near_title'),
-              t('pt_near_msg',{n:esc(nm), l:near.map(x=>'\u2022 '+esc(x.name)).join('<br>')}),
-              ()=>{ closeModal(); ptSaveGo(true); },
-              ()=>{ closeModal(); }, {yes:t('pt_near_yes'), no:t('cancel')});
+            /* v737: this form is itself a sheet. The old question opened a second sheet on top,
+               which wiped the form — "Yes, separate party" then saved nothing and Cancel threw
+               away everything he had typed. The question now sits inside the form. */
+            const box=$('#ptNear');
+            if(box){
+              try{ clearTimeout(_ptNearT); }catch(e){}   /* the live hint must not paint over the question */
+              window._ptGo=ptSaveGo;
+              box.innerHTML=`<div style="border:1.5px solid var(--saffron,#f59e0b);border-radius:12px;padding:10px 12px;margin-top:8px">
+                <div style="font-weight:700;margin-bottom:6px">\u26A0\uFE0F ${t('pt_near_title')}</div>
+                ${near.slice(0,3).map(x=>`<button type="button" class="btn primary" style="width:100%;min-height:44px;margin-bottom:6px" onclick="ptUseExisting('${esc(x.id)}')">${t('nm_ask_use',{b:esc(x.name)})}</button>`).join('')}
+                <button type="button" class="btn ghost" style="width:100%;min-height:44px" onclick="window._ptGo&&window._ptGo(true)">${t('pt_near_yes')}</button></div>`;
+              try{ box.scrollIntoView({block:'center'}); }catch(e){}
+              return;
+            }
           }
         }
         /* ══════════ v416 FINAL AUDIT — A RENAME THAT ONLY RENAMED THE LABEL ══════════
@@ -42185,6 +42857,9 @@ window.addEventListener('popstate',()=>{
       if(_sheetStack && _sheetStack.length){ sheetBack(); pushGuard(); return; }
       closeSheet(); pushGuard(); return;
     }
+    /* v736: a record page goes back to wherever it was opened, by the same door as its
+       arrow. Before this it fell to the rule below and landed on Home. */
+    if(REC_TABS[_curTab]!==undefined){ recBack(REC_TABS[_curTab]); pushGuard(); return; }
     if(_tabFromMenu && _curTab===_tabFromMenu){ _tabFromMenu=''; menuHome(); pushGuard(); return; }
     if(_curTab && _curTab!=='home'){ go('home'); pushGuard(); return; }
     // on Home with nothing open: ask once before letting the app close
