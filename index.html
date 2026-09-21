@@ -797,6 +797,10 @@
     box-shadow:0 1px 3px rgba(0,0,0,.12)}
   body.modal-on #goToBtn{visibility:hidden}
   @media print{ #goToBtn{display:none} }
+  /* v745 — HIS 21 Sept: the version in the header was hidden under the 🔍 Go To button on the
+     phone, so he could not read which file was loaded. On a narrow screen the word ORDERBOOK
+     gives way and the version stands alone, clear of the button. */
+  @media (max-width:640px){ .hb-ob{display:none} }
   /* v643: one date bar, and it must look like a control, not a caption */
   .rngbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;cursor:pointer;
     border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin:0 0 12px}
@@ -1113,7 +1117,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small>ORDERBOOK · <span style="opacity:.6;font-weight:700">v744</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v747</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -1805,6 +1809,11 @@ const T={
   lg_merge_ask:'Every entry under {a} ({n}) becomes part of {b}, and {a} goes. Nothing is deleted and no figure changes.',
   lg_merged:'{a} is now part of {b}',
   lg_two_open:'This name has two opening balances — fix them from Parties worth a second look first',
+  lg_ok_ask:'Matched with my paper', lg_ok_done:'Matched with paper on {d} — tap to undo', lg_ok_moved:'Matched at {a}, now {b} — something changed. Check, then tap to match again', lg_ok_on:'Marked as matched', lg_ok_off:'Match removed', lg_ok_prog:'{n} of {m} matched',
+  who_row:'{p} people · {n} entries without a name', who_row_sub:'The note says whose money it was — put it in their account in one tap',
+  who_title:'Whose money was it?', who_sub:'These entries have no person, but the note names someone you already have. Check the list, then tap once. Only the name is written — amount, head, date and account stay as they are.',
+  who_n:'{n} entries · {m}', who_go:'Put in their account', who_see:'See the entries (untick any that are not theirs)', who_none:'Nothing left — every entry with a name in its note is in that person\'s account.',
+  who_done:'{n} entries now in {p}\'s account',
   lg_hidden_tag:'hidden', lg_mv_msg:'{n} entries are filed under {a}. Pick the name they belong to — they move there and {a} is deleted.', lg_mv_search:'Search a name', lg_mv_best:'Most likely', lg_mv_none:'No name matches', lg_mv_type:'Type the name they belong to', lg_mv_yes:'Move & delete', lg_mv_ask:'Move {n} entries from {a} to {b}, and delete {a}?',
   lg_merge_none:'There is no other ledger to move it into',
   lg_dir_auto:'Opening will be {d} \u2014 that is the side {g} sits on.',
@@ -4118,6 +4127,11 @@ dl_show_hidden:'Show hidden ({n})',
   lg_merge_ask:'{a} की हर एंट्री ({n}) {b} का हिस्सा बन जाएगी, और {a} हट जाएगा। कुछ मिटेगा नहीं और कोई आँकड़ा नहीं बदलेगा।',
   lg_merged:'{a} अब {b} का हिस्सा है',
   lg_two_open:'इस नाम पर दो ओपनिंग हैं — पहले “दोबारा देखने लायक पार्टियाँ” से ठीक करें',
+  lg_ok_ask:'काग़ज़ से मिल गया', lg_ok_done:'{d} को काग़ज़ से मिला — हटाने के लिए दबाएँ', lg_ok_moved:'{a} पर मिला था, अब {b} है — कुछ बदला है। देखकर फिर दबाएँ', lg_ok_on:'मिला हुआ मार्क किया', lg_ok_off:'मिलान हटाया', lg_ok_prog:'{m} में से {n} मिले',
+  who_row:'{p} लोग · {n} एंट्री बिना नाम की', who_row_sub:'नोट में लिखा है पैसा किसका था — एक टैप में उसके खाते में डालें',
+  who_title:'पैसा किसका था?', who_sub:'इन एंट्री पर किसी का नाम नहीं है, पर नोट में उसका नाम लिखा है जो पहले से किताब में है। लिस्ट देख लें, फिर एक टैप। सिर्फ़ नाम लिखा जाता है — रक़म, हेड, तारीख़ और खाता वैसे ही रहते हैं।',
+  who_n:'{n} एंट्री · {m}', who_go:'उनके खाते में डालो', who_see:'एंट्री देखें (जो उनकी नहीं, उसका टिक हटाएँ)', who_none:'कुछ बाकी नहीं — नोट में जिसका नाम है, वो एंट्री उसके खाते में है।',
+  who_done:'{n} एंट्री अब {p} के खाते में',
   lg_hidden_tag:'छुपा हुआ', lg_mv_msg:'{a} में {n} एंट्री हैं। चुनें ये किस नाम की हैं — वहाँ चली जाएँगी और {a} मिट जाएगा।', lg_mv_search:'नाम खोजें', lg_mv_best:'सबसे मिलते नाम', lg_mv_none:'कोई नाम नहीं मिला', lg_mv_type:'जिस नाम की एंट्री हैं वो लिखें', lg_mv_yes:'भेजो और मिटाओ', lg_mv_ask:'{a} की {n} एंट्री {b} में भेजें और {a} मिटा दें?',
   lg_merge_none:'ले जाने के लिए दूसरा लेजर है ही नहीं',
   lg_dir_auto:'ओपनिंग {d} जाएगी — {g} इसी तरफ़ बैठता है।',
@@ -22282,7 +22296,11 @@ function renderPurchases(keepFocus,rowsOnly){
    is up there whenever the app comes back to the front, and give him a button that does it
    on demand. Nothing is decided for him — a bar appears and he taps it. */
 function appVerHere(){
-  try{ const e=document.querySelector('.brand small span'); return e?e.textContent.trim():''; }
+  /* v745: the header's version now has its own class; read it by that, and fall back to any
+     span in the header that looks like a version — never to the first span blindly (it
+     became "ORDERBOOK ·", the version read as nothing, and the one-copy guard misfired). */
+  try{ const e=document.querySelector('.hb-ver')||[...document.querySelectorAll('.brand small span')].find(x=>/^v\d+$/.test(x.textContent.trim()));
+       return e?e.textContent.trim():''; }
   catch(e){ return ''; }
 }
 function appVerOf(html){
@@ -38128,6 +38146,95 @@ function lgBodyHTML(){
    Opening a screen fresh is not the same as returning to it. ledgerMaster(1) keeps the
    place, which is what \u2190 All groups and a group tap need; every other door starts at
    the top, with nothing unfolded and the caret in the search box. */
+/* ══════════ v747 — "EK ENTRY KAI ALAG ALAG NAAM SE HO GAYI HAI" ══════════
+   HIS 21 Sept, after an afternoon of matching Akhil ji's paper against the app: "mujhe khud
+   hi samajh nahi aa raha … jo bhi tumhe simple process lage jahan confusion kam aur result
+   zyada ho, vo karo."
+   Measured on his book: 615 of 867 expenses carry no person at all — the name box holds the
+   HEAD ("Rent" paid to "Rent"), so Akhil ji's ₹5 lakh sat in no one's account while his name
+   was written, by hand, in the note of every one of them: "Pay to Akhil ji", "Pay to Golcha
+   ji", "अखिल ji". The same for Samsul, Setu, the karigars.
+   So the app reads the notes for him. Every expense with no person whose note carries the
+   name of someone he already has is grouped under that person, with the total, and one tap
+   puts them all in that person's account. Nothing about the money changes — the head stays
+   Rent, the amount, date and account stay — only WHOSE it was gets written down. A note that
+   could be two people is left alone; a group can be opened and single entries unticked. */
+/* words that name a kind of business or a family, not a person — never enough on their own */
+const WHO_GENERIC=/^(pvt|ltd|and|the|fashion|fashions|textile|textiles|traders|trading|enterprise|enterprises|master|market|mart|store|stores|work|works|service|services|cargo|courier|transport|transports|cloth|art|arts|fabric|fabrics|singh|kumar|bhai|devi|agarwal|jain|shah|gupta|sharma|choudhary|chowdhury|chaudhary|house|impex|creation|creations|syntex|garments|company|sons)$/;
+function whoPeople(){
+  const heads={}; (DB.expCats||[]).forEach(c=>{ heads[nameNorm(c)]=1; });
+  const out=[], seen={};
+  const add=(name,kind,id)=>{ const k=nameNorm(name); if(!k||k.length<3||heads[k]||seen[k])return; seen[k]=1;
+    const words=String(name).trim().split(/[^\p{L}\p{N}]+/u).map(w=>nameNorm(w)).filter(w=>w.length>=4&&!WHO_GENERIC.test(w));
+    out.push({name:String(name).trim(), kind, id, full:k, words}); };
+  (DB.staff||[]).forEach(x=>add(x.name,'staff',x.id));
+  (DB.karigars||[]).forEach(x=>add(x.name,'karigar',x.id));
+  /* suppliers and customers are left out on purpose: money to a supplier is a PAYMENT that
+     settles his bills, not an expense with his name on it — tagging it here would make his
+     ledger and the payables disagree. Those have their own door (supplier payments sitting
+     in expenses, Reports → Outstanding), which moves them properly. */
+  (DB.parties||[]).forEach(x=>{ const k=pkNorm(x.kind)||(x.kinds&&Object.keys(x.kinds).find(q=>x.kinds[q]))||'other';
+    if(k==='supplier'||k==='customer'||k==='both')return;
+    const L=lgByName(x.name); if(L&&L.group==='creditors')return;
+    add(x.name,k,x.id); });
+  lgAll().forEach(l=>{ if(['debtors','loans','salary','jobwork'].indexOf(l.group)>=0)add(l.name,'other',null); });
+  return out;
+}
+function whoGroups(){
+  const ppl=whoPeople(); if(!ppl.length)return [];
+  const by={};
+  (DB.ledger||[]).forEach(l=>{
+    if(l.refKind!=='expense')return;
+    const pn=nameNorm(l.party||'');
+    if(pn && pn!==nameNorm(l.cat||''))return;          /* already somebody's */
+    const note=nameNorm(l.note||''); if(note.length<3)return;
+    const nw=String(l.note||'').split(/[^\p{L}\p{N}]+/u).map(w=>nameNorm(w)).filter(w=>w.length>=3);
+    /* a person counts only if one of his own words is a whole word of the note, spelt the
+       same — "Riya" inside "Priyanka" is not Riya, "Sundar" is not "Sunday". If two different
+       people match, the note is ambiguous and the entry is left for him. */
+    const hits=ppl.filter(p=>note.indexOf(p.full)>=0 && p.full.length>=5 ||
+      p.words.some(w=>nw.indexOf(w)>=0));
+    let best=null, tie=false;
+    const fullHit=hits.filter(p=>note.indexOf(p.full)>=0);
+    if(fullHit.length===1)best=fullHit[0]; else if(hits.length===1)best=hits[0]; else if(hits.length>1)tie=true;
+    if(!best||tie)return;
+    (by[best.full]=by[best.full]||{p:best,rows:[],tot:0}).rows.push(l);
+    by[best.full].tot=r2(by[best.full].tot+(+l.amt||0));
+  });
+  return Object.values(by).sort((a,b)=>b.tot-a.tot);
+}
+var _whoOff={};
+function whoScreen(){
+  sheetAt(whoScreen);
+  const g=whoGroups();
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin:0 0 4px">\u{1F464} ${t('who_title')}</h2>
+    <p class="hint" style="white-space:normal;margin:0 0 12px">${t('who_sub')}</p>
+    ${g.length?g.map((x,i)=>{ const on=x.rows.filter(r=>!_whoOff[r.id]); const amt=on.reduce((a,r)=>a+(+r.amt||0),0);
+      return `<div class="card" style="padding:10px 12px;margin-bottom:10px">
+        <div class="kv" style="padding:0 0 6px"><span class="kn"><b>${esc(x.p.name)}</b>
+          <div class="hint">${t('who_n',{n:on.length,m:money(r2(amt))})}</div></span>
+          <button class="btn sm primary" style="flex:0 0 auto;min-height:40px" ${on.length?'':'disabled'} onclick="whoApply(${i})">\u2705 ${t('who_go')}</button></div>
+        <details><summary class="hint" style="cursor:pointer;padding:4px 0">${t('who_see')}</summary>
+          ${x.rows.map(r=>`<label class="kv" style="padding:7px 0;border-top:1px solid var(--line);gap:8px;align-items:flex-start">
+            <input type="checkbox" ${_whoOff[r.id]?'':'checked'} onchange="whoTick('${jq(r.id)}',this.checked)" style="width:20px;height:20px;flex:0 0 auto">
+            <span style="flex:1;min-width:0"><span class="hint">${fmtDate(r.date)} \u00B7 ${esc(r.cat||'')}</span><div style="font-size:13px">${esc(String(r.note||'').trim())}</div></span>
+            <b style="flex:0 0 auto">${money(+r.amt||0)}</b></label>`).join('')}</details></div>`; }).join('')
+      :`<p class="hint" style="padding:22px 4px;text-align:center">${t('who_none')}</p>`}
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function whoTick(id,on){ if(on)delete _whoOff[id]; else _whoOff[id]=1; whoScreen(); }
+function whoApply(i){
+  const g=whoGroups()[i]; if(!g)return;
+  const rows=g.rows.filter(r=>!_whoOff[r.id]); if(!rows.length)return;
+  const p=g.p;
+  rows.forEach(l=>{ l.party=p.name; l.partyId=p.id||null;
+    l.partyKind=(p.kind==='staff'||p.kind==='karigar')?p.kind:(p.kind==='supplier'||p.kind==='customer'||p.kind==='both'?p.kind:'other'); });
+  save(); try{ lgSync(); }catch(e){} try{ _lgBalMemo={}; }catch(e){}
+  toast('\u2705 '+t('who_done',{n:rows.length,p:p.name}),'ok');
+  whoScreen();
+}
 function ledgerMaster(keep){
   sheetAt(()=>ledgerMaster(1),'ledgerMaster');
   if(!keep){ _lgGroup=''; _lgQ=''; }
@@ -38155,7 +38262,13 @@ function ledgerMaster(keep){
          it is the answer: he has typed a name and the books do not hold it. */''}
     <div class="field" style="margin-bottom:8px">
       <input id="lgQ" value="${esc(_lgQ)}" placeholder="\u{1F50D} ${t('lg_search')}" oninput="lgSearch(this.value)" autocomplete="off"></div>
-    <p class="hint" style="margin-bottom:6px">${t('lg_count',{n:lgAll().filter(l=>!l.archived).length})}</p>
+    ${(()=>{ let g=[]; try{ g=whoGroups(); }catch(e){}
+       const n=g.reduce((a,x)=>a+x.rows.length,0);
+       return n?`<div class="il tappable" style="border:1.5px solid var(--saffron);border-radius:12px;padding:12px;margin-bottom:10px" onclick="whoScreen()">
+         <span>\u{1F464} <b>${t('who_row',{p:g.length,n:n})}</b><div class="hint" style="white-space:normal">${t('who_row_sub')}</div></span>
+         <span style="color:var(--saffron2)">\u203A</span></div>`:''; })()}
+    <p class="hint" style="margin-bottom:6px">${t('lg_count',{n:lgAll().filter(l=>!l.archived).length})}${(()=>{ const live=lgAll().filter(l=>!l.archived); const ok=live.filter(l=>lgOkState(l)==='ok').length, mv=live.filter(l=>lgOkState(l)==='moved').length;
+      return (ok||mv)?' \u00B7 \u2705 '+t('lg_ok_prog',{n:ok,m:live.length})+(mv?' \u00B7 \u26A0\uFE0F '+mv:''):''; })()}</p>
     <div id="lgList">${body}</div>
     <div class="fab-pad"></div>`;
   showSheet();
@@ -38172,11 +38285,22 @@ function ledgerMaster(keep){
     setTimeout(()=>{ try{ const e=$('#lgQ'); if(e)e.focus(); }catch(err){} },90);
   }
 }
+/* ══════════ v747 — "POORA LEDGER MILAANA HOGA" ══════════
+   He is matching every account against his paper, one by one, over days. The app remembers
+   which ones he has matched and at what balance. If an entry later changes that account, the
+   tick turns to ⚠️ by itself, so nothing he checked can quietly go wrong behind him. */
+function lgOkAll(){ DB.lgOk=DB.lgOk||{}; return DB.lgOk; }
+function lgOkState(l){ const o=lgOkAll()[l.id]; if(!o)return ''; return Math.abs(r2(o.bal)-r2(lgBalance(l)))<0.5?'ok':'moved'; }
+function lgOkMark(l){ const st=lgOkState(l); return st==='ok'?'\u2705 ':st==='moved'?'\u26A0\uFE0F ':''; }
+function lgOkToggle(id){ const l=lgById(id); if(!l)return; const all=lgOkAll();
+  if(all[id] && lgOkState(l)==='ok'){ delete all[id]; toast(t('lg_ok_off'),'ok'); }
+  else { all[id]={bal:r2(lgBalance(l)), at:todayISO()}; toast('\u2705 '+t('lg_ok_on'),'ok'); }
+  save(); ledgerView(id); }
 function lgRowHTML(l){
   const G=lgGroup(l.group)||{label:''};
   return `<div class="kv card" style="padding:10px 12px;margin-bottom:6px;cursor:pointer"
       onclick="ledgerView('${jq(l.id)}')">
-      <div style="flex:1;min-width:0"><b>${esc(l.name)}</b>
+      <div style="flex:1;min-width:0"><b>${lgOkMark(l)}${esc(l.name)}</b>
         <div class="hint">${esc(G.label)}${l.openAmt?` \u00B7 ${t('lg_open')} ${money(l.openAmt)} ${String(l.openDir||'').toUpperCase()}`:''}</div>
       </div><span style="text-align:right;white-space:nowrap;flex:0 0 auto">${lgBalHTML(lgBalance(l))}
         <div class="hint" style="color:var(--saffron2)">\u203A</div></span></div>
@@ -38489,6 +38613,10 @@ function ledgerView(id){
            simplify tha, lekin tumne ek naya system build kar diya." One job, one button. */''}
       <button class="btn ghost sm" style="flex:0 0 auto;color:var(--bad)"
         onclick="ledgerDel('${jq(l.id)}')" aria-label="${t('delete')}">\u{1F5D1}\uFE0F</button></div>
+    ${(()=>{ const st=lgOkState(l), o=lgOkAll()[l.id];
+       return st==='ok' ? `<button class="btn block" style="margin:-4px 0 12px;border-color:var(--ok);color:var(--ok)" onclick="lgOkToggle('${jq(l.id)}')">\u2705 ${t('lg_ok_done',{d:fmtDate(o.at)})}</button>`
+         : st==='moved' ? `<button class="btn block" style="margin:-4px 0 12px;border-color:var(--saffron);white-space:normal" onclick="lgOkToggle('${jq(l.id)}')">\u26A0\uFE0F ${t('lg_ok_moved',{a:money(o.bal),b:money(lgBalance(l))})}</button>`
+         : `<button class="btn ghost block" style="margin:-4px 0 12px" onclick="lgOkToggle('${jq(l.id)}')">\u2B1C ${t('lg_ok_ask')}</button>`; })()}
     <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
       <div class="il"><span>${t('lg_dr_total')}</span><b>${money(drTot)}</b></div>
       <div class="il"><span>${t('lg_cr_total')}</span><b>${money(crTot)}</b></div>
@@ -38643,6 +38771,14 @@ function ledgerEdit(id,draft){
           The side follows the group now and is shown in words next to the figure. The rare
           real exception — a supplier who is holding an advance of yours, a bank running
           overdrawn — is one small line away, and it says plainly what it is doing. */''}
+     ${/* ══════════ v746 — "INCOME, A COST... YE SAB KYUN DIKHA KE CONFUSE KAR RAHE HO" ══════════
+          HIS 21 Sept, on the Rent ledger. An expense or income ledger has no opening balance:
+          the profit and loss starts at nothing every year, the way Tally keeps it. So on those
+          groups the opening box, the Income / A cost question and the date are not shown at
+          all. They appear for balance-sheet ledgers (parties, bank, loans…), where an opening
+          is real money. A P&L ledger that somehow already carries one still shows it, so no
+          figure can be wiped by a save. */''}
+     ${((lgGroup(fv.group||'indirect')||{}).stmt==='bs' || +fv.openAmt) ? `
      <div class="field"><label>${t('lg_open')} ₹</label>
        <input id="lgOpen" type="number" inputmode="numeric" value="${fv.openAmt?esc(fv.openAmt):''}" placeholder="0"></div>
      ${/* ══════════ v729 — THE LINE SAID THE OPPOSITE OF THE TRUTH ══════════
@@ -38675,7 +38811,7 @@ function ledgerEdit(id,draft){
          <p class="hint" style="margin-top:-6px">${t('lg_dir_normal',{g:esc(G.label||''),d:word(nat)})}</p>
          ${flipped?`<p class="hint" style="color:var(--saffron2)">⚠️ ${t('lg_dir_odd')}</p>`:''}`; })()}
      <div class="field"><label>${t('lg_opendate')}</label>
-       ${dateField('lgDate',fv.openDate||fyStartISO())}</div>`,
+       ${dateField('lgDate',fv.openDate||fyStartISO())}</div>` : `<input type="hidden" id="lgOpen" value=""><input type="hidden" id="lgDir" value=""><input type="hidden" id="lgDate" value="">`}`,
     [{label:t('cancel'),cls:'ghost',fn:()=>{closeModal();ledgerMaster();}},
      ...(ex?[{label:'🗑️',cls:'danger',fn:()=>ledgerDel(ex.id)}]:[]),
      {label:t('save'),cls:'primary',fn:()=>{
