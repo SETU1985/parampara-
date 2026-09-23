@@ -1118,7 +1118,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v750</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v752</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -1583,6 +1583,11 @@ const T={
   phh_title:'{p} — fixed head', phh_sub:'Every payment to this person goes under this head. If an entry is put under another head, the app asks first. ⭐ = the head used most so far.',
   phh_clear:'No fixed head', phh_done:'{p}: head “{h}”', phh_cleared:'Fixed head removed',
   phh_is:'Fixed head: {h}', phh_learn:'Head (from his entries): {h} — tap to fix it', phh_none:'Fix this person’s head',
+  cu_find_ph:'Search a customer — name or phone', cu_meas_n:'{n} {n|measurement|measurements}',
+  hk_t:'Change cost type?', hk_sub:'Where this head’s money is counted. The net profit does not change — only whether it sits on the goods, on the shop, or outside the profit &amp; loss.',
+  hk_q:'“{h}” and all {n} of its entries ({m}) become “{k}”, and its ledger moves to {g}.<br><br>Dates, amounts, accounts and names do not change.',
+  hk_done:'{h} → {k}',
+  hsf_kind:'The head says “{k}” but {n} of its entries were saved as something else.', hsf_kind_go:'Set the cost type for all',
   lost_dont:'Do not set up the shop again. Do not take a backup. Both make it worse.',
   lost_do:'Close every tab and the installed app, then open it once more. If it still says this, restore from your backup file.',
   lost_retry:'\uD83D\uDD04 Try again',
@@ -3951,6 +3956,11 @@ dl_show_hidden:'Show hidden ({n})',
   phh_title:'{p} — पक्का हेड', phh_sub:'इस आदमी का हर पेमेंट इसी हेड में जाएगा। कोई एंट्री दूसरे हेड में डाली तो ऐप पहले पूछेगा। ⭐ = अब तक सबसे ज़्यादा इस्तेमाल हुआ हेड।',
   phh_clear:'कोई पक्का हेड नहीं', phh_done:'{p}: हेड “{h}”', phh_cleared:'पक्का हेड हटाया',
   phh_is:'पक्का हेड: {h}', phh_learn:'हेड (इसकी एंट्री से): {h} — पक्का करने के लिए टैप करें', phh_none:'इस आदमी का हेड पक्का करें',
+  cu_find_ph:'ग्राहक खोजें — नाम या फ़ोन', cu_meas_n:'{n} नाप',
+  hk_t:'कॉस्ट टाइप बदलें?', hk_sub:'इस हेड का पैसा कहाँ गिना जाए। नेट मुनाफ़ा नहीं बदलेगा — बस ये तय होगा कि ये माल पर है, दुकान पर है, या मुनाफ़ा-नुकसान से बाहर।',
+  hk_q:'“{h}” और इसकी सारी {n} एंट्री ({m}) “{k}” बन जाएँगी, और इसका लेजर {g} में चला जाएगा।<br><br>तारीख़, रकम, खाता और नाम नहीं बदलेंगे।',
+  hk_done:'{h} → {k}',
+  hsf_kind:'हेड कहता है “{k}”, पर इसकी {n} एंट्री किसी और टाइप में सेव हुई हैं।', hsf_kind_go:'सबका कॉस्ट टाइप सेट करो',
   lost_dont:'दुकान दोबारा सेट मत करिए। बैकअप मत लीजिए। दोनों से नुकसान होगा।',
   lost_do:'सारे टैब और इंस्टॉल किया हुआ ऐप बंद करके एक बार फिर खोलिए। फिर भी यही आए तो बैकअप फ़ाइल से restore कीजिए।',
   lost_retry:'🔄 फिर से कोशिश',
@@ -9669,7 +9679,7 @@ function numberingSave(){
     invPrefix:(($('#n_ipre').value)||'').trim(), invMode:$('#n_imode').value||'fy',
     invStart:+$('#n_istart').value||0,
     ordPrefix:(($('#n_opre').value)||'').trim(), ordStart:+$('#n_ostart').value||0};
-  save(); toast(t('t_saved'),'ok'); closeSheet();
+  save(); toast(t('t_saved'),'ok'); formBack(['numberingEdit']);   /* v752 */
 }
 
 /* ================== IMPORT FROM VYAPAR (CSV) ================== */
@@ -10023,6 +10033,7 @@ function addBankQuick(cb){
         const nm=($('#qb_name')||{}).value||''; if(!nm.trim()){toast(t('acc_name_req'),'bad');return;}
         const rec={id:uid(),type:'bank',name:nm.trim(),opening:+(($('#qb_open')||{}).value||0),openingDate:(((DB.openBS||{}).date)||todayISO())};
         DB.accounts=DB.accounts||[]; DB.accounts.push(rec); save(); closeSheet();
+        try{ afterSave(); }catch(e){} refreshBehind();   /* v752 */
         toast(t('acc_added'),'ok'); if(cb)cb(rec.id);
      }}]);
 }
@@ -12212,16 +12223,26 @@ let _svPend='';
    the list — redrawn with the new figure, and it never stands on the trail again. Only when
    nothing is behind does it fall back to the Expenses list, as before. */
 var _expKeepNext=false;
+/* v751: the v749 cure for the expense form, as one function — the purchase form had the
+   same fault (Save closed everything and opened the Purchase tab, whichever screen he had
+   come in from). A finished form steps back to the page it was opened from, and never
+   leaves itself on the trail. */
+function formDone(fallback,drop){
+  _sheetCur=null;
+  const skip=drop||[];
+  while(_sheetStack.length){ const q=_sheetStack[_sheetStack.length-1];
+    const n=(q&&(q._n||q.name))||'';
+    if(skip.indexOf(n)>=0 || skip.indexOf(q)>=0)_sheetStack.pop(); else break; }
+  let ok=false; try{ ok=sheetBack(); }catch(e){ ok=false; }
+  if(ok)return true;
+  try{ if(typeof fallback==='function')fallback(); }catch(e){}
+  return false;
+}
 function expFormDone(){
   _exp=null; _expMLOn=false; _expML=[];
-  _sheetCur=null;
-  while(_sheetStack.length){ const q=_sheetStack[_sheetStack.length-1];
-    if(q===expRender || q===_expRenderRaw || (q && (q._n==='expRender'||q.name==='expRender')))_sheetStack.pop(); else break; }
   _expKeepNext=true;
-  let ok=false; try{ ok=sheetBack(); }catch(e){ ok=false; }
+  formDone(()=>expenses(true),['expRender',expRender,_expRenderRaw]);
   _expKeepNext=false;
-  if(ok)return;
-  expenses(true);
 }
 function expSave(next){
   expCapture(); const d=_exp||{};
@@ -12309,6 +12330,47 @@ function headRename(o,n,opt){
   (DB.journal||[]).forEach(v=>(v.lines||[]).forEach(Ln=>{ if(Ln.acc==='exp:'+o){ Ln.acc='exp:'+n; c++; } }));
   return c;
 }
+/* ══════════ v751 — COST TYPE LIVED IN THREE PLACES ══════════
+   HIS 22 Sept, on GST Payment showing under Direct Expenses: "ye indirect expenses hoga."
+   Changing it did nothing, and the reason is a split: the head carries a type, EVERY ENTRY
+   carries its own copy of that type (written when it was saved), and the ledger carries a
+   group. The P&L reads the entries, Ledger master reads the group, the reports read the
+   head. Change one and the other two stay as they were, so the screen disagreed with
+   itself and no figure moved.
+   One move now: the head, all its entries and its ledger together, after a question that
+   names what changes. Nothing else about the entries is touched — date, amount, account
+   and name stay, and the net profit does not change (only where the cost is counted). */
+const HK_LBL={direct:'eh_direct',indirect:'eh_indirect',drawing:'eh_drawing',capital:'eh_capital',stockbuy:'eh_stockbuy'};
+const HK_GROUP={direct:'direct',indirect:'indirect',drawing:'drawings',capital:'fixed',stockbuy:'stock'};
+function headKindRows(head){ return (DB.ledger||[]).filter(l=>l&&l.refKind==='expense'&&String(l.cat||'')===String(head)); }
+function headKindOf(head){ return expHeadCfg(head).kind||'indirect'; }
+function headKindOdd(head){ const k=headKindOf(head);
+  return headKindRows(head).filter(l=>String(l.expKind||'indirect')!==k).length; }
+function headKindPick(head){
+  const cur=headKindOf(head);
+  modal('\u{1F9FE} '+esc(head),
+    `<p class="hint" style="white-space:normal;margin:0 0 10px">${t('hk_sub')}</p>`
+    + Object.keys(HK_LBL).map(k=>`<button class="btn ${k===cur?'primary':'ghost'} block" style="margin-bottom:8px"
+        onclick="headKindAsk('${jq(head)}','${k}')">${k===cur?'✓ ':''}${t(HK_LBL[k])}</button>`).join(''),
+    [{label:t('cancel'),cls:'ghost',fn:closeModal}]);
+}
+function headKindAsk(head,kind){
+  closeModal();
+  const rows=headKindRows(head), k=kind||headKindOf(head);
+  const amt=r2(rows.reduce((a,l)=>a+(+l.amt||0),0));
+  const grp=HK_GROUP[k]||'indirect', G=lgGroup(grp)||{label:grp};
+  confirmModal('\u{1F9FE} '+t('hk_t'),
+    t('hk_q',{h:esc(head),n:rows.length,m:money(amt),k:esc(t(HK_LBL[k]||'eh_indirect')),g:esc(G.label)}),
+    ()=>{
+      DB.expHeadCfg=DB.expHeadCfg||{};
+      DB.expHeadCfg[head]=Object.assign({who:'',kind:'indirect',pay:''},DB.expHeadCfg[head]||{},{kind:k});
+      rows.forEach(l=>{ l.expKind=k; });
+      const lg=lgByName(head); if(lg && lg.group!==grp)lg.group=grp;
+      save(); closeModal(); try{ _lgBalMemo={}; }catch(e){}
+      toast('✅ '+t('hk_done',{h:head,k:t(HK_LBL[k]||'eh_indirect')}),'ok');
+      afterSave(()=>{ try{ hsScreen(); }catch(e){} });
+    }, null, {yes:t('save'), no:t('cancel'), cls:'primary'});
+}
 function hsUse(){
   const u={};
   (DB.ledger||[]).forEach(l=>{ if(l&&l.refKind==='expense'&&l.cat){ const x=u[l.cat]=u[l.cat]||{n:0,amt:0}; x.n++; x.amt=r2(x.amt+(+l.amt||0)); } });
@@ -12358,6 +12420,10 @@ function hsIssues(){
     const to=cand[0];
     if(!kidsOf(to) && U(to).n<U(h).n)return;     /* h is the bigger — it gets its turn as "to" */
     done[h]=1; out.push({k:'twin', head:h, n:U(h).n, amt:U(h).amt, to:to}); });
+  /* v751 — the head says one cost type, its own entries say another */
+  cats.forEach(h=>{ if(done[h]||!U(h).n)return;
+    const odd=headKindOdd(h); if(!odd)return;
+    done[h]=1; out.push({k:'kind', head:h, n:U(h).n, amt:U(h).amt, odd:odd, kind:headKindOf(h)}); });
   /* 5 — Rent and Commission are one head (his 22 Sept decision) */
   const rent=cats.find(c=>nameNorm(c)==='rent');
   if(rent && !cats.some(c=>/commission|कमीशन/i.test(c)))out.push({k:'rent', head:rent, n:U(rent).n, amt:U(rent).amt, to:'Rent / Commission'});
@@ -12387,6 +12453,8 @@ function hsScreen(){
     let why='', btns='';
     if(x.k==='sup'){ why=t('hsf_sup'); btns=`<button class="btn sm primary block" onclick="supPayScreen()">\u{1F9FE} ${t('hsf_sup_go')}</button>`; }
     if(x.k==='acct'){ why=t('hsf_acct'); btns=`<button class="btn sm primary block" onclick="expHeadToTransfer('${jq(x.head)}')">\u{1F504} ${t('eh_mv_title')}</button>`; }
+    if(x.k==='kind'){ why=t('hsf_kind',{n:x.odd,k:esc(t(HK_LBL[x.kind]||'eh_indirect'))});
+      btns=`<button class="btn sm primary block" onclick="headKindPick('${jq(x.head)}')">\u{1F9FE} ${t('hsf_kind_go')}</button>`; }
     if(x.k==='acctleft'){ why=t('hsf_acct_left'); btns=`<button class="btn sm ghost block" onclick="expHeadOpen('${jq(x.head)}')">\u{1F4C2} ${t('hsf_open')}</button>`; }
     if(x.k==='person'){ why=t('hsf_person',{p:esc(x.who)}); btns=`<button class="btn sm primary block" onclick="hsMovePick(${i})">\u{1F500} ${t('hsf_person_go',{p:esc(x.who)})}</button>`; }
     if(x.k==='twin'){ why=t('hsf_twin',{b:esc(x.to)});
@@ -18042,12 +18110,17 @@ function searchType(){
    of purchase bills with no way off it.
    His own Screen Law says every header reads the same: back on the left, the name in the
    middle. One helper, used by all five, so they cannot drift apart again. */
-function tabHead(title){
-  return `<div class="kv" style="margin:0 0 10px">
-    <button class="btn sm ghost" onclick="go('home')" title="${esc(t('back'))}"
-      style="padding:5px 11px;font-size:16px;line-height:1">\u2190</button>
-    <b style="flex:1;text-align:center;font-size:15px">${esc(title)}</b>
-    <span style="width:42px"></span></div>`;
+/* ══════════ v751 — ONE HEADER, EVERY SCREEN ══════════
+   His screen law: \u2190 left, name centre-left, the screen's own buttons right — the same on
+   every screen. Orders, Sales and Reports were built that way; Customers, Purchase and
+   Alterations carried an older centred bar with a boxed \u2190 and no room for their own
+   buttons, so those buttons sat in a row UNDER the header and ate the top of the list.
+   One header now, with a slot on the right for whatever that screen needs. */
+function tabHead(title,icon,right){
+  return `<div class="detail-hd">
+    <button class="back" onclick="go('home')" title="${esc(t('back'))}">\u2190</button>
+    <div style="flex:1;min-width:0"><h2>${icon?icon+' ':''}${esc(title)}</h2></div>
+    ${right||''}</div>`;
 }
 /* ══════════ v546 — THE LAST TWO SEARCH BOXES THAT REBUILT THEMSELVES ══════════
    HIS 7 Sept, after the full sweep found them: Orders and Stock were still redrawing the
@@ -18453,10 +18526,15 @@ function renderCustomers(keepBar){
     .filter(c=>!_q||[c.name,c.phone,c.city,c.area].some(v=>String(v||'').toLowerCase().indexOf(_q)>=0))
     .sort((a,b)=>(a.name||'').localeCompare(b.name||''));
   const bar=keepBar?null:$('#custCampBar');   /* v689: never while he is typing */
-  if(bar)bar.innerHTML=tabHead(t('nav_customers'))+`<button class="btn primary block" style="margin-bottom:8px" onclick="newCustomer()">➕ ${t('cust_new')}</button>`
-    +((DB.customers||[]).length>=8?`<input id="custListQ" value="${esc(_custQ)}" placeholder="🔍 ${t('search_ph')}"
-        autocomplete="off" style="margin-bottom:8px" oninput="custListSearch(this.value)">`:'')
-    +(list.length?`<button class="btn ghost block" style="margin-bottom:10px" onclick="openCampaign()">📣 ${t('camp_title')}</button>`:'');
+  /* v751: the search box was half the screen wide (it sat outside a .field, so it took its
+     own width) and "Message customers" — a monthly job — had a full-width button above the
+     names. The box is full width now and the campaign lives in ⋯, where the rare jobs go. */
+  if(bar)bar.innerHTML=tabHead(t('nav_customers'),'👥',
+      `<button class="btn sm ghost" title="${t('hub_more')}" onclick="custMenu()">⋯</button>`)
+    +`<button class="btn primary block" style="margin-bottom:8px" onclick="newCustomer()">➕ ${t('cust_new')}</button>`
+    +((DB.customers||[]).length>=8?`<div class="field" style="margin-bottom:8px">
+        <input id="custListQ" value="${esc(_custQ)}" placeholder="🔍 ${t('cu_find_ph')}"
+        autocomplete="off" oninput="custListSearch(this.value)"></div>`:'');
   /* ══════════ v560 — THE SAME TRAP THE BILL LIST HAD ══════════
      Found by looking for the shape, not by waiting for it to bite: this asked "are there
      no customers?" AFTER the search had run. Type a name that matches nobody and the shop
@@ -18475,8 +18553,13 @@ function renderCustomers(keepBar){
   el.innerHTML=pageSlice('cust',list).map(c=>{const cnt=cnts[c.id]||0,saved=Object.keys(c.m||{}).length;
     return `<div class="card" onclick="openCustomer('${c.id}')"><div style="display:flex;justify-content:space-between;align-items:center">
       <div><b style="font-size:16px">${esc(c.name)}</b><div style="font-size:12px;color:var(--txt2)">📞 ${esc(c.phone||'—')}</div></div>
-      <div style="text-align:right;font-size:11px;color:var(--mut)">${cnt} ${t('orders_n')}${cnt!==1?'s':''}<br>${saved} ${t('saved_meas')}</div></div></div>`;
+      <div style="text-align:right;font-size:11px;color:var(--mut)">${cnt} ${t('orders_n')}${cnt!==1?'s':''}${saved?`<br>📏 ${t('cu_meas_n',{n:saved})}`:''}</div></div></div>`;
   }).join('')+pageMoreBtn('cust',list.length);
+}
+/* the rare customer jobs, off the list and behind ⋯ */
+function custMenu(){
+  modal(t('nav_customers'),
+    `<button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();openCampaign()">📣 ${t('camp_title')}</button>`);
 }
 function openCustomer(id){
   /* v544: a different customer means a fresh card — the same rule the order screen got. */
@@ -22733,10 +22816,9 @@ function renderPurchases(keepFocus,rowsOnly){
      other two to read the same. Here the ☑️ Select row sat BETWEEN the new button and the
      search box, so the eye met a bulk-edit tool before it met the list. Select is still
      here, one line lower, under the search where it belongs. */
-  const addBtn=tabHead(t('nav_purchases'))+`<div class="row" style="margin-bottom:12px;gap:8px">
-    <button class="btn primary" style="flex:1" onclick="openPurchaseForm()">+ ${t('new_purchase')}</button>
-    <button class="btn ghost" style="flex:0 0 48px" title="${t('hub_more')}" onclick="purchaseHub()">⋯</button>
-    </div>`;
+  const addBtn=tabHead(t('nav_purchases'),'🚚',
+      `<button class="btn sm ghost" title="${t('hub_more')}" onclick="purchaseHub()">⋯</button>`)
+    +`<button class="btn primary block" style="margin-bottom:12px" onclick="openPurchaseForm()">➕ ${t('new_purchase')}</button>`;
   /* v717 — HIS 17 Sept: "⋯ me koi kaam ki cheez nahi… Select, bills ka total ⋯ me ja sakta hai,
      screen clean rahe." Select shows here only while selecting; it is started from ⋯. */
   const selRow=(all.length&&_purSelMode?`<div class="row" style="margin-bottom:10px;gap:8px">
@@ -23038,7 +23120,7 @@ function renderAlterations(){
      screen threw before it drew anything. It only showed up once there were enough
      alterations to page. */
   let list=(DB.alterations||[]).slice().sort((a,b)=>new Date(b.created)-new Date(a.created));
-  const addBtn=tabHead(t('alterations'))+`<button class="btn primary block" style="margin-bottom:12px" onclick="openAltForm()">+ ${t('new_alteration')}</button>`;
+  const addBtn=tabHead(t('alterations'),'\u2702\uFE0F')+`<button class="btn primary block" style="margin-bottom:12px" onclick="openAltForm()">+ ${t('new_alteration')}</button>`;
   if(!list.length){el.innerHTML=addBtn+`<div class="empty"><div class="big">🔧</div><p><b>${t('no_alterations')}</b></p><p style="font-size:13px">${t('no_alterations_sub')}</p></div>`;return;}
   const _pgAll=list; list=pageSlice('alt',list);
   el.innerHTML=addBtn+list.map(a=>{
@@ -26631,7 +26713,7 @@ function retFreeSave(){
         party:nm,partyId:null,ref:no,refKind:'purchase_return',cat:'',note:t('pr_refund_note'),photos:[]}); }
     DB.purchaseReturns=DB.purchaseReturns||[]; if(_old){ rec.edited=new Date().toISOString(); retReplace('purchase',rec); } else DB.purchaseReturns.push(rec);
   }
-  save(); _rfree=null; closeSheet();
+  save(); _rfree=null; formBack(['retFreeForm','retFreeScreen']);   /* v752 */
   toast('✅ '+t(isSale?'sr_saved':'pr_saved'),'ok');
   refreshMoney();
 }
@@ -27806,7 +27888,7 @@ function shopInfoSave(){DB.shopInfo={name:($('#si_name').value||'').trim(),bless
     DB.accounts=DB.accounts||[]; DB.accounts.push(acc);
   }
   if(acc){ acc.bankName=bn; acc.accNo=an; acc.ifsc=ic; setPrimaryAcc(acc.id); }
-  save();syncShopNameKey();closeSheet();toast(t('t_saved'),'ok');}
+  save();syncShopNameKey();formBack(['shopInfoEdit']);toast(t('t_saved'),'ok');}   /* v752 */
 
 /* ====================== INVOICES LIST TAB ====================== */
 function allInvoices(){
@@ -30469,7 +30551,9 @@ function savePurchase(){
     if(dt)purchForm.date=dt;
     renderPurchaseForm();
     setTimeout(()=>{const n=$('#pu_dname');if(n)n.focus();},120); return; }
-  closeSheet(); go('purchases');
+  /* v751: back to the screen the bill was opened from — a supplier's ledger, payables,
+     the day book — and only to the Purchase tab when there is nothing behind. */
+  if(!formDone(null,['renderPurchaseForm'])){ closeSheet(); go('purchases'); }
 }
 let _purSaveNew=false;
 /* v663: one button, and the switch above it decides what happens after */
@@ -32663,9 +32747,9 @@ function expHeadOpen(head){
       cells:[fmtDate(l.date), esc(l.party||l.note||l.ref||'\u2014'), money(l.amt)]}; }),
     total:[t('exp_total'),'',money(tot)],
     top:'<div class="field" style="margin-bottom:10px"><label>'+t('eh_kind')+'</label>'
-      +'<select onchange="expHeadKindSet(\''+jq(head)+'\',this.value)">'
-      +kinds.map(function(k){ return '<option value="'+k[0]+'"'+(cur===k[0]?' selected':'')+'>'+t(k[1])+'</option>'; }).join('')
-      +'</select></div>'
+      /* v751: one move for the head, its entries and its ledger — with the question first */
+      +'<button class="btn ghost block" style="text-align:left" onclick="headKindPick(\''+jq(head)+'\')">'
+      +t(HK_LBL[cur]||'eh_indirect')+'  ▾</button></div>'
       /* v726: which main head this one belongs under. Only heads that are themselves main
          heads are offered, so a chain two deep can never be built. */
       +'<div class="field" style="margin-bottom:10px"><label>'+t('eh_parent')+'</label>'
@@ -37759,7 +37843,7 @@ function obsCapManual(){
 }
 function obsSave(){ obsCap();
   openBS().loans=openBS().loans.filter(L=>String(L.name||'').trim()||+L.amt);
-  save(); toast(t('t_saved'),'ok'); closeSheet(); }
+  save(); toast(t('t_saved'),'ok'); formBack(['openBSEdit','obsLoansEdit']);   /* v752 */ }
 function openingBulk(){
   sheetAt(openingBulk);
   const kinds=[['karigar','eh_karigar'],['supplier','eh_supplier'],['customer','eh_customer'],['staff','st_title'],['lender','ob_lender']];
@@ -38170,7 +38254,7 @@ function recPost(id){
         ? moPost({name:head, amt:Math.abs(diff), date, acc:id, note:note||t('rec_auto')})
         : miPost({name:head, amt:Math.abs(diff), date, acc:id, note:note||t('rec_auto')});
       if(!r||!r.ok){ toast((r&&r.msg)||t('t_saved'),'bad'); return; }
-      save(); closeSheet();
+      save(); formBack(['recOpen']);   /* v752 */
       toast(t('rec_done',{d:(diff>0?'+':'')+money(diff),h:head}),'ok');
       try{ if(typeof cashBank==='function')cashBank(); }catch(e){}
     }, closeModal, {yes:t('rec_go'), cls:'primary'});
@@ -44251,6 +44335,23 @@ function _toastLift(el){
    an estimate, committing opening balances, saving a money-out entry, and the numbering /
    shop settings. This redraws the tab that is standing behind, whatever it is, and does
    nothing when no tab is showing. Cheap, and it cannot show him something stale. */
+/* ══════════ v752 — SIX MORE WRITES THAT LEFT THE SCREEN BEHIND STALE ══════════
+   Fault 1 on his own list, hunted again with the same scan that found nine of them in a
+   day: a function writes the book, closes its sheet, and never tells the screen underneath.
+   Nothing looks wrong at the moment of saving — the damage is the next glance, when Cash &
+   bank still shows the old balance, the balance sheet the old opening, or Settings the old
+   shop name, and he cannot tell whether the save worked.
+   Six found and fixed: numbering, shop details, opening balances, a free-form return, a
+   cash-count posting and the quick "add bank". Each now ends with the screen it came from
+   redrawn from the book it just wrote. Nothing else changed. */
+/* v752: a write is finished — go back to the screen it was opened from and redraw it from
+   the book, and only when there is nothing behind close up and redraw the tab. */
+function formBack(drop){
+  try{ if(formDone(null,drop||[]))return true; }catch(e){}
+  try{ closeSheet(); }catch(e){}
+  refreshBehind();
+  return false;
+}
 function refreshBehind(){
   setTimeout(()=>{ try{
     const f={home:renderHome,orders:renderOrders,customers:renderCustomers,
