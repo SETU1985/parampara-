@@ -1118,7 +1118,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v754</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v756</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -38187,6 +38187,26 @@ function lgSync(){
     l.openDir=net<0?'dr':'cr';
     l.openDate=(op.map(x=>x.date||'').filter(Boolean).sort()[0])||l.openDate||'';
   });
+  /* ══════════ v755 — B. POSH WAS ALREADY CONVERTED BEFORE THIS FIX EXISTED ══════════
+     HIS 24 Sept, same afternoon: v754 makes supPayFix() move the master's group WHEN a
+     conversion happens — but B. Posh was converted on an OLDER build, before that line
+     existed, so its master row was frozen on "Indirect Expenses" with nobody left to write
+     the correction. Loading a newer build does not rewrite what an older one already saved
+     wrong; only a migration does, and this is a migration, not a one-off correction — it
+     runs every time, the way the archived-ledger and opening-balance fixes above it do, so
+     any name converted on ANY earlier build heals itself the first time this book opens on
+     one that knows the rule, and nothing has to be remembered about which build did what.
+     Narrow on purpose: a name only moves to Sundry Creditors here when EVERY entry left
+     under it is already a converted supplier payment (refKind 'manual', partyKind
+     'supplier') and not one is still a live expense-head entry — so a head he has only
+     partly moved, or never touched at all, is left exactly where it is. */
+  lgAll().forEach(l=>{
+    if(l.group==='creditors')return;
+    const n=nameNorm(l.name);
+    const rows=(DB.ledger||[]).filter(x=>nameNorm(x.party)===n||nameNorm(x.cat)===n);
+    if(!rows.length)return;
+    if(rows.every(x=>x.refKind==='manual' && pkNorm(x.partyKind)==='supplier')) l.group='creditors';
+  });
   return lgAll();
 }
 function partyById(id){ return partyAll().find(x=>x.id===id); }
@@ -39868,8 +39888,24 @@ function lgNameHits(v){
   if(!hits.length){ box.innerHTML=''; return; }
   box.innerHTML=`<div class="hint" style="margin-bottom:4px">${t('lg_exists_hint')}</div>`
     + hits.map(x=>`<button type="button" class="chip" style="margin:0 6px 6px 0"
-        onclick="(function(){ const e=$('#lgName'); e.value=${esc(JSON.stringify(x.l.name))}; lgNameHits(e.value); })()">
+        onclick="lgHitPick('${jq(x.l.name)}','${jq(x.l.group)}')">
         ${x.score===0?'\u2714\uFE0F ':''}${esc(x.l.name)} <span class="hint">\u00B7 ${esc((lgGroup(x.l.group)||{}).label||'')}</span></button>`).join('');
+}
+/* \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 v756 \u2014 THE NAME CHANGED, THE HEAD BELOW DID NOT \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+   HIS 24 Sept, renaming B. Posh to Bapulal Jinendrakumar Manawat: he tapped the suggestion
+   ("already in your book \u2014 Sundry Creditors") and the Name box took it, exactly as
+   designed \u2014 but the Group box right under it kept showing B. Posh's own old group,
+   Indirect Expenses. Save itself was never going to get this wrong: typing a name that
+   matches an existing ledger opens the Join flow, which merges into that real ledger and
+   its real group, and the stale Group field on screen was never read. But he had no way to
+   know that \u2014 the form told him two different things in the same breath, and \u00A7"never hide
+   a wrong number" cuts both ways: a field that will be IGNORED must not go on showing
+   something false either. Picking a suggestion now redraws the whole form from that
+   ledger's own group, the same single path lgGrpChanged() already uses when the dropdown
+   itself changes, so every dependent line (Dr/Cr question, opening fields) updates with it
+   instead of just the one box that happened to get touched. */
+function lgHitPick(name,grp){
+  ledgerEdit(_lgEditId,{name,group:grp,open:'',dir:'',date:''});
 }
 function lgFlipDir(){
   const e=$('#lgDir'); if(!e)return;
