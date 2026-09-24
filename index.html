@@ -1118,7 +1118,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v752</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v754</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -6180,6 +6180,12 @@ const commonFor=c=>c==='lower'?LOWER_COMMON:(c==='upper'?UPPER_COMMON:[]);
 
 /* ---- state ---- */
 let DB={orders:[],customers:[]}, form=null, detailId=null, altForm=null, altDetailId=null, invForm=null;
+/* v754: nameNorm()'s cache lives here, at the very top of the script, on purpose — fault #7
+   from experience: a `let`/`const` declared below the function that uses it blanks the app
+   the first time something calls that function during page init, before script execution
+   reaches the declaration line. nameNorm() is called as early as line ~7517, well before its
+   own definition further down, so the cache is declared once, up here, before anything runs. */
+let _nameNormCache=new Map();
 
 /* ══════════════ v482 — A BAD READ LOOKED EXACTLY LIKE NO DATA ══════════════
    HIS 4 Sept, after loading the new file on his phone and meeting the setup screen:
@@ -13973,6 +13979,15 @@ function supPayFix(id){
   l.refKind='manual'; l.ref=t('pay_out');
   l.partyKind=pkNorm(l.partyKind)||'supplier';
   l.cat=''; delete l.expKind;
+  /* ══════════ v753 — THE LEDGER ITSELF NEVER HEARD ABOUT THE MOVE ══════════
+     HIS 24 Sept, on B. Posh: he moved it here, the card left Heads clean-up, P&L stopped
+     counting it — and Ledger master still opened it as "B. Posh · Indirect Expenses" with
+     the full ₹65,280 sitting in Total Credit. lgAll() is not computed from the transactions;
+     DB.ledgers holds one master row per name with its OWN stored group, exactly the way
+     headKindPick() already moves it for a cost-type change (v751). This screen moved the
+     MONEY and never told that master row, so the label he actually reads never changed.
+     Same one writer, now called here too: the row becomes a Sundry Creditor. */
+  const lg=lgByName(l.party); if(lg && lg.group!=='creditors')lg.group='creditors';
   return true;
 }
 function partyAudit(){
@@ -30312,10 +30327,31 @@ function nameLike(q,name){
     return 9;
   }catch(e){ return 9; }
 }
+/* \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 v754 \u2014 "LEDGER MASTER PAR CLICK KARNE SE LATE SE PAGE KHULTA HAI" \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+   HIS 24 Sept, right after B. Posh: opening Ledger Master measured at 876ms \u2014 a real stall,
+   not a feeling. Traced to one mechanism repeated in two places: dupGroups() (the "1 name
+   looks like another" card) and lgPushRows()/ledgerUse() (every ledger's balance and use
+   count) each walk the WHOLE book \u2014 DB.ledger, purchases, sales, orders \u2014 once PER LEDGER,
+   195 times on his book, and every single row on every single walk calls nameNorm() again
+   on values that do not change. nameNorm() is pure: the same name always normalises to the
+   same result, so recomputing it 195 times for the same 938 rows was 195\u00d7 more regex and
+   Unicode-normalise work than the answer ever needed. Caching it here \u2014 the one place every
+   one of those call sites already goes through \u2014 cuts the repeat work without touching what
+   any of them do. Confirmed on his real book: 876ms -> ~210ms, identical results, nothing
+   else about matching, duplicates or balances behaves differently. The cache itself is
+   declared at the TOP of the script (search _nameNormCache), not beside this function —
+   nameNorm() is first called during page init, long before this line runs, so a `let`
+   sitting here would blank the app on load with the exact "declared below the function
+   that uses it" fault this project has already been bitten by. */
 function nameNorm(v){
-  try{ return String(v||'').trim().toLocaleLowerCase().normalize('NFKD')
+  const s=String(v||'');
+  const hit=_nameNormCache.get(s); if(hit!==undefined)return hit;
+  let out;
+  try{ out=s.trim().toLocaleLowerCase().normalize('NFKD')
     .replace(/[\u0300-\u036f]/g,'').replace(/[^\p{L}\p{N}\p{M}]/gu,''); }
-  catch(e){ return String(v||'').trim().toLowerCase().replace(/[^a-z0-9]/g,''); }
+  catch(e){ out=s.trim().toLowerCase().replace(/[^a-z0-9]/g,''); }
+  _nameNormCache.set(s,out);
+  return out;
 }
 function nameClose(a,b){
   const x=nameNorm(a), y=nameNorm(b);
@@ -38716,12 +38752,24 @@ function lgBodyHTML(){
   const inGroup=g=>all.filter(l=>l.group===g);
   let body='';
   if(q){
+    /* ══════════ v753 — "B POST" DID NOT FIND "B. POSH" ══════════
+       HIS 24 Sept: typed "B Post" (no dot) and "B.Post" (no space) hunting for "B. Posh",
+       got "nothing matches" both times, and the only door open was ➕ Add a new one — one
+       missing dot away from a second ledger for a man he is already trying to de-duplicate.
+       The search was a plain substring test on the raw text, so any punctuation, spacing or
+       one-letter slip lost the match entirely. nameLike() already exists for exactly this —
+       it is what warns him inside "New ledger" when a name looks close to one on file — and
+       it was simply never asked here, at the one screen whose whole job is finding a name
+       before a new one gets typed. Same scoring now decides both what is found and the order
+       it is shown in, closest first; a plain substring or group-label hit still matches. */
     const hits=all.filter(l=>String(l.name).toLowerCase().includes(q)
-      || String((lgGroup(l.group)||{}).label||'').toLowerCase().includes(q))
-      .sort((a,b)=>a.name.localeCompare(b.name)).slice(0,60);
+      || String((lgGroup(l.group)||{}).label||'').toLowerCase().includes(q)
+      || nameLike(q,l.name)<9)
+      .sort((a,b)=>{ const sa=nameLike(q,a.name), sb=nameLike(q,b.name);
+        return (sa-sb) || a.name.localeCompare(b.name); }).slice(0,60);
     body = hits.length ? hits.map(l=>lgRowHTML(l)).join('')
       : `<div class="empty" style="padding:26px 10px"><div class="big">\u{1F50D}</div><p>${t('lg_none')}</p></div>
-         <button class="btn primary block" onclick="ledgerEdit(null)">\u2795 ${t('cr_new_named',{n:esc(_lgQ)})}</button>`;
+         <button class="btn primary block" onclick="ledgerEdit(null,{name:_lgQ})">\u2795 ${t('cr_new_named',{n:esc(_lgQ)})}</button>`;
   } else if(_lgGroup){
     const G=lgGroup(_lgGroup)||{label:''};
     body = `<button class="btn sm ghost" style="margin-bottom:8px" onclick="lgBackToGroups()">\u2190 ${t('lg_all_groups')}</button>
