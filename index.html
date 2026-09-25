@@ -104,6 +104,13 @@
 })();
 </script>
 <style>
+  /* v758 — HIS 24 Sept, Edit purchase for Bapulal bill 1207: "Paid now" empty and unticked,
+     yet "Bank transfer" and "From account ICICI PARAMPARA" sat right under it, as if the bill
+     had just been paid from the bank. Those two rows carry the `hidden` attribute while
+     nothing is being paid — but their own inline display:flex outranks the browser's
+     [hidden] rule, so hidden did nothing. One rule here makes `hidden` mean hidden
+     everywhere; only four elements in the app use it, and none of them wants the opposite. */
+  [hidden]{display:none!important}
   /* ══════════════ v593 — THE SHOP IS A BRIGHT ROOM ══════════════
      HIS 9 Sept: "background jo dark black hai wo lagta hai white me rahega to zyada accha
      hai." He is right and the reasons are practical, not taste: the shop has daylight and
@@ -1118,7 +1125,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v756</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v758</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -3350,6 +3357,8 @@ const T={
   supplier:'Supplier',
   supplier_ph:'Supplier / party name',
   paid_now:'Paid now ₹',
+  pu_paid_before:'Paid', pu_pay_more:'Paying more now ₹', pu_pay_del:'Remove this payment', pu_pay_for:'Payment for bill {n}',
+  pu_pay_del_q:'{m} paid to {s} on {d} ({a}) will be removed. The bill stays as it is, {s} will show this amount as owed again, and the account gets it back.',
   purchases_report:'Purchase report',
   rp_total_purchases:'Total purchases',
   ml_del_move:'{c} {c|entry|entries} are filed under {n}. They must be moved to another name first — pick the name they should go to, and {n} goes with the move.',
@@ -5708,6 +5717,8 @@ dl_show_hidden:'Show hidden ({n})',
   supplier:'सप्लायर',
   supplier_ph:'सप्लायर / पार्टी का नाम',
   paid_now:'अभी दिया ₹',
+  pu_paid_before:'दिया', pu_pay_more:'अभी और दे रहे ₹', pu_pay_del:'यह पेमेंट हटाओ', pu_pay_for:'बिल {n} का पेमेंट',
+  pu_pay_del_q:'{d} को {s} को दिया {m} ({a}) हट जाएगा। बिल वैसा ही रहेगा, {s} का इतना पैसा फिर से बाकी दिखेगा, और खाते में वापस आ जाएगा।',
   purchases_report:'ख़रीद रिपोर्ट',
   rp_total_purchases:'Total purchases',
   ml_del_move:'{n} के नीचे {c} entry दर्ज हैं। पहले उन्हें किसी और नाम पर ले जाना होगा — वो नाम चुनिए, और {n} उसी के साथ हट जाएगा।',
@@ -28929,11 +28940,29 @@ function purchTotalsBoxHTML(comp){
         value="${comp.roundOff?esc(comp.roundOff):''}" placeholder="0"
         style="width:96px;text-align:right;margin:0" oninput="updatePurchTotal()"></div>
     <div style="${ln}"><span>${t('grand_total')}</span><b id="puTotalAmt" style="font-size:18px">${money(comp.total)}</b></div>
+    ${/* ══════════ v758 — "PAID NOW MEIN CLICK NAHI HAI, PHIR BHI PAID DIKHA RAHA HAI" ══════════
+         HIS 24 Sept, Bapulal bill 1207: Paid now empty, Balance ₹0, and the only trace of why
+         was a small grey line under the box — "Received: ₹69,082" — the wrong word for money
+         the shop PAID, and no date, no account, no way to take it off. "Paid now" is only for
+         money going out today; what went earlier lives on the bill's own payment list. That
+         list is now shown here, one line each — date, account, amount — above the box for a
+         new payment, and each can be removed on its own after a question that names what
+         changes. Nothing else about saving a bill is touched. */
+      (()=>{ const pp=f.editId?(DB.purchases||[]).find(x=>x.id===f.editId):null;
+        const L=(pp&&pp.payments)||[]; if(!L.length)return '';
+        const ML=PU_MODES.concat(PAY_MODES_PUR);
+        return L.map(x=>{ if(!x.id)x.id='pay_'+uid();
+          const mk=(ML.find(m=>m[0]===x.mode)||[])[1];
+          const where=x.acc?accName(x.acc):(mk?t(mk):(x.mode||''));
+          return `<div style="${ln}"><span style="min-width:0">\u2705 ${t('pu_paid_before')}
+              <span class="hint">\u00B7 ${x.date?fmtDate(x.date):'\u2014'}${where?' \u00B7 '+esc(where):''}</span></span>
+            <span style="display:flex;gap:6px;align-items:center;flex:0 0 auto"><b>${money(+x.amt||0)}</b>
+              <button type="button" class="btn sm ghost" style="padding:2px 8px;min-height:34px" onclick="puPayDelAsk('${jq(x.id)}')">\u{1F5D1}\uFE0F</button></span></div>`; }).join(''); })()}
     <div style="${ln}">
       <span style="display:flex;gap:8px;align-items:center">
         <input type="checkbox" id="pu_paidfull" style="width:18px;height:18px;margin:0" onchange="puPaidFull(this.checked)"
           ${(+paid>0&&r2(+paid)===r2(Math.max(0,comp.total-puPrior())))?'checked':''}>
-        <span>${t('paid_now')}</span></span>
+        <span>${puPrior()>0?t('pu_pay_more'):t('paid_now')}</span></span>
       <input id="pu_paid" type="number" inputmode="numeric" value="${paid}" placeholder="0"
         style="width:112px;text-align:right;margin:0" oninput="updatePurchTotal()"></div>
     <div style="${ln}"><span>${t('baaki')}</span>
@@ -28995,12 +29024,32 @@ function puPaidFull(on){
   const el=$('#pu_paid'); if(el)el.value=on?r2(Math.max(0,comp.total-puPrior())):'';
   updatePurchTotal();
 }
+/* v758: take one earlier payment off a purchase bill. Money, so it asks — naming the amount,
+   the day, the account and what the supplier will show afterwards. Found by its own id, never by
+   date + amount. Written at once and the box redrawn; Undo puts it back where it was. */
+function puPayDelAsk(pid){
+  const f=purchForm; if(!f||!f.editId)return;
+  const p=(DB.purchases||[]).find(x=>x.id===f.editId); if(!p)return;
+  const x=(p.payments||[]).find(y=>y.id===pid); if(!x)return;
+  /* modal(), not confirmModal(): confirmModal's buttons dismiss through closeSheet(), and the
+     sheet underneath here is the bill he is still editing. */
+  modal('\u{1F5D1}\uFE0F '+t('pu_pay_del'),
+    `<p style="color:var(--txt2);font-size:14px;line-height:1.6">${t('pu_pay_del_q',{m:money(+x.amt||0), d:x.date?fmtDate(x.date):'\u2014', a:esc(x.acc?accName(x.acc):(x.mode||'')), s:esc(p.supplier||'')})}</p>`,
+    [{label:t('cancel'),cls:'ghost',fn:closeModal},
+     {label:t('delete'),cls:'danger',fn:()=>{ const at=(p.payments||[]).findIndex(y=>y.id===pid); if(at<0){ closeModal(); return; }
+      const rec=p.payments.splice(at,1)[0];
+      save(); closeModal(); try{ _lgBalMemo={}; }catch(e){}
+      puTotalsRedraw();
+      undoOffer(t('t_deleted'), ()=>{ p.payments=p.payments||[]; p.payments.splice(Math.min(at,p.payments.length),0,rec);
+        save(); try{ _lgBalMemo={}; }catch(e){} puTotalsRedraw(); }); }}]);
+}
+function puTotalsRedraw(){ try{ if(!purchForm)return; capturePurchForm(); const b=$('#puTotalsBox'); if(b)b.innerHTML=purchTotalsBoxHTML(purchCompute(purchForm)); }catch(e){} }
 function puSetMode(m){
   const h=$('#pu_pm'); if(h)h.value=m;
   purchForm.paymentMode=m;
   document.querySelectorAll('#puModes .gtag').forEach(el=>
     el.classList.toggle('on-tag', el.dataset.pm===m));
-  const ar=$('#puAccRow'); if(ar)ar.hidden=/cash/i.test(m);
+  const ar=$('#puAccRow'); if(ar)ar.hidden=/cash/i.test(m)||!((+(purchForm||{}).paidNow||0)>0);   /* v758: no account while nothing is being paid */
   /* v239 — HIS screenshot: mode said "Bank transfer", account said "Cash". Money would
      have left the cash box wearing a bank label, and the Cash Flow report would carry
      that lie forever. The account now follows the mode the moment it is picked. */
@@ -30041,7 +30090,8 @@ function renderPurchaseForm(){
         onclick="event.preventDefault();event.stopPropagation();modal('📦 '+t('pu_nostock'),'<p class=&quot;hint&quot;>'+t('pu_nostock_hint')+'</p>',[{label:t('close'),cls:'ghost',fn:closeModal}])">ⓘ</span>
     </label>
     <div class="card" id="puTotalsBox" style="padding:12px 14px">${purchTotalsBoxHTML(comp0)}</div>
-    ${f.editId&&p?`<p class="hint" style="margin:0 0 10px">${t('received')}: ${money(orderReceived(p))} · ${t('baaki')}: <b style="color:var(--saffron2)">${money(orderBaaki(p))}</b></p>`:''}
+    ${/* v758: the "Received: … · Balance" line that stood here is gone — the payments it summed
+         are listed inside the box above, by date and account, and the box's Balance says the rest. */''}
     ${/* v320 — HIS 25 Aug: the bill was four screenfuls tall on a phone. Nothing is gone;
          the photo and the note, which most bills never carry, now sit behind one line that
          says whether there is anything in them. Opened automatically when there is. */''}
@@ -39188,7 +39238,14 @@ function lgPushRows(rows,l,n){
   (DB.purchases||[]).forEach(pu=>{ if(nameNorm(pu.supplier)!==n)return;
     rows.push({go:"purchMenu('"+jq(pu.id)+"')", date:pu.date||'',
       ref:t('purchase')+(pu.billNo?' '+pu.billNo:''), dr:0, cr:r2(orderTotal(pu))});
-    (pu.payments||[]).forEach(pp=>rows.push({go:"purchMenu('"+jq(pu.id)+"')", date:pp.date||'', ref:t('pay_out'), dr:r2(+pp.amt||0), cr:0}));
+    /* v758 — HIS 24 Sept: "payment ki entry mein bhi bill dikha raha hai." The row said only
+       "Payment", and tapping it opened the BILL's menu (PDF, WhatsApp, delete the whole bill),
+       with nothing anywhere about the payment itself. It now says whose payment it is — the
+       bill number and the account the money left from — and opens the bill's own form,
+       where that payment is listed and can be removed on its own. */
+    (pu.payments||[]).forEach(pp=>rows.push({go:"openPurchaseForm('"+jq(pu.id)+"')", date:pp.date||'',
+      ref:(pu.billNo?t('pu_pay_for',{n:pu.billNo}):t('pay_out'))+(pp.acc?' \u00B7 '+accName(pp.acc):(pp.mode?' \u00B7 '+pp.mode:'')),
+      dr:r2(+pp.amt||0), cr:0}));
   });
   /* ══════════════ v462 — GOODS WENT BACK, THE LEDGER NEVER HEARD ══════════════
      Traced with one purchase of 4,200 and a return of 1,600 against it:
@@ -39267,6 +39324,10 @@ function balColor(v){
   if(!n)return 'var(--ink)';
   return n>0 ? 'var(--ok)' : 'var(--bad)';
 }
+/* v758 — HIS 24 Sept, Bapulal's ledger: "Balance ₹0 Dr". Nothing is owed either way, so
+   there is no side to name; a Dr on a zero reads like money still sitting against him. Every
+   running and closing figure on the ledger asks this one function now. */
+function lgSide(v){ const n=r2(+v||0); return Math.abs(n)<0.005?'':(n<0?'Cr':'Dr'); }
 function lgBalHTML(v){
   const a=Math.abs(r2(v)); if(!a)return `<b>${money(0)}</b>`;
   /* v721: a ledger's Dr is money owed TO the shop, Cr is money the shop owes. Same rule. */
@@ -39357,7 +39418,19 @@ function ledgerView(id){
     const _word=(function(){
       if(isOpen)                       return t('lg_open_row');
       if(_k==='sale'||/INV\//.test(r.ref||''))   return t('lg_w_bill');
-      if(_k==='purchase'||/^purchMenu/.test(r.go||''))  return t('lg_w_purchase');
+      /* ══════════ v757 — "10 AUG PURCHASE, 10 AUG PAYMENT, DONO PAR PURCHASE LIKHA HAI" ══════════
+         HIS 24 Sept, on Kanchan Syntex and again wherever a bill is paid the same day it is
+         raised: the bill row correctly opens purchMenu(id), and so does the payment row right
+         under it — same door, so tapping either takes him to the one purchase, which is right.
+         But this word-picker used THAT SAME go="purchMenu(...)" string to decide the word, so
+         it called the payment row "Purchase" too — the ref line above it already said
+         "Payment" correctly, so the row printed two different words for itself in the same
+         breath: bold "Payment", then a grey "Purchase" sitting right over the amount. Same
+         bill number, same rupee figure, twice in a row — exactly what reads as a duplicate
+         entry even though the books never doubled a thing. A purchase's BILL is the only row
+         with nothing on the Dr side (cr carries the bill, dr carries every payment against
+         it), so that is what the word must ask, not which screen the row happens to reopen. */
+      if((_k==='purchase'||/^purchMenu/.test(r.go||'')) && !r.dr)  return t('lg_w_purchase');
       /* v743 — HIS 21 Sept screenshot: two expenses paid on a creditor's ledger were each
          labelled "Receipt". A debit means money came IN only on a cash or bank ledger; on a
          party or expense ledger a debit is money the shop PAID out, and a credit is money it
@@ -39375,7 +39448,7 @@ function ledgerView(id){
       <div class="lg-fig"><span class="hint">${isOpen?'\u00a0':esc(amt.w)}</span>
         <b>${money(Math.abs(amt.v))}</b></div>
       <div class="lg-fig lg-run"><span class="hint">${esc(t('lg_left'))}</span>
-        <b>${money(Math.abs(run))} <span class="hint">${run<0?'Cr':'Dr'}</span></b></div></div>`;
+        <b>${money(Math.abs(run))} <span class="hint">${lgSide(run)}</span></b></div></div>`;
   }).join('');
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F4D2} ${esc(l.name)}</h2>
@@ -39390,7 +39463,7 @@ function ledgerView(id){
     </div>
     ${(_lgFrom||_lgTo)?`<div class="kv" style="border-bottom:0;padding:0 0 8px">
       <span class="hint">${_lgFrom?t('lg_opening_as',{d:fmtDate(_lgFrom)}):t('lg_open')}</span>
-      <b>${money(Math.abs(opening))} <span class="hint">${opening<0?'Cr':'Dr'}</span></b></div>
+      <b>${money(Math.abs(opening))} <span class="hint">${lgSide(opening)}</span></b></div>
       <button class="btn ghost sm block" style="margin-bottom:10px" onclick="lgRangeClear('${jq(l.id)}')">${t('lg_all_dates')}</button>`:''}
     ${/* v506: the two things he can do to a ledger, at the top with its name — not at the
          far end of two hundred entries. Move is here because it is the honest answer to
@@ -39420,11 +39493,11 @@ function ledgerView(id){
       <div class="il"><span>${t('lg_dr_total')}</span><b>${money(drTot)}</b></div>
       <div class="il"><span>${t('lg_cr_total')}</span><b>${money(crTot)}</b></div>
       <div class="il" style="border-bottom:0"><span><b>${t('lg_closing')}</b></span>
-        <b style="font-size:18px">${money(Math.abs(run))} ${run<0?'Cr':'Dr'}</b></div></div>
+        <b style="font-size:18px">${money(Math.abs(run))} ${lgSide(run)}</b></div></div>
     ${exportBarHTML('lg_'+l.id,()=>({title:l.name, sub:(lgGroup(l.group)||{}).label||'',
       head:[t('jv_date'),t('jv_narr'),t('jv_dr'),t('jv_cr'),t('lg_closing')],
       rows:(function(){let rr=0;return lgRowsFor(l).map(r=>{rr=r2(rr+(r.dr||0)-(r.cr||0));
-        return [r.date?fmtDate(r.date):'', r.ref||'', r.dr||'', r.cr||'', money(Math.abs(rr))+' '+(rr<0?'Cr':'Dr')];});})()}))}
+        return [r.date?fmtDate(r.date):'', r.ref||'', r.dr||'', r.cr||'', (money(Math.abs(rr))+' '+lgSide(rr)).trim()];});})()}))}
     ${/* v683: the header row is gone. Every row says what its own figures are, so a column
          heading three wraps above it has nothing left to explain. */''}
     ${rows.length?`<div class="card" style="padding:4px 12px;margin-bottom:12px">${body}</div>`
