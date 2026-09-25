@@ -1125,7 +1125,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v758</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v759</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -2619,6 +2619,7 @@ const T={
   ph_one_more:'One more', ph_more_hint:'Take the next photo without leaving this screen.',
   bk_one_file_note:'One file — orders, measurements, stock, karigar accounts and photos together.',
   bk_remind_t:'Remind me after', bk_remind_hint:'Days without a backup before the warning appears',
+  bk_remind_days:'{n} {n|day|days}',
   bk_remind_set:'Warning will appear after {n} {n|day|days}',
   pb_parts_left:'{n} of {of} {of|part|parts} still to restore — part {list}',
   pb_parts_all:'All {of} {of|part|parts} restored',
@@ -4983,6 +4984,7 @@ dl_show_hidden:'Show hidden ({n})',
   ph_one_more:'एक और', ph_more_hint:'यहीं से अगली फ़ोटो लीजिए, पीछे जाने की ज़रूरत नहीं।',
   bk_one_file_note:'एक ही फ़ाइल — ऑर्डर, नाप, स्टॉक, करीगर हिसाब और फ़ोटो सब साथ।',
   bk_remind_t:'याद दिलाएँ', bk_remind_hint:'इतने दिन बैकअप न लेने पर चेतावनी दिखेगी',
+  bk_remind_days:'{n} दिन',
   bk_remind_set:'{n} दिन बाद चेतावनी दिखेगी',
   pb_parts_left:'{of} में से {n} हिस्से अभी बाकी — हिस्सा {list}',
   pb_parts_all:'सभी {of} हिस्से वापस आ गए',
@@ -42161,8 +42163,27 @@ function hasAnyData(){
 /* v333 — P2. Vyapar lets a shop say "remind me every N days"; here the nag simply
    hard-coded three. Same card, same behaviour, only the threshold is his. */
 function bkRemindDays(){ const n=+((DB.settings||{}).bkRemindDays); return (n>=1&&n<=90)?n:1; }   /* v750: HIS 22 Sept — one day (was a week, v411); his own setting still wins */
+/* v759 — HIS 25 Sept: "save karne ke baad ye option nahi dikhana chahiye" — the input and
+   Save button sat there unchanged after saving, with only a toast (gone in 2.4s) to show
+   anything happened, so a real save looked exactly like a failed tap. Same shape as the
+   project's own fault #1: a write happens and the screen is never told — here the write DID
+   land (confirmed by test), but the screen gave no lasting sign of it. Now it collapses to
+   plain text after Save; a pencil brings the input back. */
+var _bkRemindEdit=false;
+function bkRemindBoxHTML(){
+  if(_bkRemindEdit) return `<span style="display:flex;gap:6px;align-items:center">
+    <input id="bkRemindN" type="number" inputmode="numeric" min="1" max="90"
+      value="${bkRemindDays()}" style="width:64px;text-align:right;margin:0">
+    <button class="btn sm ghost" onclick="bkRemindSet(document.getElementById('bkRemindN').value)">${t('save')}</button></span>`;
+  return `<span style="display:flex;gap:8px;align-items:center">
+    <b>${t('bk_remind_days',{n:bkRemindDays()})}</b>
+    <button class="btn sm ghost" onclick="_bkRemindEdit=true;bkRemindDraw()" aria-label="${t('edit')||'Edit'}">✏️</button></span>`;
+}
+function bkRemindDraw(){ const el=$('#bkRemindBox'); if(!el)return; el.innerHTML=bkRemindBoxHTML();
+  if(_bkRemindEdit){ const i=$('#bkRemindN'); if(i){ try{ i.focus(); i.select(); }catch(e){} } } }
 function bkRemindSet(v){ DB.settings=DB.settings||{}; const n=Math.max(1,Math.min(90,+v||3));
   DB.settings.bkRemindDays=n; save(); toast(t('bk_remind_set',{n}),'ok');
+  _bkRemindEdit=false; bkRemindDraw();
   try{ renderHome(); }catch(e){} }
 /* ══════════ v750 — BACHAAV ══════════
    HIS 22 Sept, after the phone showed "Set up your shop" a second time: "data ka gayab ho
@@ -42477,6 +42498,7 @@ function dangerUnlock(){
   _dgOpen=1; dangerDraw();
 }
 function backupMenu(){
+  _bkRemindEdit=false;
   /* v188 — HIS 13 Aug: "backup lete samay itne saare options hain ki staff to le hi nahi
      paate. Jitne bhi software use kiye hain kisi me bhi itna clumsy nahi hai."
      He was right — this screen had TEN buttons and the word "backup" on three of them,
@@ -42539,11 +42561,7 @@ function backupMenu(){
       <div class="card" style="padding:9px 12px;margin-top:8px">
         <div class="kv"><span style="min-width:0"><b style="font-size:13px">🔔 ${t('bk_remind_t')}</b>
           <div class="hint">${t('bk_remind_hint')}</div></span>
-          <span style="display:flex;gap:6px;align-items:center;flex:0 0 auto">
-            <input id="bkRemindN" type="number" inputmode="numeric" min="1" max="90"
-              value="${bkRemindDays()}" style="width:64px;text-align:right;margin:0">
-            <button class="btn sm ghost" onclick="bkRemindSet(document.getElementById('bkRemindN').value)">${t('save')}</button>
-          </span></div></div>
+          <span id="bkRemindBox" style="flex:0 0 auto">${bkRemindBoxHTML()}</span></div></div>
       <div id="bkFile"></div>
       <button class="btn ghost block" style="margin-top:8px" onclick="shareBackup(true)">📨 ${t('bk_data_only')}</button>
       <p class="hint" style="margin:2px 0 8px">${t('bk_data_only_hint')}</p>
