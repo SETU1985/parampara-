@@ -1125,7 +1125,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v759</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v760</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -23902,17 +23902,32 @@ function renderInvoiceForm(){
      An order bill now carries a line naming the customer, his phone, the order number and
      the delivery date — read only, because they belong to the order and are changed there,
      not here. */
+  /* v760 -- HIS 25 Sept: "invoice mein edit ka option nahi hai, invoice number edit ka
+     option chahiye." True, and it undoes v608 by half: v608's whole point was "shown and
+     editable are the same place" -- one Invoice No . Date box, at the top, for every bill.
+     But this ternary only ever built that box on the kind==='sale' branch. A bill made FROM
+     AN ORDER (his main flow, not the counter-sale one) got the read-only name/phone/order
+     card instead, with NO invoice-no or date field anywhere on the screen -- not shown, not
+     editable, new or already saved. captureForm() already reads #inv_no/#inv_date
+     unconditionally (`if($('#inv_no'))...`), and the save-time renumber-on-clash check
+     already runs across DB.orders, DB.sales and DB.alterations alike -- so this box was
+     always safe to show here; it was just never drawn. */
+  const invNoDateHTML=`<div class="head-grid3" style="grid-template-columns:1fr 1fr;margin-bottom:10px">
+      <div class="field" style="margin:0"><label>🧾 ${t('invoice_no')}</label>
+        <input id="inv_no" value="${esc(f.no)}" style="font-size:14px"></div>
+      <div class="field" style="margin:0"><label>📅 ${t('invoice_date')}</label>
+        ${dateField("inv_date",f.date)}</div>
+    </div>`;
   const custBlock = f.kind!=='sale' ? (()=>{
     const rec=invRecOf(f.kind,f.id)||{};
     const nm=rec.customerName||'', ph=rec.phone||'';
-    if(!nm && !ph && !rec.orderNo) return '';
-    return `<div class="card" style="padding:10px 12px;margin-bottom:10px">
+    const info=(!nm && !ph && !rec.orderNo) ? '' : `<div class="card" style="padding:10px 12px;margin-bottom:10px">
       <div class="kv" style="border-bottom:0;padding:0">
         <div style="flex:1;min-width:0">
           <b style="font-size:15px">\u{1F464} ${esc(nm||'\u2014')}</b>
           ${ph?`<div class="hint" style="margin-top:2px">\u{1F4DE} ${esc(ph)}</div>`:''}
         </div>
-        ${/* v589 — a bare "#1" beside the name told him nothing: order number, bill
+        ${/* v589 -- a bare "#1" beside the name told him nothing: order number, bill
              number, line number, customer number, all look the same. It says which. */''}
         <div style="text-align:right;flex:0 0 auto">
           ${rec.orderNo?`<div style="font-size:11px;letter-spacing:.5px;color:var(--mut)">\u{1F454} ${t('order_no')}</div>
@@ -23920,6 +23935,7 @@ function renderInvoiceForm(){
           ${rec.deliveryDate?`<div style="font-size:11px;letter-spacing:.5px;color:var(--mut);margin-top:6px">\u{1F69A} ${t('inv_delivery')}</div>
             <b style="font-size:14px">${fmtDate(rec.deliveryDate)}</b>`:''}
         </div></div></div>`;
+    return invNoDateHTML + info;
   })() : `
     <div id="invCustPicked" style="margin-bottom:10px">${(f.customerId||f.customerName)?invCustomerPickedHTML():''}</div>
     <div class="head-grid3" style="grid-template-columns:1fr 1fr;margin-bottom:10px">
