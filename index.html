@@ -1125,7 +1125,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v763</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v766</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -2610,6 +2610,7 @@ const T={
   dft_keep_msg2:'Nothing has been saved as an order yet. Keep what you have taken so far, or go back and carry on.',
   dft_stay:'Stay here',
   dft_keep:'Keep for later', dft_drop:'Discard',
+  pit_unsaved_title:'This item is not added yet', pit_unsaved_msg:"You haven't tapped Save on this line yet. Stay and finish it, or leave it out of the bill?",
   vm_out_soft:'{v}? say it again', vm_saved_short:'{v}', vm_next_short:'done — next',
   ms_title:'Measurement limits',
   upd_row:'Check for a new version', upd_new:'New version {v} is ready',
@@ -4975,6 +4976,7 @@ dl_show_hidden:'Show hidden ({n})',
   dft_keep_msg2:'अभी ऑर्डर सेव नहीं हुआ है। जो नाप ले लिया है उसे रख लें, या वापस जाकर पूरा करें।',
   dft_stay:'यहीं रुको',
   dft_keep:'बाद के लिए रखो', dft_drop:'हटा दो',
+  pit_unsaved_title:'यह आइटम अभी जुड़ा नहीं है', pit_unsaved_msg:'इस लाइन पर अभी Save नहीं दबाया। यहीं रुककर पूरा करें, या इसे बिल में मत जोड़ें?',
   vm_out_soft:'{v}? फिर से बोलिए', vm_saved_short:'{v}', vm_next_short:'हो गया — अगला',
   ms_title:'नाप की सीमा',
   upd_row:'नया वर्ज़न देखें', upd_new:'नया वर्ज़न {v} तैयार है',
@@ -6337,7 +6339,18 @@ function load(raw){
   if(!DB.moves)DB.moves=[];            // every stock movement (in / out)
   if(!DB.stkCfg)DB.stkCfg={nextSerial:1,deadMonths:6,
     sizes:['S/36','M/38','L/40','XL/42','XXL/44','3XL/46']};
-  (DB.itemMaster||[]).forEach(m=>{ if(!m.kind)m.kind='stitch'; if(!m.stk)m.stk={}; });
+  /* v764 — "5151 Black" wasn't hiding on the wrong screen — it was never on Stock's
+     readymade list at all. A NEW catalog item made mid-Purchase ("+ New item") got
+     kind:'' (imSave only ever wrote 'stitch' or ''), but Purchase then wrote its
+     purchased quantity straight onto that record's own m.stk — the write is real and
+     safe, it's just that readyItems() only lists kind==='ready'. So the piece existed,
+     had stock, and was permanently invisible on the one screen built to show it — AND
+     this very line was about to make it worse: it blindly turns every empty kind into
+     'stitch', so on the very next reload that stocked readymade piece would have been
+     silently relabelled a made-to-order stitching design. A record already holding a
+     real size/quantity is unambiguously a stock item whatever its kind says — decide
+     that FIRST, and fall back to the old 'stitch' default only when it holds nothing. */
+  (DB.itemMaster||[]).forEach(m=>{ if(!m.kind)m.kind=Object.values(m.stk||{}).some(v=>(+v||0)>0)?'ready':'stitch'; if(!m.stk)m.stk={}; });
   if(DB.shopInfo && DB.shopInfo.blessing===undefined)DB.shopInfo.blessing='|| ॐ श्री गणेशाय नमः ||';
   if(!DB.inclLib)DB.inclLib=['Sherwani','Kurta','Pyjama','Churidar','Indo-Western','Jacket','Coat','Blazer','Waistcoat','Shirt','Pant','Trouser','Dupatta','Stole','Safa'];
   // A fresh install must NOT carry any shop's identity — the setup screen fills these in.
@@ -9108,7 +9121,7 @@ function readyBody(keepFocus){
   const el=$('#stkBody'); if(!el)return;
   const q=(_rdyQ||'').trim().toLowerCase();
   let list=readyItems();
-  if(q)list=list.filter(m=>String(m.name).toLowerCase().includes(q));
+  if(q)list=list.filter(m=>String(m.name).toLowerCase().includes(q)||String(m.rmNo||'').toLowerCase().includes(q)||String(m.dsgn||'').toLowerCase().includes(q));
   // newest entered first, for the same reason as the fabric list
   if(_rdySort==='name')list.sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
   else list.sort((a,b)=>String(b.created||b.id||'').localeCompare(String(a.created||a.id||'')));
@@ -9131,7 +9144,12 @@ function readyBody(keepFocus){
       return `<div class="card" style="margin-bottom:8px" onclick="readyEdit('${m.id}')">
         <div class="kv" style="align-items:flex-start">
           ${(m.photos||[]).length?`<img class="stk-thumb" data-pid="${m.photos[0]}">`:''}
-          <div style="flex:1"><b style="font-size:15px">${esc(m.name)}</b>
+          <div style="flex:1">
+            ${/* v764 — HIS 25 Sept: "दूसरे स्क्रीन में आइटम का सीरियल नंबर नहीं दिखाई दे रहा है" —
+                 the fabric list leads with #serial in saffron; this list never showed rmNo/dsgn
+                 at all, so the very number on the purchase invoice was nowhere on screen. */''}
+            ${(m.rmNo||m.dsgn)?`<div style="font-size:12px;color:var(--saffron2);font-weight:700">${m.rmNo?esc(m.rmNo):''}${m.rmNo&&m.dsgn?' · ':''}${m.dsgn?esc(m.dsgn):''}</div>`:''}
+            <b style="font-size:15px">${esc(m.name)}</b>
             ${m.rate?`<div class="hint">${money(m.rate)} / pc</div>`:''}
             ${m.notes?`<div class="hint" style="margin-top:3px;white-space:pre-wrap">${esc(m.notes)}</div>`:''}
             <div class="gtags" style="margin-top:6px">${chips||`<span class="hint">${t('stk_out')}</span>`}</div></div>
@@ -9231,8 +9249,8 @@ function readyBulkRender(){
 let _rd=null;
 function readyEdit(id){
   const ex=id?(DB.itemMaster||[]).find(x=>x.id===id):null;
-  _rd = ex ? {id:ex.id,name:ex.name,cost:ex.cost||'',sell:(ex.sell!=null&&ex.sell!==''?ex.sell:(ex.rate||'')),hsn:ex.hsn||'',notes:ex.notes||'',stk:Object.assign({},ex.stk||{}),photos:[...(ex.photos||[])]}
-    : {id:null,name:'',cost:'',sell:'',hsn:'',notes:'',stk:{},photos:[]};
+  _rd = ex ? {id:ex.id,name:ex.name,cost:ex.cost||'',sell:(ex.sell!=null&&ex.sell!==''?ex.sell:(ex.rate||'')),hsn:ex.hsn||'',notes:ex.notes||'',stk:Object.assign({},ex.stk||{}),photos:[...(ex.photos||[])],rmNo:ex.rmNo||'',dsgn:ex.dsgn||''}
+    : {id:null,name:'',cost:'',sell:'',hsn:'',notes:'',stk:{},photos:[],rmNo:'',dsgn:''};
   readyRender();
 }
 function readyRender(){
@@ -9252,6 +9270,7 @@ function readyRender(){
   const tot=sizes.reduce((s,sz)=>s+(+d.stk[sz]||0),0);
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">👔 ${d.id?t('edit'):t('stk_add_ready')}</h2><button class="btn sm ghost" onclick="stockHome('ready')" title="Back">←</button></div>
+    ${(d.rmNo||d.dsgn)?`<p class="hint" style="margin:0 0 6px;color:var(--saffron2);font-weight:700">${d.rmNo?esc(d.rmNo):''}${d.rmNo&&d.dsgn?' · ':''}${d.dsgn?esc(d.dsgn):''}</p>`:''}
     <p class="hint" style="margin-bottom:12px">${t('stk_ready_hint')}</p>
     <div class="field"><label>${t('im_name')} *</label>
       <input id="rd_name" value="${esc(d.name)}" placeholder="${t('stk_ready_ph')}"></div>
@@ -12665,7 +12684,7 @@ function hgMakeHead(nx){ closeModal(); if(!_exp)return;
   const v=String(_exp.cat||'').trim(); if(!v)return;
   DB.expCats=DB.expCats||[]; if(DB.expCats.indexOf(v)<0)DB.expCats.push(v);
   _exp._okHead=v; expSave(!!nx); }
-function hgUsePerson(pid,kind,head){ closeModal(); if(!_exp)return;
+function hgUsePerson(pid,kind,head){ closeModal(); if(!_exp)return; expCapture();   /* v766: keep typed amount/note */
   const p=peopleAll().find(x=>x.id===pid&&x.kind===kind); if(!p)return;
   _exp.partyId=p.id; _exp.partyName=p.name; _exp.partyKind=p.kind;
   _exp.cat=head||''; _expCatQ='';
@@ -27742,6 +27761,7 @@ function smpCostHTML(){
 }
 function smpCostLine(){ const el=$('#smpCost'); if(el)el.innerHTML=smpCostHTML(); }
 function smpSizeTog(z){
+  smpCapture();   /* v766: a size tap repainted the form and wiped the typed design no. */
   _smp.sizes=_smp.sizes||[];
   const i=_smp.sizes.indexOf(z);
   if(i>=0){ if(_smp.sizes.length>1)_smp.sizes.splice(i,1); }   // never leave it size-less
@@ -29210,7 +29230,15 @@ function puSupChanged(){
   /* v503: no tick to keep in step any more — the figure follows the supplier directly */
   const inter=puIsInterstate(typed);
   if(inter!==null && purchForm && !purchForm.interLock && purchForm.interstate!==inter){
-    purchForm.interstate=inter; try{ renderPurchaseForm(); }catch(e){}
+    /* v764 — HIS book: typing a supplier name that exactly matches an existing interstate
+       party (a different GST state code from the shop's own) wiped the supplier box itself,
+       the instant the last letter completed the match. renderPurchaseForm() redraws the
+       WHOLE form from purchForm's own fields, and purchForm.supplier was still whatever it
+       was before this keystroke — usually empty on a fresh bill — so the redraw painted
+       the box blank with the name he had just finished typing gone from both the screen and
+       the state. capturePurchForm() first means the redraw paints back exactly what was on
+       screen, including this field, instead of an empty draft. */
+    purchForm.interstate=inter; capturePurchForm(); try{ renderPurchaseForm(); }catch(e){}
   }
   const ph=$('#pu_phone'); if(s&&s.phone&&ph&&!ph.value)ph.value=s.phone;
   puSupNear();                     /* v328 */
@@ -29487,9 +29515,13 @@ function puItemPick(i){
 }
 /* v442: the item master screen takes (id, backTo). Handing it the way back means Save
    there returns HERE with the line still filled, instead of dropping him somewhere else. */
+/* v764: the callback now also receives the id of the record Save just created, so this
+   line remembers exactly which catalog item it belongs to — see purApplyStock(). Without
+   this, the purchase later had to guess that record back by name+cost, and the guess
+   failed (imSave never sets `cost`), silently creating a second, duplicate item. */
 function puItemNewMaster(){
   puItemCap();
-  imEdit(null, ()=>puItemRender());
+  imEdit(null, (newId)=>{ if(newId)_puIt.masterId=newId; puItemRender(); });
 }
 function puItemState(){
   const el=$('#pitState'); if(!el)return;
@@ -30285,9 +30317,18 @@ function purApplyStock(pur){
     const key=purStockKey(it);
     if((it.unit||'Mtr')==='Pcs'){
       // ---- readymade ----
-      let m=purMatchReady(it,key);
+      /* v764 — HIS 25/26 Sept: "5151 Black" purchased through "+ New item" never showed up
+         in Stock. Root cause had two parts, this is the second: purMatchReady() only ever
+         looks a record up again by name+cost, and imSave() (the "+ New item" screen) never
+         sets `cost` at all — that's a purchase/stock field, imSave's own is `rate`, the
+         billing price. So the record just created, with the rmNo/design/HSN he had typed,
+         was never found — a SECOND, nameless duplicate got made right here to hold the
+         actual quantity, and the one he could see and had filled in stayed at zero forever.
+         it.masterId (set the moment "+ New item" returns — see puItemNewMaster()) names
+         that record exactly, when it's available, and is trusted ahead of the guess. */
+      let m=(it.masterId && (DB.itemMaster||[]).find(x=>x.id===it.masterId)) || purMatchReady(it,key);
       const size=(it.colour||'').trim()||'-';
-      if(m){ readySet(m,size,(+(m.stk||{})[size]||0)+qty); merged++; }
+      if(m){ m._key=key; readySet(m,size,(+(m.stk||{})[size]||0)+qty); merged++; }
       else{
         /* ══════════ v429 — READYMADE WAS EATING THE CLOTH SERIALS ══════════
            HIS 1 Sep: "serial number mismatch ho raha hai... purchase ki entry ke baad stock
@@ -30816,7 +30857,7 @@ function poCapture(){const p=_po;if(!p)return
   if($('#po_phone'))p.phone=$('#po_phone').value.trim();
   if($('#po_note'))p.note=$('#po_note').value.trim();}
 function poLine(i,f,v){ _po.items[i][f]=v;
-  if(f==='recv'||f==='qty'){ poRender(); return; }   // mismatch flag needs a repaint
+  if(f==='recv'||f==='qty'){ poCapture(); poRender(); return; }  /* v766: read supplier/phone/note back first, or the repaint wipes them */   // mismatch flag needs a repaint
   document.querySelectorAll('.billed-bar .hint').forEach(el=>el.textContent=money(poTotal(_po)));}
 function poAddLine(){poCapture();_po.items.push({label:'',qty:1,rate:'',recv:''});poRender();}
 function poDel(i){
@@ -37163,6 +37204,7 @@ function imRender(){
       <button class="btn ghost" onclick="pickImPhoto('cam')">📷 ${t('camera')}</button>
       <button class="btn ghost" onclick="pickImPhoto('lib')">🖼️ ${t('gallery')}</button></div>
     <div class="modal-actions"><button class="btn ghost" onclick="imBack()">${t('cancel')}</button>
+      ${d.id?`<button class="btn danger" onclick="imDelete('${d.id}')">🗑️</button>`:''}
       <button class="btn primary" onclick="imSave()">${t('save')}</button></div><div class="fab-pad"></div>`;
   showSheet(); renderImPhotos();
 }
@@ -37206,12 +37248,20 @@ function imSave(){
      line by a stray tap — the switch only ever moves an item between made-to-order and
      stitching. */
   const stitchOn=!!((($('#im_stitch')||{}).checked)||(d.kind==='stitch'&&!$('#im_stitch')));
+  /* v764 — HIS 26 Sept: a new item made via Purchase's "+ New item" (imEdit called with a
+     function backTo — puItemNewMaster() is the only caller that does this) is, by
+     definition, readymade stock about to receive a purchased quantity by size. Leaving its
+     kind at '' made it billable but permanently invisible on Stock's readymade list, since
+     readyItems() only shows kind==='ready' — the very bug that hid "5151 Black". Only a
+     brand-new record needs this; puItemNewMaster() never edits an existing id, so this
+     never overrides a kind someone already chose. */
+  const fromPurchase=typeof d.back==='function';
   if(d.id){rec=DB.itemMaster.find(x=>x.id===d.id);
     Object.assign(rec,{name:d.name,hsn:d.hsn,rate:d.rate,incl:[...d.incl],photos:[...(d.photos||[])],
       rmNo:d.rmNo||rec.rmNo||'', dsgn:d.dsgn||''});
     if(rec.kind!=='ready')rec.kind=stitchOn?'stitch':'';}
   else{rec={id:uid(),name:d.name,hsn:d.hsn,rate:d.rate,incl:[...d.incl],photos:[...(d.photos||[])],
-      rmNo:d.rmNo||'', dsgn:d.dsgn||'', kind:stitchOn?'stitch':''};DB.itemMaster.push(rec);}
+      rmNo:d.rmNo||'', dsgn:d.dsgn||'', kind:stitchOn?'stitch':(fromPurchase?'ready':'')};DB.itemMaster.push(rec);}
   save();toast(t('t_item_saved'),'ok');
   const back=d.back; const newId=rec.id; _imDraft=null;
   /* ══════════ v543 — EDITING A SHORTCUT PUT IT ON THE BILL ══════════
@@ -37233,7 +37283,7 @@ function imSave(){
      which is the "koi sense nahi" part: that list was never meant for him to see mid-
      purchase, he only got there because the real destination was skipped. Nothing else
      read this list wrong; it was simply the wrong screen. */
-  if(typeof back==='function'){ back(); }
+  if(typeof back==='function'){ back(newId); }
   else if(back&&back.type==='inv'){
     if(back.i>=0)invApplyMaster(back.i,newId);
     else if(back.noAdd)renderInvoiceForm();
@@ -37244,8 +37294,26 @@ function imSave(){
 function imBack(){const back=_imDraft?_imDraft.back:null;_imDraft=null;
   if(typeof back==='function'){ back(); return; }
   if(back&&back.type==='inv')renderInvoiceForm(); else itemMaster();}
-function imDelete(id){confirmModal(t('confirm_del'),t('confirm_del_msg'),()=>{
-  DB.itemMaster=(DB.itemMaster||[]).filter(x=>x.id!==id);save();itemMaster();toast(t('t_deleted'));});}
+/* v764 — HIS: "5151 Black invoice mein master item mein dikh raha hai, isko yahan se kaise
+   hataye?" There was no way — imDelete() only ever hung off the Item Master LIST row (✕),
+   and the edit screen he actually lands on from Purchase or Invoice had no delete at all,
+   breaking the app's own rule that anything that can be made can be edited and deleted.
+   Wired up on imRender() below. Deleting mid-Purchase or mid-Invoice must return him to
+   THAT screen, not dump him on the Item Master list — the exact wrong-screen shape v762
+   fixed for Save, so the same back-dispatch is reused here rather than hardcoding itemMaster(). */
+function imDelete(id){
+  /* a readymade item can be carrying real purchased stock — deleting it loses that stock's
+     count too, same as readyDelete() already warns for the Stock screen's own delete. He
+     should never find stock gone with no word of why it went. */
+  const rec=(DB.itemMaster||[]).find(x=>x.id===id);
+  const tot=rec?readyTotal(rec):0;
+  confirmModal(t('confirm_del'), tot?t('stk_rdy_del_stock',{n:tot}):t('confirm_del_msg'), ()=>{
+  const back=(_imDraft&&_imDraft.id===id)?_imDraft.back:null;
+  DB.itemMaster=(DB.itemMaster||[]).filter(x=>x.id!==id);save();_imDraft=null;
+  if(typeof back==='function'){ back(); }
+  else if(back&&back.type==='inv')renderInvoiceForm();
+  else itemMaster();
+  toast(t('t_deleted'));});}
 
 /* ── STAFF ─────────────────────────────────────────────────────────────────────
    v200 — HIS 15 Aug. He keeps his staff in a spreadsheet with a tab per person, and
@@ -44506,8 +44574,33 @@ function backOneStep(){
       return false;                          // stage 1: the sheet itself is the step
     }
   }catch(e){}
+  /* v764 — HIS "Vandaan" purchase: he typed a design number on this line, went back, and
+     no draft, no line, nothing — it was simply gone. This screen has no ✕ of its own (see
+     puItemRender()), so the phone's own back gesture was the ONLY way out, and it always
+     just discarded whatever was typed here, without even asking. A real name+qty is now
+     completed exactly as if Save had been tapped — the tap he was one step away from — and
+     anything less (a design number alone, a note, a photo) still gets asked about, the same
+     two-door pattern the order form already uses, rather than silently vanishing. */
+  try{
+    if(_sheetName==='puItemSheet' && typeof _puIt!=='undefined' && _puIt){
+      puItemCap();
+      if(puItemHasContent()){
+        if(String(_puIt.label||'').trim() && +_puIt.qty>0){ puItemSave(false); return true; }
+        modal('📝 '+t('pit_unsaved_title'),
+          `<p style="color:var(--txt2);font-size:14px;line-height:1.6">${t('pit_unsaved_msg')}</p>`,
+          [{label:t('dft_stay'),cls:'ghost',fn:()=>closeModal()},
+           {label:t('dft_drop'),cls:'danger',fn:()=>{ closeModal(); sheetBack(); }}]);
+        return true;
+      }
+    }
+  }catch(e){}
   try{ if(sheetBack())return true; }catch(e){}
   return false;
+}
+function puItemHasContent(){
+  const d=_puIt; if(!d)return false;
+  return !!(String(d.label||'').trim()||(+d.qty>0)||(+d.rate>0)||String(d.design||'').trim()
+    ||String(d.colour||'').trim()||String(d.note||'').trim()||String(d.hsn||'').trim()||(d.photos||[]).length);
 }
 function modalIsOpen(){ const e=$('#mscrim'); return !!e && e.classList.contains('show'); }
 /* A DEAD END. v147 gave every SHEET a sticky cross and left modals alone, on the
