@@ -1125,7 +1125,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v766</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v768</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -2330,7 +2330,7 @@ const T={
   pur_typed:'You typed', pur_onfile:'Already on file', pur_use_saved:'Use the saved one',
   pur_keep_typed:'No, this is different — save as typed', pur_line_n:'Item line {n}',
   pur_near_fixed:'Changed to {n}',
-  nm_sup_t:'Similar supplier already saved', nm_item_t:'Similar item already saved',
+  nm_sup_t:'Similar supplier already saved', nm_item_t:'Similar item already saved', nm_person_t:'Similar name already saved',
   nm_existing:'Existing', nm_use:'Use existing', nm_new:'No, this is new',
   nm_used:'Using {n}',
   pur_sup_saved:'Saved supplier', pur_sup_new:'New supplier — added with this bill',
@@ -4696,7 +4696,7 @@ dl_show_hidden:'Show hidden ({n})',
   pur_typed:'आपने लिखा', pur_onfile:'पहले से मौजूद', pur_use_saved:'पुराना वाला लें',
   pur_keep_typed:'नहीं, यह अलग है — ऐसे ही सेव करें', pur_line_n:'आइटम लाइन {n}',
   pur_near_fixed:'{n} कर दिया',
-  nm_sup_t:'मिलता-जुलता सप्लायर पहले से है', nm_item_t:'मिलता-जुलता आइटम पहले से है',
+  nm_sup_t:'मिलता-जुलता सप्लायर पहले से है', nm_item_t:'मिलता-जुलता आइटम पहले से है', nm_person_t:'मिलता-जुलता नाम पहले से है',
   nm_existing:'पहले से', nm_use:'पुराना ही लें', nm_new:'नहीं, ये नया है',
   nm_used:'{n} लिया गया',
   pur_sup_saved:'सेव किया हुआ सप्लायर', pur_sup_new:'नया सप्लायर — इस बिल के साथ जुड़ेगा',
@@ -11943,8 +11943,16 @@ function expPartySearch(v){
   const box=$('#expPtHits'); if(!box)return;
   const hits=expFindParty(v);
   if(!hits.length){
+    /* v768: "Ramessh" typed while Ramesh is already in the book used to become a second
+       person without a word — that is how Washim/Wasim and Aanam/Anam work were born. The
+       likely match is offered first; making a new name is still one tap. */
+    let nearChip='';
+    try{ const ppl=peopleAll(); const h=nearNameHit(v,ppl.map(p=>p.name));
+      const p=h && ppl.find(x=>x.name===h.name);
+      if(p) nearChip=`<span class="gtag" style="cursor:pointer;border-color:var(--saffron2)" onclick="expPickPerson('${p.id}','${p.kind}')">⚠️ ${t('nm_person_t')}: ${PK_ICON[p.kind]||''} <b>${esc(p.name)}</b></span>`;
+    }catch(e){}
     box.innerHTML = String(v||'').trim()
-      ? `<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="expNewParty('${jq(String(v).trim()).replace(/'/g,"\\'")}')">➕ ${t('exp_new_name')}: ${esc(String(v).trim())}</span>`
+      ? nearChip+`<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="expNewParty('${jq(String(v).trim()).replace(/'/g,"\\'")}')">➕ ${t('exp_new_name')}: ${esc(String(v).trim())}</span>`
       : '';
     return;
   }
@@ -14113,7 +14121,22 @@ function partyAudit(){
       if(ph.length<6)return; (byPhone[ph]=byPhone[ph]||[]).push(String(x.name||'').trim()); });
     Object.keys(byPhone).forEach(ph=>{ const names=[...new Set(byPhone[ph].filter(Boolean))];
       if(names.length>1) out.samePhone.push({name:names[0], amt:names.length, phone:ph, names}); });
-    const all=(DB.parties||[]).map(x=>String(x.name||'').trim()).filter(Boolean);
+    /* ══════════ v767 — THE COPY THAT ONLY LIVES ON ENTRIES ══════════
+       Audit 22 Sept: the half-name and near-name checks compared names from the party list
+       only. A spelling typed straight into a payment or a purchase, with no party record
+       behind it, was never compared with anything, so the most common copy was the one this
+       screen could not see. The names are now taken from every place a party is written:
+       the party list, the ledger rows and the purchase bills. Expense heads and karigar/staff
+       names stay out, exactly as in the checks above. It still only warns. */
+    const allSet={}, addN=(nm,ks)=>{ nm=String(nm||'').trim(); if(!nm)return; const k=nameNorm(nm);
+      if(!k||allSet[k])return; if(ks && isKarStaff(nm))return; allSet[k]=nm; };
+    let headSet={};
+    try{ (DB.expCats||[]).forEach(c=>{ headSet[nameNorm(c)]=1; });
+      const hc=DB.expHeadCfg; (Array.isArray(hc)?hc.map(c=>(c&&c.name)||c):Object.keys(hc||{})).forEach(c=>{ headSet[nameNorm(c)]=1; }); }catch(e){}
+    (DB.parties||[]).forEach(x=>addN(x.name));
+    (DB.ledger||[]).forEach(l=>{ if(l.refKind==='expense'||l.cat)return; if(headSet[nameNorm(l.party)])return; addN(l.party,1); });
+    (DB.purchases||[]).forEach(x=>addN(x.supplier,1));
+    const all=Object.values(allSet);
     const rows=(DB.ledger||[]), purs=(DB.purchases||[]);
     all.forEach(a=>{ const ka=nameNorm(a); if(ka.length<3)return;
       const longer=all.find(b=>b!==a && nameNorm(b).indexOf(ka)===0 && nameNorm(b).length>ka.length+1);
@@ -23933,7 +23956,7 @@ function renderInvoiceForm(){
      always safe to show here; it was just never drawn. */
   const invNoDateHTML=`<div class="head-grid3" style="grid-template-columns:1fr 1fr;margin-bottom:10px">
       <div class="field" style="margin:0"><label>🧾 ${t('invoice_no')}</label>
-        <input id="inv_no" value="${esc(f.no)}" style="font-size:14px"></div>
+        <input id="inv_no" value="${esc(f.no)}" style="font-size:14px" oninput="if(invForm)invForm.no=this.value.trim()"></div>
       <div class="field" style="margin:0"><label>📅 ${t('invoice_date')}</label>
         ${dateField("inv_date",f.date)}</div>
     </div>`;
@@ -23959,7 +23982,7 @@ function renderInvoiceForm(){
     <div id="invCustPicked" style="margin-bottom:10px">${(f.customerId||f.customerName)?invCustomerPickedHTML():''}</div>
     <div class="head-grid3" style="grid-template-columns:1fr 1fr;margin-bottom:10px">
       <div class="field" style="margin:0"><label>🧾 ${t('invoice_no')}</label>
-        <input id="inv_no" value="${esc(f.no)}" style="font-size:14px"></div>
+        <input id="inv_no" value="${esc(f.no)}" style="font-size:14px" oninput="if(invForm)invForm.no=this.value.trim()"></div>
       <div class="field" style="margin:0"><label>📅 ${t('invoice_date')}</label>
         ${dateField("inv_date",f.date)}</div>
     </div>
@@ -24419,7 +24442,7 @@ function renderInvoiceForm(){
            These are the BILL's own — an order's photos and voice stay the order's and are
            not touched. */''}
       <div class="field"><label>${t('order_notes')} ${micBtn('#inv_notes')}</label>
-        <textarea id="inv_notes" placeholder="${t('notes_ph')}">${esc(f.notes||'')}</textarea></div>
+        <textarea id="inv_notes" placeholder="${t('notes_ph')}" oninput="if(invForm)invForm.notes=this.value">${esc(f.notes||'')}</textarea></div>
       <div class="field"><label>${t('voice_notes')}</label>${voiceSection('ivn')}</div>
       <div class="field"><label>${t('photo_label')}</label>
         <div id="inv_photos" style="display:flex;gap:8px;flex-wrap:wrap"></div>
@@ -25838,6 +25861,9 @@ function invPrevPrint(){
   try{ fr.contentWindow.focus(); fr.contentWindow.print(); }
   catch(e){ toast(t('t_popup_blocked'),'bad'); }
 }
+/* v767: the notes box and the bill-number box now write into invForm as he types. The item
+   search, Manage items and + New item all repaint this bill without reading the screen
+   first, and a typed note or a changed bill number was wiped each time. */
 function captureInvoiceForm(){const f=invForm;
   if($('#inv_no'))f.no=$('#inv_no').value.trim();
   if($('#inv_date'))f.date=$('#inv_date').value;
@@ -36638,9 +36664,14 @@ function kdFind(i,v){
   _kdRows[i].name=v;
   if(!q){ box.innerHTML=''; return; }
   const hits=(DB.karigars||[]).filter(k=>String(k.name).toLowerCase().indexOf(q)>=0).slice(0,6);
+  let nearChip='';
+  if(!hits.length){ try{ const h=nearNameHit(v,(DB.karigars||[]).map(k=>k.name));   /* v768: same as the expense name box */
+      const k=h && (DB.karigars||[]).find(x=>x.name===h.name);
+      if(k) nearChip=`<span class="gtag" style="cursor:pointer;border-color:var(--saffron2)" onclick="kdPick(${i},'${k.id}')">⚠️ ${t('nm_person_t')}: 👷 <b>${esc(k.name)}</b></span>`;
+    }catch(e){} }
   box.innerHTML = hits.map(k=>`<span class="gtag" style="cursor:pointer"
       onclick="kdPick(${i},'${k.id}')">👷 ${esc(k.name)}</span>`).join('')
-    || `<span class="gtag" style="cursor:pointer;border-style:dashed"
+    || nearChip+`<span class="gtag" style="cursor:pointer;border-style:dashed"
          onclick="kdNew(${i})">➕ ${t('exp_new_name')}: ${esc(v)}</span>`;
 }
 function kdPick(i,kid){ kdCap();
