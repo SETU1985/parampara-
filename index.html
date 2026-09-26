@@ -1125,7 +1125,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v762</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v763</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -36884,6 +36884,26 @@ function karPayDel(pid){
 }
 
 function karigarMaster(){
+  /* v763 — HIS 26 Sept: "iss type ki galtiyan aur kahan hai, poore app mein check karo."
+     Grepped for the same shape as v762 (a screen that must return to where it was opened
+     from) and found a worse cousin, not a navigation miss but a SILENT WRITE: picking
+     "+ Add karigar" from an ORDER's item (setItemKarigar, kid==='__new__') sets a module
+     flag _karAfterAdd={oid,gid} and opens this same karigarEdit() form. karigarSave() reads
+     that flag on Save and hands the new man straight to that order's item — correct, when
+     it happens right there.
+     But karigarEdit()'s own Cancel button and ✕ both leave for karigarMaster() (or
+     closeSheet()) WITHOUT clearing the flag. Back out of that detour, and the flag survives
+     — sitting there for however long the app stays open. The next time ANY new karigar is
+     added the ordinary way, from this list's own "+ Add karigar" button, karigarSave() still
+     finds the stale flag and silently assigns the brand-new man to that OLD order's item,
+     stamps it issued TODAY and advances its status — on an order the person adding this
+     karigar may not even have open, without asking. Exactly his own rule #4: a guard that
+     only covers today, asked what it is TRUE for and never what it stays true for after he
+     has left. Clearing it here, at the one list every such detour must pass back through
+     (Cancel, ✕, or simply navigating away all land here or before it), closes the leak
+     without touching the legitimate same-visit path, which never calls karigarMaster() at
+     all. */
+  _karAfterAdd=null;
   sheetAt(karigarMaster);
   const ks=DB.karigars||[];
   $('#sheet').innerHTML=`<div class="grip"></div><h2 style="margin-bottom:6px">${t('karigar_master')}</h2>
@@ -36928,13 +36948,13 @@ function karigarEdit(id){
       ${custom?`<span style="cursor:pointer;color:var(--bad);padding:0 4px" onclick="krDeleteItem('${jq(g.id)}','${jq(id||'')}')">\ud83d\uddd1\ufe0f</span>`:''}
     </div>`;}).join('')
     +`<button class="btn ghost block" style="margin-top:10px" onclick="krNewItem('${jq(id||'')}')">\u2795 ${t('kr_new_item')}</button>`;
-  $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${ex?t('edit'):t('add_karigar')}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
+  $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${ex?t('edit'):t('add_karigar')}</h2><button class="btn sm ghost" onclick="_karAfterAdd=null;closeSheet()">✕</button></div>
     <div class="field"><label>${t('karigar_name')}</label><input id="kName" value="${ex?esc(ex.name):''}" placeholder="${t('karigar_name')}"></div>
     <div class="field" style="margin-top:10px"><label>${t('phone')}</label><input id="kPhone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" inputmode="numeric" value="${ex?esc(ex.phone||''):''}" placeholder="${t('phone')}"></div>
     ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost" style="margin-top:10px" onclick="pickKarigarContact()">📇 ${t('from_contacts')}</button>`:''}
     <div class="section-h" style="margin-top:16px">🧵 ${t('karigar_specialty')}</div>
     <div class="kr-list">${rows}</div>
-    <div class="modal-actions"><button class="btn ghost" onclick="karigarMaster()">${t('cancel')}</button><button class="btn primary" onclick="karigarSave('${id||''}')">${t('save')}</button></div>`;
+    <div class="modal-actions"><button class="btn ghost" onclick="_karAfterAdd=null;karigarMaster()">${t('cancel')}</button><button class="btn primary" onclick="karigarSave('${id||''}')">${t('save')}</button></div>`;
   showSheet();
 }
 /* v650: renaming, adding and removing a garment, from the list he is already looking at */
