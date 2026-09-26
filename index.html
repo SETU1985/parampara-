@@ -1125,7 +1125,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v760</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v762</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -1952,7 +1952,7 @@ const T={
   im_name:'Item name',
   im_name_ph:'e.g. suit 3 pc',
   im_hsn:'HSN code',
-  im_rate:'Default rate ₹ (optional)',
+  im_rate:'Default sale rate ₹ (optional)',
   stk_sell:'Sale rate ₹/mtr', stk_cost_ph:'Cost ₹/mtr',
   stk_sell_hint:'Purchase rate is your cost. Sale rate is what goes on the customer bill — leave it blank and the bill asks you to type the rate.',
   im_incl:'What does it include?',
@@ -4317,7 +4317,7 @@ dl_show_hidden:'Show hidden ({n})',
   im_name:'आइटम का नाम',
   im_name_ph:'जैसे सूट 3 पीस',
   im_hsn:'HSN कोड',
-  im_rate:'डिफ़ॉल्ट रेट ₹ (वैकल्पिक)',
+  im_rate:'डिफ़ॉल्ट बिक्री रेट ₹ (वैकल्पिक)',
   stk_sell:'बिक्री रेट ₹/मीटर', stk_cost_ph:'लागत ₹/मी',
   stk_sell_hint:'खरीद रेट आपकी लागत है। बिक्री रेट वही है जो ग्राहक के बिल पर जाएगा — खाली छोड़ेंगे तो बिल में रेट पूछा जाएगा।',
   im_incl:'इसमें क्या-क्या आता है?',
@@ -37119,11 +37119,24 @@ function imRender(){
       <span><b>🧵 ${t('im_stitch')}</b>
         <div class="hint">${t('im_stitch_hint')}</div></span>
       <input type="checkbox" id="im_stitch" ${(_imDraft&&_imDraft.kind==='stitch')?'checked':''}
+        onchange="imCapture();const s=$('#im_stitch');_imDraft.kind=s.checked?'stitch':(_imDraft.kind==='ready'?'ready':'');imRender()"
         style="width:22px;height:22px"></label>
+    ${/* v761 — HIS 26 Sept: "what does it include yahan required hai kya, stitching only
+         mein dekho iska use hai ki nahi, screen clean honi chahiye." Checked against how
+         .incl is actually used (the invoice-line auto-fill, hsn-prefill skip at line 24747,
+         and the item-master list preview) — every one of those is about a READYMADE SET or
+         a made-to-order combo (Sherwani = jacket+kurta+pyjama). Stitching Only means the
+         customer's own single piece of cloth; there is no "set of parts" to tag. Nothing
+         reads .incl differently for kind==='stitch' today, so this was never wrong, only
+         pointless there — one more thing to scroll past on a screen he wants clean. Hides
+         live the moment the switch is tapped; nothing already saved on an item is touched,
+         so a stitching item that already had parts from before this still keeps them, they
+         are just not edited from here while the switch is on. */''}
+    ${d.kind!=='stitch'?`
     <div class="section-h">${t('im_incl')}</div>
     <p class="hint" style="margin:0 0 8px">${t('im_incl_desc')}</p>
     <div class="gtags">${chips}<span class="gtag" onclick="imAddPart()" style="cursor:pointer;border-style:dashed">${t('im_add_part')}</span>
-      ${(DB.inclLib||[]).length?`<span class="gtag" onclick="manageIncl(()=>imRender())" style="cursor:pointer;border-style:dashed">⚙️ ${t('ml_manage')}</span>`:''}</div>
+      ${(DB.inclLib||[]).length?`<span class="gtag" onclick="manageIncl(()=>imRender())" style="cursor:pointer;border-style:dashed">⚙️ ${t('ml_manage')}</span>`:''}</div>`:''}
     <div class="section-h">📷 ${t('photo_label')}</div>
     <div class="media-row" id="im_photos"></div>
     <div class="row" style="margin-top:6px">
@@ -37189,7 +37202,19 @@ function imSave(){
      here. Tapping ✏️ on a tile that already exists means "correct its name" and nothing
      more — but it arrived with the same i:-1 and got the same treatment, so a rename
      silently became a line on his bill. They are told apart now. */
-  if(back&&back.type==='inv'){
+  /* v762 — HIS 26 Sept: "New Item Purchase mein jaake bana raha hoon, Save kiya toh direct
+     jahan entry kar raha tha wahan chala jana chahiye tha... iss screen khulne ka koi
+     purpose nahi." True, and it was meant to: v442's own comment above says "Save there
+     returns HERE". But puItemNewMaster() (the "+ New item" button on the Purchase item-add
+     screen) hands imEdit a plain CALLBACK FUNCTION as backTo — `()=>puItemRender()` — not
+     the {type:'inv',...} object every other caller uses. This check only ever recognised
+     that one object shape, so a function-shaped back fell straight through to the `else`
+     and landed him on the Item Master list — with every stitching item in his book on it,
+     which is the "koi sense nahi" part: that list was never meant for him to see mid-
+     purchase, he only got there because the real destination was skipped. Nothing else
+     read this list wrong; it was simply the wrong screen. */
+  if(typeof back==='function'){ back(); }
+  else if(back&&back.type==='inv'){
     if(back.i>=0)invApplyMaster(back.i,newId);
     else if(back.noAdd)renderInvoiceForm();
     else { renderInvoiceForm(); posAdd(newId); }
@@ -37197,6 +37222,7 @@ function imSave(){
   else itemMaster();
 }
 function imBack(){const back=_imDraft?_imDraft.back:null;_imDraft=null;
+  if(typeof back==='function'){ back(); return; }
   if(back&&back.type==='inv')renderInvoiceForm(); else itemMaster();}
 function imDelete(id){confirmModal(t('confirm_del'),t('confirm_del_msg'),()=>{
   DB.itemMaster=(DB.itemMaster||[]).filter(x=>x.id!==id);save();itemMaster();toast(t('t_deleted'));});}
