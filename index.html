@@ -1127,7 +1127,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v770</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v771</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -29539,6 +29539,9 @@ function puItemSave(andNew){
 function puItemSug(){
   const box=$('#pitSug'), inp=$('#pit_name'); if(!box||!inp)return;
   puItemCap();
+  /* v771: a name typed over a picked item no longer points at that item's record */
+  try{ if(_puIt && _puIt.masterId){ const mm=(DB.itemMaster||[]).find(x=>x.id===_puIt.masterId);
+    if(!mm || nameNorm(mm.name)!==nameNorm(inp.value)) _puIt.masterId=''; } }catch(e){}
   const q=(inp.value||'').trim();
   const list=purSugList(q).slice(0,8);
   box.innerHTML = (list.length?`<div class="sug-head" style="margin-top:8px">
@@ -29556,6 +29559,7 @@ function puItemPick(i){
   const o=_puSug[i]; if(!o)return;
   const v=o.val||{};
   _puIt.label=v.label||o.title||'';
+  _puIt.masterId=v.masterId||'';   /* v771: picked from Item Master — the stock goes to THAT record */
   if(v.unit)_puIt.unit=v.unit;
   if(v.rate&&!(+_puIt.rate))_puIt.rate=v.rate;
   if(v.hsn&&!_puIt.hsn)_puIt.hsn=v.hsn;
@@ -30101,15 +30105,18 @@ function purSugList(q){
     push({title:fi.name||'Fabric',sub:(fi.category?fi.category+' · ':'')+t('pur_sug_fab'),
       val:{label:fi.name||'',hsn:fi.hsn||'',unit:'Mtr',rate:fi.rate||''}}); });
   // readymade masters
-  (DB.itemMaster||[]).filter(m=>m.kind==='ready').forEach(m=>{
+  /* v771: an item he saved in Item Master with its own serial or design no. is offered too —
+     "5151 Black · RM-010" was never on this list (its kind was not 'ready'), so he typed the
+     name by hand and the purchase made a SECOND 5151 Black to hold the stock. */
+  (DB.itemMaster||[]).filter(m=>m.kind==='ready' || m.rmNo || m.dsgn).forEach(m=>{
     const dsg=m.dsgn||m.design||'';
     if(!(hit(m.name)||hit(m.rmNo)||hit(dsg)))return;          /* v490: design no. finds it */
     const bits=[];
     if(m.cost)bits.push(t('pur_sug_purch')+': ₹'+m.cost);
     bits.push(t('pur_sug_instock')+': '+readyTotal(m));
     if(dsg)bits.push(t('im_dsgn')+' '+dsg);
-    push({title:m.name,sub:bits.join(' · '),
-      val:{label:m.name,hsn:m.hsn||'',unit:'Pcs',rate:m.cost||'',design:dsg}}); });
+    push({title:m.name+(m.rmNo?' · '+m.rmNo:''),sub:bits.join(' · '),
+      val:{label:m.name,hsn:m.hsn||'',unit:'Pcs',rate:m.cost||'',design:dsg,masterId:m.id}}); });
   // anything bought before, so repeat purchases need no retyping
   (DB.purchases||[]).forEach(pu=>(pu.items||[]).forEach(it=>{
     if(!it.label)return;
@@ -30379,7 +30386,8 @@ function purApplyStock(pur){
          that record exactly, when it's available, and is trusted ahead of the guess. */
       let m=(it.masterId && (DB.itemMaster||[]).find(x=>x.id===it.masterId)) || purMatchReady(it,key);
       const size=(it.colour||'').trim()||'-';
-      if(m){ m._key=key; readySet(m,size,(+(m.stk||{})[size]||0)+qty); merged++; }
+      if(m){ m._key=key; if(m.kind!=='ready')m.kind='ready';   /* v771: a record holding readymade stock IS readymade — or Stock → Ready never shows it */
+        readySet(m,size,(+(m.stk||{})[size]||0)+qty); merged++; }
       else{
         /* ══════════ v429 — READYMADE WAS EATING THE CLOTH SERIALS ══════════
            HIS 1 Sep: "serial number mismatch ho raha hai... purchase ki entry ke baad stock
