@@ -1134,7 +1134,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v773</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v774</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -15402,7 +15402,10 @@ function dueGroups(){
     const left=openingLeft(nm,'customer','in'); if(!left)return;
     let g=Object.values(map).find(x=>pkNorm(x.name)===pkNorm(nm));
     if(!g){ const key='open:'+pkNorm(nm);
-      g=map[key]={key, name:nm, phone:(partyByName(nm)||{}).phone||'', custId:null, recs:[], due:0};
+      /* v774: same fault as the ledger phone box — a customer with only an opening balance
+         and no bill yet has no party record, so partyByName alone came up blank here too. */
+      const cRec=(DB.customers||[]).find(c=>nameNorm(c.name)===nameNorm(nm));
+      g=map[key]={key, name:nm, phone:(partyByName(nm)||{}).phone||(cRec&&cRec.phone)||'', custId:(cRec&&cRec.id)||null, recs:[], due:0};
     }
     g.due=r2(g.due+left); g._open=left; g._openDate=l.date||'';
   });
@@ -39920,8 +39923,15 @@ function ledgerEdit(id,draft){
      ${/* v738 C: a party's phone and GSTIN are edited HERE, with its name and opening — one
           form for one record, not Edit ledger in one place and Party details in another. */
        (fv.group==='creditors'||fv.group==='debtors')?(()=>{ const pp=partyByName(fv.name)||{};
+       /* v774 — HIS 27 Sept: Bhushan Kumar's phone is on his customer record (every Sales
+          screen reads it from there), but this box only ever asked partyByName, which is
+          populated for suppliers and expense parties, never for a plain sales customer.
+          So the box came up blank even though the number was saved and in use everywhere
+          else. A debtors ledger now falls back to the actual customer record by name. */
+       const custRec=(fv.group==='debtors')?(DB.customers||[]).find(c=>nameNorm(c.name)===nameNorm(fv.name)):null;
+       const phVal=pp.phone||(custRec&&custRec.phone)||'';
        return `<div class="row"><div class="field"><label>${t('phone')}</label>
-           <input id="lgPhone" type="tel" inputmode="numeric" value="${esc(pp.phone||'')}" data-orig="${esc(pp.phone||'')}"
+           <input id="lgPhone" type="tel" inputmode="numeric" value="${esc(phVal)}" data-orig="${esc(phVal)}"
              oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')"></div>
          <div class="field"><label>${t('gstin')}</label>
            <input id="lgGstin" value="${esc(pp.gstin||'')}" data-orig="${esc(pp.gstin||'')}" oninput="this.value=this.value.toUpperCase()"></div></div>`; })():''}
@@ -40050,6 +40060,13 @@ function ledgerEdit(id,draft){
           partyFold(nm);
           if($('#lgPhone')||$('#lgGstin')){
             const chPh=$('#lgPhone')&&ph!==($('#lgPhone').dataset.orig||''), chGs=$('#lgGstin')&&gs!==($('#lgGstin').dataset.orig||'');
+            /* v774: a debtors ledger's phone is the customer's own phone — write it back to
+               THAT record too, or Sales/Order screens keep showing the old (or no) number
+               while this box quietly built a second copy on a party record nothing reads. */
+            if(chPh && rec.group==='debtors'){
+              const custRec=(DB.customers||[]).find(c=>nameNorm(c.name)===nameNorm(nm));
+              if(custRec)custRec.phone=ph;
+            }
             let pp=partyByName(nm);
             if(!pp && (ph||gs)){ pp={id:uid(), name:nm, kind:rec.group==='creditors'?'supplier':'customer', phone:'', gstin:'', address:''}; partyAll().push(pp); }
             if(pp){ if(chPh)pp.phone=ph; if(chGs)pp.gstin=gs; }
