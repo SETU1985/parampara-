@@ -329,7 +329,9 @@
     margin:8px 0 6px;padding-bottom:6px;border-bottom:1px solid var(--line);
     font-size:12.5px;color:var(--txt2);font-weight:700}
   .sug-head a{color:var(--saffron2);cursor:pointer;font-weight:800;white-space:nowrap}
-  .fu-open{cursor:pointer;padding:3px 0}
+  .fu-open{cursor:pointer;padding:8px 0}
+/* v769: small text links get a thumb-sized tap area without moving anything on screen */
+.tapx{display:inline-block;padding:9px 6px;margin:-9px -6px;cursor:pointer}
   .fu-open:active{opacity:.6}
   .bal-get{color:#1a9d5a;font-weight:800;white-space:nowrap}
   .bal-give{color:#d3453b;font-weight:800;white-space:nowrap}
@@ -819,10 +821,10 @@
   .od-media .btn{flex:0 0 auto;padding:6px 16px;font-size:18px;min-height:0}
   .mh .od-x-piece{flex:0 0 auto;padding:0 9px;min-height:0;height:28px;margin-right:6px;color:var(--bad);border-color:rgba(217,83,79,.35)}
   /* v715 — the bill list: one line of tools, one strip of figures, two lines a bill */
-  .ivtools{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+  .ivtools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
   .ivtools .field{flex:1;margin:0;min-width:0}
   .ivtools .rngbar{margin:0;white-space:nowrap;padding:5px 12px;flex:0 0 auto;border-radius:999px}
-  .ivtools .ivsort{flex:0 0 auto;margin-left:auto}
+  .ivtools .ivsort{flex:0 1 auto;margin-left:auto;min-width:0;max-width:100%} /* v769: the open sort list wrapped off the right edge — Highest/Lowest could not be reached */
   .ivtools .ivsort>*{margin:0}
   .ivrow .l2 .mt{text-overflow:clip}
   .ivtools .rngbar .rngdates{display:none}
@@ -982,7 +984,7 @@
   .dl-row.tappable{cursor:pointer}
   .dl-row.tappable:active{background:var(--bg2)}
   .dl-ico{flex:0 0 auto;font-size:17px;width:22px;text-align:center}
-  .dl-lbl{flex:1;min-width:0;font-size:14.5px;font-weight:600;color:var(--txt)}
+  .dl-lbl{flex:1;min-width:0;font-size:14.5px;font-weight:600;color:var(--txt);padding:6px 0}
   .dl-n{flex:0 0 auto;font-size:19px;font-weight:800;color:var(--mut);min-width:26px;text-align:right}
   .dl-go{flex:0 0 auto;color:var(--saffron2);font-size:16px;margin-left:2px}
   .home-stat{flex:1;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:12px 8px;text-align:center}
@@ -1125,7 +1127,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v768</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v769</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -3297,7 +3299,7 @@ const T={
   rp_month:'This month',
   rp_custom:'Custom',
   rp_today:'Today', rp_quarter:'This quarter', rp_fy:'This financial year',
-  rs_search:'Search name, number or amount', rs_none:'Nothing in this period',
+  rs_search:'Search name, number or amount', rs_none:'Nothing in this period', rs_nomatch:'Nothing matches “{q}”',
   rh_sales:'Sales', rh_purchase:'Purchase', rh_expense:'Expenses',
   kr_rename:'Rename garment', kr_new_item:'New garment', kr_new_item_ph:'e.g. Nehru jacket',
   scr_empty:'{s} came out blank — nothing was drawn',
@@ -5660,7 +5662,7 @@ dl_show_hidden:'Show hidden ({n})',
   rp_month:'This month',
   rp_custom:'Custom',
   rp_today:'आज', rp_quarter:'यह तिमाही', rp_fy:'यह वित्त वर्ष',
-  rs_search:'नाम, नंबर या रकम खोजिए', rs_none:'इस अवधि में कुछ नहीं',
+  rs_search:'नाम, नंबर या रकम खोजिए', rs_none:'इस अवधि में कुछ नहीं', rs_nomatch:'“{q}” से कुछ नहीं मिला',
   rh_sales:'बिक्री', rh_purchase:'ख़रीद', rh_expense:'खर्च',
   kr_rename:'कपड़े का नाम बदलें', kr_new_item:'नया कपड़ा', kr_new_item_ph:'जैसे नेहरू जैकेट',
   scr_empty:'{s} खाली बनी — कुछ बना ही नहीं',
@@ -8377,7 +8379,7 @@ function fabricBody(keepFocus){
       <span class="gtag ${_open?'on-tag':''}" style="cursor:pointer" onclick="fabFiltToggle()">⚲ ${t('filter')}${_filtN?' · '+_filtN:''} ${_open?'▴':'▾'}</span>
       <span class="gtag" style="cursor:pointer" onclick="setFabSort('${_fabSort==='serial'?'new':'serial'}')">⇅ ${_fabSort==='serial'?t('stk_sort_serial'):t('stk_sort_new')}</span>
       <span style="flex:1"></span>
-      <button class="btn sm ghost" style="padding:2px 12px" title="${t('hub_more')}" onclick="fabTools()">⋯</button>
+      <button class="btn sm ghost" style="padding:8px 14px" title="${t('hub_more')}" onclick="fabTools()">⋯</button>
     </div>
     ${_open?`<div class="card" style="padding:10px 12px;margin-bottom:10px">
     ${cats.length?`<select id="fabCatSel" style="margin-bottom:8px" onchange="setFabCat(this.value)">
@@ -10615,7 +10617,7 @@ function brsRender(){
         ${l.dir==='in'?'+':'−'}${money(l.amt)}</b>
       ${/* v621: the tick is the common action so the whole row keeps doing it; the pencil
            stops the tap from reaching the row and opens the entry instead */''}
-      <span style="font-size:15px;color:var(--saffron2)"
+      <span class="tapx" style="font-size:15px;color:var(--saffron2)"
         onclick="event.stopPropagation();brsEdit('${jq(l.id)}')">✏️</span>
     </span></div>`;
   $('#sheet').innerHTML=`<div class="grip"></div>
@@ -10946,7 +10948,7 @@ function payRoutesHTML(dir,here){
        ['move','🔁',t('pw_move'),"contraEntry()"]];
   const rest=all.filter(o=>o[0]!==here);
   return `<div class="hint" style="margin:12px 0 0;white-space:normal;line-height:2">
-    ${t('pw_else')} ${rest.map(o=>`<a style="cursor:pointer;white-space:nowrap"
+    ${t('pw_else')} ${rest.map(o=>`<a class="tapx" style="cursor:pointer;white-space:nowrap"
       onclick="closeModal();closeSheet();${o[3]}">${o[1]} ${esc(o[2])}</a>`).join(' · ')}</div>`;
 }
 /* ══════════════ v528 — THE BOX THAT NEVER SAID WHAT HE WAS OWED ══════════════
@@ -11528,7 +11530,7 @@ function payEntry(dir,skipAsk,prefill){
      <p class="hint" id="pySettleHint" style="margin:-4px 0 8px"></p>
      <div class="field"><label>${t('stk_note')}</label><input id="py_note" placeholder="${t('stk_note_ph')}"></div>
      ${dir==='in'?`<p class="hint" style="margin-top:8px">🏦 ${t('pay_not_sale')}
-       <u style="cursor:pointer;color:var(--saffron2)" onclick="closeSheet();payLoan('in')">${t('pw_loanin')}</u></p>`:''}
+       <u class="tapx" style="cursor:pointer;color:var(--saffron2)" onclick="closeSheet();payLoan('in')">${t('pw_loanin')}</u></p>`:''}
      ${payRoutesHTML(dir,'pay')}`,
     /* ══════════ v577 — TWENTY OLD ENTRIES, TWENTY TRIPS THROUGH THE MENU ══════════
        HIS 8 Sept: he sits down to enter old money — a loan here, money returned there,
@@ -12215,8 +12217,12 @@ function partyList(who){
        party did nothing here and the name he had just hidden came straight back. A name
        he has hidden stays out of every picker; the bills it is on are untouched. */
     const hid={}; (DB.parties||[]).forEach(x=>{ if(x.archived)hid[nameNorm(x.name)]=1; });
+    /* v769: a supplier who also has a party record carries THAT record's id. With a made-up
+       'sup:' id beside the real one, every such firm was offered twice in the expense picker
+       (🚚 and 📒 — 27 names on his book), and a payment could land on either id. */
+    const real={}; (DB.parties||[]).forEach(x=>{ if(!x.archived){ const k=nameNorm(x.name); if(k && !real[k])real[k]=x.id; } });
     (DB.purchases||[]).forEach(pu=>{ const n=String(pu.supplier||'').trim();
-      if(n && !hid[nameNorm(n)] && !seen[n.toLowerCase()]){ seen[n.toLowerCase()]=1; out.push({id:'sup:'+n, name:n}); } });
+      if(n && !hid[nameNorm(n)] && !seen[n.toLowerCase()]){ seen[n.toLowerCase()]=1; out.push({id:real[nameNorm(n)]||('sup:'+n), name:n}); } });
     return out.sort((a,b)=>a.name.localeCompare(b.name));
   }
   if(who==='customer')return (DB.customers||[]).map(x=>({id:x.id,name:x.name}));
@@ -16010,6 +16016,8 @@ function orderProfitReport(keepFocus){
     <p class="hint" style="margin-top:10px">${t('op_note')}</p>
     <div class="fab-pad"></div>`;
   showSheet();
+  /* v769: keepFocus was passed by the search box and never read, so the search took one letter */
+  if(keepFocus){ try{ const el=$('#opSearch'); if(el){ el.focus(); const n=el.value.length; el.setSelectionRange(n,n); } }catch(e){} }
 }
 function statusBoard(){
   sheetAt(statusBoard);
@@ -16950,7 +16958,7 @@ function attStripHTML(){
   }).join('');
   return `<div class="kv" style="margin:0 0 6px">
       <span class="home-sec-title" style="margin:0">\u{1F465} ${t('pn_title')}</span>
-      <span class="hint" style="cursor:pointer" onclick="staffPunch()">${inN}/${all.length} \u203A</span></div>
+      <span class="hint tapx" style="cursor:pointer" onclick="staffPunch()">${inN}/${all.length} \u203A</span></div>
     <div class="att-strip">${chips}</div>`;
 }
 /* v419: the chip asks before it writes. He was explicit — "ten thirty AM hai, ok kiya,
@@ -18462,7 +18470,10 @@ let _expBuild={};
    the date bar, the search box, the export buttons, the column headings and the sticky
    total. A new report cannot be built without them — there is nowhere to leave them out. */
 let _rsQ={};
-function rsSearch(key,v){ _rsQ[key]=v; try{ if(_sheetCur)_sheetCur(); }catch(e){} }
+function rsSearch(key,v){ _rsQ[key]=v; try{ if(_sheetCur)_sheetCur(); }catch(e){}
+  /* v769: the redraw replaced the box he was typing in, so every report search took ONE
+     letter and dropped the keyboard. Put him back in the box, cursor at the end. */
+  try{ const el=document.querySelector('#sheet .rs-search'); if(el && document.activeElement!==el){ el.focus(); const n=el.value.length; el.setSelectionRange(n,n); } }catch(e){} }
 function rsQuery(key){ return String(_rsQ[key]||''); }
 function rsFilter(key,rows,fields){
   const q=rsQuery(key).trim().toLowerCase(); if(!q)return rows;
@@ -18480,7 +18491,7 @@ function reportShell(cfg){
         +(r.cells||r).map((cell,i)=>{const c=cols[i]||{};
           return `<span style="${c.w?'width:'+c.w+';flex:0 0 '+c.w+';':'flex:1;'}${c.num?'text-align:right;font-weight:700':''}">${cell}</span>`;}).join('')
         +`</div>`).join('')
-    : `<div class="empty" style="padding:26px 10px"><p>${t('rs_none')}</p></div>`;
+    : `<div class="empty" style="padding:26px 10px"><p>${rsQuery(key).trim()?t('rs_nomatch',{q:esc(rsQuery(key).trim())}):t('rs_none')}</p></div>`;   /* v769: an empty SEARCH is not an empty period */
   const tot=(cfg.total&&cfg.total.length)?`<div class="rs-total">`+cfg.total.map((cell,i)=>{const c=cols[i]||{};
       return `<span style="${c.w?'width:'+c.w+';flex:0 0 '+c.w+';':'flex:1;'}${c.num?'text-align:right':''}">${cell}</span>`;}).join('')+`</div>`:'';
   return `<div class="grip"></div>
@@ -18668,7 +18679,7 @@ function openCustomer(id){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${esc(c.name)}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div><div style="display:flex;gap:6px"><button class="btn sm ghost" onclick="editCustomer('${id}')">✏️ ${t('edit')}</button>
       <button class="btn sm danger" onclick="delCustomer('${id}')">🗑️</button></div></div>
-    <div class="kv"><span>${t('phone')}</span><b><a onclick="callNum('${jq(c.phone)}')" style="cursor:pointer;text-decoration:underline">${esc(c.phone||'—')}</a></b></div>
+    <div class="kv"><span>${t('phone')}</span><b><a class="tapx" onclick="callNum('${jq(c.phone)}')" style="cursor:pointer;text-decoration:underline">${esc(c.phone||'—')}</a></b></div>
     ${c.phone?`<button class="btn sm ghost block" style="margin-top:8px"
       onclick="saveToPhone('${jq(c.name||'')}','${jq(c.phone)}',t('vc_role_cust'))">📇 ${t('vc_save')}</button>`:''}
     ${(DB.orders||[]).some(o=>o.customerId===id&&!orderDelivered(o))?`<button class="btn ghost block" style="margin-top:10px" onclick="custStatus('${id}')">📞 ${t('se_title')}</button>`:''}
@@ -20959,7 +20970,7 @@ function sugAddFoot(addOnclick,typed,noMatches){
   }
   return `<div class="sug-head" style="margin-top:6px;border-top:1px solid var(--line);padding-top:8px">
     <span class="hint">${t('cust_not_listed')}</span>
-    <a onclick="${addOnclick}">➕ ${t('add_new')}</a></div>`;
+    <a class="tapx" onclick="${addOnclick}">➕ ${t('add_new')}</a></div>`;
 }
 function custRowHTML(c,onclick){
   /* v706: role + pointer — iPad Safari is surer of a tap on a div that says it is a button */
@@ -22596,7 +22607,7 @@ async function openDetail__inner(id,focusGid){
 
   $('#detailPane').innerHTML=`
     <div class="detail-hd"><button class="back" onclick="recBack('orders')">←</button>
-      <div style="flex:1"><div style="color:var(--saffron);font-size:13px;font-weight:700">#${esc(onoLabel(o))} <span title="${t('od_edit_no')}" onclick="event.stopPropagation();odEditNo('${o.id}')" style="cursor:pointer;opacity:.7;text-decoration:underline">${t('change')}</span></div><h2 onclick="odEditCust('${o.id}')" style="cursor:pointer">${esc(o.customerName)}</h2></div>
+      <div style="flex:1"><div style="color:var(--saffron);font-size:13px;font-weight:700">#${esc(onoLabel(o))} <span class="tapx" title="${t('od_edit_no')}" onclick="event.stopPropagation();odEditNo('${o.id}')" style="cursor:pointer;opacity:.7;text-decoration:underline">${t('change')}</span></div><h2 onclick="odEditCust('${o.id}')" style="cursor:pointer">${esc(o.customerName)}</h2></div>
       ${/* v639: look at it · fix it · send it — the three things anyone does with a saved
            record. Sending was on the face and fixing was two taps inside ⋯. HIS words:
            "entry hone ke baad edit sabse pehle saamne hi rehna chahiye." */''}
@@ -22616,7 +22627,7 @@ async function openDetail__inner(id,focusGid){
     <button class="btn ghost block od-info-btn" style="margin-bottom:8px" onclick="odInfoToggle()">
       📞 ${esc(o.phone||'—')} ${dl!==null&&st!=='delivered'?('· '+(dl<0?Math.abs(dl)+'d '+t('late'):dl+'d')):''} ${baaki>0.5?('· '+t('baaki')+' '+money(baaki)):''} ${_odInfo?'▴':'▾'}</button>
     <div class="od-x${_odInfo?' on':''}"><div class="card">
-      <div class="kv"><span>${t('phone')}</span><b><a onclick="callNum('${jq(o.phone)}')" style="cursor:pointer;text-decoration:underline">${esc(o.phone||'—')}</a>
+      <div class="kv"><span>${t('phone')}</span><b><a class="tapx" onclick="callNum('${jq(o.phone)}')" style="cursor:pointer;text-decoration:underline">${esc(o.phone||'—')}</a>
         <span onclick="odEditCust('${o.id}')" style="cursor:pointer;opacity:.6;margin-left:8px">✏️</span></b></div>
       ${o.salesmanId?`<div class="kv"><span>🧑‍💼 ${t('salesman')}</span><b>${esc(salesmanName(o.salesmanId))}</b></div>`:''}
       <div class="kv"><span>📅 ${t('delivery')}</span>
@@ -23382,7 +23393,7 @@ async function openAltDetail(id){
       <button class="btn sm ghost" onclick="altMenu('${a.id}')">⋯</button></div>
 
     <div class="card">
-      <div class="kv"><span>${t('phone')}</span><b><a onclick="callNum('${jq(a.phone)}')" style="cursor:pointer;text-decoration:underline">${esc(a.phone||'—')}</a></b></div>
+      <div class="kv"><span>${t('phone')}</span><b><a class="tapx" onclick="callNum('${jq(a.phone)}')" style="cursor:pointer;text-decoration:underline">${esc(a.phone||'—')}</a></b></div>
       ${origO?`<div class="kv"><span>${t('alt_orig_order')}</span><b><a href="#" onclick="event.preventDefault();openDetail('${origO.id}')">#${esc(origO.orderNo)}</a></b></div>`:''}
       <div class="kv"><span>${t('alt_received_date')} / ${t('delivery')}</span><b>${fmtDate(a.receivedDate)} → ${a.deliveryDate?fmtDate(a.deliveryDate):'—'} ${dl!==null&&st!=='delivered'?`<span class="deliv ${dl<0?'soon':dl<=2?'soon':''}" style="margin-left:4px">${dl<0?Math.abs(dl)+'d '+t('late'):dl+'d'}</span>`:''}</b></div>
       <div class="kv"><span>${t('alt_charge')}</span><b>${money(a.total)}</b></div>
@@ -24340,8 +24351,8 @@ function renderInvoiceForm(){
                    nothing, which is why the row read as a label and not as the place money is
                    entered. The words are the button now — one tap and the cursor is already in
                    the amount, ready for the figure. The tick still means paid in full. */''}
-              <span class="hint" style="cursor:pointer" onclick="var c=$('#inv_paidfull');if(c){c.checked=!c.checked;invPaidFull(c.checked);}">${t('inv_full')}</span>
-              <span style="font-weight:800;color:var(--saffron2);cursor:pointer"
+              <span class="hint tapx" style="cursor:pointer" onclick="var c=$('#inv_paidfull');if(c){c.checked=!c.checked;invPaidFull(c.checked);}">${t('inv_full')}</span>
+              <span class="tapx" style="font-weight:800;color:var(--saffron2);cursor:pointer"
                 onclick="invRecvHere()">💵 ${t('received_now')}</span></span>
             <input id="inv_recv" type="number" min="0" inputmode="numeric" value="${esc(shown)}" placeholder="0"
               style="width:120px;text-align:right;margin:0;font-weight:800;font-size:16px;
@@ -24422,7 +24433,7 @@ function renderInvoiceForm(){
            tax really is IGST; with no way to say so he would have been stuck. It is one
            tappable line, and it lives inside this advanced block where it is out of the
            daily path but never out of reach. */''}
-      <p class="hint" style="margin:10px 0;cursor:pointer" onclick="invFlipInterstate()">
+      <p class="hint" style="margin:2px 0;padding:8px 0;cursor:pointer" onclick="invFlipInterstate()">
         ${f.interstate?`<b style="color:var(--saffron2)">\u2139\uFE0F ${t('tax_igst')}</b>`:t('tax_local')}
         \u00B7 <u>${t('tax_flip')}</u></p>
       <p class="hint">${t('invoice_gst_hint')}</p>
@@ -29322,8 +29333,8 @@ function purDraftHTML(){
       <div style="text-align:right;white-space:nowrap">
         <b>${money(amt)}</b>
         <div class="hint" style="margin-top:4px">
-          <span onclick="event.stopPropagation();puItemSheet(${i})">\u270F\uFE0F</span>
-          &nbsp;<span onclick="event.stopPropagation();puItemDrop(${i})">\u{1F5D1}\uFE0F</span></div>
+          <span class="tapx" style="margin:-9px 0;padding:9px 10px;font-size:17px" onclick="event.stopPropagation();puItemSheet(${i})">\u270F\uFE0F</span>
+          <span class="tapx" style="margin:-9px 0;padding:9px 10px;font-size:17px" onclick="event.stopPropagation();puItemDrop(${i})">\u{1F5D1}\uFE0F</span></div>
       </div></div>`;
   }).join('');
   const addBtn=`<button class="btn primary block" style="padding:14px;font-weight:800;font-size:15px"
@@ -37017,7 +37028,7 @@ function karigarEdit(id){
       <span class="kr-star ${on?'on':''}" data-spec="${g.id}" onclick="toggleKrSpec('${g.id}')">${on?'\u2605':'\u2606'}</span>
       <span class="kr-name" style="cursor:pointer" onclick="krRenameItem('${jq(g.id)}','${jq(id||'')}')">${g.ico} ${esc(g.n)} <span class="hint">\u270f\ufe0f</span></span>
       <div class="rate-in" style="flex:0 0 104px;max-width:104px"><span>\u20b9</span><input data-krate="${g.id}" type="number" inputmode="numeric" value="${rates[g.id]?esc(rates[g.id]):''}" placeholder="${t('karigar_rate')}"></div>
-      ${custom?`<span style="cursor:pointer;color:var(--bad);padding:0 4px" onclick="krDeleteItem('${jq(g.id)}','${jq(id||'')}')">\ud83d\uddd1\ufe0f</span>`:''}
+      ${custom?`<span class="tapx" style="cursor:pointer;color:var(--bad)" onclick="krDeleteItem('${jq(g.id)}','${jq(id||'')}')">\ud83d\uddd1\ufe0f</span>`:''}
     </div>`;}).join('')
     +`<button class="btn ghost block" style="margin-top:10px" onclick="krNewItem('${jq(id||'')}')">\u2795 ${t('kr_new_item')}</button>`;
   $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${ex?t('edit'):t('add_karigar')}</h2><button class="btn sm ghost" onclick="_karAfterAdd=null;closeSheet()">✕</button></div>
@@ -37952,7 +37963,7 @@ function openBSEdit(){
           <div class="kv"><span class="hint">${t('ob_calc_now_says')}</span><b>${money(calc)}</b></div>
           <button class="btn sm primary block" style="margin-top:6px" onclick="obsCap();openBS().stock=${calc};save();openBSEdit();toast(t('t_saved'),'ok')">${t('ob_calc_use')}</button></div>`;
       }catch(e){ return ''; } })()}
-      <p class="hint" style="margin-top:6px;cursor:pointer" onclick="obsStockOther()"><u>${t('ob_stock_other')}</u></p>
+      <p class="hint" style="margin-top:0;padding:8px 0;cursor:pointer" onclick="obsStockOther()"><u>${t('ob_stock_other')}</u></p>
       ${o.stockEst?`<p class="hint" style="margin-top:6px;color:var(--saffron2);cursor:pointer"
         onclick="obsEstToggle()">\u26A0\uFE0F ${t('ob_est_flag')} \u00B7 <u>${t('ob_est_off')}</u></p>`:''}</div>
     <div class="field" style="margin-top:8px"><label>${t('ob_fixed_v')}</label>${g('obs_fixed',o.fixed)}</div>
@@ -37960,7 +37971,7 @@ function openBSEdit(){
       return `<div class="card" style="padding:11px 13px;margin-top:8px">
         <div class="kv"><span class="hint">${t('ob_cap')}</span><b>${money(d.should)}</b></div>
         <p class="hint" style="margin-top:4px">${t('ob_cap_auto')}</p>
-        <p class="hint" style="margin-top:6px;cursor:pointer" onclick="obsCapManual()"><u>${t('ob_cap_set')}</u></p>
+        <p class="hint" style="margin-top:0;padding:8px 0;cursor:pointer" onclick="obsCapManual()"><u>${t('ob_cap_set')}</u></p>
         <input type="hidden" id="obs_cap" value="${esc(d.should)}"></div>`; })()}
     ${/* ══════════ v499 — FOUR DIFFERENT THINGS IN ONE FORM ══════════
          HIS 5 Sept: "opening stock, loan, sab ek mein thoos diya hai, kisi ko jagah sahi
@@ -41157,10 +41168,18 @@ function ptNearSoon(){ clearTimeout(_ptNearT); _ptNearT=setTimeout(ptNearPaint,3
 function ptUseExisting(id){
   const x=partyAll().find(p=>p.id===id); if(!x)return;
   closeModal();
+  /* v769: the button says "Use <firm>". It used to open that firm's edit form, and the
+     expense or payment that asked for a party never got one. */
+  const f=_ptOnDone; _ptOnDone=null;
+  if(f){ f(x.name); toast(t('nm_used',{n:x.name}),'ok'); return; }
   partyEdit(x.id);
 }
+/* v769: the screen that asked for a NEW party (an expense, a payment…) — kept so that
+   "Use <existing firm>" hands that firm back to it instead of opening the firm's edit form */
+let _ptOnDone=null;
 function partyEdit(id,onDone,preName){
   const ex=id?partyById(id):null;
+  _ptOnDone = ex ? null : (onDone||null);
   modal('👤 '+(ex?esc(ex.name):t('pt_new')),
     `<div class="field"><label>${t('pt_name')} *</label>
        <input id="ptName" value="${ex?esc(ex.name):esc(preName||'')}"
@@ -41724,7 +41743,7 @@ function attSheet(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin:0 0 2px">📋 ${t('att_month')}</h2>
     <p class="hint" style="margin:0 0 4px">${t('att_tap_hint')}</p>
-    <p class="hint" style="margin:0 0 12px">${t('att_weekoff_hint')} · <a onclick="closeSheet();staffSettings()" style="color:var(--saffron2);cursor:pointer">${t('att_weekoff')}</a></p>
+    <p class="hint" style="margin:0 0 12px">${t('att_weekoff_hint')} · <a class="tapx" onclick="closeSheet();staffSettings()" style="color:var(--saffron2);cursor:pointer">${t('att_weekoff')}</a></p>
     ${head}${body}<div class="fab-pad"></div>`;
   showSheet();
 }
