@@ -1127,7 +1127,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v771</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v772</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -22919,7 +22919,7 @@ function renderPurchases(keepFocus,rowsOnly){
   const selRow=(all.length&&_purSelMode?`<div class="row" style="margin-bottom:10px;gap:8px">
       <button class="btn ${_purSelMode?'primary':'ghost'}" style="flex:1" onclick="purSelToggle()">${_purSelMode?'✕ '+t('cancel'):'☑️ '+t('fab_select')}</button>
       ${_purSelMode?`<button class="btn ghost" style="flex:1" onclick="purSelAll()">${t('pur_sel_all')}</button>`:''}</div>`:'');
-  if(!all.length){el.innerHTML=addBtn+`<div class="empty"><div class="big">📦</div><p><b>${t('no_purchases')}</b></p><p style="font-size:13px">${t('no_purchases_sub')}</p></div>`;return;}
+  if(!all.length){el.innerHTML=addBtn+purListDraftHTML()+`<div class="empty"><div class="big">📦</div><p><b>${t('no_purchases')}</b></p><p style="font-size:13px">${t('no_purchases_sub')}</p></div>`;return;}
 
   const q=(purQ||'').trim().toLowerCase();
   let list=q?all.filter(p=>
@@ -22969,7 +22969,7 @@ function renderPurchases(keepFocus,rowsOnly){
   /* v689: everything that changes as he types goes inside #purBody, so setPurQ can redraw
      the rows without rebuilding the search input above them — the same fault, and the same
      fix, as the Payment list and the Customers list. */
-  el.innerHTML=addBtn+searchBox+selRow+`<div id="purBody">`+summary+title
+  el.innerHTML=addBtn+purListDraftHTML()+searchBox+selRow+`<div id="purBody">`+summary+title
     +((purSort==='new'||purSort==='old')?purMonthsHTML(list):list.map(purCardHTML).join(''))
     +pageMoreBtn('pur',_pgAll.length)+`</div>`
   + (_purSelMode&&_purSel.size?`<div class="save-dock">
@@ -29311,6 +29311,23 @@ function purResumeHTML(){
       <button class="btn sm primary" style="flex:1" onclick="purDraftResume()">${t('draft_continue')}</button>
       <button class="btn sm ghost" onclick="purDraftDrop()">${t('draft_discard')}</button></div></div>`;
 }
+/* v772 — HIS 27 Sept: "draft to bahar dikhna chahiye na, Purchase wale page pe." The Sale and
+   Orders lists show an unfinished bill as a card; the Purchase list never did (the v554 note
+   below says it once was), so a half-typed purchase could only be found by starting a NEW one.
+   Same card on the list now: Continue opens it, 🗑️ asks once and throws it away. */
+function purListDraftHTML(){
+  const d=getPurDraft(); if(!d)return '';
+  const who=(d.supplier||'').trim()||t('dft_no_name');
+  const n=(d.items||[]).length;
+  return `<div class="card" style="margin-bottom:10px;border-color:var(--saffron2)">
+    <div class="kv" style="padding:2px 0 8px"><b style="font-size:14px">\u{1F4DD} ${t('pur_draft_found')}</b></div>
+    <div class="kv" style="padding:8px 0;border-top:1px solid var(--line)">
+      <span style="flex:1;min-width:0"><b>${esc(who)}</b>
+        <div class="hint">${esc(d.billNo||'')}${d.billNo?' \u00B7 ':''}${t('inv_items_n',{n})}</div></span>
+      <span style="display:flex;gap:6px;flex:0 0 auto">
+        <button class="btn sm primary" onclick="openPurchaseForm();purDraftResume()">${t('draft_continue')}</button>
+        <button class="btn sm ghost" onclick="purDraftDrop()">\u{1F5D1}\uFE0F</button></span></div></div>`;
+}
 function purDraftResume(){
   const d=getPurDraft(); if(!d)return;
   purchForm=d; purchForm._fromDraft=1; renderPurchaseForm();
@@ -30278,7 +30295,8 @@ function purDraftReset(){
   clearPurDraft();
   purchForm={editId:null,supplier:'',phone:'',billNo:'',date:_dateLock.pur||todayISO(),
     items:[],discType:'amount',discValue:0,courier:0,paidNow:null,paymentMode:'Bank',notes:'',photos:[],noStock:true};
-  try{renderPurchaseForm();}catch(e){}
+  /* v772: from the Purchase LIST there is no form open — redrawing it would pop one up */
+  try{ if(document.querySelector('#scrim.show') && _sheetCur===renderPurchaseForm) renderPurchaseForm(); }catch(e){}
   refreshBehind();
   toast(t('draft_discarded'),'ok');
 }
@@ -30647,9 +30665,14 @@ function savePurchase(){
      bill entered twice, under two names, both counted as owed. A bill number and amount
      already booked under ANOTHER supplier is asked about once. */
   { const bn=String(f.billNo||'').trim().toLowerCase();
+    /* v772 — the guard only asked when the twin sat under ANOTHER supplier, so the commonest
+       slip — the SAME supplier's bill saved a second time — went straight through: his
+       SBSH/0311/ ₹7,718 twice (26 Sept, five minutes apart) and Neha Enterprise 096 twice.
+       Same supplier + same bill no. is asked about at any amount; another supplier still
+       needs the amount to match too. */
+    const sameAmt=p=>(Math.abs((+p.total||0)-total)<1 || Math.abs(((()=>{ try{ return purchCompute(p).total; }catch(e){ return 0; } })())-total)<1);
     const twin=(DB.purchases||[]).find(p=>p.id!==f.editId && String(p.billNo||'').trim().toLowerCase()===bn
-      && (Math.abs((+p.total||0)-total)<1 || Math.abs(((()=>{ try{ return purchCompute(p).total; }catch(e){ return 0; } })())-total)<1)
-      && nameNorm(p.supplier)!==nameNorm(f.supplier));
+      && (nameNorm(p.supplier)===nameNorm(f.supplier) || sameAmt(p)));
     const key=bn+'|'+(twin&&twin.id);
     if(twin && _purTwinOK!==key){
       confirmModal('⚠️ '+t('pur_twin_t'), t('pur_twin_q',{b:esc(f.billNo),s:esc(twin.supplier),d:fmtDate(twin.date),m:money(+twin.total||0)}),
