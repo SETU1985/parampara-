@@ -1116,18 +1116,25 @@
 .lg-when{flex:1 1 100%;min-width:0}
 .lg-when b{font-size:14px}
 .lg-what{display:block;color:var(--txt2);font-size:12.5px;white-space:normal;line-height:1.45}
-.lg-fig{flex:1 1 auto;display:flex;flex-direction:column;gap:1px}
-.lg-fig .hint{font-size:11px;letter-spacing:.02em}
-.lg-fig b{font-size:15px;white-space:nowrap}
-.lg-run{text-align:right;margin-left:auto}
-.lg-run b{color:var(--saffron2)}
+/* v773 — three columns, always in the same order and the same width, so a phone screen
+   never has to decide where to squeeze a figure: Bill stays left, Payment stays middle,
+   Balance stays right, whichever of the first two is empty for that row. Narrow fonts
+   and a fixed grid (not flex) keep three numbers from ever fighting for space at 360px. */
+.lg-figrow{flex:1 1 100%;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;min-width:0}
+.lg-fig{display:flex;flex-direction:column;gap:1px;min-width:0}
+.lg-fig .hint{font-size:10.5px;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lg-fig b{font-size:14px;white-space:nowrap}
+.lg-bill b{color:var(--txt)}
+.lg-pay b{color:var(--ok)}
+.lg-run{text-align:right}
+.lg-run b{color:var(--saffron2)!important}
 </style>
 </head>
 <body>
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v772</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v773</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -2147,6 +2154,7 @@ const T={
   sug_add_named:'Add \u201C{n}\u201D as a new party',
   im_rmno:'Our number', im_dsgn:'Design no.', im_dsgn_ph:'as printed on the goods',
   im_rm_dup:'{n} already belongs to another design', ms_items:'Readymade',
+  rm_gap:'⚠️ Missing from the run: {n}', rm_gap_hint:'Deleted, or never made — check before it goes further.',
   msr_title:'Search everything', ms_ph:'Name, phone, bill, supplier, expense\u2026',
   msr_sub:'Orders, bills, customers, purchases, parties, karigars, staff, expenses and alterations.',
   ms_none:'Nothing found for \u201C{q}\u201D',
@@ -4513,6 +4521,7 @@ dl_show_hidden:'Show hidden ({n})',
   sug_add_named:'\u201C{n}\u201D को नई पार्टी बनाएँ',
   im_rmno:'अपना नंबर', im_dsgn:'डिज़ाइन नं.', im_dsgn_ph:'माल पर जो लिखा है',
   im_rm_dup:'{n} पहले से किसी और डिज़ाइन का है', ms_items:'रेडीमेड',
+  rm_gap:'⚠️ सीरीज़ में ये गायब है: {n}', rm_gap_hint:'डिलीट हुआ, या कभी बना ही नहीं — आगे बढ़ने से पहले चेक कर लें।',
   msr_title:'सब कुछ खोजें', ms_ph:'नाम, फ़ोन, बिल, सप्लायर, ख़र्च\u2026',
   msr_sub:'ऑर्डर, बिल, ग्राहक, ख़रीद, पार्टी, कारीगर, स्टाफ़, ख़र्च और अल्ट्रेशन।',
   ms_none:'\u201C{q}\u201D का कुछ नहीं मिला',
@@ -6367,6 +6376,25 @@ function load(raw){
      real size/quantity is unambiguously a stock item whatever its kind says — decide
      that FIRST, and fall back to the old 'stitch' default only when it holds nothing. */
   (DB.itemMaster||[]).forEach(m=>{ if(!m.kind)m.kind=Object.values(m.stk||{}).some(v=>(+v||0)>0)?'ready':'stitch'; if(!m.stk)m.stk={}; });
+  /* v773 — HIS 27 Sept: "RM ka serial number stitching wale item mein nahi chalna chahiye."
+     Fabric, Kurta Bandi Set and Sherwani are catalog/billing TILES — never a piece of stock —
+     but each carries an RM- tag from before kind existed, so his readymade run reads 007,
+     008, 009 against three things that were never readymade, and 5151 Black (his one real
+     next readymade) landed on RM-010 instead of RM-007. This runs ONCE (guarded by
+     DB._rm773): the three named tiles lose their tag for good, and whatever record is still
+     sitting on RM-010 — his 5151 Black, not yet purchased so not yet 'ready' — is renumbered
+     down to RM-007 so the readymade run has no gap. Matched by the exact old number, never
+     by kind, so a genuine readymade awaiting its first purchase is never swept up with the
+     tiles. A one-time migration, not a live rule — nothing here re-numbers a tag once it has
+     gone out on a bill or a rack sticker. */
+  if(!DB._rm773){
+    (DB.itemMaster||[]).forEach(m=>{
+      if(m.kind!=='ready' && ['RM-007','RM-008','RM-009'].includes(String(m.rmNo||'').toUpperCase())) m.rmNo='';
+    });
+    const m5151=(DB.itemMaster||[]).find(m=>String(m.rmNo||'').toUpperCase()==='RM-010');
+    if(m5151) m5151.rmNo='RM-007';
+    DB._rm773=true;
+  }
   if(DB.shopInfo && DB.shopInfo.blessing===undefined)DB.shopInfo.blessing='|| ॐ श्री गणेशाय नमः ||';
   if(!DB.inclLib)DB.inclLib=['Sherwani','Kurta','Pyjama','Churidar','Indo-Western','Jacket','Coat','Blazer','Waistcoat','Shirt','Pant','Trouser','Dupatta','Stole','Safa'];
   // A fresh install must NOT carry any shop's identity — the setup screen fills these in.
@@ -9149,6 +9177,7 @@ function readyBody(keepFocus){
     <div class="row" style="margin-bottom:10px;gap:6px">
       <button class="btn ghost" style="flex:1" onclick="sizeCfg()">📐 ${t('stk_sizes')}</button>
       <button class="btn ghost" style="flex:0 0 auto;padding:0 14px" title="${t('stk_sizes')}" onclick="manageSizes()">⚙️</button></div>
+    ${rmGapHTML()}
     <div class="kv" style="margin-bottom:8px"><span class="hint">${list.length}</span>
       <span class="gtags">
         <span class="gtag ${_rdySort==='new'?'on-tag':''}" style="cursor:pointer" onclick="setRdySort('new')">${t('stk_sort_new')}</span>
@@ -14312,13 +14341,19 @@ function loansScreen(){
   rows.sort((a,b)=>String(a.d).localeCompare(String(b.d)));
   let run=0;
   const body=rows.map(r=>{ run=r2(run+r.sign*r.amt);
+    /* v773: same three-column shape as the ledger screen \u2014 taken sits under Bill,
+       repaid sits under Payment, so this list reads the same way as every other one. */
+    const billCell = r.sign>0 ? `<span class="hint">${esc(r.what)}</span><b>${money(r.amt)}</b>` : '';
+    const payCell  = r.sign<0 ? `<span class="hint">${esc(r.what)}</span><b>${money(r.amt)}</b>` : '';
     return `<div class="lg-row2">
       <div class="lg-when"><b>${r.d?fmtDate(r.d):'\u2014'}</b>
         <span class="lg-what">${esc(r.who)} \u00b7 ${esc(r.what)}</span></div>
-      <div class="lg-fig"><span class="hint">${esc(r.what)}</span>
-        <b>${money(r.amt)}</b></div>
-      <div class="lg-fig lg-run"><span class="hint">${t('lg_left')}</span>
-        <b>${money(Math.abs(run))}</b></div></div>`; }).join('');
+      <div class="lg-figrow">
+        <div class="lg-fig lg-bill">${billCell}</div>
+        <div class="lg-fig lg-pay">${payCell}</div>
+        <div class="lg-fig lg-run"><span class="hint">${t('lg_left')}</span>
+          <b>${money(Math.abs(run))}</b></div>
+      </div></div>`; }).join('');
   let tot=0; try{ tot=r2(Math.abs((bsFigures(from,to).L||{}).loans||0)); }catch(e){}
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin:0 0 10px">\u{1F3E6} ${t('rp_loan_title')}</h2>
@@ -29881,6 +29916,23 @@ function nextCodeNo(pre,field){
   return pre+String(top+1).padStart(3,'0');
 }
 function nextRmNo(){ return nextCodeNo('RM-','rmNo'); }
+/* v773 — HIS 27 Sept: "gap ho jaye to chalega, lekin mujhe pata hona chahiye ki x nahi hai."
+   A number can legitimately go missing (a design deleted, a mis-entry undone) — the run
+   does not have to stay unbroken. What must not happen is it going missing SILENTLY. This
+   only reads the readymade run (kind==='ready') and never touches a number itself. */
+function rmGaps(){
+  const nums=readyItems().map(m=>{const x=/^RM-(\d+)$/i.exec(String(m.rmNo||'').trim()); return x?+x[1]:null;})
+    .filter(n=>n!=null).sort((a,b)=>a-b);
+  if(!nums.length)return [];
+  const have=new Set(nums), top=nums[nums.length-1], out=[];
+  for(let i=1;i<top;i++) if(!have.has(i)) out.push('RM-'+String(i).padStart(3,'0'));
+  return out;
+}
+function rmGapHTML(){
+  const g=rmGaps(); if(!g.length)return '';
+  return `<div class="card" style="margin-bottom:8px;border-color:var(--saffron2)">
+    <b>${t('rm_gap',{n:g.join(', ')})}</b><div class="hint" style="margin-top:2px">${t('rm_gap_hint')}</div></div>`;
+}
 function nextAcNo(){ return nextCodeNo('AC-','rmNo'); }
 function nextCodeFor(kind){ return kind==='acc'?nextAcNo():nextRmNo(); }
 function itemCodeStamp(m){
@@ -37254,10 +37306,21 @@ function imRender(){
     <div class="field"><label>${t('im_name')} *</label><input id="im_name" value="${esc(d.name)}" placeholder="${t('im_name_ph')}"></div>
     ${/* v427: our own number and the supplier's design number, side by side. Ours is filled
          in already and can be changed; his is blank for anything the shop made itself. */''}
-    <div class="row"><div class="field"><label>${t('im_rmno')}</label>
+    ${/* v773 — HIS 27 Sept: "RM ka serial number stitching wale mein nahi chalna chahiye."
+         The box below used to show a suggested RM-No. on EVERY new item, readymade or not,
+         BEFORE he had even reached the Stitching-only switch two fields down — so a design
+         tile like Sherwani or Kurta Bandi Set walked away with a real readymade number
+         nobody meant to give it (v773's boot migration cleared the three already on his
+         book). Now the box itself only appears when the item is not Stitching-only, and
+         ticking that switch clears whatever number was typed, so the number and what it
+         is for can never drift apart again. */''}
+    ${d.kind!=='stitch'?`<div class="row"><div class="field"><label>${t('im_rmno')}</label>
         <input id="im_rmno" value="${esc(d.rmNo||(d.id?'':nextRmNo()))}" placeholder="RM-001"></div>
       <div class="field"><label>${t('im_dsgn')}</label>
-        <input id="im_dsgn" value="${esc(d.dsgn)}" placeholder="${t('im_dsgn_ph')}"></div></div>
+        <input id="im_dsgn" value="${esc(d.dsgn)}" placeholder="${t('im_dsgn_ph')}"></div></div>`
+      :`<input type="hidden" id="im_rmno" value="">
+        <div class="field"><label>${t('im_dsgn')}</label>
+        <input id="im_dsgn" value="${esc(d.dsgn)}" placeholder="${t('im_dsgn_ph')}"></div>`}
     <div class="row"><div class="field"><label>${t('im_hsn')}</label><input id="im_hsn" value="${esc(d.hsn)}" placeholder="6203"></div>
       <div class="field"><label>${t('im_rate')}</label><input id="im_rate" type="number" inputmode="numeric" value="${esc(d.rate)}" placeholder="0"></div></div>
     ${/* v624: the one switch that decides which head it lives under. Deliberately here and
@@ -37267,7 +37330,7 @@ function imRender(){
       <span><b>🧵 ${t('im_stitch')}</b>
         <div class="hint">${t('im_stitch_hint')}</div></span>
       <input type="checkbox" id="im_stitch" ${(_imDraft&&_imDraft.kind==='stitch')?'checked':''}
-        onchange="imCapture();const s=$('#im_stitch');_imDraft.kind=s.checked?'stitch':(_imDraft.kind==='ready'?'ready':'');imRender()"
+        onchange="imCapture();const s=$('#im_stitch');if(s.checked)_imDraft.rmNo='';_imDraft.kind=s.checked?'stitch':(_imDraft.kind==='ready'?'ready':'');imRender()"
         style="width:22px;height:22px"></label>
     ${/* v761 — HIS 26 Sept: "what does it include yahan required hai kya, stitching only
          mein dekho iska use hai ki nahi, screen clean honi chahiye." Checked against how
@@ -39634,6 +39697,17 @@ function ledgerView(id){
        Opening — and Dr/Cr stay where the accountant needs them, on the Trial balance and
        the Balance sheet. */
     const _k=String(r.kind||r.refKind||'');
+    /* ══════════ v773 — HIS 27 Sept: "bill bana aur payment aaya, dono ledger mein ek jaisa
+       dikhte hain, alag column ya color hona chahiye" ══════════
+       The word above the figure already told the two apart (v721/v757), but on a screen he
+       is scanning fast — cleaning up 190 ledgers — reading every word is slower than seeing
+       two different places. So a BILL/PURCHASE row and a PAYMENT/RECEIPT row now sit in
+       their own column, in their own colour, and never share one; the running balance stays
+       its own third column, exactly as before. The opening row is neither a bill nor a
+       payment, so it shows in the balance column alone (see below), same figure it always
+       had. Same computation as the word already used — nothing about WHICH row is which
+       changes, only how it is drawn. */
+    const _isBillCol = !isOpen && ((_k==='sale'||/INV\//.test(r.ref||'')) || ((_k==='purchase'||/^purchMenu/.test(r.go||'')) && !r.dr));
     const _word=(function(){
       if(isOpen)                       return t('lg_open_row');
       if(_k==='sale'||/INV\//.test(r.ref||''))   return t('lg_w_bill');
@@ -39659,15 +39733,20 @@ function ledgerView(id){
       return t(_cashy?'lg_w_payment':'lg_w_receipt');
     })();
     const amt = r.dr ? {w:_word, v:r.dr} : {w:_word, v:r.cr||0};
+    const billCell = (!isOpen && _isBillCol) ? `<span class="hint">${esc(amt.w)}</span><b>${money(Math.abs(amt.v))}</b>` : '';
+    const payCell  = (!isOpen && !_isBillCol) ? `<span class="hint">${esc(amt.w)}</span><b>${money(Math.abs(amt.v))}</b>` : '';
     return `<div class="lg-row2"${r.go?` style="cursor:pointer" onclick="${esc(r.go)}"`:''}>
       <div class="lg-when"><b>${r.date?fmtDate(r.date):'\u2014'}</b>
         <span class="lg-what">${isOpen?('\u{1F4D6} '+esc(t('lg_open_row'))):esc(r.ref||'')}</span></div>
       ${/* v683: the opening already names itself on the line above - saying it twice is
-           the crowding he keeps objecting to */''}
-      <div class="lg-fig"><span class="hint">${isOpen?'\u00a0':esc(amt.w)}</span>
-        <b>${money(Math.abs(amt.v))}</b></div>
-      <div class="lg-fig lg-run"><span class="hint">${esc(t('lg_left'))}</span>
-        <b>${money(Math.abs(run))} <span class="hint">${lgSide(run)}</span></b></div></div>`;
+           the crowding he keeps objecting to. v773: three fixed columns now \u2014 Bill, Payment,
+           Balance \u2014 an opening row fills none of the first two, only the third. */''}
+      <div class="lg-figrow">
+        <div class="lg-fig lg-bill">${billCell}</div>
+        <div class="lg-fig lg-pay">${payCell}</div>
+        <div class="lg-fig lg-run"><span class="hint">${esc(t('lg_left'))}</span>
+          <b>${money(Math.abs(run))} <span class="hint">${lgSide(run)}</span></b></div>
+      </div></div>`;
   }).join('');
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F4D2} ${esc(l.name)}</h2>
@@ -39936,13 +40015,24 @@ function ledgerEdit(id,draft){
            Manage heads screen does. Names that come from somewhere with its own screen —
            an account, a karigar, a staff member, a customer — are renamed there, and this
            says so instead of half-doing it. */
+        /* ══════════ v773 — HIS 27 Sept: "ye rule hi galat hai, yahan naam badla to wahan
+           bhi badal jana chahiye" ══════════
+           Until now a name that came from an account, karigar, staff member or customer
+           refused to rename here at all — he had to go find that record's own screen,
+           which he called out as pointless friction: nothing stopped the rename itself,
+           the refusal was the app protecting a sync it could just as easily have done.
+           So now: rename the SOURCE record's own .name here too (the actual record, found
+           by id via the same match that used to only report which kind it was), then let
+           nameRows keep doing what it already did for ledger/purchase/head mentions. The
+           source screen is no longer the only door — this one now walks through it. */
         if(ex && nameNorm(ex.name)!==nameNorm(nm)){
           const oldNm=ex.name;
-          const src=(DB.accounts||[]).some(a=>nameNorm(a.name)===nameNorm(oldNm))?'acc'
-            :(DB.karigars||[]).some(k=>nameNorm(k.name)===nameNorm(oldNm))?'kar'
-            :(DB.staff||[]).some(k=>nameNorm(k.name)===nameNorm(oldNm))?'stf'
-            :(DB.customers||[]).some(k=>nameNorm(k.name)===nameNorm(oldNm))?'cus':'';
-          if(src){ toast(t('lg_rename_src'),'bad'); return; }
+          const accRec=(DB.accounts||[]).find(a=>nameNorm(a.name)===nameNorm(oldNm));
+          const karRec=!accRec&&(DB.karigars||[]).find(k=>nameNorm(k.name)===nameNorm(oldNm));
+          const stfRec=!accRec&&!karRec&&(DB.staff||[]).find(k=>nameNorm(k.name)===nameNorm(oldNm));
+          const cusRec=!accRec&&!karRec&&!stfRec&&(DB.customers||[]).find(k=>nameNorm(k.name)===nameNorm(oldNm));
+          const srcRec=accRec||karRec||stfRec||cusRec;
+          if(srcRec)srcRec.name=nm;
           const pt=(DB.parties||[]).find(x=>nameNorm(x.name)===nameNorm(oldNm));
           if(pt)pt.name=nm;
           nameRows(oldNm,nm,{heads:true});        /* v748: the one writer */
