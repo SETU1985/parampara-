@@ -1127,7 +1127,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v769</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v770</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -6258,15 +6258,29 @@ function load(raw){
      None — Om is a salesman AND staff, and keeping two lists meant typing him twice and
      splitting his account in half. Salesmen fold into staff, once, keeping their ids so
      every bill that already names one still finds him. Nothing is deleted. */
+  /* v770 — HIS 27 Sept: "ek Setu Choudhary hata do." His book still carries the old salesman
+     list (Om singh, Setu Choudhary) with no mark that it was ever folded in, so every restore
+     and every new device raised both again as STAFF — attendance read 0/7 instead of 0/5, and
+     Setu appeared twice. Neither old id is on a single bill, order or entry. A legacy salesman
+     now becomes staff only if something actually carries his id, and never beside a staff
+     member of the same name. */
+  const _smUsed=(()=>{ try{ const pool=JSON.stringify({o:DB.orders,s:DB.sales,l:DB.ledger,a:DB.attend,f:DB.attFix,k:DB.karigarPays,r:DB.salesReturns,e:DB.estimates});
+      return id=>pool.indexOf('"'+id+'"')>=0; }catch(e){ return ()=>true; } })();
   if(!DB.salesmenMerged && (DB.salesmen||[]).length){
     DB.staff=DB.staff||[];
     (DB.salesmen||[]).forEach(sm=>{
-      if(!DB.staff.some(x=>x.id===sm.id))
-        DB.staff.push({id:sm.id, name:sm.name, role:'Salesman', phone:sm.phone||'',
+      if(DB.staff.some(x=>x.id===sm.id))return;
+      if(!_smUsed(sm.id))return;
+      if(DB.staff.some(x=>!x.left && nameNorm(x.name)===nameNorm(sm.name)))return;
+      DB.staff.push({id:sm.id, name:sm.name, role:'Salesman', phone:sm.phone||'',
           salary:0, commPct:+sm.commPct||0, startTime:'', endTime:'', joined:'', left:false, onBill:true});
     });
     DB.salesmenMerged=1;
   }
+  /* …and where the old fold already raised them, the copy goes — only a row that came from
+     the old salesman list, still a salary-less "Salesman", and carried by nothing at all. */
+  try{ const legacy={}; (DB.salesmen||[]).forEach(sm=>{ legacy[sm.id]=1; });
+    DB.staff=(DB.staff||[]).filter(x=>!(legacy[x.id] && x.role==='Salesman' && !(+x.salary) && !_smUsed(x.id))); }catch(e){}
 
   /* v381 — HIS 28 Aug: "words (heads) ka selection thoda professional hona chahiye."
      These are ledger head names that land in his P&L and go in front of his CA, so they
