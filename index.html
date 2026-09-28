@@ -1134,7 +1134,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v774</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v777</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -7283,9 +7283,18 @@ function invGroupItems(keys){
     mem.forEach(m=>used.add(m));
     // the line is named after the garment Setu actually took the order for: "Open Indo", not "Indo-Western Set"
     groups.push({label:(G(inA)||{}).n||'Indo-Western',members:mem});}
-  if(has('kurta')&&!used.has('kurta')){const mem=gids.filter(id=>!used.has(id)&&['kurta','pyjama','jacket'].includes(id));
+  /* v775 — HIS 28 Sept: "kurta bandi aur pant tino ek mein include chahiye, kabhi kurta
+     alag rehta hai bandi alag rehta hai." A Sherwani or Indo-Western set already pulls in
+     one lower and its accessories under one bill line (v-whenever, oneLower); Kurta never
+     picked up Bandi at all, so Kurta+Bandi+Pant billed as three separate lines instead of
+     the one "Kurta Bandi Set" line his own Item Master already has a tile for. When only a
+     Kurta is taken, or only a Bandi, nothing here changes — a group of one bills alone
+     exactly as before; this only fires when they sit on the same order. */
+  if(has('kurta')&&!used.has('kurta')){const mem=gids.filter(id=>!used.has(id)&&['kurta','pyjama','jacket','bandi'].includes(id));
+    if(!mem.some(isLower)){ const lw=oneLower(mem); if(lw)mem.push(lw); }
     mem.forEach(m=>used.add(m));let label='Kurta';
-    if(mem.includes('jacket'))label='Kurta Jacket Set'; else if(mem.includes('pyjama'))label='Kurta Set';
+    if(mem.includes('bandi'))label=mem.includes('jacket')?'Kurta Bandi Jacket Set':'Kurta Bandi Set';
+    else if(mem.includes('jacket'))label='Kurta Jacket Set'; else if(mem.some(isLower))label='Kurta Set';
     groups.push({label,members:mem});}
   gids.forEach(g=>{if(!used.has(g)){used.add(g);const gg=G(g);groups.push({label:gg?gg.n:g,members:[g]});}});
   return groups;
@@ -20225,11 +20234,24 @@ function memberBlockHTML(f,mem,idx,multi){
   const nm=mem.name||'', rel=mem.rel||'';
   return `<div class="mem-block" ${multi?'':'style="border:none;padding:0;background:transparent"'}>
     ${multi?`<div class="mem-head">
-      <div class="mem-num">${mem.ono?esc(mem.ono):(idx+1)}</div>
+      ${/* ══════════ v777 — THE BOX HE TYPED IN AND THE BADGE BESIDE IT DISAGREED ══════════
+           HIS 28 Sept, screenshot: order #2676, second person's number box edited from 2677
+           to 2678 — the box showed 2678, the round badge to its LEFT still showed 2677.
+           Both draw from the same mem.ono, but the badge is only ever painted once, when
+           this screen is first drawn; typing into the box beside it never touches the badge,
+           so the two disagree the moment he edits until something forces a full redraw. The
+           number WAS being kept (captureForm reads this very box), so nothing was lost — but
+           a screen showing two different numbers for one field looks exactly like a save
+           that failed, which is worse than an honest wait. Wired directly, no redraw: the
+           badge now carries the number itself and is updated the moment he types, the same
+           way the contact-keep bar and the draft-saved line already answer "did that
+           register?" elsewhere in this form without a separate Save button. */''}
+      <div class="mem-num" id="mnum_${mem.id}">${mem.ono?esc(mem.ono):(idx+1)}</div>
       <div style="flex:1;display:flex;gap:6px;flex-wrap:wrap">
         <input class="mem-name" data-mname="${mem.id}" value="${esc(nm)}" placeholder="${t('mem_name_ph')}">
         <input class="mem-rel" data-mrel="${mem.id}" list="relList" value="${esc(rel)}" placeholder="${t('mem_rel_ph')}">
-        <input class="mem-ono" data-mono="${mem.id}" value="${esc(mem.ono||'')}" placeholder="${t('mem_ono_ph')}" inputmode="numeric">
+        <input class="mem-ono" data-mono="${mem.id}" value="${esc(mem.ono||'')}" placeholder="${t('mem_ono_ph')}" inputmode="numeric"
+          oninput="const b=document.getElementById('mnum_${mem.id}');if(b)b.textContent=this.value.trim()||'${idx+1}';">
       </div>
       <button class="btn sm ghost" onclick="manageRels()" title="${t('ml_manage')}">⚙️</button>
       <button class="btn sm danger" onclick="delMember('${mem.id}')">✕</button>
@@ -44439,7 +44461,25 @@ function closeSheet(){
          and he reaches this dialog by trying to LEAVE. It is the Cancel of a dialog he did
          not open. Two answers now, which is what the question has: keep it, or drop it.
          The ✕ on the dialog itself is how he stays, and that is on every dialog in the app. */
-      [{label:t('lv_yes'),cls:'danger',fn:()=>{ closeModal(); _xAsked=1; closeSheet(); _xAsked=0; }},
+      /* ══════════ v776 — DISCARD, THEN ASKED TO DISCARD AGAIN ══════════
+         HIS 28 Sept: "cross dabaya, discard/draft ka option aaya, discard kar diya, phir
+         se koi option aa gaya." Driven live: on the order form's last step, with a Save
+         button on screen and a box he had touched, ✕ hit TWO separate unsaved-work checks
+         one after another — this generic "Leave without saving?" gate (any dirty screen),
+         and the order form's OWN "this order is not finished — keep or discard the draft?"
+         gate right behind it. Choosing "Leave, don't save" here answered the first gate but
+         never touched the second, which still saw an open, non-editing order form with
+         content and asked its own version of the same question a second time.
+         The two gates were never one question to the code, but they are one question to
+         him: he has already said "throw it away". Settle the draft here — the same drop
+         the second gate would have done — and mark it answered, so the recursive
+         closeSheet() below finds nothing left to ask. */
+      [{label:t('lv_yes'),cls:'danger',fn:()=>{ closeModal(); _xAsked=1;
+          try{ if(typeof formIsOpen==='function' && formIsOpen() && typeof form!=='undefined' && form){
+            if(form.editId){ clearDraft(); clearFormOpen(); } else if(formHasContent(form)){ clearDraft(); }
+            _draftAsked=true;
+          } }catch(e){}
+          closeSheet(); _xAsked=0; _draftAsked=false; }},
        {label:t('lv_save'),cls:'primary',fn:()=>{ closeModal(); _xAsked=0;
           /* press his Save. If it succeeds the screen closes itself; if it refuses, it
              stays up with its own message and nothing is lost. */
