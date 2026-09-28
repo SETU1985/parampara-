@@ -12582,7 +12582,7 @@ function hsScreen(){
     <div class="fab-pad"></div>`;
   showSheet();
 }
-function hsOpenPerson(name){ const l=lgByName(name); if(l)ledgerView(l.id); }
+function hsOpenPerson(name){ const l=lgByName(name); if(l){ window._hsPersonFor=l.id; ledgerView(l.id); } }
 /* a person's name used as a head: every entry goes to a real head and keeps HIS name on it */
 function hsMovePick(i){
   const x=(window._hsL||[])[i]; if(!x)return;
@@ -12662,7 +12662,12 @@ function phSet(lid,h){
   const l=lgById(lid); if(!l)return;
   DB.pHead=DB.pHead||{}; const k=nameNorm(l.name);
   if(h)DB.pHead[k]=h; else delete DB.pHead[k];
-  save(); closeModal(); toast('✅ '+(h?t('phh_done',{p:l.name,h:h}):t('phh_cleared')),'ok'); ledgerView(lid);
+  save(); closeModal(); toast('✅ '+(h?t('phh_done',{p:l.name,h:h}):t('phh_cleared')),'ok');
+  /* v778: fixing a head from the "N people have no fixed head" list dropped him on his own
+     ledger, not back on that list — HIS 29 Sept: "isko baar-baar back button dabana padta
+     hai... jahan fix kar diya wapas usi list pe aa jaana chahiye". Opened via hsOpenPerson,
+     go back to hsScreen; opened any other way (search, lgList), stay on his ledger as before. */
+  if(window._hsPersonFor===lid){ window._hsPersonFor=null; hsScreen(); } else { ledgerView(lid); }
 }
 function phRowHTML(l){
   try{
