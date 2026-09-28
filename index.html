@@ -1134,7 +1134,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v778</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v779</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -12663,7 +12663,7 @@ function phSet(lid,h){
   DB.pHead=DB.pHead||{}; const k=nameNorm(l.name);
   if(h)DB.pHead[k]=h; else delete DB.pHead[k];
   save(); closeModal(); toast('✅ '+(h?t('phh_done',{p:l.name,h:h}):t('phh_cleared')),'ok');
-  /* v778: fixing a head from the "N people have no fixed head" list dropped him on his own
+  /* v779: fixing a head from the "N people have no fixed head" list dropped him on his own
      ledger, not back on that list — HIS 29 Sept: "isko baar-baar back button dabana padta
      hai... jahan fix kar diya wapas usi list pe aa jaana chahiye". Opened via hsOpenPerson,
      go back to hsScreen; opened any other way (search, lgList), stay on his ledger as before. */
@@ -38249,7 +38249,15 @@ function openingBulk(){
     <h2 style="margin:0 0 2px">📒 ${t('ob_title')}</h2>
     
     <div class="card" style="padding:12px">
-      <div class="field"><label>${t('ob_name')}</label><input id="obName" placeholder="${t('ob_name_ph')}"></div>
+      <div class="field"><label>${t('ob_name')}</label><input id="obName" placeholder="${t('ob_name_ph')}"
+        autocomplete="off" oninput="obNameHits(this.value)"></div>
+      ${/* v779 — HIS 29 Sept: "spelling mein halka sa bhi change hoga to naya ledger khul
+           jayega." Right — this box wrote whatever was typed as a brand-new party name, with
+           no check against ledgers that already exist (Edit ledger has had this since v737).
+           Same shape, same fix: show the closest existing names as you type, tap one to use
+           the exact spelling already on record instead of a near-miss that silently forks
+           into a second ledger for the same person. */''}
+      <div id="obNameHits" style="margin:-6px 0 8px"></div>
       <div class="field" style="margin-top:8px"><label>${t('ob_kind')}</label>
         <select id="obKind">${kinds.map(([v,k])=>`<option value="${v}">${t(k)}</option>`).join('')}</select></div>
       <div class="field" style="margin-top:8px"><label>${t('pty_ason')}</label>
@@ -38285,6 +38293,23 @@ function obRender(){
         <b style="color:${r.dir==='pay'?'var(--bad)':'var(--ok)'}">${money(r.amt)}</b>
         <button class="btn sm danger" onclick="obDrop(${i})">✕</button></div></div>`).join('')}
     <button class="btn primary block" style="margin-top:10px" onclick="obCommit()">💾 ${t('ob_save_all')}</button>`;
+}
+function obNameHits(v){
+  const box=$('#obNameHits'); if(!box)return;
+  const q=nameNorm(v);
+  if(q.length<2){ box.innerHTML=''; return; }
+  const hits=lgAll().filter(l=>l.name).map(l=>({l, score:nameLike(v,l.name)}))
+    .filter(x=>x.score<9).sort((a,b)=>a.score-b.score||String(a.l.name).localeCompare(String(b.l.name))).slice(0,5);
+  if(!hits.length){ box.innerHTML=''; return; }
+  box.innerHTML=`<div class="hint" style="margin-bottom:4px">${t('lg_exists_hint')}</div>`
+    + hits.map(x=>`<button type="button" class="chip" style="margin:0 6px 6px 0"
+        onclick="obNameHitPick('${jq(x.l.name)}')">
+        ${x.score===0?'✔️ ':''}${esc(x.l.name)} <span class="hint">· ${esc((lgGroup(x.l.group)||{}).label||'')}</span></button>`).join('');
+}
+function obNameHitPick(name){
+  const n=$('#obName'); if(n)n.value=name;
+  const box=$('#obNameHits'); if(box)box.innerHTML='';
+  const a=$('#obAmt'); if(a)a.focus();
 }
 function obAdd(){
   const name=(($('#obName')||{}).value||'').trim();
