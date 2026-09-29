@@ -549,14 +549,18 @@
      and the ⚙ options row showed THROUGH it and read as a broken layout. Solid after a
      short fade — nothing is ever half-visible under it now. */
   .save-dock{position:sticky; bottom:0; z-index:60; display:flex; gap:8px; padding:14px 0 12px;
-    background:linear-gradient(180deg,transparent 0,var(--card) 12px);
-    /* v788: was margin-top:14px — a fixed gap doesn't push this to the bottom of a short
-       flex-column sheet (.sheet, below), only "auto" consumes the sheet's leftover space and
-       lands the dock flush with the true bottom, matching a long form where content already
-       reaches the bottom on its own. This is a no-op (defaults to 0) on any box that ISN'T a
-       flex column, so a modal's .save-dock (two stacked button rows on the Purchase "..."
-       menu) is unaffected. */
-    margin-top:auto}
+    background:linear-gradient(180deg,transparent 0,var(--card) 12px); margin-top:14px}
+  /* v789 — v788 TOOK THE ORDER FORM DOWN, AND IS UNDONE HERE
+     HIS 29 Sept, a real order on his phone (#2653, six pieces): the naap card cut off at the
+     top and bottom, "Done — next item" and Save missing until a box was tapped, and on the
+     last step the delivery date could not be tapped at all — so Save order could not finish.
+     v788 made .sheet a flex column (for a cosmetic gap under the Save bar on short forms).
+     In a flex column every child may SHRINK, and a child that clips its own overflow (the
+     naap card, .mcard) has no floor — so once the pieces made the form taller than the
+     screen, the card was squeezed to 337px with 501px inside it. Reproduced at 360x640 with
+     the fraction bar up. Both v788 lines are back to exactly what v787 had: a block sheet and
+     a 14px gap. The short-form gap v788 chased is cosmetic; a form that cannot be finished
+     is not. */
   .save-dock .btn{flex:1}
   .chip{padding:16px 8px; text-align:center; border-radius:var(--r2); border:1px solid var(--line);
     background:var(--bg2); color:var(--txt2); font-size:15px; font-weight:700; transition:.12s; position:relative;
@@ -684,21 +688,9 @@
     width:100%; max-width:760px; overflow-y:auto; padding:18px 18px calc(18px + var(--safe-b)); animation:slideup .22s ease;
     /* v340: --kb is the height the keyboard has taken. vh never shrinks on Android, so the
        sheet has to be told, or its lower half stays behind the keys. */
-    max-height:calc(90vh - var(--kb, 0px)); margin-bottom:var(--kb, 0px);
-    /* v788 — WHY THE SAVE BAR SAT ON TOP OF A SHORT FORM
-       The ordinary bottom-sheet (Purchase, Expense, and everything else that never sets
-       _sheetFull) isn't forced to a fixed height like the full-screen forms below, but it
-       hits the same shape whenever its own content is shorter than the 90vh cap: .save-dock
-       is position:sticky;bottom:0, so on a short form its natural place in the flow is
-       higher up than "stuck to the very bottom" would put it, and it jumps down there
-       immediately — nothing scrolled, nothing asked for it — and whatever HTML follows it
-       in the markup (a draft-saved line, a warning card) draws into the gap that jump
-       leaves, right where the bar now visually sits. Confirmed live: the Purchase form's
-       "Stock already entered" row. A flex column plus .save-dock's margin-top:auto (above)
-       fixes it: normal flex layout pushes the bar to the true bottom on a short form — no
-       jump, no gap — and does nothing (auto resolves to 0) on a form long enough to already
-       fill or overflow the sheet, where sticky was never wrong in the first place. */
-    display:flex; flex-direction:column}
+    max-height:calc(90vh - var(--kb, 0px)); margin-bottom:var(--kb, 0px)}
+  /* v789: the v788 "display:flex; flex-direction:column" that stood here is gone — see the
+     note under .save-dock. A block sheet never shrinks its children. */
   @keyframes slideup{from{transform:translateY(100%)} to{transform:none}}
   /* One close button for EVERY sheet. It lives outside #sheet, so no render can wipe it. */
   /* Give-work detail: measurements in a tight grid so a full set fits without scrolling. */
@@ -1168,7 +1160,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v788</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v790</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -19476,7 +19468,12 @@ function cancelDo(){
   if(formHasContent(form)){
     // don't destroy work — park it as a draft, it stays visible on the Orders page
     saveDraft(); clearFormOpen();      // he chose to leave — do not reopen it on boot
-    closeSheet(); go('orders');
+    closeSheet();
+    /* v789: closeSheet() may have put the "not finished — Stay / Discard / Keep for later"
+       question up instead of closing. Then the answer decides; saying "draft parked" here
+       would be a lie if he taps Discard or Stay. */
+    if(sheetIsOpen() || modalIsOpen()) return;
+    go('orders');
     toast(t('dft_parked'),'ok');
   }else{ clearDraft(); closeSheet(); }
 }
@@ -31690,7 +31687,7 @@ function plFigures(from,to){
        description of the Saturday reckoning says. A shop that keeps no rates and books job
        work purely as an expense is untouched, which is what the original comment set out to
        protect. */
-    if(l.partyKind==='karigar' && l.partyId && shopUsesKarRates()){ return; }
+    if(l.partyKind==='karigar' && l.partyId && shopUsesKarRates() && (DB.karigars||[]).some(k=>k.id===l.partyId)){ return; }  /* v790 K-1: only a karigar-MASTER man's payable is netted; a party-id karigar has no payable here, so his expense must stay in P&L */
     byHead[h]=r2((byHead[h]||0)+a); expTotal=r2(expTotal+a);
     if(l.expKind==='direct'||expLooksLikePerson(h))direct=r2(direct+a);
   });
@@ -37188,7 +37185,7 @@ function karPayEntry(kid,ex){
       <div class="gtags" style="margin-top:8px">
         <span class="gtag" style="cursor:pointer" onclick="$('#kp_amt').value=${bal>0?bal:0};karPayCalc(${bal})">${t('kb_full')} ${money(bal)}</span>
         <span class="gtag" style="cursor:pointer" onclick="$('#kp_amt').focus()">${t('kb_part')}</span></div></div>
-    <div class="field" style="margin-top:10px"><label>${t('cb_paid_from')}</label>${acctSelHTML('kp_acc',(defaultAcc()||{}).id)}</div>
+    <div class="field" style="margin-top:10px"><label>${t('cb_paid_from')}</label>${acctSelHTML('kp_acc',(ex&&ex.acc)||(defaultAcc()||{}).id)}</div>
     <div class="card" style="padding:12px 14px;margin-top:12px">
       <div class="kv"><span class="hint">${t('kb_short')}</span><b id="kpShort">${money(bal)}</b></div>
       <label style="display:flex;align-items:flex-start;gap:8px;margin-top:10px;cursor:pointer">
@@ -37229,8 +37226,18 @@ function karPayIsExp(pid){ return String(pid||'').indexOf('exp:')===0; }
    rows remain than payments, the difference is what was lost.
    Nothing is repaired here and nothing is invented. It reports what can be seen, so he can
    put it beside his own cash book. */
+/* v790: the ledger row a payment owns, by id. Three link shapes exist: lgId (karPaySave), 'kp:'+id (day sheet / bulk),
+   'exp:<ledgerId>' (mirror of an Expense). Returns '' when none of them points at a live row. */
+function karPayRowId(pay){
+  if(!pay)return '';
+  const has=id=>id&&(DB.ledger||[]).some(l=>l.id===id);
+  if(pay.lgId&&has(pay.lgId))return pay.lgId;
+  if(karPayIsExp(pay.id)){ const id=String(pay.id).slice(4); return has(id)?id:''; }
+  return has('kp:'+pay.id)?'kp:'+pay.id:'';
+}
 function karPayAtRisk(){
-  const pays=(DB.karigarPays||[]).filter(p=>!p.lgId);
+  /* v790 K-4: a payment that has its ledger row by id ('exp:<ledgerId>' mirror, or 'kp:<payId>' day-sheet row) is not at risk */
+  const pays=(DB.karigarPays||[]).filter(p=>!p.lgId && !karPayRowId(p) );
   const rows=(DB.ledger||[]).filter(l=>l.refKind==='karigar_pay');
   const key=x=>String(x.date||'')+'|'+r2(+x.amt||0);
   const rowCount={}; rows.forEach(l=>{ const k=key(l); rowCount[k]=(rowCount[k]||0)+1; });
@@ -37274,6 +37281,13 @@ function karPayUnhook(pay){
     DB.ledger=(DB.ledger||[]).filter(l=>l.id!==pay.lgId);
     return {removed:before-(DB.ledger||[]).length, ambiguous:false};
   }
+  /* v790 K-2: exp: and kp: payments carry no lgId but DO know their row by id — use it, never date+amount */
+  const rid=karPayRowId(pay);
+  if(rid){
+    DB.ledger=(DB.ledger||[]).filter(l=>l.id!==rid);
+    return {removed:1, ambiguous:false};
+  }
+  if(karPayIsExp(pay.id)||(pay.id&&String(pay.id).indexOf('kp:')===0))return {removed:0, ambiguous:false}; // row already gone: never guess by date+amount
   const hits=(DB.ledger||[]).filter(l=>l.refKind==='karigar_pay'
     && l.date===pay.date && r2(l.amt)===r2(pay.amt));
   if(hits.length>1) return {removed:0, ambiguous:true, count:hits.length};
@@ -37307,6 +37321,16 @@ function karPaySave(kid,bal){
      in, so the change is held until the underlying posting is fixed and proved. */
   const short=r2(Math.max(0,bal-amt));
   DB.karigarPays=DB.karigarPays||[];
+  if(_kpEdit && karPayIsExp(_kpEdit)){           /* v790 K-3: an Expense-born payment is edited IN PLACE on its own expense row */
+    const lid=String(_kpEdit).slice(4), row=(DB.ledger||[]).find(l=>l.id===lid);
+    if(row){
+      row.date=date; row.amt=r2(amt); row.acc=acc; row.note=(($('#kp_note')||{}).value||'').trim();
+      expSyncKarigar(lid);
+      const m=(DB.karigarPays||[]).find(x=>x.id===_kpEdit); if(m&&settle&&short>0)m.settled=short;
+      _kpEdit=null; save(); karigarLedger(kid);
+      toast(settle&&short>0?t('kb_settled_ok',{a:money(short)}):t('t_saved'),'ok'); return;
+    }
+  }
   if(_kpEdit){                                   // correcting an existing payment
     const old=(DB.karigarPays||[]).find(x=>x.id===_kpEdit);
     if(old){
@@ -44728,7 +44752,20 @@ function closeSheet(){
      screen written since could bring it back. Fixed in the one place all of them pass: if
      the book was written a moment ago, what is on the screen is saved (or deleted) — close. */
   if(!_xAsked && Date.now()-_lastSaveAt<1500){ try{ sheetStamp(1); }catch(e){} }
-  if(!_xAsked && sheetDirty()){
+  /* ══════════ v789 — "NA RUKNA THA, NA DISCARD KARNA THA — BAAD ME KARNA THA" ══════════
+     HIS 29 Sept, order #2653, six pieces measured, delivery date not yet filled: ✕ gave him
+     only "Save & close" (which cannot save — the delivery date is required, so it stays) and
+     "Leave, don't save" — and since v776 that second one also THROWS AWAY the draft. Every
+     measurement gone. The answer he wanted, "Keep for later", has lived since v475 in the
+     order form's own gate further down, but this generic gate always fired first and v776
+     made it final.
+     A new, unsaved order with something in it is exactly what that order gate exists for,
+     and its three doors (Stay · Discard · Keep for later) are the right question. So such a
+     form skips this generic one and goes straight there. v776 still holds — one question,
+     never two. An edit of a saved order, and every other screen, keep this gate as it was. */
+  const _ordNewOpen = (typeof formIsOpen==='function' && formIsOpen() && typeof form!=='undefined'
+    && form && !form.editId && !form._saved);
+  if(!_xAsked && sheetDirty() && !_ordNewOpen){
     _xAsked=1;
     /* modal() and not confirmModal(): confirmModal's own buttons call closeSheet() to
        dismiss themselves, so "Stay here" would have closed the very screen it promised to
@@ -44826,7 +44863,8 @@ function closeSheet(){
         `<p style="color:var(--txt2);font-size:14px;line-height:1.6">${t('dft_keep_msg2')}</p>`,
         [{label:t('dft_stay'),cls:'ghost',fn:()=>{ closeModal(); _draftAsked=false; }},
          {label:t('dft_drop'),cls:'danger',fn:()=>{ closeModal(); try{clearDraft();}catch(e){} closeSheet(); }},
-         {label:t('dft_keep'),cls:'primary',fn:()=>{ closeModal(); try{saveDraft();}catch(e){} closeSheet(); }}]);
+         {label:t('dft_keep'),cls:'primary',fn:()=>{ closeModal(); try{saveDraft();}catch(e){} closeSheet();
+            try{ if(!sheetIsOpen()){ go('orders'); toast(t('dft_parked'),'ok'); } }catch(e){} }}]);   /* v789: same end as cancelDo's */
       return;
     }
   }
