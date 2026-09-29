@@ -134,7 +134,7 @@
        quieter saffrons, or nothing would stand out at all. */
     --saffronHot:#f07f13;
     --txt:#1b1915; --txt2:#57514a; --mut:#847c72;
-    --ok:#15803d; --bad:#b3261e;
+    --ok:#15803d; --bad:#b3261e; --info:#1d4ed8;
     --r:14px; --r2:10px; --safe-b:env(safe-area-inset-bottom,0px);
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
@@ -549,7 +549,14 @@
      and the ⚙ options row showed THROUGH it and read as a broken layout. Solid after a
      short fade — nothing is ever half-visible under it now. */
   .save-dock{position:sticky; bottom:0; z-index:60; display:flex; gap:8px; padding:14px 0 12px;
-    background:linear-gradient(180deg,transparent 0,var(--card) 12px); margin-top:14px}
+    background:linear-gradient(180deg,transparent 0,var(--card) 12px);
+    /* v788: was margin-top:14px — a fixed gap doesn't push this to the bottom of a short
+       flex-column sheet (.sheet, below), only "auto" consumes the sheet's leftover space and
+       lands the dock flush with the true bottom, matching a long form where content already
+       reaches the bottom on its own. This is a no-op (defaults to 0) on any box that ISN'T a
+       flex column, so a modal's .save-dock (two stacked button rows on the Purchase "..."
+       menu) is unaffected. */
+    margin-top:auto}
   .save-dock .btn{flex:1}
   .chip{padding:16px 8px; text-align:center; border-radius:var(--r2); border:1px solid var(--line);
     background:var(--bg2); color:var(--txt2); font-size:15px; font-weight:700; transition:.12s; position:relative;
@@ -677,7 +684,21 @@
     width:100%; max-width:760px; overflow-y:auto; padding:18px 18px calc(18px + var(--safe-b)); animation:slideup .22s ease;
     /* v340: --kb is the height the keyboard has taken. vh never shrinks on Android, so the
        sheet has to be told, or its lower half stays behind the keys. */
-    max-height:calc(90vh - var(--kb, 0px)); margin-bottom:var(--kb, 0px)}
+    max-height:calc(90vh - var(--kb, 0px)); margin-bottom:var(--kb, 0px);
+    /* v788 — WHY THE SAVE BAR SAT ON TOP OF A SHORT FORM
+       The ordinary bottom-sheet (Purchase, Expense, and everything else that never sets
+       _sheetFull) isn't forced to a fixed height like the full-screen forms below, but it
+       hits the same shape whenever its own content is shorter than the 90vh cap: .save-dock
+       is position:sticky;bottom:0, so on a short form its natural place in the flow is
+       higher up than "stuck to the very bottom" would put it, and it jumps down there
+       immediately — nothing scrolled, nothing asked for it — and whatever HTML follows it
+       in the markup (a draft-saved line, a warning card) draws into the gap that jump
+       leaves, right where the bar now visually sits. Confirmed live: the Purchase form's
+       "Stock already entered" row. A flex column plus .save-dock's margin-top:auto (above)
+       fixes it: normal flex layout pushes the bar to the true bottom on a short form — no
+       jump, no gap — and does nothing (auto resolves to 0) on a form long enough to already
+       fill or overflow the sheet, where sticky was never wrong in the first place. */
+    display:flex; flex-direction:column}
   @keyframes slideup{from{transform:translateY(100%)} to{transform:none}}
   /* One close button for EVERY sheet. It lives outside #sheet, so no render can wipe it. */
   /* Give-work detail: measurements in a tight grid so a full set fits without scrolling. */
@@ -728,8 +749,16 @@
   /* v189: MY regression from v188 — anchoring the close cross to the sheet put it on top
      of this bar's counter, so "1 / 4" and the ✕ sat one over the other. Every sheet now
      keeps a lane clear on the right for the cross that showSheet() injects. */
-  .wk-bar{display:flex; align-items:center; gap:10px; margin:0 0 12px; padding-bottom:10px;
-    padding-right:46px; border-bottom:1px solid var(--line)}
+  /* v787 — HIS iPad screenshot: the order-number pill (and, with a second person on the
+     order, its "#more" chip) ran under the ✕ AND the 🔍 Go To button on the New Order
+     measuring screen. This lane was carved out in v189 for the ✕ alone (46px) — #goToBtn
+     (v736) sits further right still, at right:78 to 122px, and this row never learned
+     about it. A flex row with no wrap does not stop at its own padding; it just overflows
+     past it when the pushed-right content (wk-pos + the pill) does not fit. Widened to
+     clear BOTH fixed icons, and wraps to a second line instead of sliding under them if it
+     still does not fit — same on a narrow iPad column as on a wide one. */
+  .wk-bar{display:flex; flex-wrap:wrap; align-items:center; gap:10px 8px; margin:0 0 12px; padding-bottom:10px;
+    padding-right:130px; border-bottom:1px solid var(--line)}
   .wk-bar .wk-pos{margin-left:auto; font-size:12px; font-weight:800; color:var(--saffron2);
     background:var(--bg2); border:1px solid var(--line2); border-radius:20px; padding:5px 12px}
   #sheet > h2:first-of-type{padding-right:46px}
@@ -1125,16 +1154,21 @@
 .lg-fig .hint{font-size:10.5px;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lg-fig b{font-size:14px;white-space:nowrap}
 .lg-bill b{color:var(--txt)}
-.lg-pay b{color:var(--ok)}
+/* v787 — HIS 29 Sept: "payment jo ja raha hai wo dark red hona chahiye, jo aa raha hai wo
+   green, balance ka alag color (blue) — dono Payment aur Receipt ek hi green mein the,
+   direction ka color se koi taalluk nahi tha." One class carried both words; now each
+   direction has its own. */
+.lg-pay.lg-out b{color:var(--bad)}
+.lg-pay.lg-in b{color:var(--ok)}
 .lg-run{text-align:right}
-.lg-run b{color:var(--saffron2)!important}
+.lg-run b{color:var(--info)!important}
 </style>
 </head>
 <body>
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v779</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v788</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -2104,7 +2138,7 @@ const T={
   db_title:'Day book', db_sub:'Opening balance, everything in and out, closing balance.',
   db_opening:'Opening balance', db_closing:'Closing balance', db_in:'Payment In', db_out:'Payment Out',
   db_entries:'Entries', db_none:'Nothing moved in this period', db_today:'Today', db_yest:'Yesterday',
-  db_f_all:'All', db_f_sale:'Sales', db_f_purch:'Purchases', db_f_exp:'Expenses', db_f_in:'Money in', db_f_out:'Money out',
+  db_f_all:'All', db_f_sale:'Sales', db_f_purch:'Purchases', db_f_exp:'Expenses', db_f_karigar:'Karigar', db_f_in:'Money in', db_f_out:'Money out',
   or_pending_all:'All pending orders', or_period_hd:'For the period',
   or_title:'Order reports', or_sub:'What was ordered, what is made, what is still running.',
   or_orders:'Orders', or_pending:'Pending', or_done:'Delivered', or_late:'Overdue orders',
@@ -2400,7 +2434,7 @@ const T={
   ex_csv:'CSV', ex_pdf:'PDF / print', ex_done:'{n} {n|row|rows} exported', ex_nothing:'Nothing to export',
   stk_cat_all:'All categories', stk_cat_pick:'Category',
   pty_cred:'Payables · I have to pay', pty_debt:'Receivables · I have to get', pty_flat:'No balance',
-  pty_title:'Receivables', pty_sub:'',
+  pty_title:'Receivables', pty_sub:'', pty_hub_title:'Parties',
   pty_cred_title:'Payables',
   rp_out_debtors:'Debtors Outstanding', rp_out_creditors:'Creditors Outstanding',
   cr_rec:'Where the difference is', cr_rec_title:'Where the difference is',
@@ -2418,6 +2452,8 @@ const T={
   rp_loan_open:'Opening \u2014 entered on the Opening screen',
   rp_loan_taken:'Taken', rp_loan_repaid:'Repaid',
   rp_loan_note:'Every line below is a record in the book. Interest is not here \u2014 it is a cost and has already gone to Profit & loss.',
+  loan_del_t:'Delete this loan entry?',
+  loan_del_q:'{d} \u00b7 {w} \u00b7 {t} \u00b7 {m}<br><br>This entry will be removed from the books. The outstanding loan balance for {w} will change by {m}, and {a} will change by the same amount.',
   rh_stock:'Stock',
   ob_calc_blind:'Your rolls carry no record of WHEN cloth left them \u2014 so the starting stock cannot be worked out from the book. Count the shelf on the starting day, or put your own figure in.',
   ob_calc_blind_t:'Nothing has left the shelf since then',
@@ -2902,6 +2938,7 @@ const T={
   stk_sort_name:'By name',
   stk_sort_new:'Newest first', stk_sort_serial:'Serial order',
   stk_short_warn:'{n} m more issued than this roll ever had — check the entries',
+  stk_rdy_short_warn:'Billed more of this than was in stock — check the entries',
   jw_ready_to_give:'ready to give', jw_with_him:'with him',
   bk_link_title:'Keep one backup file', bk_link_desc:'Choose a file once. Every backup then writes over that same file, so you always have exactly one, always the latest.',
   bk_link_btn:'Choose the backup file', bk_linked:'Backup file linked', bk_linked_to:'Backup file',
@@ -3443,7 +3480,7 @@ dl_show_hidden:'Show hidden ({n})',
   ki_rate:'Rate', ki_none:'Nothing is waiting to be given out', ki_go:'Issue {n} {n|piece|pieces}',
   ki_done:'{n} {n|piece|pieces} issued to {k}', ki_no_karigar:'Add a karigar first',
   qc_arrange:'Arrange',
-  lg_dup:'A ledger with that name already exists', lg_title:'Ledger master', lg_new:'New ledger', lg_group:'Group', lg_name:'Ledger name',
+  lg_dup:'A ledger with that name already exists', lg_title:'Ledger master', lg_new:'New ledger', lg_group:'Group', lg_name:'Ledger name', mst_title:'Masters',
   lg_open:'Opening balance', lg_opendir:'Dr / Cr', lg_opendate:'Opening as on',
   lg_bs:'Balance sheet', lg_pl:'Profit & loss', lg_saved:'Ledger saved', lg_count:'{n} {n|ledger|ledgers}',
   lg_sub:'Every name the shop uses, and the group it belongs to.',
@@ -4471,7 +4508,7 @@ dl_show_hidden:'Show hidden ({n})',
   db_title:'रोज़नामचा', db_sub:'ओपनिंग बैलेंस, सारा आना-जाना, क्लोज़िंग बैलेंस।',
   db_opening:'शुरू का बैलेंस', db_closing:'आख़िर का बैलेंस', db_in:'पैसा आया', db_out:'पैसा दिया',
   db_entries:'एंट्री', db_none:'इस अवधि में कुछ नहीं हुआ', db_today:'आज', db_yest:'कल',
-  db_f_all:'सब', db_f_sale:'बिक्री', db_f_purch:'ख़रीद', db_f_exp:'ख़र्च', db_f_in:'आया', db_f_out:'गया',
+  db_f_all:'सब', db_f_sale:'बिक्री', db_f_purch:'ख़रीद', db_f_exp:'ख़र्च', db_f_karigar:'कारीगर', db_f_in:'आया', db_f_out:'गया',
   or_pending_all:'सारे बाकी ऑर्डर', or_period_hd:'इस अवधि का',
   or_title:'ऑर्डर रिपोर्ट', or_sub:'क्या ऑर्डर हुआ, क्या बन गया, क्या चल रहा है।',
   or_orders:'ऑर्डर', or_pending:'बाकी', or_done:'डिलीवर', or_late:'देर से चल रहे ऑर्डर',
@@ -4767,7 +4804,7 @@ dl_show_hidden:'Show hidden ({n})',
   ex_csv:'CSV', ex_pdf:'PDF / प्रिंट', ex_done:'{n} लाइन एक्सपोर्ट हुईं', ex_nothing:'एक्सपोर्ट करने को कुछ नहीं',
   stk_cat_all:'सभी कैटेगरी', stk_cat_pick:'कैटेगरी',
   pty_cred:'मुझे देने हैं', pty_debt:'मुझे मिलने हैं', pty_flat:'कोई बकाया नहीं',
-  pty_title:'मुझे मिलने हैं', pty_sub:'',
+  pty_title:'मुझे मिलने हैं', pty_sub:'', pty_hub_title:'Parties',
   pty_cred_title:'मुझे देने हैं',
   rp_out_debtors:'देनदार बकाया', rp_out_creditors:'लेनदार बकाया',
   cr_rec:'फ़र्क़ कहाँ है', cr_rec_title:'फ़र्क़ कहाँ है',
@@ -4785,6 +4822,8 @@ dl_show_hidden:'Show hidden ({n})',
   rp_loan_open:'शुरुआती \u2014 Opening स्क्रीन से',
   rp_loan_taken:'लिया', rp_loan_repaid:'चुकाया',
   rp_loan_note:'नीचे की हर लाइन किताब का एक रिकॉर्ड है। ब्याज यहाँ नहीं है \u2014 वह ख़र्च है और Profit & loss में जा चुका है।',
+  loan_del_t:'यह ऋण एंट्री हटाएँ?',
+  loan_del_q:'{d} \u00b7 {w} \u00b7 {t} \u00b7 {m}<br><br>यह एंट्री किताब से हट जाएगी। {w} का बकाया ऋण {m} से बदल जाएगा, और {a} भी उतना ही बदलेगा।',
   rh_stock:'स्टॉक',
   ob_calc_blind:'आपके थान में यह लिखा ही नहीं है कि कपड़ा कब गया \u2014 इसलिए किताब से शुरुआती स्टॉक निकाला नहीं जा सकता। शुरू वाले दिन की गिनती डालिए, या अपना आँकड़ा भरिए।',
   ob_calc_blind_t:'तब से शेल्फ़ से कुछ गया ही नहीं',
@@ -5268,6 +5307,7 @@ dl_show_hidden:'Show hidden ({n})',
   stk_sort_name:'नाम से',
   stk_sort_new:'नए पहले', stk_sort_serial:'सीरियल क्रम',
   stk_short_warn:'इस थान में जितना था उससे {n} मीटर ज़्यादा निकाला गया है — एंट्री जाँचें',
+  stk_rdy_short_warn:'स्टॉक से ज़्यादा बिल हो गया है — एंट्री जाँचें',
   jw_ready_to_give:'देने को तैयार', jw_with_him:'उसके पास',
   bk_link_title:'एक ही बैकअप फ़ाइल रखें', bk_link_desc:'एक बार फ़ाइल चुन लें। फिर हर बैकअप उसी फ़ाइल पर लिखेगा — हमेशा एक ही, हमेशा नई।',
   bk_link_btn:'बैकअप फ़ाइल चुनें', bk_linked:'बैकअप फ़ाइल जुड़ गई', bk_linked_to:'बैकअप फ़ाइल',
@@ -5806,7 +5846,7 @@ dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
   ki_rate:'रेट', ki_none:'देने को कुछ नहीं है', ki_go:'{n} पीस दें',
   ki_done:'{k} को {n} पीस दे दिए', ki_no_karigar:'पहले कारीगर जोड़िए',
   qc_arrange:'क्रम बदलें',
-  lg_dup:'इस नाम का लेजर पहले से है', lg_title:'Ledger master', lg_new:'New ledger', lg_group:'Group', lg_name:'Ledger name',
+  lg_dup:'इस नाम का लेजर पहले से है', lg_title:'Ledger master', lg_new:'New ledger', lg_group:'Group', lg_name:'Ledger name', mst_title:'Masters',
   lg_open:'Opening balance', lg_opendir:'Dr / Cr', lg_opendate:'Opening as on',
   lg_bs:'Balance sheet', lg_pl:'Profit & loss', lg_saved:'Ledger saved', lg_count:'{n} ledgers',
   lg_sub:'हर नाम जो दुकान में चलता है, और वो किस group में है।',
@@ -7010,7 +7050,13 @@ function nextInvoiceNo(){
    the net-sales figure the P&L derives. Past bills will now show the tax they should always
    have shown. */
 const invIsFabric=it=>!!(it && (it.thaanId||it.fabId||String(it.unit||'')==='Mtr'));
-const invRate=(p,it)=>invIsFabric(it)?5:((+p||0)>2500?18:5);
+/* v787 — a line that has already been billed carries its own frozen it.gstRate (stamped
+   once, at saveInvoice's write to rec.invoice — see the comment there); every caller of
+   invRate/invCompute reads through here, so freezing it in ONE place covers all of them —
+   the invoice preview, print, PDF, WhatsApp text, GSTR reports, the dashboard — without
+   touching each one. A line with no gstRate yet (a live draft being priced, or a bill saved
+   before this build) still gets the ordinary live calculation, exactly as before. */
+const invRate=(p,it)=>(it && it.gstRate!=null) ? it.gstRate : (invIsFabric(it)?5:((+p||0)>2500?18:5));
 const r2=n=>Math.round((+n||0)*100)/100;
 /* ══════════ v683 — THE CALCULATION LAW ══════════
    HIS 14 Sept: "calculation ke upar bhi koi restriction lagao ki calculation mein mistake
@@ -8230,7 +8276,17 @@ function monthsSince(ts){
 function readyItems(){ return (DB.itemMaster||[]).filter(m=>m.kind==='ready'); }
 function readyQty(m,size){ return +((m.stk||{})[size])||0; }
 function readyTotal(m){ return Object.values(m.stk||{}).reduce((s,v)=>s+(+v||0),0); }
-function readySet(m,size,q){ m.stk=m.stk||{}; const v=Math.max(0,Math.round(+q||0)); if(v)m.stk[size]=v; else delete m.stk[size]; }
+/* v787 — PATTERN: readymade stock was clamped to 0 on oversell (Math.max(0,...) below),
+   while fabric rolls have shown and flagged a negative balance since thaanBal/thaanShort.
+   Same rule ("negative stock is shown and flagged, never clamped to zero"), one side of it
+   silently broken. The manual edit screen (readyEdit/readyRender/szBump) already keeps its
+   own inputs at min=0, so nobody can TYPE a negative — only a sale/consumption path that
+   takes more than is left should ever produce one, and one caller (purchase-return, line
+   ~31364) already clamps for itself where 0 really is the floor. Removing the clamp here
+   lets those already-correct call sites keep behaving exactly as before, while a genuine
+   oversell (billing, alteration) now shows the true negative instead of hiding it as 0. */
+function readySet(m,size,q){ m.stk=m.stk||{}; const v=Math.round(+q||0); if(v)m.stk[size]=v; else delete m.stk[size]; }
+const readyShort = (m,sz) => readyQty(m,sz) < 0;   /* v787: readymade's own thaanShort */
 
 /* ======================= STOCK HOME ======================= */
 let _stkTab='fabric';
@@ -9193,8 +9249,13 @@ function readyBody(keepFocus){
         <span class="gtag ${_rdySort==='name'?'on-tag':''}" style="cursor:pointer" onclick="setRdySort('name')">${t('stk_sort_name')}</span></span></div>
     ${pageSlice('rdy',list).map(m=>{
       const tot=readyTotal(m);
-      const chips=sizes.filter(sz=>readyQty(m,sz)>0)
-        .map(sz=>`<span class="gtag" style="font-size:11px">${esc(sz)}: <b>${readyQty(m,sz)}</b></span>`).join('');
+      /* v787: was sizes.filter(sz=>readyQty(m,sz)>0) — a negative size (oversold) is now
+         possible (see readySet) and must stay VISIBLE, flagged, same as a fabric roll's
+         thaanShort — not silently dropped from the chip row as if nothing was ever there. */
+      const chips=sizes.filter(sz=>readyQty(m,sz)!==0)
+        .map(sz=>{ const q=readyQty(m,sz);
+          return `<span class="gtag" style="font-size:11px${q<0?';color:var(--bad);font-weight:800;border-color:var(--bad)':''}">${esc(sz)}: <b>${q}</b></span>`; }).join('');
+      const short=sizes.some(sz=>readyShort(m,sz));
       return `<div class="card" style="margin-bottom:8px" onclick="readyEdit('${m.id}')">
         <div class="kv" style="align-items:flex-start">
           ${(m.photos||[]).length?`<img class="stk-thumb" data-pid="${m.photos[0]}">`:''}
@@ -9206,9 +9267,10 @@ function readyBody(keepFocus){
             <b style="font-size:15px">${esc(m.name)}</b>
             ${m.rate?`<div class="hint">${money(m.rate)} / pc</div>`:''}
             ${m.notes?`<div class="hint" style="margin-top:3px;white-space:pre-wrap">${esc(m.notes)}</div>`:''}
-            <div class="gtags" style="margin-top:6px">${chips||`<span class="hint">${t('stk_out')}</span>`}</div></div>
+            <div class="gtags" style="margin-top:6px">${chips||`<span class="hint">${t('stk_out')}</span>`}</div>
+            ${short?`<div style="color:var(--bad);font-weight:700;font-size:12px;margin-top:4px">⚠️ ${t('stk_rdy_short_warn')}</div>`:''}</div>
           <div style="text-align:right">
-            <div style="font-size:20px;font-weight:900;color:${tot?'var(--txt)':'var(--bad)'}">${tot}</div>
+            <div style="font-size:20px;font-weight:900;color:${tot>0?'var(--txt)':'var(--bad)'}">${tot}</div>
             <div class="hint">${t('stk_pieces')}</div>
             ${(+m.cost||0)?`<div class="hint" style="color:var(--saffron2)">${money(r2(tot*(+m.cost||0)))}</div>`:''}
           </div></div></div>`;}).join('')+pageMoreBtn('rdy',list.length)
@@ -11265,10 +11327,45 @@ function payEntryDo(dir,again){
     }
   }
   _pyNameOk='';
-  if(!svOnce(['p',dir,party,amt,($('#py_date')||{}).value||'',($('#py_note')||{}).value||''].join('|'),
-    ()=>{})){ toast(t('sv_dup'),'bad'); return; }
-  const date=$('#py_date').value||todayISO();
-  const acc=($('#py_acc').value==='__new'?(defaultAcc()||{}).id:$('#py_acc').value);
+  /* v787 — HIS ask: the "already in the book" question the Order/Alteration/Staff payment
+     screens have had since v412 (same day, same amount, same person — almost always a
+     second tap on an old memory, not a second payment) was missing here, on the one
+     screen every kind of party payment actually goes through. Same helper (dupPayAsk),
+     same question, same "Yes, it's a second one" way past it.
+     dupPayAsk's own confirmModal closes the SHEET before it calls back (see confirmModal) —
+     every other caller of it (savePayment, staff pay) reads its boxes BEFORE asking and
+     hands the already-read values to its "then", never after, because #py_party etc. are
+     gone from the DOM the instant that sheet closes. payEntryCommit follows the same rule:
+     party/amt/disc travel in as arguments, not read again from a closed form. */
+  {
+    const _already=(DB.ledger||[]).filter(l=>l && String(l.dir||'')===dir && nameNorm(l.party||'')===nameNorm(party))
+      .map(l=>({amt:l.amt,date:l.date}));
+    const _date=($('#py_date')||{}).value||todayISO();
+    const _acc=($('#py_acc').value==='__new'?(defaultAcc()||{}).id:$('#py_acc').value);
+    const _note=($('#py_note')||{}).value||'';
+    return dupPayAsk(_already, amt, _date, ()=>payEntryCommit(dir,again,party,amt,disc,_date,_acc,_note));
+  }
+}
+
+function payEntryCommit(dir,again,party,amt,disc,_capDate,_capAcc,_capNote){
+  /* v787: date/acc/note came in as arguments (_capDate/_capAcc/_capNote) — captured by
+     payEntryDo BEFORE dupPayAsk's modal could close this sheet out from under them. A DOM
+     read here would work on the lucky path (no duplicate found, sheet never closed) and
+     throw null on the other (confirmed past the duplicate question) — same fault shape as
+     a flag that is only ever checked for what it IS, never for what it is false for. */
+  const date=_capDate||todayISO();
+  const acc=(_capAcc==='__new'?(defaultAcc()||{}).id:_capAcc);
+  const note=_capNote||'';
+  /* v787: svOnce (a plain 3-second same-signature lock, v376) used to sit here as the only
+     guard. dupPayAsk now runs first and asks its own question whenever this same day/amount/
+     party is already in the book — exactly the case svOnce was also trying to catch, only
+     without a way to say "yes, it's a second one". Keeping both meant a confirmed answer to
+     the new question walked straight into the old lock and silently saved nothing at all.
+     Order/Alteration/Staff payments never ran svOnce alongside dupPayAsk either — one guard
+     for "was this asked and answered" is enough, and dupPayAsk's own duplicate check (run
+     fresh at the moment of saving) already catches a genuine double-tap: the first tap's
+     save lands in DB.ledger synchronously before a second tap's handler can even start, so
+     the second tap sees the first tap's own entry as "already in the book" and asks too. */
   /* v604: anything that is not a party ledger is posted by miPost, which reads the chart
      and writes the one right row. Party ledgers keep the settle path below, because only
      they have bills for the money to land on. */
@@ -11280,15 +11377,26 @@ function payEntryDo(dir,again){
      hand the name over. Both vouchers now read one chart, refuse one thing (an ungrouped
      name), and settle bills only where bills can exist. */
   {
+    /* v787 — PATTERN: a payment to a name whose ledger-master group is empty was blocked
+       and thrown to ledgerEdit() here, discarding the typed amount with no way back — found
+       live: pay someone once (no master exists yet, so this block never ran, money posted
+       fine as a plain manual row), reopen Payment and pay them AGAIN — by now lgSync() has
+       auto-added them to the chart with a guessed group of '' (lgGuessGroup's honest "I do
+       not know" default), and this exact guard fired, ate the second payment, and told the
+       user nothing except a redirect to a screen they didn't ask for. This is the "a
+       question that protects nothing" shape: an empty group changes NOTHING about where
+       this code was already about to send the money — the two blocks below only ever fire
+       for a NON-empty, non-debtor/creditor group, so an empty _g always fell straight
+       through to the ordinary settle-then-manual path further down anyway (which is exactly
+       how the FIRST payment succeeded). Removed the standalone block; a genuinely bad
+       group (some non-empty string lgGroup() can't resolve) is still caught, gracefully, by
+       moPost/miPost's own internal check two lines below (toast only, nothing lost, sheet
+       stays open) — the only case actually worth refusing. */
     const _L=(typeof lgByName==='function')?lgByName(party):null;
     const _g=(_L&&_L.group)||'';
-    if(_L && (!_g || !lgGroup(_g))){        /* v604: an ungrouped ledger is fixed, not guessed */
-      toast(t('mi_no_group',{n:party}),'bad');
-      closeModal(); setTimeout(()=>{ try{ ledgerEdit(_L.id); }catch(e){} },120); return;
-    }
     if(dir==='out' && _g && _g!=='debtors' && _g!=='creditors'){
       if(disc>0){ toast(t('py_disc_none'),'bad'); return; }
-      const res=moPost({name:party, amt, date, acc, note:($('#py_note')||{}).value||''});
+      const res=moPost({name:party, amt, date, acc, note});
       if(!res.ok){ toast(res.msg,'bad'); return; }
       save(); payPartyRowsClear(); closeModal();
       toast('\u2705 '+t('vch_payment')+' \u00B7 '+money(amt)+' \u00B7 '+esc(party),'ok');
@@ -11297,7 +11405,7 @@ function payEntryDo(dir,again){
     }
     if(dir==='in' && _g && _g!=='debtors' && _g!=='creditors'){
       if(disc>0){ toast(t('py_disc_none'),'bad'); return; }
-      const res=miPost({name:party, amt, date, acc, note:($('#py_note')||{}).value||''});
+      const res=miPost({name:party, amt, date, acc, note});
       if(!res.ok){ toast(res.msg,'bad'); return; }
       save(); payPartyRowsClear(); closeModal();
       toast('\u2705 '+t('vch_receipt')+' \u00B7 '+money(amt)+' \u00B7 '+esc(party),'ok');
@@ -11332,26 +11440,26 @@ function payEntryDo(dir,again){
       DB.ledger.push({id:uid(), refKind:'loan', dir, date, amt:r.left, acc,
         party, partyKind:'loan', loanPrincipal:r.left, loanInterest:0,
         ref: dir==='in'?t('pw_loanin'):t('pw_loanpay'), cat:'',
-        note:($('#py_note').value||'').trim()});
+        note});
     } else if(_grp==='capital'){
       DB.ledger.push({id:uid(), refKind: dir==='in'?'capital':'drawings', dir, date,
         amt:r.left, acc, party, ref: dir==='in'?t('pw_capital'):t('pw_draw'), cat:'',
-        note:($('#py_note').value||'').trim()});
+        note});
     } else {
       DB.ledger.push({id:uid(),dir,date,amt:r.left,
         acc, party, partyId:cust?cust.id:null,
         ref: dir==='in'?t('pay_in'):t('pay_out'), refKind:'manual', cat:'',
-        note:($('#py_note').value||'').trim(), photos:[]});
+        note, photos:[]});
     }
   }
   save();
   const msg=r.touched.length?t('pay_settled',{d:r.touched.join(', ')}):t('t_saved');
   if(again){
-    /* the date and the account stay — a sitting of old entries shares both */
-    ['py_party','py_amt','py_note'].forEach(id=>{ const e=$('#'+id); if(e)e.value=''; });
-    const h=$('#pySettleHint'); if(h)h.textContent='';
-    const p2=$('#py_party'); if(p2)p2.focus();
-    toast(msg,'ok');
+    /* v787: this branch used to reset the SAME open sheet's boxes in place — safe only when
+       nothing had closed it. Now that a confirmed duplicate closes the sheet first (same as
+       the moPost/miPost branches above always did), it reopens a fresh Payment screen the
+       same way they do, instead of reaching for inputs that may no longer exist. */
+    closeSheet(); toast(msg,'ok'); payEntry(dir,1);
     return;
   }
   closeSheet(); toast(msg,'ok'); dayBook();
@@ -11886,35 +11994,21 @@ function expRender(){
       <input id="ex_cat" value="${esc(d.cat)}" placeholder="${t('exp_cat_ph')}"
         autocomplete="off" oninput="expCatType(this.value)">
       <div class="gtags" id="exCatChips" style="margin-top:8px">${chips}</div></div>
-    ${(()=>{ const hc=expHeadCfg(d.cat); if(!d.cat)return '';
-      /* v201: the head decided which names belong here, so the right list simply appears.
-         v223 — HIS 19 Aug: "rent main Akhil ji ko deta hun... chahta hun ki Akhil ke ledger
-         me bhi entry ho jaye, expense bhi record ho jaye aur cash/bank me bhi." Akhil is a
-         landlord — not a karigar, not staff, not a supplier — so under the old rule his
-         head carried no name list at all and the money went out anonymously.
-         Now every head offers names. A tagged head still shows its own master list first;
-         an untagged one offers whoever has been paid under this head before, and ➕ to
-         write a new name. One entry, three places: the expense, the man's ledger, and the
-         cash or bank it left from. */
-      const tagged=!!hc.who;
-      if(d.partyId)_expWantName=false;
-      const ppl = tagged ? partyList(hc.who) : expHeadNames(d.cat);
-      return `<div class="field" style="margin-top:10px">
-        <label>${t('exp_party')}${tagged?' *':''}</label>
-        ${(d.partyId && String(d.partyName||'').trim())
-          ? `<div class="gtags"><span class="gtag on-tag">${esc(d.partyName||'')}</span>
-             <span class="gtag" style="cursor:pointer;border-style:dashed" onclick="expPickParty('')">✕ ${t('clear')}</span></div>`
-          : (tagged||_expWantName)
-            ? `<input id="expPtQ" placeholder="${t('exp_find_name')}" autocomplete="off"
-                 oninput="expPartySearch(this.value)" onfocus="expPartySearch(this.value)">
-               <div class="gtags" id="expPtHits" style="margin-top:6px"></div>
-               <div class="gtags" style="margin-top:4px">${ppl.slice(0,6).map(p=>`<span class="gtag" style="cursor:pointer"
-                 onclick="expPickParty('${p.id}')">${esc(p.name)}</span>`).join('')}</div>`
-            /* v235: closed by default — one small link, not a field he has to look past */
-            : `<span class="gtag" style="cursor:pointer;border-style:dashed"
-                 onclick="_expWantName=true;expCapture();expRender()">👤 ${t('exp_add_name')}</span>`}
-        </div>`;
-    })()}
+    ${/* ══════════ v787 — "WHOSE ACCOUNT" REMOVED FROM PLAIN EXPENSE ══════════
+         HIS 28 Sept: a same-day, fully-paid expense with no balance left needs only Head +
+         Amount + Narration — never a party field. Genuine liabilities (Purchase-on-credit,
+         Karigar day-sheet, Staff payroll, Loans) already write their own name-carrying entry
+         from their OWN dedicated screen (kdSave, payroll, purchase, loan) — this form is not
+         a second door to the same job. Nothing here changes: if an OLDER entry already
+         carries a partyId/partyName (from before this build), it stays on the record exactly
+         as saved (_exp keeps it; expSaveDo never clears it) — only the box to pick or change
+         one is gone from view. New entries under a head still tagged "Paid to" in ⚙️ Manage
+         no longer ask for or require a name; hc.who is no longer read at save time (below). */''}
+    ${(d.partyId && String(d.partyName||'').trim())
+      ? `<div class="field" style="margin-top:10px"><label>${t('exp_party')}</label>
+         <div class="gtags"><span class="gtag on-tag">${esc(d.partyName||'')}</span>
+           <span class="gtag" style="cursor:pointer;border-style:dashed" onclick="expPickParty('')">✕ ${t('clear')}</span></div></div>`
+      : ''}
     ${_expMLOn ? expMLRowsHTML() : `<div class="field" style="margin-top:10px"><label>${t('amount')} ₹ *</label>
       <input id="ex_amt" type="number" inputmode="numeric" value="${esc(d.amt)}" placeholder="0"></div>
       ${d.id?'':`<span class="gtag" style="cursor:pointer;border-style:dashed;display:inline-block"
@@ -12513,16 +12607,24 @@ function hsIssues(){
     done[h]=1; out.push({k:'person', head:h, n:U(h).n, amt:U(h).amt, who:p.name}); });
   /* 4 — two heads that mean the same thing, same cost type, neither under the other yet */
   const main=h=>!expParentOf(h), kidsOf=h=>cats.filter(c=>expParentOf(c)===h).length;
+  /* v787 — HIS Transport/Rapido case: the pick was by entry-count alone, so whichever head
+     happened to have more rows logged won, even when it was the narrower word (Rapido is a
+     kind of Transport, not the other way round). Each HG_SYN row's FIRST word is that group's
+     umbrella term — if a head's own name IS that word, it is the natural survivor and must
+     win the merge direction regardless of which side has more entries. Count only decides
+     between two heads when neither one is the umbrella term itself. */
+  const canonOf=h=>{ const kh=hgKeys(h), gi=Object.keys(kh)[0]; return gi!==undefined && nameNorm(h)===_hgN[gi][0]; };
   cats.forEach(h=>{ if(done[h]||!U(h).n||!main(h)||kidsOf(h))return;
     const kh=hgKeys(h); if(!Object.keys(kh).length)return;
     const kind=expHeadCfg(h).kind||'indirect';
     const cand=cats.filter(c=>c!==h && !done[c] && main(c) && (expHeadCfg(c).kind||'indirect')===kind
       && Object.keys(hgKeys(c)).some(k=>kh[k]));
     if(!cand.length)return;
-    /* the bigger one (or the one that already has heads under it) is the main head */
-    cand.sort((a,b)=>(kidsOf(b)-kidsOf(a))||(U(b).n-U(a).n));
+    /* the umbrella word wins first; else the one with heads already under it, or more entries */
+    cand.sort((a,b)=>(canonOf(b)-canonOf(a))||(kidsOf(b)-kidsOf(a))||(U(b).n-U(a).n));
     const to=cand[0];
-    if(!kidsOf(to) && U(to).n<U(h).n)return;     /* h is the bigger — it gets its turn as "to" */
+    if(canonOf(h) && !canonOf(to))return;               /* h itself is the umbrella term — waits its turn as "to" */
+    if(!canonOf(h) && !canonOf(to) && !kidsOf(to) && U(to).n<U(h).n)return; /* neither is umbrella — bigger count gets its turn as "to" */
     done[h]=1; out.push({k:'twin', head:h, n:U(h).n, amt:U(h).amt, to:to}); });
   /* v751 — the head says one cost type, its own entries say another */
   cats.forEach(h=>{ if(done[h]||!U(h).n)return;
@@ -12663,7 +12765,7 @@ function phSet(lid,h){
   DB.pHead=DB.pHead||{}; const k=nameNorm(l.name);
   if(h)DB.pHead[k]=h; else delete DB.pHead[k];
   save(); closeModal(); toast('✅ '+(h?t('phh_done',{p:l.name,h:h}):t('phh_cleared')),'ok');
-  /* v779: fixing a head from the "N people have no fixed head" list dropped him on his own
+  /* v787: fixing a head from the "N people have no fixed head" list dropped him on his own
      ledger, not back on that list — HIS 29 Sept: "isko baar-baar back button dabana padta
      hai... jahan fix kar diya wapas usi list pe aa jaana chahiye". Opened via hsOpenPerson,
      go back to hsScreen; opened any other way (search, lgList), stay on his ledger as before. */
@@ -12776,11 +12878,9 @@ function expSaveDo(next){ expCapture(); const d=_exp;
   /* v749: "rent" and "Rent" are one head */
   { const same=(DB.expCats||[]).find(c=>c!==d.cat && nameNorm(c)===nameNorm(d.cat)); if(same){ d.cat=same; const el=$('#ex_cat'); if(el)el.value=same; } }
   const hc=expHeadCfg(d.cat);
-  /* v750: an OLD entry that never had a name, under the same head, can be corrected and saved
-     as it is — the rule is for new entries. Asking for a name he does not have blocked every
-     fix to it (a date, an account, a note). */
-  { const _o=d.id?(DB.ledger||[]).find(x=>x.id===d.id):null;
-    if(hc.who && !d.partyId && !(_o && !_o.partyId && _o.cat===d.cat)){ toast(t('exp_need_party'),'bad'); return; } }
+  /* v787: the "Paid to" tag on a head no longer forces a name here — see the box above
+     expRender's party block. A name only reaches the ledger line if one is already on the
+     record from before this build (see there); a fresh entry never blocks on it. */
   if(!expGates(d,amt,next))return;
   /* v235 — that v222 block is gone. HIS 20 Aug: "if I don't select it, whose account won't
      appear, and it won't touch any specific artisan's account." He is right that forcing a
@@ -12841,7 +12941,7 @@ function expSaveMulti(next){
   const rows=_expML.filter(r=>(+r.amt||0)>0);
   if(!rows.length){toast(t('t_no_amount'),'bad');return;}
   const hc=expHeadCfg(d.cat);
-  if(hc.who && !d.partyId){ toast(t('exp_need_party'),'bad'); return; }
+  /* v787: no forced "Whose account" here either — see expSaveDo. */
   const vid=uid(); DB.ledger=DB.ledger||[];
   rows.forEach(r=>{
     const id=uid();
@@ -12945,6 +13045,12 @@ function dbKindOf(l){
   if(k==='sale'||k==='order')return 'sale';
   if(k==='purchase')return 'purch';
   if(k==='expense')return 'exp';
+  /* v787 — HIS 29 Sept: "karigar, staff ya koi bhi daily payment/receipt, purchase aur sale
+     ke alawa, day book me dikhna chahiye." Staff salary already lands under 'exp' (its own
+     head), so it already shows on the Expense chip. Karigar settlement had no chip of its
+     own and fell into the plain in/out bucket — same movements, no way to see them apart
+     from an ordinary cash withdrawal. Its own chip now, so it reads as what it is. */
+  if(k==='karigar_pay')return 'karigar';
   return l.dir==='in'?'in':'out';
 }
 function dbSetFilter(k){ _dbKind=k||'all'; dayBook(); }
@@ -12970,7 +13076,7 @@ function dbLines(){
    the period chips, the total of what is shown, then the entries. The rows are the day
    book's own rows and open through the day book's own dbOpen — so a receipt reads the same
    and edits the same wherever he meets it, and there is no second version of the truth. */
-let _plQ='', _plPeriod='month', _plDir='in';
+let _plQ='', _plPeriod='month', _plDir='in', _plFrom='', _plTo='';
 function payListIn(){ payList('in'); }
 function payListOut(){ payList('out'); }
 function payList(dir){
@@ -12984,7 +13090,27 @@ function payList(dir){
   else if(_plPeriod==='last'){ const d=new Date(to+'T00:00:00');
     const s0=new Date(d.getFullYear(),d.getMonth()-1,1), e0=new Date(d.getFullYear(),d.getMonth(),0);
     return payListDraw(isIn,isoOf(s0),isoOf(e0)); }
+  /* v787 — HIS 29 Sept, screenshot of this exact screen: "custom date se search karne ka
+     option nahi hai... Financial year aur custom date wo hona chahiye." Same picker shape
+     already used on Balance sheet / Reports (month/quarter/FY/custom) — Financial year
+     starts the books' own FY-start date, Custom remembers whatever he last typed so the
+     chips and the from/to boxes never disagree. */
+  else if(_plPeriod==='fy') return payListDraw(isIn,fyStartISO(),to);
+  else if(_plPeriod==='custom') return payListDraw(isIn,_plFrom||fyStartISO(),_plTo||to);
   return payListDraw(isIn,from,to);
+}
+function plSetPeriod(k){
+  _plPeriod=k;
+  /* Custom is picked because the FROM date needs changing — same as every other period
+     picker in the app (bsSetPeriod, rpSetPeriod2), so his finger lands straight on it. */
+  if(k==='custom')setTimeout(()=>{try{const e=$('#pl_from'); if(e){e.focus(); if(e.showPicker)e.showPicker();}}catch(err){}},120);
+  payList(_plDir);
+}
+function plApplyCustom(){
+  const a=$('#pl_from'), b=$('#pl_to');
+  if(a&&b){ _plFrom=a.value||''; _plTo=b.value||''; }
+  _plPeriod='custom';
+  payList(_plDir);
 }
 function payListDraw(isIn,from,to){
   const q=String(_plQ||'').trim().toLowerCase();
@@ -12996,7 +13122,7 @@ function payListDraw(isIn,from,to){
   lines.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
   const tot=r2(lines.reduce((s,l)=>s+(+l.amt||0),0));
   const chip=(k,lbl)=>`<span class="gtag sm ${_plPeriod===k?'on-tag':''}" style="cursor:pointer"
-      onclick="_plPeriod='${k}';payList('${isIn?'in':'out'}')">${lbl}</span>`;
+      onclick="plSetPeriod('${k}')">${lbl}</span>`;
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${isIn?'⬇️':'⬆️'} ${t(isIn?'pay_in':'pay_out')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
@@ -13018,8 +13144,12 @@ function payListDraw(isIn,from,to){
            The input is never touched now. Only the rows below it are redrawn. */''}
       <input id="plQ" value="${esc(_plQ)}" placeholder="🔍 ${t('pl_find')}"
         autocomplete="off" oninput="plFilter(this.value,${isIn},'${from}','${to}')"></div>
-    <div class="gtags" style="margin:-2px 0 10px">
-      ${chip('month',t('rp_month'))}${chip('last',t('rp_lastmonth'))}${chip('all',t('pl_all'))}</div>
+    <div class="gtags" style="margin:-2px 0 8px">
+      ${chip('month',t('rp_month'))}${chip('last',t('rp_lastmonth'))}${chip('fy',t('bs_fy'))}${chip('all',t('pl_all'))}${chip('custom',t('rp_custom'))}</div>
+    ${_plPeriod==='custom'?`<div class="row" style="gap:8px;margin-bottom:10px;align-items:flex-end">
+      <div class="field" style="margin:0"><label>${t('rp_from')}</label><input id="pl_from" type="date" value="${esc(_plFrom||from)}"></div>
+      <div class="field" style="margin:0"><label>${t('rp_to')}</label><input id="pl_to" type="date" value="${esc(_plTo||to)}"></div>
+      <button class="btn sm primary" onclick="plApplyCustom()">${t('rp_apply')}</button></div>`:''}
     <div class="kv" style="margin:0 0 10px;padding:7px 10px;border:1px solid var(--line);border-radius:10px">
       <span><span class="hint" style="display:block">${t('inv_total_shown')}</span>
         <b id="plTot" style="font-size:16px;color:${isIn?'var(--ok)':'var(--bad)'}">${money(tot)}</b></span>
@@ -13145,7 +13275,7 @@ function dayBook(keepFocus){
     ${/* v637: a chip is a switch — second tap on the one already on turns it off */''}
     <div class="gtags" style="margin-bottom:8px">
       ${[['all','db_f_all'],['sale','db_f_sale'],['purch','db_f_purch'],['exp','db_f_exp'],
-         ['in','db_f_in'],['out','db_f_out']].map(k=>
+         ['karigar','db_f_karigar'],['in','db_f_in'],['out','db_f_out']].map(k=>
         `<span class="gtag sm ${(_dbKind||'all')===k[0]?'on-tag':''}" style="cursor:pointer"
            onclick="dbSetFilter('${(_dbKind||'all')===k[0]?'all':k[0]}')">${t(k[1])}</span>`).join('')}
     </div>
@@ -14359,14 +14489,25 @@ function loansScreen(){
        repaid sits under Payment, so this list reads the same way as every other one. */
     const billCell = r.sign>0 ? `<span class="hint">${esc(r.what)}</span><b>${money(r.amt)}</b>` : '';
     const payCell  = r.sign<0 ? `<span class="hint">${esc(r.what)}</span><b>${money(r.amt)}</b>` : '';
+    /* v787: a repaid loan is always money leaving the shop \u2014 dark red, same rule as the
+       ledger screen's Payment word. */
+    /* v787 \u2014 HIS ask: a loan entered twice (the "Entries written twice?" screen already
+       caught the pair) had nowhere to be removed FROM here \u2014 the passbook itself had no
+       door on a single row, opening-balance line or a real one, so the only way out was
+       the other screen. A real ledger row (r.go \u2014 the opening line carries none, on
+       purpose: that figure is edited from Opening balances, not deleted here) now gets its
+       own \ud83d\uddd1\ufe0f, same question every money-delete on this app asks: which entry, what it
+       moves, in words, before anything happens. */
+    const delBtn = r.go ? `<span class="tapx" style="cursor:pointer;flex:0 0 auto;padding-left:8px" onclick="event.stopPropagation();loanRowDel('${jq(r.go)}')">\u{1F5D1}\ufe0f</span>` : '';
     return `<div class="lg-row2">
       <div class="lg-when"><b>${r.d?fmtDate(r.d):'\u2014'}</b>
         <span class="lg-what">${esc(r.who)} \u00b7 ${esc(r.what)}</span></div>
       <div class="lg-figrow">
         <div class="lg-fig lg-bill">${billCell}</div>
-        <div class="lg-fig lg-pay">${payCell}</div>
+        <div class="lg-fig lg-pay lg-out">${payCell}</div>
         <div class="lg-fig lg-run"><span class="hint">${t('lg_left')}</span>
           <b>${money(Math.abs(run))}</b></div>
+        ${delBtn}
       </div></div>`; }).join('');
   let tot=0; try{ tot=r2(Math.abs((bsFigures(from,to).L||{}).loans||0)); }catch(e){}
   $('#sheet').innerHTML=`<div class="grip"></div>
@@ -14379,6 +14520,20 @@ function loansScreen(){
     <p class="hint" style="white-space:normal">${t('rp_loan_note')}</p>
     <div class="fab-pad"></div>`;
   showSheet();
+}
+/* v787 — the same delete this screen was missing (see the note on the 🗑️ above). Removes
+   exactly the one ledger row — never the opening line, which has no id to reach here — and
+   names what moves before it moves anything, the same as every other money-delete. */
+function loanRowDel(id){
+  const l=(DB.ledger||[]).find(x=>x.id===id && x.refKind==='loan'); if(!l)return;
+  const amt=r2(+l.amt||0), who=String(l.party||'').trim()||'—';
+  confirmModal('\u{1F5D1}️ '+t('loan_del_t'),
+    t('loan_del_q',{d:fmtDate(l.date), w:esc(who), t:esc(l.dir==='out'?t('rp_loan_repaid'):t('rp_loan_taken')),
+      m:money(amt), a:esc(accName(l.acc)||'')}),
+    ()=>{ DB.ledger=(DB.ledger||[]).filter(x=>x.id!==id);
+      save(); closeModal(); try{ _lgBalMemo={}; }catch(e){}
+      toast(t('t_deleted'),'ok'); loansScreen(); },
+    null, {yes:t('delete'), no:t('cancel'), cls:'danger'});
 }
 function credReconScreen(){
   sheetAt(credReconScreen);
@@ -17506,6 +17661,12 @@ function menuHome(){
     ${/* v615: the same heads Vyapar shows under Sale, in his own working order. They were
          all reachable already — behind ⋯ on the Sale list — and none of them was here. */''}
     ${modOn('billing')?sec('🧾 '+t('hub_sale'),[
+      /* v787 — HIS 29 Sept, pointing at this exact menu: "orders ko sales hub ke andar
+         sales/orders/payment in etc rahega to usme kya dikkat hogi." Orders already has its
+         own bottom tab, so nothing is lost by not repeating it as a separate top-level
+         section — same reasoning as Customers, right below. Pure menu placement, same
+         onclick as the row it replaces (menuGoTab('orders')) — no screen, no logic touched. */
+      row('📋',t('nav_orders'),"menuGoTab('orders')"),
       row('🧾',t('hub_sale'),"menuGoTab('invoices')"),
       row('\u2B07\uFE0F',t('pay_in'),"payList('in')"),
       row('↩️',t('sr_menu'),"retList('sale')"),
@@ -17521,8 +17682,9 @@ function menuHome(){
       row('↪️',t('pr_menu'),"retList('purchase')"),
       row('📝',t('purchase_order'),"poList()"),
       row('📥',t('creditors_report'),"creditors()")]):''}
-    ${sec('📋 '+t('nav_orders'),[
-      row('📋',t('nav_orders'),"menuGoTab('orders')")])}
+    ${/* v787 — the standalone Orders section moved INTO the Sale section above (same
+         onclick, same destination) — Orders already has its own bottom tab, so this was
+         a duplicate door, not a missing one. */''}
     ${modOn('stock')?sec('📦 '+t('stk_title'),[
       row('📦',t('stk_title'),"stockHome()"),
       /* ══════════ v447 — A SCREEN WITH NO DOOR ══════════
@@ -17532,6 +17694,16 @@ function menuHome(){
          this one was finished and then never let in. It sits under Stock, which is where a
          piece the shop made for its own rack belongs. */
       modOn('samples')?row('🧷',t('smp_title'),"samplesHome()"):'']):''}
+    ${/* ══════════ v787 — ONE DOOR TO CREATE ANYTHING ══════════
+         HIS 29 Sept: "kuch bhi create karna ho to Masters mein jaake kar sake" — new customer,
+         new item, new party/ledger, new karigar, new staff, a new bank account. Every one of
+         those forms already existed and worked; each was reachable only from inside its own
+         list screen. Same "built, working, unreachable" shape as Ledger master (v492) and
+         Opening stock (v498) right below this. Goes right beside them for the same reason. */''}
+    ${sec('🗂️ '+t('mst_title'),[
+      row('🗂️',t('mst_title'),"mastersHome()")])}
+    ${sec('👥 '+t('pty_hub_title'),[
+      row('👥',t('pty_hub_title'),"partyHub()")])}
     ${/* ══════════ v492 — THE LEDGER HAD NO DOOR ══════════
          HIS 5 Sept, standing on this very menu: "Ledger master hai kahan? Sab alag-alag
          account dikh rahe hain, alag-alag head dikh rahe hain, kahin ledger master to
@@ -17595,9 +17767,16 @@ function menuHome(){
          saved stays exactly where it is and is still in the backup — putting the row back
          is a one-line change on the day he wants it. Customers keeps its own row, since it
          only shared this heading. */''}
-    ${modOn('accounts')?sec('💰 '+t('cb_title'),[row('💰',t('cb_title'),"cashBank()")]):''}
-    ${sec('👥 '+t('nav_customers'),[
-      row('👥',t('nav_customers'),"menuGoTab('customers')")])}
+    ${/* v787 — Cash & Bank had two doors in this same All-screens list: once inside the
+         money section above (exp_title's sec, alongside Expenses/Debtors/Creditors), and
+         again as its own standalone one-row section right here — the exact "same screen,
+         two rows, in one list a man is scanning" shape v653 already fixed for
+         Receipt/Payment/Receivables/Payables, just missed this one. The row above still
+         opens cashBank(); nothing is lost. */''}
+    ${/* v787 — HIS 29 Sept, circling this exact row in a screenshot: "customer ke naam
+         se ek alag chip All-screens per jaruri nahi dikhti." Customers already has its own
+         bottom tab, so nothing is lost — and it is now also one of the rows inside the
+         Party hub, right below, alongside Karigar/Staff/Receivables/Payables/Loans. */''}
     ${modOn('billing')?sec('📊 '+t('reports'),[
       /* v658 - HIS 13 Sept: "Reports ke andar phir reports, main hub bhi reports, uske
          andar phir reports order... kuch samajh mein nahi aa raha."
@@ -24463,25 +24642,11 @@ function renderInvoiceForm(){
         <span class="hint">${t('acc_into')}</span>
         <span style="width:100%">${acctSelHTML('inv_acc', /cash/i.test(f.paymentMode||'')?(cashAcc()||{}).id:((DB.accounts||[]).find(a=>a.id===f.acc&&a.type!=='cash')||bankAccs()[0]||{}).id||'')}</span></div>
 
-      <div class="il" style="border-bottom:0"><span>${t('total_due')}</span>
-        <b id="tDue" style="font-size:17px;color:var(--saffron2)">${money(Math.max(0,r2(comp0.total-invRecvNow(f,comp0))))}</b></div>
-    </div>
-
-    <details style="margin-top:14px">
-      <summary style="font-size:13px;color:var(--saffron2);cursor:pointer;font-weight:700;padding:6px 0">⚙️ ${t('pos_more')}
-        ${/* v628: shut, this block used to give no sign that anything was inside it */''}
-        <span class="hint">${[(f.notes||'').trim()?'📝':'',
-          (f.voiceNotes||[]).length?('🎙️ '+(f.voiceNotes||[]).length):'',
-          (f.photos||[]).length?('📷 '+(f.photos||[]).length):''].filter(Boolean).join(' · ')}</span></summary>
-      ${/* v512: delivery date and order number live here now — the grid above is drawn
-           hidden and moved in when this opens, so there is only ever one copy of each box
-           and nothing had to be written twice. */''}
-      <div id="invDelySlot"></div>
-      <div class="il"><span>🚚 ${t('courier')}</span>
-        <input id="inv_courier" type="number" min="0" inputmode="numeric" value="${f.courier?esc(f.courier):''}" placeholder="0"
-          style="width:112px;text-align:right;margin:0" oninput="updateInvTotals()"></div>
-
-      <div class="field" style="margin-top:10px"><label>🧑‍💼 ${t('salesman')}</label>
+    ${/* v787 — HIS ask: the Salesman box was one tap inside "More", every single bill,
+         for a field he wants on the main screen, not folded away. Moved out of the
+         <details> block below into the main form; nothing about how it works changed —
+         same chips, same invPickSalesman(), same add/manage links. */''}
+      <div class="field" style="margin-top:14px"><label>🧑‍💼 ${t('salesman')}</label>
         <input type="hidden" id="inv_sm" value="${esc(f.salesmanId||'')}">
         ${/* v354 — HIS 27 Aug: "do salesman hain Om Ramesh, uska khula hua ho, phir more."
              Six names with their phone numbers took six lines of a bill screen for a field
@@ -24506,6 +24671,24 @@ function renderInvoiceForm(){
           <span class="gtag" style="cursor:pointer;border-style:dashed" onclick="invAddSalesman()">➕ ${t('add_salesman')}</span>
           ${all.length?`<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="invManageSalesmen()">⚙️ ${t('sm_manage')}</span>`:''}
         </div>`; })()}</div>
+      <div class="il" style="border-bottom:0"><span>${t('total_due')}</span>
+        <b id="tDue" style="font-size:17px;color:var(--saffron2)">${money(Math.max(0,r2(comp0.total-invRecvNow(f,comp0))))}</b></div>
+    </div>
+
+    <details style="margin-top:14px">
+      <summary style="font-size:13px;color:var(--saffron2);cursor:pointer;font-weight:700;padding:6px 0">⚙️ ${t('pos_more')}
+        ${/* v628: shut, this block used to give no sign that anything was inside it */''}
+        <span class="hint">${[(f.notes||'').trim()?'📝':'',
+          (f.voiceNotes||[]).length?('🎙️ '+(f.voiceNotes||[]).length):'',
+          (f.photos||[]).length?('📷 '+(f.photos||[]).length):''].filter(Boolean).join(' · ')}</span></summary>
+      ${/* v512: delivery date and order number live here now — the grid above is drawn
+           hidden and moved in when this opens, so there is only ever one copy of each box
+           and nothing had to be written twice. */''}
+      <div id="invDelySlot"></div>
+      <div class="il"><span>🚚 ${t('courier')}</span>
+        <input id="inv_courier" type="number" min="0" inputmode="numeric" value="${f.courier?esc(f.courier):''}" placeholder="0"
+          style="width:112px;text-align:right;margin:0" oninput="updateInvTotals()"></div>
+
       ${/* v503: worked out from the customer's GSTIN, not asked — and v504 puts the way to
            overrule it back, because taking it away entirely was a step too far. A buyer in
            another state who is not registered has no GSTIN to read, and on that bill the
@@ -26204,6 +26387,15 @@ function saveInvoice(){
   try{ invEnsurePending(f); }catch(e){}
   const rec=invRecOf(f.kind,f.id);
   if(!rec){ toast(t('inv_rec_gone'),'bad'); return; }   /* v705: never a silent Save */
+  /* v787 — THE RATE AT SAVE TIME STAYS FROZEN, THE OTHER HALF OF IT.
+     The interstate CGST/SGST-vs-IGST split has been frozen at save since v503 ("bills
+     already saved keep whatever they were saved with"). The 5%/18% slab rate never was —
+     invRate() recomputed it live, forever, off whatever the ₹2,500 threshold happens to be
+     in code AT THE MOMENT the bill is opened, not the moment it was billed. Harmless while
+     that threshold never changes, but the settings screen already promises old bills keep
+     their rate (line ~2159) — a promise nothing here was keeping. Stamped once; an item
+     that already carries a gstRate from an earlier save is left exactly as it was. */
+  (f.items||[]).forEach(it=>{ if(it.gstRate==null) it.gstRate=invRate((+it.price||0)/Math.max(1,+it.qty||1), it); });
   saleCommit(rec);                    /* v394: it becomes a sale HERE, not before */
   clearInvDraft();   /* v211: the bill is real now, so the half-made copy goes */
   if(invForm)invForm.saved=1;
@@ -33983,7 +34175,13 @@ function rpSummaryParts(from,to){
 }
 /* v645: each hub is the same quiet list — a row per report, nothing else on the screen. */
 const RPT_HUBS={
+  /* v787 \u2014 HIS 29 Sept: "payment in Sales ke andar hona chahiye, payment out Purchase ke
+     andar." Payment-in/out already have one real screen each (payListIn/payListOut, with
+     the This month/Last month/Full year/All/Custom chips shipped in v787) \u2014 no new screen,
+     just a second door into it from the hub where the money actually belongs. The
+     standalone Payment doors (Home shortcuts, \u2630 Menu) still work exactly as before. */
   sales:['\u{1F9FE}','rh_sales',[
+    ['\u{1F4B5}','pl_title_in','payListIn()'],
     ['\u{1F4B0}','rp_summary','salesSummary()'],
     ['\u{1F4C5}','td_title','todayScreen()'],
     ['\u{1F4C8}','or_title','orderReports()'],
@@ -33993,6 +34191,7 @@ const RPT_HUBS={
     ['\u{1F69A}','ontime_title','ontimeReport()'],
     ['\u{1F514}','fu_title','followUps()']]],
   purchase:['\u{1F4E6}','rh_purchase',[
+    ['\u{1F4B8}','pl_title_out','payListOut()'],
     ['\u{1F4E4}','creditors_report','creditors()'],
     ['\u{1F4D2}','rp_party_stmt','partyStatement()']]],
   expense:['\u{1F4B8}','rh_expense',[
@@ -34044,12 +34243,13 @@ const GOTO_EXTRA=[
   ['\u{1F4E6}','rh_stock',"stockHome('reports')"],
   ['\u{1F50E}','pa_title',"partyAuditScreen()"],
   ['\u{1F4CA}','dash_title',"dashboard()"],
-  ['\u{1F465}','pty_title',"partiesHome()"],
+  ['\u{1F465}','pty_hub_title',"partyHub()"],
   ['\u{1F4CB}','orders',"go('orders')"],
   ['\u{1F9D1}','customers',"go('customers')"],
   ['\u{1F9FE}','invoices',"go('invoices')"],
   ['\u{1F4E6}','purchase',"go('purchases')"],
-  ['➕','new_sale',"openSaleForm()"]
+  ['➕','new_sale',"openSaleForm()"],
+  ['\u{1F5C2}️','mst_title',"mastersHome()"]
 ];
 /* the words a man at a counter actually types, in either script. Keyed by the report's own
    label key so an alias follows its report, not a position in a list. */
@@ -34208,6 +34408,69 @@ function rptHub(k){
     <div class="fab-pad"></div>`;
   showSheet();
 }
+/* \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 v787 \u2014 MASTERS: ONE DOOR FOR EVERY "CREATE NEW" \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+   HIS 29 Sept: "jahan pe har chize ko naye dhang se... kuch bhi create karna ho to Masters
+   mein jaake kar sake" \u2014 customer, item, party/ledger, karigar, staff, a bank/loan account.
+   Every one of these creation forms already existed, each reachable only from inside the
+   screen that lists that kind of record (same "built, working, unreachable" shape as Ledger
+   master before v492 and Opening stock before v498). Nothing new is built here \u2014 this is
+   one door in front of six doors that already worked, so a new shop does not have to already
+   know which list screen secretly holds the + button for what it wants to create.
+   Deliberately NOT a place to EDIT or DELETE an existing record \u2014 that still happens on the
+   record's own list/detail screen, exactly as before. Masters only ever opens a blank form. */
+function mastersHome(){
+  sheetAt(mastersHome);
+  const row=(ico,label,fn)=>`<div class="kv" style="padding:13px 2px;border-bottom:1px solid var(--line);cursor:pointer"
+      onclick="closeSheet();${fn}"><span style="flex:1;min-width:0">${ico} ${t(label)}</span>
+      <span style="color:var(--saffron2)">\u203A</span></div>`;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:12px"><h2 style="margin:0">\u{1F5C2}\uFE0F ${t('mst_title')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
+    <div class="card" style="padding:0 12px">
+      ${row('\u{1F9D1}','cust_new',"newCustomer()")}
+      ${row('\u{1F4D7}','lg_new',"ledgerEdit(null)")}
+      ${row('\u{1F477}','add_karigar',"karigarEdit()")}
+      ${row('\u{1F464}','st_add',"staffEdit()")}
+      ${row('\u{1F3E6}','cb_add_bank',"accEdit(null,'bank')")}
+      ${row('\u{1F455}','stk_add_ready',"readyEdit()")}
+    </div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+/* ══════════ v787 — ONE HUB TO FIND A CUSTOMER, A VENDOR OR A LOAN ══════════
+   HIS 29 Sept: "customer/vendors/loans etc sab ke liye ek party hub ban do."
+   Deliberately NOT one merged list — that was tried once and reasoned against right where
+   partiesHome() is defined: Receivables and Payables "are chased by different people for
+   different reasons, and every set of books in the world lists them apart... a reason to
+   share the CODE, not the screen." That reasoning stands; nothing about the actual debtor/
+   creditor screens changes here.
+   What was missing is a plain ROUTE to these — a HUB, per the app's own screen law (routes
+   only, nothing else) — so he does not have to remember doors scattered across Reports, the
+   menu and three bottom tabs. Masters (just above) is where a NEW customer, supplier, loan
+   account, karigar or staff gets CREATED; this is where an EXISTING one is FOUND.
+   v787 — HIS 29 Sept, circling the standalone Customers row in All-screens: not needed as
+   its own top-level section since it already has a bottom tab — folded in here instead,
+   alongside Karigar and Staff (their own rich sections in the menu are UNTOUCHED — this is
+   only an extra quick-find door, nothing removed there). */
+function partyHub(){
+  sheetAt(partyHub);
+  const row=(ico,label,fn)=>`<div class="kv" style="padding:13px 2px;border-bottom:1px solid var(--line);cursor:pointer"
+      onclick="closeSheet();${fn}"><span style="flex:1;min-width:0">${ico} ${t(label)}</span>
+      <span style="color:var(--saffron2)">›</span></div>`;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:12px"><h2 style="margin:0">\u{1F465} ${t('pty_hub_title')}</h2>
+      <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
+    <div class="card" style="padding:0 12px">
+      ${row('\u{1F9D1}','nav_customers',"go('customers')")}
+      ${row('\u{1F477}','kb_title',"karigarBook()")}
+      ${row('\u{1F464}','st_title',"staffMaster()")}
+      ${row('\u{1F4D2}','pty_title',"debtorsHome()")}
+      ${row('\u{1F4D5}','pty_cred_title',"creditorsHome()")}
+      ${row('\u{1F3E6}','rp_out_loans',"loansScreen()")}
+    </div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
 function renderReports(){
   const el=$('#reportsPane');
   /* v228: the four money reports lead, because these are the ones he opens to decide
@@ -34356,7 +34619,13 @@ function salesSummary(){
       <div class="top"><div><div class="ono" style="font-size:14px">🧾 ${esc(x.inv.no)}</div>
         <div class="meta">${esc(x.rec.customerName||'—')} · ${fmtDate(x.inv.date)}</div></div>
         <div style="text-align:right;font-weight:800">${money(c.total)}</div></div></div>`;}).join('');
-  const R=rpSummaryParts(from,to);
+  /* v787 — HIS 29 Sept: "app ko saaf sutra karna hai, har screen ka apna purpose ho."
+     This screen is titled Sales — it does not need Debtors, Purchases or Creditors sitting
+     inside it: each already has its own door (debtorsHome, the Purchase hub, creditorsHome),
+     one tap away from Reports. Nothing deleted, nothing harder to reach; it is just no longer
+     read on the wrong screen — same law as "giving cloth to a master has no connection to
+     what the customer owes". rpSummaryParts() stays defined (now unused here) in case a
+     future screen wants the same figures. */
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:8px"><h2 style="margin:0">💰 ${t('rp_summary')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
@@ -34364,26 +34633,12 @@ function salesSummary(){
     <div class="card">
       <div class="kv"><span>${t('rp_invoices')}</span><b>${invs.length}</b></div>
       <div class="kv"><span>${t('rp_total_sales')}</span><b style="font-size:18px">${money(r2(sales))}</b></div>
-      <div class="kv"><span>${t('rp_total_gst')}</span><b>${money(r2(gst))}</b></div>
-      
+      <div class="kv" style="border-bottom:0"><span>${t('rp_total_gst')}</span><b>${money(r2(gst))}</b></div>
     </div>
     ${invs.length?exportBarHTML('rp_sales',()=>({title:t('sales_report'), sub:fmtDate(from)+' \u2013 '+fmtDate(to),
       head:[t('pay_date'),t('invoice'),t('customer'),t('amount')],
       rows:invs.map(x=>[fmtDate(x.inv.date), x.inv.no, x.rec.customerName||'', r2(invCompute(x.inv).total)])})):''}
     ${invRows||`<p class="hint">${t('rp_no_data')}</p>`}
-    <div class="section-h">🔴 ${t('debtors_report')}</div>
-    ${R.debtors.length?`<div class="card"><div class="kv"><span>${t('rp_debtor_total')}</span><b style="color:var(--saffron2);font-size:18px">${money(r2(R.debTotal))}</b></div></div>`+R.debRows:`<p class="hint">${t('rp_no_debtors')}</p>`}
-    <div class="section-h">📦 ${t('purchases_report')}</div>
-    <div class="card">
-      <div class="kv"><span>${t('rp_total_purchases')}</span><b style="font-size:18px">${money(r2(R.purchTotal))}</b></div>
-      
-    </div>
-    ${R.purch.length?exportBarHTML('rp_purch',()=>({title:t('purchases_report'), sub:fmtDate(from)+' \u2013 '+fmtDate(to),
-      head:[t('pay_date'),t('supplier'),t('purch_bill_no'),t('amount')],
-      rows:R.purch.map(p=>[fmtDate(p.date), p.supplier||'', p.billNo||'', r2(+p.total||0)])})):''}
-    ${R.purchRows||`<p class="hint">${t('rp_no_data')}</p>`}
-    <div class="section-h">🟠 ${t('creditors_report')}</div>
-    ${R.creditors.length?`<div class="card"><div class="kv"><span>${t('rp_creditor_total')}</span><b style="color:var(--saffron2);font-size:18px">${money(r2(R.credTotal))}</b></div></div>`+R.credRows:`<p class="hint">${t('rp_no_creditors')}</p>`}
     <div class="fab-pad"></div>`;
   showSheet();
 }
@@ -38251,7 +38506,7 @@ function openingBulk(){
     <div class="card" style="padding:12px">
       <div class="field"><label>${t('ob_name')}</label><input id="obName" placeholder="${t('ob_name_ph')}"
         autocomplete="off" oninput="obNameHits(this.value)"></div>
-      ${/* v779 — HIS 29 Sept: "spelling mein halka sa bhi change hoga to naya ledger khul
+      ${/* v787 — HIS 29 Sept: "spelling mein halka sa bhi change hoga to naya ledger khul
            jayega." Right — this box wrote whatever was typed as a brand-new party name, with
            no check against ledgers that already exist (Edit ledger has had this since v737).
            Same shape, same fix: show the closest existing names as you type, tap one to use
@@ -39379,7 +39634,12 @@ function dqScreen(){
             <div class="hint">${dqWho(r)&&r.cat?esc(r.cat)+' · ':''}${esc(accName(r.acc)||'')}</div>
             ${String(r.note||'').trim()?`<div class="hint" style="white-space:normal">${esc(String(r.note).trim())}</div>`:''}
             ${md?`<div class="hint">${t('dq_made',{d:md})}</div>`:''}</span>
-          ${(r.refKind==='expense'||r.refKind==='manual')?`<button class="btn sm danger" style="flex:0 0 auto;min-height:40px" onclick="dqDel('${jq(r.id)}')">\u{1F5D1}️</button>`:''}
+          ${/* v787 — HIS ask: a loan-kind pair showed up here (DQ_KINDS includes 'loan', line
+               above) exactly like an expense or manual pair, grouped the same way, described
+               the same way — but the 🗑️ next to it was missing, because this button's own
+               condition never grew past the two kinds it started with. He could see the extra
+               loan entry and could not remove it from the one screen built to remove it. */''}
+          ${(r.refKind==='expense'||r.refKind==='manual'||r.refKind==='loan')?`<button class="btn sm danger" style="flex:0 0 auto;min-height:40px" onclick="dqDel('${jq(r.id)}')">\u{1F5D1}️</button>`:''}
         </div>`; }).join('')}
         <button class="btn sm ghost block" style="margin-top:8px" onclick="dqApart(${i})">✅ ${t('dq_apart')}</button></div>`).join('')
       : `<p class="hint" style="padding:22px 4px;text-align:center">${t('dq_none')}</p>`}
@@ -39790,6 +40050,10 @@ function ledgerView(id){
     const amt = r.dr ? {w:_word, v:r.dr} : {w:_word, v:r.cr||0};
     const billCell = (!isOpen && _isBillCol) ? `<span class="hint">${esc(amt.w)}</span><b>${money(Math.abs(amt.v))}</b>` : '';
     const payCell  = (!isOpen && !_isBillCol) ? `<span class="hint">${esc(amt.w)}</span><b>${money(Math.abs(amt.v))}</b>` : '';
+    /* v787 \u2014 HIS 29 Sept: money going out reads dark red, money coming in reads green.
+       Same cashy/dr logic the word above already used, so the colour never disagrees with
+       the word sitting right next to it. */
+    const _payDir = (!isOpen && !_isBillCol) ? (( r.dr ? (l.group==='cash'||l.group==='bank') : !(l.group==='cash'||l.group==='bank') ) ? 'lg-in' : 'lg-out') : '';
     return `<div class="lg-row2"${r.go?` style="cursor:pointer" onclick="${esc(r.go)}"`:''}>
       <div class="lg-when"><b>${r.date?fmtDate(r.date):'\u2014'}</b>
         <span class="lg-what">${isOpen?('\u{1F4D6} '+esc(t('lg_open_row'))):esc(r.ref||'')}</span></div>
@@ -39798,7 +40062,7 @@ function ledgerView(id){
            Balance \u2014 an opening row fills none of the first two, only the third. */''}
       <div class="lg-figrow">
         <div class="lg-fig lg-bill">${billCell}</div>
-        <div class="lg-fig lg-pay">${payCell}</div>
+        <div class="lg-fig lg-pay ${_payDir}">${payCell}</div>
         <div class="lg-fig lg-run"><span class="hint">${esc(t('lg_left'))}</span>
           <b>${money(Math.abs(run))} <span class="hint">${lgSide(run)}</span></b></div>
       </div></div>`;
