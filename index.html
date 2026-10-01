@@ -1184,7 +1184,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v813</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v814</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -3335,6 +3335,8 @@ const T={
   mst_already:'Already saved — is it one of these?', mst_open:'Open', ph_taken:'This number is already saved for {n}', ph_taken_short:'This mobile number is already saved for someone else', ph_anyway:'Different person — save anyway', ph_ok_diff:'OK — a different person with the same number',
   bal_get:'you will get', bal_give:'you have to give',
   lg_clean_n:'{n} things to clean up — tap to see',
+  sk_adv_out:'Advance with him (he has to return)', sk_square:'Nothing due either way', sk_att_calc:'Salary by attendance (only days marked)', sk_att_note:'This counts salary only for the days marked present. If attendance is not marked every day, this sum is short — the figure above is the one in the books.',
+  tl_head:'Head',
   tl_entries:'entries', tl_acc:'Account', tl_amt:'Amount', tl_in:'Received', tl_out:'Paid',
   tl_part:'Particulars', tl_total:'Total', tl_dates:'Dates (from – to)', tl_show:'Show', lg_ok_short:'matched with paper',
   mn_money:'Money & accounts', mst_saved_h:'Already saved — see / change', mst_lg_h:'Every khata in one list — customers, suppliers, loans, banks, expenses', mst_ob_h:'Starting balances — cash, bank, stock, loans on day one',
@@ -5735,6 +5737,8 @@ dl_show_hidden:'Show hidden ({n})',
   mst_already:'पहले से सेव है — क्या इनमें से कोई है?', mst_open:'खोलें', ph_taken:'ये नंबर पहले से {n} के नाम सेव है', ph_taken_short:'ये मोबाइल नंबर पहले से किसी और के नाम सेव है', ph_anyway:'अलग आदमी है — फिर भी सेव करें', ph_ok_diff:'ठीक है — एक ही नंबर, अलग आदमी',
   bal_get:'लेना है', bal_give:'देना है',
   lg_clean_n:'{n} चीज़ें साफ़ करनी हैं — देखने के लिए दबाएँ',
+  sk_adv_out:'उसके पास एडवांस (वापस लेना है)', sk_square:'कुछ बाकी नहीं', sk_att_calc:'हाज़िरी के हिसाब से सैलरी (सिर्फ़ मार्क किए दिन)', sk_att_note:'ये सिर्फ़ हाज़िरी लगे दिनों की सैलरी गिनता है। रोज़ हाज़िरी न लगे तो ये कम आएगा — ऊपर वाला आंकड़ा किताब का है।',
+  tl_head:'खर्च का नाम',
   tl_entries:'एंट्री', tl_acc:'खाता', tl_amt:'रकम', tl_in:'आया', tl_out:'गया',
   tl_part:'विवरण', tl_total:'टोटल', tl_dates:'तारीख़ (से – तक)', tl_show:'दिखाएँ', lg_ok_short:'काग़ज़ से मिलाया',
   mn_money:'पैसा और हिसाब', mst_saved_h:'पहले से सेव — देखें / बदलें', mst_lg_h:'सारे खाते एक लिस्ट में — ग्राहक, सप्लायर, लोन, बैंक, खर्च', mst_ob_h:'शुरू का हिसाब — पहले दिन का कैश, बैंक, स्टॉक, लोन',
@@ -11916,7 +11920,7 @@ function payNewParty(){
 }
 
 /* ---------------- EXPENSES ---------------- */
-let _exp=null, _expFrom='', _expTo='', _expOldFirst=false;
+let _exp=null, _expFrom='', _expTo='', _expOldFirst=true;   /* v814: oldest first, like every register */
 /* v232 — HIS 20 Aug: "ye kya hai, kitna scroll karun? Kyon karun? Mujhe lagta hai ek
    search bar hone se hi kaam ho jayega."
    He is right, and the fault was mine: this screen opened with fourteen head totals and
@@ -11936,16 +11940,19 @@ let _expQ='';
    touched, cannot lose focus and the caret cannot move.
    The other four were already clean: Sale list, Ledger, Parties, and the item picker,
    which redraw a small result panel rather than a screen. */
+/* v814 — Expenses as a Tally register: Date · Head (who · note) · Account · Amount, Total at the foot. */
 function expBodyHTML(list){
-  return list.map(l=>`<div class="card" style="margin-bottom:8px" onclick="expEdit('${l.id}')">
-      <div class="kv"><div>
-        <b>${esc(l.cat||t('exp_other'))}</b>
-        ${l.note?`<div class="hint">${esc(l.note)}</div>`:''}
-        <div class="hint">${fmtDate(l.date)} · ${esc(accName(l.acc))}${(l.photos||[]).length?' · 📷':''}</div>
-      </div><div style="display:flex;gap:8px;align-items:center;flex:0 0 auto">
-        <b style="color:var(--bad);font-size:16px">${money(l.amt)}</b>
-        <span class="hint" style="font-size:15px">\u270F\uFE0F</span></div></div></div>`).join('')
-      ||`<div class="empty" style="padding:24px 10px"><p>${t('exp_none')}</p></div>`;
+  if(!list.length)return `<div class="empty" style="padding:24px 10px"><p>${t('exp_none')}</p></div>`;
+  const tot=r2(list.reduce((s,l)=>s+(+l.amt||0),0));
+  return `<div class="card tl-tbl tl-reg" style="padding:0;margin-bottom:12px">
+    <div class="tl-tr tl-h"><span class="tl-d">${t('jv_date')}</span><span class="tl-p">${t('tl_head')}</span><span class="tl-a">${t('tl_acc')}</span><span class="tl-n">${t('tl_amt')}</span></div>
+    ${list.map(l=>`<div class="tl-tr tl-go" onclick="expEdit('${l.id}')">
+      <span class="tl-d">${fmtDate(l.date)}</span>
+      <span class="tl-p"><b>${esc(l.cat||t('exp_other'))}</b>${(()=>{ const x=[l.party&&nameNorm(l.party)!==nameNorm(l.cat)?l.party:'',l.note].filter(Boolean).join(' \u00B7 '); return x?` <span class="hint">${esc(x)}</span>`:''; })()}${(l.photos||[]).length?' \u{1F4F7}':''}</span>
+      <span class="tl-a hint">${esc(accName(l.acc))}</span>
+      <span class="tl-n" style="color:var(--bad)">${money(l.amt)}</span></div>`).join('')}
+    <div class="tl-tr tl-tot"><span class="tl-d"></span><span class="tl-p"><b>${t('tl_total')}</b></span><span class="tl-a"></span><span class="tl-n"><b>${money(tot)}</b></span></div>
+  </div>`;
 }
 /* v497: the rows the screen shows, built in one place so a keystroke and a full redraw
    can never end up with different lists. */
@@ -11957,6 +11964,20 @@ function expListAll(){
     .sort((a,b)=>_expOldFirst
       ? String(a.date).localeCompare(String(b.date))
       : String(b.date).localeCompare(String(a.date)));
+}
+function expPeriodName(){
+  const f=_expFrom||monthStart(), to=_expTo||todayISO();
+  if(f===monthStart() && to===todayISO())return t('rp_month');
+  if(f===fyStart() && to===todayISO())return t('bs_fy');
+  return t('rp_custom');
+}
+function expPickPeriod(){
+  const lm=new Date(); const s0=isoOf(new Date(lm.getFullYear(),lm.getMonth()-1,1)), e0=isoOf(new Date(lm.getFullYear(),lm.getMonth(),0));
+  const opt=(lbl,f,to)=>`<div class="kv" style="padding:13px 2px;border-bottom:1px solid var(--line);cursor:pointer" onclick="_expFrom='${f}';_expTo='${to}';closeModal();expenses(true)"><span>${lbl}</span></div>`;
+  modal('\u{1F4C5} '+t('rp_period'), opt(t('rp_month'),monthStart(),todayISO())+opt(t('rp_lastmonth'),s0,e0)+opt(t('bs_fy'),fyStart(),todayISO())
+    +`<div class="row" style="margin-top:12px"><div class="field"><label>${t('rp_from')}</label><input type="date" id="exP_f" value="${_expFrom||monthStart()}"></div>
+      <div class="field"><label>${t('rp_to')}</label><input type="date" id="exP_t" value="${_expTo||todayISO()}"></div></div>`,
+    [{label:t('close'),cls:'ghost',fn:closeModal},{label:t('tl_show'),cls:'primary',fn:()=>{ _expFrom=$('#exP_f').value||null; _expTo=$('#exP_t').value||null; closeModal(); expenses(true); }}]);
 }
 function expSearch(v){
   _expQ=String(v||'');
@@ -12004,21 +12025,10 @@ function expenses(keepQ){
     <button class="btn primary block" style="margin-bottom:10px" onclick="expEdit()">➕ ${t('exp_add')}</button>
     <input id="expQ" value="${esc(_expQ)}" placeholder="🔍 ${t('exp_search_ph')}"
       autocomplete="off" oninput="expSearch(this.value)" style="margin-bottom:8px">
-    <div class="gtags" style="margin-bottom:10px">
-      <span class="gtag" style="cursor:pointer" onclick="_expOldFirst=!_expOldFirst;expenses(true)">
-        ${_expOldFirst?'🕐 '+t('srt_old'):'🕐 '+t('srt_new')} ⇅</span>
-      ${(!_expFrom&&!_expTo)?`<span class="gtag" style="cursor:pointer"
-        onclick="_expFrom=fyStart();_expTo=todayISO();expenses(true)">${t('bs_fy')}</span>`:''}
-    </div>
-    <div class="row" style="margin-bottom:12px">
-      <div class="field" style="margin:0"><label>${t('rp_from')}</label>
-        ${/* v240 — HIS 21 Aug: "date ka range gayab ho gaya." My v233 reset wiped the range
-             the moment he picked one: choosing a date re-rendered the screen and the
-             re-render put the month back. Opening fresh still resets — that was the v233
-             point — but a range he just chose now holds. */''}
-        <input type="date" value="${from}" onchange="_expFrom=this.value;expenses(true)"></div>
-      <div class="field" style="margin:0"><label>${t('rp_to')}</label>
-        <input type="date" value="${to}" onchange="_expTo=this.value;expenses(true)"></div></div>
+    ${/* v814 — one period bar (the same look as every report) instead of a sort chip, a year chip and two date
+         boxes; the order is oldest-first like every Tally register, newest-first is a choice in ⋯. */''}
+    <div class="rngbar" onclick="expPickPeriod()"><span class="rngname">\u{1F4C5} ${esc(expPeriodName())} \u25BE</span><span class="rngdates">${fmtDate(from)} \u2192 ${fmtDate(to)}</span></div>
+    ${moreAdd('\u21C5',_expOldFirst?t('srt_new'):t('srt_old'),'_expOldFirst=!_expOldFirst;expenses(true)')}
     <div class="card pos-total" style="margin-bottom:12px">
       <div class="sum-row grand" style="border-top:none;padding-top:0">
         <span>${t('exp_total')}${_expQ?' · '+list.length:''}</span>
@@ -34210,13 +34220,12 @@ function payrollHub(mon){
             above a running total of drawings made the row look wrong even when it was
             right. The month is stated as the month; everything under it is the account. */''}
       <div class="kv" style="margin-top:7px"><span class="hint">${t('pay_this_month')}</span><b>${money(e)}</b></div>
-      <div class="kv" style="border-top:1px solid var(--line);margin-top:6px;padding-top:6px">
-        <span class="hint">${t('pay_earned_all')}</span><b>${money(b.earned)}</b></div>
-      <div class="kv"><span class="hint">${t('pay_drawn')}</span><b>${money(b.drawn)}</b></div>
-      <div class="kv" style="border-top:1px solid var(--line);margin-top:6px;padding-top:6px">
-        <span class="hint">${b.bal<0?t('pay_owes_shop'):t('pay_baaki')}</span>
-        <b style="color:${col};font-size:16px">${money(Math.abs(b.bal))}</b></div>
-      <button class="btn primary block" style="margin-top:9px" onclick="payStaffOpen('${st.id}')">\u{1F4B8} ${t('pay_give')}</button>
+      ${/* v814: the account line is the books' advance (same as staff ledger + Balance sheet), not the
+           attendance sum, which is short whenever a day is not marked. Pay is not orange — one per person. */''}
+      ${(()=>{ const adv=staffAdvBal(st.id); return `<div class="kv" style="border-top:1px solid var(--line);margin-top:6px;padding-top:6px">
+        <span class="hint">${adv>0?t('sk_adv_out'):adv<0?t('pay_baaki'):t('sk_square')}</span>
+        <b style="color:${adv>0?'var(--bad)':'var(--txt)'};font-size:16px">${money(Math.abs(adv))}</b></div>`; })()}
+      <button class="btn block" style="margin-top:9px;font-weight:800" onclick="payStaffOpen('${st.id}')">\u{1F4B8} ${t('pay_give')}</button>
     </div>`;
   }).join('')||`<p class="hint">${t('st_none')}</p>`;
   $('#sheet').innerHTML=`<div class="grip"></div>
@@ -34261,7 +34270,7 @@ function payStaffRender(){
   const accs=(DB.accounts||[]).filter(a=>a.type==='cash'||a.type==='bank');
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:2px"><h2 style="margin:0">\u{1F4B8} ${esc(st.name||'')}</h2></div>
-    <p class="hint" style="margin-bottom:12px">${b.bal<0?t('pay_owes_shop'):t('pay_baaki')}: <b>${money(Math.abs(b.bal))}</b></p>
+    ${(()=>{ const adv=staffAdvBal(d.sid); return `<p class="hint" style="margin-bottom:12px">${adv>0?t('sk_adv_out'):adv<0?t('pay_baaki'):t('sk_square')}: <b>${money(Math.abs(adv))}</b></p>`; })()}
     <div class="field"><label>${t('pay_amt')}</label>
       <input id="py_amt" type="number" min="0" inputmode="numeric" value="${esc(d.amt)}"
         placeholder="0" oninput="_payDraft.amt=this.value"></div>
@@ -34371,12 +34380,19 @@ function staffKhata(sid){
     ${exportBarHTML('sk_'+st.id,()=>({title:st.name, sub:t('pay_khata_sub'),
       head:[t('jv_date'),t('jv_narr'),t('jv_dr'),t('jv_cr')],
       rows:lines.map(l=>[l.d?fmtDate(l.d):'', String(l.txt||''), l.dr||'', l.cr||''])}))}
-    <div class="card pos-total" style="margin-bottom:12px;padding:12px 14px">
+    ${/* v814 — HIS 1 Oct, on Ramesh: this screen said "He owes the shop ₹69,400", the staff ledger said "Advance
+         ₹18,000" — and 18,000 is the true figure. ₹69,400 came from salary EARNED BY ATTENDANCE (only the days
+         marked present) minus every salary paid; with attendance not marked every day, "earned" is far too small.
+         The headline is now the books' own figure — advance given minus returned, the same one the staff ledger and
+         the Balance sheet show. The attendance sum stays below it, labelled as what it is. */''}
+    ${(()=>{ const adv=staffAdvBal(sid); return `<div class="kv card" style="padding:12px 14px;margin-bottom:8px">
+      <b>${adv>0?t('sk_adv_out'):adv<0?t('pay_baaki'):t('sk_square')}</b>
+      <b style="font-size:20px;color:${adv>0?'var(--bad)':'var(--txt)'}">${money(Math.abs(adv))}</b></div>`; })()}
+    <details style="margin-bottom:12px"><summary class="hint" style="cursor:pointer">${t('sk_att_calc')}</summary>
+      <div class="card" style="padding:10px 14px;margin-top:6px">
       <div class="kv"><span class="hint">${t('pay_earned_all')}</span><b>${money(b.earned)}</b></div>
       <div class="kv"><span class="hint">${t('pay_drawn')}</span><b>${money(b.drawn)}</b></div>
-      <div class="kv" style="border-top:1px solid var(--line);margin-top:6px;padding-top:6px">
-        <span><b>${b.bal<0?t('pay_owes_shop'):t('pay_baaki')}</b></span>
-        <b style="font-size:17px;color:${b.bal<0?'var(--bad)':'var(--saffron2)'}">${money(Math.abs(b.bal))}</b></div></div>
+      <p class="hint" style="margin:6px 0 0;white-space:normal">${t('sk_att_note')}</p></div></details>
     ${body}
     <button class="btn primary block" style="margin-top:12px" onclick="payStaffOpen('${sid}')">\u{1F4B8} ${t('pay_give')}</button>
     <div class="fab-pad"></div>`;
