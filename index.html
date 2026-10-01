@@ -174,7 +174,20 @@
   .logo{width:34px; height:34px; border-radius:9px; flex:none;
     background:linear-gradient(135deg,var(--saffron),#c97e10); display:grid; place-items:center;
     font-weight:800; color:#1a1206; font-size:18px; box-shadow:0 2px 10px rgba(246,166,35,.25)}
-  .gtag.on-tag{background:var(--saffron); color:#1a1206; border-color:var(--saffron); font-weight:700}
+  /* v808 — HIS 1 Oct: "orange button ek screen me ek hi jagah hona chahiye." Solid orange = the ONE action
+     (Save / Add). A CHOSEN option is shown with a light tint, a saffron edge and a tick — never solid orange. */
+  .tl-tr{display:grid;grid-template-columns:92px 1fr 110px 110px;gap:8px;padding:9px 12px;border-bottom:1px solid var(--line);align-items:start;font-size:14px}
+  .tb3 .tl-tr{grid-template-columns:1fr 130px 130px}
+  @media (max-width:560px){ .tb3 .tl-tr{grid-template-columns:1fr 92px 92px} }
+  .tl-n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .tl-p{min-width:0;overflow-wrap:anywhere}
+  .tl-h{background:var(--bg2);font-size:12px;font-weight:800;color:var(--txt2);text-transform:uppercase;letter-spacing:.3px}
+  .tl-go{cursor:pointer} .tl-go:active{background:var(--bg2)}
+  .tl-tot{border-top:2px solid var(--txt);background:var(--bg2)}
+  .tl-cl{border-bottom:0;font-size:15px}
+  @media (max-width:560px){ .tl-tr{grid-template-columns:58px 1fr 76px 76px;gap:6px;padding:8px 8px;font-size:12.5px} }
+  .gtag.on-tag{background:rgba(201,126,16,.14); color:var(--saffron2); border:2px solid var(--saffron); font-weight:800}
+  .btn.pick{background:rgba(201,126,16,.14); color:var(--saffron2); border:2px solid var(--saffron); font-weight:800}
   /* ---------- POS ---------- */
   .pos-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
   .tile-soon{opacity:.45; position:relative}
@@ -710,6 +723,10 @@
     display:flex; align-items:center; justify-content:center; margin:0;
     box-shadow:0 3px 10px rgba(0,0,0,.45); flex:0 0 auto}
   .sheet-x.pinned{position:fixed}
+  .sheet-m{position:absolute; top:10px; right:56px; z-index:20; width:44px; height:38px; border-radius:19px;
+    background:var(--bg2); border:1px solid var(--line2); color:var(--txt); font-size:20px; font-weight:900; line-height:1;
+    display:flex; align-items:center; justify-content:center; margin:0; padding:0; box-shadow:0 3px 10px rgba(0,0,0,.25)}
+  .sheet-m:active{background:var(--saffron); color:#1a1206}
   /* v429: the back arrow is the cross's twin on the other side of the sheet */
   .sheet-b{position:absolute; top:10px; left:10px; z-index:20; width:38px; height:38px;
     border-radius:50%; border:1px solid var(--line); background:var(--bg2); color:var(--txt);
@@ -1160,7 +1177,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v806</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v811</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -3307,6 +3324,12 @@ const T={
   bk_with_media:'It also carries {n} {n|photo|photos}/voice notes.',
   bk_restoring:'Restoring photos…',
   pay_settled:'Adjusted against {d}',
+  bs_view_drcr:'Accountant view (Dr / Cr side by side)', bs_view_plain:'Simple view (Assets, then Liabilities)',
+  mst_already:'Already saved — is it one of these?', mst_open:'Open', ph_taken:'This number is already saved for {n}', ph_taken_short:'This mobile number is already saved for someone else', ph_anyway:'Different person — save anyway', ph_ok_diff:'OK — a different person with the same number',
+  bal_get:'you will get', bal_give:'you have to give',
+  lg_clean_n:'{n} things to clean up — tap to see',
+  tl_part:'Particulars', tl_total:'Total', tl_dates:'Dates (from – to)', tl_show:'Show', lg_ok_short:'matched with paper',
+  mn_money:'Money & accounts', mst_saved_h:'Already saved — see / change', mst_lg_h:'Every khata in one list — customers, suppliers, loans, banks, expenses', mst_ob_h:'Starting balances — cash, bank, stock, loans on day one',
   mst_cust:'Customer', mst_cust_h:'Who buys from you — you take money from him', mst_sup:'Supplier', mst_sup_h:'From whom you buy cloth or goods — you pay him', mst_loan:'Loan', mst_loan_h:'Someone you took a loan from, or gave one to', mst_kar:'Karigar', mst_kar_h:'Tailor / worker who stitches for you', mst_staff:'Staff', mst_staff_h:'Your shop employee who gets a salary', mst_bank:'Bank account', mst_bank_h:'Your bank, UPI or cash account', mst_ready:'Readymade item', mst_ready_h:'Ready garment that you keep and sell', mst_other:'Other account (rent, expense…)', mst_saved:'Saved', mst_again:'Add one more', mst_ok:'OK', mst_exists:'"{n}" already exists',
   cust_new:'New customer',
   cust_photos:'Reference photos',
@@ -5700,6 +5723,12 @@ dl_show_hidden:'Show hidden ({n})',
   bk_with_media:'इसमें {n} फ़ोटो/वॉइस नोट भी हैं।',
   bk_restoring:'फ़ोटो वापस आ रही हैं…',
   pay_settled:'{d} में समायोजित',
+  bs_view_drcr:'अकाउंटेंट व्यू (Dr / Cr साथ-साथ)', bs_view_plain:'सादा व्यू (पहले एसेट, फिर लायबिलिटी)',
+  mst_already:'पहले से सेव है — क्या इनमें से कोई है?', mst_open:'खोलें', ph_taken:'ये नंबर पहले से {n} के नाम सेव है', ph_taken_short:'ये मोबाइल नंबर पहले से किसी और के नाम सेव है', ph_anyway:'अलग आदमी है — फिर भी सेव करें', ph_ok_diff:'ठीक है — एक ही नंबर, अलग आदमी',
+  bal_get:'लेना है', bal_give:'देना है',
+  lg_clean_n:'{n} चीज़ें साफ़ करनी हैं — देखने के लिए दबाएँ',
+  tl_part:'विवरण', tl_total:'टोटल', tl_dates:'तारीख़ (से – तक)', tl_show:'दिखाएँ', lg_ok_short:'काग़ज़ से मिलाया',
+  mn_money:'पैसा और हिसाब', mst_saved_h:'पहले से सेव — देखें / बदलें', mst_lg_h:'सारे खाते एक लिस्ट में — ग्राहक, सप्लायर, लोन, बैंक, खर्च', mst_ob_h:'शुरू का हिसाब — पहले दिन का कैश, बैंक, स्टॉक, लोन',
   mst_cust:'ग्राहक', mst_cust_h:'जो आपसे खरीदता है — उससे पैसा लेना है', mst_sup:'सप्लायर', mst_sup_h:'जिससे कपड़ा या माल खरीदते हैं — उसे पैसा देना है', mst_loan:'लोन', mst_loan_h:'जिससे लोन लिया या जिसे दिया', mst_kar:'कारीगर', mst_kar_h:'दर्ज़ी / कारीगर जो आपके लिए सिलाई करता है', mst_staff:'स्टाफ़', mst_staff_h:'दुकान का कर्मचारी जिसे सैलरी मिलती है', mst_bank:'बैंक खाता', mst_bank_h:'आपका बैंक, UPI या कैश खाता', mst_ready:'रेडीमेड आइटम', mst_ready_h:'तैयार कपड़ा जो रखकर बेचते हैं', mst_other:'दूसरा खाता (किराया, खर्चा…)', mst_saved:'सेव हो गया', mst_again:'एक और जोड़ें', mst_ok:'ठीक है', mst_exists:'"{n}" पहले से है',
   cust_new:'नया ग्राहक',
   cust_photos:'रेफ़रेंस फ़ोटो',
@@ -6549,8 +6578,12 @@ let _dbDirty=false, _dbTimer=null, _dbWriting=false, _dbLastOK=0, _dbFailStreak=
 let _uiEcho=null;      /* v555: declared ABOVE save() — a let used before its line has run
                           throws, and a throw inside save() would blank the screen at boot */
 var _lastSaveAt=0;
+let _behindT=null;
 function save(oid){
   _lastSaveAt=Date.now();   /* v744: closeSheet reads this — a screen just written is not unsaved work */
+  /* v811 — HIS 1 Oct: deleted the loan, Loans screen said ₹0, Reports right behind it still said ₹50,000.
+     The page under an open screen is redrawn a moment after every write, so no figure on it is ever old. */
+  try{ clearTimeout(_behindT); _behindT=setTimeout(()=>{ try{ if(typeof sheetIsOpen==='function' && sheetIsOpen()) refreshMoney(); }catch(e){} },350); }catch(e){}
   /* v482: the book could not be read this session — writing now would replace it with
      whatever is in memory, which is nothing. Refuse, every time, and keep saying so. */
   if(_dbReadFailed){ try{ toast(t('dbf_toast'),'bad'); }catch(e){} return; }
@@ -8740,7 +8773,7 @@ function thaanRender(){
     <div class="row"><div class="field"><label>${t('stk_category')}</label>
         ${/* v717 — HIS 17 Sept: "Indo, Sherwani, Suit, Kurta, Shirt fabric — zyada se zyada." One tap, no typing. */''}
         <input id="th_cat" type="hidden" value="${esc(d.category)}">
-        <div class="gtags" id="th_cat_chips">${FAB_CATS.map(c=>`<span class="gtag ${String(d.category||'').toLowerCase()===c.toLowerCase()?'on-tag':''}" style="cursor:pointer" onclick="thCatPick('${jq(c)}')">${esc(c)}</span>`).join('')}
+        <div class="gtags" id="th_cat_chips">${FAB_CATS.map(c=>`<span class="gtag ${String(d.category||'').toLowerCase()===c.toLowerCase()?'on-tag':''}" style="cursor:pointer" onclick="thCatPick('${jq(c)}')">${String(d.category||'').toLowerCase()===c.toLowerCase()?'\u2713 ':''}${esc(c)}</span>`).join('')}
           ${d.category && !FAB_CATS.some(c=>c.toLowerCase()===String(d.category).toLowerCase())?`<span class="gtag on-tag" title="${t('fab_cat_old')}">${esc(d.category)}</span>`:''}
           <span class="gtag ${d.category===''?'':''}" style="cursor:pointer;border-style:dashed" onclick="thCatPick('')">${t('none')||'—'}</span></div></div>
       <div class="field"><label>${t('stk_party')}</label>
@@ -8764,7 +8797,7 @@ function thaanRender(){
     <div class="row"><div class="field"><label>${t('stk_category')}</label>
         ${/* v717 — HIS 17 Sept: "Indo, Sherwani, Suit, Kurta, Shirt fabric — zyada se zyada." One tap, no typing. */''}
         <input id="th_cat" type="hidden" value="${esc(d.category)}">
-        <div class="gtags" id="th_cat_chips">${FAB_CATS.map(c=>`<span class="gtag ${String(d.category||'').toLowerCase()===c.toLowerCase()?'on-tag':''}" style="cursor:pointer" onclick="thCatPick('${jq(c)}')">${esc(c)}</span>`).join('')}
+        <div class="gtags" id="th_cat_chips">${FAB_CATS.map(c=>`<span class="gtag ${String(d.category||'').toLowerCase()===c.toLowerCase()?'on-tag':''}" style="cursor:pointer" onclick="thCatPick('${jq(c)}')">${String(d.category||'').toLowerCase()===c.toLowerCase()?'\u2713 ':''}${esc(c)}</span>`).join('')}
           ${d.category && !FAB_CATS.some(c=>c.toLowerCase()===String(d.category).toLowerCase())?`<span class="gtag on-tag" title="${t('fab_cat_old')}">${esc(d.category)}</span>`:''}
           <span class="gtag ${d.category===''?'':''}" style="cursor:pointer;border-style:dashed" onclick="thCatPick('')">${t('none')||'—'}</span></div></div>
       <div class="field"><label>${t('stk_party')}</label>
@@ -8932,6 +8965,13 @@ function thaanSave(){
 }
 let _bulk=null, _bulkMore=false;
 function bulkFabOpen(){ _bulk={cat:'',party:'',rack:'',entry:{serial:'',mtr:'',rate:'',name:''},entryPhotos:[],added:[]}; bulkFabRender(); setTimeout(()=>{const el=$('#bfSerial');if(el)el.focus();},80); }
+/* v807: HIS 1 Oct — "Add & next aadha, Done aadha". Done also keeps a roll he typed but did not add. */
+function bulkDone(){
+  const v=id=>{const el=$(id);return el?String(el.value||'').trim():'';};
+  if(_bulk && v('#bfSerial') && +v('#bfMtr')>0){ const n0=(_bulk.added||[]).length; bulkAddOne();
+    if(!_bulk || (_bulk.added||[]).length===n0) return; }   // a question popped up, or it did not go in — stay
+  stockHome('fabric');
+}
 function bulkShared(f,v){ if(_bulk)_bulk[f]=v; }
 function bulkMore(){ _bulkMore=!_bulkMore; bulkFabRender(); }
 function bulkEntry(f,v){ if(_bulk)_bulk.entry[f]=v; }
@@ -9091,8 +9131,7 @@ function bulkEntryCardHTML(){
         <input id="bfName" value="${esc(_bulk.entry.name)}" placeholder="Name (optional)" oninput="bulkEntry('name',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();bulkAddOne();}">
         <button id="bfCam" class="btn sm ghost ${(_bulk.entryPhotos||[]).length?'has':''}" onclick="pickBulkPhoto('cam')">${(_bulk.entryPhotos||[]).length?('📷 '+_bulk.entryPhotos.length):'📷'}</button>
         <button class="btn sm ghost" onclick="pickBulkPhoto('lib')">🖼️</button>
-      </div>
-      <button class="btn primary block" style="margin-top:10px" onclick="bulkAddOne()">➕ ${t('rb_add_next')}</button>`;
+      </div>`;
 }
 function bulkAddedHTML(){
   const added=_bulk.added||[];
@@ -9143,11 +9182,11 @@ function bulkFabRender(){
         <button id="bfCam" class="btn sm ghost ${(_bulk.entryPhotos||[]).length?'has':''}" onclick="pickBulkPhoto('cam')">${(_bulk.entryPhotos||[]).length?('📷 '+_bulk.entryPhotos.length):'📷'}</button>
         <button class="btn sm ghost" onclick="pickBulkPhoto('lib')">🖼️</button>
       </div>
-      <button class="btn primary block" style="margin-top:10px" onclick="bulkAddOne()">➕ ${t('rb_add_next')}</button>
     </div>
-    <div id="bfAddedWrap">${added.length?`<div class="hint" style="margin:2px 0 8px">✅ ${added.length} added · ${totalMtr} mtr total</div>${addedHTML}`:`<p class="hint" style="text-align:center;padding:8px 0">Add your first thaan above ↑</p>`}</div>
-    <div class="modal-actions" style="margin-top:16px">
-      <button class="btn primary block" onclick="stockHome('fabric')">✅ ${t('done')}</button>
+    <div id="bfAddedWrap">${added.length?`<div class="hint" style="margin:2px 0 8px">✅ ${added.length} added · ${totalMtr} mtr total</div>${addedHTML}`:''}</div>
+    <div class="modal-actions" style="margin-top:16px;display:flex;gap:10px">
+      <button class="btn primary" style="flex:1" onclick="bulkAddOne()">➕ ${t('rb_add_next')}</button>
+      <button class="btn" style="flex:1" onclick="bulkDone()">✅ ${t('done')}</button>
     </div>`;
   showSheet();
 }
@@ -9643,7 +9682,7 @@ function cutPromptRender(keep){
       ${(th.photos||[]).length?`<img class="stk-thumb" data-pid="${th.photos[0]}" style="margin-right:10px">`:''}
       <div style="min-width:0;flex:1"><b>#${esc(th.serial)}</b>${thaanName(th)?' — '+esc(thaanName(th)):''}
         <div class="hint">${thaanBal(th)} m ${t('stk_left')}${th.rack?' · 📍 '+esc(th.rack):''}</div></div>
-      <span class="btn sm primary">${t('select')}</span></div>`;}).join('')
+      <span class="btn sm pick">${t('select')}</span></div>`;}).join('')
     + pageMoreBtn('cutf',avail.length)
     || `<p class="hint" style="padding:14px 0;text-align:center">${t('nothing')}</p>`;
   modal('',
@@ -11101,7 +11140,13 @@ function payWhy(dir){
    profit every single month. */
 function payLoan(dir){
   const accs=DB.accounts||[];
-  const loans=((openBS()||{}).loans)||[];
+  /* v811 — HIS 1 Oct: typed "Sumit" here and no name came up — the list only held loans typed in the OPENING.
+     Every Loan ledger and every name a loan was ever booked to is offered now. */
+  const loans=(((openBS()||{}).loans)||[]).slice();
+  try{ const seen={}; loans.forEach(l=>seen[nameNorm(l.name||l.who||'')]=1);
+    const add=n=>{ const k=nameNorm(n); if(n&&!seen[k]){ seen[k]=1; loans.push({name:n}); } };
+    lgAll().forEach(l=>{ if(l.group==='loans'&&!l.archived)add(l.name); });
+    (DB.ledger||[]).forEach(x=>{ if(x.refKind==='loan'&&x.party)add(x.party); }); }catch(e){}
   modal((dir==='out'?'🏦 '+t('pw_loanpay'):'🏦 '+t('pw_loanin')),
     `<p class="hint" style="margin-bottom:10px">${dir==='out'?t('ln_out_hint'):t('ln_in_hint')}</p>
      <div class="field"><label>${t('ln_which')}</label>
@@ -11679,9 +11724,9 @@ function payPartyPick(q){
     const L=(typeof lgByName==='function')?lgByName(r.nm):null;
     const G=(L&&typeof lgGroup==='function')?lgGroup(L.group):null;
     const isParty=!L||!G||G.id==='debtors'||G.id==='creditors';
-    const tag = (dir!=='in') ? ''
+    const tag = (dir!=='in') ? (L?lgBalTag(L):'')
       : (L&&!G ? `<span class="hint" style="white-space:nowrap;color:var(--bad)">${t('lg_nogroup')}</span>`
-      : (!isParty ? `<span class="hint" style="white-space:nowrap">${esc(G.label)}</span>`
+      : (!isParty ? `<span style="text-align:right">${lgBalTag(L)}<div class="hint" style="white-space:nowrap">${esc(G.label)}</div></span>`
       : (due>0 ? `<b style="color:var(--ok);white-space:nowrap">${money(due)} ${t('py_to_get')}</b>`
                : `<span class="hint" style="white-space:nowrap">${t('py_clear')}</span>`)));
     return `<div class="cust-result" onclick="payPartySet('${jq(r.nm)}')">
@@ -12697,7 +12742,7 @@ function headKindPick(head){
   const cur=headKindOf(head);
   modal('\u{1F9FE} '+esc(head),
     `<p class="hint" style="white-space:normal;margin:0 0 10px">${t('hk_sub')}</p>`
-    + Object.keys(HK_LBL).map(k=>`<button class="btn ${k===cur?'primary':'ghost'} block" style="margin-bottom:8px"
+    + Object.keys(HK_LBL).map(k=>`<button class="btn ${k===cur?'pick':'ghost'} block" style="margin-bottom:8px"
         onclick="headKindAsk('${jq(head)}','${k}')">${k===cur?'✓ ':''}${t(HK_LBL[k])}</button>`).join(''),
     [{label:t('cancel'),cls:'ghost',fn:closeModal}]);
 }
@@ -13241,7 +13286,8 @@ function dbLines(){
    the period chips, the total of what is shown, then the entries. The rows are the day
    book's own rows and open through the day book's own dbOpen — so a receipt reads the same
    and edits the same wherever he meets it, and there is no second version of the truth. */
-let _plQ='', _plPeriod='month', _plDir='in', _plFrom='', _plTo='';
+/* v811: opens on the whole financial year — "this month" on 1 Oct showed an empty page and he thought nothing was there */
+let _plQ='', _plPeriod='fy', _plDir='in', _plFrom='', _plTo='';
 function payListIn(){ payList('in'); }
 function payListOut(){ payList('out'); }
 function payList(dir){
@@ -13312,9 +13358,8 @@ function payListDraw(isIn,from,to){
     <div class="gtags" style="margin:-2px 0 8px">
       ${chip('month',t('rp_month'))}${chip('last',t('rp_lastmonth'))}${chip('fy',t('bs_fy'))}${chip('all',t('pl_all'))}${chip('custom',t('rp_custom'))}</div>
     ${_plPeriod==='custom'?`<div class="row" style="gap:8px;margin-bottom:10px;align-items:flex-end">
-      <div class="field" style="margin:0"><label>${t('rp_from')}</label><input id="pl_from" type="date" value="${esc(_plFrom||from)}"></div>
-      <div class="field" style="margin:0"><label>${t('rp_to')}</label><input id="pl_to" type="date" value="${esc(_plTo||to)}"></div>
-      <button class="btn sm primary" onclick="plApplyCustom()">${t('rp_apply')}</button></div>`:''}
+      <div class="field" style="margin:0"><label>${t('rp_from')}</label><input id="pl_from" type="date" value="${esc(_plFrom||from)}" onchange="plApplyCustom()"></div>
+      <div class="field" style="margin:0"><label>${t('rp_to')}</label><input id="pl_to" type="date" value="${esc(_plTo||to)}" onchange="plApplyCustom()"></div></div>`:''}
     <div class="kv" style="margin:0 0 10px;padding:7px 10px;border:1px solid var(--line);border-radius:10px">
       <span><span class="hint" style="display:block">${t('inv_total_shown')}</span>
         <b id="plTot" style="font-size:16px;color:${isIn?'var(--ok)':'var(--bad)'}">${money(tot)}</b></span>
@@ -13749,7 +13794,7 @@ function todayFigures(d){
 function todayScreen(){
   sheetAt(todayScreen);
   const d=todayISO(), f=todayFigures(d);
-  const tab=(k,ico,lbl)=>`<button class="btn ${_todayTab===k?'primary':'ghost'}" style="flex:1"
+  const tab=(k,ico,lbl)=>`<button class="btn ${_todayTab===k?'pick':'ghost'}" style="flex:1"
     onclick="todaySetTab('${k}')">${ico} ${lbl}</button>`;
   const line=(ico,lbl,val,fn,col,sub)=>`<div class="dl-row${fn?' tappable':''}"
       ${fn?`onclick="closeSheet();${fn}"`:''}>
@@ -14961,7 +15006,7 @@ function credBodyHTML(groups,_crQ){
         : `<b style="color:var(--bad);font-size:18px">${money(g.due)}</b>
            <div style="margin-top:4px">${ageChipHTML(g.age)}</div>`}</div></div>
       <div class="row" style="margin-top:10px;gap:6px">
-        <button class="btn primary" style="flex:2" onclick="closeSheet();payEntry('out',1)">⬆️ ${t('pay_out')}</button>
+        <button class="btn" style="flex:2;font-weight:800" onclick="closeSheet();payEntry('out',1)">⬆️ ${t('pay_out')}</button>
         <button class="btn ghost" onclick="credEdit('${jq(g.name)}')">✏️</button>
         ${g.phone?`<button class="btn ghost" onclick="event.stopPropagation();callNum('${jq(g.phone)}')">📞</button>`:''}
       </div></div>`).join('')
@@ -16028,7 +16073,7 @@ function followUps(){
       </div>
       ${g.phone?'':`<button class="btn ghost block" style="margin-top:8px" onclick="fuAddPhone('${g.key}')">📞 ${t('fu_add_phone')}</button>`}
       <div class="row" style="margin-top:10px;gap:6px">
-        <button class="btn primary" style="flex:3" onclick="${g.phone?`waStatement('${g.key}')`:`fuAddPhone('${g.key}')`}">💬 ${t('fu_send')}</button>
+        <button class="btn" style="flex:3;font-weight:800" onclick="${g.phone?`waStatement('${g.key}')`:`fuAddPhone('${g.key}')`}">💬 ${t('fu_send')}</button>
         ${g.phone?`<button class="btn ghost" onclick="event.stopPropagation();callNum('${jq(g.phone)}')">📞</button>`:''}
         <button class="btn ghost" onclick="event.stopPropagation();fuLogAsk('${jq(g.key)}')">📝</button>
       </div></div>`;}).join('');
@@ -17273,8 +17318,8 @@ function renderSetup(){
         <input id="su_gstin" value="${esc(s.gstin||'')}" autocomplete="off"></div>
       <div class="field" style="margin-top:10px"><label>${t('su_lang')}</label>
         <div class="row" style="gap:8px">
-          <button class="btn ${lang==='en'?'primary':'ghost'} block" onclick="setLang('en')">English</button>
-          <button class="btn ${lang==='hi'?'primary':'ghost'} block" onclick="setLang('hi')">हिंदी</button>
+          <button class="btn ${lang==='en'?'pick':'ghost'} block" onclick="setLang('en')">English</button>
+          <button class="btn ${lang==='hi'?'pick':'ghost'} block" onclick="setLang('hi')">हिंदी</button>
         </div></div>
     </div>
     <div class="card" style="margin-top:12px">
@@ -17547,11 +17592,14 @@ const QR_ALL=[
      while he is browsing Reports. It was three taps deep behind a menu inside a report. It
      is a tile now, on Home, with the rest of the day's work. */
   ['daybook','📒','qr_daybook',"dayBook()",'accounts'],
-  ['payin','💵','qr_payin',"payEntry('in',1)",null],
+  /* v811 — HIS 1 Oct, holding up Vyapar's Payment-In list: "Payment In kholte hi seedha nayi entry khulti hai,
+     purani entries dikhti hi nahi." The tile opens the LIST (search, dates, every old receipt), and the list's
+     own + button makes a new one — exactly how Sale and Purchase already work. */
+  ['payin','💵','qr_payin',"payList('in')",null],
   /* v350: Expense is no longer its own door. Every rupee leaving the shop now goes through
      Payment out, which asks what it was for — so it can never land in the wrong book. The
      Expenses screen itself, its list, its dates and its edit are all untouched. */
-  ['payout','💸','mo_title',"moneyOut()",'accounts'],
+  ['payout','💸','mo_title',"payList('out')",'accounts'],
   ['karigar','🧵','qr_karigar',"jobWork()",null],
   ['status','📞','qr_status',"statusEnquiry('')",null],
   /* v349 — HIS 27 Aug: "Attendance should be a main tab." Marking who came in is a job he
@@ -17914,11 +17962,11 @@ function menuHome(){
          This is also the missing figure behind his trial balance: the shelf shows ₹51 lakh
          of cloth while the books were told the shop opened with nothing, so the whole ₹51
          lakh landed in Cost of goods sold as a negative. */''}
-    ${modOn('accounts')?sec('💸 '+t('exp_title'),[
+    ${modOn('accounts')?sec('💰 '+t('mn_money'),[
       /* v739 C: the Day book leads — it is where a wrong entry is found and put right */
+      /* v808: this head said "Expenses" over Day book, Cash & bank and Receivables — wrong name.
+         It is the money section. Ledger master + Opening balance are set-up, so they went to Masters. */
       row('📒',t('db_title'),"dayBook()"),
-      row('📗',t('lg_title'),"ledgerMaster()"),
-      row('🏦',t('ob_shop'),"openBSEdit()"),
       /* ══════════ v529 — MONEY IN HAD NO DOOR IN THE MENU ══════════
          HIS 6 Sept, describing the Vyapar receipt flow he is used to. I checked every way in
          before answering: Money In existed only as a Home shortcut — not in All screens, not
@@ -18938,8 +18986,28 @@ function reportShell(cfg){
     ${head}${body}${tot}
     <div class="fab-pad"></div>`;
 }
+/* ══════════ v810 — ONE ⋯ FOR EVERY SCREEN ══════════
+   HIS 1 Oct, after the ledger: "jo zaroorat ki cheezein nahi hain ya kabhi kabhi aane wali cheezein
+   hain, wo sab teen dots mein jaayein … har jagah app mein aise badlaav karo."
+   WhatsApp / PDF / print and the other now-and-then doors no longer sit as a row on the screen.
+   A screen that has any of them gets ONE ⋯ beside its ✕; the screen itself shows the figures. */
+let _sheetMore=[], _sheetBuilding=false;
+function moreAdd(ico,label,fn,col){ _sheetMore.push([ico,label,fn,col||'']); return ''; }
+function moreOpen(){
+  const items=_sheetMore.slice();
+  if(!items.length)return;
+  window._moreFns=items.map(x=>x[2]);
+  modal('',items.map((x,i)=>`<div class="mnu-row" style="cursor:pointer;padding:13px 4px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center${x[3]?';color:'+x[3]:''}"
+      onclick="closeModal();setTimeout(()=>{try{const f=window._moreFns[${i}]; (typeof f==='function')?f():(new Function(f))();}catch(e){}},30)">
+      <span style="font-size:20px;width:26px;text-align:center">${x[0]}</span><b style="flex:1;font-weight:700;white-space:normal">${x[1]}</b></div>`).join(''),[]);
+}
 function exportBarHTML(key,builder){
   _expBuild[key]=builder;
+  if(_sheetBuilding){
+    moreAdd('\u{1F4AC}',t('whatsapp'),"expDo('"+jq(key)+"','wa')");
+    moreAdd('\u{1F5A8}\uFE0F',t('ex_pdf'),"expDo('"+jq(key)+"','pdf')");
+    return '';
+  }
   return `<div class="row" style="gap:8px;margin:10px 0 4px">
     <button class="btn sm ghost" style="flex:1" onclick="expDo('${jq(key)}','wa')">\u{1F4AC} ${t('whatsapp')}</button>
     <button class="btn sm ghost" style="flex:1" onclick="expDo('${jq(key)}','pdf')">\u{1F5A8}\uFE0F ${t('ex_pdf')}</button></div>`;
@@ -19219,7 +19287,8 @@ function delCustomer(id){
 function editCustomer(id,isNew){
   sheetAt(editCustomer,null,arguments);const c=custById(id); _custPhotoId=id;
   $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h3 style="margin:0">${t(isNew?'cust_new':'cust_edit')}</h3><button class="btn sm ghost" onclick="${isNew?`custCancelNew('${id}')`:'closeSheet()'}">✕</button></div>
-    <div class="field"><label>${t('customer')}</label><input id="ec_name" value="${esc(c.name)}"></div>
+    <div class="field"><label>${t('customer')}</label><input id="ec_name" value="${esc(c.name)}"${isNew?` oninput="mstNameHits(this.value,'ecHits','c:${jq(id)}')" autocomplete="off"`:''}></div>
+    ${isNew?'<div id="ecHits" style="margin:-6px 0 8px"></div>':''}
     <div class="field"><label>${t('phone')}</label><input id="ec_phone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" value="${esc(c.phone)}"></div>
     <div class="section-h">🧍 ${t('bp_title')}</div>
     <p class="hint" style="margin:0 0 8px">${t('bp_hint')}</p>
@@ -21431,7 +21500,7 @@ function custRowHTML(c,onclick){
   /* v706: role + pointer — iPad Safari is surer of a tap on a div that says it is a button */
   return `<div class="cust-result" role="button" style="margin-top:7px;cursor:pointer;touch-action:manipulation" onclick="${onclick}">
     <div style="min-width:0"><b>${esc(c.name)}</b><div class="hint">${custSubHTML(c)}</div></div>
-    <span class="btn sm primary">${t('select')}</span></div>`;
+    <span class="btn sm pick">${t('select')}</span></div>`;
 }
 /* Phones get saved every which way — "98300 11111", "+91 9830011111", "091-98300-11111".
    Strip to digits and compare the last 10, so however it was saved and however it's
@@ -25724,7 +25793,7 @@ function posNameSug(i){
   box.innerHTML=`<div class="hint" style="margin:6px 0 4px">📦 ${t('pur_sug_head')}</div>`+
     list.map((o,k)=>`<div class="cust-result" style="margin-bottom:6px" onclick="posNamePick(${i},${k})">
       <div><b>${esc(o.title)}</b><div class="hint">${esc(o.sub)}</div></div>
-      <span class="btn sm primary">${t('select')}</span></div>`).join('');
+      <span class="btn sm pick">${t('select')}</span></div>`).join('');
 }
 function posNamePick(i,k){
   const o=(_posNS[i]||[])[k]; if(!o)return;
@@ -25931,7 +26000,7 @@ function invOrderRowsHTML(){
       <div class="hint">${esc(names)}</div>
       <div class="hint">${o.phone?'📞 '+esc(o.phone)+' · ':''}📅 ${fmtDate(o.deliveryDate)}${o.total?' · ₹'+esc(o.total):''}</div>
       ${billed?`<div class="hint" style="color:var(--ok)">🧾 ${t('inv_ord_billed')} · ${esc((o.invoice||{}).no||'')}</div>`:''}</div>
-      <span class="btn sm primary">${billed?t('edit'):t('select')}</span></div>`;}).join('');
+      <span class="btn sm pick">${billed?t('edit'):t('select')}</span></div>`;}).join('');
 }
 function invOrderSearch(q){ _invOrdQ=q; const box=$('#invOrdResults'); if(box)box.innerHTML=invOrderRowsHTML(); }
 function invLoadFromOrder(q){
@@ -29692,7 +29761,7 @@ function puSupSug(){
     +(list.length?list.map(x=>{const b=supBalance(x.name);
     return `<div class="cust-result" style="margin-top:7px" onclick="puPickSup('${jq(x.name).replace(/'/g,"\\'")}')">
       <div><b>${esc(x.name)}</b><div class="hint">${esc(x.phone||'')}${b?` · ${balArrow(-b)}`:''}</div></div>
-      <span class="btn sm primary">${t('select')}</span></div>`;}).join('')
+      <span class="btn sm pick">${t('select')}</span></div>`;}).join('')
       :`<p class="hint" style="margin:6px 0 0">${q?t('sup_none_q'):t('sup_none')}</p>`)
     +sugAddFoot('puNewSupplier()', el.value, !list.length);   /* v461: this one's own list */
 }
@@ -29838,7 +29907,7 @@ function purDraftHTML(){
           <span class="tapx" style="margin:-9px 0;padding:9px 10px;font-size:17px" onclick="event.stopPropagation();puItemDrop(${i})">\u{1F5D1}\uFE0F</span></div>
       </div></div>`;
   }).join('');
-  const addBtn=`<button class="btn primary block" style="padding:14px;font-weight:800;font-size:15px"
+  const addBtn=`<button class="btn pick block" style="padding:14px;font-weight:800;font-size:15px"
       onclick="puItemSheet(-1)">\u2795 ${t('pur_add_items')}</button>`;
   if(!its.length){
     return `<div id="puDraft" style="margin-bottom:12px">${addBtn}
@@ -30035,7 +30104,7 @@ function puItemSug(){
       <span class="hint">${t('pur_sug_head')}</span></div>`+list.map((o,i)=>
       `<div class="cust-result" style="margin-top:6px" onclick="puItemPick(${i})">
         <div style="min-width:0"><b>${esc(o.title)}</b><div class="hint">${esc(o.sub||'')}</div></div>
-        <span class="btn sm primary">${t('select')}</span></div>`).join('')
+        <span class="btn sm pick">${t('select')}</span></div>`).join('')
     :'')
     + `<button class="btn ghost block" style="margin-top:8px" onclick="puItemNewMaster()">\u2795 ${t('pur_new_item')}</button>`;
   _puSug=list;
@@ -30283,7 +30352,7 @@ function purDSug(){
     h+=list.map((o,k)=>`<div class="cust-result" style="margin-bottom:6px" onmousedown="event.preventDefault()" onclick="purDPick(${k})">
       <div style="min-width:0"><b>${esc(o.title)}</b>
         <div class="hint">${esc(sugFacts(o)||o.sub)}</div></div>
-      <span class="btn sm primary" style="flex:0 0 auto">${t('select')}</span></div>`).join('');
+      <span class="btn sm pick" style="flex:0 0 auto">${t('select')}</span></div>`).join('');
   }else{
     h+=`<p class="hint" style="margin:6px 0 0">${q?t('pur_sug_none_q'):t('pur_sug_none')}</p>`;
   }
@@ -31416,7 +31485,7 @@ function poSupSearch(q){
   box.innerHTML=sugHead('saved_suppliers','poNewSup()')
     +(list.length?list.map(x=>`<div class="cust-result" style="margin-top:7px" onclick="poPickSup('${esc1(x.name)}','${esc1(x.phone||'')}')">
         <div><b>${esc(x.name)}</b><div class="hint">${esc(x.phone||'')}</div></div>
-        <span class="btn sm primary">${t('select')}</span></div>`).join('')
+        <span class="btn sm pick">${t('select')}</span></div>`).join('')
       :`<p class="hint" style="margin:6px 0 0">${q?t('sup_none_q'):t('sup_none')}</p>`)
     +sugAddFoot('poNewSup()', (($('#po_sup')||{}).value||''), !list.length);}   /* v461 */
 function poPickSup(name,phone){poCapture();_po.supplier=name;if(phone)_po.phone=phone;poRender();}
@@ -32926,19 +32995,13 @@ function balanceSheet(){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F3E6} ${t('bs_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
-    <p class="hint" style="margin-bottom:8px">${fmtDate(f.startDate)} \u2192 ${fmtDate(to)}</p>
-    ${/* v342: the period, and the two ways of reading the sheet */''}
-    <div class="gtags" style="margin-bottom:8px">
-      ${[['month','rp_month'],['q','bs_quarter'],['fy','bs_fy'],['custom','rp_custom']]
-        .map(([p,k])=>`<span class="gtag" style="cursor:pointer;${(p==='custom'?rpPeriod==='custom':rpPeriod===p)?'background:var(--saffron);color:#1a1206;border-color:var(--saffron)':''}"
-          onclick="bsSetPeriod('${p}')">${t(k)}</span>`).join('')}
-      <span class="gtag" style="cursor:pointer;${_bsDrCr?'background:var(--saffron);color:#1a1206;border-color:var(--saffron)':''}"
-        onclick="bsDrCrToggle()">${t('bs_drcr')}</span>
-    </div>
-    ${rpPeriod==='custom'?`<div class="row" style="margin-bottom:10px">
-      <div class="field"><label>${t('rp_from')}</label><input id="bs_from" type="date" value="${esc(rpFrom||from)}" onchange="rpFrom=this.value"></div>
-      <div class="field"><label>${t('rp_to')}</label><input id="bs_to" type="date" value="${esc(rpTo||to)}" onchange="rpTo=this.value"></div></div>
-      <button class="btn sm primary block" style="margin-bottom:10px" onclick="bsApplyCustom()">${t('rp_apply')}</button>`:''}
+    ${/* v810 — HIS 1 Oct "har jagah": the four period chips, the Dr/Cr chip, two date boxes and an orange Apply
+         were six things above the first figure. One period picker now — the same one P&L, Trial balance and GST use —
+         and the accountant's Dr/Cr reading, Opening and Trial balance sit behind ⋯. */''}
+    ${rangeBarHTML()}
+    ${moreAdd('\u2696\uFE0F',_bsDrCr?t('bs_view_plain'):t('bs_view_drcr'),'bsDrCrToggle()')}
+    ${moreAdd('\u{1F4CB}',t('tb_title'),'closeSheet();trialBalance()')}
+    ${moreAdd('\u{1F4D2}',t('ob_shop'),'closeSheet();openBSEdit()')}
     ${_bsDrCr
       ? /* v342: the accountant's reading — liabilities and capital on the left as credits,
            assets on the right as debits, one line each, side by side. Same figures. */
@@ -33004,9 +33067,7 @@ function balanceSheet(){
       return `<div class="card" style="border-color:var(--bad);padding:10px 12px;margin-bottom:8px">
         <div class="kv"><span>${a.type==='cash'?'\u{1F4B5}':'\u{1F3E6}'} <b>${esc(a.name)}</b></span><b style="color:var(--bad)">${money(b)}</b></div>
         <p class="hint" style="margin:4px 0 8px;white-space:normal">${t('bs_acc_neg',{d:fmtDate(accFrom(a))})}</p>
-        <button class="btn sm primary block" onclick="closeSheet();accEdit('${jq(a.id)}')">\u270F\uFE0F ${t('bs_acc_set')}</button></div>`; }).join('')}
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();openBSEdit()">\u{1F4D2} ${t('ob_shop')}</button>
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();trialBalance()">\u{1F4CB} ${t('tb_title')}</button>
+        <button class="btn sm ghost block" onclick="closeSheet();accEdit('${jq(a.id)}')">\u270F\uFE0F ${t('bs_acc_set')}</button></div>`; }).join('')}
     <p class="hint">${t('de_note')}</p>
     <div class="fab-pad"></div>`;
   showSheet();
@@ -33025,14 +33086,18 @@ function trialBalance(){
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F4CB} ${t('tb_title')}</h2>
       <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
     ${rangeBarHTML()}
-    <div class="card" style="padding:12px 14px;margin-bottom:10px">
-      <div class="il" style="font-weight:700;color:var(--mut)">
-        <span>${t('tb_acc')}</span><span>${t('tb_dr')} \u00B7 ${t('tb_cr')}</span></div>
-      ${T.rows.map(r=>`<div class="il${r.go?' tappable':''}"${r.go?` onclick="closeSheet();${r.go}"`:''}>
-        <span>${esc(r.acc)}${r.go?' \u203A':''}</span>
-        <b>${r.dr?money(r.dr):'\u2014'} \u00B7 ${r.cr?money(r.cr):'\u2014'}</b></div>`).join('')}
-      <div class="il" style="font-weight:800;border-top:1px solid var(--line);margin-top:4px;padding-top:6px">
-        <span>${t('total')}</span><b>${money(T.tDr)} \u00B7 ${money(T.tCr)}</b></div>
+    ${/* v810 — Tally's trial balance: Particulars · Debit · Credit, the two totals side by side at the foot */''}
+    <div class="card tl-tbl tb3" style="padding:0;margin-bottom:10px">
+      <div class="tl-tr tl-h"><span class="tl-p">${t('tl_part')}</span><span class="tl-n">${t('tb_dr')}</span><span class="tl-n">${t('tb_cr')}</span></div>
+      ${/* a minus figure belongs on the OTHER side, as a plus — that is how Tally prints it (cash overdrawn = Credit).
+           Moving x across adds x to BOTH totals, so they still agree to the rupee. Display only. */''}
+      ${(()=>{ let dT=0,cT=0; const tr=T.rows.map(r=>{ let d=+r.dr||0, c=+r.cr||0;
+          if(d<0){ c=r2(c-d); d=0; } if(c<0){ d=r2(d-c); c=0; } dT=r2(dT+d); cT=r2(cT+c);
+          return `<div class="tl-tr${r.go?' tl-go':''}"${r.go?` onclick="closeSheet();${r.go}"`:''}>
+        <span class="tl-p">${esc(r.acc)}${r.go?' <span class="hint">\u203A</span>':''}</span>
+        <span class="tl-n">${d?money(d):''}</span><span class="tl-n">${c?money(c):''}</span></div>`; }).join('');
+        return tr+`<div class="tl-tr tl-tot"><span class="tl-p"><b>${t('tl_total')}</b></span>
+        <span class="tl-n"><b>${money(dT)}</b></span><span class="tl-n"><b>${money(cT)}</b></span></div>`; })()}
     </div>
     ${Math.abs(T.diff)>1
       ? `<div class="card" style="border-color:var(--bad);padding:12px 14px;margin-bottom:10px">
@@ -33244,8 +33309,7 @@ function plReport(){
             [t('rp_running'),-f.indirect],[t('rp_jv_adj'),f.jvPL||0],[t('rp_net_profit'),f.net]]}))}
     ${/* v654: PDF and print sat here AND in the export bar above - four buttons for two
          jobs on one screen. The bar keeps them; this row keeps only the way out. */''}
-    <div class="modal-actions">
-      <button class="btn ghost" style="flex:1" onclick="closeSheet()">${t('back')}</button></div>
+    ${/* v810: the ← and ✕ at the top already go back — a third "Back" at the bottom was one more thing to read */''}
     <div class="fab-pad"></div>`;
   showSheet();
 }
@@ -33287,10 +33351,7 @@ function cashflowReport(){
       head:[t('cb_title'),t('rp_opening'),t('rp_money_in'),t('rp_money_out'),t('rp_closing')],
       rows:c.accs.map(x=>[x.a.name,x.open,x.inn,x.out,x.close])
         .concat([[t('total'),c.T.open,c.T.inn,c.T.out,c.T.close]])}))}
-    <div class="modal-actions">
-      <button class="btn ghost" style="flex:1" onclick="closeSheet()">${t('back')}</button>
-      <button class="btn primary" style="flex:1" onclick="cashflowPdf()">\u{1F4C4} ${t('rp_pdf')}</button>
-      <button class="btn ghost" style="flex:0 0 auto" title="${t('print')}" onclick="cashflowPrint()">🖨️</button></div>
+    ${moreAdd('\u{1F4C4}',t('rp_pdf'),'cashflowPdf()')}${moreAdd('\u{1F5A8}\uFE0F',t('print'),'cashflowPrint()')}
     <div class="fab-pad"></div>`;
   showSheet();
 }
@@ -34466,8 +34527,7 @@ const RPT_HUBS={
     ['\u{1F514}','fu_title','followUps()']]],
   purchase:['\u{1F4E6}','rh_purchase',[
     ['\u{1F4B8}','pl_title_out','payListOut()'],
-    ['\u{1F4E4}','creditors_report','creditors()'],
-    ['\u{1F4D2}','rp_party_stmt','partyStatement()']]],
+    ['\u{1F4E4}','creditors_report','creditors()']]],
   expense:['\u{1F4B8}','rh_expense',[
     ['\u{1F4B8}','rp_exp_head','expHeadReport()'],
     ['\u{1F4B8}','exp_title','expenses()']]],
@@ -34475,7 +34535,10 @@ const RPT_HUBS={
     /* v737: P&L and Balance sheet lead the Reports screen itself now — one door each */
     ['\u{1F4CB}','tb_title','trialBalance()'],
     ['\u{1F4D3}','jv_title','journalBook()'],
-    ['\u{1F4D7}','lg_title','ledgerMaster()'],
+    /* v808 — HIS 1 Oct: "ledger master accounts ke andar reports me daala hua hai, ye theek nahi."
+       Ledger master is where khate are MADE and kept — a master, not a report. It lives in Masters
+       now. A party's statement IS a report on accounts, so it moved here from Purchase. */
+    ['\u{1F4D2}','rp_party_stmt','partyStatement()'],
     ['\u{1F9FE}','gst_title','gstReport()']]],
   cash:['\u{1F3E6}','rh_cash',[
     ['\u{1F4D2}','db_title','dayBook()'],
@@ -34523,7 +34586,9 @@ const GOTO_EXTRA=[
   ['\u{1F9FE}','invoices',"go('invoices')"],
   ['\u{1F4E6}','purchase',"go('purchases')"],
   ['➕','new_sale',"openSaleForm()"],
-  ['\u{1F5C2}️','mst_title',"mastersHome()"]
+  ['\u{1F5C2}️','mst_title',"mastersHome()"],
+  ['\u{1F4D7}','lg_title',"ledgerMaster()"],
+  ['\u{1F3E6}','ob_shop',"openBSEdit()"]
 ];
 /* the words a man at a counter actually types, in either script. Keyed by the report's own
    label key so an alias follows its report, not a position in a list. */
@@ -34714,9 +34779,62 @@ function mastersHome(){
       ${row('\u{1F455}','mst_ready','mst_ready_h',"readyEdit()")}
     </div>
     <p class="hint" style="margin-top:10px;text-align:center;cursor:pointer" onclick="closeSheet();ledgerEdit(null)">${t('mst_other')} \u203A</p>
+    <div class="section-h" style="margin-top:14px">\u{1F4D7} ${t('mst_saved_h')}</div>
+    <div class="card" style="padding:0 12px">
+      ${row('\u{1F4D7}','lg_title','mst_lg_h',"ledgerMaster()")}
+      ${row('\u{1F3E6}','ob_shop','mst_ob_h',"openBSEdit()")}
+    </div>
     <div class="fab-pad"></div>`;
   showSheet();
 }
+/* ══════════ v811 — "KAISE PATA CHALEGA KI YE AADMI PEHLE SE SAVED HAI?" ══════════
+   HIS 1 Oct: (1) while typing a name, show who is already saved — so the same man is not made twice;
+   (2) the same mobile number must warn: "this number is already saved", with Open / Save anyway.
+   One list of every saved person (customers, ledgers of people, karigars, staff), read by every new-person form. */
+function mstWho(){
+  const out=[], seen={};
+  const add=(name,kind,label,open,ph,key)=>{ const k=nameNorm(name)+'|'+kind; if(!name||seen[k])return; seen[k]=1;
+    out.push({name:String(name),kind,label,open,ph:ph||'',key}); };
+  (DB.customers||[]).forEach(c=>add(c.name,'c',t('mst_cust'),"closeSheet();closeModal();openCustomer('"+jq(c.id)+"')",c.phone,'c:'+c.id));
+  (DB.karigars||[]).forEach(k=>add(k.name,'k',t('mst_kar'),"closeSheet();closeModal();karigarEdit('"+jq(k.id)+"')",k.phone,'k:'+k.id));
+  (DB.staff||[]).forEach(x=>add(x.name,'s',t('mst_staff'),"closeSheet();closeModal();staffEdit('"+jq(x.id)+"')",x.phone,'s:'+x.id));
+  try{ lgAll().forEach(l=>{ if(l.archived)return;
+    if(['debtors','creditors','loans','advances'].indexOf(l.group||'')<0)return;
+    if(l.group==='debtors' && seen[nameNorm(l.name)+'|c'])return;          /* a customer is already listed */
+    const G=lgGroup(l.group)||{label:''};
+    add(l.name,'l',G.label,"closeSheet();closeModal();ledgerView('"+jq(l.id)+"')",lgPhoneOf(l.name),'l:'+l.id); }); }catch(e){}
+  return out;
+}
+function mstNameHits(v,boxId,selfKey){
+  const box=$('#'+boxId); if(!box)return;
+  const q=String(v||'').trim(); if(q.length<2){ box.innerHTML=''; return; }
+  const hits=mstWho().filter(x=>x.key!==selfKey).map(x=>({x,sc:nameLike(q,x.name)})).filter(h=>h.sc<=4)
+    .sort((a,b)=>a.sc-b.sc).slice(0,5);
+  if(!hits.length){ box.innerHTML=''; return; }
+  box.innerHTML=`<div class="hint" style="margin:2px 0 4px;color:var(--saffron2);font-weight:700">\u{1F50E} ${t('mst_already')}</div>`+
+    hits.map(h=>{ const L=h.x.kind==='l'?lgById(h.x.key.slice(2)):(lgByName?lgByName(h.x.name):null);
+      return `<div class="cust-result" style="margin-top:4px" onclick="${h.x.open}">
+        <div style="flex:1;min-width:0"><b>${esc(h.x.name)}</b><div class="hint">${esc(h.x.label)}${h.x.ph?' · '+esc(h.x.ph):''}</div></div>
+        ${L?lgBalTag(L):''}<span class="btn sm ghost" style="margin-left:8px">${t('mst_open')}</span></div>`; }).join('');
+}
+function phWarn(v,boxId,selfKey,selfName){
+  const box=$('#'+boxId); if(!box)return;
+  const d=ph10(v); if(d.length<10){ box.innerHTML=''; box.dataset.block=''; return; }
+  if(box.dataset.okFor===d){ return; }
+  const o=mstWho().find(x=>x.key!==selfKey && ph10(x.ph)===d && (!selfName||nameNorm(x.name)!==nameNorm(selfName)));
+  if(!o){ box.innerHTML=''; box.dataset.block=''; return; }
+  box.dataset.block='1';
+  box.innerHTML=`<div class="card" style="border:1.5px solid var(--bad);padding:10px 12px;margin:6px 0 4px">
+    <b style="color:var(--bad)">⚠️ ${t('ph_taken',{n:esc(o.name)})}</b>
+    <div class="hint" style="margin:2px 0 8px">${esc(o.label)}</div>
+    <div class="row" style="gap:8px"><button type="button" class="btn sm" style="flex:1;font-weight:800" onclick="${o.open}">${t('mst_open')} ${esc(o.name)}</button>
+      <button type="button" class="btn sm ghost" style="flex:1" onclick="phWarnOk('${boxId}','${d}')">${t('ph_anyway')}</button></div></div>`;
+}
+function phWarnOk(boxId,d){ const b=$('#'+boxId); if(!b)return; b.dataset.okFor=d; b.dataset.block='';
+  b.innerHTML=`<div class="hint" style="margin:4px 0">✅ ${t('ph_ok_diff')}</div>`; }
+function phBlocked(boxId){ const b=$('#'+boxId);
+  if(b && b.dataset.block==='1'){ toast('⚠️ '+t('ph_taken_short'),'bad'); try{ b.scrollIntoView({block:'center',behavior:'smooth'}); }catch(e){} return true; }
+  return false; }
 /* v802 — after a NEW customer / supplier / karigar / staff / bank / readymade is saved: one clear card that says it is
    saved, and offers "add one more". (The old one-second toast was the only sign, and it was easy to miss.) */
 function mstSavedCard(ico,name,again){
@@ -35603,9 +35721,9 @@ function karIssue(kid,oid){
          general Issue screen, where he picks from everything waiting; they are noise here.
          Both are kept for that screen and dropped when he came in through an order. */''}
     <div class="row" style="gap:6px;margin-bottom:10px">
-      <button class="btn sm ${_ki.cloth==='cust'?'primary':'ghost'}" style="flex:1"
+      <button class="btn sm ${_ki.cloth==='cust'?'pick':'ghost'}" style="flex:1"
         onclick="kiCloth('cust')">👤 ${t('ki_cloth_cust')}</button>
-      <button class="btn sm ${_ki.cloth==='shop'?'primary':'ghost'}" style="flex:1"
+      <button class="btn sm ${_ki.cloth==='shop'?'pick':'ghost'}" style="flex:1"
         onclick="kiCloth('shop')">🏪 ${t('ki_cloth_shop')}</button>
     </div>
     ${_ki.oid?'':`
@@ -37492,10 +37610,7 @@ function karigarReport(){
       </div></div></div>`).join('')
       ||`<p class="hint">${t('no_karigars')}</p>`}
     ${per.length?exportBarHTML('rp_kar',krExport):''}
-    <div class="modal-actions">
-      <button class="btn ghost" style="flex:1" onclick="karigarBook()">${t('back')}</button>
-      <button class="btn primary" style="flex:1" onclick="karigarReportPdf()">\u{1F4C4} ${t('rp_pdf')}</button>
-      <button class="btn ghost" style="flex:0 0 auto" title="${t('print')}" onclick="karigarReportPrint()">🖨️</button></div>
+    ${moreAdd('\u{1F4C4}',t('rp_pdf'),'karigarReportPdf()')}${moreAdd('\u{1F5A8}\uFE0F',t('print'),'karigarReportPrint()')}
     <div class="fab-pad"></div>`;
   showSheet();
 }
@@ -38034,8 +38149,9 @@ function karigarEdit(id){
     </div>`;}).join('')
     +`<button class="btn ghost block" style="margin-top:10px" onclick="krNewItem('${jq(id||'')}')">\u2795 ${t('kr_new_item')}</button>`;
   $('#sheet').innerHTML=`<div class="grip"></div><div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${ex?t('edit'):t('add_karigar')}</h2><button class="btn sm ghost" onclick="_karAfterAdd=null;closeSheet()">✕</button></div>
-    <div class="field"><label>${t('karigar_name')}</label><input id="kName" value="${ex?esc(ex.name):''}" placeholder="${t('karigar_name')}"></div>
-    <div class="field" style="margin-top:10px"><label>${t('phone')}</label><input id="kPhone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" inputmode="numeric" value="${ex?esc(ex.phone||''):''}" placeholder="${t('phone')}"></div>
+    <div class="field"><label>${t('karigar_name')}</label><input id="kName" value="${ex?esc(ex.name):''}" placeholder="${t('karigar_name')}"${ex?'':` oninput="mstNameHits(this.value,'kHits','')" autocomplete="off"`}></div>
+    ${ex?'':'<div id="kHits" style="margin:-6px 0 8px"></div>'}
+    <div class="field" style="margin-top:10px"><label>${t('phone')}</label><input id="kPhone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'');phWarn(this.value,'kPhW','${ex?'k:'+jq(ex.id):''}')" value="${ex?esc(ex.phone||''):''}" placeholder="${t('phone')}"><div id="kPhW"></div></div>
     ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost" style="margin-top:10px" onclick="pickKarigarContact()">📇 ${t('from_contacts')}</button>`:''}
     <div class="section-h" style="margin-top:16px">🧵 ${t('karigar_specialty')}</div>
     <div class="kr-list">${rows}</div>
@@ -38112,6 +38228,7 @@ function krDeleteItem(gid,kid){
 function toggleKrSpec(gid){ if(_krSpec.has(gid))_krSpec.delete(gid); else _krSpec.add(gid);
   const el=document.querySelector('.kr-star[data-spec="'+gid+'"]'); if(el){const on=_krSpec.has(gid);el.classList.toggle('on',on);el.textContent=on?'★':'☆';} }
 function karigarSave(id){const name=($('#kName').value||'').trim();if(!name){toast(t('karigar_name'),'bad');return;}
+  if(phBlocked('kPhW'))return;
   const phone=($('#kPhone').value||'').replace(/[^\d+]/g,'');
   const rates={}; document.querySelectorAll('[data-krate]').forEach(inp=>{const v=+inp.value||0;if(v>0)rates[inp.dataset.krate]=v;});
   const specialties=[..._krSpec];
@@ -39976,7 +40093,8 @@ function moFind(v){
     return `<div class="cust-result" style="margin-top:6px" onclick="moPick('${jq(l.name)}')">
       <div style="flex:1;min-width:0"><b>${esc(l.name)}</b>
         <div class="hint">${esc(G.label)}</div></div>
-      <span class="btn sm primary">${t('select')}</span></div>`;}).join(''):'')
+      ${lgBalTag(l)}
+      <span class="btn sm pick" style="margin-left:10px">${t('select')}</span></div>`;}).join(''):'')
     + ((q&&!exact)?`<div class="kv" style="margin-top:8px">
         <span class="hint">${t('mo_notfound')}</span>
         <button class="btn sm ghost" onclick="moNew()">➕ ${t('lg_new')}</button></div>`:'');
@@ -40004,7 +40122,10 @@ function moSave(next){
   if(!lg){ toast(t('mo_pick_first'),'bad'); return; }
   const g=lg.group;
   /* these two need a field this form does not carry, so they go to the screen that does */
-  if(g==='loans'){ closeSheet(); payLoan('out'); return; }
+  /* v811 — HIS 1 Oct: filled Payment Out for Sumit Bhaiya (a loan), pressed Save, and a blank Loan repayment
+     screen opened instead — his amount and date gone, nothing saved. moPost() already books a loan repayment
+     correctly (it reduces the loan, nothing goes to P&L), so it is simply saved here. Interest, when there is
+     any, is still entered from the Loan repayment screen. */
   if(g==='cash'||g==='bank'){ closeSheet(); contraEntry(); return; }
   const sig=['mo',name,_mo.amt,_mo.date,_mo.acc,_mo.note].join('|');
   if(!svOnce(sig,()=>{})){ toast(t('sv_dup'),'bad'); return; }
@@ -40308,31 +40429,25 @@ function ledgerMaster(keep){
   const body=lgBodyHTML();
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F4D7} ${t('lg_title')}</h2>
-      <span style="display:inline-flex;gap:6px;align-items:center"><button class="btn sm ghost" onclick="lgMenu()">\u22EF</button>
-      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></span></div>
+      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
+    ${moreAdd('\u2795',t('lg_new'),'ledgerEdit(null)')}
     ${/* v720: "New ledger" sat across the screen every time it opened, above a list of 184.
          Making one is a monthly job; finding one is why he is here. Payables learned this in
          v461 — the button now lives in \u22EF, and appears in his way only at the one moment
          it is the answer: he has typed a name and the books do not hold it. */''}
     <div class="field" style="margin-bottom:8px">
       <input id="lgQ" value="${esc(_lgQ)}" placeholder="\u{1F50D} ${t('lg_search')}" oninput="lgSearch(this.value)" autocomplete="off"></div>
-    ${(()=>{ let g=[]; try{ g=whoGroups().filter(x=>whoLive(x).length); }catch(e){}
-       const n=g.reduce((a,x)=>a+whoLive(x).length,0);
-       return n?`<div class="il tappable" style="border:1.5px solid var(--saffron);border-radius:12px;padding:12px;margin-bottom:10px" onclick="whoScreen()">
-         <span>\u{1F464} <b>${t('who_row',{p:g.length,n:n})}</b><div class="hint" style="white-space:normal">${t('who_row_sub')}</div></span>
-         <span style="color:var(--saffron2)">\u203A</span></div>`:''; })()}
-    ${(()=>{ const n=dupCount();
-       return n?`<div class="il tappable" style="border:1.5px solid var(--saffron);border-radius:12px;padding:12px;margin-bottom:10px" onclick="dupScreen()">
-         <span>\u{1F465} <b>${t('dn_row',{n:n})}</b><div class="hint" style="white-space:normal">${t('dn_row_sub')}</div></span>
-         <span style="color:var(--saffron2)">\u203A</span></div>`:''; })()}
-    ${(()=>{ let n=0; try{ n=dqGroups().length; }catch(e){}
-       return n?`<div class="il tappable" style="border:1.5px solid var(--saffron);border-radius:12px;padding:12px;margin-bottom:10px" onclick="dqScreen()">
-         <span>\u{1F501} <b>${t('dq_row',{n:n})}</b><div class="hint" style="white-space:normal">${t('dq_row_sub')}</div></span>
-         <span style="color:var(--saffron2)">\u203A</span></div>`:''; })()}
-    ${(()=>{ const n=hsCount(); let pn=0; try{ pn=hsPeople().length; }catch(e){}
-       return (n||pn)?`<div class="il tappable" style="border:1.5px solid var(--saffron);border-radius:12px;padding:12px;margin-bottom:10px" onclick="hsScreen()">
-         <span>\u{1F9F9} <b>${n?t('hsf_row',{n:n}):t('hsf_ppl',{n:pn})}</b><div class="hint" style="white-space:normal">${n?t('hsf_row_sub'):t('hsf_ppl_sub')}</div></span>
-         <span style="color:var(--saffron2)">\u203A</span></div>`:''; })()}
+    ${/* v810 — the four clean-up banners (same person twice, entry written twice, heads, …) filled the top of
+         the screen every time it opened. They live in ⋯ now, each with its count, and ONE quiet line says how many
+         things are waiting — tap it and the same ⋯ opens. */''}
+    ${(()=>{ let tot=0;
+       try{ const g=whoGroups().filter(x=>whoLive(x).length); const n=g.reduce((a,x)=>a+whoLive(x).length,0);
+         if(n){ tot+=n; moreAdd('\u{1F464}',t('who_row',{p:g.length,n:n}),'whoScreen()'); } }catch(e){}
+       try{ const n=dupCount(); if(n){ tot+=n; moreAdd('\u{1F465}',t('dn_row',{n:n}),'dupScreen()'); } }catch(e){}
+       try{ const n=dqGroups().length; if(n){ tot+=n; moreAdd('\u{1F501}',t('dq_row',{n:n}),'dqScreen()'); } }catch(e){}
+       try{ const n=hsCount(); let pn=0; try{ pn=hsPeople().length; }catch(e){}
+         if(n||pn){ tot+=(n||pn); moreAdd('\u{1F9F9}',n?t('hsf_row',{n:n}):t('hsf_ppl',{n:pn}),'hsScreen()'); } }catch(e){}
+       return tot?`<p class="hint" style="margin:0 0 8px;cursor:pointer;color:var(--saffron2)" onclick="moreOpen()">\u{1F9F9} ${t('lg_clean_n',{n:tot})} \u203A</p>`:''; })()}
     <p class="hint" style="margin-bottom:6px">${t('lg_count',{n:lgAll().filter(l=>!l.archived).length})}${(()=>{ const live=lgAll().filter(l=>!l.archived); const ok=live.filter(l=>lgOkState(l)==='ok').length, mv=live.filter(l=>lgOkState(l)==='moved').length;
       return (ok||mv)?' \u00B7 \u2705 '+t('lg_ok_prog',{n:ok,m:live.length})+(mv?' \u00B7 \u26A0\uFE0F '+mv:''):''; })()}</p>
     <div id="lgList">${body}</div>
@@ -40399,10 +40514,6 @@ function lgFixGroup(id,g){
     t('lg_group_move_ask',{n:esc(l.name),b:esc(GG.label)}),
     ()=>{ l.group=g; save(); ledgerMaster(); toast('\u2705 '+t('lg_group_moved',{b:esc(GG.label)}),'ok'); },
     ()=>ledgerMaster(), {yes:t('save'), no:t('cancel'), cls:'primary'});
-}
-function lgMenu(){
-  modal(t('lg_title'),
-    `<button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();ledgerEdit(null)">\u2795 ${t('lg_new')}</button>`);
 }
 function lgOpenGroup(g){ _lgGroup=g; _lgQ=''; ledgerMaster(2); }
 function lgBackToGroups(){ _lgGroup=''; ledgerMaster(2); }
@@ -40550,6 +40661,18 @@ function balColor(v){
    there is no side to name; a Dr on a zero reads like money still sitting against him. Every
    running and closing figure on the ledger asks this one function now. */
 function lgSide(v){ const n=r2(+v||0); return Math.abs(n)<0.005?'':(n<0?'Cr':'Dr'); }
+/* v811 — HIS 1 Oct: "Sumit Bhaiya select kar raha hoon to bagal mein ₹50,000 dikhna chahiye tha — Vyapar mein
+   dikhta hai." Every name in a picker carries what is owed, and which way, so the right person is never in doubt. */
+function lgBalTag(l){
+  try{ if(!l)return '';
+    const v=r2(lgBalance(l)), a=Math.abs(v);
+    if(a<0.5)return `<span class="hint" style="white-space:nowrap">${money(0)}</span>`;
+    const person=['debtors','creditors','loans','advances','salary','jobwork',''].indexOf(l.group||'')>=0;
+    if(!person)return `<span style="white-space:nowrap">${lgBalHTML(v)}</span>`;
+    return `<span style="text-align:right;white-space:nowrap"><b style="color:${v>0?'var(--ok)':'var(--bad)'}">${money(a)}</b>
+      <div class="hint">${t(v>0?'bal_get':'bal_give')}</div></span>`;
+  }catch(e){ return ''; }
+}
 function lgBalHTML(v){
   const a=Math.abs(r2(v)); if(!a)return `<b>${money(0)}</b>`;
   /* v721: a ledger's Dr is money owed TO the shop, Cr is money the shop owes. Same rule. */
@@ -40598,44 +40721,17 @@ function ledgerView(id){
   });
   const drTot=r2(rows.reduce((s,r)=>s+(r.dr||0),0));
   const crTot=r2(rows.reduce((s,r)=>s+(r.cr||0),0));
+  /* ══════════ v809 — THE LEDGER READS LIKE TALLY ══════════
+     HIS 1 Oct, on Binod (Mama ji)'s ledger: From/To, Edit ledger, Matched with paper, Debit/Credit
+     totals, WhatsApp, PDF — six things before the first entry. "Jo zaroorat ki cheezein nahi hain,
+     wo teen dots mein jaayein. Ledger details ke baad Total aur Closing balance — jaise Tally."
+     So: name and closing balance on top, ⋯ holds every action, then ONE table — Date · Particulars ·
+     Debit · Credit — starting with the Opening balance and ending with Total and Closing balance.
+     Every row still opens the record that made it (v508/v735). */
   let run=opening;
-  const body=rows.map(r=>{ run=r2(run+(r.dr||0)-(r.cr||0));
-    /* ══════════ v493 — MY OWN v491 COLUMNS CLIMBED ON TOP OF EACH OTHER ══════════
-       HIS 5 Sept screenshot: on the phone the date wrapped to two lines, the narration
-       wrapped under it, and the Debit figure printed straight across the words. I built it
-       out of flex boxes on one line, which is fine on the iPad and impossible at 430px. A
-       grid cannot overlap: each cell has its own track, text wraps inside its own cell, and
-       the three figures keep their columns however long the narration is. */
-    /* ══════════ v508 — A WRONG ENTRY HE COULD SEE BUT NOT REACH ══════════
-       HIS 5 Sept: "accountant bata rahe the ki Om Creation aur Vriddhi Fashion ka kuch
-       galat entry ho gayi hai, delete karna hai to ho nahi raha." And separately:
-       "transaction clickable nahi hai, hona hi chahiye." They are the same fault.
-       Deleting the LEDGER is correctly refused — an entry hangs off it and would be left
-       with no name. But the entry itself was printed on this screen and could not be
-       touched: to correct it he had to work out which screen had created it and go and find
-       it there. A line he can read is a line he should be able to open. Each row now goes
-       back to the record that made it — the expense, the payment, the bill, the order — and
-       once that is corrected or removed, the ledger can go too. */
-    /* ══════════ v683 — THE COLUMNS WERE STILL UNREADABLE ON A PHONE ══════════
-       HIS 14 Sept, on Kanchan's ledger: "left right dancing kyun hai? teen row ban gayi hai...
-       opening balance wah bhi dhang se pata nahi chal raha hai ki wah opening hai."
-       v493 moved this to a grid so the figures could not overlap, and that worked. What it
-       could not fix is that a grid needs its HEADER to be readable, and on a narrow phone a
-       narration wraps to three lines — by which point the words Debit and Credit are far up
-       the screen and the amount below has nothing saying which of the two it is.
-       So the amount carries its own word. No column has to be remembered, the row reads the
-       same whether it wraps to one line or four, and the opening says out loud that it is
-       the opening rather than sitting in the list as an ordinary entry. */
+  const opDr=opening>0?opening:0, opCr=opening<0?-opening:0;
+  const trs=rows.map(r=>{ run=r2(run+(r.dr||0)-(r.cr||0));
     const isOpen = r.ref===t('lg_open') || r.ref===t('lg_open_row');
-    /* ══════════ v721 — THE WORD ON THE LINE WAS NOT WHAT HAPPENED ══════════
-       HIS 18 Sept, on Sumit's ledger: "amount ke upar given kyon hai, maine maal becha hai
-       paise diye nahi hain."
-       Right. v683 gave every amount its own word so a wrapped row still said which column
-       it belonged to — but it took the word from the BOOKS: debit became "Given", credit
-       became "Taken". On a bill, a debit means the customer has to pay; nothing was given.
-       So the line now says what actually happened — Bill, Receipt, Payment, Purchase,
-       Opening — and Dr/Cr stay where the accountant needs them, on the Trial balance and
-       the Balance sheet. */
     const _k=String(r.kind||r.refKind||'');
     /* ══════════ v773 — HIS 27 Sept: "bill bana aur payment aaya, dono ledger mein ek jaisa
        dikhte hain, alag column ya color hona chahiye" ══════════
@@ -40672,86 +40768,62 @@ function ledgerView(id){
       if(r.dr) return t(_cashy?'lg_w_receipt':'lg_w_payment');
       return t(_cashy?'lg_w_payment':'lg_w_receipt');
     })();
-    const amt = r.dr ? {w:_word, v:r.dr} : {w:_word, v:r.cr||0};
-    const billCell = (!isOpen && _isBillCol) ? `<span class="hint">${esc(amt.w)}</span><b>${money(Math.abs(amt.v))}</b>` : '';
-    const payCell  = (!isOpen && !_isBillCol) ? `<span class="hint">${esc(amt.w)}</span><b>${money(Math.abs(amt.v))}</b>` : '';
-    /* v787 \u2014 HIS 29 Sept: money going out reads dark red, money coming in reads green.
-       Same cashy/dr logic the word above already used, so the colour never disagrees with
-       the word sitting right next to it. */
-    const _payDir = (!isOpen && !_isBillCol) ? (( r.dr ? (l.group==='cash'||l.group==='bank') : !(l.group==='cash'||l.group==='bank') ) ? 'lg-in' : 'lg-out') : '';
-    return `<div class="lg-row2"${r.go?` style="cursor:pointer" onclick="${esc(r.go)}"`:''}>
-      <div class="lg-when"><b>${r.date?fmtDate(r.date):'\u2014'}</b>
-        <span class="lg-what">${isOpen?('\u{1F4D6} '+esc(t('lg_open_row'))):esc(r.ref||'')}</span></div>
-      ${/* v683: the opening already names itself on the line above - saying it twice is
-           the crowding he keeps objecting to. v773: three fixed columns now \u2014 Bill, Payment,
-           Balance \u2014 an opening row fills none of the first two, only the third. */''}
-      <div class="lg-figrow">
-        <div class="lg-fig lg-bill">${billCell}</div>
-        <div class="lg-fig lg-pay ${_payDir}">${payCell}</div>
-        <div class="lg-fig lg-run"><span class="hint">${esc(t('lg_left'))}</span>
-          <b>${money(Math.abs(run))} <span class="hint">${lgSide(run)}</span></b></div>
-      </div></div>`;
+    const part = isOpen ? '\u{1F4D6} '+esc(t('lg_open_row')) : (()=>{ const rf=String(r.ref||'').replace(new RegExp('^\\s*'+String(_word).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\s*[\u00B7:-]?\\s*','i'),'');
+        return `<b>${esc(_word)}</b>${rf?` <span class="hint">${esc(rf)}</span>`:''}`; })();
+    return `<div class="tl-tr${r.go?' tl-go':''}"${r.go?` onclick="${esc(r.go)}"`:''}>
+      <span class="tl-d">${r.date?fmtDate(r.date):'—'}</span><span class="tl-p">${part}</span>
+      <span class="tl-n">${r.dr?money(r.dr):''}</span><span class="tl-n">${r.cr?money(r.cr):''}</span></div>`;
   }).join('');
+  const totDr=r2(drTot+opDr), totCr=r2(crTot+opCr);
+  const openTr=(_lgFrom && (opDr||opCr))?`<div class="tl-tr"><span class="tl-d">${fmtDate(_lgFrom)}</span>
+      <span class="tl-p">\u{1F4D6} ${esc(t('lg_open_row'))}</span><span class="tl-n">${opDr?money(opDr):''}</span><span class="tl-n">${opCr?money(opCr):''}</span></div>`:'';
+  const closeHTML=`${money(Math.abs(run))} <span class="hint">${lgSide(run)}</span>`;
+  _lgMenuId=l.id;
   $('#sheet').innerHTML=`<div class="grip"></div>
-    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">\u{1F4D2} ${esc(l.name)}</h2>
-      <button class="btn sm ghost" onclick="closeSheet()">\u2715</button></div>
-    <p class="hint" style="margin-bottom:10px">${esc(G.label)} \u00B7 ${G.stmt==='bs'?t('lg_bs'):t('lg_pl')}</p>
-    <div class="head-grid3" style="grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:10px;align-items:end">
-      <div class="field" style="margin:0"><label>${t('lg_from')}</label>
-        ${dateField("lgFrom",_lgFrom,'',true)}</div>
-      <div class="field" style="margin:0"><label>${t('lg_to')}</label>
-        ${dateField("lgTo",_lgTo,'',true)}</div>
-      <button class="btn ghost sm" style="height:42px" onclick="lgRangeApply('${jq(l.id)}')">\u{1F50D}</button>
-    </div>
-    ${(_lgFrom||_lgTo)?`<div class="kv" style="border-bottom:0;padding:0 0 8px">
-      <span class="hint">${_lgFrom?t('lg_opening_as',{d:fmtDate(_lgFrom)}):t('lg_open')}</span>
-      <b>${money(Math.abs(opening))} <span class="hint">${lgSide(opening)}</span></b></div>
-      <button class="btn ghost sm block" style="margin-bottom:10px" onclick="lgRangeClear('${jq(l.id)}')">${t('lg_all_dates')}</button>`:''}
-    ${/* v506: the two things he can do to a ledger, at the top with its name — not at the
-         far end of two hundred entries. Move is here because it is the honest answer to
-         "delete": the entries have to go somewhere. */''}
-    ${/* ══════════ v686 — DELETE WAS HIDDEN INSIDE EDIT ══════════
-         HIS 14 Sept: "jab koi bana hua ledger ho, account ho, koi entry ho, usko jab click
-         karte hain to edit aur delete ka option aata hai — kyunki jab wah entry mein dobara
-         ghus rahe hain, ya to edit karne ke liye ghus rahe hain ya to delete. Uska reason
-         accha tha. Tumhari koi reasoning nahi hai."
-         There was none. A man opens a record he has already made for one of two reasons, and
-         only one of the two was on the screen. Both are here now, side by side, where he is
-         already looking. Nothing about what delete DOES changes — it still refuses to remove
-         a ledger that has entries filed under it and offers to archive instead. */''}
-    <div class="row" style="gap:8px;margin-bottom:12px">
-      <button class="btn ghost sm" style="flex:1" onclick="ledgerEdit('${jq(l.id)}')">\u270F\uFE0F ${t('lg_edit')}</button>
-      ${/* v737: "Move it" is gone from here — renaming to a name that exists does the same
-           job from Edit ledger. HIS words: "maine ledger edit delete ka option bola, vo
-           simplify tha, lekin tumne ek naya system build kar diya." One job, one button. */''}
-      <button class="btn ghost sm" style="flex:0 0 auto;color:var(--bad)"
-        onclick="ledgerDel('${jq(l.id)}')" aria-label="${t('delete')}">\u{1F5D1}\uFE0F</button></div>
-    ${(()=>{ const st=lgOkState(l), o=lgOkAll()[l.id];
-       return st==='ok' ? `<button class="btn block" style="margin:-4px 0 12px;border-color:var(--ok);color:var(--ok)" onclick="lgOkToggle('${jq(l.id)}')">\u2705 ${t('lg_ok_done',{d:fmtDate(o.at)})}</button>`
-         : st==='moved' ? `<button class="btn block" style="margin:-4px 0 12px;border-color:var(--saffron);white-space:normal" onclick="lgOkToggle('${jq(l.id)}')">\u26A0\uFE0F ${t('lg_ok_moved',{a:money(o.bal),b:money(lgBalance(l))})}</button>`
-         : `<button class="btn ghost block" style="margin:-4px 0 12px" onclick="lgOkToggle('${jq(l.id)}')">\u2B1C ${t('lg_ok_ask')}</button>`; })()}
+    <div class="kv" style="margin-bottom:2px;gap:8px"><h2 style="margin:0;flex:1;min-width:0">\u{1F4D2} ${esc(l.name)}</h2>
+      <button class="btn sm ghost" style="flex:0 0 auto" onclick="closeSheet()">\u2715</button></div>
+    ${lgViewMore(l)}
+    <p class="hint" style="margin-bottom:8px">${esc(G.label)}${lgOkState(l)==='ok'?' · ✅ '+esc(t('lg_ok_short')):''}</p>
+    <div class="kv card" style="padding:12px 14px;margin-bottom:10px"><b>${t('lg_closing')}</b>
+      <b style="font-size:20px">${closeHTML}</b></div>
+    ${(_lgFrom||_lgTo)?`<div class="kv" style="padding:0 2px 8px;border-bottom:0"><span class="hint">\u{1F4C5} ${_lgFrom?fmtDate(_lgFrom):'…'} – ${_lgTo?fmtDate(_lgTo):'…'}</span>
+      <button class="btn sm ghost" onclick="lgRangeClear('${jq(l.id)}')">${t('lg_all_dates')} ✕</button></div>`:''}
     ${phRowHTML(l)}
-    <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
-      <div class="il"><span>${t('lg_dr_total')}</span><b>${money(drTot)}</b></div>
-      <div class="il"><span>${t('lg_cr_total')}</span><b>${money(crTot)}</b></div>
-      <div class="il" style="border-bottom:0"><span><b>${t('lg_closing')}</b></span>
-        <b style="font-size:18px">${money(Math.abs(run))} ${lgSide(run)}</b></div></div>
-    ${exportBarHTML('lg_'+l.id,()=>({title:l.name, sub:(lgGroup(l.group)||{}).label||'',
+    ${(rows.length||openTr)?`<div class="card tl-tbl" style="padding:0;margin-bottom:12px">
+      <div class="tl-tr tl-h"><span class="tl-d">${t('jv_date')}</span><span class="tl-p">${t('tl_part')}</span>
+        <span class="tl-n">${t('jv_dr')}</span><span class="tl-n">${t('jv_cr')}</span></div>
+      ${openTr}${trs}
+      <div class="tl-tr tl-tot"><span class="tl-d"></span><span class="tl-p"><b>${t('tl_total')}</b></span>
+        <span class="tl-n"><b>${money(totDr)}</b></span><span class="tl-n"><b>${money(totCr)}</b></span></div>
+      <div class="tl-tr tl-cl"><span class="tl-d"></span><span class="tl-p"><b>${t('lg_closing')}</b></span>
+        <span class="tl-n"><b>${run>0?money(run)+' Dr':''}</b></span><span class="tl-n"><b>${run<0?money(-run)+' Cr':''}</b></span></div>
+    </div>`:`<div class="empty" style="padding:26px 10px"><p>${t('lg_no_rows')}</p></div>`}
+    <div class="fab-pad"></div>`;
+  _expBuild['lg_'+l.id]=()=>({title:l.name, sub:(lgGroup(l.group)||{}).label||'',
       head:[t('jv_date'),t('jv_narr'),t('jv_dr'),t('jv_cr'),t('lg_closing')],
       rows:(function(){let rr=0;return lgRowsFor(l).map(r=>{rr=r2(rr+(r.dr||0)-(r.cr||0));
-        return [r.date?fmtDate(r.date):'', r.ref||'', r.dr||'', r.cr||'', (money(Math.abs(rr))+' '+lgSide(rr)).trim()];});})()}))}
-    ${/* v683: the header row is gone. Every row says what its own figures are, so a column
-         heading three wraps above it has nothing left to explain. */''}
-    ${rows.length?`<div class="card" style="padding:4px 12px;margin-bottom:12px">${body}</div>`
-      :`<div class="empty" style="padding:26px 10px"><p>${t('lg_no_rows')}</p></div>`}
-    ${/* v506 — HIS 5 Sept: "edit ledger ka button neeche hone ke karan kai baar kaafi
-         scroll karke neeche jaana padta hai." A ledger with two hundred entries put the one
-         button he wanted at the far end of all of them. It sits with the name now, where he
-         is already looking, and the ← at the bottom goes: the sheet has its own ← and ✕ at
-         the top, and a second back button lower down was the reason a tap sometimes landed
-         him somewhere he did not expect. One back arrow, one place, always the same. */''}
-    <div class="fab-pad"></div>`;
+        return [r.date?fmtDate(r.date):'', r.ref||'', r.dr||'', r.cr||'', (money(Math.abs(rr))+' '+lgSide(rr)).trim()];});})()});
   showSheet();
+}
+/* v809: everything he does only now and then lives behind ⋯ — one list, one tap each */
+let _lgMenuId=null;
+function lgViewMore(l){
+  const id=l.id, st=lgOkState(l), o=lgOkAll()[l.id];
+  const okLbl = st==='ok' ? t('lg_ok_done',{d:fmtDate(o.at)}) : st==='moved' ? t('lg_ok_moved',{a:money(o.bal),b:money(lgBalance(l))}) : t('lg_ok_ask');
+  moreAdd('\u{1F4C5}',t('tl_dates'),"lgDates('"+jq(id)+"')");
+  moreAdd('\u270F\uFE0F',t('lg_edit'),"ledgerEdit('"+jq(id)+"')");
+  moreAdd(st==='ok'?'\u2705':st==='moved'?'\u26A0\uFE0F':'\u2B1C',okLbl,"lgOkToggle('"+jq(id)+"')");
+  moreAdd('\u{1F4AC}',t('whatsapp'),"expDo('lg_"+jq(id)+"','wa')");
+  moreAdd('\u{1F5A8}\uFE0F',t('ex_pdf'),"expDo('lg_"+jq(id)+"','pdf')");
+  moreAdd('\u{1F5D1}\uFE0F',t('delete'),"ledgerDel('"+jq(id)+"')",'var(--bad)');
+  return '';
+}
+function lgDates(id){
+  modal('\u{1F4C5} '+t('tl_dates'),`<div class="row" style="gap:8px">
+      <div class="field" style="flex:1"><label>${t('lg_from')}</label>${dateField("lgFrom",_lgFrom,'',true)}</div>
+      <div class="field" style="flex:1"><label>${t('lg_to')}</label>${dateField("lgTo",_lgTo,'',true)}</div></div>`,
+    [{label:t('lg_all_dates'),cls:'ghost',fn:()=>{closeModal();lgRangeClear(id);}},
+     {label:t('tl_show'),cls:'primary',fn:()=>{ const f=($('#lgFrom')||{}).value||'', to=($('#lgTo')||{}).value||''; closeModal(); _lgFrom=f; _lgTo=to; ledgerView(id); }}]);
 }
 /* ══════════ v493 — THE KEYBOARD FLASHED ON EVERY LETTER ══════════
    HIS 5 Sept: "koi letter type karte hi keyboard blink hota hai, bahut hi ajeeb tarah se."
@@ -40863,7 +40935,9 @@ function ledgerEdit(id,draft){
      <div id="lgNameHits" style="margin:-6px 0 8px"></div>
      ${/* v738 C: a party's phone and GSTIN are edited HERE, with its name and opening — one
           form for one record, not Edit ledger in one place and Party details in another. */
-       (fv.group==='creditors'||fv.group==='debtors')?(()=>{ const pp=partyByName(fv.name)||{};
+       /* v811 — HIS 1 Oct: "Edit ledger mein phone number nahi dikh raha" on Sumit Bhaiya (a Loan). A person who lent
+          money, or took an advance, has a phone like any customer or supplier. */
+       (['creditors','debtors','loans','advances'].indexOf(fv.group)>=0)?(()=>{ const pp=partyByName(fv.name)||{};
        /* v774 — HIS 27 Sept: Bhushan Kumar's phone is on his customer record (every Sales
           screen reads it from there), but this box only ever asked partyByName, which is
           populated for suppliers and expense parties, never for a plain sales customer.
@@ -40873,7 +40947,7 @@ function ledgerEdit(id,draft){
        const phVal=pp.phone||(custRec&&custRec.phone)||'';
        return `<div class="row"><div class="field"><label>${t('phone')}</label>
            <input id="lgPhone" type="tel" inputmode="numeric" value="${esc(phVal)}" data-orig="${esc(phVal)}"
-             oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')"></div>
+             oninput="this.value=this.value.replace(/[^0-9+ ]/g,'');phWarn(this.value,'lgPhW','${ex?'l:'+jq(ex.id):''}',($('#lgName')||{}).value||'')"><div id="lgPhW"></div></div>
          <div class="field"><label>${t('gstin')}</label>
            <input id="lgGstin" value="${esc(pp.gstin||'')}" data-orig="${esc(pp.gstin||'')}" oninput="this.value=this.value.toUpperCase()"></div></div>`; })():''}
      <div class="field"><label>${t('lg_group')} *</label>
@@ -40924,7 +40998,7 @@ function ledgerEdit(id,draft){
        const flipped=(cur!==nat);
        const bs=(G.stmt==='bs');
        const word=d=>bs?(d==='cr'?t('lg_owe'):t('lg_own')):(d==='cr'?t('lg_inc'):t('lg_cost'));
-       const btn=d=>`<button type="button" class="btn ${cur===d?'primary':'ghost'}"
+       const btn=d=>`<button type="button" class="btn ${cur===d?'pick':'ghost'}"
            style="flex:1;margin:0" onclick="lgSetDir('${d}')">${cur===d?'✓ ':''}${word(d)}</button>`;
        return `<input type="hidden" id="lgDir" value="${esc(cur)}">
          <div class="field" style="margin-top:-2px"><label>${t('lg_dir_q')}</label>
@@ -40938,6 +41012,7 @@ function ledgerEdit(id,draft){
      {label:t('save'),cls:'primary',fn:()=>{
         const g=i=>(($('#'+i)||{}).value||'').trim();
         const nm=g('lgName'); if(!nm){ toast(t('lg_name'),'bad'); return; }
+        if(phBlocked('lgPhW'))return;                       /* v811: same mobile as someone else */
         const dup=lgAll().find(l=>nameNorm(l.name)===nameNorm(nm) && (!ex||l.id!==ex.id));
         /* ══════════ v737 — IT KNEW WHAT HE WANTED AND SAID NO ══════════
            HIS 21 Sept: renamed Vrudhi Impex to Vruudhi Fashion here, which already exists —
@@ -40991,8 +41066,9 @@ function ledgerEdit(id,draft){
         rec.name=nm; rec.group=g('lgGrp')||'indirect';
         rec.openAmt=r2(+g('lgOpen')||0); rec.openDir=g('lgDir'); rec.openDate=g('lgDate')||'';
         if(!lgOpenToLine(rec, ex?{amt:+ex.openAmt||0,dir:ex.openDir,date:ex.openDate}:null))return;
-        if(rec.group==='creditors'||rec.group==='debtors'){
+        if(['creditors','debtors','loans','advances'].indexOf(rec.group)>=0){
           const ph=g('lgPhone'), gs=g('lgGstin');
+          /* v811: the check runs before anything at all is written — see the top of this Save */
           /* v742: one firm written with and without a full stop ("Pvt Ltd" / "Pvt. Ltd") is
              ONE ledger but was TWO party records; renaming left both, and the phone typed here
              landed on the other one — his Kanchan Syntex lost its 033 number in the container.
@@ -41009,7 +41085,7 @@ function ledgerEdit(id,draft){
               if(custRec)custRec.phone=ph;
             }
             let pp=partyByName(nm);
-            if(!pp && (ph||gs)){ pp={id:uid(), name:nm, kind:rec.group==='creditors'?'supplier':'customer', phone:'', gstin:'', address:''}; partyAll().push(pp); }
+            if(!pp && (ph||gs)){ pp={id:uid(), name:nm, kind:rec.group==='creditors'?'supplier':(rec.group==='debtors'?'customer':'other'), phone:'', gstin:'', address:''}; partyAll().push(pp); }
             if(pp){ if(chPh)pp.phone=ph; if(chGs)pp.gstin=gs; }
           }
         }
@@ -43031,11 +43107,12 @@ function staffEdit(id){
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">${ex?esc(ex.name):t('st_add')}</h2>
       <button class="btn sm ghost" onclick="staffMaster()" title="${t('back')}">←</button></div>   ${/* v274: see note above */''}
-    <div class="field"><label>${t('st_name')} *</label><input id="stName" value="${esc(V('name', ex?ex.name:''))}"></div>
+    <div class="field"><label>${t('st_name')} *</label><input id="stName" value="${esc(V('name', ex?ex.name:''))}"${ex?'':` oninput="mstNameHits(this.value,'stHits','')" autocomplete="off"`}></div>
+    ${ex?'':'<div id="stHits" style="margin:-6px 0 8px"></div>'}
     <div class="field" style="margin-top:8px"><label>${t('st_role')}</label>
       <input id="stRole" value="${esc(V('role', ex?(ex.role||''):''))}" placeholder="${t('st_role_ph')}"></div>
     <div class="field" style="margin-top:8px"><label>${t('phone')}</label>
-      <input id="stPhone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" value="${esc(V('phone', ex?(ex.phone||''):''))}">
+      <input id="stPhone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'');phWarn(this.value,'stPhW','${ex?'s:'+jq(ex.id):''}')" value="${esc(V('phone', ex?(ex.phone||''):''))}"><div id="stPhW"></div>
       ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost" style="margin-top:8px" onclick="stPickContact()">📇 ${t('from_contacts')}</button>`:''}</div>
     <div class="row" style="gap:8px;margin-top:8px">
       <div class="field"><label>${t('st_salary')}</label>
@@ -43116,6 +43193,7 @@ function staffEdit(id){
 function staffSave(id){
   const name=(($('#stName')||{}).value||'').trim();
   if(!name){ toast(t('st_name'),'bad'); return; }
+  if(phBlocked('stPhW'))return;
   const g=i=>(($('#'+i)||{}).value||'').trim();
   const rec={ name, role:g('stRole'), phone:g('stPhone'),
     salary:+g('stSal')||0, commPct:+g('stComm')||0,
@@ -45142,6 +45220,15 @@ function showSheet(){
         b.setAttribute('aria-label','Close'); b.onclick=sheetClose;
         sh.insertBefore(b, sh.firstChild);
       }
+      /* v810: the screen's ⋯ (only when it has something in it) */
+      if(_sheetBuilding){ const old=sh.querySelector(':scope > .sheet-m'); if(old)old.remove();
+        if(_sheetMore.length){
+          const m=document.createElement('button');
+          m.className='sheet-m'; m.type='button'; m.textContent='\u22EF';
+          m.setAttribute('aria-label','More'); m.onclick=moreOpen;
+          sh.insertBefore(m, sh.firstChild);
+        }
+        _sheetBuilding=false; }
       /* ══════════ v429 — A WAY BACK ONE STEP, NOT ONLY A WAY OUT ══════════
          HIS 1 Sep, after opening Stock from Purchases: "back bhi galat jagah aa gaya."
          Every sheet gets a ✕ from here, and has since v188 — but ✕ closes EVERYTHING. When
@@ -45198,7 +45285,8 @@ function showSheet(){
       const syncX=()=>{ const x=sh2.querySelector(':scope > .sheet-x');
         if(x)x.style.top=(sh2.scrollTop+10)+'px';
         const bk=sh2.querySelector(':scope > .sheet-b');            /* v429: twin follows too */
-        if(bk)bk.style.top=(sh2.scrollTop+10)+'px'; };
+        if(bk)bk.style.top=(sh2.scrollTop+10)+'px';
+        const mm=sh2.querySelector(':scope > .sheet-m'); if(mm)mm.style.top=(sh2.scrollTop+10)+'px'; };
       if(!sh2._xBound){ sh2._xBound=1; sh2.addEventListener('scroll',syncX,{passive:true}); }
       syncX();
     }
@@ -45693,6 +45781,7 @@ let _handoff=null, _handoffAt=0, _handoffTrail=null, _handoffSync=false;
    takes the name beside the function. */
 function sheetAt(fn,name,args){
   if(typeof fn!=='function')return;
+  _sheetMore=[]; _sheetBuilding=true;     /* v810: this screen's ⋯ starts empty */
   /* v717 — HIS 17 Sept: "Payables → party → bill edit → back/✕ → seedha Home." Found with
      it: a screen that needs its record (a roll, a customer, a karigar) registered itself
      WITHOUT the record, so stepping back to it re-ran it empty and nothing was drawn.
