@@ -1160,7 +1160,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v803</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v804</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -7769,7 +7769,7 @@ function orderSummaryStatus(o){ const its=(o.items||[]); if(!its.length)return o
   const mark=()=>{
     base=Math.max(base, vv.height);
     { const ae=document.activeElement; const typing=!!(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName||''));
-      document.body.classList.toggle('kbd', typing && (vv.scale||1)<1.05 && (base - vv.height) > 140); }
+      document.body.classList.toggle('kbd', typing && window.innerWidth<700 && (vv.scale||1)<1.05 && (base - vv.height) > 140); }
   };
   vv.addEventListener('resize', mark);
   window.addEventListener('orientationchange', ()=>{ base=vv.height; setTimeout(mark,300); });
@@ -25583,10 +25583,10 @@ try{
       /* v803: HIS 1 Oct (iPad): after All screens the sheet came up HALF-size and the bottom bar
          jumped up. iPad Safari fires viewport resize/scroll for zoom, rubber-banding and the
          shortcut bar, which this read as "keyboard is up" and left --kb stuck. A keyboard is only
-         real when a text box is focused and the page is not zoomed. */
+         real when a text box is focused, the page is not zoomed, and the screen is a phone (iPad: never shrink the sheet). */
       const ae=document.activeElement, typing=!!(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName||'')&&!/^(checkbox|radio|button|hidden)$/.test(ae.type||''));
       const gap=Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
-      document.documentElement.style.setProperty('--kb', (typing&&(vv.scale||1)<1.05&&gap>80?gap:0)+'px');
+      document.documentElement.style.setProperty('--kb', (typing&&window.innerWidth<700&&(vv.scale||1)<1.05&&gap>80?gap:0)+'px');
     };
     document.addEventListener('focusout',()=>setTimeout(setKb,350),true);
     document.addEventListener('focusin',()=>setTimeout(setKb,50),true);
