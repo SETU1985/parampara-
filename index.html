@@ -1184,7 +1184,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v818</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v819</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -33818,7 +33818,9 @@ function partyStatement(pid,kind,nameHint){
        same data, now behind the one directory shape. */
     _dirRedraw=()=>partyStatement();
     dirPick({key:'ps', icon:'📒', title:t('rp_party_stmt'), sub:t('rp_pick_party'),
-      list:who, onPick:p=>`partyStatement('${jq(p.id)}','${jq(p.kind)}')`});
+      list:(()=>{ /* v819 — HIS 1 Oct: one person who is both Staff and Customer was listed twice and both opened the same ledger. One name, one line. */
+        const seenN={}; return who.filter(x=>{ const k=nameNorm(x.name); if(seenN[k])return false; seenN[k]=1; return true; }); })(),
+      onPick:p=>`partyStatement('${jq(p.id)}','${jq(p.kind)}')`});
     return;
   }
   const p=who.find(x=>x.id===pid&&x.kind===kind)||who.find(x=>x.id===pid);
@@ -38767,7 +38769,7 @@ function manageExpHeads(){
       <b>🏷️ ${t('eh_setup_title')}</b>
       <p class="hint" style="margin:4px 0 8px">${t('eh_setup_sub')}</p>
       <button class="btn sm primary block" onclick="ehSetupAsk()">${t('eh_setup_go')} · ${ehUntagged().length}</button></div>`:''}
-    ${cats.length>6?lsFilterHTML('ehList'):''}<div id="ehList">${rows}</div><div class="fab-pad"></div>`;
+    ${cats.length>6?lsFilterHTML('ehList'):''}<div id="ehList" data-autosave="1">${rows}</div><div class="fab-pad"></div>`;
   showSheet();
 }
 /* v377 — HIS 28 Aug: "kai jagah aisa hai ki item / party / expense / expense head delete
@@ -38870,6 +38872,8 @@ function expHeadSet(i,k,v){
   DB.expHeadCfg[c]=Object.assign({who:'',kind:'indirect',pay:''},DB.expHeadCfg[c]||{},{[k]:v});
   if(k==='who'&&v!=='staff')DB.expHeadCfg[c].pay='';   /* v251: a non-staff head has no pay kind */
   save(); toast(t('t_saved'),'ok');
+  /* v819 — HIS 1 Oct: every dropdown here saves the moment it changes, but the screen still counted it as "typed, not saved" and asked "Leave without saving?" on every ✕, forever. It is saved — say so. */
+  try{ sheetStamp(1); }catch(e){}
   if(k==='who')manageExpHeads();                       /* v251: the pay dropdown appears with it */
 }
 
@@ -45560,6 +45564,7 @@ function sheetDirty(){
   if(!sheetSaveBtn())return false;
   return [...sh.querySelectorAll('input,select,textarea')].some(el=>{
     if(!el.offsetParent)return false;
+    if(el.closest&&el.closest('[data-autosave]'))return false;     /* v819: boxes that save themselves on change are never "unsaved" */
     if(el.type==='search')return false;
     const ph=String(el.placeholder||'')+' '+String(el.id||'');
     if(/🔍|search|खोज/i.test(ph))return false;              // filtering is not unsaved work
