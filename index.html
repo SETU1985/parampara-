@@ -1184,7 +1184,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v816</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v817</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -2441,6 +2441,8 @@ const T={
   rp_pl:'Profit & loss', rp_cashflow:'Cash flow', rp_exp_head:'Expenses by head',
   rp_party_stmt:'Ledger statement', rp_pick_party:'Whose ledger?',
   rp_sales_gross:'Gross sales', rp_gst_out:'GST on sales', rp_net_sales:'Net sales',
+  pld_why:'Money spent on karigars, salary, staff and tailors, and heads you marked Direct, is counted here. Tap a head to see its entries.', pld_kar:'Karigar work (pieces taken back)', pld_none:'Nothing in this period.',
+  hb_title:'Change head of entries', hb_pick:'Which head do you want to change? Date, amount and account stay the same.', hb_to:'{a}: {n} entries, {m}. Move them to which head?', hb_ask:'Move {n} entries ({m}) from “{a}” to “{b}”? Date, amount and account stay the same.', hb_done:'{n} entries moved to {b}', hb_none:'No expense entries here.',
   rp_purch_net:'Purchases (net of GST)', rp_direct:'Direct expenses',
   rp_gross_profit:'Gross profit', rp_margin:'margin', rp_running:'Indirect expenses',
   rp_jv_adj:'Journal adjustments',
@@ -4847,6 +4849,8 @@ dl_show_hidden:'Show hidden ({n})',
   rp_pl:'Profit & Loss', rp_cashflow:'Cash Flow', rp_exp_head:'Expenses by head',
   rp_party_stmt:'Ledger statement', rp_pick_party:'Whose ledger?',
   rp_sales_gross:'Gross Sales', rp_gst_out:'GST on sales', rp_net_sales:'Net Sales',
+  pld_why:'कारीगर, सैलरी, स्टाफ और टेलर पर खर्च, और जिन हेड को आपने Direct चुना है, वो यहाँ गिने जाते हैं। हेड पर टैप करें, उसकी एंट्री दिखेंगी।', pld_kar:'कारीगर का काम (वापस आए पीस)', pld_none:'इस अवधि में कुछ नहीं।',
+  hb_title:'एंट्री का हेड बदलो', hb_pick:'कौन सा हेड बदलना है? तारीख, रकम और अकाउंट वही रहेंगे।', hb_to:'{a}: {n} एंट्री, {m}। किस हेड में डालनी हैं?', hb_ask:'{n} एंट्री ({m}) “{a}” से “{b}” में डालें? तारीख, रकम और अकाउंट वही रहेंगे।', hb_done:'{n} एंट्री {b} में गईं', hb_none:'यहाँ कोई खर्चे की एंट्री नहीं है।',
   rp_purch_net:'Purchases (net of GST)', rp_direct:'Direct expenses',
   rp_gross_profit:'Gross Profit', rp_margin:'margin', rp_running:'Indirect expenses',
   rp_jv_adj:'Journal adjustments',
@@ -31932,7 +31936,7 @@ function plFigures(from,to){
   const netPurch=r2(purch-purchGst);
 
   /* what left the shop for making the goods, and what for keeping it open */
-  const byHead={}; let expTotal=0, direct=0, drawings=0;
+  const byHead={}, directHeads={}; let expTotal=0, direct=0, drawings=0;
   (DB.ledger||[]).forEach(l=>{
     if(l.refKind!=='expense')return;
     const d=String(l.date||''); if(d<from||d>to)return;
@@ -31996,7 +32000,9 @@ function plFigures(from,to){
        protect. */
     if(l.partyKind==='karigar' && l.partyId && shopUsesKarRates() && ((DB.karigars||[]).some(k=>k.id===l.partyId)||karMasterForParty(l.partyId,l.date))){ return; }  /* v790 K-1: only a karigar-MASTER man's payable is netted; a party-id karigar has no payable here, so his expense must stay in P&L */
     byHead[h]=r2((byHead[h]||0)+a); expTotal=r2(expTotal+a);
-    if(l.expKind==='direct'||expLooksLikePerson(h))direct=r2(direct+a);
+    if(l.expKind==='direct'||expLooksLikePerson(h)){ direct=r2(direct+a);
+      /* v817 — which heads made up Direct, so the P&L line can open them (it opened the karigar book) */
+      const dh=directHeads[h]=directHeads[h]||{n:0,amt:0}; dh.n++; dh.amt=r2(dh.amt+a); }
   });
   const heads=Object.entries(byHead).sort((a,b)=>b[1]-a[1]);
 
@@ -32079,7 +32085,7 @@ function plFigures(from,to){
   const incent=incEarned(from,to);
   return {sales:r2(sales),gst:r2(gst),disc:r2(disc),netSales,jvPL,
           purch:r2(purch),purchGst:r2(purchGst),netPurch,
-          heads,expTotal,direct,karWork,incent,indirect,gross,drawings,rentDue,
+          heads,directHeads,expTotal,direct,karWork,incent,indirect,gross,drawings,rentDue,
           openStk,closeStk,cogs,stkDiff,net:r2(gross-indirect+jvPL)};
 }
 function cashFigures(from,to){
@@ -33264,6 +33270,31 @@ function gstReport(){
    5930% margin he has no reason to. Nothing about how a line is worked out changes; each
    line simply knows which book it came out of. Same shape as the balance sheet, so there
    is one way of doing this in the app, not two. */
+/* v817 — HIS 1 Oct: "direct expenses me click karne se karigar ka hisab khulta hai, direct expenses ki list nahi."
+   The line was wired in v344, when Direct meant karigar piece work only. Since then expenses under a
+   Karigar / Salary / Staff / Tailor / Advance head, or a head marked Direct, are counted in it too, and
+   ₹29 lakh of his sat behind a tap that opened a screen showing ₹0. The line now opens the list of
+   heads that make it up (same rule as plFigures), each one opens its entries; karigar piece work is its
+   own row. Display only: no figure is worked out here, they are all read from plFigures. */
+function plDirectList(){
+  sheetAt(plDirectList,'plDirectList');
+  const {from,to}=rpRange(), f=plFigures(from,to);
+  const hs=Object.entries(f.directHeads||{}).sort((a,b)=>b[1].amt-a[1].amt);
+  const row=(lbl,sub,val,fn)=>`<div class="il" style="${fn?'cursor:pointer':''}" ${fn?`onclick="${fn}"`:''}>
+      <span>${lbl}${fn?' <span class="hint">›</span>':''}${sub?`<div class="hint">${sub}</div>`:''}</span><b>${money(val)}</b></div>`;
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <div class="kv" style="margin-bottom:4px"><h2 style="margin:0">👷 ${t('rp_direct')}</h2></div>
+    ${rangeBarHTML()}
+    <p class="hint" style="white-space:normal;margin:6px 0 10px">${t('pld_why')}</p>
+    <div class="card pos-total" style="padding:12px 14px;margin-bottom:12px">
+      ${hs.map(([h,v])=>row(esc(h),t('dq_n',{n:v.n}),v.amt,`expHeadOpen('${jq(h)}')`)).join('')}
+      ${f.karWork?row(t('pld_kar'),'',f.karWork,'karigarBook()'):''}
+      ${(!hs.length && !f.karWork)?`<p class="hint" style="padding:10px 0;text-align:center">${t('pld_none')}</p>`:''}
+      <div class="il" style="font-weight:800"><span>${t('total')}</span><b>${money(f.direct)}</b></div>
+    </div>
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
 function plOpenLine(key){
   try{
     switch(key){
@@ -33271,7 +33302,7 @@ function plOpenLine(key){
       case 'gst':     return (closeSheet(),gstReport&&gstReport());
       case 'purch':   return (closeSheet(),go('purchases'));
       case 'stock':   return (closeSheet(),stockHome('fabric'));
-      case 'direct':  return (closeSheet(),karigarBook());
+      case 'direct':  return plDirectList();
       case 'running': return (closeSheet(),expenses());
       case 'incent':  return (closeSheet(),staffReport());
       case 'jv':      return (closeSheet(),journalBook&&journalBook());
@@ -33713,6 +33744,54 @@ function expHeadPrint(){
    the screen did exactly what it was told. His books are full of such people.
    A statement is owed to a NAME, not to a record that may never have been created. The name
    is accepted now, and only a call with neither name nor id opens the directory. */
+/* v817 — HIS 1 Oct: "head change karne ka option aana chahiye, edit karne ka option hona chahiye."
+   37 salary rows of one man sat under वेतन / Salary and the only way to move them was one by one. The
+   Heads clean-up moves a WHOLE head, which is wrong when the head also holds other people's real salary.
+   This moves ONE person's entries from one head to another, from his own ledger / statement (⋯).
+   Date, amount, account and the person never change — only the head (and the cost type that follows
+   the head, as expEdit does). Counted and named before it moves, and Undo puts every row back. */
+function hbRows(name,pid){ const nm=nameNorm(name);
+  return (DB.ledger||[]).filter(l=>l.refKind==='expense' && l.cat && ((pid && l.partyId===pid) || nameNorm(l.party)===nm)
+    && !(pid && l.partyId && l.partyId!==pid && peopleAll().some(x=>x.id===l.partyId))); }
+function hbOpen(name,pid){
+  const rows=hbRows(name,pid); if(!rows.length){ toast(t('hb_none'),'bad'); return; }
+  const by={}; rows.forEach(l=>{ const g=by[l.cat]=by[l.cat]||{cat:l.cat,n:0,amt:0}; g.n++; g.amt=r2(g.amt+(+l.amt||0)); });
+  const gs=Object.values(by).sort((a,b)=>b.amt-a.amt);
+  window._hb={name:name,pid:pid||'',gs:gs,src:''};
+  if(gs.length===1)return hbPick(0);
+  modal('\u270F\uFE0F '+esc(name),
+    `<p class="hint" style="white-space:normal;margin:0 0 10px">${t('hb_pick')}</p>`
+    +gs.map((g,i)=>`<button class="btn ghost block" style="margin-bottom:8px" onclick="hbPick(${i})">${esc(g.cat)} \u00B7 ${t('dq_n',{n:g.n})} \u00B7 ${money(g.amt)}</button>`).join(''),
+    [{label:t('cancel'),cls:'ghost',fn:closeModal}]);
+}
+function hbPick(i){
+  const H=window._hb, g=H&&H.gs[i]; if(!g)return; closeModal(); H.src=g.cat;
+  const draw=Object.keys(DB.expHeadCfg||{}).filter(h=>h!==g.cat && expHeadCfg(h).kind==='drawing');
+  const dn=t('eh_drawing'); const sug=draw.length?draw:(g.cat===dn?[]:[dn]);
+  const rest=(DB.expCats||[]).filter(c=>c!==g.cat && sug.indexOf(c)<0 && !expParentOf(c));
+  modal('\u270F\uFE0F '+esc(H.name),
+    `<p class="hint" style="white-space:normal;margin:0 0 10px">${t('hb_to',{a:esc(g.cat),n:g.n,m:money(g.amt)})}</p>
+     ${sug.map(c=>`<button class="btn primary block" style="margin-bottom:8px" onclick="hbAsk('${jq(c)}')">${esc(c)}</button>`).join('')}
+     <div class="gtags" style="margin-top:6px">${rest.map(c=>`<span class="gtag" style="cursor:pointer" onclick="hbAsk('${jq(c)}')">${esc(c)}</span>`).join('')}</div>`,
+    [{label:t('cancel'),cls:'ghost',fn:closeModal}]);
+}
+function hbAsk(to){
+  const H=window._hb; if(!H||!H.src)return; closeModal();
+  const rows=hbRows(H.name,H.pid).filter(l=>l.cat===H.src);
+  const amt=r2(rows.reduce((s,l)=>s+(+l.amt||0),0));
+  confirmModal('\u270F\uFE0F '+esc(H.name), t('hb_ask',{n:rows.length,m:money(amt),a:esc(H.src),b:esc(to)}), ()=>{
+    DB.expHeadCfg=DB.expHeadCfg||{};
+    if(!DB.expHeadCfg[to])DB.expHeadCfg[to]={who:'staff',kind:'drawing',pay:''};   /* the drawings head is made the first time it is needed (v350) */
+    const kind=expHeadCfg(to).kind||'indirect', was=rows.map(l=>({l:l,cat:l.cat,k:l.expKind}));
+    rows.forEach(l=>{ l.cat=to; l.expKind=kind; try{ expSyncKarigar(l.id); }catch(e){} });
+    save(); try{ _lgBalMemo={}; }catch(e){}
+    closeModal();
+    afterSave(()=>{});
+    undoOffer('\u2705 '+t('hb_done',{n:rows.length,b:to}), ()=>{
+      was.forEach(w=>{ w.l.cat=w.cat; w.l.expKind=w.k; try{ expSyncKarigar(w.l.id); }catch(e){} });
+      save(); try{ _lgBalMemo={}; }catch(e){} afterSave(()=>{}); });
+  }, null, {yes:t('save'), no:t('cancel'), cls:'primary'});
+}
 function partyStatement(pid,kind,nameHint){
   /* v739 C: a name with a ledger opens the ledger — one screen, the one the books agree with */
   if(pid||nameHint){ const _w=peopleAll(); const _p=pid?(_w.find(x=>x.id===pid&&x.kind===kind)||_w.find(x=>x.id===pid)):null;
@@ -33784,6 +33863,7 @@ function partyStatement(pid,kind,nameHint){
     ${/* v620: psPrint hands the sheet to the printer. What a customer actually asks for is
          the statement ON WHATSAPP, or a file he can keep — the same two buttons every
          report screen already has. Printing stays where it was. */''}
+    ${/* v817: change the head of this man's entries */ (moreAdd('\u270F\uFE0F',t('hb_title'),"hbOpen('"+jq(p.name)+"','"+jq(p.id||'')+"')"),'')}
     ${lines.length?exportBarHTML('ps_'+pid,()=>{ let rr=0;
       return {title:p.name, sub:t(PK_LBL[p.kind]||'pt_other'),
         head:[t('ps_date'),t('ps_part'),t('ps_dr'),t('ps_cr'),t('ps_bal')],
@@ -34006,6 +34086,10 @@ function psLines(p){
     if(l.refKind==='opening'||l.refKind==='openpay')return;
     if(l.refKind==='purchase'||l.refKind==='sale')return;      // already listed above
     if(l.partyId!==p.id && String(l.party||'').trim().toLowerCase()!==nm)return;
+    /* v817 — HIS 1 Oct: Ledger statement listed "Setu Choudhary" twice (Staff and Customers) and both showed the
+       same entries. A row is matched by NAME as well as by id, so when two records share a name, each one
+       picked up the other's rows. A row that carries the id of ANOTHER existing person belongs to that person. */
+    if(l.partyId && l.partyId!==p.id && peopleAll().some(x=>x.id===l.partyId))return;
     const pay=(l.refKind==='manual');       /* the Payment in / Payment out door */
     out.push({date:l.date,dir:(pay?(l.dir==='out'?'in':'out'):l.dir),amt:r2(+l.amt||0),acc:l.acc,
       ref:l.cat||l.ref||'',note:l.note||'',_src:l.refKind||'manual',_id:l.id});
@@ -34041,6 +34125,11 @@ function psOpen(src,id){
       default: {
         const l=(DB.ledger||[]).find(x=>x.id===id);
         if(l && l.refKind==='journal')return journalEdit(id);
+        /* v817 — HIS 1 Oct, off Setu Choudhary's statement: "kahin pe bhi ledger ko edit karne ka option nahi hai."
+           Expense / payment / loan rows were drawn as tappable here and the tap did nothing. lgOpenRow is the
+           door the Ledger master already uses for them (dbOpen knows every kind of row), and afterSave()
+           redraws this statement underneath, so Save or Cancel leaves him where he was. */
+        if(l)return lgOpenRow(l.id);
         return;
       }
     }
@@ -40881,6 +40970,7 @@ function lgViewMore(l){
   const okLbl = st==='ok' ? t('lg_ok_done',{d:fmtDate(o.at)}) : st==='moved' ? t('lg_ok_moved',{a:money(o.bal),b:money(lgBalance(l))}) : t('lg_ok_ask');
   moreAdd('\u{1F4C5}',t('tl_dates'),"lgDates('"+jq(id)+"')");
   moreAdd('\u270F\uFE0F',t('lg_edit'),"ledgerEdit('"+jq(id)+"')");
+  moreAdd('\u{1F500}',t('hb_title'),"hbOpen('"+jq(l.name)+"','')");
   moreAdd(st==='ok'?'\u2705':st==='moved'?'\u26A0\uFE0F':'\u2B1C',okLbl,"lgOkToggle('"+jq(id)+"')");
   moreAdd('\u{1F4AC}',t('whatsapp'),"expDo('lg_"+jq(id)+"','wa')");
   moreAdd('\u{1F5A8}\uFE0F',t('ex_pdf'),"expDo('lg_"+jq(id)+"','pdf')");
