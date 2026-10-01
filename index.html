@@ -1184,7 +1184,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v817</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v818</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -33784,11 +33784,16 @@ function hbAsk(to){
     if(!DB.expHeadCfg[to])DB.expHeadCfg[to]={who:'staff',kind:'drawing',pay:''};   /* the drawings head is made the first time it is needed (v350) */
     const kind=expHeadCfg(to).kind||'indirect', was=rows.map(l=>({l:l,cat:l.cat,k:l.expKind}));
     rows.forEach(l=>{ l.cat=to; l.expKind=kind; try{ expSyncKarigar(l.id); }catch(e){} });
+    /* v818 — the man's own ledger row keeps its own stored group (v753: the label he reads never heard about the
+       move). When ALL his entries now sit under a Drawings head, his ledger is filed under Drawings too. */
+    const lg=lgByName(H.name), g0=lg?lg.group:null;
+    if(lg && kind==='drawing' && hbRows(H.name,H.pid).every(l=>expHeadCfg(l.cat).kind==='drawing'))lg.group='drawings';
     save(); try{ _lgBalMemo={}; }catch(e){}
     closeModal();
     afterSave(()=>{});
     undoOffer('\u2705 '+t('hb_done',{n:rows.length,b:to}), ()=>{
       was.forEach(w=>{ w.l.cat=w.cat; w.l.expKind=w.k; try{ expSyncKarigar(w.l.id); }catch(e){} });
+      if(lg && g0)lg.group=g0;
       save(); try{ _lgBalMemo={}; }catch(e){} afterSave(()=>{}); });
   }, null, {yes:t('save'), no:t('cancel'), cls:'primary'});
 }
@@ -40655,6 +40660,11 @@ function lgRowHTML(l){
         if(l.openAmt && l.openDir==='cr' && G2.stmt==='pl')return '';
         /* v749: salary and job work ARE expenses — "move to Indirect" gains nothing. A supplier
            is money owed — never sent to the profit & loss. */
+        /* v818 — HIS 1 Oct: Setu Choudhary (owner, on the Staff list) moved to Drawings and the card at once said
+           "Filed under Drawings, but the masters say Salary & Wages" with a button that would undo it. The guess
+           is only "he is on the staff list, so salary". A man on the staff list can be the owner, and Drawings is
+           what HE chose, so it is never contradicted. */
+        if(l.group==='drawings' && gg==='salary')return '';
         if((l.group==='salary'||l.group==='jobwork') && gg==='indirect')return '';
         if(l.group==='creditors' && G2.stmt==='pl')return '';
         if(l.openAmt && l.openDir==='dr' && G2.stmt==='pl' && (lgGroup(l.group)||{}).stmt==='bs')return '';
