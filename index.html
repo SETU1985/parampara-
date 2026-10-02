@@ -1184,7 +1184,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v820</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v821</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -1371,7 +1371,7 @@ const T={
   jv_grp_a:'Assets', jv_grp_l:'Liabilities', jv_grp_c:'Capital', jv_grp_i:'Income', jv_grp_e:'Expenses',
   jv_note:'Journal entries move the trial balance and the balance sheet. They do not move cash or bank — use Payment or Expense for that.',
   jv_effect:'Effect on the books',
-  bs_quarter:'This quarter', bs_fy:'Full year', bs_drcr:'Dr / Cr',
+  bs_quarter:'This quarter', bs_fy:'Financial year', bs_drcr:'Dr / Cr',
   bs_debit:'Debit — what the shop owns', bs_credit:'Credit — what the shop owes',
   bs_assets:'Assets', bs_liab:'Liabilities', bs_cap:'Capital',
   bs_cash:'Cash in hand', bs_bank:'Bank', bs_debtors:'Receivable from customers',
@@ -2648,7 +2648,7 @@ const T={
   enq_none:'No enquiries', enq_none_sub:'When a customer leaves measurements without confirming, keep them here.',
   pl_new_in:'New receipt', pl_new_out:'New payment',
   pl_find:'Name, amount, reference…',
-  rp_lastmonth:'Last month', pl_all:'All',
+  rp_lastmonth:'Last month', rp_lastquarter:'Last quarter', pl_all:'All',
   ono_set:'Order number',
   ono_hint:'The next free number. If you have already written this one on a slip, change it here — the app will refuse a number that is already taken.',
   smp_cust:'Sample given — no measurement',
@@ -3792,7 +3792,7 @@ dl_show_hidden:'Show hidden ({n})',
   jv_grp_a:'Assets', jv_grp_l:'Liabilities', jv_grp_c:'Capital', jv_grp_i:'Income', jv_grp_e:'Expenses',
   jv_note:'Journal entries move the trial balance and the balance sheet. They do not move cash or bank — use Payment or Expense for that.',
   jv_effect:'Effect on the books',
-  bs_quarter:'This quarter', bs_fy:'Full year', bs_drcr:'Dr / Cr',
+  bs_quarter:'This quarter', bs_fy:'Financial year', bs_drcr:'Dr / Cr',
   bs_debit:'Debit — what the shop owns', bs_credit:'Credit — what the shop owes',
   bs_assets:'Assets', bs_liab:'Liabilities', bs_cap:'Capital',
   bs_cash:'Cash in hand', bs_bank:'Bank', bs_debtors:'Receivable from customers',
@@ -11155,7 +11155,7 @@ function payLoan(dir){
     `<p class="hint" style="margin-bottom:10px">${dir==='out'?t('ln_out_hint'):t('ln_in_hint')}</p>
      <div class="field"><label>${t('ln_which')}</label>
        <input id="ln_name" list="lnList" placeholder="${t('ln_which_ph')}"
-         value="${esc((loans[0]&&(loans[0].name||loans[0].who))||'')}">
+         value="">
        <datalist id="lnList">${loans.map(l=>`<option value="${esc(l.name||l.who||'')}">`).join('')}</datalist></div>
      <div class="row" style="margin-top:10px">
        <div class="field"><label>${t('ln_amt')} *</label>
@@ -23358,7 +23358,7 @@ async function openDetail__inner(id,focusGid){
         w.querySelector('.thumb-x').onclick=()=>odDelItemPhoto(o.id,gid,pid);
         pel.appendChild(w);}}
     const vel=$('#div_'+cssId(gid));
-    if(vel){for(const v of((o.itemVoice&&o.itemVoice[gid])||[])){const url=await mURL(v.voiceId);if(url){const a=document.createElement('audio');a.controls=true;a.src=url;vel.appendChild(a);}}}
+    if(vel){for(const v of((o.itemVoice&&o.itemVoice[gid])||[])){const url=await mURL(v.voiceId);if(url){const w=document.createElement('div');w.style.cssText='display:flex;gap:8px;align-items:center;margin-top:6px';const a=document.createElement('audio');a.controls=true;a.src=url;a.style.flex='1';w.appendChild(a);const sb=document.createElement('button');sb.className='btn sm ghost';sb.textContent='\uD83D\uDCE4';sb.onclick=function(){shareVoice(v.voiceId);};w.appendChild(sb);vel.appendChild(w);}}}
   }
 }
 
@@ -24055,7 +24055,7 @@ async function renderAltTimeline(a){const el=$('#altTimeline');if(!el)return;
   el.innerHTML=`<div class="card">${log.map(e=>`<div class="tl-entry"><div class="tl-dot"></div><div style="flex:1">
     <div class="tl-time">${fmtDateTime(e.ts)}</div>${e.text?`<div class="tl-text">${esc(e.text)}</div>`:''}
     ${e.voiceId?`<audio controls data-aud="${e.voiceId}"></audio>`:''}
-    </div><button class="btn sm danger" style="padding:4px 8px" onclick="delAltUpdate('${a.id}','${e.id}')">✕</button></div>`).join('')}</div>`;
+    </div>${e.voiceId?`<button class="btn sm ghost" style="padding:4px 8px" onclick="shareVoice('${e.voiceId}')">📤</button>`:''}<button class="btn sm danger" style="padding:4px 8px" onclick="delAltUpdate('${a.id}','${e.id}')">✕</button></div>`).join('')}</div>`;
   for(const au of el.querySelectorAll('audio[data-aud]')){const url=await mURL(au.dataset.aud);if(url)au.src=url;}
 }
 function waAlteration(id){const a=altById(id);if(!a)return;const baaki=orderBaaki(a);
@@ -32155,14 +32155,19 @@ function rpRange(){
   if(rpPeriod==='today')return {from:iso(today),to:iso(today)};
   if(rpPeriod==='week'){const d=new Date(today);const day=(d.getDay()+6)%7;d.setDate(d.getDate()-day);return {from:iso(d),to:iso(today)};}
   if(rpPeriod==='month'){return {from:iso(new Date(today.getFullYear(),today.getMonth(),1)),to:iso(today)};}
+  /* v821 — HIS 2 Oct: "last month ka option hona hi chahiye, kaafi kaam aata hai." The quarter had only begun on
+     1 Oct, so "This quarter" showed nothing; "Last quarter" and "Last month" show what is already in the book. */
+  if(rpPeriod==='lmonth'){return {from:iso(new Date(today.getFullYear(),today.getMonth()-1,1)),to:iso(new Date(today.getFullYear(),today.getMonth(),0))};}
+  if(rpPeriod==='lquarter'){const q=Math.floor(today.getMonth()/3)*3;
+    return {from:iso(new Date(today.getFullYear(),q-3,1)),to:iso(new Date(today.getFullYear(),q,0))};}
   if(rpPeriod==='quarter'){const q=Math.floor(today.getMonth()/3)*3;
     return {from:iso(new Date(today.getFullYear(),q,1)),to:iso(today)};}
   if(rpPeriod==='fy'){const y=today.getMonth()>=3?today.getFullYear():today.getFullYear()-1;
     return {from:iso(new Date(y,3,1)),to:iso(today)};}
   return {from:rpFrom||iso(new Date(today.getFullYear(),today.getMonth(),1)),to:rpTo||iso(today)};
 }
-const RP_PERIODS=[['today','rp_today'],['week','rp_week'],['month','rp_month'],
-  ['quarter','rp_quarter'],['fy','rp_fy'],['custom','rp_custom']];
+const RP_PERIODS=[['today','rp_today'],['week','rp_week'],['month','rp_month'],['lmonth','rp_lastmonth'],
+  ['quarter','rp_quarter'],['lquarter','rp_lastquarter'],['fy','rp_fy'],['custom','rp_custom']];
 function rpPeriodName(){ const r=RP_PERIODS.find(x=>x[0]===rpPeriod); return t(r?r[1]:'rp_month'); }
 function rangeBarHTML(){
   const {from,to}=rpRange();
@@ -32898,7 +32903,7 @@ function bsDrCrToggle(){ _bsDrCr=!_bsDrCr; balanceSheet(); }
 /* v351: the picker is the same on every report — his words: "the selected date range must
    consistently control the report data". One markup, one setter. */
 function rpPickerHTML(reRender){
-  const rows=[['month','rp_month'],['q','bs_quarter'],['fy','bs_fy'],['custom','rp_custom']];
+  const rows=[['month','rp_month'],['lmonth','rp_lastmonth'],['q','bs_quarter'],['fy','bs_fy'],['custom','rp_custom']];
   return `<div class="gtags" style="margin-bottom:8px">
     ${rows.map(([p,k])=>`<span class="gtag" style="cursor:pointer;${(p==='custom'?rpPeriod==='custom':rpPeriod===p)?'background:var(--saffron);color:#1a1206;border-color:var(--saffron)':''}"
       onclick="rpSetPeriod2('${p}','${reRender}')">${t(k)}</span>`).join('')}</div>
@@ -34695,8 +34700,8 @@ const RPT_HUBS={
     ['\u{1F4B8}','pl_title_out','payListOut()'],
     ['\u{1F4E4}','creditors_report','creditors()']]],
   expense:['\u{1F4B8}','rh_expense',[
-    ['\u{1F4B8}','rp_exp_head','expHeadReport()'],
-    ['\u{1F4B8}','exp_title','expenses()']]],
+    ['\u{1F4CA}','Totals by head','expHeadReport()'],
+    ['\u{1F4B8}','All entries','expenses()']]],   /* v821: two doors, two plain names */
   accounts:['\u{1F4D7}','rh_accounts',[
     /* v737: P&L and Balance sheet lead the Reports screen itself now — one door each */
     ['\u{1F4CB}','tb_title','trialBalance()'],
@@ -35174,6 +35179,7 @@ function renderReports(){
     </div>`;
   })();
   const _mainRp = _rpBooks + _rpOut + _rpSec('',[
+      ['\u{1F4CB}','Orders',"orderReports()"],   /* v821: the order reports already existed, only on the Orders tab */
       ['\u{1F9FE}',t('rh_sales'),"rptHub('sales')"],
       ['\u{1F4E6}',t('rh_purchase'),"rptHub('purchase')"],
       ['\u{1F4B8}',t('rh_expense'),"rptHub('expense')"],
@@ -35478,7 +35484,7 @@ async function renderTimeline(o){
   el.innerHTML=`<div class="card">${log.map(e=>`<div class="tl-entry"><div class="tl-dot"></div><div style="flex:1">
     <div class="tl-time">${fmtDateTime(e.ts)}</div>${e.text?`<div class="tl-text">${esc(e.text)}</div>`:''}
     ${e.voiceId?`<audio controls data-aud="${e.voiceId}"></audio>`:''}
-    </div><button class="btn sm danger" style="padding:4px 8px" onclick="delUpdate('${o.id}','${e.id}')">✕</button></div>`).join('')}</div>`;
+    </div>${e.voiceId?`<button class="btn sm ghost" style="padding:4px 8px" onclick="shareVoice('${e.voiceId}')">📤</button>`:''}<button class="btn sm danger" style="padding:4px 8px" onclick="delUpdate('${o.id}','${e.id}')">✕</button></div>`).join('')}</div>`;
   for(const a of el.querySelectorAll('audio[data-aud]')){const url=await mURL(a.dataset.aud);if(url)a.src=url;}
 }
 function delUpdate(id,eid){const o=DB.orders.find(x=>x.id===id);if(!o)return;
@@ -35927,7 +35933,9 @@ function karIssue(kid,oid){
     ${rows.length?`<div class="field" style="margin-bottom:8px">
       <input id="ki_q" value="${esc(_ki.q)}" placeholder="🔍 ${t('ki_search')}" oninput="kiSearch(this.value)"></div>
       ${kiChipsHTML(rows)}`:''}`}
-    <p class="hint" style="margin-bottom:6px">${t('ki_waiting',{n:rows.length})}</p>
+    <p class="hint" style="margin-bottom:6px">${t('ki_waiting',{n:rows.length})}
+      ${(()=>{ if(_ki.oid)return ''; const kk=(DB.karigars||[]).find(x=>x.id===_ki.kid); if(!kk||!(kk.specialties||[]).length)return '';
+        return `<a style="margin-left:8px;color:var(--saffron2);cursor:pointer;text-decoration:underline" onclick="_ki.all=!_ki.all;karIssue(_ki.kid,_ki.oid)">${_ki.all?'Only his':'Show all'}</a>`; })()}</p>
     ${shown.length>1?`<div class="row" style="gap:6px;margin-bottom:8px">
       <button class="btn sm ghost" style="flex:1" onclick="kiTickAll()">☑️ ${t('ki_tick_all',{n:shown.length})}</button>
       ${n?`<button class="btn sm ghost" onclick="kiUntick()">${t('ki_untick')}</button>`:''}</div>`:''}
@@ -35997,6 +36005,9 @@ function karIssuePool(){
       const st=itemStatusOf(o,gid);
       if(st==='delivered'||st==='ready')return;        // done, nothing to hand out
       const g=G(gid);
+      /* v821: a karigar who has garments marked sees only those (unless he asks for all) */
+      if(!only && !_ki.all && g){ const kk=(DB.karigars||[]).find(x=>x.id===_ki.kid); const sp=(kk&&kk.specialties)||[];
+        if(sp.length && !sp.includes(g.id))return; }
       out.push({key:o.id+'|'+gid, oid:o.id, gid,
         ono:memberOno(o,memberOf(gid))||o.orderNo||'—',
         label:(g&&g.n)||gid, who:o.customerName||'', dd:o.deliveryDate||'',
@@ -36005,7 +36016,7 @@ function karIssuePool(){
   });
   return out.sort((a,b)=>String(a.dd||'9999').localeCompare(String(b.dd||'9999')));
 }
-function kiPickKarigar(v){ _ki.kid=v; _ki.rate={}; karIssue(_ki.kid,_ki.oid); }
+function kiPickKarigar(v){ _ki.kid=v; _ki.rate={}; _ki.all=false; karIssue(_ki.kid,_ki.oid); }
 
 /* ══════════════════ v397 — TAKING THE WORK BACK ══════════════════
    The other half of the same job. He hands eight pieces to a master; two days later the
@@ -36103,6 +36114,9 @@ function karHoldingPool(kid){
       if(((o.assign&&o.assign[gid])||'')!==kid)return;
       if(karRecvDate(o,gid))return;
       const g=G(gid);
+      /* v821: a karigar who has garments marked sees only those (unless he asks for all) */
+      if(!only && !_ki.all && g){ const kk=(DB.karigars||[]).find(x=>x.id===_ki.kid); const sp=(kk&&kk.specialties)||[];
+        if(sp.length && !sp.includes(g.id))return; }
       out.push({key:o.id+'|'+gid, oid:o.id, gid,
         ono:memberOno(o,memberOf(gid))||o.orderNo||'—',
         label:(g&&g.n)||gid, who:o.customerName||'', dd:o.deliveryDate||'',
@@ -36541,6 +36555,7 @@ function kiIssue(){
           text:'\u2702\ufe0f '+m+'m \u00b7 '+(th.serial||'')+' \u2192 '+((G(gid)||{}).n||gid),voiceId:null});
       }else{ o.cloth[gid]={src:'shop'}; }
     }else{ o.cloth[gid]={src:'cust'}; }
+    try{ const _kk=(DB.karigars||[]).find(x=>x.id===kid); if(_kk){ _kk.specialties=_kk.specialties||[]; const _g=G(gid); if(_g && !_kk.specialties.includes(_g.id))_kk.specialties.push(_g.id); } }catch(e){}   /* v821: he learns what this man makes, no question asked */
     advanceStatus(o,gid,'stitching');                  /* same helper as a single hand-over */
     const g=G(gid);
     o.log=o.log||[];
@@ -37158,6 +37173,9 @@ function karigarIssue(kid,mode,keepFocus){
   sheetAt(karigarIssue);
   const k=(DB.karigars||[]).find(x=>x.id===kid); if(!k)return;
   const give=(mode!=='take');
+  /* v821: one Issue screen only. The Issue side lives in karIssue (it can hand over SHOP cloth, cut the roll and
+     take the metres off stock); this older twin could not, so it is now for taking work back only. */
+  if(give){ _ki.kid=kid; _ki.oid=''; _ki.cloth='cust'; _ki.pick={}; _ki.rate={}; return karIssue(kid,''); }
   const {types,list}=kiVisibleList(kid,mode);
   const _kiKey='ki:'+kid+':'+(give?'give':'take');
   const md=give?'give':'take';
@@ -37208,9 +37226,7 @@ function karigarIssue(kid,mode,keepFocus){
           onclick="_kiKind='emb';karigarIssue('${kid}','give',true)">\u2728 ${t('ki_k_emb')}</span>
       </div>
       ${_kiKind==='emb'?`<p class="hint" style="margin:0 0 8px">${t('ki_emb_hint')}</p>`:''}`:''}
-    ${give&&(k.specialties||[]).length?`<label style="display:flex;align-items:center;gap:8px;margin:10px 0;cursor:pointer">
-      <input type="checkbox" ${_kiOnlyHis?'checked':''} onchange="_kiOnlyHis=this.checked;_kiTypeFilter=null;pageReset('ki:${kid}:give');karigarIssue('${kid}','give')" style="width:20px;height:20px">
-      <span class="hint">${t('ki_only_his')}</span></label>`:''}
+    
     ${typeChips}
     <div class="field" style="margin-bottom:8px"><input id="kiQ" value="${esc(_kiQ)}"
       placeholder="🔍 ${t('ki_search_ph')}" autocomplete="off" oninput="setKiQ('${kid}','${md}',this.value)"></div>
@@ -37359,7 +37375,7 @@ function karMaster(kid){
     ${spec.length?`<div class="gtags" style="margin-top:8px">${spec.map(x=>`<span class="gtag">${esc(x)}</span>`).join('')}</div>`:''}
 
     <button class="btn primary block" style="margin-top:14px;padding:18px" onclick="karPickGo('${kid}','give')">
-      📤 ${t('ki_give')}${free?` · ${free} ${t('jw_ready_to_give')}`:''}</button>
+      📤 ${t('ki_give')}</button>
     <button class="btn ${out?'primary':'ghost'} block" style="margin-top:10px;padding:18px" onclick="karPickGo('${kid}','take')">
       📥 ${t('ki_take')}${out?` · ${out} ${t('jw_with_him')}`:''}</button>
 
@@ -37543,7 +37559,7 @@ function jobWork(){
           <div class="hint" style="margin-top:2px">${out?t('jw_holding',{n:out}):t('kb_nothing_out')}</div>
         </div></div>
       <div class="row" style="gap:6px;margin-top:8px">
-        <button class="btn sm primary" style="flex:1" onclick="karPickGo('${k.id}','give')">📤 ${t('ki_give')}${free?' ('+free+')':''}</button>
+        <button class="btn sm primary" style="flex:1" onclick="karPickGo('${k.id}','give')">📤 ${t('ki_give')}</button>
         <button class="btn sm ${out?'primary':'ghost'}" style="flex:1" onclick="karPickGo('${k.id}','take')">📥 ${t('ki_take')}${out?' ('+out+')':''}</button>
         <button class="btn sm ghost" onclick="karMaster('${k.id}')">›</button></div></div>`;
   }).join('') || `<p class="hint" style="padding:20px 0;text-align:center">${t('no_karigars')}</p>`;
@@ -37636,7 +37652,7 @@ function karPickMaster(mode){
         <span style="color:var(--saffron2)">›</span></div>`;}).join(''),
     [{label:t('close'),cls:'ghost',fn:()=>karigarBook()}]);
 }
-function karPickGo(kid,mode){_kiSel.clear();_kiTypeFilter=null;_kiQ='';pageReset('ki:'+kid+':'+mode);karigarIssue(kid,mode);}
+function karPickGo(kid,mode){_kiSel.clear();_kiTypeFilter=null;_kiQ='';pageReset('ki:'+kid+':'+mode);if(mode!=='take')_ki.all=false;karigarIssue(kid,mode);}
 
 /* ---- period picker, shared by ledger + report ---- */
 function krRangeChips(reRender){
@@ -45351,6 +45367,9 @@ try{
 function invFormOnScreen(){ const sh=$('#sheet'); return !!(sh && (sh.querySelector('#inv_cname')||sh.querySelector('#invTotalsBox'))); }
 function sheetClose(){
   const sh=$('#sheet');
+  if(sh && sh._xPre){ const pre=sh._xPre, full=sh._xFull; sh._xPre=''; sh._xFull=false;
+    try{ (new Function(pre))(); }catch(e){}
+    if(full)return; }
   if(sh){
     if(sh.querySelector('#ordFormMark')||sh.querySelector('#f_ono')) return cancelOrderForm();   // parks it as a draft
     /* v709 — the bill was recognised by its customer-name box, which exists only while no
@@ -45416,10 +45435,17 @@ function showSheet(){
          The test is now what the button DOES, not one exact handler string: any bare ✕
          whose whole job is to close this form. delMember's ✕ removes a person and
          thumb-x removes a photo — neither matches, and both are left alone. */
+      sh._xPre=''; sh._xFull=false;
       sh.querySelectorAll('button[onclick]').forEach(b=>{
         const h=(b.getAttribute('onclick')||'').trim();
-        if(!/^(closeSheet|cancelOrderForm|cancelAltForm|invClose|sheetClose)\(\)$/.test(h))return;
-        if((b.textContent||'').trim()==='✕')b.remove(); });
+        if((b.textContent||'').trim()!=='✕')return;
+        if(/^(closeSheet|cancelOrderForm|cancelAltForm|invClose|sheetClose)\(\)$/.test(h)){ b.remove(); return; }
+        /* v821 — HIS 1 Oct: "aise 2 x kafi screens me hain". A cross that first resets a flag and then
+           closes (karigarEdit: _karAfterAdd=null;closeSheet()) slipped past the exact match above, so the
+           form showed two. The spare is dropped, but its reset is remembered and run by the keeper. */
+        const m=h.match(/^((?:[A-Za-z_$][\w$]*\s*=\s*[^;()]+;\s*)+)closeSheet\(\)$/);
+        if(m){ sh._xPre=m[1]; b.remove(); return; }
+        if(/^custCancelNew\('[^']*'\)$/.test(h)){ sh._xPre=h; sh._xFull=true; b.remove(); } });
       if(!sh.querySelector(':scope > .sheet-x')){
         const b=document.createElement('button');
         b.className='sheet-x'; b.type='button'; b.textContent='✕';
