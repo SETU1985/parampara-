@@ -1184,7 +1184,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v822</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v826</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -6361,6 +6361,42 @@ let _nameNormCache=new Map();
    Nothing is repaired automatically, because guessing at damaged books is how figures get
    invented. */
 let _dbReadFailed=false;
+/* v824 — HIS 3 Oct: Coat/Jacket carried "Upper Belly" twice: the built-in and a custom one he typed
+   before the clash check existed. Fold the custom copy into the built-in once: any value moves across
+   (only where the built-in is empty — a real value is never overwritten; if both differ, that label is
+   left alone), then the duplicate label is removed. Orders, customers and alterations are all covered. */
+function measMergeDupes(){
+  if(DB.measDupV825||!DB.measLib)return;
+  const norm=x=>String(x||'').trim().toLowerCase().replace(/\s+/g,' ');
+  const stores=()=>{const a=[]; (DB.orders||[]).forEach(o=>{if(o.m)a.push(o.m);}); (DB.customers||[]).forEach(c=>{if(c.m)a.push(c.m);});
+    (DB.alterations||[]).forEach(x=>{if(x.meas)a.push({_alt:x.meas});}); return a;};
+  Object.keys(DB.measLib).forEach(gid=>{
+    const g=allItems().find(x=>x.id===gid); if(!g)return;
+    const cols=itemCols(g);
+    (DB.measLib[gid]||[]).slice().forEach(label=>{
+      const _alias={'sleev':'sleeve'}[norm(label)];   /* v825: his typo "Sleev" is the Sleeve field */
+      const bc=cols.find(c=>norm((measLabelOf(gid,c.k,c.n)))===norm(_alias||label)||norm(c.n)===norm(_alias||label)); if(!bc){ if(_alias){ DB.measLib[gid]=DB.measLib[gid].filter(l=>l!==label); } return; }   /* typo label on a garment with no Sleeve: just remove it (old values stay stored, unseen) */
+      const xk='x_'+label; let conflict=false;
+      const garms=m=>Object.keys(m).filter(k=>garmentOf(k)===gid);
+      stores().forEach(m=>{
+        if(m._alt){ const v=m._alt[xk]; if(v==null||v==='')return; if(m._alt[bc.k]==null||m._alt[bc.k]==='')return; if(String(m._alt[bc.k])!==String(v))conflict=true; return; }
+        garms(m).forEach(k=>{const r=m[k]; if(!r||typeof r!=='object')return; const v=r[xk]; if(v==null||v==='')return;
+          const b=r[bc.k]; if(b!=null&&b!==''&&String(b)!==String(v))conflict=true; });
+      });
+      if(conflict)return;
+      stores().forEach(m=>{
+        if(m._alt){ const v=m._alt[xk]; if(v!=null&&v!==''){ if(m._alt[bc.k]==null||m._alt[bc.k]==='')m._alt[bc.k]=v; delete m._alt[xk]; } return; }
+        garms(m).forEach(k=>{const r=m[k]; if(!r||typeof r!=='object')return; const v=r[xk];
+          if(v!=null&&v!==''&&(r[bc.k]==null||r[bc.k]===''))r[bc.k]=v; if(xk in r)delete r[xk]; });
+      });
+      DB.measLib[gid]=DB.measLib[gid].filter(l=>l!==label);
+      if(DB.measHide&&DB.measHide[gid])DB.measHide[gid]=DB.measHide[gid].filter(k=>k!==xk);
+      if(DB.measShow&&DB.measShow[gid])DB.measShow[gid]=DB.measShow[gid].filter(k=>k!==xk);
+      if(DB.measLabel&&DB.measLabel[gid])delete DB.measLabel[gid][xk];
+    });
+  });
+  DB.measDupV825=1;
+}
 function load(raw){
   const r=(raw!==undefined&&raw!==null)?raw:(function(){try{return localStorage.getItem('pb_ob_v1');}catch(e){return null;}})();
   if(r){
@@ -6375,6 +6411,7 @@ function load(raw){
   if(!DB.orders)DB.orders=[]; if(!DB.customers)DB.customers=[]; if(!DB.designLib)DB.designLib={}; if(!DB.karigars)DB.karigars=[]; if(!DB.bodyTypes)DB.bodyTypes=[]; if(!DB.measLib)DB.measLib={}; if(!DB.alterations)DB.alterations=[]; if(!DB.salesmen)DB.salesmen=[]; if(!DB.sales)DB.sales=[]; if(!DB.purchases)DB.purchases=[]; if(!DB.salesReturns)DB.salesReturns=[]; if(!DB.purchaseReturns)DB.purchaseReturns=[]; if(!DB.estimates)DB.estimates=[]; if(!DB.purchaseOrders)DB.purchaseOrders=[];
   if(!DB.itemMaster)DB.itemMaster=[];
   if(!DB.measHide)DB.measHide={};
+  try{ measMergeDupes(); }catch(e){}
   if(!DB.followups)DB.followups={};
   if(!DB.accounts)DB.accounts=[{id:'cash',type:'cash',name:'Cash',opening:0,openingDate:todayISO()}];
   if(!DB.ledger)DB.ledger=[];
@@ -7355,17 +7392,30 @@ function orderBillLines(o){
   mems.forEach(mem=>{
     const all=sortItems(itemsOfMember(o,mem.id));
     // first instance of each garment groups into sets; extra instances stand alone
+    /* v823 — HIS 3 Oct: Suit = Coat+Pant (2pc); tap Shirt / Waistcoat chips to make it 3/4/5pc.
+       Same garment taken many times (4 shirts) = ONE line with qty; "Different rates" splits it. */
+    const who0=multi?(memberBillTag(o,mem.id,multi)||mem.name):'';
+    const pre=n=>who0?(who0+' — '+n):n;
+    let rest=all.slice();
+    const kOf=g=>rest.find(k=>garmentOf(k)===g&&!variantOf(o,k));
+    const kc=kOf('coat'), kp=kOf('pant');
+    if(kc&&kp){
+      rest=rest.filter(k=>k!==kc&&k!==kp);
+      const opt=[]; ['shirt','waistcoat'].forEach(g=>{ if(rest.some(k=>garmentOf(k)===g)){const gg=G(g); if(gg)opt.push(gg.n);} });
+      lines.push({masterId:'',label:pre('Suit (2pc)'),member:mem.id,hsn:'',qty:1,unit:'Set',rate:'',price:'',disc:0,
+        incl:[G('coat').n,G('pant').n],includes:G('coat').n+', '+G('pant').n,optPool:opt});
+    }
     const seen=new Set(), primary=[], extras=[];
-    all.forEach(k=>{const g=garmentOf(k);
+    rest.forEach(k=>{const g=garmentOf(k);
       if(seen.has(g))extras.push(k); else {seen.add(g);primary.push(k);}});
     const keys=primary;
     const groups=invGroupItems(keys);
-    // the extras (a 2nd kurta with its own cut) each get their own bill line
+    // extras: same garment again → merged into the first line's qty (no variant), else own line
+    const mergeQty={};
     extras.forEach(k=>{
       const gg=G(k); if(!gg)return;
-      const who=multi?(memberBillTag(o,mem.id,multi)||mem.name):'';
-      const title=itemTitle(o,k);
-      lines.push({masterId:'',label: who?(who+' — '+title):title, member:mem.id,
+      if(!variantOf(o,k)){ mergeQty[garmentOf(k)]=(mergeQty[garmentOf(k)]||0)+1; return; }
+      lines.push({masterId:'',label:pre(itemTitle(o,k)),member:mem.id,gname:gg.n,
         hsn:'', qty:1, unit:'Pcs', rate:'', price:'', disc:0, incl:[], includes:''});
     });
     groups.forEach(gr=>{
@@ -7384,7 +7434,7 @@ function orderBillLines(o){
         label: who ? (who+' — '+lbl) : lbl,
         member: mem.id,
         hsn: mst?(mst.hsn||''):'',
-        qty:1, unit:names.length>1?'Set':'Pcs',
+        qty:(names.length===1&&mergeQty[gr.members[0]])?1+mergeQty[gr.members[0]]:1, gname:names.length===1?names[0]:'', unit:names.length>1?'Set':'Pcs',
         rate:(mst&&mst.rate)?mst.rate:'', price:'', disc:0,
         incl: names.length>1?names.slice():[],
         includes: names.length>1?names.join(', '):''
@@ -7410,8 +7460,6 @@ function invGroupItems(keys){
   // the Kurta's pyjama and the Kurta would bill with nothing under it
   const oneLower=taken=>gids.find(id=>!used.has(id)&&taken.indexOf(id)<0&&isLower(id));
   const groups=[];
-  if(has('coat')){const mem=gids.filter(id=>!used.has(id)&&['coat','pant','shirt','waistcoat'].includes(id));
-    mem.forEach(m=>used.add(m));groups.push({label:`Suit (${mem.length}pc)`,members:mem});}
   const shA=anchorOf(['sherwani']);
   if(shA){
     const mem=[shA].concat(gids.filter(id=>id!==shA&&!used.has(id)&&(named(id,['kurta'])||isAccessory(id))));
@@ -21297,8 +21345,17 @@ function manageMeas(gid,ctx){ctx=ctx||'order';const rerender=ctx==='alt'?renderA
      <p class="hint" style="margin:4px 0 0">${t('mm_rename_hint')}</p>`,
     [{label:t('close'),cls:'ghost',fn:()=>{closeSheet();rerender();}}]);
 }
+/* v824 — the ⚙️ list is a MODAL (#msheet) and modal() resets its scroll to the top. Every ★/✏️/🗑️ tap
+   used to throw the list back to the first row, so on a long list he lost his place each time. */
+function measKeepScroll(fn){
+  const ms=$('#msheet'); const sc=ms?ms.scrollTop:0;
+  fn();
+  const back=()=>{const m=$('#msheet'); if(m)m.scrollTop=sc;};
+  back(); setTimeout(back,0); setTimeout(back,120);
+}
 function toggleMeasField(gid,k,ctx){
   const sc=$('#sheet')?$('#sheet').scrollTop:0;      // keep the list exactly where it was
+  const _msc=($('#msheet')||{}).scrollTop||0;
   const wasOff=measHidden(gid).includes(k);          /* v714: the state he SEES, defaults included */
   DB.measHide=DB.measHide||{}; DB.measHide[gid]=DB.measHide[gid]||[];
   const i0=DB.measHide[gid].indexOf(k);
@@ -21315,6 +21372,7 @@ function toggleMeasField(gid,k,ctx){
   if(i>=0){ if(j<0)DB.measShow[gid].push(k); }   // was hidden, now ON
   else if(j>=0)DB.measShow[gid].splice(j,1);     // now OFF
   save(); manageMeas(gid,ctx);
+  const _bk=()=>{const m=$('#msheet'); if(m)m.scrollTop=_msc;}; _bk(); setTimeout(_bk,0); setTimeout(_bk,120);
   setTimeout(()=>{const sh=$('#sheet');if(sh)sh.scrollTop=sc;},0);
 }
 /* v667: the name he sees changes; the key everything is filed under does not. A blank
@@ -21344,8 +21402,9 @@ function delMeasField(gid,k,ctx){ctx=ctx||'order';const rerender=ctx==='alt'?ren
     if(DB.measHide&&DB.measHide[gid]){DB.measHide[gid]=DB.measHide[gid].filter(x=>x!==k);}
     if(form&&form.m&&form.m[gid])delete form.m[gid][k];
     if(altForm&&altForm.meas)delete altForm.meas[k];
+    if(DB.measShow&&DB.measShow[gid])DB.measShow[gid]=DB.measShow[gid].filter(x=>x!==k);
     save(); manageMeas(gid,ctx); toast(t('t_deleted'));
-  });
+  },()=>{ manageMeas(gid,ctx); });   /* v824: No returns to the list, not to the form */
 }
 function itemVoiceList(gid){form.itemVoice=form.itemVoice||{};form.itemVoice[gid]=form.itemVoice[gid]||[];return form.itemVoice[gid];}
 async function renderItemPhotos(gid){const el=$('#ip_'+cssId(gid));if(!el)return;el.innerHTML='';
@@ -24585,15 +24644,9 @@ function renderInvoiceForm(){
           ${rec.deliveryDate?`<div style="font-size:11px;letter-spacing:.5px;color:var(--mut);margin-top:6px">\u{1F69A} ${t('inv_delivery')}</div>
             <b style="font-size:14px">${fmtDate(rec.deliveryDate)}</b>`:''}
         </div></div></div>`;
-    return invNoDateHTML + info;
+    return info + invNoDateHTML;   /* v823: order no + delivery date first */
   })() : `
     <div id="invCustPicked" style="margin-bottom:10px">${(f.customerId||f.customerName)?invCustomerPickedHTML():''}</div>
-    <div class="head-grid3" style="grid-template-columns:1fr 1fr;margin-bottom:10px">
-      <div class="field" style="margin:0"><label>🧾 ${t('invoice_no')}</label>
-        <input id="inv_no" value="${esc(f.no)}" style="font-size:14px" oninput="if(invForm)invForm.no=this.value.trim()"></div>
-      <div class="field" style="margin:0"><label>📅 ${t('invoice_date')}</label>
-        ${dateField("inv_date",f.date)}</div>
-    </div>
     ${/* v590 — HIS 9 Sept: "sales se jo direct invoice banega usme bhi order number aur
          delivery date likhne ka space chahiye — customer ko photo bhejun to jo bhara hai
          wo aaye, jo nahi bhara wo na aaye."
@@ -24636,7 +24689,13 @@ function renderInvoiceForm(){
     ${/* v608 — his sequence, and the sequence of the work: WHICH BILL, then WHO it is for,
          then WHICH ORDER and WHEN it is due. The order slot used to sit above the customer
          because that is where the panel happened to be mounted. */''}
-    <div id="invOrdSlot"></div>`;
+    <div id="invOrdSlot"></div>
+    <div class="head-grid3" style="grid-template-columns:1fr 1fr;margin:10px 0">
+      <div class="field" style="margin:0"><label>🧾 ${t('invoice_no')}</label>
+        <input id="inv_no" value="${esc(f.no)}" style="font-size:14px" oninput="if(invForm)invForm.no=this.value.trim()"></div>
+      <div class="field" style="margin:0"><label>📅 ${t('invoice_date')}</label>
+        ${dateField("inv_date",f.date)}</div>
+    </div>`;  /* v823: customer → order/delivery → invoice no/date */
 
   const tileArr = masters.map(m=>{
       const isR=m.kind==='ready';
@@ -25149,6 +25208,7 @@ function posLineHTML(i,it){
     </div>
     <div id="posNS${i}"></div>
     <div class="pl-incl-chips" id="posIncl${i}">${posInclChipsHTML(i,it)}</div>
+    ${(!isFab&&_q>=2&&_q===Math.floor(_q)&&unitIsPcs(it))?`<div style="margin:4px 0"><button class="btn sm ghost" onclick="posSplit(${i})">✂ ${_q} pcs — different rates?</button></div>`:''}
     <div class="pl-row">
     ${/* ══════════ v627 — RATE AND AMOUNT WERE NAMED, QUANTITY WAS NOT ══════════
          HIS 11 Sept: "quantity kahin par bhi likha hona chahiye tha, jaise rate hai amount
@@ -25888,6 +25948,7 @@ function posInclChipsHTML(i,it){
   const mst=(DB.itemMaster||[]).find(m=>m.id===it.masterId);
   const pool=[]; (mst?mst.incl||[]:[]).forEach(p=>{if(!pool.includes(p))pool.push(p);});
   picked.forEach(p=>{if(!pool.includes(p))pool.push(p);});
+  (it.optPool||[]).forEach(p=>{if(!pool.includes(p))pool.push(p);});
   const chips=pool.map(p=>{const on=picked.includes(p);
     return `<span class="gtag sm ${on?'on-tag':''}" style="cursor:pointer" onclick="posTogglePartInline(${i},'${jq(p).replace(/'/g,"\\'")}')">${on?'✓ ':''}${esc(p)}</span>`;}).join('');
   /* ══════════ v512 — A LABEL ON EVERY LINE FOR A THING RARELY USED ══════════
@@ -25907,8 +25968,26 @@ function posTogglePartInline(i,p){
   const it=(invForm.items||[])[i]; if(!it)return;
   it.incl=Array.isArray(it.incl)?it.incl:[];
   const k=it.incl.indexOf(p); if(k>=0)it.incl.splice(k,1); else it.incl.push(p);
-  it.includes=it.incl.join(', ');
+  it.includes=it.incl.join(', '); posFixPcLabel(it);
+  /* v823: a Shirt/Waistcoat that came from the order moves between the Suit and its own line */
+  if((it.optPool||[]).includes(p)){
+    const _inc=it.incl.slice(); captureInvoiceForm();
+    const it2=invForm.items[i]; it2.incl=_inc; it2.includes=_inc.join(', '); posFixPcLabel(it2);
+    const on=_inc.includes(p), items=invForm.items;
+    const j=items.findIndex((x,n)=>n!==i&&x.member===it2.member&&x.gname===p);
+    if(on){ if(j>=0){ if((+items[j].qty||1)>1)items[j].qty=(+items[j].qty)-1; else items.splice(j,1); } }
+    else { if(j>=0)items[j].qty=(+items[j].qty||1)+1;
+      else items.splice(i+1,0,{masterId:'',label:p,member:it2.member,gname:p,hsn:'',qty:1,unit:'Pcs',rate:'',price:'',disc:0,incl:[],includes:''}); }
+    renderInvoiceForm(); return;
+  }
   renderPosInclChips(i);
+}
+function unitIsPcs(it){return !it.unit||/^pcs?$/i.test(it.unit);}
+function posSplit(i){
+  captureInvoiceForm();
+  const it=invForm.items[i]; const n=Math.floor(+it.qty||1); if(!it||n<2)return;
+  const copies=[]; for(let k=0;k<n;k++)copies.push(Object.assign({},it,{qty:1,incl:(it.incl||[]).slice(),price:it.rate?r2(+it.rate):0}));
+  invForm.items.splice(i,1,...copies); renderInvoiceForm();
 }
 function posAddPartInline(i){
   modal('📎 '+t('inv_includes'),
@@ -29829,7 +29908,7 @@ function puSupSug(){
   /* v737: the one matching rule */
   if(q)list=list.map(x=>({x, sc:(String(x.phone||'').includes(q)?1:nameLike(q,x.name))}))
                 .filter(o=>o.sc<9).sort((o,p)=>o.sc-p.sc).map(o=>o.x);
-  list=list.slice(0,6);
+  list=list.slice(0,q?6:3);   /* v823: opening the form shows 3 suppliers, not a screenful; typing finds the rest */
   if(q&&list.length===1&&list[0].name.toLowerCase()===q){box.innerHTML='';return;}
   /* v374 — HIS 28 Aug, off his own screenshot: "Not in the list? ➕ New" was sitting under
      EVERY supplier, three names three times, because the foot was built inside the map
