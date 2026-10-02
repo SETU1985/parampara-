@@ -1184,7 +1184,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v821</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v822</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -22135,12 +22135,26 @@ function saveOrder(){
   if(!f.items.length){toast(t('t_no_item'),'bad');return;}
   /* v713: every number this order claims — its own and each person's — must be free in the
      whole book (other orders' people included) and must not repeat inside this order. */
+  /* v821 — HIS 2 Oct, on video: a plain one-person order (Rahul, #2698) would not save — "This order number already
+     exists" — with no number named. An EXTRA person with no name and no pieces (left behind by "Add another person",
+     then the order number moved on) still carried #2698, so the order clashed with itself. A person with nothing
+     in him is dropped; one who is real but shares a number is simply given the next free one. */
+  try{ const _ms=f.members||[];
+    if(_ms.length>1){
+      const keep=_ms.filter((m,i)=>i===0 || String(m.name||'').trim() || itemsOfMember(f,m.id).length);
+      if(keep.length!==_ms.length){ f.members=keep; }
+      const usedAll=new Set(); (DB.orders||[]).forEach(o=>{ if(o.id===f.editId)return; orderNosOf(o).forEach(v=>usedAll.add(String(v).trim())); });
+      const seenNo=new Set([String(f.orderNo||'').trim()]);
+      f.members.forEach((m,i)=>{ if(i===0)return; const v=String(m.ono||'').trim();
+        if(v && (seenNo.has(v) || usedAll.has(v))){ const nx=nextOrderNoAfter(v,new Set([...usedAll,...seenNo])); if(nx)m.ono=nx; }
+        if(m.ono)seenNo.add(String(m.ono).trim()); });
+    } }catch(e){}
   { const _own=String(f.orderNo||'').trim();
     const _ppl=(f.members||[]).slice(1).map(m=>String(m.ono||'').trim()).filter(Boolean);
     const _clash=[_own].concat(_ppl).filter(Boolean)
       .find(v=>DB.orders.some(o=>o.id!==f.editId && orderNosOf(o).map(x=>String(x).trim()).includes(v)));
     const _inner=_ppl.some((v,i)=>v===_own || _ppl.indexOf(v)!==i);
-    if(_clash||_inner){ toast(t('t_dup')+(_clash?' #'+_clash:''),'bad'); return; } }
+    if(_clash||_inner){ toast(t('t_dup')+(_clash?' #'+_clash:(' #'+_own)),'bad'); return; } }
   /* v187 — HIS #1: "mobile number agar same hai to save karne se pehle poochna chahiye."
      The number was already treated as the identity, but SILENTLY: a salesman typing a
      fresh name against an old number quietly attached the order to the old customer and
@@ -25824,10 +25838,15 @@ function posIncl(i){
        ${(DB.inclLib||[]).length?`<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="manageIncl(()=>posIncl(${i}))">⚙️ ${t('ml_manage')}</span>`:''}</div>`,
     [{label:t('close'),cls:'primary',fn:()=>{closeSheet();renderInvoiceForm();}}]);
 }
+/* v821 — HIS 2 Oct: removed the shirt from "Suit (3pc)", the bill still said 3pc. The count in the name follows the parts. */
+function posFixPcLabel(it){
+  try{ if(it&&it.label&&it.incl&&it.incl.length>1&&/\(\s*\d+\s*pc\s*\)/i.test(it.label))
+    it.label=it.label.replace(/\(\s*\d+\s*pc\s*\)/i,'('+it.incl.length+'pc)'); }catch(e){}
+}
 function posTogglePart(i,p){
   const it=invForm.items[i]; it.incl=Array.isArray(it.incl)?it.incl:[];
   const k=it.incl.indexOf(p); if(k>=0)it.incl.splice(k,1); else it.incl.push(p);
-  it.includes=it.incl.join(', ');
+  it.includes=it.incl.join(', '); posFixPcLabel(it);
   posIncl(i);
 }
 function posAddPart(i){
@@ -25836,7 +25855,7 @@ function posAddPart(i){
      {label:t('save'),cls:'primary',fn:()=>{const v=$('#posNewPart').value.trim();
        if(v){DB.inclLib=DB.inclLib||[];if(!DB.inclLib.includes(v))DB.inclLib.push(v);
          const it=invForm.items[i];it.incl=Array.isArray(it.incl)?it.incl:[];if(!it.incl.includes(v))it.incl.push(v);
-         it.includes=it.incl.join(', ');save();}
+         it.includes=it.incl.join(', ');posFixPcLabel(it);save();}
        posIncl(i);}}]);
   setTimeout(()=>{const el=$('#posNewPart');if(el)el.focus();},120);
 }
