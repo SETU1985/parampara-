@@ -1184,7 +1184,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v826</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v827</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -6412,6 +6412,7 @@ function load(raw){
   if(!DB.itemMaster)DB.itemMaster=[];
   if(!DB.measHide)DB.measHide={};
   try{ measMergeDupes(); }catch(e){}
+  try{ const _td=todayISO(); (DB.orders||[]).forEach(o=>{ if(o.orderDate && o.orderDate>_td){ const c=String(o.created||'').slice(0,10); o.orderDate=(c&&c<=_td)?c:_td; } }); }catch(e){}   /* v826: #2684 had 28 Oct as its ORDER date */
   if(!DB.followups)DB.followups={};
   if(!DB.accounts)DB.accounts=[{id:'cash',type:'cash',name:'Cash',opening:0,openingDate:todayISO()}];
   if(!DB.ledger)DB.ledger=[];
@@ -20390,6 +20391,15 @@ function ordNoPillHTML(f){
       const more=(f.members||[]).slice(1).map(m=>String(m.ono||'').trim()).filter(x=>x&&x!==String(n));
       return more.length?` <span class="gtag" style="padding:2px 8px">👥 ${more.map(x=>'#'+esc(x)).join(' ')}</span>`:''; })()}`;
 }
+/* v826 — HIS 3 Oct: the order date was plain text in the header; the only box for it sat on the last step.
+   #2684 carried a wrong (future) date and he could not find where to change it. Tap the date → change → done. */
+function ordDateEdit(){
+  captureForm();
+  modal('📅 '+t('order_date'),`<div class="field">${dateField('ods_date',form.orderDate||todayISO())}</div>
+    <p class="hint">${t('order_date')}</p>`,
+    [{label:t('cancel'),cls:'ghost',fn:closeModal},
+     {label:t('save'),cls:'primary',fn:()=>{ const v=($('#ods_date')||{}).value; if(v){ if(v>todayISO()){toast(t('order_date')+' ≤ '+fmtDate(todayISO()),'bad');return;} form.orderDate=v; try{save();}catch(e){} } closeModal(); renderForm(); }}]);
+}
 function ordNoCheck(el){
   const v=String((el&&el.value)||'').trim();
   /* v713: a number already given to a PERSON on another family order is taken too */
@@ -21012,7 +21022,7 @@ function renderForm(){
          </div>`;
   sh.innerHTML=`${head}<h2 style="margin:0 0 4px">${f.editId?t('edit_order'):t('new_order')}</h2>
     <p class="hint" style="margin:0 0 10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-      ${ordNoPillHTML(f)}<span>${fmtDate(f.orderDate)}</span></p>
+      ${ordNoPillHTML(f)}<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="ordDateEdit()">📅 ${t('order_date')}: ${fmtDate(f.orderDate)} ✏️</span></p>
     <div id="draftHint" class="draft-hint">🔒 ${t('draft_never')}</div>
     ${rc}
     ${itemsSection}
@@ -22144,6 +22154,7 @@ function saveOrder(){
      order screen never did. A tap inside a second of the last one is the same tap. */
   if(Date.now()-_ordLastSave<1200)return;
   captureForm();const f=form; f.items=sortItems(f.items);
+  if(f.orderDate && f.orderDate>todayISO()){ f.orderDate=todayISO(); toast('📅 '+t('order_date')+': '+fmtDate(f.orderDate),'ok'); }   /* v826: an order cannot be taken in the future */
   if(_vmOn)vmStop(true);            // v215: the work is done, the mic goes off with it
   if(!f.orderNo)f.orderNo=nextOrderNo();          // v193: the number is earned at save
   /* v257 AUDIT — P1: ORDER NUMBERS WERE BEING BURNED BY FAILED SAVES.
