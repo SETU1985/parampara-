@@ -1184,7 +1184,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v851</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v861</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -1600,12 +1600,17 @@ const T={
   del_open_rec:'\u270F\uFE0F Open it',
   /* v583 \u2014 the boot that pretended to be a new shop */
   lost_title:'Your book could not be read',
+  ivc_put_other:'Put another customer on this bill — tap one:',
+  inv_cancel_stock:'Its goods go back to stock.',
+  stk_serial_taken:'Serial {s} is already on another roll',
+  bk_point_fail:'Could not save a safety copy first. Nothing was restored. Free some space and try again.',
+  boot_copy_used:'Opened from a safety copy. Check today\'s entries, then take a backup.',
   lost_body:'This device HAS your shop\u2019s data on it. The app could not open the store this time, so the screen looks empty. Nothing has been deleted.',
-  su_gate_title:'No PARAMPARA book on this address', su_gate_where:'Opened from: {u}',
+  su_gate_title:'No data here yet', su_gate_where:'Opened from: {u}',
   su_gate_file:'This is a downloaded FILE opened directly, not the app. Your book is never inside a file like this. Close it and open PARAMPARA from its home-screen icon.',
   su_gate_other:'Your book lives at the app address, not here. If you have data, open it from there:',
   su_gate_open:'Open the real app', su_gate_dont:'Do not type anything on this screen if this shop already has data.',
-  su_gate_restore:'I had data — bring it back from a backup', su_gate_new:'New shop — starting for the first time',
+  su_gate_restore:'Restore backup', su_gate_new:'Starting a new shop? Tap here',
   dn_row:'{n} {n|name looks|names look} like another name of the same person', dn_row_sub:'Join them into one ledger — the money stays the same',
   dn_title:'One person, many names', dn_hint:'Tap the name that should stay. Ticked names move into it.',
   dn_none:'No duplicate names found.', dn_keep:'This name stays', dn_own:'Changed from its own screen',
@@ -4019,12 +4024,17 @@ dl_show_hidden:'Show hidden ({n})',
   del_pur_pay_how:'पहले भुगतान हटाएँ, फिर बिल मिटेगा। बिल खोलकर हटा सकते हैं।',
   del_open_rec:'✏️ खोलो',
   lost_title:'आपकी किताब पढ़ी नहीं जा सकी',
+  ivc_put_other:'इस बिल पर दूसरा ग्राहक — एक पर टैप करें:',
+  inv_cancel_stock:'इसका माल स्टॉक में वापस आएगा।',
+  stk_serial_taken:'सीरियल {s} पहले से दूसरे थान पर है',
+  bk_point_fail:'पहले सेफ्टी कॉपी नहीं बन पाई। कुछ भी रीस्टोर नहीं हुआ। जगह खाली करके फिर करें।',
+  boot_copy_used:'सेफ्टी कॉपी से खुला। आज की एंट्री चेक करें, फिर बैकअप लें।',
   lost_body:'इस फोन/iPad में आपका डेटा मौजूद है। इस बार ऐप उसे खोल नहीं पाया, इसलिए स्क्रीन खाली दिख रही है। कुछ मिटा नहीं है।',
-  su_gate_title:'इस पते पर PARAMPARA की किताब नहीं है', su_gate_where:'यहाँ से खुला: {u}',
+  su_gate_title:'यहाँ अभी कोई डेटा नहीं है', su_gate_where:'यहाँ से खुला: {u}',
   su_gate_file:'यह डाउनलोड की हुई FILE सीधे खुली है, ऐप नहीं। आपका डेटा ऐसी फ़ाइल में कभी नहीं होता। इसे बंद करें और PARAMPARA को होम-स्क्रीन के आइकन से खोलें।',
   su_gate_other:'आपकी किताब ऐप के पते पर है, यहाँ नहीं। डेटा है तो वहीं से खोलें:',
   su_gate_open:'असली ऐप खोलें', su_gate_dont:'अगर इस दुकान का डेटा पहले से है तो इस स्क्रीन पर कुछ भी मत लिखिए।',
-  su_gate_restore:'मेरा डेटा था — बैकअप से वापस लाओ', su_gate_new:'नई दुकान — पहली बार शुरू कर रहे हैं',
+  su_gate_restore:'बैकअप रीस्टोर करें', su_gate_new:'नई दुकान शुरू करनी है? यहाँ दबाएँ',
   dn_row:'{n} नाम किसी दूसरे नाम वाले ही आदमी के लगते हैं', dn_row_sub:'एक लेजर में जोड़ें — पैसा वही रहेगा',
   dn_title:'एक आदमी, कई नाम', dn_hint:'जो नाम रखना है उस पर टैप करें। टिक वाले नाम उसी में चले जाएँगे।',
   dn_none:'कोई दोहरा नाम नहीं मिला।', dn_keep:'यही नाम रहेगा', dn_own:'इसकी अपनी स्क्रीन से बदलें',
@@ -6533,6 +6543,8 @@ function load(raw){
   });
   /* v820: English only, applied once */
   try{ ehEnglishNames(); }catch(e){}
+  try{ onoFix852(); }catch(e){}
+  try{ purRelink858(); }catch(e){}
   /* v726: the main-head grouping, applied once, only between names that already exist */
   try{ expParentSeed(); }catch(e){}
     if(!DB.numCfg)DB.numCfg={invPrefix:'INV',invMode:'fy',invStart:0,ordPrefix:'',ordStart:0};
@@ -6874,7 +6886,7 @@ function autoSnapshot(s){ if(!idb)return; try{
   const last=+(localStorage.getItem('pb_ob_lastsnap_ts')||0);
   if(Date.now()-last < SNAP_GAP_H*3600000)return;
   localStorage.setItem('pb_ob_lastsnap_ts',String(Date.now()));
-  const stamp=new Date().toISOString().slice(0,16).replace('T','_').replace(':','-');
+  const stamp=snapStampLocal();
   mPut('snap_'+stamp, s||JSON.stringify(DB));
   mKeys().then(keys=>{
     const snaps=keys.filter(k=>String(k).indexOf('snap_')===0).sort();
@@ -6985,12 +6997,12 @@ async function writeRestoredBook(d){
         ok=!!check && bad.length===0; }
     }catch(e){ ok=false; bad=[String((e&&e.message)||e)]; }
   }
-  if(!ok){
-    /* the legacy copy is still written - it is how a book without IndexedDB survives -
-       but it is no longer allowed to pass as a verified restore */
+  if(!ok && !idb){
+    /* the legacy copy is how a book WITHOUT IndexedDB survives. v858 S-4: with IndexedDB the
+       rejected book is never written anywhere — it used to land in '__db' and pb_ob_v1, where
+       the boot chain could pick it up later. */
     try{ const s=dbSerialize();
       if(s.length<4200000)localStorage.setItem('pb_ob_v1',s);
-      if(idb)await mPut('__db', s);
     }catch(e){}
   }
   if(idb && !ok){
@@ -7009,11 +7021,32 @@ function restoreFailedModal(bad){
     +esc((bad||[]).slice(0,6).join(' \u00B7 '))+'</p>',
     [{label:t('close'),cls:'primary',fn:closeModal}]); }catch(e){}
 }
+/* v858 S-7: ✕ on a photo inside a form used to delete the picture from storage at once —
+   so Discard (or leaving without saving) could not bring it back. The photo is now only
+   unhooked from the form; the file itself is deleted at the next start, and only if no
+   record in the book still points at it. */
+function mediaDropLater(id){
+  if(!id)return;
+  try{ const l=JSON.parse(localStorage.getItem('pb_media_gc')||'[]'); if(!l.includes(id))l.push(id);
+    localStorage.setItem('pb_media_gc',JSON.stringify(l.slice(-500))); }catch(e){}
+}
+async function mediaGcRun(){
+  let l=[]; try{ l=JSON.parse(localStorage.getItem('pb_media_gc')||'[]'); }catch(e){}
+  if(!l.length||!idb||_dbReadFailed)return;
+  let all=''; try{ all=JSON.stringify(DB); }catch(e){ return; }
+  for(const id of l){ if(all.indexOf(id)<0){ try{ await mDel(id); }catch(e){} } }
+  try{ localStorage.removeItem('pb_media_gc'); }catch(e){}
+}
+/* v858 S-6: true = safe to go on (point taken, or nothing here to keep); false = the point
+   could NOT be written — then the restore must not run. */
+/* v858 S-11: restore-point names in the shop's own clock (they read UTC, 5½ h behind) */
+function snapStampLocal(){ const d=new Date(), p=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'_'+p(d.getHours())+'-'+p(d.getMinutes()); }
 async function preRestorePoint(){
-  if(!idb)return false;
+  if(!idb)return true;                       // no IndexedDB: nowhere to keep one, legacy restore as before
   try{
-    if(!(DB&&((DB.orders||[]).length||(DB.customers||[]).length)))return false;   // nothing worth keeping
-    const stamp=new Date().toISOString().slice(0,16).replace('T','_').replace(':','-');
+    if(!(DB&&((DB.orders||[]).length||(DB.customers||[]).length)))return true;   // nothing worth keeping
+    const stamp=snapStampLocal();
     await mPut('snap_'+stamp+'_before-restore', dbSerialize());
     const keys=await mKeys();
     const snaps=keys.filter(k=>String(k).indexOf('snap_')===0).sort();
@@ -7199,6 +7232,26 @@ const invIsFabric=it=>!!(it && (it.thaanId||it.fabId||String(it.unit||'')==='Mtr
    before this build) still gets the ordinary live calculation, exactly as before. */
 const invRate=(p,it)=>(it && it.gstRate!=null) ? it.gstRate : (invIsFabric(it)?5:((+p||0)>2500?18:5));
 const r2=n=>Math.round((+n||0)*100)/100;
+/* ══════════ v859 — HIS 9 Oct: "GST slab discount ke baad, net figure pe" and "price
+   badalne pe GST rate badlega hi badlega" ══════════
+   The readymade slab (≤₹2,500 → 5%, above → 18%) is read off the per-piece price AFTER the
+   bill's discount. A saved line keeps its frozen rate only while its net per-piece price is
+   the one it was frozen at (it.gstBase); change the price, quantity or discount and the
+   rate is worked out again. A line saved before v859 has no gstBase and keeps its rate. */
+function invNetScale(inv){
+  let gross=0; (inv&&inv.items||[]).forEach(it=>{ gross+=Math.max(0,+it.price||0); });
+  let d=inv&&inv.discType==='percent'?r2(gross*(+inv.discValue||0)/100):r2(+(inv&&inv.discValue)||0);
+  d=Math.max(0,Math.min(d,gross)); return gross>0?(gross-d)/gross:1;
+}
+function invNetUnit(inv,it,scale){ const sc=scale!=null?scale:invNetScale(inv);
+  return r2(Math.max(0,+it.price||0)*sc/Math.max(1,+it.qty||1)); }
+function invLineRate(inv,it,scale){
+  const u=invNetUnit(inv,it,scale);
+  if(it && it.gstRate!=null && (it.gstBase==null || r2(it.gstBase)===u))return it.gstRate;
+  /* v860 — HIS 9 Oct: "2500 se kam hai to 5% hi lagega" — the ₹2,500 is the value BEFORE tax.
+     Prices here include GST, so a piece up to ₹2,625 (2,500 + 5%) is 5%. */
+  return invIsFabric(it)?5:(u>2625?18:5);
+}
 /* ══════════ v683 — THE CALCULATION LAW ══════════
    HIS 14 Sept: "calculation ke upar bhi koi restriction lagao ki calculation mein mistake
    kisi bhi haalat mein na ho. Meter mein meter ka calculation ho, quantity mein quantity
@@ -7296,7 +7349,8 @@ function invCompute(inv){
      is also called straight on a stored bill, so a negative that got in through an older
      build must not be able to print or post. A line worth less than nothing is worth
      nothing. */
-  (inv.items||[]).forEach(it=>{const p=Math.max(0,+it.price||0);const qty=Math.max(1,+it.qty||1);const r=invRate(p/qty,it);perItem.push({p,r});gross+=p;});
+  const _sc=invNetScale(inv);   /* v859: slab on the net price */
+  (inv.items||[]).forEach(it=>{const p=Math.max(0,+it.price||0);const r=invLineRate(inv,it,_sc);perItem.push({p,r});gross+=p;});
   let discAmt=inv.discType==='percent'?r2(gross*(+inv.discValue||0)/100):r2(+inv.discValue||0);
   discAmt=Math.max(0,Math.min(discAmt,gross));
   const scale=gross>0?(gross-discAmt)/gross:1;
@@ -7310,6 +7364,24 @@ function invCompute(inv){
   taxable=r2(_net - r2(cgst) - r2(sgst) - r2(igst));
   const courier=+inv.courier||0;
   return {gross:r2(gross),discount:r2(discAmt),courier:r2(courier),taxable:r2(taxable),cgst:r2(cgst),sgst:r2(sgst),igst:r2(igst),total:r2(gross-discAmt+courier)};}
+/* v861 — the bill's tax, one row per rate, worked the same way invCompute does it (each line's
+   share of the discount, tax taken OUT of the GST-inclusive price). Used by the separate
+   "GST summary" box on the bill image, the printed bill and the WhatsApp text. */
+function invTaxByRate(inv){
+  const comp=invCompute(inv); if(comp.cancelled)return [];
+  const sc=invNetScale(inv), by={};
+  (inv.items||[]).forEach(it=>{ const p=Math.max(0,+it.price||0); if(!p)return; const r=invLineRate(inv,it,sc);
+    const net=p*sc, tax=net-net/(1+r/100); const o=by[r]=by[r]||{r,net:0,tax:0}; o.net+=net; o.tax+=tax; });
+  const rows=Object.values(by).filter(o=>o.tax>0.004).sort((a,b)=>a.r-b.r).map(o=>{
+    const tax=r2(o.tax), half=r2(tax/2);
+    return {r:o.r, taxable:r2(o.net-tax), tax, cgst:inv.interstate?0:half, sgst:inv.interstate?0:r2(tax-half), igst:inv.interstate?tax:0};
+  });
+  /* the box must foot to the bill's own figures to the paisa: the last row takes any rounding */
+  if(rows.length){ const L=rows[rows.length-1], sum=k=>r2(rows.slice(0,-1).reduce((a,x)=>a+x[k],0));
+    L.cgst=r2(comp.cgst-sum('cgst')); L.sgst=r2(comp.sgst-sum('sgst')); L.igst=r2(comp.igst-sum('igst'));
+    L.taxable=r2(comp.taxable-sum('taxable')); L.tax=r2(L.cgst+L.sgst+L.igst); }
+  return rows;
+}
 const GST_STATES={'01':'Jammu and Kashmir','02':'Himachal Pradesh','03':'Punjab','04':'Chandigarh','05':'Uttarakhand','06':'Haryana','07':'Delhi','08':'Rajasthan','09':'Uttar Pradesh','10':'Bihar','11':'Sikkim','12':'Arunachal Pradesh','13':'Nagaland','14':'Manipur','15':'Mizoram','16':'Tripura','17':'Meghalaya','18':'Assam','19':'West Bengal','20':'Jharkhand','21':'Odisha','22':'Chhattisgarh','23':'Madhya Pradesh','24':'Gujarat','27':'Maharashtra','29':'Karnataka','30':'Goa','32':'Kerala','33':'Tamil Nadu','36':'Telangana','37':'Andhra Pradesh'};
 /* ══════════ v503 — IGST IS NOT A QUESTION, IT IS A FACT ══════════
    HIS 5 Sept: "sales mein invoice mein maine dekha inter GST kya hai... woh main kisi bhi
@@ -8425,7 +8497,9 @@ function revertStockByRef(refId,only){
       }
     }
   });
-  DB.moves=(DB.moves||[]).filter(m=>m.refId!==refId);
+  /* v857: only the moves that were reversed above are dropped — with a filter (only), the
+     rest (e.g. karigar cuts on the same order) stay, as they still count in stock. */
+  DB.moves=(DB.moves||[]).filter(m=>!(m.refId===refId&&(!only||only(m))));
 }
 function lastMoveTs(pred){
   let t=null;
@@ -8973,6 +9047,8 @@ function thaanSave(){
      they already print. A category, if he gave one, is a real name and still stands. */
   if(!name)name=cat||'';
   if(mtr<=0){toast(t('stk_need_mtr'),'bad');return;}
+  /* v858 K-7: a serial belongs to one roll only — editing a roll could take another roll's number */
+  if(String((d.id&&(TH(d.id)||{}).serial)||'')!==String(serial) && (DB.thaans||[]).some(x=>x.id!==d.id && String(x.serial)===String(serial))){ toast(t('stk_serial_taken',{s:serial}),'bad'); return; }
   // a serial well outside the run is nearly always a typo — ask before it goes in
   if(!d.id && serialOutOfRun(serial) && _serOK!==serial){
     confirmModal(t('stk_serial_far_title'), t('stk_serial_far',{s:esc(serial),n:nextSerial()}),
@@ -12598,7 +12674,43 @@ function expHeadCfg(cat){ DB.expHeadCfg=DB.expHeadCfg||{};
    only the name. Runs once (DB.engHeads). If the plain English name already exists as another head,
    the two are merged under it. */
 /* v848: the run-once repairs a store boot needs (see init). Each is guarded by its own flag. */
+/* v852 — HIS 9 Oct: "badalna hi hai." The one number that appears twice in his book: Vasu khemka's family
+   order (#2620/2621) gave its first person #2619, which is Keshav Agarwal's order. Put to the numbers the
+   order itself shows — Vasu 2620, Kunal 2621 — only if the book still looks exactly like that, and only once. */
+/* v858 — owner OK 9 Oct: purchase lines still pointed at roll ids from before the 1 Sep
+   re-import, so a return or a delete of those bills never touched stock. Each such line is
+   joined to the live roll with the SAME serial — only when exactly one live roll has it.
+   Nothing else changes: no metres move, no move is written. Runs once. */
+function purRelink858(){
+  if(!DB||DB.purRelink858)return;
+  const ids=new Set((DB.thaans||[]).map(x=>x.id));
+  const bySer={}; (DB.thaans||[]).forEach(x=>{ if(x.cancelled)return; const k=String(x.serial||'').trim(); if(!k)return; (bySer[k]=bySer[k]||[]).push(x); });
+  let n=0;
+  (DB.purchases||[]).forEach(p=>(p.items||[]).forEach(it=>{
+    if(!it.thaanId||ids.has(it.thaanId))return;
+    const c=bySer[String(it.serial||'').trim()]; if(!c||c.length!==1)return;
+    it.thaanId=c[0].id; if(c[0].fabId)it.fabId=c[0].fabId; n++;
+  }));
+  DB.purRelink858=n||1; try{ save(); }catch(e){}
+}
+function onoFix852(){
+  if(!DB || DB._ono852)return;
+  try{
+    const o=(DB.orders||[]).find(x=>x.id==='mtoj1ni0m6u1');
+    const other=(DB.orders||[]).find(x=>x.id!=='mtoj1ni0m6u1' && String(x.orderNo)==='2619');
+    const used=v=>(DB.orders||[]).some(x=>x.id!=='mtoj1ni0m6u1' && orderNosOf(x).map(String).includes(v));
+    if(o && other && String(o.orderNo)==='2620/2621' && (o.members||[]).length===2
+       && String(o.members[0].ono)==='2619' && String(o.members[1].ono)==='2620' && !used('2620') && !used('2621')){
+      o.members[0].ono='2620'; o.members[1].ono='2621';
+      o.log=o.log||[]; o.log.push({id:uid(),ts:new Date().toISOString(),text:'#2619 → #2620, #2620 → #2621 (number was already Keshav Agarwal\'s)',voiceId:null});
+      try{ touchOrder(o.id); }catch(e){}
+    }
+  }catch(e){}
+  DB._ono852=1;
+}
 function storeBootRepairs(){
+  try{ onoFix852(); }catch(e){}
+  try{ purRelink858(); }catch(e){}
   try{ measMergeDupes(); }catch(e){}     /* v833: duplicate measurement fields */
   try{ ehEnglishNames(); }catch(e){}     /* v820: English-only head names */
   try{ expParentSeed(); }catch(e){}      /* v726: main-head grouping, label only */
@@ -13309,7 +13421,7 @@ async function renderExpPhotos(){ const el=$('#ex_photos'); if(!el)return; el.in
     const w=document.createElement('div'); w.className='thumb-wrap';
     w.innerHTML=`<img class="thumb" src="${url||''}"><div class="thumb-x">✕</div>`;
     w.querySelector('.thumb').onclick=()=>viewPhoto(url);
-    w.querySelector('.thumb-x').onclick=async()=>{await mDel(id);_exp.photos=(_exp.photos||[]).filter(x=>x!==id);renderExpPhotos();};
+    w.querySelector('.thumb-x').onclick=async()=>{mediaDropLater(id);_exp.photos=(_exp.photos||[]).filter(x=>x!==id);renderExpPhotos();};
     el.appendChild(w);}}
 
 /* ---------------- DAY BOOK ---------------- */
@@ -17407,24 +17519,32 @@ function suHome(){ try{ const m=document.querySelector('meta[name="pb-home"]'); 
 function suIsFile(){ try{ return !/^https?:$/.test(location.protocol); }catch(e){ return false; } }
 function suAtHome(){ const h=suHome(); if(!h)return true;
   try{ return (location.origin+location.pathname).replace(/index\.html$/,'').toLowerCase()===h.replace(/index\.html$/,'').toLowerCase(); }catch(e){ return true; } }
+/* v853 — HIS 9 Oct, screen-recording of Vyapar beside ours: Menu → Restore backup → the phone's file
+   picker, nothing in between. "No data here yet, New shop — ye sab kya hai, kuch samajh nahi aa raha."
+   An empty book now shows ONE button, Restore backup, and nothing else (v854: the new-shop link went
+   too — a new shop starts from All screens → Settings → Shop details).
+   The two odd cases (a downloaded file opened directly, the wrong address) still warn — there the
+   warning is the whole point. */
 function suGateHTML(){
   const file=suIsFile(), home=suHome(), atHome=suAtHome();
-  let where=''; try{ where=decodeURIComponent(location.href).slice(0,90); }catch(e){ where=String(location.href).slice(0,90); }
-  return `<div class="card" style="margin-bottom:12px">
-      <h2 style="margin:0 0 6px">\u{1F4D2} ${t('su_gate_title')}</h2>
-      <p class="hint" style="white-space:normal;word-break:break-all;margin:0 0 10px">${t('su_gate_where',{u:esc(where)})}</p>
-      ${file?`<div style="border:1.5px solid var(--bad);border-radius:12px;padding:12px;margin:0 0 10px">
-          <p style="color:var(--bad);margin:0;line-height:1.5"><b>\u26A0\uFE0F ${t('su_gate_file')}</b></p></div>`
-        :(!atHome&&home?`<p style="margin:0 0 10px;line-height:1.5">${t('su_gate_other')}</p>`:'')}
-      ${(file||!atHome)&&home?`<a class="btn primary block" style="display:block;text-align:center;padding:14px;margin:0 0 6px;text-decoration:none"
-          href="${esc(home)}">\u{1F310} ${t('su_gate_open')}</a>
-        <p class="hint" style="white-space:normal;margin:0 0 10px">${t('su_gate_link_hint')}</p>`:''}
-      <div style="border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:0 0 12px">
-        <p style="margin:0;line-height:1.5"><b>${t('su_gate_dont')}</b></p></div>
-      <button class="btn ${file||!atHome?'ghost':'primary'} block" style="padding:14px;margin-bottom:8px" onclick="doImport()">\u{1F4E5} ${t('su_gate_restore')}</button>
-      <button class="btn ghost block" style="padding:12px" onclick="_suNew=true;renderSetup()">\u{1F195} ${t('su_gate_new')}</button>
+  const odd=(file||!atHome)&&home;
+  return `<div style="padding:40px 8px 12px;text-align:center">
+      ${file?`<p style="color:var(--bad);margin:0 0 14px;line-height:1.5"><b>⚠️ ${t('su_gate_file')}</b></p>`
+        :(odd?`<p style="margin:0 0 14px;line-height:1.5">${t('su_gate_other')}</p>`:'')}
+      ${odd?`<a class="btn primary block" style="display:block;text-align:center;padding:16px;margin:0 0 12px;text-decoration:none"
+          href="${esc(home)}">\u{1F310} ${t('su_gate_open')}</a>`:''}
+      <button class="btn ${odd?'ghost':'primary'} block" style="padding:22px;font-size:19px" onclick="doImport()">↩️ ${t('su_gate_restore')}</button>
     </div>`;
 }
+/* v854 — HIS 9 Oct: "Vyapar mein kahan kuch pooch raha hai — usme data hai poora, lekin restore kiya,
+   khatam. Restore backup, that's it." Restore never asks now: pick the file, it is done. What makes
+   that safe is not a question but the copy taken first — preRestorePoint() saves the whole current
+   book as an on-device restore point before a single record is written, so a wrong file can always
+   be undone. A restore that FAILS still says so loudly (restoreFailedModal). */
+function bkIsEmptyBook(){
+  try{ return !((DB.orders||[]).length||(DB.customers||[]).length||(DB.sales||[]).length||(DB.ledger||[]).length||(DB.thaans||[]).length); }catch(e){ return false; }
+}
+function bkNoAsk(title,msg,yes){ try{ yes(); }catch(e){} }
 function renderSetup(){
   if(!_suNew){ $('#homePane').innerHTML=suGateHTML()+'<div class="fab-pad"></div>'; return; }
   const s=Object.assign({}, DB.shopInfo||{}, suDraft);
@@ -19497,7 +19617,7 @@ async function renderCustPhotos(){const el=$('#cu_photos');if(!el)return;
   for(const pid of(c.photos||[])){const url=await mURL(pid);const w=document.createElement('div');w.className='thumb-wrap';
     w.innerHTML=`<img class="thumb" src="${url||''}"><div class="thumb-x">✕</div>`;
     w.querySelector('.thumb').onclick=()=>viewPhoto(url);
-    w.querySelector('.thumb-x').onclick=async()=>{await mDel(pid);c.photos=(c.photos||[]).filter(x=>x!==pid);save();renderCustPhotos();};
+    w.querySelector('.thumb-x').onclick=async()=>{mediaDropLater(pid);c.photos=(c.photos||[]).filter(x=>x!==pid);save();renderCustPhotos();};
     el.appendChild(w);}}
 /* v314 — HIS 25 Aug, customer master.
    RENAME REACHED ONLY ORDERS. A customer renamed here had his ORDERS updated and nothing
@@ -21141,7 +21261,7 @@ function renderForm(){
      without them. Same ids as the last screen, so nothing about saving changes. */
   const rcHas = f.customerId ? Object.keys(((custById(f.customerId)||{}).m)||{}).length : 0;
   const rc = f.customerId
-    ? `<div class="cust-result" style="margin-bottom:10px"><div><b>${esc(f.customerName)}</b>
+    ? `<div class="cust-result" style="margin-bottom:10px"><div onclick="clearCustomer()" style="cursor:pointer;flex:1;min-width:0"><b>${esc(f.customerName)}</b>
          <div class="hint">${esc(f.phone||'')}${rcHas?' · ✅ '+t('rc_has_meas',{n:rcHas}):''}</div></div>
          <button class="btn sm ghost" onclick="clearCustomer()">${t('change')}</button></div>
        ${savedMeasCard(f)}`
@@ -21581,10 +21701,10 @@ async function renderItemPhotos(gid){const el=$('#ip_'+cssId(gid));if(!el)return
   for(const id of list){const url=await mURL(id);const w=document.createElement('div');w.className='thumb-wrap';
     w.innerHTML=`<img class="thumb" src="${url||''}"><div class="thumb-x">✕</div>`;
     w.querySelector('.thumb').onclick=()=>viewPhoto(url);
-    w.querySelector('.thumb-x').onclick=async()=>{await mDel(id);form.itemPhotos[gid]=form.itemPhotos[gid].filter(x=>x!==id);renderItemPhotos(gid);};
+    w.querySelector('.thumb-x').onclick=async()=>{mediaDropLater(id);form.itemPhotos[gid]=form.itemPhotos[gid].filter(x=>x!==id);renderItemPhotos(gid);};
     el.appendChild(w);}
 }
-function customerPickedHTML(){const f=form;return `<div class="cust-result"><div><b>${esc(f.customerName)}</b><div class="hint">${esc(f.phone||'')}</div></div><button class="btn sm ghost" onclick="clearCustomer()">${t('change')}</button></div>`;}
+function customerPickedHTML(){const f=form;return `<div class="cust-result"><div onclick="clearCustomer()" style="cursor:pointer;flex:1;min-width:0"><b>${esc(f.customerName)}</b><div class="hint">${esc(f.phone||'')}</div></div><button class="btn sm ghost" onclick="clearCustomer()">${t('change')}</button></div>`;}
 /* ══════════════ v486 — ONE MAN'S BODY ON ANOTHER MAN'S ORDER ══════════════
    HIS 4 Sept: "customer ka naam save kiya, dekha ki naam pehle se saved hai measurement
    ke saath. Kuch galti thi to naya naam kar ke change kiya. Lekin pichhle naam ka jo
@@ -21627,6 +21747,7 @@ function clearCustomer(){
   const wiped=wipeAutoNaap();
   f.customerId=null; f.customerName=''; f.phone='';
   renderForm();
+  setTimeout(()=>{ const n=$('#f_cname'); if(n)n.focus(); },80);   /* v861: list opens at once */
   if(wiped.length)setTimeout(()=>{try{
     toast(t('cust_meas_cleared',{g:wiped.slice(0,3).join(', ')}),'ok');}catch(e){}},120);
 }
@@ -21810,13 +21931,19 @@ function custHits(q,limit){
   /* v713  HIS 16 Sept: "Test Order" offered "add as new", "Test Order 1" listed six
      strangers. The "1" was being matched against every phone number. Digits are a phone
      search only when the box holds nothing but a phone (digits, spaces, + - ( )). */
-  const lc=raw.toLowerCase(), dq=/^[\d\s+\-()]+$/.test(raw)?phDigits(raw):'';
+  /* v861 — HIS 9 Oct: "ja daala to Jagannath aa jaana chahiye". His own customer is saved as
+     "Jaġannath" (a dotted ġ), so "jag" never matched it, and among six hits the man he meant
+     could sit seventh. Letters are compared without their accents, and names that START with
+     what he typed come first, then a word inside the name, then anywhere. */
+  const nf=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const lc=nf(raw), dq=/^[\d\s+\-()]+$/.test(raw)?phDigits(raw):'';
+  const rank=c=>{ const n=nf(c.name); if(n.startsWith(lc))return 0; if((' '+n).includes(' '+lc))return 1; if(n.includes(lc))return 2; return 3; };
   return all.filter(c=>{
-    if((c.name||'').toLowerCase().includes(lc))return true;
+    if(nf(c.name).includes(lc))return true;
     if(!dq)return false;
     const cd=phDigits(c.phone);
     return cd.includes(dq) || (dq.length>=10 && ph10(c.phone)===ph10(raw));
-  }).slice(0,lim);
+  }).map((c,i)=>({c,i,k:rank(c)})).sort((a,b)=>a.k-b.k||a.i-b.i).map(x=>x.c).slice(0,lim);
 }
 function custSearch(q){
   try{ cbPaint('ord'); }catch(e){}const box=$('#custResults'); if(!box)return;
@@ -22392,12 +22519,15 @@ function saveOrder(){
       if(keep.length!==_ms.length){ f.members=keep; }
       const usedAll=new Set(); (DB.orders||[]).forEach(o=>{ if(o.id===f.editId)return; orderNosOf(o).forEach(v=>usedAll.add(String(v).trim())); });
       const seenNo=new Set([String(f.orderNo||'').trim()]);
-      f.members.forEach((m,i)=>{ if(i===0)return; const v=String(m.ono||'').trim();
+      /* v852: the FIRST person's number was never checked — Vasu khemka's 5 Sept family order kept #2619
+         (handed out when the form opened) after Keshav Agarwal's order had already been saved as #2619.
+         The first person is checked like everyone else unless his number IS the order's own number. */
+      f.members.forEach((m,i)=>{ if(i===0 && String(m.ono||'').trim()===String(f.orderNo||'').trim())return; const v=String(m.ono||'').trim();
         if(v && (seenNo.has(v) || usedAll.has(v))){ const nx=nextOrderNoAfter(v,new Set([...usedAll,...seenNo])); if(nx)m.ono=nx; }
         if(m.ono)seenNo.add(String(m.ono).trim()); });
     } }catch(e){}
   { const _own=String(f.orderNo||'').trim();
-    const _ppl=(f.members||[]).slice(1).map(m=>String(m.ono||'').trim()).filter(Boolean);
+    const _ppl=(f.members||[]).filter((m,i)=>i>0 || String(m.ono||'').trim()!==_own).map(m=>String(m.ono||'').trim()).filter(Boolean);
     const _clash=[_own].concat(_ppl).filter(Boolean)
       .find(v=>DB.orders.some(o=>o.id!==f.editId && orderNosOf(o).map(x=>String(x).trim()).includes(v)));
     const _inner=_ppl.some((v,i)=>v===_own || _ppl.indexOf(v)!==i);
@@ -23180,13 +23310,13 @@ async function renderThaanPhotos(){const el=$('#th_photos');if(!el)return;el.inn
   for(const id of(_th.photos||[])){const url=await mURL(id);const w=document.createElement('div');w.className='thumb-wrap';
     w.innerHTML=`<img class="thumb" src="${url||''}"><div class="thumb-x">✕</div>`;
     w.querySelector('.thumb').onclick=()=>viewPhoto(url);
-    w.querySelector('.thumb-x').onclick=async()=>{await mDel(id);_th.photos=(_th.photos||[]).filter(x=>x!==id);renderThaanPhotos();};
+    w.querySelector('.thumb-x').onclick=async()=>{mediaDropLater(id);_th.photos=(_th.photos||[]).filter(x=>x!==id);renderThaanPhotos();};
     el.appendChild(w);}}
 async function renderReadyPhotos(){const el=$('#rd_photos');if(!el)return;el.innerHTML='';
   for(const id of(_rd.photos||[])){const url=await mURL(id);const w=document.createElement('div');w.className='thumb-wrap';
     w.innerHTML=`<img class="thumb" src="${url||''}"><div class="thumb-x">✕</div>`;
     w.querySelector('.thumb').onclick=()=>viewPhoto(url);
-    w.querySelector('.thumb-x').onclick=async()=>{await mDel(id);_rd.photos=(_rd.photos||[]).filter(x=>x!==id);renderReadyPhotos();};
+    w.querySelector('.thumb-x').onclick=async()=>{mediaDropLater(id);_rd.photos=(_rd.photos||[]).filter(x=>x!==id);renderReadyPhotos();};
     el.appendChild(w);}}
 /* he can pick several photos in one go now, so this walks the whole selection */
 async function processPhoto(e){const files=[...(e.target.files||[])];if(!files.length)return;
@@ -23270,7 +23400,7 @@ async function renderFormPhotos(){const el=$('#f_photos');if(!el)return;el.inner
   for(const id of form.photos){const url=await mURL(id);const w=document.createElement('div');w.className='thumb-wrap';
     w.innerHTML=`<img class="thumb" src="${url||''}"><div class="thumb-x">✕</div>`;
     w.querySelector('.thumb').onclick=()=>viewPhoto(url);
-    w.querySelector('.thumb-x').onclick=async()=>{await mDel(id);form.photos=form.photos.filter(x=>x!==id);renderFormPhotos();};
+    w.querySelector('.thumb-x').onclick=async()=>{mediaDropLater(id);form.photos=form.photos.filter(x=>x!==id);renderFormPhotos();};
     el.appendChild(w);}}
 function viewPhoto(url){if(!url)return;modal('',`<img src="${url}" style="width:100%;border-radius:12px">`,[{label:t('close'),cls:'ghost',fn:closeModal}]);}
 
@@ -23947,10 +24077,13 @@ async function updateNow(){
      the thing that loses a naap. */
   try{ if(typeof flushDBNow==='function')await flushDBNow(); }catch(e){}
   try{ if(typeof saveDraft==='function')saveDraft(); }catch(e){}
+  /* v858 S-3: only THIS app's caches and worker. The same site also hosts his Expense
+     Manager; wiping every cache and worker took its offline copy away too. */
   try{ if(window.caches){ const ks=await caches.keys();
-    await Promise.all(ks.map(k=>caches.delete(k))); } }catch(e){}
+    await Promise.all(ks.filter(k=>k.indexOf('parampara-')===0).map(k=>caches.delete(k))); } }catch(e){}
   try{ if(navigator.serviceWorker){ const rs=await navigator.serviceWorker.getRegistrations();
-    await Promise.all(rs.map(r=>r.unregister())); } }catch(e){}
+    const here=new URL('./',location.href).href;
+    await Promise.all(rs.filter(r=>r.scope===here).map(r=>r.unregister())); } }catch(e){}
   location.replace(location.pathname+'?_r='+Date.now());
 }
 document.addEventListener('visibilitychange',()=>{
@@ -24215,7 +24348,7 @@ async function renderAltFormPhotos(){const el=$('#a_photos');if(!el)return;el.in
   for(const id of altForm.photos){const url=await mURL(id);const w=document.createElement('div');w.className='thumb-wrap';
     w.innerHTML=`<img class="thumb" src="${url||''}"><div class="thumb-x">✕</div>`;
     w.querySelector('.thumb').onclick=()=>viewPhoto(url);
-    w.querySelector('.thumb-x').onclick=async()=>{await mDel(id);altForm.photos=altForm.photos.filter(x=>x!==id);renderAltFormPhotos();};
+    w.querySelector('.thumb-x').onclick=async()=>{mediaDropLater(id);altForm.photos=altForm.photos.filter(x=>x!==id);renderAltFormPhotos();};
     el.appendChild(w);}}
 function captureAltForm(){const f=altForm;
   if($('#a_no'))f.altNo=$('#a_no').value.trim();
@@ -24561,7 +24694,7 @@ function estimateRender(){
          ho hi nahi raha." It WAS picked — but the redraw put the cursor back in the name box,
          whose focus reopened the list with its Select button, so it looked untouched. A picked
          customer is now a card, exactly as on the bill: name, phone, Change. */''}
-    ${e.customerId?`<div class="cust-result" style="margin-bottom:10px"><div><b>${esc(e.customerName||'')}</b>
+    ${e.customerId?`<div class="cust-result" style="margin-bottom:10px"><div onclick="estClearCust()" style="cursor:pointer;flex:1;min-width:0"><b>${esc(e.customerName||'')}</b>
         <div class="hint">${esc(e.phone||'')}</div></div>
         <button class="btn sm ghost" onclick="estClearCust()">${t('change')}</button></div>`:''}
     <div class="card" style="padding:10px 12px;margin-bottom:10px;${e.customerId?'display:none':''}">
@@ -26547,7 +26680,7 @@ function invCustomerPickedHTML(){
      finding the man in the customer master and coming back. Two jobs, two buttons, side
      by side: ✏️ fixes the man's own name and number everywhere, Change swaps the man. */
   const _fix=invForm.customerId?`<button class="btn sm ghost" style="flex:0 0 auto" onclick="invEditCustomer()">✏️</button>`:'';
-  return `<div class="cust-result"><div><b>${esc(invForm.customerName)}</b><div class="hint">${esc(invForm.phone||'')}${bal}</div></div><span style="display:flex;gap:6px">${_fix}<button class="btn sm ghost" onclick="invClearCustomer()">${t('change')}</button></span></div>`;}
+  return `<div class="cust-result"><div onclick="invClearCustomer()" style="cursor:pointer;flex:1;min-width:0"><b>${esc(invForm.customerName)}</b><div class="hint">${esc(invForm.phone||'')}${bal}</div></div><span style="display:flex;gap:6px">${_fix}<button class="btn sm ghost" onclick="invClearCustomer()">${t('change')}</button></span></div>`;}
 /* The customer master is edited in place, from a modal, so the half-written bill
    underneath is never disturbed. Renaming relinks every order, bill and alteration that
    names him — custRelink, the same path the customer screen uses — and a number already
@@ -26556,7 +26689,8 @@ function invEditCustomer(){
   captureInvoiceForm();
   const c=custById(invForm.customerId); if(!c){toast(t('nothing'),'bad');return;}
   modal('✏️ '+t('cust_edit'),
-    `<div class="field"><label>${t('customer')}</label><input id="ivc_name" value="${esc(c.name||'')}"></div>
+    `<div class="field"><label>${t('customer')}</label><input id="ivc_name" value="${esc(c.name||'')}" oninput="invEditCustHits(this.value,'${c.id}')"></div>
+     <div id="ivc_hits"></div>
      <div class="field"><label>${t('phone')}</label><input id="ivc_ph" type="tel" inputmode="numeric"
        oninput="this.value=this.value.replace(/[^0-9+ ]/g,'')" value="${esc(c.phone||'')}"></div>`,
     [{label:t('cancel'),cls:'ghost',fn:()=>{closeModal();renderInvoiceForm();}},
@@ -26574,7 +26708,21 @@ function invEditCustomer(){
         toast(t('t_cust_updated')+(n?' \u00B7 '+n:''),'ok');
      }}]);
 }
-function invClearCustomer(){captureInvoiceForm();invForm.customerId=null;invForm.customerName='';invForm.phone='';renderInvoiceForm();}
+/* v859 — HIS 9 Oct (video): on bill 2852 he opened ✏️ and typed "jag" to put another
+   customer on the bill — the way Vyapar's name box works — and nothing came up. Typing a
+   name here now also lists the saved customers it matches; one tap puts that one on the
+   bill (same as Change). Typing and Save still just corrects this man's spelling. */
+function invEditCustHits(q,cid){ const box=$('#ivc_hits'); if(!box)return;
+  q=String(q||'').trim(); if(q.length<2){ box.innerHTML=''; return; }
+  const hits=custHits(q).filter(x=>x.id!==cid).slice(0,6);
+  box.innerHTML=hits.length?`<p class="hint" style="margin:4px 0 6px">${t('ivc_put_other')}</p>`
+    +hits.map(x=>custRowHTML(x,`closeModal();invPickCustomer('${x.id}')`)).join(''):''; }
+/* v861 — HIS 9 Oct: "customer ka naam cursor pe daalte hi search box khul jaana chahiye, list
+   khul jaani chahiye — ja daala to Jagannath." Tapping the name on a picked customer now does
+   what Change did, and the search box takes the cursor at once, so the saved list is open
+   before he types a letter. Same on the order, estimate and bill forms. */
+function invClearCustomer(){captureInvoiceForm();invForm.customerId=null;invForm.customerName='';invForm.phone='';renderInvoiceForm();
+  setTimeout(()=>{ const n=$('#inv_cname'); if(n)n.focus(); },80);}
 /* ══════════════ v461 — SIX SEARCHES THAT DIED ON THE LAST LINE ══════════════
    HIS 3 Sep: "customer ka naam/number search kiya to kuch result hi nahi aaya."
    Reproduced, and it is one typo repeated six times. Each of these builds its results and
@@ -26938,6 +27086,33 @@ function invRollGuess(f){
   });
   return out;
 }
+/* ══════════ v857 — RE-SAVING A BILL MOVED ITS MONEY (audit O-2 / D1) ══════════
+   Opening a bill that had one receipt and pressing Save rebuilt that receipt from the form: the
+   bill's date, the form's mode (Cash by default) and a fresh id. Seen on his book: a ₹5,000 UPI
+   advance jumped from ICICI to Cash, a ₹5,100 cash receipt moved to ICICI and was redated. Cash and
+   bank both went wrong without anyone touching money.
+   The receipt already in the book is the record. It stays exactly as it is when the amount did not
+   change; when the amount changed, the same receipt keeps its id, date, mode and account and only the
+   amount follows the form (a different mode is changed on the payment itself). */
+function billPayKeep(list, recv, date, mode, acc){
+  list=list||[];
+  recv=r2(+recv||0);
+  if(!(recv>0))return [];
+  if(list.length>1){                                   // advance + later receipts
+    const sum=r2(list.reduce((a,p)=>a+(+p.amt||0),0));
+    if(sum===recv)return list;                         // nothing changed — every receipt untouched
+    const last=list[list.length-1], nl=r2((+last.amt||0)+recv-sum);
+    if(nl>0)return list.slice(0,-1).concat([Object.assign({},last,{amt:nl,id:last.id||('pay_'+uid())})]);
+  }
+  const old=list.length===1?list[0]:null;
+  if(old && r2(+old.amt||0)===recv)return [old];                       // nothing changed — untouched
+  if(old){
+    const p=Object.assign({},old,{amt:recv});                          // same receipt: id, date, mode, account kept
+    if(!p.id)p.id='pay_'+uid();
+    return [p];
+  }
+  return [{id:'pay_'+uid(),amt:recv,date:date||todayISO(),mode:mode,acc:acc}];
+}
 function saveInvoice(){
   captureInvoiceForm();const f=invForm;
   /* v717: did the bill as SAVED already carry lines that take stock? (read before anything is written) */
@@ -27071,7 +27246,7 @@ function saveInvoice(){
      that threshold never changes, but the settings screen already promises old bills keep
      their rate (line ~2159) — a promise nothing here was keeping. Stamped once; an item
      that already carries a gstRate from an earlier save is left exactly as it was. */
-  (f.items||[]).forEach(it=>{ if(it.gstRate==null) it.gstRate=invRate((+it.price||0)/Math.max(1,+it.qty||1), it); });
+  { const _sc=invNetScale(f); (f.items||[]).forEach(it=>{ const u=invNetUnit(f,it,_sc); it.gstRate=invLineRate(f,it,_sc); it.gstBase=u; }); }   /* v859: frozen at this net price */
   saleCommit(rec);                    /* v394: it becomes a sale HERE, not before */
   clearInvDraft();   /* v211: the bill is real now, so the half-made copy goes */
   if(invForm)invForm.saved=1;
@@ -27099,8 +27274,7 @@ function saveInvoice(){
     // all money lives on the bill now: the "Received" box is the advance
     migratePayments(rec);
     if((rec.payments||[]).length<=1 && f.receivedNow!=null){
-      const recv=+f.receivedNow||0;
-      rec.payments = recv>0 ? [{amt:recv,date:f.date||todayISO(),mode:f.paymentMode,acc:payAccFor(f.paymentMode,f.acc)}] : [];
+      rec.payments=billPayKeep(rec.payments, +f.receivedNow||0, f.date||todayISO(), f.paymentMode, payAccFor(f.paymentMode,f.acc));
     }
   }
   // an order created from the billing screen has no payment of its own — take it from the bill
@@ -27110,7 +27284,7 @@ function saveInvoice(){
     if(f.customerName)rec.customerName=f.customerName;
     if(f.phone)rec.phone=f.phone;
     const recv=(f.receivedNow!=null)?(+f.receivedNow||0):0;   // blank box = advance not received yet
-    if(!(rec.payments||[]).length){ rec.payments = recv>0?[{amt:recv,date:f.date,mode:f.paymentMode,acc:payAccFor(f.paymentMode,f.acc)}]:[]; }
+    if(!(rec.payments||[]).length){ rec.payments = billPayKeep([], recv, f.date, f.paymentMode, payAccFor(f.paymentMode,f.acc)); }   /* v857: same helper, gets an id */
   }
   if(f.kind==='sale'){
     const comp=invCompute(rec.invoice);
@@ -27124,7 +27298,7 @@ function saveInvoice(){
     // never a silent auto-paid. Real payment history (e.g. split cash+UPI) is never overwritten.
     if(!((rec.payments||[]).length>1)){
       const recv=(f.receivedNow!=null)?(+f.receivedNow||0):0;
-      rec.payments=recv>0?[{amt:recv,date:f.date,mode:f.paymentMode,acc:payAccFor(f.paymentMode,f.acc)}]:[];
+      rec.payments=billPayKeep(rec.payments, recv, f.date, f.paymentMode, payAccFor(f.paymentMode,f.acc));
     }
   }
   // Split payment: record cash and online separately so Cash & Bank routes each correctly
@@ -27162,41 +27336,7 @@ function saveInvoice(){
     f._stockDone=false; if(rec.invoice)rec.invoice._stockDone=false;
   }
   // readymade items leave stock; stitched (made-to-order) items never touch stock
-  if(!f._stockDone){
-    f.items.forEach(it=>{
-      const m=DB.itemMaster.find(x=>x.id===it.masterId);
-      if(!m||m.kind!=='ready')return;
-      const sz=it.size||'';
-      /* v627: the fabric side already returned on q<=0; this side read "||1" and would have
-         taken a piece off the rack for a line he had zeroed out. */
-      const q=(it.qty===0||it.qty==='0')?0:(+it.qty||1);
-      if(q<=0)return;
-      if(sz){ if(q>readyQty(m,sz))toast(t('stk_oversell'),'bad'); readySet(m,sz,readyQty(m,sz)-q); }
-      move({dir:MV_OUT,target:'ready',itemId:m.id,size:sz,qty:q,rate:+it.rate||0,
-        reason:'sale',ref:'Invoice '+f.no,refId:f.id});
-    });
-    // fabric sold on the bill leaves stock too — meters out of the roll
-    f.items.forEach(it=>{
-      if(it.unit!=='Mtr')return;
-      let q=+it.qty||0; if(q<=0)return;
-      let th=it.thaanId?(DB.thaans||[]).find(x=>x.id===it.thaanId):null;
-      if(!th && it.fabId){ th=(DB.thaans||[]).filter(x=>x.fabId===it.fabId && thaanBal(x)>0).sort((a,b)=>thaanBal(b)-thaanBal(a))[0]; }
-      if(!th)return;
-      /* v797 — an ORDER's cloth is cut when it goes to the karigar (or from the stock screen). A metre line on that
-         order's bill for the same roll must not cut it a second time: only metres beyond what the order already took leave the roll. */
-      if(f.kind==='order'){
-        const _o=(DB.orders||[]).find(x=>x.id===f.id); let cut=0;
-        if(_o){ Object.values(_o.cloth||{}).forEach(c=>{ if(c&&c.src==='shop'&&c.thaanId===th.id)cut+=+c.mtr||0; });
-          Object.values(_o.cost||{}).forEach(c=>((c&&c.cuts)||[]).forEach(x=>{ if(x.thaanId===th.id)cut+=+x.mtr||0; })); }
-        if(cut>0){ const q2=Math.max(0,r2(q-cut)); toast(t('inv_already_cut',{m:r2(Math.min(q,cut)),s:th.serial||''}),'ok'); if(q2<=0)return; q=q2; }
-      }
-      if(q>thaanBal(th))toast(t('stk_oversell_f'),'bad');
-      th.used=r2((+th.used||0)+q);
-      move({dir:MV_OUT,target:'fab',thaanId:th.id,qty:q,rate:+it.rate||0,reason:'sale',ref:'Invoice '+f.no,refId:f.id});
-    });
-    f._stockDone=true;
-    rec.invoice._stockDone=true;
-  }
+  if(!f._stockDone && !(rec.invoice&&rec.invoice.cancelled)){ billStockOut(f,rec); }   /* v859: one function — the bill save and un-cancel both take stock through it */
   if(f.kind==='order')touchOrder(f.id);
   save();
   /* v297 — HIS 24 Aug: "bill banate hi jo popup khulta hai vo nahi chahiye, bill save ho
@@ -27486,11 +27626,51 @@ function invRowMenu(kind,id){
      <button class="btn ghost block" style="margin-bottom:8px;color:var(--bad)" onclick="closeModal();${kind==='sale'?`delSale('${jq(id)}')`:`invDelOrderBill('${kind}','${jq(id)}')`}">🗑️ ${t('inv_del_t')}</button>`,
     [{label:t('close'),cls:'ghost',fn:closeModal}]);
 }
+/* v859: what a bill takes off the shelf (readymade pieces, fabric metres). Used by the save
+   and by un-cancel, so the two can never drift. */
+function billStockOut(f,rec){
+    f.items.forEach(it=>{
+    const m=DB.itemMaster.find(x=>x.id===it.masterId);
+    if(!m||m.kind!=='ready')return;
+    const sz=it.size||'';
+    /* v627: the fabric side already returned on q<=0; this side read "||1" and would have
+       taken a piece off the rack for a line he had zeroed out. */
+    const q=(it.qty===0||it.qty==='0')?0:(+it.qty||1);
+    if(q<=0)return;
+    if(sz){ if(q>readyQty(m,sz))toast(t('stk_oversell'),'bad'); readySet(m,sz,readyQty(m,sz)-q); }
+    move({dir:MV_OUT,target:'ready',itemId:m.id,size:sz,qty:q,rate:+it.rate||0,
+      reason:'sale',ref:'Invoice '+f.no,refId:f.id});
+  });
+  // fabric sold on the bill leaves stock too — meters out of the roll
+  f.items.forEach(it=>{
+    if(it.unit!=='Mtr')return;
+    let q=+it.qty||0; if(q<=0)return;
+    let th=it.thaanId?(DB.thaans||[]).find(x=>x.id===it.thaanId):null;
+    if(!th && it.fabId){ th=(DB.thaans||[]).filter(x=>x.fabId===it.fabId && thaanBal(x)>0).sort((a,b)=>thaanBal(b)-thaanBal(a))[0]; }
+    if(!th)return;
+    /* v797 — an ORDER's cloth is cut when it goes to the karigar (or from the stock screen). A metre line on that
+       order's bill for the same roll must not cut it a second time: only metres beyond what the order already took leave the roll. */
+    if(f.kind==='order'){
+      const _o=(DB.orders||[]).find(x=>x.id===f.id); let cut=0;
+      if(_o){ Object.values(_o.cloth||{}).forEach(c=>{ if(c&&c.src==='shop'&&c.thaanId===th.id)cut+=+c.mtr||0; });
+        Object.values(_o.cost||{}).forEach(c=>((c&&c.cuts)||[]).forEach(x=>{ if(x.thaanId===th.id)cut+=+x.mtr||0; })); }
+      if(cut>0){ const q2=Math.max(0,r2(q-cut)); toast(t('inv_already_cut',{m:r2(Math.min(q,cut)),s:th.serial||''}),'ok'); if(q2<=0)return; q=q2; }
+    }
+    if(q>thaanBal(th))toast(t('stk_oversell_f'),'bad');
+    th.used=r2((+th.used||0)+q);
+    move({dir:MV_OUT,target:'fab',thaanId:th.id,qty:q,rate:+it.rate||0,reason:'sale',ref:'Invoice '+f.no,refId:f.id});
+  });
+  f._stockDone=true;
+  rec.invoice._stockDone=true;
+}
 function invCancelAsk(kind,id){
   const rec=invRecOf(kind,id); if(!rec||!rec.invoice)return;
   if(invIsCancelled(rec)){                      // already cancelled → offer to bring it back
     confirmModal('↩️ '+t('inv_uncancel_t'), t('inv_uncancel_q',{n:esc(rec.invoice.no||'')}),
       ()=>{ delete rec.invoice.cancelled; delete rec.invoice.cancelledOn;
+            /* v859: the goods go out again — they came back to stock when it was cancelled */
+            if(rec.invoice._stockBack){ delete rec.invoice._stockBack;
+              try{ billStockOut({kind, id:rec.id, no:rec.invoice.no, items:rec.invoice.items||[], _stockDone:false}, rec); }catch(e){} }
             rec.log=rec.log||[]; rec.log.push({id:uid(),ts:new Date().toISOString(),text:t('inv_uncancelled'),voiceId:null});
             save(); closeModal(); refreshBehind();
             try{ openInvoicePreview(kind,id); }catch(e){}
@@ -27504,8 +27684,11 @@ function invCancelAsk(kind,id){
       [{label:t('close'),cls:'ghost',fn:()=>closeModal()}]);
     return;
   }
-  confirmModal('🚫 '+t('inv_cancel_t'), t('inv_cancel_q',{n:esc(rec.invoice.no||'')}),
+  confirmModal('🚫 '+t('inv_cancel_t'), t('inv_cancel_q',{n:esc(rec.invoice.no||'')})+((DB.moves||[]).some(m=>m.refId===rec.id&&m.reason==='sale')?' '+t('inv_cancel_stock'):''),
     ()=>{ rec.invoice.cancelled=1; rec.invoice.cancelledOn=todayISO();
+          /* v859 — HIS 9 Oct: "cancel bill ka maal of course stock mein wapas aayega" */
+          { const _bm=m=>m.reason==='sale'||m.reason==='sales_return';
+            if((DB.moves||[]).some(m=>m.refId===rec.id&&_bm(m))){ revertStockByRef(rec.id,_bm); rec.invoice._stockDone=false; rec.invoice._stockBack=1; } }
           rec.log=rec.log||[]; rec.log.push({id:uid(),ts:new Date().toISOString(),text:t('inv_cancelled'),voiceId:null});
           save(); closeModal(); refreshBehind();
           try{ openInvoicePreview(kind,id); }catch(e){}
@@ -28020,7 +28203,10 @@ function delSale(id){
   }
   const nRet=(DB.salesReturns||[]).filter(r=>r.saleId===id).length;
   { const _r=(DB.sales||[]).find(x=>x.id===id)||{}; _delWhat=delWhat((_r.invoice||{}).no,_r.customerName,orderTotal?orderTotal(_r):0); }
-  delAsk(nRet?t('del_with_returns',{n:nRet}):t('confirm_del_msg'),()=>{
+  /* v859 — HIS 9 Oct: a number left empty in the middle must be warned about, here too */
+  let _gap=''; { const _no=String((((DB.sales||[]).find(x=>x.id===id)||{}).invoice||{}).no||''); const _m=_no.match(/(\d+)\s*$/), _d=_m?parseInt(_m[1],10):0;
+    if(_d && _no.includes(invSeries())) _gap='<br><br>'+(_d===invSeen()?t('inv_del_num_back',{n:esc(_no)}):t('inv_del_num_gap',{n:esc(_no)})); }
+  delAsk((nRet?t('del_with_returns',{n:nRet}):t('confirm_del_msg'))+_gap,()=>{
   unwindReturnsFor('sale',id);
   revertStockByRef(id);                       // put sold pieces / meters back in stock
   DB.sales=(DB.sales||[]).filter(x=>x.id!==id);save();closeSheet();renderInvoices();toast(t('t_deleted'));});}
@@ -28050,15 +28236,15 @@ function buildInvoiceText(rec,inv){
   s+='\n';
   const G=!!(DB.shopInfo&&DB.shopInfo.showGst);   // same toggle as the printed bill
   (inv.items||[]).forEach(it=>{const qty=+it.qty||1;const p=+it.price||0;
-    s+=`${it.label}${qty>1?' x'+qty:''} — ${money(p)}${G?` (GST ${invRate(p/qty,it)}%)`:''}${it.includes?'\n  Includes: '+it.includes:''}\n`;});
+    s+=`${it.label}${qty>1?' x'+qty:''} — ${money(p)}${G?` (GST ${invLineRate(inv,it)}%)`:''}${it.includes?'\n  Includes: '+it.includes:''}\n`;});
   if(comp.discount>0)s+=`\nGross: ${money(comp.gross)}\nDiscount: −${money(comp.discount)}\n`;
   if(comp.courier>0)s+=`Courier: +${money(comp.courier)}\n`;
-  if(G){
-    s+=`\nTaxable: ${money(comp.taxable)}\n`;
-    if(inv.interstate)s+=`IGST: ${money(comp.igst)}\n`; else s+=`CGST: ${money(comp.cgst)}  SGST: ${money(comp.sgst)}\n`;
-  }
-  s+=`\nGrand Total: ${money(comp.total)}\nReceived: ${money(orderReceived(rec))}\nBalance: ${money(orderBaaki(rec))}\n`;
+  /* v861: totals first, the tax inside them after — never between Sub Total and Grand Total */
+  const _xr=r2(orderReceived(rec)-comp.total);
+  s+=`\nGrand Total: ${money(comp.total)}${G?' (incl. GST)':''}\nReceived: ${money(orderReceived(rec))}\n`+(_xr>0.5?`Extra received: ${money(_xr)}\n`:`Balance: ${money(orderBaaki(rec))}\n`);
   s+=`Payment Mode: ${inv.paymentMode||'Cash'}\n`;
+  if(G){ const _tr=invTaxByRate(inv); if(_tr.length){ s+=`\nGST included:\n`;
+    _tr.forEach(x=>{ s+=`${x.r}% on ${money(x.taxable)} — `+(inv.interstate?`IGST ${money(x.igst)}`:`CGST ${money(x.cgst)} + SGST ${money(x.sgst)}`)+`\n`; }); } }
   if(prevBal>0)s+=`\nPrevious Balance: ${money(prevBal)}\nCurrent Balance: ${money(currBal)}\n`;
   if(orderBaaki(rec)>0)payDetailsText().forEach(x=>{s+=x+'\n';});   // how to pay, when money is still due
   if(rec.notes)s+=`\nNotes: ${rec.notes}\n`;
@@ -28110,7 +28296,8 @@ function buildInvoiceHTML(rec,inv){
   const comp=invCompute(inv),shop=DB.shopInfo||{};
   const G=!!shop.showGst;   // GST columns/summary shown only when the officer-toggle is ON
   const sm=rec.salesmanId?salesmenAll().find(x=>x.id===rec.salesmanId):null;
-  const rows=(inv.items||[]).map((it,i)=>{const p=+it.price||0,qty=+it.qty||1,unitP=p/qty,r=invRate(unitP,it),base=r2(p/(1+r/100)),gstAmt=r2(p-base);
+  const _scP=invNetScale(inv);   /* v861: a line's GST is on its price after the bill discount — same as the summary box */
+  const rows=(inv.items||[]).map((it,i)=>{const p=+it.price||0,qty=+it.qty||1,unitP=p/qty,r=invLineRate(inv,it,_scP),base=r2(p*_scP/(1+r/100)),gstAmt=r2(p*_scP-base);
     return `<tr>
       <td class="c">${i+1}</td>
       <td><span class="inm">${esc(it.label)}</span>${it.includes?`<div class="incl">+ ${esc(it.includes)}</div>`:''}</td>
@@ -28124,9 +28311,10 @@ function buildInvoiceHTML(rec,inv){
   const prevBal=customerOutstanding(rec.customerId,recKindOf(rec),rec.id);
   const currBal=r2(prevBal+baaki);
   const stateLine=gstState(shop.gstin);
-  const taxRow=inv.interstate
-    ? `<tr><td class="r">${money(comp.taxable)}</td><td class="r" colspan="2">${money(comp.igst)}</td><td class="r b">${money(comp.igst)}</td></tr>`
-    : `<tr><td class="r">${money(comp.taxable)}</td><td class="r">${money(comp.cgst)}</td><td class="r">${money(comp.sgst)}</td><td class="r b">${money(comp.cgst+comp.sgst)}</td></tr>`;
+  /* v861: one row per GST rate, with the rate named */
+  const taxRow=invTaxByRate(inv).map(x=>inv.interstate
+    ? `<tr><td>${x.r}%</td><td class="r">${money(x.taxable)}</td><td class="r" colspan="2">${money(x.igst)}</td><td class="r b">${money(x.tax)}</td></tr>`
+    : `<tr><td>${x.r}%</td><td class="r">${money(x.taxable)}</td><td class="r">${money(x.cgst)}</td><td class="r">${money(x.sgst)}</td><td class="r b">${money(x.tax)}</td></tr>`).join('');
   const contact=[shop.phone?'Ph: '+esc(shop.phone):'',shop.email?'Email: '+esc(shop.email):''].filter(Boolean).join('&nbsp;&nbsp;|&nbsp;&nbsp;');
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Invoice ${esc(inv.no)}</title><style>
     *{margin:0;padding:0;box-sizing:border-box}
@@ -28225,9 +28413,9 @@ function buildInvoiceHTML(rec,inv){
     </table>
     <div class="sumwrap">
       <div class="lft">
-        ${G?`<div class="cap">Tax Summary</div>
+        ${G?`<div class="cap">GST summary (included in the prices)</div>
         <table class="tax">
-          <tr><th>Taxable</th><th>${inv.interstate?'IGST':'CGST'}</th><th>${inv.interstate?'&nbsp;':'SGST'}</th><th>Total Tax</th></tr>
+          <tr><th>Rate</th><th>Taxable</th><th>${inv.interstate?'IGST':'CGST'}</th><th>${inv.interstate?'&nbsp;':'SGST'}</th><th>Total Tax</th></tr>
           ${taxRow}
         </table>`:''}
       </div>
@@ -28238,7 +28426,8 @@ function buildInvoiceHTML(rec,inv){
           ${comp.courier>0?`<tr><td class="muted">Courier</td><td class="r">+ ${money(comp.courier)}</td></tr>`:''}
           <tr class="grand"><td>Grand Total</td><td class="r">${money(comp.total)}</td></tr>
           <tr><td class="muted">Received</td><td class="r">${money(received)}</td></tr>
-          <tr class="bal"><td>Balance (this bill)</td><td class="r">${money(baaki)}</td></tr>
+          ${r2(received-comp.total)>0.5?`<tr class="bal"><td style="color:#c0392b">Extra received</td><td class="r" style="color:#c0392b">${money(r2(received-comp.total))}</td></tr>`
+            :`<tr class="bal"><td>Balance (this bill)</td><td class="r">${money(baaki)}</td></tr>`}
           ${prevBal>0?`<tr><td class="muted">Previous Balance</td><td class="r">${money(prevBal)}</td></tr>
           <tr class="bal"><td>Current Balance</td><td class="r">${money(currBal)}</td></tr>`:''}
         </table>
@@ -28339,24 +28528,33 @@ function buildInvoiceCanvas(rec,inv,noQR){
      not change by a rupee. */
   /* v465: invCompute returns taxable / cgst / sgst / igst — those exact names, read from
      the same engine the HTML bill and the GST report read, so no third calculation exists. */
+  /* v861 — HIS 9 Oct: the customer read Taxable/CGST/SGST between Sub Total and Grand Total
+     as "GST added to my rate". The totals now carry only what he pays; the tax that is
+     already inside the price sits in its own GST summary box further down. */
   const _tax=r2((+comp.cgst||0)+(+comp.sgst||0)+(+comp.igst||0));
-  if(_G && _tax>0){
-    L.push({t:'Taxable Value',s:15,c:'#666',right:money(comp.taxable),rightS:15});
-    if(+comp.igst>0)L.push({t:'IGST',s:15,c:'#666',right:money(comp.igst),rightS:15});
-    else { L.push({t:'CGST',s:15,c:'#666',right:money(comp.cgst),rightS:15});
-           L.push({t:'SGST',s:15,c:'#666',right:money(comp.sgst),rightS:15}); }
-  }
   L.push({t:'Grand Total',s:24,b:1,c:'#111',right:money(comp.total),rightS:24,rightB:1});
+  if(_G && _tax>0)L.push({t:'(Prices include GST)',s:13,c:'#777',italic:1});
   L.push({gap:6});
   L.push({t:'Received',s:16,c:'#444',right:money(received),rightS:16});
   /* v572: the one number the customer looks for. Given the same yellow band as the order
-     number and delivery date when money is still owed, so all three read together. */
-  L.push({t:'Balance Due',s:baaki>0?21:19,b:1,c:baaki>0?'#c0392b':'#2e7d32',
+     number and delivery date when money is still owed, so all three read together.
+     v861: more received than the bill is never shown as ₹0 — it says how much extra. */
+  const _extra=r2((+received||0)-(+comp.total||0));
+  if(_extra>0.5) L.push({t:'Extra received',s:19,b:1,c:'#c0392b',hl:'#fff3cd',right:money(_extra),rightS:19,rightB:1});
+  else L.push({t:'Balance Due',s:baaki>0?21:19,b:1,c:baaki>0?'#c0392b':'#2e7d32',
     hl:baaki>0?'#fff3cd':null, right:money(baaki),rightS:baaki>0?21:19,rightB:1});
   if(prevBal>0){L.push({gap:6});
     L.push({t:'Previous Balance',s:15,c:'#666',right:money(prevBal),rightS:15});
     L.push({t:'Current Balance',s:16,b:1,c:'#444',right:money(currBal),rightS:16,rightB:1});}
   L.push({t:'Payment Mode: '+(inv.paymentMode||'Cash'),s:15,c:'#555'});
+  if(_G && _tax>0){                                  /* v861: the legal part, on its own */
+    L.push({rule:1,gap:12});
+    L.push({t:'GST summary (included in the prices above)',s:14,b:1,c:'#555'});
+    invTaxByRate(inv).forEach(x=>{
+      L.push({t:'GST '+x.r+'% · Taxable '+money(x.taxable),s:13,c:'#666',
+        right:inv.interstate?('IGST '+money(x.igst)):('CGST '+money(x.cgst)+' · SGST '+money(x.sgst)),rightS:13});
+    });
+  }
   L.push({rule:1,gap:14});
   if(shop.terms){
     L.push({t:'Terms & Conditions',s:15,b:1,c:'#555'});
@@ -28821,7 +29019,7 @@ async function renderSmpPhotos(){
     const w=document.createElement('div'); w.className='thumb-wrap';
     w.innerHTML=`<img class="thumb" src="${url||''}"><div class="thumb-x">✕</div>`;
     w.querySelector('.thumb').onclick=()=>viewPhoto(url);
-    w.querySelector('.thumb-x').onclick=async()=>{await mDel(id);_smp.photos=(_smp.photos||[]).filter(x=>x!==id);renderSmpPhotos();};
+    w.querySelector('.thumb-x').onclick=async()=>{mediaDropLater(id);_smp.photos=(_smp.photos||[]).filter(x=>x!==id);renderSmpPhotos();};
     el.appendChild(w); }
 }
 function sampleSave(){
@@ -30185,7 +30383,7 @@ async function renderPurchPhotos(){const el=$('#pu_photos');if(!el)return;el.inn
   for(const id of(purchForm.photos||[])){const url=await mURL(id);const w=document.createElement('div');w.className='thumb-wrap';
     w.innerHTML=`<img class="thumb" src="${url||''}"><div class="thumb-x">✕</div>`;
     w.querySelector('.thumb').onclick=()=>viewPhoto(url);
-    w.querySelector('.thumb-x').onclick=async()=>{await mDel(id);purchForm.photos=purchForm.photos.filter(x=>x!==id);renderPurchPhotos();};
+    w.querySelector('.thumb-x').onclick=async()=>{mediaDropLater(id);purchForm.photos=purchForm.photos.filter(x=>x!==id);renderPurchPhotos();};
     el.appendChild(w);}}
 
 /* ============ PURCHASE: one-screen entry ============
@@ -31392,10 +31590,10 @@ function purRateAsk(off,purId){
         if(typeof renderPurchases==='function'){ try{ renderPurchases(); }catch(e){} } }}]);
 }
 function purMatchThaan(it,key){
-  let th=(DB.thaans||[]).find(x=>x._key===key); if(th)return th;
+  let th=(DB.thaans||[]).find(x=>x._key===key&&!x.cancelled); if(th)return th;   /* v857: a cancelled roll is never re-used */
   const n=v=>String(v||'').trim().toLowerCase().replace(/\s+/g,' ');
   th=(DB.thaans||[]).find(x=>{
-    if(x._key)return false;
+    if(x._key||x.cancelled)return false;
     const nm=n((FI(x.fabId)||{}).name)||n(x.name);
     const want=n(it.label);
     const bySerial=n(x.serial)&&n(x.serial)===want;     // opening stock often named by serial
@@ -31960,7 +32158,7 @@ function poRender(){
 function poSupSearch(q){
   sheetAt(poSupSearch);const box=$('#poSupResults'); if(!box)return;
   q=String(q||'').trim().toLowerCase();
-  let list=pastSuppliers(); if(q)list=list.filter(x=>x.name.toLowerCase().includes(q)||String(x.phone||'').includes(q));
+  let list=pastSuppliers(); if(q)list=list.map(x=>({x,sc:(String(x.phone||'').includes(q)?1:nameLike(q,x.name))})).filter(o=>o.sc<9).sort((o,p)=>o.sc-p.sc).map(o=>o.x);   /* v861: same search as the purchase supplier box */
   list=list.slice(0,6);
   const esc1=v=>String(v||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
   box.innerHTML=sugHead('saved_suppliers','poNewSup()')
@@ -32174,11 +32372,11 @@ function savePurchaseReturn(){
   lines.forEach(l=>{
     const q=+l.ret||0; if(q<=0)return;
     if(l.thaanId){ const th=(DB.thaans||[]).find(x=>x.id===l.thaanId);
-      if(th){ th.mtr=r2(Math.max(0,(+th.mtr||0)-q));
+      if(th){ th.mtr=r2((+th.mtr||0)-q);   /* v857: no floor — its undo adds q back, a floor made stock grow */
         move({dir:MV_OUT,target:'fab',thaanId:th.id,qty:q,rate:l.rate,reason:'purchase_return',ref:no,refId:rec.id}); } }
     else if(l.masterId){ const m=(DB.itemMaster||[]).find(x=>x.id===l.masterId);
       const size=(l.colour||'').trim()||'-';
-      if(m){ readySet(m,size,Math.max(0,readyQty(m,size)-q));
+      if(m){ readySet(m,size,readyQty(m,size)-q);   /* v857: negative shown, never clamped */
         move({dir:MV_OUT,target:'ready',itemId:m.id,size,qty:q,rate:l.rate,reason:'purchase_return',ref:no,refId:rec.id}); } }
   });
   if(_pret.refund && sp.incl>0){
@@ -32370,7 +32568,7 @@ function plFigures(from,to){
       const price=+l.price||0; if(!price)return;
       let rate=5;
       const it=(sv&&sv.invoice&&(sv.invoice.items||[])[l.idx])||null;
-      if(it)rate=invRate((+it.price||0)/(+it.qty||1), it);
+      if(it)rate=invLineRate(sv.invoice,it);
       retVal=r2(retVal+price);
       retGst=r2(retGst+r2(price-price/(1+rate/100)));
     });
@@ -33651,7 +33849,7 @@ function gstFigures(from,to){
       out.total=r2(out.total+c.total); out.n++;
       /* rate-wise, read off the same per-line rule the bill itself used */
       (x.inv.items||[]).forEach(it=>{
-        const p=+it.price||0, q=+it.qty||1, r=invRate(p/q,it);
+        const p=+it.price||0, q=+it.qty||1, r=invLineRate(x.inv,it);
         const scale=c.gross>0?(c.gross-c.discount)/c.gross:1;
         const net=r2(p*scale), base=r2(net/(1+r/100)), tax=r2(net-base);
         out.byRate[r]=out.byRate[r]||{taxable:0,tax:0};
@@ -33670,7 +33868,7 @@ function gstFigures(from,to){
       const price=+l.price||0; if(!price)return;
       let rate=5;
       const it=(sv&&sv.invoice&&(sv.invoice.items||[])[l.idx])||null;
-      if(it)rate=invRate((+it.price||0)/(+it.qty||1), it);
+      if(it)rate=invLineRate(sv.invoice,it);
       const base=r2(price/(1+rate/100)), tax=r2(price-base);
       out.taxable=r2(out.taxable-base); out.total=r2(out.total-price);
       if(inter)out.igst=r2(out.igst-tax);
@@ -36096,11 +36294,11 @@ function payGuard(rec,opt){
      <p class="hint" style="margin-top:8px">${opt.how}</p>`, acts);
   return true;
 }
-function delOrder(id){
+function delOrder(id,forced){
   const _o0=DB.orders.find(x=>x.id===id);
-  if(payGuard(_o0,{msg:(n,amt)=>t('del_ord_pay',{no:esc(_o0.orderNo||''),n:n,amt:amt}),
+  if(!forced && payGuard(_o0,{msg:(n,amt)=>t('del_ord_pay',{no:esc(_o0.orderNo||''),n:n,amt:amt}),
                    how:t('del_ord_pay_how'), open:()=>openDetail(id),
-                   force:()=>{ _o0.payments=[]; save(); delOrder(id); }}))return;
+                   force:()=>{ delOrder(id,true); }}))return;   /* v857: payments are cleared inside, after the snapshot Undo needs */
   _delWhat=delWhat('#'+onoLabel(_o0||{}),(_o0||{}).customerName,orderTotal?orderTotal(_o0||{}):0);
   delAsk(t('confirm_del_msg'),async()=>{
   const i=DB.orders.findIndex(x=>x.id===id); if(i<0)return;
@@ -36110,9 +36308,22 @@ function delOrder(id){
      wiped only once the undo window has closed. */
   const media=[].concat(o.photos||[], (o.log||[]).map(e=>e.voiceId), (o.voiceNotes||[]).map(v=>v.voiceId),
     ...Object.values(o.itemPhotos||{}), ...Object.values(o.itemVoice||{}).map(a=>a.map(v=>v.voiceId))).filter(Boolean);
+  /* v857 O-3/K-4: Undo used to bring the order back without its payments and without the
+     cloth cut for it. Everything the delete touches is copied first and put back on Undo. */
+  const _pays=JSON.parse(JSON.stringify(o.payments||[]));
+  const _mv=(DB.moves||[]).filter(m=>m.refId===id);
+  const _thIds=new Set(_mv.map(m=>m.thaanId).filter(Boolean)), _rmIds=new Set(_mv.map(m=>m.itemId).filter(Boolean));
+  const _th=(DB.thaans||[]).filter(x=>_thIds.has(x.id)).map(x=>[x,JSON.parse(JSON.stringify(x))]);
+  const _rm=(DB.itemMaster||[]).filter(x=>_rmIds.has(x.id)).map(x=>[x,JSON.parse(JSON.stringify(x.stk||{}))]);
+  if(forced)o.payments=[];
   revertStockByRef(id);                       // put cut fabric / billed stock back
   DB.orders.splice(i,1); touchOrder(id); save(); closeSheet(); go('orders');
   undoOffer(t('t_deleted'), ()=>{
+    o.payments=_pays;
+    _th.forEach(([x,c])=>{ Object.keys(x).forEach(k=>delete x[k]); Object.assign(x,c); });
+    _rm.forEach(([x,c])=>{ x.stk=c; });
+    const _have=new Set((DB.moves||[]).map(m=>m.id));
+    DB.moves=(DB.moves||[]).concat(_mv.filter(m=>!m.id||!_have.has(m.id)));
     DB.orders.splice(Math.min(i,DB.orders.length),0,o); touchOrder(id); save(); go('orders'); openDetail(id);
   });
   setTimeout(async()=>{ if(DB.orders.some(x=>x.id===id))return;   // he took it back
@@ -36257,6 +36468,22 @@ function setItemKarAmt(oid,gid,v){
   if(String(v).trim()==='')delete o.karAmt[gid]; else o.karAmt[gid]=+v||0;
   save();
 }
+/* v857 K-5: one way to close a finished leg. A piece that came back from one karigar and
+   then goes to another keeps the first man's earning as a closed leg (o.jobs). The issue
+   screen did this; the single hand-over from the order did not, so his earning moved to
+   the new man. Both doors now call this. Returns true when a leg was closed. */
+function karCloseLeg(o,gid){
+  const prev=(o.assign&&o.assign[gid])||'';
+  const prevRecv=karRecvDate(o,gid);
+  if(!(prev&&prevRecv))return false;
+  o.jobs=o.jobs||{}; o.jobs[gid]=o.jobs[gid]||[];
+  o.jobs[gid].push({kid:prev,issued:(o.issued&&o.issued[gid])||'',recv:prevRecv,
+    amt:karRateFor(o,gid), kind:(o.karKind&&o.karKind[gid])||'silai'});
+  if(o.recv)delete o.recv[gid];
+  if(o.karAmt)delete o.karAmt[gid];
+  if(o.karExtra)delete o.karExtra[gid];   // the extra was paid inside the closed leg
+  return true;
+}
 function setItemKarigar(oid,gid,kid){const o=DB.orders.find(x=>x.id===oid);if(!o)return;
   if(kid==='__new__'){ _karAfterAdd={oid,gid}; karigarEdit(); return; }
   o.assign=o.assign||{};
@@ -36266,8 +36493,10 @@ function setItemKarigar(oid,gid,kid){const o=DB.orders.find(x=>x.id===oid);if(!o
      issued the other way read properly. One handover, one record, whichever door it came
      through. Stitching is assumed here because that is what a hand-over from the order
      screen is; embroidery is chosen on the issue screen, which has the chips. */
+  if(kid===(o.assign[gid]||'')){ return; }          // v857: same man picked again — nothing to change
+  const _closed=karCloseLeg(o,gid);                 // v857 K-5: a received piece keeps its earning
   if(kid){ o.assign[gid]=kid;
-    o.issued=o.issued||{}; if(!o.issued[gid])o.issued[gid]=todayISO();
+    o.issued=o.issued||{}; if(_closed||!o.issued[gid])o.issued[gid]=todayISO();
     o.karKind=o.karKind||{}; if(!o.karKind[gid])o.karKind[gid]='silai';
   } else { delete o.assign[gid]; }
   touchOrder(o.id);
@@ -37332,8 +37561,10 @@ function karJobsCalc(kid){
    who is still owed — would become the one report he could not trust.
    So a settled old payment carries its own work value with it. The two cancel, the balance
    sits at zero, which is the truth, and the ledger still shows what was paid and when. */
-function karPastWork(kid){
-  return r2((DB.karigarPays||[]).filter(p=>p.karigarId===kid)
+function karPastWork(kid,asOf){
+  /* v858 K-10: old work settled through a payment counts from that payment's date — same
+     as the payment itself in karPaid. On a past closing day it used to count already. */
+  return r2((DB.karigarPays||[]).filter(p=>p.karigarId===kid && (!asOf || !p.date || String(p.date)<=asOf))
     .reduce((s,p)=>s+(+p.pastWork||0),0));
 }
 /* ══════════════ v679 — THE THIRD PLACE THE SHEET COULD SEE TOMORROW ══════════════
@@ -37346,7 +37577,7 @@ function karPastWork(kid){
    payables list - this is the old function, unchanged. */
 function karEarned(kid,asOf){
   const jobs=karJobs(kid).filter(j=>!asOf || !j.date || String(j.date)<=asOf);
-  return r2(jobs.reduce((s,j)=>s+(+j.amt||0),0)+karPastWork(kid));
+  return r2(jobs.reduce((s,j)=>s+(+j.amt||0),0)+karPastWork(kid,asOf));
 }
 function karPays(kid){ return (DB.karigarPays||[]).filter(p=>p.karigarId===kid)
   .sort((a,b)=>String(b.date).localeCompare(String(a.date))); }
@@ -37706,15 +37937,7 @@ function kiApply(kid,mode){
     const [oid,gid]=key.split('~');
     const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
     if(mode==='give'){
-      const prev=(o.assign&&o.assign[gid])||'';
-      const prevRecv=karRecvDate(o,gid);
-      if(prev && prevRecv){                       // close the finished leg before reassigning
-        o.jobs=o.jobs||{}; o.jobs[gid]=o.jobs[gid]||[];
-        o.jobs[gid].push({kid:prev,issued:(o.issued&&o.issued[gid])||'',recv:prevRecv,
-          amt:karRateFor(o,gid), kind:(o.karKind&&o.karKind[gid])||'silai'});
-        if(o.recv)delete o.recv[gid];
-        if(o.karAmt)delete o.karAmt[gid];
-      }
+      karCloseLeg(o,gid);                         // close the finished leg before reassigning
       o.assign=o.assign||{}; o.assign[gid]=kid; touchOrder(o.id);
       o.issued=o.issued||{}; o.issued[gid]=d;
       o.karKind=o.karKind||{}; o.karKind[gid]=_kiKind||'silai';   /* v422 */
@@ -38547,7 +38770,8 @@ function karPayEdit(pid){
 function karPayEntry(kid,ex){
   sheetAt(karPayEntry,null,arguments);
   _kpEdit = ex ? _kpEdit : null;                 // opening a fresh entry clears any edit
-  const bal=r2(karBalance(kid)+(ex?(+ex.amt||0)+(+ex.settled||0):0));
+  /* v857 K-6: an old payment's own past-work figure comes out with it, or an edit swings the balance */
+  const bal=r2(karBalance(kid)+(ex?(+ex.amt||0)+(+ex.settled||0)-(+ex.pastWork||0):0));
   $('#sheet').innerHTML=`<div class="grip"></div>
     <div class="kv" style="margin-bottom:10px"><h2 style="margin:0">💰 ${t('kb_pay')}</h2><button class="btn sm ghost" onclick="closeSheet()">✕</button></div>
     <p class="hint" style="margin-bottom:12px">${t('kb_pay_sub',{a:money(bal)})}</p>
@@ -38561,7 +38785,7 @@ function karPayEntry(kid,ex){
     <div class="card" style="padding:12px 14px;margin-top:12px">
       <div class="kv"><span class="hint">${t('kb_short')}</span><b id="kpShort">${money(bal)}</b></div>
       <label style="display:flex;align-items:flex-start;gap:8px;margin-top:10px;cursor:pointer">
-        <input type="checkbox" id="kp_settle" style="width:20px;height:20px;margin-top:2px">
+        <input type="checkbox" id="kp_settle" ${ex&&(+ex.settled||0)!==0?'checked':''} style="width:20px;height:20px;margin-top:2px">
         <span><b style="font-size:14px">${t('kb_settle')}</b><br><span class="hint" style="font-size:12px">${t('kb_settle_hint')}</span></span></label>
     </div>
     <div class="field" style="margin-top:10px"><label>${t('stk_note')}</label><input id="kp_note" value="${ex?esc(ex.note||''):''}" placeholder="${t('kb_note_ph')}"></div>
@@ -38660,14 +38884,28 @@ function karPayUnhook(pay){
     return {removed:1, ambiguous:false};
   }
   if(karPayIsExp(pay.id)||(pay.id&&String(pay.id).indexOf('kp:')===0))return {removed:0, ambiguous:false}; // row already gone: never guess by date+amount
+  /* v858 K-11: the old-payment fallback also has to be THIS karigar's row — date+amount alone
+     could take another man's payment of the same figure on the same day. */
+  const _kn=String(((DB.karigars||[]).find(k=>k.id===pay.karigarId)||{}).name||'').trim().toLowerCase();
   const hits=(DB.ledger||[]).filter(l=>l.refKind==='karigar_pay'
-    && l.date===pay.date && r2(l.amt)===r2(pay.amt));
+    && l.date===pay.date && r2(l.amt)===r2(pay.amt)
+    && (l.partyId ? l.partyId===pay.karigarId : String(l.party||'').trim().toLowerCase()===_kn));
   if(hits.length>1) return {removed:0, ambiguous:true, count:hits.length};
   if(hits.length===1){
     DB.ledger=(DB.ledger||[]).filter(l=>l.id!==hits[0].id);
     return {removed:1, ambiguous:false};
   }
   return {removed:0, ambiguous:false};
+}
+/* v857 K-6: what a settlement is worth after an edit. A settled payment closed one figure:
+   paid + settled. Editing it keeps that same figure closed — it is not re-worked against
+   today's balance, which by now holds work done after that day. Unticked = no settlement.
+   A payment that was not settled before and is ticked now closes today's balance, as new. */
+function karPaySettled(old,settle,short,amt){
+  if(!settle)return 0;
+  const was=+((old&&old.settled)||0);
+  if(was!==0)return r2((+old.amt||0)+was-amt);
+  return short!==0?short:0;
 }
 function karPaySave(kid,bal){
   const amt=+($('#kp_amt')||{}).value||0;
@@ -38695,16 +38933,21 @@ function karPaySave(kid,bal){
   if(_kpEdit && karPayIsExp(_kpEdit)){           /* v790 K-3: an Expense-born payment is edited IN PLACE on its own expense row */
     const lid=String(_kpEdit).slice(4), row=(DB.ledger||[]).find(l=>l.id===lid);
     if(row){
+      const m0=(DB.karigarPays||[]).find(x=>x.id===_kpEdit), was={amt:m0?m0.amt:row.amt, settled:m0?m0.settled:0};   /* v857: before the sync changes it */
       row.date=date; row.amt=r2(amt); row.acc=acc; row.note=(($('#kp_note')||{}).value||'').trim();
       expSyncKarigar(lid);
-      const m=(DB.karigarPays||[]).find(x=>x.id===_kpEdit); if(m&&settle&&short!==0)m.settled=short;
+      const m=(DB.karigarPays||[]).find(x=>x.id===_kpEdit);
+      if(m)m.settled=karPaySettled(was,settle,short,amt);   /* v857 */
       _kpEdit=null; save(); karigarLedger(kid);
       toast(settle&&short!==0?t(short>0?'kb_settled_ok':'kb_settled_more',{a:money(Math.abs(short))}):t('t_saved'),'ok'); return;
     }
   }
+  let _keep=null;                                /* v857 K-6: what the edited payment carries over */
   if(_kpEdit){                                   // correcting an existing payment
     const old=(DB.karigarPays||[]).find(x=>x.id===_kpEdit);
     if(old){
+      const pw=+old.pastWork||0;
+      _keep={id:old.id, pastWork: pw ? (r2(pw)===r2(+old.amt||0) ? r2(amt) : pw) : 0, settled:karPaySettled(old,settle,short,amt)};
       const r=karPayUnhook(old);                 /* v454 */
       if(r.ambiguous){ toast(t('kb_amb_edit',{n:r.count}),'bad'); return; }
       DB.karigarPays=DB.karigarPays.filter(x=>x.id!==_kpEdit);
@@ -38721,8 +38964,10 @@ function karPaySave(kid,bal){
      the id of the row it created, the same way the Expenses route keeps its exp: reference,
      and delete and edit follow that one thread. Nothing else about the payment changes. */
   const _lgId=uid();
-  DB.karigarPays.push({id:uid(),karigarId:kid,date,amt:r2(amt),
-    settled: (settle&&short!==0)?short:0,                     // negotiated off — closes the balance honestly
+  const _st=_keep?_keep.settled:((settle&&short!==0)?short:0);
+  DB.karigarPays.push({id:(_keep&&_keep.id)||uid(),karigarId:kid,date,amt:r2(amt),   /* v857: an edit keeps its id */
+    settled: _st,                                // negotiated off — closes the balance honestly
+    ...(_keep&&_keep.pastWork?{pastWork:_keep.pastWork}:{}),
     lgId:_lgId,                                  /* v454: this payment's own ledger row */
     acc,note:(($('#kp_note')||{}).value||'').trim()});
   DB.ledger=DB.ledger||[];
@@ -38730,7 +38975,7 @@ function karPaySave(kid,bal){
   DB.ledger.push({id:_lgId,dir:'out',date,amt:r2(amt),acc,party:k.name||'',partyId:null,
     ref:'KAR',refKind:'karigar_pay',cat:'',note:t('kb_ledger_note',{n:k.name||''}),photos:[]});
   save(); karigarLedger(kid);
-  toast(settle&&short!==0?t(short>0?'kb_settled_ok':'kb_settled_more',{a:money(Math.abs(short))}):t('t_saved'),'ok');
+  toast(_st!==0?t(_st>0?'kb_settled_ok':'kb_settled_more',{a:money(Math.abs(_st))}):t('t_saved'),'ok');
 }
 function karPayDel(pid){
   confirmModal(t('confirm_del'),t('confirm_del_msg'),()=>{
@@ -39051,7 +39296,7 @@ async function renderImPhotos(){const el=$('#im_photos');if(!el||!_imDraft)retur
   for(const id of(_imDraft.photos||[])){const url=await mURL(id);const w=document.createElement('div');w.className='thumb-wrap';
     w.innerHTML=`<img class="thumb" src="${url||''}"><div class="thumb-x">✕</div>`;
     w.querySelector('.thumb').onclick=()=>viewPhoto(url);
-    w.querySelector('.thumb-x').onclick=async()=>{await mDel(id);_imDraft.photos=(_imDraft.photos||[]).filter(x=>x!==id);renderImPhotos();};
+    w.querySelector('.thumb-x').onclick=async()=>{mediaDropLater(id);_imDraft.photos=(_imDraft.photos||[]).filter(x=>x!==id);renderImPhotos();};
     el.appendChild(w);}}
 function imCapture(){const d=_imDraft; if(!d)return;
   if($('#im_name'))d.name=$('#im_name').value.trim();
@@ -44947,7 +45192,7 @@ async function zipRestore(file){
       +_zlost.slice(0,8).map(x=>'\u2022 '+x.k+' \u2014 '+t('bk_lost_one',{n:x.had})).join('\n')
       +(_zlost.length>8?'\n\u2026':'')
     : '';
-  confirmModal('🗜️ '+t('restore_title'),
+  bkNoAsk('🗜️ '+t('restore_title'),
     t('bk_found',{o:(d.orders||[]).length,c:(d.customers||[]).length,r:(d.thaans||[]).length,p:media.length})
       +_zlostMsg+'\n\n'+t('restore_msg'),
     async ()=>{
@@ -44965,8 +45210,12 @@ async function zipRestore(file){
         if(_zrStop)return;                       /* nothing has touched DB yet */
         const key=m.name.replace(/^media\//,'');
         try{ const raw=new Blob([await zipEntryBytes(m)]);
-          const ty=await mediaSniff(raw);            /* v697: the zip keeps no type — read it back */
-          await mPut(key, ty?new Blob([raw],{type:ty}):raw); _zrOk++; }catch(e){}
+          /* v858 S-5: a backup carries SHRUNK photos. If this device already holds the same
+             photo at the same or bigger size, the original is kept. */
+          let have=null; try{ have=await mGet(key); }catch(e){}
+          if(have && have.size>=raw.size){ _zrOk++; }
+          else{ const ty=await mediaSniff(raw);            /* v697: the zip keeps no type — read it back */
+            await mPut(key, ty?new Blob([raw],{type:ty}):raw); _zrOk++; } }catch(e){}
         i++;
         if(i%10===0){ const bar=$('#zrBar'); if(bar)bar.style.width=Math.round(i*100/media.length)+'%';
           const sub=$('#zrSub'); if(sub)sub.textContent=t('zb_progress',{a:i,b:media.length});
@@ -44992,7 +45241,7 @@ async function zipRestore(file){
          it straight back, and only if that check fails does a raw legacy copy go to
          __db as a second net — so a device with no history of its own still has
          somewhere to land. */
-      await preRestorePoint();                 /* v333: the way back, taken first */
+      if(!(await preRestorePoint())){ closeModal(); toast(t('bk_point_fail'),'bad'); return; }   /* v333 + v858 S-6: no way back = no restore */
       /* v674: a one-file backup IS a zip, so this door carries as much weight as the
          other two. Same write, same read-back, same collection-by-collection check. */
       const _zres=await writeRestoredBook(d);
@@ -45548,7 +45797,9 @@ async function restoreMedia(media){
   let ok=0;
   for(let i=0;i<keys.length;i++){
     const k=keys[i];
-    try{ const r=await fetch(media[k]); const b=await r.blob(); await mPut(k,b); ok++; }catch(e){}
+    try{ const r=await fetch(media[k]); const b=await r.blob();
+      let have=null; try{ have=await mGet(k); }catch(e){}
+      if(!(have && have.size>=b.size))await mPut(k,b); ok++; }catch(e){}   /* v858 S-5: a bigger original stays */
     if(i%3===0){ bkProgress(i+1,keys.length); await bkYield(); }
   }
   restoreMedia.lastOwed=keys.length; restoreMedia.lastOk=ok;
@@ -45692,12 +45943,12 @@ function doImport(){const inp=document.createElement('input');inp.type='file';in
           +(_lost.length>8?'\n\u2026':'')
         : '';
       const _wantMan=bkManifest(d);
-      confirmModal(t('restore_title'), found+_lostMsg+'\n\n'+t('restore_msg'),async ()=>{
+      bkNoAsk(t('restore_title'), found+_lostMsg+'\n\n'+t('restore_msg'),async ()=>{
         /* v290: same root cause as the zip path — DB.orders was never touchOrder()'d, so
            the per-order store had nothing to write and the next boot found none of them.
            Fixed the same way: touch every order, write, verify by reading it back, and
            fall back to a raw legacy copy if that check doesn't pass. */
-        await preRestorePoint();               /* v333 */
+        if(!(await preRestorePoint())){ closeModal(); toast(t('bk_point_fail'),'bad'); return; }   /* v333 + v858 S-6 */
         /* v673: the book exactly as it stands this second, held in hand. The snapshot on
            disk is the long-term safety net; this is the one that puts things back within
            the same breath if the write does not verify. */
@@ -45855,7 +46106,7 @@ async function restoreSnapshot(key){
   let data=await mGet(key); if(!data){toast(t('t_wrong'),'bad');return;}
   if(data instanceof Blob)data=await data.text();
   confirmModal(t('restore_title'),t('restore_msg'),async()=>{try{const d=JSON.parse(data);if(!d.orders)throw 0;
-    await preRestorePoint();               /* v333: stepping back must itself be reversible */
+    if(!(await preRestorePoint())){ toast(t('bk_point_fail'),'bad'); return; }   /* v333 + v858 S-6 */
     /* v674: the third door onto the same check. Stepping back to yesterday's snapshot is
        still a restore, and it can still land short. */
     const _sres=await writeRestoredBook(d);
@@ -46903,14 +47154,35 @@ async function pickBootData(){
     }]);
   }
   cand.push(['legacy', async()=>{ try{ return localStorage.getItem('pb_ob_v1'); }catch(e){ return null; } }]);
+  /* v858 S-1: the FIRST readable copy used to win, and the first one tried is the old
+     single-blob '__db' — months behind on a device that moved to the per-record store.
+     Every copy is read now and the NEWEST book wins (latest dated entry inside it); the
+     order above only breaks a tie. The copy used is remembered so the screen can say so. */
+  let best=null;
   for(const [name,get] of cand){
     let raw=null; try{ raw=await get(); }catch(e){}
     if(typeof raw!=='string'||raw.length<2){ tried.push(name); continue; }
-    try{ const o=JSON.parse(raw); if(dbLooksReal(o))return {raw,from:name,tried}; }
+    try{ const o=JSON.parse(raw); if(dbLooksReal(o)){ const st=bookStamp(o);
+        if(!best||st>best.st)best={raw,from:name,st}; continue; } }
     catch(e){}
     tried.push(name);
   }
+  if(best){ try{ localStorage.setItem('pb_boot_from',best.from+'|'+best.st); }catch(e){} return {raw:best.raw,from:best.from,tried}; }
   return {raw:null,from:'empty',tried};
+}
+/* v858: the latest moment recorded anywhere in a book — used to pick the newest copy */
+function bookStamp(o){
+  let m='';
+  const see=v=>{ v=String(v||''); if(v>m)m=v; };
+  try{
+    (o.orders||[]).forEach(x=>{ see(x.created); see(x.edited); see(x.orderDate); (x.payments||[]).forEach(p=>see(p.date)); (x.log||[]).forEach(l=>see(l.ts)); });
+    (o.sales||[]).forEach(x=>{ see(x.created); see(x.edited); see(x.invoice&&x.invoice.date); });
+    (o.ledger||[]).forEach(x=>see(x.date));
+    (o.moves||[]).forEach(x=>see(x.ts));
+    (o.purchases||[]).forEach(x=>{ see(x.created); see(x.date); });
+    (o.karigarPays||[]).forEach(x=>see(x.date));
+  }catch(e){}
+  return m;
 }
 /* Read the v2 store: core + one record per order. Returns null if it is not there
    or does not add up, so boot can fall back to the old copies untouched. */
@@ -47058,9 +47330,12 @@ async function init(){
       }
     }
     load(boot.raw);
+    let _hadStore=false; try{ _hadStore=!!(idb && await mGet('__meta')); }catch(e){}
+    if(boot.raw && _hadStore){ setTimeout(()=>{ try{ toast(t('boot_copy_used'),'bad'); }catch(e){} },1500); }   /* v858 S-1 */
     if(idb && boot.raw){ const ok=await migrateToV2(DB); if(!ok && boot.from!=='live'){ try{ await mPut('__db', boot.raw); }catch(e){} } }
   }
   _knownOrdIds=new Set((DB.orders||[]).map(o=>o.id));
+  setTimeout(()=>{ try{ mediaGcRun(); }catch(e){} },8000);   /* v858 S-7 */
   if(usedV2){ (DB.orders||[]).forEach(o=>{ _ordFp[o.id]=(_v2Fp&&_v2Fp[o.id]!=null)?_v2Fp[o.id]:JSON.stringify(o); }); }
   _coreDirty=false; _dirtyOrd.clear(); _dbDirty=false;
   /* v848: what load() repaired on a store boot is written back to the store */

@@ -32,7 +32,7 @@
 /* Bump this whenever the app is redeployed. Any cache not named this is removed on
    activate, which is what stops an old copy surviving underneath a new one. */
 const PREFIX = 'parampara-';
-const CACHE  = PREFIX + 'v851';
+const CACHE  = PREFIX + 'v861';
 
 /* The app is one file. These are resolved against this worker's own scope, so the same
    file works whether the site sits at the domain root or in a sub-folder. */
@@ -59,7 +59,11 @@ self.addEventListener('activate', event => {
        domain - the expense tracker does - a blanket "delete everything that is not mine"
        would wipe ITS offline copy from under it. Only caches this app owns are touched. */
     const keys = await caches.keys();
-    await Promise.all(keys.map(k =>
+    /* v858 S-8: the old copy goes ONLY once the new one really holds the page. If the
+       install download failed, deleting the old cache left the shop with no offline app. */
+    let ready = false;
+    try { const c = await caches.open(CACHE); ready = !!(await c.match('./index.html') || await c.match('./')); } catch (e) {}
+    if (ready) await Promise.all(keys.map(k =>
       (k.indexOf(PREFIX) === 0 && k !== CACHE) ? caches.delete(k) : null));
     await self.clients.claim();
 
@@ -91,7 +95,9 @@ self.addEventListener('fetch', event => {
       /* Only a real, complete response is worth keeping. A 404 or an opaque redirect
          cached here would be served back for ever, which is the failure this whole file
          exists to prevent. */
-      if (fresh && fresh.ok && fresh.type === 'basic') {
+      /* v858 S-2: a URL with a query (the app's own '?_v=' update check, '?_r=' reload) is
+         never stored — each one was a new 4 MB copy that piled up in storage. */
+      if (fresh && fresh.ok && fresh.type === 'basic' && !url.search) {
         const copy = fresh.clone();
         caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
       }
