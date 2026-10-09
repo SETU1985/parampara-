@@ -337,6 +337,9 @@
     border-radius:9px;padding:0 7px;height:38px}
   .rate-in span{color:var(--mut);font-size:13px;flex:0 0 auto}
   .rate-in input{flex:1;min-width:0;width:100%;background:transparent;border:none;color:var(--txt);font-size:15px;font-weight:700;outline:none}
+  /* v862 — his bill showed ₹11,000 as "1100": the general input padding (9px 11px) left 60 px of room for 80 px of figure, so the last digit was cut off. The money boxes carry no inner padding and no spinner now. */
+  .rate-in input{padding:0 2px;-moz-appearance:textfield}
+  .rate-in input::-webkit-inner-spin-button,.rate-in input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
   /* v187: "Amount" was arriving as "Amo". The label is what tells him which box is which,
      so it must never be cut — the placeholder now sits a size down and un-bolded. */
   .rate-in input::placeholder{font-size:12.5px;font-weight:600}
@@ -1184,7 +1187,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v861</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v863</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -1600,6 +1603,10 @@ const T={
   del_open_rec:'\u270F\uFE0F Open it',
   /* v583 \u2014 the boot that pretended to be a new shop */
   lost_title:'Your book could not be read',
+  bk_send_how_t:'Send it from WhatsApp',
+  bk_send_how:'This phone does not let the app send a backup file directly. It is saved in Downloads.<br>1. Open WhatsApp (or Drive)<br>2. 📎 → Document<br>3. Downloads → tap this file',
+  bk_save_again:'Save again',
+  inv_extra_recv:'Extra received',
   ivc_put_other:'Put another customer on this bill — tap one:',
   inv_cancel_stock:'Its goods go back to stock.',
   stk_serial_taken:'Serial {s} is already on another roll',
@@ -4024,6 +4031,10 @@ dl_show_hidden:'Show hidden ({n})',
   del_pur_pay_how:'पहले भुगतान हटाएँ, फिर बिल मिटेगा। बिल खोलकर हटा सकते हैं।',
   del_open_rec:'✏️ खोलो',
   lost_title:'आपकी किताब पढ़ी नहीं जा सकी',
+  bk_send_how_t:'WhatsApp से भेजें',
+  bk_send_how:'यह फ़ोन ऐप से सीधे बैकअप फ़ाइल नहीं भेजने देता। फ़ाइल Downloads में सेव है।<br>1. WhatsApp (या Drive) खोलें<br>2. 📎 → Document<br>3. Downloads → यह फ़ाइल चुनें',
+  bk_save_again:'फिर से सेव करें',
+  inv_extra_recv:'ज़्यादा मिला',
   ivc_put_other:'इस बिल पर दूसरा ग्राहक — एक पर टैप करें:',
   inv_cancel_stock:'इसका माल स्टॉक में वापस आएगा।',
   stk_serial_taken:'सीरियल {s} पहले से दूसरे थान पर है',
@@ -19171,7 +19182,7 @@ function exportCSV(name,head,rows){
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
   a.download='parampara-'+String(name||'report').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+todayISO()+'.csv';
-  a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+  a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),120000)/*v863: phone may still be saving*/;
   toast(t('ex_done',{n:rows.length}),'ok');
 }
 function exportPDF(title,sub,head,rows){
@@ -19350,7 +19361,7 @@ function campCSV(){
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
   a.download='parampara-customers-'+todayISO()+'.csv';
-  a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+  a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),120000)/*v863: phone may still be saving*/;
   toast(t('camp_csv_done',{n:list.length}),'ok');
 }
 /* v242 — the customer list had no search of its own. The header search finds a customer
@@ -21916,7 +21927,17 @@ function custRowHTML(c,onclick){
   /* v706: role + pointer — iPad Safari is surer of a tap on a div that says it is a button */
   return `<div class="cust-result" role="button" style="margin-top:7px;cursor:pointer;touch-action:manipulation" onclick="${onclick}">
     <div style="min-width:0"><b>${esc(c.name)}</b><div class="hint">${custSubHTML(c)}</div></div>
-    <span class="btn sm pick">${t('select')}</span></div>`;
+    <span style="flex:0 0 auto;text-align:right;white-space:nowrap">${custBalHTML(c)} <span class="hint">›</span></span></div>`;
+}
+/* v862 — HIS 9 Oct: "Vyapar mein naam search karo to uska due bhi dikhta hai." Every saved-customer
+   row now carries his balance — ↓ to receive, ↑ to give back, ₹0 when square. */
+function custBalHTML(c){ try{ return balArrow(custNetBal(c.id)); }catch(e){ return ''; } }
+/* what this customer owes (+) or has paid over (−), across his orders, alterations and bills —
+   money received beyond a bill is NOT hidden as 0, and un-refunded return credit counts too */
+function custNetBal(cid){
+  let n=0; const add=r=>{ if(r.customerId!==cid)return; if(r.invoice&&r.invoice.cancelled)return; n+=(+orderTotal(r)||0)-(+orderReceived(r)||0); };
+  (DB.orders||[]).forEach(add); (DB.alterations||[]).forEach(add); (DB.sales||[]).forEach(add);
+  return r2(n-customerCredit(cid));
 }
 /* Phones get saved every which way — "98300 11111", "+91 9830011111", "091-98300-11111".
    Strip to digits and compare the last 10, so however it was saved and however it's
@@ -25440,8 +25461,8 @@ function renderInvoiceForm(){
         return `<div class="field" id="srcBox" style="margin-top:10px"><label>📣 ${t('src_title')}${need?' *':''}</label>
           <div class="gtags">${srcOptions().map(o=>`<span class="gtag ${(f.source||'')===o?'on-tag':''}" style="cursor:pointer" onclick="invSetSource('${jq(o)}')">${esc(o)}</span>`).join('')}
           <span class="gtag" style="cursor:pointer;border-style:dashed" onclick="captureInvoiceForm();addSource(v=>{invForm.source=v;renderInvoiceForm();})">➕ ${t('src_add')}</span></div></div>`; })():''}
-      <div class="il" style="border-bottom:0"><span>${t('total_due')}</span>
-        <b id="tDue" style="font-size:17px;color:var(--saffron2)">${money(Math.max(0,r2(comp0.total-invRecvNow(f,comp0))))}</b></div>
+      <div class="il" style="border-bottom:0"><span id="tDueL">${r2(invRecvNow(f,comp0)-comp0.total)>0.5?t('inv_extra_recv'):t('total_due')}</span>
+        <b id="tDue" style="font-size:17px;color:${r2(invRecvNow(f,comp0)-comp0.total)>0.5?'var(--bad)':'var(--saffron2)'}">${money(Math.abs(r2(comp0.total-invRecvNow(f,comp0))))}</b></div>
     </div>
 
     <details style="margin-top:14px">
@@ -26839,7 +26860,10 @@ function updateInvTotals(){
   if(cb&&cb.checked&&rv&&document.activeElement!==rv){   // "paid full" stays true as items change
     rv.value=r2(comp.total); invForm.receivedNow=r2(comp.total); }
   const recv=invRecvNow(invForm,comp);
-  set('tDue',money(Math.max(0,r2(comp.total-recv))));
+  /* v862 — HIS 9 Oct: ₹1,000 paid over the bill read "Net due ₹0" — the extra was nowhere */
+  { const _x=r2(recv-comp.total), _l=$('#tDueL'), _d=$('#tDue');
+    if(_l)_l.textContent=_x>0.5?t('inv_extra_recv'):t('total_due');
+    if(_d){ _d.textContent=money(_x>0.5?_x:Math.max(0,r2(comp.total-recv))); _d.style.color=_x>0.5?'var(--bad)':'var(--saffron2)'; } }
   /* v511: typing an amount is what brings the account picker in, so this has to move it too
      — otherwise it only appeared when he also touched the payment mode. */
   try{ const ar=$('#ivAccRow');
@@ -28686,7 +28710,7 @@ function saveToPhone(name,phone,role){
     const a=document.createElement('a');
     a.href=url; a.download=(String(name||clean).replace(/[^\w\s-]/g,'').trim()||'contact')+'.vcf';
     document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),4000);
+    setTimeout(()=>URL.revokeObjectURL(url),120000)/*v863: phone may still be saving*/;
     toast(t('vc_done'),'ok');
   }catch(e){ toast(t('vc_fail'),'bad'); }
 }
@@ -36174,7 +36198,7 @@ async function shareVoice(voiceId){
   const file=new File([b],'voice-note.'+ext,{type:ty});
   try{ if(navigator.canShare&&navigator.canShare({files:[file]})){ await navigator.share({files:[file],title:'PARAMPARA voice note'}); return; } }
   catch(e){ if(e&&e.name==='AbortError')return; }
-  try{ const url=URL.createObjectURL(b); const a=document.createElement('a'); a.href=url; a.download='voice-note.'+ext; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),4000); toast(t('voice_dl'),'ok'); }
+  try{ const url=URL.createObjectURL(b); const a=document.createElement('a'); a.href=url; a.download='voice-note.'+ext; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),120000)/*v863: phone may still be saving*/; toast(t('voice_dl'),'ok'); }
   catch(e){ toast(t('voice_share_na'),'bad'); }
 }
 function delVoice(prefix,vid){const ctx=voiceCtx[prefix];if(!ctx)return;
@@ -44974,7 +44998,15 @@ async function oneBackup(){
 async function bkSendLast(){
   if(!_bkLast)return;
   try{ await navigator.share({files:[_bkLast], title:_bkLast.name}); closeModal(); }
-  catch(e){ if(!(e&&e.name==='AbortError'))toast(t('bk_send_fail'),'bad'); }
+  catch(e){ if(e&&e.name==='AbortError')return;
+    /* v863 — Android Chrome refuses to hand a .zip to other apps (only photos, PDFs, text…), even
+       when it said it could. Instead of a toast that vanishes, the screen says exactly where the
+       file is and how to send it, and can save it again. */
+    modal('📤 '+t('bk_send_how_t'),
+      `<p style="font-weight:800;word-break:break-all;text-align:center">${esc(_bkLast.name)}</p>
+       <p style="margin:10px 0;line-height:1.7">${t('bk_send_how')}</p>`,
+      [{label:'💾 '+t('bk_save_again'),cls:'ghost',fn:()=>{ bkDownload(_bkLast,_bkLast.name); toast(t('bk_saved_dl'),'ok'); }},
+       {label:t('close'),cls:'primary',fn:closeModal}]); }
 }
 function bkMoreToggle(){
   const m=$('#bkMore'), b=$('#bkMoreBtn'); if(!m)return;
@@ -45331,9 +45363,13 @@ async function bkFreshCount(){
    (an invoice, a voice note, a photo) is a different job — the person picking WHERE to
    send something — and keeps using the share sheet, which is correct for that job. */
 function bkDownload(blob,name){
+  /* v863 — HIS 9 Oct, phone: "backup hi nahi ja raha". A 28 MB file was given 1.5 seconds before
+     its link was torn down; a phone that is still writing it to Downloads loses it. The link now
+     lives two minutes, and the anchor is in the page while it is clicked. */
   const u=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=u; a.download=name; a.click();
-  setTimeout(()=>URL.revokeObjectURL(u),1500);
+  const a=document.createElement('a'); a.href=u; a.download=name; a.style.display='none';
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ try{ URL.revokeObjectURL(u); a.remove(); }catch(e){} },120000);
 }
 async function dailyBackup(){
   if(_pbBusy){ toast(t('pb_busy'),'bad'); return; }
@@ -45686,7 +45722,7 @@ async function handoverSend(){
     a.href=URL.createObjectURL(blob);
     a.download='parampara-handover-'+todayISO()+'.json';
     document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    setTimeout(()=>URL.revokeObjectURL(a.href),120000)/*v863: phone may still be saving*/;
     toast(t('ho_sent'),'ok');
   }catch(e){ toast(t('ho_fail'),'bad'); }
 }
@@ -45843,7 +45879,7 @@ async function doExportAnyway(){
   if(!res){ toast(t('bk_cancelled'),'bad'); return; }
   const u=URL.createObjectURL(res.blob);
   const a=document.createElement('a');a.href=u;a.download='PARAMPARA-backup.json';a.click();
-  setTimeout(()=>URL.revokeObjectURL(u),1000);markBackup();renderOrders();closeSheet();
+  setTimeout(()=>URL.revokeObjectURL(u),120000)/*v863: phone may still be saving*/;markBackup();renderOrders();closeSheet();
   toast(t('bk_done',{n:res.count}),'ok');
 }
 async function shareBackup(dataOnly){
