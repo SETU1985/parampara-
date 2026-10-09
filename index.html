@@ -1187,7 +1187,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v863</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v865</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -1603,6 +1603,7 @@ const T={
   del_open_rec:'\u270F\uFE0F Open it',
   /* v583 \u2014 the boot that pretended to be a new shop */
   lost_title:'Your book could not be read',
+  mst_add_new:'Add new',
   bk_send_how_t:'Send it from WhatsApp',
   bk_send_how:'This phone does not let the app send a backup file directly. It is saved in Downloads.<br>1. Open WhatsApp (or Drive)<br>2. 📎 → Document<br>3. Downloads → tap this file',
   bk_save_again:'Save again',
@@ -1841,7 +1842,7 @@ const T={
   dg_unlocked:'Unlocked — be careful',
   dg_lastbk:'Last backup file: {w}',
   dg_nobk:'No backup file has ever been taken from this device',
-  dg_open:'Replaces the whole book…',
+  dg_open:'Reset or replace book',
   od_edit_no:'Change the order number',
   rp_summary:'Sales summary',
   rps_summary_sec:'SUMMARY',
@@ -4031,6 +4032,7 @@ dl_show_hidden:'Show hidden ({n})',
   del_pur_pay_how:'पहले भुगतान हटाएँ, फिर बिल मिटेगा। बिल खोलकर हटा सकते हैं।',
   del_open_rec:'✏️ खोलो',
   lost_title:'आपकी किताब पढ़ी नहीं जा सकी',
+  mst_add_new:'नया जोड़ें',
   bk_send_how_t:'WhatsApp से भेजें',
   bk_send_how:'यह फ़ोन ऐप से सीधे बैकअप फ़ाइल नहीं भेजने देता। फ़ाइल Downloads में सेव है।<br>1. WhatsApp (या Drive) खोलें<br>2. 📎 → Document<br>3. Downloads → यह फ़ाइल चुनें',
   bk_save_again:'फिर से सेव करें',
@@ -4266,7 +4268,7 @@ dl_show_hidden:'Show hidden ({n})',
   dg_unlocked:'ताला खुला है — ध्यान से',
   dg_lastbk:'आख़िरी बैकअप फ़ाइल: {w}',
   dg_nobk:'इस डिवाइस से कभी बैकअप फ़ाइल नहीं ली गई',
-  dg_open:'पूरी किताब बदल देने वाले काम…',
+  dg_open:'किताब रीसेट / बदलें',
   od_edit_no:'ऑर्डर नंबर बदलें',
   rp_summary:'बिक्री का सार',
   rps_summary_sec:'सार',
@@ -18088,7 +18090,7 @@ function menuHome(){
     <span class="mnu-ico">${ico}</span>
     <span class="mnu-txt"><b>${esc(label)}</b>${sub?`<span class="hint">${esc(sub)}</span>`:''}</span>
     <span class="mnu-go">›</span></button>`;
-  const sec=(title,rows)=>{
+  const sec=(title,rows,fixedKey)=>{
     const list=rows.filter(Boolean); if(!list.length)return '';
     /* v716 — HIS 17 Sept: "Reports click karo to phir Reports aata hai, uske baad reports."
        ORDERS, CUSTOMERS and REPORTS each dropped open onto a single row with their own name.
@@ -18099,7 +18101,7 @@ function menuHome(){
         style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px">
         <span>${title}</span><span class="mnu-go">›</span></div>`;
     }
-    const k='ms'+(_secN++), open=!!_mnuOpen[k];
+    const k=fixedKey||('ms'+(_secN++)), open=!!_mnuOpen[k];
     return `<div class="section-h" data-sec="${k}" onclick="menuSecToggle('${k}')"
         style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px">
       ${/* v616: a HEAD carries a chevron pointing DOWN — it drops open in place. A ROW
@@ -18142,6 +18144,7 @@ function menuHome(){
       row('\u2B07\uFE0F',t('pay_in'),"payList('in')"),
       row('↩️',t('sr_menu'),"retList('sale')"),
       row('📄',t('estimate'),"estimateList()"),
+      row('✂️',t('alterations'),"go('alterations')"),   /* v865: a work screen — it was hiding inside Settings */
       /* v617 — HIS 10 Sept: "missing bill numbers screen par nahi chahiye. Maine bataya tha
          screen thodi clean chahiye, unnecessary ki cheezein nahi chahiye." Off the menu. It
          is NOT deleted — the check still runs and still opens from ⋯ on the Sale list, which
@@ -18172,7 +18175,10 @@ function menuHome(){
          list screen. Same "built, working, unreachable" shape as Ledger master (v492) and
          Opening stock (v498) right below this. Goes right beside them for the same reason. */''}
     ${sec('🗂️ '+t('mst_title'),[
-      row('🗂️',t('mst_title'),"mastersHome()")])}
+      row('➕',t('mst_add_new'),"mastersHome()"),
+      row('📦',t('item_master'),"itemMaster()"),
+      row('🧩',t('garment_master'),"garmentMaster()"),
+      row('📏',t('ms_title'),"measRangeEdit()")])}
     ${sec('👥 '+t('pty_hub_title'),[
       row('👥',t('pty_hub_title'),"partyHub()")])}
     ${/* ══════════ v492 — THE LEDGER HAD NO DOOR ══════════
@@ -18217,9 +18223,10 @@ function menuHome(){
          Nothing is unreachable - every one of the four is still a tap from Sale or
          Purchase, exactly where he was already going. */
       row('💸',t('exp_title'),"expenses()"),
+      row('🗂️',t('eh_title'),"manageExpHeads()"),   /* v865: was only inside Settings */
       row('🏦',t('cb_title'),"cashBank()"),
-      row('📒',t('pty_title'),"debtorsHome()"),
-      row('📕',t('pty_cred_title'),"creditorsHome()"),
+      /* v865: Receivables / Payables were listed here AND in Parties AND (same name, other
+         screen) in Sale / Purchase. Their one home is Parties. */
       ]):''}
     ${sec('🧵 '+t('jw_title'),[
       row('🧵',t('jw_title'),"jobWork()"),
@@ -18267,11 +18274,26 @@ function menuHome(){
          already knew where it was. He went looking for it here, in All screens, and it was
          not here. It is the first row now, because a book that leaves the device is a bigger
          thing than which chips show on Home. */''}
+    ${/* v865 — HIS 9 Oct: "settings ke andar settings kabhi dekha hai?" SETTINGS opens straight onto
+         every setting. No second Settings screen, no groups to guess between. */''}
     ${sec('⚙️ '+t('settings'),[
-      row('☁️',t('cl_row'),"cloudScreen()"),
-      row('🗑️',t('bin_title'),"recycleBin()"),
+      row('🧾',t('shop_details'),"shopInfoEdit()"),
+      row('💳',t('qr_title'),"paymentQR()"),
+      row('🔢',t('num_title'),"numberingEdit()"),
+      modOn('billing')?row('🧾',t('gs_title'),"gstSetup()"):'',
+      row('🏪',t('rc_title'),"rentSetup()"),
+      row('🌐',t('sg_g_app'),"settingsGroup('app')"),
       row('🏠',t('ah_title'),"arrangeHome()"),
-      row('⚙️',t('settings'),"settingsMenu()")])}
+      row('🧩',t('mod_title'),"modulesEdit()"),
+      row('📒',t('ob_title'),"openingBulk()"),
+      row('🏦',t('ob_shop'),"openBSEdit()"),
+      row('📥',t('imp_title'),"importVyapar()"),
+      row('☁️',t('cl_row'),"cloudScreen()"),
+      row('🔒',t('pin_title'),"pinSetup()"),
+      row('🗑️',t('bin_title'),"recycleBin()"),
+      row('🔁',t('ho_title'),"handoverScreen()"),
+      row('🩺',t('au_title'),"stockAudit()"),
+      row('⚠️',t('dg_open'),"dangerScreen()")],'settings')}
     </div>
     <div class="fab-pad"></div>`;
   showSheet();
@@ -35621,7 +35643,6 @@ function mastersHome(){
     <div class="section-h" style="margin-top:14px">\u{1F4D7} ${t('mst_saved_h')}</div>
     <div class="card" style="padding:0 12px">
       ${row('\u{1F4D7}','lg_title','mst_lg_h',"ledgerMaster()")}
-      ${row('\u{1F3E6}','ob_shop','mst_ob_h',"openBSEdit()")}
     </div>
     <div class="fab-pad"></div>`;
   showSheet();
@@ -37434,34 +37455,8 @@ function modulesSave(){
    NOTHING is removed and no setting is changed here. The column is grouped into the eight
    things a shop actually thinks about, each one tap away. What he opens once a year stops
    sitting next to what he opens on a Tuesday. */
+/* v865 — only the language/mode leaf is left; every other former group is a direct row in All screens → SETTINGS. */
 const SETTINGS_GROUPS={
-  shop:['\uD83E\uDDFE','sg_g_shop',function(){return `
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();shopInfoEdit()">\uD83E\uDDFE ${t('shop_details')}</button>
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();modulesEdit()">\uD83E\uDDE9 ${t('mod_title')}</button>
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();paymentQR()">\uD83D\uDCB3 ${t('qr_title')}</button>`;}],
-  numbers:['\uD83D\uDD22','sg_g_numbers',function(){return `
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();numberingEdit()">\uD83D\uDD22 ${t('num_title')}</button>
-    ${modOn('billing')?`<button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();gstSetup()">\uD83E\uDDFE ${t('gs_title')}</button>`:''}
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();rentSetup()">\uD83C\uDFEA ${t('rc_title')}${rentOn()?' \u00b7 <b>'+rentCfg().pct+'%</b>':''}</button>`;}],
-  opening:['\uD83C\uDFE6','sg_g_opening',function(){return `
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();openingBulk()">\uD83D\uDCD2 ${t('ob_title')}</button>
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();openBSEdit()">\uD83C\uDFE6 ${t('ob_shop')}</button>
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();importVyapar()">\uD83D\uDCE5 ${t('imp_title')}</button>`;}],
-  people:['\uD83D\uDC65','sg_g_people',function(){return `
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();staffMaster()">\uD83D\uDC65 ${t('st_title')}</button>
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();karigarMaster()">\uD83D\uDC77 ${t('karigar_master')}</button>`;}],
-  things:['\uD83D\uDCE6','sg_g_things',function(){return `
-    <button class="btn ghost block mod-stock" style="margin-bottom:8px" onclick="closeSheet();stockHome()">\uD83D\uDCE6 ${t('stk_title')}</button>
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();itemMaster()">\uD83D\uDCE6 ${t('item_master')}</button>
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();garmentMaster()">\uD83E\uDDE9 ${t('garment_master')}</button>
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();measRangeEdit()">\uD83D\uDCCF ${t('ms_title')}</button>
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();manageExpHeads()">\u2699\uFE0F ${t('eh_title')}</button>
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();go('alterations')">\uD83D\uDD27 ${t('alterations')}</button>`;}],
-  home:['\uD83C\uDFE0','sg_g_home',function(){return `
-    ${/* v652: three rows all led to arranging Home. One door, three things inside it. */''}
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();homeManage()">\uD83C\uDFE0 ${t('hb_title')}</button>
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();qrManage()">\u2699\uFE0F ${t('qc_title')}</button>
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="homeClassicToggle()">\uD83C\uDFE0 ${t('home_layout')} \u00b7 <b>${localStorage.getItem('pp_home_classic')==='1'?t('home_layout_old'):t('home_layout_new')}</b></button>`;}],
   app:['\uD83C\uDF10','sg_g_app',function(){return `
     <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();toggleLang();settingsGroup('app')">\uD83C\uDF10 ${t('app_lang')}: <b>${lang==='en'?'English':'\u0939\u093f\u0902\u0926\u0940'}</b></button>
     <button class="btn ghost block" style="margin-bottom:8px" onclick="printerTips()">🖨️ ${t('pt_title')}</button>
@@ -37474,11 +37469,7 @@ const SETTINGS_GROUPS={
       <input type="checkbox" id="salesNavChk" ${localStorage.getItem('pb_ob_salesnav')==='1'?'checked':''} onchange="toggleSalesNav(this.checked)" style="width:20px;height:20px;margin-top:2px">
       <span><b style="font-size:14px">${t('sales_nav')}</b><br><span class="hint" style="font-size:12px">${t('sales_nav_desc')}</span></span>
     </label>
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();checkNewBuild(true)">\uD83D\uDD04 ${t('upd_row')} \u00b7 <b>${esc(appVerHere())}</b></button>`;}],
-  safety:['\uD83D\uDEE1\uFE0F','sg_g_safety',function(){return `
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="backupMenu()">\uD83D\uDCBE ${t('backup')}</button>
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();cloudScreen()">\u2601\uFE0F ${t('cl_row')}</button>
-    <button class="btn ghost block" style="margin-bottom:8px" onclick="pinSetup()">${pinOn()?'\uD83D\uDD12':'\uD83D\uDD13'} ${t('pin_title')} \u00b7 <b>${pinOn()?t('pin_on'):t('pin_off')}</b></button>`;}]
+    <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();checkNewBuild(true)">\uD83D\uDD04 ${t('upd_row')} \u00b7 <b>${esc(appVerHere())}</b></button>`;}]
 };
 /* v795 (C12) — laptop Chrome + Canon PIXMA G3000: the bill is laid out for A4 with colours kept; the two Chrome print
    switches that decide whether the page comes out clean are the ones he must set once. */
@@ -37493,14 +37484,13 @@ function settingsGroup(k){
   const g=SETTINGS_GROUPS[k]; if(!g){ settingsMenu(); return; }
   modal(g[0]+' '+t(g[1]), g[2](), [{label:t('back'),cls:'ghost',fn:function(){ closeModal(); settingsMenu(); }}]);
 }
+/* v865: there is no separate Settings screen any more — "Settings" means the SETTINGS list in
+   All screens, opened. Every old "back to Settings" lands there. */
 function settingsMenu(){
-  const rows=Object.keys(SETTINGS_GROUPS).map(function(k){
-    const g=SETTINGS_GROUPS[k];
-    return '<div class="kv" style="padding:13px 2px;border-bottom:1px solid var(--line);cursor:pointer"'
-      +' onclick="settingsGroup(\''+k+'\')"><span style="flex:1;min-width:0">'+g[0]+' '+t(g[1])+'</span>'
-      +'<span style="color:var(--saffron2)">\u203A</span></div>';
-  }).join('');
-  modal(t('settings'), rows, []);
+  try{ closeModal(); }catch(e){}
+  _mnuOpen['settings']=true; menuHome();
+  setTimeout(()=>{ try{ const h=document.querySelector('#mnuBody .section-h[data-sec="settings"]'), box=$('#sheet');
+    if(h&&box)box.scrollTo({top:box.scrollTop+h.getBoundingClientRect().top-box.getBoundingClientRect().top-8}); }catch(e){} },60);
 }
 function toggleSalesNav(on){localStorage.setItem('pb_ob_salesnav',on?'1':'0');toast(on?t('sales_nav_on'):t('sales_nav_off'),'ok');}
 function toggleSimpleMode(on){localStorage.setItem('pb_ob_simple',on?'1':'0');document.body.classList.toggle('simple-mode',on);
@@ -44900,13 +44890,10 @@ function backupMenu(){
    `<button class="btn primary block" style="padding:20px;font-size:18px" onclick="closeModal();oneBackup()">
       💾 ${t('bk_one')}</button>
     <p class="hint" style="text-align:center;margin:8px 0 14px">${d!==null&&d>1?'⚠️ ':''}${when}</p>
-    <button class="btn ghost block" style="padding:16px" onclick="closeModal();doImport()">↩️ ${t('restore_backup')}</button>
-    <div id="bkMore" style="display:none;margin-top:12px">
-      <button class="btn ghost block" style="margin-bottom:8px" onclick="handoverScreen()">🔁 ${t('ho_title')}</button>
-      <button class="btn ghost block" style="margin-bottom:8px" onclick="stockAudit()">🩺 ${t('au_title')}</button>
-      <button class="btn ghost block" style="border-color:var(--bad);color:var(--bad)" onclick="closeModal();dangerScreen()">⚠️ ${t('dg_open')}</button>
-    </div>
-    <button class="btn sm ghost block" style="margin-top:14px;opacity:.75" id="bkMoreBtn" onclick="bkMoreToggle()">⚙️ ${t('bk_more')}</button>`,
+    <button class="btn ghost block" style="padding:16px" onclick="closeModal();doImport()">↩️ ${t('restore_backup')}</button>`,
+  /* v864 — HIS 9 Oct: "backup mein sirf backup hona chahiye — take backup, restore. Itne options
+     daal ke kyun confuse kiya?" The three rare data tools (move work between devices, device
+     check, start the book over) left this screen; they live once, in Settings → Backup and lock. */
   [{label:t('close'),cls:'ghost',fn:closeModal}]);
 }
 /* ---- the backup-size copy of a photo, remembered in its own small database ---- */
@@ -45007,12 +44994,6 @@ async function bkSendLast(){
        <p style="margin:10px 0;line-height:1.7">${t('bk_send_how')}</p>`,
       [{label:'💾 '+t('bk_save_again'),cls:'ghost',fn:()=>{ bkDownload(_bkLast,_bkLast.name); toast(t('bk_saved_dl'),'ok'); }},
        {label:t('close'),cls:'primary',fn:closeModal}]); }
-}
-function bkMoreToggle(){
-  const m=$('#bkMore'), b=$('#bkMoreBtn'); if(!m)return;
-  const on=m.style.display==='none';
-  m.style.display=on?'':'none'; if(b)b.textContent=on?t('bk_less'):t('bk_more');
-  if(on){ bkShowSize(); bkSafety(); bkFileBox(); }
 }
 /* Plain answers to "is my data actually safe on this device?" */
 async function bkSafety(){
