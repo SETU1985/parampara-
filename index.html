@@ -355,6 +355,9 @@
   .fu-open{cursor:pointer;padding:8px 0}
 /* v769: small text links get a thumb-sized tap area without moving anything on screen */
 .tapx{display:inline-block;padding:9px 6px;margin:-9px -6px;cursor:pointer}
+/* v868 — a delete you cannot hit is a delete you hit by mistake: every money 🗑️ is a 40px target, kept clear of its neighbour */
+.del-tap{display:inline-flex;align-items:center;justify-content:center;min-width:40px;min-height:40px;margin:-8px -4px -8px 6px;border-radius:10px;cursor:pointer;font-size:17px}
+.del-tap:active{background:rgba(217,83,79,.15)}
   .fu-open:active{opacity:.6}
   .bal-get{color:#1a9d5a;font-weight:800;white-space:nowrap}
   .bal-give{color:#d3453b;font-weight:800;white-space:nowrap}
@@ -1187,7 +1190,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v865</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v873</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -1329,7 +1332,10 @@ const T={
   inv_zero_saved:'Bill {n} saved with no amount \u2014 fill the rates whenever they are decided',
   del_take_pay:'\uD83D\uDDD1\uFE0F Delete the bill AND its {amt}',
   del_take_pay_msg:'The bill goes, and the {amt} receipt on it goes with it. Your cash for the day drops by {amt}. Nothing else is touched.',
-  py_disc:'Discount', py_recd:'Received', py_total:'Total settled',
+  del_take_pay_msg_out:'The bill goes, and the {amt} paid on it goes with it. Your cash goes back up by {amt}. Nothing else is touched.',
+  py_disc:'Discount', py_recd:'Received', py_paid:'Paid', py_total:'Total settled',
+  pe_is_loan_in:'This is a loan taken, not a customer receipt', pe_is_loan_out:'This was a loan repaid', pe_loan_q_in:'{m} from {n} becomes a LOAN. Cash and bank stay exactly as they are; on the balance sheet it moves from Customer advances to Loans, and {n} shows on the Loans screen.', pe_loan_q_out:'{m} to {n} becomes a LOAN REPAYMENT. Cash and bank stay exactly as they are; the loan to {n} comes down by {m}.', pe_loan_yes:'Yes, it is a loan', pe_loan_done:'{m} is now a loan',
+  pay_move:'Move to another bill', pay_move_q:'{m} received on {d}. Which bill was it for?', pay_move_none:'This customer has no other bill with money due', pay_move_done:'{m} moved to {b}', pay_move_log_out:'{m} moved to {b}', pay_move_log_in:'{m} moved here from {b}',
   py_bal:'Party balance', py_link:'\uD83D\uDD17 Choose bills',
   py_disc_none:'Nothing is outstanding, so a discount has nothing to reduce',
   py_over:'That is more than {m} outstanding',
@@ -1510,7 +1516,7 @@ const T={
   received:'Received',
   payments:'Payments',
   add_payment:'Payment',
-  inv_del_ord_q:'Bill {n} will be deleted. Order #{o} stays with its pieces and measurements, and goes back to "Bill not made".', inv_del_adv:'{m} already received stays on the order as advance.', inv_del_num_back:'{n} is the last bill, so the next bill will get this number again.', inv_del_num_gap:'{n} is not the last bill — its number stays unused; later bills keep their numbers.', inv_del_done:'Bill {n} deleted', inv_del_log:'Bill {n} deleted', inv_del_has_ret:'Bill {n} has a sales return — delete the return first', pay_in_detail:'Add payments here', inv_pay_del_q:'{m} received from {s} on {d} ({a}) will be removed. The bill stays as it is, {s} will owe this amount again, and the account goes down by it.',
+  inv_del_ord_q:'Bill {n} will be deleted. Order #{o} stays with its pieces and measurements, and goes back to "Bill not made".', inv_del_adv:'{m} already received stays on the order as advance.', inv_del_num_back:'{n} is the last bill, so the next bill will get this number again.', inv_del_num_cx:'{n} was cancelled, so this number is never given to another bill.', inv_del_num_gap:'{n} is not the last bill — its number stays unused; later bills keep their numbers.', inv_del_done:'Bill {n} deleted', inv_del_log:'Bill {n} deleted', inv_del_has_ret:'Bill {n} has a sales return — delete the return first', pay_in_detail:'Add payments here', inv_pay_del_q:'{m} received from {s} on {d} ({a}) will be removed. The bill stays as it is, {s} will owe this amount again, and the account goes down by it.',
   pay_amount:'Amount',
   pay_date:'Date',
   no_payments:'No payments yet',
@@ -2948,7 +2954,7 @@ const T={
   shr_title:'Shrink stored photos', shr_go:'Shrink them',
   shr_busy:'Already running', shr_saved:'{n} MB saved',
   shr_need_backup:'Take a photo backup first. This makes every stored photo smaller and it cannot be undone \u2014 the backup is the only way back.',
-  ob_calc_now_says:'Worked out from your records now', pr_make_igst:'Supplier is in another state — use IGST', pr_make_local:'Supplier is in West Bengal — use CGST + SGST', pr_flip_ask:'Bill {b} is set to {a}. Change it to {c}? This changes the purchase bill too, and every return from it. GSTIN on file: {g}.', inv_rec_gone:'The order this bill was for is no longer in the book — pick the order again, or save it as a counter sale', pty_moved:'Money with this name', pty_paid_him:'Paid to him', pty_got_him:'Received from him', pty_moved_n:'{n} entries, not counting the opening — the full statement shows each one', pty_moved_none:'No money has moved with this name yet', pty_other_hats:'The same name elsewhere', pty_as:'As {k}', qty_less:'One less', qty_more:'One more', save_later:'Save, measure later', pr_goods:'Goods value', pr_bill_disc:'Discount on the bill', pr_no_gst:'No GST on this bill', bs_acc_neg:'Below zero — the balance on {d} has probably not been entered yet. Enter what was really there that day.', bs_acc_set:'Set opening balance',
+  ob_calc_now_says:'Worked out from your records now', pr_make_igst:'Supplier is in another state — use IGST', pr_make_local:'Supplier is in West Bengal — use CGST + SGST', pr_flip_ask:'Bill {b} is set to {a}. Change it to {c}? This changes the purchase bill too, and every return from it. GSTIN on file: {g}.', inv_rec_gone:'The order this bill was for is no longer in the book — pick the order again, or save it as a counter sale', pty_moved:'Money with this name', pty_paid_him:'Paid to him', pty_got_him:'Received from him', pty_moved_n:'{n} entries, not counting the opening — the full statement shows each one', pty_moved_none:'No money has moved with this name yet', pty_other_hats:'The same name elsewhere', pty_as:'As {k}', qty_less:'One less', qty_more:'One more', save_later:'Save, measure later', pr_goods:'Goods value', pr_bill_disc:'Discount on the bill', pr_no_gst:'No GST on this bill', pty_bs_note:'This list is every party\'s full account ({l}) — money given to suppliers in advance and unbilled orders are here too. Balance sheet "Receivable from customers" counts unpaid bills only ({b}). Difference {d}.', bs_acc_neg2:'Below zero — more went out of {n} than came in. Usually an expense entered from {n} that was really paid by bank, or a sale paid in {n} that was entered into the bank. Check the biggest lines below.', af_open:'Opening (1 Apr)', af_sales:'Sales & orders received', af_rcpt:'Other money received', af_from_acc:'From bank / other account', af_exp:'Expenses paid', af_pur:'Suppliers paid', af_to_acc:'Put into bank / other account', af_pay:'Other payments', af_other_out:'Refunds to customers', af_now:'Balance now', bs_acc_neg:'Below zero — the balance on {d} has probably not been entered yet. Enter what was really there that day.', bs_acc_set:'Set opening balance',
   pur_future_t:'Bill date is after today', pur_future_q:'This bill is dated {d}. It will stay out of stock value, payables and reports until that day. Is the date right?',
   pur_future_yes:'Yes, save', cr_why_future:'Bill dated {d} — after today, so the balance sheet leaves it out', cr_why_two:'Two opening balances under this one name — the list shows one', cr_why_notlist:'Not on the Payables list', cr_why_notsheet:'Not on the balance sheet', cr_why_ret:'Purchase returns the balance sheet takes off in one sum', pur_future_fix:'Fix the date',
   shr_ask:'Every photo already stored is made smaller (800px). Design, cloth and colour stay readable. This cannot be undone, and it may take a few minutes \u2014 you can stop it at any time and carry on later.',
@@ -3662,7 +3668,7 @@ dl_show_hidden:'Show hidden ({n})',
   pur_add_items:'Add items', pur_edit_item:'Edit item', pur_no_items_yet:'No items on this bill yet',
   pur_tot_qty:'Total qty', pur_rate:'Rate (price per unit)', pur_rate_x_qty:'rate \u00D7 qty',
   qty_pcs:'{n} pcs', qty_mtr:'{n} mtr',
-  pur_more_item:'HSN, design, colour, note', pur_design:'Design', pur_colour:'Colour',
+  pur_more_item:'HSN, design, colour, note', pur_design:'Design', pur_colour:'Colour', pur_size:'Size',
   pur_save_new_item:'Save & add another', pur_drop_line:'Remove \u201C{n}\u201D from this bill?',
   pur_new_item:'Add a new item', pur_saved_item:'Saved item',
   pur_new_item_note:'New item \u2014 saved with this bill', pur_qty_ph:'10  or  10, 7.8, 7.8',
@@ -3760,7 +3766,10 @@ dl_show_hidden:'Show hidden ({n})',
   inv_zero_saved:'बिल {n} बिना रकम के सेव हो गया \u2014 भाव तय होते ही डाल दीजिए',
   del_take_pay:'\uD83D\uDDD1\uFE0F बिल और उसका {amt} दोनों मिटाओ',
   del_take_pay_msg:'बिल मिट जाएगा और उस पर की {amt} की रसीद भी। दिन का कैश {amt} घट जाएगा। बाकी कुछ नहीं छुएगा।',
-  py_disc:'छूट', py_recd:'मिला', py_total:'कुल निपटा',
+  del_take_pay_msg_out:'बिल मिट जाएगा और उस पर दिया {amt} भी। कैश {amt} वापस बढ़ जाएगा। बाकी कुछ नहीं छुएगा।',
+  py_disc:'छूट', py_recd:'मिला', py_paid:'दिया', py_total:'कुल निपटा',
+  pe_is_loan_in:'यह उधार लिया है, ग्राहक की रसीद नहीं', pe_is_loan_out:'यह उधार चुकाया था', pe_loan_q_in:'{n} से {m} उधार (लोन) बन जाएगा। कैश और बैंक वैसे ही रहेंगे; बैलेंस शीट में यह ग्राहक एडवांस से लोन में जाएगा, और {n} लोन वाली स्क्रीन पर दिखेंगे।', pe_loan_q_out:'{n} को {m} लोन की वापसी बन जाएगा। कैश और बैंक वैसे ही रहेंगे; {n} का लोन {m} कम होगा।', pe_loan_yes:'हाँ, यह लोन है', pe_loan_done:'{m} अब लोन है',
+  pay_move:'दूसरे बिल पर ले जाओ', pay_move_q:'{d} को {m} मिला था। यह किस बिल का था?', pay_move_none:'इस ग्राहक का कोई दूसरा बकाया बिल नहीं है', pay_move_done:'{m} {b} पर गया', pay_move_log_out:'{m} {b} पर गया', pay_move_log_in:'{m} {b} से यहाँ आया',
   py_bal:'पार्टी का बाकी', py_link:'\uD83D\uDD17 बिल चुनें',
   py_disc_none:'कुछ बाकी ही नहीं है, तो छूट किस पर लगेगी',
   py_over:'यह बाकी {m} से ज़्यादा है',
@@ -3941,7 +3950,7 @@ dl_show_hidden:'Show hidden ({n})',
   received:'प्राप्त',
   payments:'भुगतान',
   add_payment:'भुगतान',
-  inv_del_ord_q:'बिल {n} हट जाएगा। ऑर्डर #{o} अपने पीस और नाप के साथ रहेगा और फिर से "बिल नहीं बना" में आ जाएगा।', inv_del_adv:'मिला हुआ {m} ऑर्डर पर एडवांस के रूप में रहेगा।', inv_del_num_back:'{n} आख़िरी बिल है, इसलिए अगले बिल को यही नंबर फिर मिलेगा।', inv_del_num_gap:'{n} आख़िरी बिल नहीं है — इसका नंबर ख़ाली रहेगा; बाद के बिलों के नंबर नहीं बदलेंगे।', inv_del_done:'बिल {n} हटा दिया', inv_del_log:'बिल {n} हटाया', inv_del_has_ret:'बिल {n} पर सेल्स रिटर्न है — पहले रिटर्न हटाएँ', pay_in_detail:'भुगतान यहाँ जोड़ें', inv_pay_del_q:'{d} को {s} से मिला {m} ({a}) हट जाएगा। बिल वैसा ही रहेगा, {s} पर इतना फिर से बाकी होगा, और खाते से इतना घट जाएगा।',
+  inv_del_ord_q:'बिल {n} हट जाएगा। ऑर्डर #{o} अपने पीस और नाप के साथ रहेगा और फिर से "बिल नहीं बना" में आ जाएगा।', inv_del_adv:'मिला हुआ {m} ऑर्डर पर एडवांस के रूप में रहेगा।', inv_del_num_back:'{n} आख़िरी बिल है, इसलिए अगले बिल को यही नंबर फिर मिलेगा।', inv_del_num_cx:'{n} कैंसिल हुआ था, इसलिए यह नंबर किसी दूसरे बिल को नहीं मिलेगा।', inv_del_num_gap:'{n} आख़िरी बिल नहीं है — इसका नंबर ख़ाली रहेगा; बाद के बिलों के नंबर नहीं बदलेंगे।', inv_del_done:'बिल {n} हटा दिया', inv_del_log:'बिल {n} हटाया', inv_del_has_ret:'बिल {n} पर सेल्स रिटर्न है — पहले रिटर्न हटाएँ', pay_in_detail:'भुगतान यहाँ जोड़ें', inv_pay_del_q:'{d} को {s} से मिला {m} ({a}) हट जाएगा। बिल वैसा ही रहेगा, {s} पर इतना फिर से बाकी होगा, और खाते से इतना घट जाएगा।',
   pay_amount:'राशि',
   pay_date:'तारीख',
   no_payments:'अभी कोई भुगतान नहीं',
@@ -5365,7 +5374,7 @@ dl_show_hidden:'Show hidden ({n})',
   shr_title:'पुरानी फ़ोटो छोटी करें', shr_go:'छोटी करें',
   shr_busy:'पहले से चल रहा है', shr_saved:'{n} MB बची',
   shr_need_backup:'पहले फ़ोटो का बैकअप लें। यह हर पुरानी फ़ोटो को छोटा कर देगा और वापस नहीं हो सकता — बैकअप ही वापसी का एकमात्र रास्ता है।',
-  ob_calc_now_says:'आपके रिकॉर्ड से अभी का हिसाब', pr_make_igst:'सप्लायर दूसरे राज्य का है — IGST लगाएँ', pr_make_local:'सप्लायर पश्चिम बंगाल का है — CGST + SGST लगाएँ', pr_flip_ask:'बिल {b} पर {a} लगा है। इसे {c} करें? इससे ख़रीद का बिल और उसकी हर वापसी भी बदलेगी। फ़ाइल में GSTIN: {g}।', inv_rec_gone:'जिस ऑर्डर का यह बिल था वह अब किताब में नहीं है — ऑर्डर दोबारा चुनें, या काउंटर बिक्री की तरह सेव करें', pty_moved:'इस नाम से लेन-देन', pty_paid_him:'इसे दिया', pty_got_him:'इससे मिला', pty_moved_n:'{n} एंट्री, शुरुआती बकाया छोड़कर — पूरे स्टेटमेंट में हर एक दिखेगी', pty_moved_none:'इस नाम से अभी कोई लेन-देन नहीं', pty_other_hats:'यही नाम दूसरी जगह', pty_as:'{k} के रूप में', qty_less:'एक कम', qty_more:'एक और', save_later:'सेव करें, नाप बाद में', pr_goods:'माल की क़ीमत', pr_bill_disc:'बिल पर छूट', pr_no_gst:'इस बिल पर GST नहीं', bs_acc_neg:'शून्य से नीचे — शायद {d} का बैलेंस अभी डाला नहीं गया। उस दिन असल में जितना था, वह डालें।', bs_acc_set:'शुरुआती बैलेंस डालें',
+  ob_calc_now_says:'आपके रिकॉर्ड से अभी का हिसाब', pr_make_igst:'सप्लायर दूसरे राज्य का है — IGST लगाएँ', pr_make_local:'सप्लायर पश्चिम बंगाल का है — CGST + SGST लगाएँ', pr_flip_ask:'बिल {b} पर {a} लगा है। इसे {c} करें? इससे ख़रीद का बिल और उसकी हर वापसी भी बदलेगी। फ़ाइल में GSTIN: {g}।', inv_rec_gone:'जिस ऑर्डर का यह बिल था वह अब किताब में नहीं है — ऑर्डर दोबारा चुनें, या काउंटर बिक्री की तरह सेव करें', pty_moved:'इस नाम से लेन-देन', pty_paid_him:'इसे दिया', pty_got_him:'इससे मिला', pty_moved_n:'{n} एंट्री, शुरुआती बकाया छोड़कर — पूरे स्टेटमेंट में हर एक दिखेगी', pty_moved_none:'इस नाम से अभी कोई लेन-देन नहीं', pty_other_hats:'यही नाम दूसरी जगह', pty_as:'{k} के रूप में', qty_less:'एक कम', qty_more:'एक और', save_later:'सेव करें, नाप बाद में', pr_goods:'माल की क़ीमत', pr_bill_disc:'बिल पर छूट', pr_no_gst:'इस बिल पर GST नहीं', pty_bs_note:'यह सूची हर पार्टी का पूरा हिसाब है ({l}) — सप्लायर को दिया एडवांस और बिना बिल के ऑर्डर भी इसमें हैं। बैलेंस शीट में "ग्राहकों से लेना" सिर्फ़ बकाया बिल गिनता है ({b})। फ़र्क {d}।', bs_acc_neg2:'शून्य से नीचे — {n} से जितना आया उससे ज़्यादा गया। अक्सर कोई खर्च {n} से लिखा गया जो असल में बैंक से दिया, या {n} में आई बिक्री बैंक में लिखी गई। नीचे की बड़ी लाइनें देखें।', af_open:'शुरुआती (1 अप्रैल)', af_sales:'बिक्री और ऑर्डर से आया', af_rcpt:'और जो पैसा आया', af_from_acc:'बैंक / दूसरे खाते से', af_exp:'खर्च दिए', af_pur:'सप्लायर को दिया', af_to_acc:'बैंक / दूसरे खाते में डाला', af_pay:'और भुगतान', af_other_out:'ग्राहक को वापस', af_now:'अभी का बैलेंस', bs_acc_neg:'शून्य से नीचे — शायद {d} का बैलेंस अभी डाला नहीं गया। उस दिन असल में जितना था, वह डालें।', bs_acc_set:'शुरुआती बैलेंस डालें',
   pur_future_t:'बिल की तारीख़ आज के बाद की है', pur_future_q:'इस बिल की तारीख़ {d} है। उस दिन तक यह स्टॉक, देनदारी और रिपोर्ट में नहीं गिना जाएगा। क्या तारीख़ सही है?',
   pur_future_yes:'हाँ, सेव करें', cr_why_future:'बिल की तारीख़ {d} — आज के बाद की, इसलिए बैलेंस शीट में नहीं', cr_why_two:'एक ही नाम पर दो शुरुआती बकाया — सूची में एक ही दिखता है', cr_why_notlist:'देनदारी सूची में नहीं', cr_why_notsheet:'बैलेंस शीट में नहीं', cr_why_ret:'ख़रीद वापसी जो बैलेंस शीट एक साथ घटाती है', pur_future_fix:'तारीख़ ठीक करें',
   shr_ask:'सारी पुरानी फ़ोटो छोटी कर दी जाएँगी (800px)। डिज़ाइन, कपड़ा और रंग साफ़ दिखते रहेंगे। यह वापस नहीं हो सकता, और कुछ मिनट लग सकते हैं — बीच में रोक सकते हैं, बाद में जारी रख सकते हैं।',
@@ -6076,7 +6085,7 @@ dl_show_hidden:'छुपे हुए दिखाएँ ({n})',
   pur_add_items:'आइटम जोड़ें', pur_edit_item:'आइटम बदलें', pur_no_items_yet:'इस बिल में अभी कोई आइटम नहीं',
   pur_tot_qty:'कुल मात्रा', pur_rate:'रेट (प्रति यूनिट)', pur_rate_x_qty:'रेट \u00D7 मात्रा',
   qty_pcs:'{n} पीस', qty_mtr:'{n} मीटर',
-  pur_more_item:'HSN, डिज़ाइन, रंग, नोट', pur_design:'डिज़ाइन', pur_colour:'रंग',
+  pur_more_item:'HSN, डिज़ाइन, रंग, नोट', pur_design:'डिज़ाइन', pur_colour:'रंग', pur_size:'साइज़',
   pur_save_new_item:'सेव करके अगला', pur_drop_line:'\u201C{n}\u201D को इस बिल से हटाएँ?',
   pur_new_item:'नया आइटम जोड़ें', pur_saved_item:'सेव किया आइटम',
   pur_new_item_note:'नया आइटम \u2014 इसी बिल के साथ सेव होगा', pur_qty_ph:'10  या  10, 7.8, 7.8',
@@ -7093,7 +7102,12 @@ const esc=s=>(s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt
    JavaScript FIRST and for the attribute SECOND, the only order that survives both
    parsers. jq() for anything inside quotes in a handler; esc() stays right for text. */
 const jq=s=>String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\r?\n/g,'\\n').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-const money=n=>'₹'+(Number(n)||0).toLocaleString('en-IN');
+/* v872 — money read "₹-3,14,914.4" and "₹5,452.2": the minus after the rupee sign and a
+   lone tenth of a rupee, on the cash card and the purchase lines. Paise now always show as
+   two digits when there are any, and the minus comes first ("-₹3,14,914.40"). Whole rupees
+   print exactly as before, so every figure he already reads stays the same. */
+const money=n=>{ const v=Math.round((Number(n)||0)*100)/100, a=Math.abs(v);
+  return (v<0?'-':'')+'₹'+a.toLocaleString('en-IN',{minimumFractionDigits:(a%1)?2:0, maximumFractionDigits:2}); };
 /* ══════════════ v463 — A TAX INVOICE WITH NO YEAR ON IT ══════════════
    HIS 3 Sep, holding the printed bill: "invoice date me year mention nahi hai, invoice date
    clear likha hona chahiye. Delivery date bold aur highlight hona chahiye."
@@ -7220,9 +7234,30 @@ function invHWKey(){ return 'inv:'+invSeries(); }
 function nextInvoiceNo(){
   numRelease();                       /* v621 */
   const c=DB.numCfg||{};
-  const n=Math.max(invSeen()+1, numHW(invHWKey())+1, +c.invStart||0, 1);
   const pre=(c.invPrefix||'').trim();
-  return (pre?pre+'/':'')+invSeries()+'/'+String(n).padStart(3,'0');
+  const head=(pre?pre+'/':'')+invSeries()+'/';
+  const n=Math.max(invSeen()+1, numHW(invHWKey())+1, invBurnt(head)+1, +c.invStart||0, 1);
+  return head+String(n).padStart(3,'0');
+}
+/* ══════════ v868 — HIS RULE, 14 Oct: "delete hua number dobara use ho, per cancel hua
+   number dobara use na ho." ══════════
+   A DELETED bill gives its number back (only the last one can come back — a middle one
+   stays a gap, as before). A CANCELLED bill keeps its number for ever: it stays on the
+   books as a cancelled bill, so the series already skips it. The hole was a cancelled bill
+   that was later DELETED — the number went back into the pool. Deleting a cancelled bill
+   now writes its number into numCfg.burnt (per series head, e.g. "INV/2026-27/"), which
+   numRelease() never lowers. A new key, added only — nothing old is renamed or moved. */
+function invBurnt(head){ return +(((DB.numCfg||{}).burnt||{})[head])||0; }
+function invBurnIfCancelled(rec){
+  try{
+    const inv=rec&&rec.invoice; if(!inv||!inv.cancelled||!inv.no)return;
+    const no=String(inv.no), m=no.match(/(\d+)\s*$/); if(!m)return;
+    const head=no.slice(0,m.index), n=parseInt(m[1],10);
+    DB.numCfg=DB.numCfg||{}; DB.numCfg.burnt=DB.numCfg.burnt||{};
+    if(n>(+DB.numCfg.burnt[head]||0))DB.numCfg.burnt[head]=n;
+    DB.numCfg.burntNos=DB.numCfg.burntNos||[];          /* the exact numbers, so one typed by hand is refused too */
+    if(!DB.numCfg.burntNos.includes(no))DB.numCfg.burntNos.push(no);
+  }catch(e){}
 }
 /* v263 — HIS 23 Aug: "readymade me 18% aur 5% wala formula theek hai, per fabric sale par
    5% hi GST hai. Mera GST registration hai."
@@ -11213,10 +11248,19 @@ function openDocsFor(dir,party,partyId){
   return rows.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
 }
 /* Spread a receipt over those bills, oldest first, and report what is left over. */
-function settleParty(dir,party,partyId,amt,date,acc,mode){
+function settleParty(dir,party,partyId,amt,date,acc,mode,firstId){
   let left=r2(amt);
   const touched=[];
-  openDocsFor(dir,party,partyId).forEach(d=>{
+  /* ══════════ v868 — THE BILL HE TAPPED IS THE BILL THAT GETS PAID ══════════
+     Found by driving his own book: Dimple has four open bills. On Collect payments he
+     tapped ✓ on INV/2894 (₹10,950) — and the money went onto INV/2853, her oldest. Her
+     total was right; the bill he was holding still said ₹10,950 due and an old one he never
+     touched read part-paid. Same from a bill's own "💰 Receive". Oldest-first is right when
+     he only names the customer; when he names the BILL, that bill goes first. Anything over
+     its due still flows to the others, oldest first, exactly as before. */
+  let _docs=openDocsFor(dir,party,partyId);
+  if(firstId)_docs=_docs.filter(d=>d.rec&&d.rec.id===firstId).concat(_docs.filter(d=>!(d.rec&&d.rec.id===firstId)));
+  _docs.forEach(d=>{
     if(left<=0)return;
     const take=r2(Math.min(left,d.due));
     d.rec.payments=d.rec.payments||[];
@@ -11314,7 +11358,7 @@ function payLoan(dir){
        <label>${t('ln_int')}</label>
        <input id="ln_int" type="number" inputmode="decimal" placeholder="0">
        <div class="hint" style="margin-top:3px">${t('ln_int_hint')}</div></div>`:''}
-     <div class="field" style="margin-top:10px"><label>${t('cb_into')}</label>
+     <div class="field" style="margin-top:10px"><label>${accLbl(dir)}</label>
        <select id="ln_acc">${accs.map(a=>`<option value="${a.id}">${esc(a.name)}</option>`).join('')}</select></div>
      <div class="field" style="margin-top:10px"><label>${t('notes')}</label>
        <input id="ln_note" placeholder="${t('ln_note_ph')}"></div>`,
@@ -11438,7 +11482,7 @@ function payFromBill(kind,id){
   if(!rec)return;
   const bk=orderBaaki(rec);
   closeSheet();
-  setTimeout(()=>{ try{ payEntry('in',1,{party:rec.customerName||'', amt:bk>0?bk:''}); }catch(e){} },60);
+  setTimeout(()=>{ try{ payEntry('in',1,{party:rec.customerName||'', amt:bk>0?bk:'', first:rec.id}); }catch(e){} },60);
 }
 function payDueOf(name){
   const n=String(name||'').trim().toLowerCase(); if(!n)return null;
@@ -11529,8 +11573,10 @@ function renderCollect(){
       <div class="row" style="gap:6px;margin-top:8px;align-items:flex-end">
         <div class="field" style="margin:0;flex:1;min-width:0">
           <label style="font-size:11px">\u{1F4B5} ${t('col_got')}</label>
-          <input id="colamt_${jq(x.rec.id)}" type="number" inputmode="decimal"
-            value="${x.bal}" oninput="colSync('${jq(x.rec.id)}',${x.bal})"
+          ${/* v870: the box starts EMPTY. It used to arrive filled with the whole balance, so a
+               stray ✓ while scrolling 94 bills booked money nobody had handed over. One tap on
+               the box fills the full balance (most collections are in full), then ✓. */''}<input id="colamt_${jq(x.rec.id)}" type="number" inputmode="decimal"
+            value="" placeholder="\u{1F446} ${x.bal}" onfocus="if(!this.value){this.value='${x.bal}';}try{this.select()}catch(e){}" oninput="colSync('${jq(x.rec.id)}',${x.bal})"
             style="text-align:right;font-weight:800"></div>
         <div class="field" style="margin:0;flex:1;min-width:0">
           <label style="font-size:11px">\u{1F3F7}\uFE0F ${t('col_disc')}</label>
@@ -11603,7 +11649,7 @@ function collectTake(kind,id){
   }
   const res = amt>0
     ? settleParty('in', rec.customerName||'', rec.customerId||null,
-        amt, _cd, _colAcc, '')
+        amt, _cd, _colAcc, '', rec.id)   /* v868: the row's own bill first */
     : {left:0,touched:[]};
   if(res.left>0){
     DB.ledger=DB.ledger||[];
@@ -11620,10 +11666,12 @@ function collectTake(kind,id){
    settling, oldest first, into the bill's own discValue. Nothing new is posted, so net
    sales fall by exactly this and the trial balance cannot move. Returns what it managed to
    place, so a discount bigger than the outstanding is refused rather than half-applied. */
-function payApplyDiscount(dir,party,partyId,disc){
+function payApplyDiscount(dir,party,partyId,disc,firstId){
   if(!(disc>0))return {left:r2(disc||0),touched:[]};
   let left=r2(disc); const touched=[];
-  openDocsFor(dir,party,partyId).forEach(d=>{
+  let _docs=openDocsFor(dir,party,partyId);
+  if(firstId)_docs=_docs.filter(d=>d.rec&&d.rec.id===firstId).concat(_docs.filter(d=>!(d.rec&&d.rec.id===firstId)));   /* v868: the named bill first */
+  _docs.forEach(d=>{
     if(left<=0)return;
     const rec=d.rec, inv=rec.invoice; if(!inv)return;          // only a billed document can carry one
     const take=r2(Math.min(left,d.due)); if(take<=0)return;
@@ -11700,6 +11748,10 @@ function payEntryDo(dir,again){
   }
 }
 
+/* v868 — the label over the account box follows the money. "Into" over a payment that
+   LEAVES the shop said the opposite of what the button did (Payment Out, loan repaid,
+   paying an old balance). Same box, same account — only the word was wrong. */
+function accLbl(dir){ return t(dir==='out'?'cb_paid_from':'cb_into'); }
 function payEntryCommit(dir,again,party,amt,disc,_capDate,_capAcc,_capNote){
   /* v787: date/acc/note came in as arguments (_capDate/_capAcc/_capNote) — captured by
      payEntryDo BEFORE dupPayAsk's modal could close this sheet out from under them. A DOM
@@ -11774,9 +11826,9 @@ function payEntryCommit(dir,again,party,amt,disc,_capDate,_capAcc,_capNote){
     const _open=openDocsFor(dir,party,cust?cust.id:null).reduce((s,d)=>r2(s+d.due),0);
     if(_open<=0){ toast(t('py_disc_none'),'bad'); return; }
     if(r2(disc+amt)>r2(_open)+0.5){ toast(t('py_over',{m:money(_open)}),'bad'); return; }
-    _dres=payApplyDiscount(dir,party,cust?cust.id:null,disc);
+    _dres=payApplyDiscount(dir,party,cust?cust.id:null,disc,(_pay&&_pay.first)||null);
   }
-  const r=settleParty(dir,party,cust?cust.id:null,amt,date,acc,'');
+  const r=settleParty(dir,party,cust?cust.id:null,amt,date,acc,'',(_pay&&_pay.first)||null);
   if(r.left>0){
     /* ══════════ v579 — THE GROUP DECIDES WHERE IT LANDS ══════════
        Whatever the bills and the opening balance did not absorb is written here. Until now
@@ -11942,7 +11994,7 @@ function payToCollect(nm){
   setTimeout(()=>{ try{ collectHub(); }catch(e){} },80);
 }
 function payEntry(dir,skipAsk,prefill){
-  _pay={dir,photos:[]};
+  _pay={dir,photos:[],first:(prefill&&prefill.first)||null};   /* v868: opened from a bill → that bill is paid first */
   payPartyRowsClear();                 // v595: recount dues each time the screen opens
   const accs=DB.accounts||[];
   /* ══════════ v577 — I ALMOST PUT LOAN MONEY THROUGH THE WRONG DOOR ══════════
@@ -12031,7 +12083,7 @@ function payEntry(dir,skipAsk,prefill){
      <div class="row"><div class="field"><label>🏷️ ${t('py_disc')} ₹</label>
         <input id="py_disc" type="number" inputmode="decimal" placeholder="0"
           oninput="payTotalPaint()" style="text-align:right"></div>
-       <div class="field"><label>💵 ${t('py_recd')} ₹ *</label>
+       <div class="field"><label>💵 ${t(dir==='out'?'py_paid':'py_recd')} ₹ *</label>
         <input id="py_amt" type="number" inputmode="numeric" placeholder="0"
           oninput="payTotalPaint()" style="text-align:right;font-weight:800"></div></div>
      <div id="pyTotalRow" style="display:none;margin:-4px 0 8px;padding:8px 10px;border-radius:10px;
@@ -12039,7 +12091,7 @@ function payEntry(dir,skipAsk,prefill){
        <div class="kv" style="border-bottom:0;padding:0">
          <b style="color:var(--ok)">${t('py_total')}</b><b id="pyTotalVal" style="color:var(--ok)">—</b></div></div>
      <div class="row"><div class="field"><label>${t('pay_date')}</label>${dateField("py_date",todayISO())}</div>
-     <div class="field"><label>${t('cb_into')}</label>${acctSelHTML('py_acc',(defaultAcc()||{}).id)}</div></div>
+     <div class="field"><label>${accLbl(dir)}</label>${acctSelHTML('py_acc',(defaultAcc()||{}).id)}</div></div>
      <p class="hint" id="pySettleHint" style="margin:-4px 0 8px"></p>
      <div class="field"><label>${t('stk_note')}</label><input id="py_note" placeholder="${t('stk_note_ph')}"></div>
      ${payRoutesHTML(dir,'pay')}`,
@@ -13613,7 +13665,7 @@ function payListDraw(isIn,from,to){
          that must carry it, which is what stops the next new screen from missing it. */''}
     ${lines.length?exportBarHTML('pay_'+(isIn?'in':'out'),()=>({
       title:t(isIn?'pl_title_in':'pl_title_out'), sub:(from?fmtDate(from)+' – ':'')+fmtDate(to),
-      head:[t('ps_date'),t(isIn?'customer':'supplier'),t('cb_into'),t('amount')],
+      head:[t('ps_date'),t(isIn?'customer':'supplier'),accLbl(isIn?'in':'out'),t('amount')],
       rows:lines.map(l=>[fmtDate(l.date), (l.party||l.ref||''), accName(l.acc), l.amt])})):''}
     <div id="plBody">${dbBodyHTML(lines)}</div>
     <div class="fab-pad"></div>`;
@@ -13832,8 +13884,9 @@ function payEdit(id){
      <div class="row"><div class="field"><label>${t('amount')} ₹ *</label>
        <input id="pe_amt" type="number" inputmode="numeric" value="${esc(ex.amt||'')}"></div>
        <div class="field"><label>${t('pay_date')}</label>${dateField('pe_date',ex.date||todayISO())}</div></div>
-     <div class="field"><label>${t('cb_into')}</label>${acctSelHTML('pe_acc',ex.acc||(defaultAcc()||{}).id)}</div>
-     <div class="field"><label>${t('stk_note')}</label><input id="pe_note" value="${esc(ex.note||'')}"></div>`,
+     <div class="field"><label>${accLbl(dir)}</label>${acctSelHTML('pe_acc',ex.acc||(defaultAcc()||{}).id)}</div>
+     <div class="field"><label>${t('stk_note')}</label><input id="pe_note" value="${esc(ex.note||'')}"></div>
+     ${ex.refKind==='manual'?`<button class="btn ghost block" style="margin-top:4px" onclick="payToLoanAsk('${jq(id)}')">\u{1F3E6} ${t(dir==='in'?'pe_is_loan_in':'pe_is_loan_out')}</button>`:''}`,
     [{label:t('cancel'),cls:'ghost',fn:closeModal},
      {label:'🗑️',cls:'danger',fn:()=>payDelete(id)},
      /* ══════════ v620 — HE NAMED THIS ONE HIMSELF ══════════
@@ -13852,6 +13905,33 @@ function payEdit(id){
         save(); closeModal(); toast(t('t_updated'),'ok'); afterSave(dayBook);
      }}]);
 }
+/* ══════════ v871 — HIS 14 Oct: "Hemant ka loan hai" ══════════
+   Two ₹5,00,000 receipts from Hemant (Kathmandu), note "Uchanti", were typed as Payment In,
+   so the balance sheet carried ₹10 lakh as CUSTOMER ADVANCE — money held against goods —
+   when it is a loan to be paid back. The receipt itself was right: the date, the amount and
+   the account (cash / ICICI) are real. Only its KIND was wrong.
+   So the same row is turned into the exact row 🏦 Loan received writes (refKind 'loan',
+   partyKind 'loan', principal = amount, no interest) — same id, date, amount, account,
+   name, note. Cash and bank do not move by a rupee; the ₹10 lakh moves from "Customer
+   advances" to "Loans" on the balance sheet, and Hemant appears on the Loans screen where
+   his repayments go. It is a change to the books, so it asks once and names that; Undo
+   puts the receipt back exactly as it was. */
+function payToLoanAsk(id){
+  const ex=(DB.ledger||[]).find(l=>l.id===id&&l.refKind==='manual'); if(!ex)return;
+  const inn=ex.dir==='in';
+  confirmModal('\u{1F3E6} '+t(inn?'pe_is_loan_in':'pe_is_loan_out'),
+    t(inn?'pe_loan_q_in':'pe_loan_q_out',{m:money(+ex.amt||0),n:esc(ex.party||'')}),
+    ()=>{
+      const before=JSON.parse(JSON.stringify(ex));
+      delete ex.partyId; delete ex.cat;
+      Object.assign(ex,{refKind:'loan', partyKind:'loan', loanPrincipal:r2(+ex.amt||0), loanInterest:0,
+        ref:inn?t('pw_loanin'):t('pw_loanpay'), cat:''});
+      save(); try{ closeModal(); }catch(e){} try{ _lgBalMemo={}; }catch(e){} try{ refreshMoney(); }catch(e){}
+      undoOffer(t('pe_loan_done',{m:money(+ex.amt||0)}), ()=>{
+        Object.keys(ex).forEach(k=>delete ex[k]); Object.assign(ex,before);
+        save(); try{ _lgBalMemo={}; }catch(e){} try{ refreshMoney(); }catch(e){} });
+    }, null, {yes:t('pe_loan_yes')});
+}
 /* One payment, one sheet: who, how much, when, into which account, and what it was for.
    Built through the same engine as every report, so it carries the shop name and looks
    like everything else that leaves this app. */
@@ -13861,7 +13941,7 @@ async function payReceiptPdf(id){
   const R=[[t('ps_date'), fmtDate(l.date)],
            [isIn?t('customer'):t('supplier'), l.party||'—'],
            [t('amount'), money(+l.amt||0)],
-           [t('cb_into'), accName(l.acc)||'—']];
+           [accLbl(l.dir), accName(l.acc)||'—']];
   if(l.ref)R.push([t('bill_no'), l.ref]);
   if(l.note)R.push([t('stk_note'), l.note]);
   await sharePdf({shop:((DB.shopInfo||{}).name)||'PARAMPARA',
@@ -19627,7 +19707,7 @@ async function renderCustBody(){const el=$('#cu_body');if(!el)return;
 function ordManageSalesman(){captureForm();const list=salesmenAll();
   const html=(list.length?list.map(k=>`<div class="kv" style="padding:6px 0"><span>🧑‍💼 ${esc(k.name)}${k.phone?` <span class="hint">${esc(k.phone)}</span>`:''}</span>
       <span style="display:flex;gap:8px"><span onclick="ordEditSalesman('${k.id}')" style="cursor:pointer">✏️</span>
-      <span onclick="ordDelSalesman('${k.id}')" style="color:#d9534f;cursor:pointer">🗑️</span></span></div>`).join(''):`<p class="hint">${t('sm_none_yet')}</p>`)
+      <span class="del-tap" onclick="ordDelSalesman('${k.id}')">🗑️</span></span></div>`).join(''):`<p class="hint">${t('sm_none_yet')}</p>`)
     +`<button class="btn ghost block" style="margin-top:10px" onclick="ordEditSalesman('')">+ ${t('add_salesman')}</button>`;
   modal('🧑‍💼 '+t('ml_manage'),html,[{label:t('close'),cls:'ghost',fn:()=>renderForm()}]);}
 /* Same editor as the master screen; _smBack just remembers where to come back to. */
@@ -19862,6 +19942,15 @@ function clearFormOpen(){ try{ localStorage.removeItem(OPEN_KEY); }catch(e){} }
 function saveDraft(){
   if(_draftOff)return;
   if(!formIsOpen())return;
+  /* ══════════ v873 — HIS QUESTION 14 Oct: "edit ke baad draft to nahi banta?" ══════════
+     It did, for ORDERS. Open an existing order to change something, then leave by the
+     bottom Home button (not ✕ or Cancel): the autosave had already parked it, and the
+     Orders page then offered to "continue" a draft of an order that already exists.
+     The bill (v558) and the purchase (v245/v867) already follow the rule; the order form
+     did not. Same rule now: an EDIT of a saved record is never a draft — only a record
+     that does not exist yet can be one. Leaving an edit unsaved simply leaves the order
+     as it was saved. */
+  if(form && form.editId){ try{ if(form._did)dropDraft(form._did); }catch(e){} return; }
   try{
     captureForm();
     if(!form._did)form._did='d'+uid();
@@ -23232,7 +23321,7 @@ function dictate(sel,btn){
 /* ====================== PAYMENTS (dues received) ====================== */
 function paymentHistoryHTML(o){ migratePayments(o);
   if(!o.payments.length)return `<p class="hint">${t('no_payments')}</p>`;
-  return o.payments.map((p,i)=>`<div class="kv"><span>${fmtDate(p.date)}</span><b>${money(p.amt)} <span onclick="delPayment('${o.id}',${i})" style="color:#d9534f;cursor:pointer;margin-left:8px">🗑️</span></b></div>`).join(''); }
+  return o.payments.map((p,i)=>`<div class="kv"><span>${fmtDate(p.date)}</span><b>${money(p.amt)} <span class="del-tap" onclick="delPayment('${o.id}',${i})">🗑️</span></b></div>`).join(''); }
 /* ══════════════ v527 — EVERY PAYMENT WAS BOOKED AS CASH ══════════════
    HIS 6 Sept: "delivery and payment receipts fast hona chahiye. Payment kai baar part mein
    bhi aata hai."
@@ -24506,7 +24595,7 @@ function setAltKarigar(id,kid){const a=altById(id);if(!a)return;a.karigarId=kid;
   save();openAltDetail(id);toast(t('t_saved'),'ok');}
 function altPaymentHistoryHTML(a){migratePayments(a);
   if(!a.payments.length)return `<p class="hint">${t('no_payments')}</p>`;
-  return a.payments.map((p,i)=>`<div class="kv"><span>${fmtDate(p.date)}</span><b>${money(p.amt)} <span onclick="delAltPayment('${a.id}',${i})" style="color:#d9534f;cursor:pointer;margin-left:8px">🗑️</span></b></div>`).join('');}
+  return a.payments.map((p,i)=>`<div class="kv"><span>${fmtDate(p.date)}</span><b>${money(p.amt)} <span class="del-tap" onclick="delAltPayment('${a.id}',${i})">🗑️</span></b></div>`).join('');}
 function openAltPayment(id){const a=altById(id);if(!a)return;const bk=orderBaaki(a);
   modal(t('add_payment'),`<div class="field"><label>${t('pay_amount')} ₹</label><input id="p_amt" type="number" inputmode="numeric" placeholder="${bk||''}"></div>
     <div class="field" style="margin-top:10px"><label>${t('pay_date')}</label>${dateField("p_date",todayISO())}</div>`,
@@ -24553,6 +24642,7 @@ function delAlteration(id){
   for(const p of(a.photos||[]))await mDel(p);
   for(const e of(a.log||[]))if(e.voiceId)await mDel(e.voiceId);
   for(const v of(a.voiceNotes||[]))if(v.voiceId)await mDel(v.voiceId);
+  invBurnIfCancelled(altById(id));
   DB.alterations=DB.alterations.filter(x=>x.id!==id);save();closeSheet();go('alterations');toast(t('t_deleted'));});}
 
 /* ====================== INVOICE / BILLING (GST) ====================== */
@@ -25027,7 +25117,7 @@ function renderInvoiceForm(){
      already runs across DB.orders, DB.sales and DB.alterations alike -- so this box was
      always safe to show here; it was just never drawn. */
   const invNoDateHTML=`<div class="head-grid3" style="grid-template-columns:1fr 1fr;margin-bottom:10px">
-      <div class="field" style="margin:0"><label>🧾 ${t('invoice_no')}</label>
+      <div class="field" style="margin:0"><label>✏️ ${t('invoice_no')}</label>
         <input id="inv_no" value="${esc(f.no)}" style="font-size:14px" oninput="if(invForm)invForm.no=this.value.trim()"></div>
       <div class="field" style="margin:0"><label>📅 ${t('invoice_date')}</label>
         ${dateField("inv_date",f.date)}</div>
@@ -25096,7 +25186,7 @@ function renderInvoiceForm(){
          because that is where the panel happened to be mounted. */''}
     <div id="invOrdSlot"></div>
     <div class="head-grid3" style="grid-template-columns:1fr 1fr;margin:10px 0">
-      <div class="field" style="margin:0"><label>🧾 ${t('invoice_no')}</label>
+      <div class="field" style="margin:0"><label>✏️ ${t('invoice_no')}</label>
         <input id="inv_no" value="${esc(f.no)}" style="font-size:14px" oninput="if(invForm)invForm.no=this.value.trim()"></div>
       <div class="field" style="margin:0"><label>📅 ${t('invoice_date')}</label>
         ${dateField("inv_date",f.date)}</div>
@@ -25397,14 +25487,24 @@ function renderInvoiceForm(){
                 style="width:112px;text-align:right;margin:0" oninput="updateInvTotals()"></div>
             <div class="il"><span>${t('received')}</span><b id="tRecvSplit">${money((+f.split.cash||0)+(+f.split.upi||0))}</b></div>`;
         }
-        if((rec0.payments||[]).length>1){   // real payment history — a bill edit must never overwrite it
+        if((rec0.payments||[]).length>=1){   // real payment history — a bill edit must never overwrite it (v867: from the FIRST payment, so its date is always on screen)
           /* v844 — HIS 5 Oct, bill 2852 (Jagannath Ji): ₹21,000 bill, ₹22,000 taken in two payments, and no way to
              remove the extra ₹1,000. This line said "Add payments here" and offered nothing — not add, not delete.
              Each payment is listed now with its own 🗑️; the bill itself is not touched. */
-          return `<div class="il"><span>${t('received')}</span><b>${money(paid)}</b></div>
+          return `<div class="il"><span>${t('received')}</span><b id="tRecvHist">${money(paid)}</b></div>
             ${(rec0.payments||[]).map((pm,i)=>`<div class="il" style="padding-left:10px">
               <span class="hint">${pm.date?fmtDate(pm.date):'\u2014'} \u00B7 ${esc(pm.acc?accName(pm.acc):(pm.mode||''))}</span>
-              <b>${money(+pm.amt||0)} <span onclick="invPayDelAsk('${jq(f.kind)}','${jq(f.id)}',${i})" style="cursor:pointer;margin-left:8px">\u{1F5D1}\uFE0F</span></b></div>`).join('')}`;
+              <b style="display:flex;align-items:center;gap:6px">${/* v867: created, so also editable — the amount is a box, the receipt keeps its id, date and account */''}<input class="payamt" data-i="${i}" type="number" min="0" inputmode="numeric" value="${+pm.amt||0}" onfocus="try{this.select()}catch(e){}" oninput="updateInvTotals()"
+                style="width:96px;text-align:right;margin:0;font-weight:800"> <span class="del-tap" style="margin-left:2px" title="${t('pay_move')}" onclick="invPayMoveAsk('${jq(f.kind)}','${jq(f.id)}',${i})">\u21AA\uFE0F</span><span class="del-tap" onclick="invPayDelAsk('${jq(f.kind)}','${jq(f.id)}',${i})">\u{1F5D1}\uFE0F</span></b></div>`).join('')}
+            ${/* v867 — HIS 12 Oct: a bill with ONE payment showed only a number box. Typing a bigger
+                 figure there did not ADD a payment, it rewrote the old one — same 2 Oct date, wrong
+                 day in the cash book — and nothing on the bill said when any money came. Every
+                 payment is a dated line now, and this box only ever adds a NEW one, dated today. */''}
+            <div class="il" style="padding-top:8px"><span class="tapx" style="font-weight:800;color:var(--saffron2);cursor:pointer"
+                onclick="var e=$('#inv_add');if(e){e.focus();}">\u2795 ${t('received_now')}</span>
+              <input id="inv_add" type="number" min="0" inputmode="numeric" value="${f.addNow?esc(f.addNow):''}" placeholder="0"
+                style="width:120px;text-align:right;margin:0;font-weight:800;font-size:16px;color:var(--saffron2);border-color:var(--saffron)"
+                oninput="updateInvTotals()"></div>`;
         }
         const shown = f.receivedNow!=null ? f.receivedNow : (paid||'');
         return `<div class="il">
@@ -25440,7 +25540,7 @@ function renderInvoiceForm(){
         <span class="hint">${f.split?t('split_pay'):t('payment_mode')}</span>
         <span class="gtags" id="ivModes">
           ${f.split?'':PU_MODES.map(m=>`<span class="gtag sm ${(f.paymentMode===m[0])?'on-tag':''}" data-pm="${m[0]}" style="cursor:pointer" onclick="invSetMode('${m[0]}')">${t(m[1])}</span>`).join('')}
-          <span class="gtag sm ${f.split?'on-tag':''}" style="cursor:pointer;border-style:dashed" onclick="invToggleSplit()">⇄ ${t('split_pay')}</span></span>
+          ${(((invRecOf(f.kind,f.id)||{}).payments||[]).length>=1 && !f.split)?'':`<span class="gtag sm ${f.split?'on-tag':''}" style="cursor:pointer;border-style:dashed" onclick="invToggleSplit()">⇄ ${t('split_pay')}</span>`}</span>
         <input type="hidden" id="inv_pm" value="${esc(f.paymentMode||'Cash')}"></div>
       ${/* v511: the account picker waited on the payment mode but not on whether any money
            was actually being taken, so "Into account · Cash / ICICI PARAMPARA / ➕ Add bank
@@ -26856,7 +26956,8 @@ function invRecvNow(f,comp){
   if(f.split)return r2((+f.split.cash||0)+(+f.split.upi||0));
   const rec0=invRecOf(f.kind,f.id)||{};
   const paid=orderReceived(rec0);
-  if((rec0.payments||[]).length>1)return paid;
+  if((rec0.payments||[]).length>=1){ const ed=f.payEdits||{};
+    return r2(rec0.payments.reduce((a,pm,i)=>a+((ed[i]!=null&&ed[i]>0)?ed[i]:(+pm.amt||0)),0)+(+f.addNow||0)); }
   return r2(f.receivedNow!=null?(+f.receivedNow||0):(paid||0));
 }
 function updateInvTotals(){
@@ -26882,6 +26983,7 @@ function updateInvTotals(){
   if(cb&&cb.checked&&rv&&document.activeElement!==rv){   // "paid full" stays true as items change
     rv.value=r2(comp.total); invForm.receivedNow=r2(comp.total); }
   const recv=invRecvNow(invForm,comp);
+  { const h=$('#tRecvHist'); if(h)h.textContent=money(r2(recv-(+invForm.addNow||0))); }
   /* v862 — HIS 9 Oct: ₹1,000 paid over the bill read "Net due ₹0" — the extra was nowhere */
   { const _x=r2(recv-comp.total), _l=$('#tDueL'), _d=$('#tDue');
     if(_l)_l.textContent=_x>0.5?t('inv_extra_recv'):t('total_due');
@@ -26955,6 +27057,8 @@ function previewInvoice(){
     const comp=invCompute(tempInv);
     const recv=(f.receivedNow!=null)?f.receivedNow:comp.total;
     let pays=recv>0?[{amt:recv,date:f.date}]:[];
+    { const _ex=(rec.payments||[]);   /* v867: a bill with payments previews THOSE, with their own dates */
+      if(_ex.length>=1 && !f.split){ pays=_ex.map((p,i)=>Object.assign({},p,(f.payEdits&&+f.payEdits[i]>0)?{amt:+f.payEdits[i]}:{})); const _a=r2(+f.addNow||0); if(_a>0)pays.push({amt:_a,date:todayISO(),mode:f.paymentMode}); } }
     if(f.split && ((+f.split.cash||0)>0 || (+f.split.upi||0)>0)){
       pays=[];
       if((+f.split.cash||0)>0)pays.push({amt:r2(+f.split.cash),date:f.date,mode:'Cash',acc:(cashAcc()||{}).id});
@@ -27019,6 +27123,8 @@ function captureInvoiceForm(){const f=invForm;
   /* v628: photos and voice are held on invForm directly by their own handlers — nothing
      to read out of the DOM, and nothing here may clear them */
   if($('#inv_recv'))f.receivedNow=$('#inv_recv').value===''?null:(+$('#inv_recv').value||0);
+  if($('#inv_add'))f.addNow=$('#inv_add').value===''?0:(+$('#inv_add').value||0);
+  { const ins=document.querySelectorAll('#sheet .payamt'); if(ins.length){ f.payEdits={}; ins.forEach(e=>{ f.payEdits[e.dataset.i]=+e.value||0; }); } else f.payEdits=null; }
   if(f.split){
     if($('#inv_cash'))f.split.cash=$('#inv_cash').value===''?'':(+$('#inv_cash').value||0);
     if($('#inv_upi'))f.split.upi=$('#inv_upi').value===''?'':(+$('#inv_upi').value||0);
@@ -27092,7 +27198,7 @@ let _invSig0=null, _invSigFor=null;
 function invSig(f){
   const n=v=>+v||0, sx=v=>String(v==null?'':v).trim();
   return JSON.stringify([sx(f.no),sx(f.date),sx(f.customerId),sx(f.customerName),sx(f.phone),sx(f.paymentMode),
-    sx(f.discType),n(f.discValue),n(f.courier),sx(f.notes),f.receivedNow==null?'':n(f.receivedNow),
+    sx(f.discType),n(f.discValue),n(f.courier),sx(f.notes),f.receivedNow==null?'':n(f.receivedNow),n(f.addNow),((invRecOf(f.kind,f.id)||{}).payments||[]).map((pm,i)=>(f.payEdits&&+f.payEdits[i]>0&&+f.payEdits[i]!==(+pm.amt||0))?+f.payEdits[i]:0).join(','),
     f.split?[n(f.split.cash),n(f.split.upi)]:0,sx(f.deliveryDate),sx(f.orderNo),sx(f.salesmanId),!!f.interstate,
     (f.photos||[]).length,(f.voiceNotes||[]).length,
     (f.items||[]).map(it=>[sx(it.label),n(it.qty),sx(it.unit),n(it.rate),n(it.price),n(it.disc),sx(it.thaanId),sx(it.masterId),sx(it.size),(it.incl||[]).join(',')])]);
@@ -27167,8 +27273,13 @@ function saveInvoice(){
   }catch(e){ _invHadStockLines=true; }
   /* v376: same latch — a duplicate invoice takes a number the shop cannot get back.
      Read AFTER capture, so the signature is what is actually on the form. */
+  /* v868 — the latch read only the name, number, date and items. A second save within 3 s
+     that changed only the MONEY (a received amount corrected, a payment added, a discount)
+     was refused as a "double tap" and the correction was lost with a red toast. The money
+     on the form is part of what makes two saves different. */
   if(!svOnce(['i',f.id||'',f.customerName||'',f.no||'',f.date||'',
-      JSON.stringify(f.items||'')].join('|'),()=>{})){ toast(t('sv_dup'),'bad'); return; }
+      JSON.stringify(f.items||''), f.receivedNow==null?'':f.receivedNow, f.addNow||'', JSON.stringify(f.payEdits||null),
+      f.discType||'', f.discValue||'', f.courier||'', JSON.stringify(f.split||null), f.paymentMode||'', f.acc||''].join('|'),()=>{})){ toast(t('sv_dup'),'bad'); return; }
   if(!f.no){toast(t('t_no_invno'),'bad');return;}
   /* v196 — HIS 14 Aug screenshots: the bill for order #2579 and the bill for order #2580
      BOTH read INV/2026-27/2949. The number is worked out when the bill is opened, from the
@@ -27178,7 +27289,8 @@ function saveInvoice(){
      if the number has been taken since this bill was opened, move to the next free one and
      say so rather than overwrite anything. */
   const _clash=(list,me)=>(list||[]).some(r=>r && r.id!==me && r.invoice && String(r.invoice.no)===String(f.no));
-  if(_clash(DB.orders,f.id)||_clash(DB.sales,f.id)||_clash(DB.alterations,f.id)){
+  if(_clash(DB.orders,f.id)||_clash(DB.sales,f.id)||_clash(DB.alterations,f.id)
+     || (((DB.numCfg||{}).burntNos)||[]).includes(String(f.no))){   /* v868: a cancelled bill's number, even after the bill was deleted */
     const taken=f.no; f.no=nextInvoiceNo();
     const el=$('#inv_no'); if(el)el.value=f.no;
     toast('🧾 '+t('inv_no_taken',{a:taken,b:f.no}),'bad');
@@ -27319,7 +27431,7 @@ function saveInvoice(){
     rec.total=invCompute(rec.invoice).total;
     // all money lives on the bill now: the "Received" box is the advance
     migratePayments(rec);
-    if((rec.payments||[]).length<=1 && f.receivedNow!=null){
+    if((rec.payments||[]).length===0 && f.receivedNow!=null){
       rec.payments=billPayKeep(rec.payments, +f.receivedNow||0, f.date||todayISO(), f.paymentMode, payAccFor(f.paymentMode,f.acc));
     }
   }
@@ -27342,11 +27454,20 @@ function saveInvoice(){
       if(c)rec.customerId=c.id; }
     // money follows what the SCREEN showed: blank Received box = nothing received (full due),
     // never a silent auto-paid. Real payment history (e.g. split cash+UPI) is never overwritten.
-    if(!((rec.payments||[]).length>1)){
+    if(!((rec.payments||[]).length>=1)){
       const recv=(f.receivedNow!=null)?(+f.receivedNow||0):0;
       rec.payments=billPayKeep(rec.payments, recv, f.date, f.paymentMode, payAccFor(f.paymentMode,f.acc));
     }
   }
+  /* v867: money added on a bill that already has payments is a NEW dated payment — the ones
+     already there are never touched */
+  if(f.payEdits && (rec.payments||[]).length){   // an amount corrected in place: same receipt, same id, date, account
+    rec.payments.forEach((pm,i)=>{ const v=r2(+f.payEdits[i]||0); if(v>0 && v!==r2(+pm.amt||0)){ pm.amt=v; if(!pm.id)pm.id='pay_'+uid(); } }); }
+  { const _add=r2(+f.addNow||0);
+    if(_add>0 && (rec.payments||[]).length>=1 && !f.split){
+      rec.payments.push({id:'pay_'+uid(),amt:_add,date:todayISO(),mode:f.paymentMode,acc:payAccFor(f.paymentMode,f.acc)});
+      if(f.kind==='order'){ try{ touchOrder(rec.id); }catch(e){} }
+    } }
   // Split payment: record cash and online separately so Cash & Bank routes each correctly
   if(f.split && ((+f.split.cash||0)>0 || (+f.split.upi||0)>0)){
     const d=f.date||todayISO(), pays=[];
@@ -28184,14 +28305,16 @@ function invDelOrderBill(kind,id){
   const no=String(rec.invoice.no||'');
   if((DB.salesReturns||[]).some(r=>r.saleId===id)){ toast(t('inv_del_has_ret',{n:no}),'bad'); return; }
   const m=no.match(/(\d+)\s*$/), dig=m?parseInt(m[1],10):0;
+  const _cx=invIsCancelled(rec);
   const isLast=!!dig && no.includes(invSeries()) && dig===invSeen();
   const adv=r2(orderReceived(rec));
   const msg=t('inv_del_ord_q',{n:esc(no),o:esc(rec.orderNo||rec.altNo||'')})
     +(adv>0?'\n\n'+t('inv_del_adv',{m:money(adv)}):'')
-    +'\n\n'+(isLast?t('inv_del_num_back',{n:esc(no)}):t('inv_del_num_gap',{n:esc(no)}));
+    +'\n\n'+(_cx?t('inv_del_num_cx',{n:esc(no)}):(isLast?t('inv_del_num_back',{n:esc(no)}):t('inv_del_num_gap',{n:esc(no)})));
   confirmModal('\uD83D\uDDD1\uFE0F '+t('delete')+' '+esc(no), msg, ()=>{
     const _billMv=mv=>mv.reason==='sale'||mv.reason==='sales_return';
     try{ revertStockByRef(id,_billMv); }catch(e){}
+    invBurnIfCancelled(rec);
     delete rec.invoice; delete rec.invoiceId;
     rec.log=rec.log||[]; rec.log.push({id:uid(),ts:new Date().toISOString(),text:t('inv_del_log',{n:no}),voiceId:null});
     try{ numRelease(); }catch(e){}
@@ -28214,48 +28337,43 @@ function delSale(id){
   if(rec){
     /* v600: this screen kept its own copy of the money guard, so the way out added to the
        shared one never reached the bill he was actually stuck on. One guard now. */
-    if(payGuard(rec,{msg:(n,amt)=>t('del_has_pay',{n:n,amt:amt}),
-                     how:t('del_has_pay_how'),
-                     open:()=>openInvoiceForm('sale',id),
-                     force:()=>{ rec.payments=[]; save(); delSale(id); }}))return;
-    /* v612 — and the guard fired on the wrong thing. It exists so a bill cannot vanish out
-       from under an ORDER that depends on it. But it was reading a text box: on a counter
-       sale orderNo is whatever he typed, a slip number, a scribble — no order record is
-       involved and nothing depends on it. It now asks whether a real order actually points
-       at this bill, and only then stands in the way. When it does, the third door unlinks
-       and deletes in one go, naming the order, exactly as the money guard does.
-       HIS words: "khali wahan se delete kiya to sab kuch automatically ho jaye." */
+    /* v868: the order link is settled first — so nothing is taken off the bill until every question has been answered */
     const _linkedOrd=(DB.orders||[]).find(o=>
       String(o.orderNo||'')===String(rec.orderNo||'') &&
       (o.invoiceId===rec.id || (o.invoice&&o.invoice.no===((rec.invoice||{}).no))));
     if(rec.orderNo && _linkedOrd){
+      _delForced=0; const _got=orderReceived(rec);
       modal('🗑️ '+t('confirm_del'),
         `<p>${t('del_has_order',{n:esc(rec.orderNo)})}</p>
-         <p class="hint" style="margin-top:8px">${t('del_has_order_how')}</p>`,
+         <p class="hint" style="margin-top:8px">${t('del_unlink_msg',{n:esc(rec.orderNo)})}${_got>0?'<br>'+t('del_take_pay_msg',{amt:money(_got)}):''}</p>`,
         [{label:t('close'),fn:closeModal},
          {label:'✏️ '+t('edit'),cls:'ghost',fn:()=>{closeModal();openInvoiceForm('sale',id);}},
          {label:t('del_unlink_go',{n:esc(rec.orderNo)}),cls:'danger',fn:()=>{closeModal();
-            confirmModal('🗑️ '+t('confirm_del'), t('del_unlink_msg',{n:esc(rec.orderNo)}),
-              ()=>{ /* v668: clearing the bill's own orderNo unhooked one end and left the
-                       other hanging - the ORDER kept invoiceId and its invoice block, so it
-                       still read as billed and still pointed at a record about to be
-                       deleted. Both ends are released, and only for the order that is
-                       actually linked to THIS bill. */
-                    if(_linkedOrd){ delete _linkedOrd.invoiceId; delete _linkedOrd.invoice; }
-                    rec.orderNo=''; save(); _delForced=1; delSale(id); },
-              null, {yes:t('delete'), cls:'danger'});}}]);
+            /* v868: this button IS the confirmation — the sheet above it already says what
+               happens to the order and to the money. It used to open a second sheet. */
+            if(_linkedOrd){ delete _linkedOrd.invoiceId; delete _linkedOrd.invoice; }
+            if(_got>0)rec.payments=[];
+            rec.orderNo=''; save(); _delForced=1; delSale(id); }}]);
       return;
     }
+    if(payGuard(rec,{msg:(n,amt)=>t('del_has_pay',{n:n,amt:amt}),
+                     how:t('del_has_pay_how'),
+                     open:()=>openInvoiceForm('sale',id),
+                     force:()=>{ rec.payments=[]; save(); delSale(id); }}))return;
   }
   const nRet=(DB.salesReturns||[]).filter(r=>r.saleId===id).length;
   { const _r=(DB.sales||[]).find(x=>x.id===id)||{}; _delWhat=delWhat((_r.invoice||{}).no,_r.customerName,orderTotal?orderTotal(_r):0); }
   /* v859 — HIS 9 Oct: a number left empty in the middle must be warned about, here too */
   let _gap=''; { const _no=String((((DB.sales||[]).find(x=>x.id===id)||{}).invoice||{}).no||''); const _m=_no.match(/(\d+)\s*$/), _d=_m?parseInt(_m[1],10):0;
-    if(_d && _no.includes(invSeries())) _gap='<br><br>'+(_d===invSeen()?t('inv_del_num_back',{n:esc(_no)}):t('inv_del_num_gap',{n:esc(_no)})); }
+    const _cx=invIsCancelled((DB.sales||[]).find(x=>x.id===id)||{});   /* v868: a cancelled number never comes back */
+    if(_d && _no.includes(invSeries())) _gap='<br><br>'+(_cx?t('inv_del_num_cx',{n:esc(_no)}):(_d===invSeen()?t('inv_del_num_back',{n:esc(_no)}):t('inv_del_num_gap',{n:esc(_no)}))); }
+  const _wasForced=!!_delForced;   /* v868: the money sheet was the only question — the number warning must still reach him */
   delAsk((nRet?t('del_with_returns',{n:nRet}):t('confirm_del_msg'))+_gap,()=>{
   unwindReturnsFor('sale',id);
   revertStockByRef(id);                       // put sold pieces / meters back in stock
-  DB.sales=(DB.sales||[]).filter(x=>x.id!==id);save();closeSheet();renderInvoices();toast(t('t_deleted'));});}
+  invBurnIfCancelled((DB.sales||[]).find(x=>x.id===id));
+  DB.sales=(DB.sales||[]).filter(x=>x.id!==id);save();closeSheet();renderInvoices();
+  toast(_wasForced&&_gap ? t('t_deleted')+' · '+_gap.replace(/<br>/g,' ').replace(/<[^>]+>/g,'').trim() : t('t_deleted'));});}
 function buildInvoiceText(rec,inv){
   const comp=invCompute(inv);
   const prevBal=customerOutstanding(rec.customerId,recKindOf(rec),rec.id);
@@ -30072,6 +30190,12 @@ function purHasContent(f){ return !!(f && (f.supplier || (f.items||[]).length ||
 function getPurDraft(){ try{ const d=JSON.parse(localStorage.getItem(PUR_DRAFT_KEY)||'null'); return (d&&purHasContent(d))?d:null; }catch(e){ return null; } }
 function savePurDraft(){
   if(!purchForm||purchForm.editId)return;      // never draft an edit of a saved bill
+  /* v867 — PATTERN: an autosave listener that outlives the screen it belongs to. The 'input'
+     listener sits on the shared #sheet for good, and purchForm is never emptied after Save —
+     so typing in ANY later sheet (Stock search, an item edit) re-drafted the bill that was
+     just saved, and "Continue" on that card would have saved it a second time. A saved form
+     is finished: no draft, ever. */
+  if(purchForm._saved)return;
   capturePurchForm();
   /* v245: this used to delete the stored draft the moment the CURRENT form was empty — so
      opening a blank New Purchase and touching one field wiped the unfinished bill before he
@@ -30347,6 +30471,50 @@ function puPaidFull(on){
 /* v758: take one earlier payment off a purchase bill. Money, so it asks — naming the amount,
    the day, the account and what the supplier will show afterwards. Found by its own id, never by
    date + amount. Written at once and the box redrawn; Undo puts it back where it was. */
+/* ══════════ v868 — A PAYMENT ON THE WRONG BILL ══════════
+   Until v868 a ✓ on Collect payments, or 💰 Receive on a bill, put the money on the
+   customer's OLDEST bill — not the one he tapped. Her total was right, the bills were not.
+   Those old receipts are not moved by the app (nothing changes money by itself); this lets
+   him move one, from the bill it sits on, to another open bill of the SAME customer.
+   The receipt keeps its date, account and mode — only the bill it belongs to changes — so
+   cash, the day book and the trial balance do not move at all. If the other bill owes less
+   than the receipt, only what it owes is moved and the rest stays here, so no bill is ever
+   paid past its total. Undo puts it back exactly. */
+function invPayMoveAsk(kind,id,i){
+  const rec=invRecOf(kind,id); if(!rec||!(rec.payments||[])[i])return;
+  const x=rec.payments[i];
+  const others=openDocsFor('in',rec.customerName||'',rec.customerId||null).filter(d=>d.rec!==rec);
+  if(!others.length){ toast(t('pay_move_none'),'bad'); return; }
+  window._pmv={kind,id,pay:x,others};
+  modal('↪️ '+t('pay_move'),
+    `<p class="hint" style="margin-bottom:10px">${t('pay_move_q',{m:money(+x.amt||0),d:x.date?fmtDate(x.date):'—'})}</p>
+     ${others.map((d,j)=>`<button class="btn ghost block" style="margin-bottom:8px;display:flex;justify-content:space-between;text-align:left"
+        onclick="invPayMoveDo(${j})"><span>${esc(d.label)}</span><b>${money(d.due)}</b></button>`).join('')}`,
+    [{label:t('cancel'),cls:'ghost',fn:closeModal}]);
+}
+function invPayMoveDo(j){
+  const st=window._pmv; window._pmv=null; if(!st)return;
+  const rec=invRecOf(st.kind,st.id), d=st.others[j]; if(!rec||!d){ closeModal(); return; }
+  const at=(rec.payments||[]).indexOf(st.pay); if(at<0){ closeModal(); return; }
+  try{ captureInvoiceForm(); }catch(e){}
+  const x=rec.payments[at], tgt=d.rec, due=r2(orderBaaki(tgt));
+  const before={src:JSON.parse(JSON.stringify(rec.payments)), tgt:JSON.parse(JSON.stringify(tgt.payments||[]))};
+  const amt=r2(+x.amt||0), mv=r2(Math.min(amt,due));
+  if(!(mv>0)){ closeModal(); toast(t('pay_move_none'),'bad'); return; }
+  tgt.payments=tgt.payments||[];
+  if(mv>=amt){ rec.payments.splice(at,1); tgt.payments.push(x); }
+  else { x.amt=r2(amt-mv); tgt.payments.push({id:'pay_'+uid(),amt:mv,date:x.date,acc:x.acc,mode:x.mode||''}); }
+  const _log=(r,txt)=>{ r.log=r.log||[]; r.log.push({id:uid(),ts:new Date().toISOString(),text:txt,voiceId:null}); };
+  const srcName=st.kind==='sale'?((rec.invoice&&rec.invoice.no)||''):(st.kind==='order'?('#'+rec.orderNo):('#'+rec.altNo));
+  _log(rec,t('pay_move_log_out',{m:money(mv),b:d.label})); _log(tgt,t('pay_move_log_in',{m:money(mv),b:srcName}));
+  if(st.kind==='order')touchOrder(rec.id); if(d.kind==='order')touchOrder(tgt.id);
+  save(); closeModal(); try{ _lgBalMemo={}; }catch(e){}
+  try{ renderInvoiceForm(); }catch(e){} try{ refreshBehind(); }catch(e){}
+  undoOffer(t('pay_move_done',{m:money(mv),b:d.label}), ()=>{
+    rec.payments=before.src; tgt.payments=before.tgt;
+    if(st.kind==='order')touchOrder(rec.id); if(d.kind==='order')touchOrder(tgt.id);
+    save(); try{ _lgBalMemo={}; }catch(e){} try{ renderInvoiceForm(); }catch(e){} try{ refreshBehind(); }catch(e){} });
+}
 function invPayDelAsk(kind,id,i){
   const rec=invRecOf(kind,id); if(!rec||!(rec.payments||[])[i])return;
   const x=rec.payments[i];
@@ -30730,8 +30898,8 @@ function puItemRender(){
           <input id="pit_design" value="${esc(d.design||'')}"></div>
       </div>
       <div class="row" style="gap:8px;margin-top:8px">
-        <div class="field" style="margin:0;flex:1"><label>${t('pur_colour')}</label>
-          <input id="pit_colour" value="${esc(d.colour||'')}"></div>
+        <div class="field" style="margin:0;flex:1"><label>${d.unit==='Pcs'?t('pur_size'):t('pur_colour')}</label>
+          <input id="pit_colour" value="${esc(d.colour||'')}" placeholder="${d.unit==='Pcs'?'L/40':''}"></div>
         <div class="field" style="margin:0;flex:1"><label>${t('notes')}</label>
           <input id="pit_note" value="${esc(d.note||'')}"></div>
       </div>
@@ -31656,6 +31824,18 @@ function purMatchReady(it,key){
   if(m)m._key=key;
   return m;
 }
+/* v867 — PATTERN: two spellings of one size. The Stock size grid keys are 'L/40', 'XL/42'…;
+   the purchase line took whatever was typed in its Colour box as the size, so "40" made a
+   stock key the grid cannot show (listed "Out of stock", and the item's own Save would drop
+   it). A bare number or a letter that names a grid size now becomes the grid's own key;
+   anything else is kept exactly as typed. */
+function purSizeKey(v){
+  const raw=String(v==null?'':v).trim(); if(!raw)return '-';
+  const list=(DB.stkCfg&&DB.stkCfg.sizes)||[];
+  const norm=x=>String(x).toLowerCase().replace(/[\s\/\-]/g,'');
+  const hit=list.find(z=>norm(z)===norm(raw)) || list.find(z=>String(z).split('/')[1]===raw.replace(/\s/g,''));
+  return hit||raw;
+}
 function purApplyStock(pur){
   if(pur._stockDone)return {made:0,merged:0};
   /* v233 — HIS 20 Aug: "opening stock me jo bhi stock tha sab daal diya, sabko serial mil
@@ -31684,7 +31864,7 @@ function purApplyStock(pur){
          it.masterId (set the moment "+ New item" returns — see puItemNewMaster()) names
          that record exactly, when it's available, and is trusted ahead of the guess. */
       let m=(it.masterId && (DB.itemMaster||[]).find(x=>x.id===it.masterId)) || purMatchReady(it,key);
-      const size=(it.colour||'').trim()||'-';
+      const size=purSizeKey(it.colour);
       if(m){ m._key=key; if(m.kind!=='ready')m.kind='ready';   /* v771: a record holding readymade stock IS readymade — or Stock → Ready never shows it */
         readySet(m,size,(+(m.stk||{})[size]||0)+qty); merged++; }
       else{
@@ -31704,6 +31884,8 @@ function purApplyStock(pur){
            dsgn:it.design||'',hsn:it.hsn||'',cost:rate,sell:'',rate:'',stk:{}};
         readySet(m,size,qty); DB.itemMaster.push(m); made++;
       }
+      /* v867: the photo taken on the bill line belongs to the item too (it stayed on the bill only) */
+      if((it.photos||[]).length){ m.photos=m.photos||[]; it.photos.forEach(id=>{ if(m.photos.indexOf(id)<0)m.photos.push(id); }); }
       it.masterId=m.id; if(!it.serial)it.serial=m.serial;
       move({date:pur.date,dir:'in',target:'ready',itemId:m.id,size,qty,rate,
         reason:'purchase',ref:pur.billNo||'',refId:pur.id});
@@ -31716,7 +31898,7 @@ function purApplyStock(pur){
         if(!f){ f={id:uid(),name:it.label,category:'',party:pur.supplier||'',rate}; DB.fabItems.push(f); }
         th={id:uid(),created:new Date().toISOString(),serial:it.serial||nextThaanSerial(),fabId:f.id,_key:key,
             design:it.design||'',colour:it.colour||'',mtr:qty,used:0,rate,rack:'',party:pur.supplier||'',
-            notes:'',photos:[]};
+            notes:'',photos:(it.photos||[]).slice()};   /* v867: line photo goes onto the roll */
         DB.thaans.push(th); bumpSerial(); made++;
       }
       it.thaanId=th.id; it.fabId=th.fabId; it.serial=th.serial;
@@ -31919,7 +32101,7 @@ function savePurchase(){
   /* v376: a purchase booked twice moves stock twice — worse than a duplicate expense */
   {const _f=purchForm||{};
    if(!svOnce(['b',_f.editId||'',_f.supplier||'',_f.billNo||'',_f.date||'',
-      JSON.stringify(_f.items||'')].join('|'),()=>{})){ toast(t('sv_dup'),'bad'); return; }}
+      JSON.stringify(_f.items||''), _f.paidNow==null?'':_f.paidNow, _f.discValue||'', _f.courier||'', _f.paymentMode||''].join('|'),()=>{})){ toast(t('sv_dup'),'bad'); return; }}   /* v868: money is part of the signature */
   purDraftAdd(true);              // an item still sitting in the entry line counts
   capturePurchForm();const f=purchForm;
   const comp=purchCompute(f);const total=comp.total;
@@ -32053,6 +32235,8 @@ function savePurchase(){
      moment a bill is saved, so a GSTIN and an opening balance have somewhere to live and
      the same name is never typed twice. */
   save();sheetSaved();clearPurDraft();toast(t('t_purch_saved'),'ok');purQ='';purSort='new';
+  try{ clearTimeout(_purDraftT); }catch(e){}   /* v867: a pending autosave must not write the saved bill back */
+  f._saved=true;
   if(_purSaveNew){ _purSaveNew=false;
     const sup=f.supplier,ph=f.phone,dt=_dateLock.pur;   /* v243: the locked date rides along */
     openPurchaseForm(); purchForm.supplier=sup; purchForm.phone=ph;
@@ -32491,7 +32675,7 @@ function supplierCredit(name){
 
 function delPurchase(id){
   const _p0=(DB.purchases||[]).find(x=>x.id===id);
-  if(payGuard(_p0,{force:()=>{ _p0.payments=[]; save(); delPurchase(id); },
+  if(payGuard(_p0,{out:1, force:()=>{ _p0.payments=[]; save(); delPurchase(id); },
                    msg:(n,amt)=>t('del_pur_pay',{n:n,amt:amt}),
                    how:t('del_pur_pay_how'), open:()=>openPurchaseForm(id)}))return;
   const nRet=(DB.purchaseReturns||[]).filter(r=>r.purId===id).length;
@@ -33819,11 +34003,41 @@ function balanceSheet(){
     ${(DB.accounts||[]).map(a=>{ const b=accBalance(a.id); if(!(b<0)||a.cc)return '';
       return `<div class="card" style="border-color:var(--bad);padding:10px 12px;margin-bottom:8px">
         <div class="kv"><span>${a.type==='cash'?'\u{1F4B5}':'\u{1F3E6}'} <b>${esc(a.name)}</b></span><b style="color:var(--bad)">${money(b)}</b></div>
-        <p class="hint" style="margin:4px 0 8px;white-space:normal">${t('bs_acc_neg',{d:fmtDate(accFrom(a))})}</p>
+        ${/* v870 — his Cash read −₹3,14,914 with ₹2,85,949 opening already entered, and this card
+             still said "the 1 Apr balance has probably not been entered". Wrong words for his
+             case. When an opening IS there, it now says what really happened, and shows where
+             the money came from and went — so the accountant can find the wrong entries. */''}
+        <p class="hint" style="margin:4px 0 8px;white-space:normal">${(+a.opening||0)?t('bs_acc_neg2',{n:esc(a.name)}):t('bs_acc_neg',{d:fmtDate(accFrom(a))})}</p>
+        ${accFlowHTML(a)}
         <button class="btn sm ghost block" onclick="closeSheet();accEdit('${jq(a.id)}')">\u270F\uFE0F ${t('bs_acc_set')}</button></div>`; }).join('')}
     <p class="hint">${t('de_note')}</p>
     <div class="fab-pad"></div>`;
   showSheet();
+}
+/* v870 — where an account's money came from and where it went, from the same lines the
+   balance is built on (so the rows always add up to the balance shown). Read-only. */
+function accFlowHTML(a){
+  try{
+    const L=moneyLines(accFrom(a),'9999-12-31').filter(l=>l.acc===a.id);
+    const g={}; const add=(k,v)=>{ g[k]=r2((g[k]||0)+v); };
+    const heads={};
+    L.forEach(l=>{ const v=+l.amt||0, inn=l.dir==='in';
+      if(l._contra) add(inn?'af_from_acc':'af_to_acc', v);
+      else if(['sale','order','alt'].includes(l.refKind)) add(inn?'af_sales':'af_other_out', v);
+      else if(l.refKind==='expense'){ add('af_exp', v); const h=l.cat||l.party||'—'; heads[h]=r2((heads[h]||0)+v); }
+      else if(l.refKind==='purchase') add('af_pur', v);
+      else add(inn?'af_rcpt':'af_pay', v);
+    });
+    const row=(lbl,v,sign)=>v?`<div class="kv" style="padding:3px 0;font-size:13px"><span>${lbl}</span><b style="color:${sign<0?'var(--bad)':'var(--ok)'}">${sign<0?'− ':'+ '}${money(v)}</b></div>`:'';
+    const top=Object.entries(heads).sort((x,y)=>y[1]-x[1]).slice(0,5)
+      .map(([h,v])=>`<div class="kv" style="padding:1px 0 1px 14px;font-size:12px;opacity:.85"><span>${esc(h)}</span><span>${money(v)}</span></div>`).join('');
+    return `<div style="margin:0 0 8px;padding:6px 8px;border-radius:8px;background:rgba(0,0,0,.12)">
+      ${row(t('af_open'),+a.opening||0,(+a.opening||0)<0?-1:1)}
+      ${row(t('af_sales'),g.af_sales,1)}${row(t('af_rcpt'),g.af_rcpt,1)}${row(t('af_from_acc'),g.af_from_acc,1)}
+      ${row(t('af_exp'),g.af_exp,-1)}${top}
+      ${row(t('af_pur'),g.af_pur,-1)}${row(t('af_to_acc'),g.af_to_acc,-1)}${row(t('af_pay'),g.af_pay,-1)}${row(t('af_other_out'),g.af_other_out,-1)}
+      <div class="kv" style="padding:4px 0 0;border-top:1px solid var(--line);font-size:13px"><b>${t('af_now')}</b><b style="color:var(--bad)">${money(accBalance(a.id))}</b></div></div>`;
+  }catch(e){ return ''; }
 }
 function trialBalance(){
   sheetAt(trialBalance);
@@ -36328,15 +36542,21 @@ function payGuard(rec,opt){
   const n=((rec&&rec.payments)||[]).filter(p=>+p.amt).length;
   const got=rec?orderReceived(rec):0;
   if(!(n&&got>0))return false;
+  /* ══════════ v868 — ONE DELETE, ONE QUESTION ══════════
+     Deleting a bill with money on it asked twice: first "remove the payment first", then,
+     behind the red button, a second sheet saying what would happen. The second sheet was
+     the only one that said what mattered — the cash moves. That sentence is now on the
+     FIRST sheet, and the red button does it. Still a question (it is money), but one.
+     And the words follow the direction of the money: deleting a PURCHASE payment puts the
+     cash back UP — the old sentence said "drops" for every kind. */
+  _delForced=0;   /* a flag left over from an abandoned delete must never skip this one's question */
   const acts=[{label:t('close'),fn:closeModal},
     {label:t('del_open_rec'),cls:'ghost',fn:()=>{closeModal();opt.open();}}];
   if(opt.force)acts.push({label:t('del_take_pay',{amt:money(got)}),cls:'danger',
-    fn:()=>{closeModal();
-      confirmModal('🗑️ '+t('confirm_del'), t('del_take_pay_msg',{amt:money(got)}),
-        ()=>{ _delForced=1; opt.force(); }, null, {yes:t('delete'), cls:'danger'});}});
+    fn:()=>{closeModal(); _delForced=1; opt.force(); }});
   modal('🗑️ '+t('confirm_del'),
     `<p>${opt.msg(n,money(got))}</p>
-     <p class="hint" style="margin-top:8px">${opt.how}</p>`, acts);
+     <p class="hint" style="margin-top:8px">${opt.force?t(opt.out?'del_take_pay_msg_out':'del_take_pay_msg',{amt:money(got)}):opt.how}</p>`, acts);
   return true;
 }
 function delOrder(id,forced){
@@ -36362,6 +36582,7 @@ function delOrder(id,forced){
   const _rm=(DB.itemMaster||[]).filter(x=>_rmIds.has(x.id)).map(x=>[x,JSON.parse(JSON.stringify(x.stk||{}))]);
   if(forced)o.payments=[];
   revertStockByRef(id);                       // put cut fabric / billed stock back
+  invBurnIfCancelled(o);
   DB.orders.splice(i,1); touchOrder(id); save(); closeSheet(); go('orders');
   undoOffer(t('t_deleted'), ()=>{
     o.payments=_pays;
@@ -36723,7 +36944,7 @@ function karIssuePool(){
   const only=_ki.oid||'';
   (DB.orders||[]).filter(o=>!only||o.id===only).forEach(o=>{
     (o.items||[]).forEach(gid=>{
-      if((o.assign&&o.assign[gid]))return;             // already with someone
+      if((o.assign&&o.assign[gid]) && !karRecvDate(o,gid))return;   // already with someone (v866: a piece that has come BACK is free for its next master)
       const st=itemStatusOf(o,gid);
       if(st==='delivered'||st==='ready')return;        // done, nothing to hand out
       const g=G(gid);
@@ -37220,7 +37441,7 @@ function kiIssue(){
   let keys=Object.keys(_ki.pick).filter(k=>_ki.pick[k]);
   /* v790: a piece that is already with someone is never handed out a second time (two open tabs, a double tap, a
      stale list). It is left out and he is told. */
-  { const dup=keys.filter(k=>{ const [oid,gid]=k.split('|'); const o=(DB.orders||[]).find(x=>x.id===oid); return o&&o.assign&&o.assign[gid]; });
+  { const dup=keys.filter(k=>{ const [oid,gid]=k.split('|'); const o=(DB.orders||[]).find(x=>x.id===oid); return o&&o.assign&&o.assign[gid]&&!karRecvDate(o,gid); });
     if(dup.length){ dup.forEach(k=>{ _ki.pick[k]=false; }); keys=keys.filter(k=>dup.indexOf(k)<0); toast(t('ki_skip_asg',{n:dup.length}),'bad'); if(!keys.length){ karIssue(_ki.kid,_ki.oid); return; } } }
   if(!keys.length)return;
   const kid=_ki.kid, kn=karigarName(kid);
@@ -37254,7 +37475,13 @@ function kiIssue(){
   keys.forEach(key=>{
     const [oid,gid]=key.split('|');
     const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
+    /* v866 — the bulk Issue screen (v821) had lost what the one-piece door and the old twin always wrote: the day the
+       piece went out and the kind of work, and it refused a piece that had already come back from another master.
+       One hand-over, one record, whichever door it comes through. */
+    karCloseLeg(o,gid);
     o.assign=o.assign||{}; o.assign[gid]=kid;
+    o.issued=o.issued||{}; o.issued[gid]=todayISO();
+    o.karKind=o.karKind||{}; o.karKind[gid]=o.karKind[gid]||'silai';
     const r=_ki.rate[key];
     if(r!=null && String(r).trim()!==''){ o.karAmt=o.karAmt||{}; o.karAmt[gid]=r2(+r||0); }
     /* v467: whose cloth, and if it was the shop's, cut it */
@@ -37867,6 +38094,9 @@ function karigarIssue(kid,mode,keepFocus){
   /* v821: one Issue screen only. The Issue side lives in karIssue (it can hand over SHOP cloth, cut the roll and
      take the metres off stock); this older twin could not, so it is now for taking work back only. */
   if(give){ _ki.kid=kid; _ki.oid=''; _ki.cloth='cust'; _ki.pick={}; _ki.rate={}; return karIssue(kid,''); }
+  /* v866: taking work back had TWO screens — this one (no missing-rate question, no note on the order) and Receive
+     (karReceive). One job, one screen. */
+  _ki.kid=kid; _ki.pick={}; _ki.rate={}; _ki.extra={}; _ki.note={}; return karReceive(kid);
   const {types,list}=kiVisibleList(kid,mode);
   const _kiKey='ki:'+kid+':'+(give?'give':'take');
   const md=give?'give':'take';
@@ -42745,6 +42975,7 @@ function partiesHome(keep){
     <input id="ptyQ" value="${esc(_ptyQ)}" placeholder="\u{1F50D} ${t('pty_search')}" oninput="ptySearch(this.value)" autocomplete="off">
     <button class="btn primary block" style="margin:10px 0" onclick="partyEdit(null,()=>partiesHome())">\u2795 ${t('pty_add')}</button>
     <div id="ptyList">${rows}</div>
+    ${ptyBsNoteHTML()}
     ${/* v377: a hidden name must have a way back, or hiding it is really deleting it.
          v659 - HIS 13 Sept: "creditors aur debtors mein ye show hidden wali cheez samajh
          mein nahi aa rahi hai, ye hai kyun aur hai kya?"
@@ -42762,6 +42993,21 @@ function partiesHome(keep){
         </div>`).join('')}</details>`:'';})()}
     <div class="fab-pad"></div>`;
   showSheet();
+}
+/* v870 — HIS QUESTION: Receivables said ₹12,12,547, the balance sheet ₹11,90,350. Both are
+   right and they count different things: this list is each party's WHOLE account (an advance
+   paid to a supplier is money to get back, an unbilled order's balance is here too), the
+   balance sheet's line is customers' unpaid BILLS only, with supplier advances on a line of
+   their own. One line under the list says so, with both figures, so nobody hunts for a bug. */
+function ptyBsNoteHTML(){
+  try{
+    if(_ptyKind!=='debtors' || _ptyQ)return '';
+    /* the same grouping as the list above: karigars and staff have their own headings */
+    const list=+window._ptyDebtSum; if(!isFinite(list))return '';   /* the figure the heading above just printed */
+    const bs=r2(receivableTotal());
+    const d=r2(list-bs); if(Math.abs(d)<1)return '';
+    return `<p class="hint" style="margin:12px 2px 0;white-space:normal">ℹ️ ${t('pty_bs_note',{l:money(list),b:money(bs),d:money(Math.abs(d))})}</p>`;
+  }catch(e){ return ''; }
 }
 function ptySearch(v){ _ptyQ=String(v||''); const el=$('#ptyList'); if(el)el.innerHTML=partiesRows(); }
 /* v366 — HIS 27 Aug: "creditors hone chahiye neeche... creditors me jisko paisa dena hai
@@ -42857,6 +43103,7 @@ function partiesRows(kind){
   const debt=rest.filter(p=>net(p)>0).sort((a,b)=>net(b)-net(a));
   const flat=who.filter(p=>!net(p));
   const sum=list=>list.reduce((a,p)=>a+Math.abs(net(p)),0);
+  if(!q){ try{ window._ptyDebtSum=r2(sum(debt)); }catch(e){} }   /* v870: the note under the list reads THIS figure, never its own */
   const head=(ico,lbl,n,amt,col)=>`<div class="kv" style="padding:10px 2px 4px">
     <span class="dl-hd" style="padding:0">${ico} ${lbl} <span class="hint">(${n})</span></span>
     <b style="color:${col}">${money(r2(amt))}</b></div>`;
@@ -43193,7 +43440,7 @@ function openSettleAsk(name,kind){
      <div class="row"><div class="field"><label>${t('amount')} \u20B9 *</label>
         <input id="op_amt" type="number" inputmode="numeric" value="${st.left}" placeholder="0"></div>
        <div class="field"><label>${t('pay_date')}</label>${dateField('op_date',todayISO())}</div></div>
-     <div class="field" style="margin-top:8px"><label>${t('cb_into')}</label>${acctSelHTML('op_acc',(defaultAcc()||{}).id)}</div>
+     <div class="field" style="margin-top:8px"><label>${accLbl(st.dir)}</label>${acctSelHTML('op_acc',(defaultAcc()||{}).id)}</div>
      <div class="field" style="margin-top:8px"><label>${t('stk_note')}</label><input id="op_note" placeholder="${t('stk_note_ph')}"></div>
      <p class="hint" style="margin-top:8px">${t('pty_open_left')}: <b>${money(st.left)}</b></p>`,
     [{label:t('cancel'),cls:'ghost',fn:closeModal},
@@ -44094,7 +44341,7 @@ function staffMaster(){
         <div class="hint">${esc(k.role||'')}${k.salary?' · '+money(k.salary):''}${k.startTime?' · 🕘 '+esc(k.startTime):''}</div></div>
       <button class="btn sm ghost" style="flex:0 0 auto" onclick="event.stopPropagation();staffEdit('${k.id}')">✏️</button>
       <button class="btn sm ghost" style="flex:0 0 auto" title="${t('st_left_hint')}"
-        onclick="event.stopPropagation();staffLeftAsk('${k.id}')">${k.left?'↩️':'⚪'}</button>
+        onclick="event.stopPropagation();staffLeftAsk('${k.id}')">${k.left?'↩️':'🚪'}</button>
       <button class="btn sm danger" style="flex:0 0 auto"
         onclick="event.stopPropagation();staffDelete('${k.id}')">🗑️</button>
       </div>`).join('')||`<p class="hint">${t('st_none')}</p>`}
@@ -44593,7 +44840,10 @@ function updProof(v){
   try{
     const o=(DB.orders||[]).length, b=allInvoices().length, e=(DB.ledger||[]).length, c=(DB.customers||[]).length;
     if(!(o||b||e||c))return;
-    setTimeout(()=>{ try{ toast('✅ '+t('upd_ok',{v:v,o:o,b:b,e:e,c:c}),'ok');
+    setTimeout(()=>{ try{
+      /* v866: a book opened from a SAFETY COPY is the one message that must not be talked over by 'vNNN loaded' */
+      { const cur=$('#toast'); if(cur && cur.classList.contains('show') && String(cur.innerText||'').indexOf(t('boot_copy_used'))>=0)return; }
+      toast('✅ '+t('upd_ok',{v:v,o:o,b:b,e:e,c:c}),'ok');
       const el=$('#toast'); if(el){ clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),6000); } }catch(x){} },1600);
   }catch(e){}
 }
