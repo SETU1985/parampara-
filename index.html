@@ -500,7 +500,7 @@
   .ql-row.ql-on{background:rgba(246,166,35,.09)}
   .ql-sum{flex:1.3; min-width:0; font-size:12px; font-weight:700; color:var(--saffron2);
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:right}
-  .ql-sum.empty{color:var(--mut); font-weight:600}
+  .ql-sum.ql-empty{color:var(--mut); font-weight:600}
   .ql-foot{padding:7px 12px; border-top:1px solid var(--line); font-size:11px; color:var(--mut); line-height:1.5}
   .ql-ic{flex:0 0 auto; width:25px; text-align:center; font-size:15px; cursor:pointer; opacity:.4; position:relative}
   .ql-ic.has{opacity:1}
@@ -787,6 +787,8 @@
     justify-content:center; padding:0}
   .sheet-b:active{background:var(--saffron); color:#1a1206}
   .sheet-x:active{background:var(--saffron); color:#1a1206}
+  /* v907 — HIS 28 Oct: "cross ka nishaan thoda highlighted rahe, cross aur arrow ka". A saffron ring, bold glyph. */
+  .sheet-x,.sheet-b,.dx-close{border:2px solid var(--saffron) !important; color:var(--saffron2) !important; font-weight:900 !important}
   body.sheet-open{overflow:hidden}
   .sheet{overscroll-behavior:contain}
   /* FULL-SCREEN FORM (v168). His words: the order form opened as a see-through layer over
@@ -1017,10 +1019,12 @@
   .ln-top .spk{flex:1;min-width:0;position:relative}
   .ln-top .spk input{margin:0;font-weight:700;font-size:16px;padding:9px 10px}
   .ln-more{flex:0 0 auto;background:transparent;border:0;color:var(--mut);font-size:22px;line-height:1;padding:4px 8px}
+  .ln-x{flex:0 0 auto;width:32px;height:32px;border-radius:50%;background:transparent;border:1px solid var(--line2);color:var(--bad);font-size:14px;line-height:1;padding:0}
   .ln-inc{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 0 0}
   .ln-inc:empty{display:none}
   .ln-inc .incl-lbl{font-size:11px;color:var(--mut)}
   .ln-nums{display:grid;grid-template-columns:68px 56px minmax(0,1fr) auto;gap:6px;align-items:end;margin:8px 0 0 0}
+  @media(min-width:600px){ .ln-nums{grid-template-columns:96px 90px 170px 1fr} }
   .ln-nums label{display:flex;flex-direction:column;min-width:0}
   .ln-nums label>span,.ln-amt>span{font-size:11px;color:var(--mut);line-height:1.2}
   .ln-nums input,.ln-nums select{margin:3px 0 0;padding:9px 6px;font-size:15px;min-width:0;width:100%}
@@ -1367,7 +1371,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v903</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v909</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -3346,7 +3350,7 @@ const T={
   wk_back:'People & pieces', wk_stage3:'Last step',
   wk_none:'Pick at least one item first', wk_pick_first:'Pick an item to begin',
   wk_no_cust:'No customer name yet',
-  pc_photos:'Photos', pc_voice:'Recordings', pc_note:'Notes', pc_rec:'Record', ln_acc:'Includes', ln_more:'More', ln_new_item:'Add new item “{n}”', ln_new_item0:'Add new item', ln_search:'Search item',
+  ob_bill_items:'Bill items', ob_parts:'Parts of {n}', ob_cust_opt:'Old customer? Name or number', ob_no_parts:'No piece to measure', src_rename:'Rename', acc_upi_into:'Online (UPI) goes into', ln_del:'Remove', ord_add_item:'Add item', ord_done:'Done', ord_add_pick:'Which item?', pu_courier_gst:'GST on courier', bs_susp_jv:'Journal adjustments', cud_title:'Duplicate customers', cud_phone:'Same phone', cud_name:'Same name', cud_none:'No duplicate customers', cud_not:'Not the same', cud_join:'Join', cud_recs:'{n} records', cud_kept:'Marked as different people', date:'Date', pc_photos:'Photos', pc_voice:'Recordings', pc_note:'Notes', pc_rec:'Record', ln_acc:'Includes', ln_more:'More', ln_new_item:'Add new item “{n}”', ln_new_item0:'Add new item', ln_search:'Search item',
   spk_more:'type to narrow', spk_none:'Nothing matches', spk_ph:'Search or pick', rn_lines_cleared:'Items cleared — they were from another bill', rn_credit:'Credit Note', rn_debit:'Debit Note', rn_no:'Return No.', rn_party_bal:'Balance', rn_find_cust:'Customer name or phone', rn_find_sup:'Supplier name or phone', rn_new_cust:'New customer — not in your list', rn_bill_no:'Bill No.', rn_bill_ph:'Pick or type', rn_bill_date:'Bill Date', rn_billed:'Billed Items', rn_add_items:'Add Items', rn_subtotal:'Sub total', rn_amount_s:'Amount returned', rn_amount_p:'Amount', rn_tax_in:'GST inside the amount', rn_tax:'Tax', rn_from_bill:'from the bill', rn_paid_back:'Paid back now', rn_got_back:'Received back now', rn_over:'More than the total', rn_balance:'Balance', rn_note_s:'What is not paid back stays as his credit — it comes off what he owes.', rn_note_p:'What is not received back comes off what you owe this supplier.', rn_desc:'Description', rn_save_new:'Save & New', rn_can_ret:'Can return {n} {u}', rn_tag_bill:'From the bill — up to {n}', rn_tag_stock_in:'From stock — goes back into stock', rn_tag_stock_out:'From stock — goes out of stock', rn_tag_free:'Not in stock — money only', rn_edit_item:'Edit item', rn_from_bill_n:'Items of bill {n}', rn_item:'Item', rn_find_bill_item:'Pick from the bill', rn_find_item:'Serial, design no. or name', rn_over_bill:'Only {n} left on the bill', rn_rate_s:'Rate (with GST)', rn_rate_p:'Rate', rn_item_total:'Total', rn_item_gone:'Item removed', rn_need_item:'Pick or type the item', rn_need_qty:'Enter the quantity', rn_item_added:'Added — next item', rn_add_credit:'Add Credit Note', rn_add_debit:'Add Debit Note', mn_sale_inv:'Sale invoices', vy_sale_list:'Sale list', vy_search_inv:'Search name, bill no, phone, amount', vy_total_sale:'Total sale', vy_unpaid_only:'Unpaid only', vy_bal_due:'Balance due', vy_add_sale:'Add Sale', vy_t_cancel:'Cancelled', vy_t_paid:'Paid', vy_t_partial:'Partial', vy_t_unpaid:'Unpaid', vy_balance:'Balance:', vy_share:'Share', vy_print_pdf:'Print / PDF', vy_share_t:'Share bill', vy_print_list:'Print list', vy_party_bal:'Party balance', vy_open_order:'Open the order', vy_sale:'Sale', vy_inv_no:'Invoice No.', vy_billed:'Billed items', vy_tax_in:'GST (included)', vy_total_amt:'Total amount', vy_received:'Received', vy_payments:'Payments', vy_order_no:'Order No.', vy_desc:'Description', vy_edit_sale:'Edit Sale', vy_choose:'Choose', vy_came_by:'Customer came by', vy_pcs:'pcs', vy_add_items_sale:'Add Items to Sale', vy_find_item:'Item, design no., roll serial', vy_use_named:'Use “{n}” as typed', vy_type_item:'Type an item', vy_rate_mtr:'Rate per metre (with GST)', vy_rate:'Rate (with GST)', vy_includes:'Includes', vy_gst_auto:'GST is worked out by itself: fabric 5%; readymade up to ₹2,500 5%, above 18%.', vy_cust_name:'Customer name', vy_pay_type:'Payment type', mod_tailor:'Tailoring (orders, measurements, karigar, delivery)', mod_tailor_sub:'Switch off for a shop that only sells readymade — orders, order no. and delivery date go away. Nothing is deleted.', vy_line_disc:'Discount', im_quick:'Shortcut on the bill', im_quick_hint:'Shows first in the one-tap line on every bill', vy_showing_cust:'Showing saved parties', vy_showing_sup:'Showing saved suppliers', vy_add_new_party:'+ Add new party', vy_add_new_sup:'+ Add new supplier', qk_more:'One more {n}', qk_less:'Take the last {n} off', qk_removed:'Removed {n} #{i} ({r})', qk_norate:'no rate yet', qk_added:'Added {n} as line #{i} — tap the line to change its rate', wr_sw:'This folder has a wrong sw.js (another app\'s). Offline copy is off until the Order Book sw.js is uploaded again.', vy_pur_list:'Purchase list', vy_search_pur:'Search supplier, bill no, amount', vy_total_pur:'Total purchase', vy_add_pur:'Add Purchase', vy_purchase:'Purchase', vy_edit_pur:'Edit Purchase', vy_sup_name:'Supplier name', vy_paid:'Paid', vy_pay_sup:'Pay the supplier', vy_you_give:'you will give', vy_you_get:'you will get', py_two_t:'{n} customers are called {a} — whose money is this?', py_no_open:'No open bill', cu_same_name:'{n} customers with this name', cu_bills_n:'{n} {n|bill|bills}', th_erase_btn:'Delete for good', th_erase_t:'Delete this roll?', th_erase_msg:'It was cancelled and has no entries. It goes from the book, and its number can be given to the next new roll.', th_erase_has:'This roll has entries — it stays cancelled', th_erase_cancel_first:'Cancel the roll first', th_erased:'#{s} deleted', pu_stk_q:'This bill\'s goods —', pu_stk_no:'Already in stock', pu_stk_no_sub:'Old bill: goods were entered in Stock before. Nothing is added.', pu_stk_yes:'Add to stock now', pu_stk_yes_sub:'New goods: every line becomes a new roll / piece in Stock.', pu_stk_was_no:'This bill did not touch stock (goods were already in Stock).', pu_stk_was_yes:'This bill added its goods to Stock when it was saved.', pu_stk_ask:'{n} {n|line goes|lines go} into Stock as new rolls / pieces with new serial numbers. If the goods are already in Stock, press Cancel and choose “Already in stock”.', pu_stk_ask_yes:'Yes, add to stock', pu_stk_item_no:'not added to stock', pur_new_item_note2:'Not in your saved items — typed name is used', vy_add_rec:'Add Receipt', vy_add_pay:'Add Payment', vy_add_exp:'Add Expense', vy_total_in:'Total received', vy_total_out:'Total paid', vy_reg_view:'Register view (Tally)', vy_card_view:'Card view', vy_cash:'Cash', vy_bank:'Bank', cbk_neg:'Cash went below zero on this day — a drawer cannot. Something on or before this day is missing or wrong: cash that came in was not entered, or an entry says Cash when it was bank.', cbk_jama:'Received (Jama)', cbk_naam:'Paid (Naam)', cbk_bd:'Balance b/d', cbk_cd:'Balance c/d', cbk_title:'Cash book', cbk_tick:'Matches my book', cbk_tick_day:'Matches my book ({a})', cbk_untick:'Not checked', cbk_closing:'Closing', cbk_opening:'Opening', cbk_was:'was {a} when ticked', cbk_now:'Balance now', cbk_ok_till:'Matched till', cbk_none_yet:'Nothing matched yet', cbk_next:'Next: {d}', cbk_how:'Each day is one page of your cash book. Tap any line to edit or delete it. ✓ when the page matches your book.', cbk_no_days:'No money moved in this month', cbk_month_close:'Month closing', cu_join:'Join with another customer', cu_join_hint:'Same person saved twice? Pick the other record of {n}. You will be asked which one to keep — bills, orders, measurements and receipts all move to it.', cu_join_none:'No customer with a similar name', schema_newer:'This book was saved by a newer version of the app. Update the app first. Nothing has been changed.', rc_salemonth:'Sales by month', rc_topparty:'Top customers', rc_itemsale:'Item-wise sale', rc_discount:'Discount given', rc_expmonth:'Expenses by month', rc_attsal:'Attendance & salary', rc_year:'Year', rc_month:'Month', rc_bills:'Bills', rc_bill:'Bill', rc_sales:'Sales', rc_party:'Customer', rc_item:'Item', rc_qty:'Qty', rc_disc:'Discount', rc_disc_total:'Total discount given', rc_disc_pct:'Of bill value', rc_of_sales:'Of sales', rc_find:'Find any report', rc_sm_hint:'Bill totals with GST. Tap a month for its bills.', rc_is_hint:'After bill discount. Tap an item for its bills.', rc_orders_hint:'Pending, source, delivery, profit', rc_stockage:'Stock ageing', rc_debtage:'Debtors by age', rc_age_s0:'Sold in last month', rc_age_s1:'1–3 months ago', rc_age_s2:'3–6 months ago', rc_age_s3:'6–12 months ago', rc_age_s4:'Over 12 months', rc_age_b0:'0–30 days', rc_age_b1:'31–60 days', rc_age_b2:'61–90 days', rc_age_b3:'Over 90 days', rc_idle:'Idle', rc_mo:'mo', rc_rolls:'rolls', rc_oldest:'Oldest', rc_due:'Due', rc_d:'d', rc_roll:'Roll', rc_meters:'Meters', rc_value:'Value', rc_all:'Show all', rc_used:'Used', rc_left:'Left', rc_what_sold:'Bills this item was sold on', rc_stkage_hint:'Months since each roll last had cloth taken out. Tap a bar to see only those rolls.', rc_debt_hint:'Unpaid bills only, by how old the bill is. Tap a bar to see only those customers.', dd_in3:'In 3 days', dd_in7:'In 1 week', dd_in10:'In 10 days', dd_in14:'In 2 weeks', rc_owner:'Owner summary', rc_owner_hint:'Today, this month, what is owed, and where money went', rc_today:'Today', rc_thismonth:'This month', rc_collected:'Money received', rc_spent:'Spent', rc_profit:'Profit', rc_owed:'Customers owe you', rc_last6:'Sales, last 6 months', rc_wherespent:'Where the money went this month', rc_dailysale:'Daily sale', rc_credage:'Creditors by age', rc_cred_hint:'Unpaid purchases, by how old the bill is. Tap a bar to see only those suppliers.', rc_purmonth:'Purchases by month', rc_pursup:'Purchases by supplier', rc_supplier:'Supplier', rc_partyprofit:'Profit by customer', rc_pp_hint:'Billed orders only: sale minus cloth and karigar cost.', rc_orders:'orders', rc_repeat:'Repeat or lapsed customers', rc_rp_hint:'Tap a bar to see only that group.', rc_rp0:'Repeat', rc_rp1:'Came once', rc_rp2:'Not seen in 6 months', rc_last:'Last', rc_lowstock:'Low stock', rc_reorder_at:'Reorder at', rc_optional:'optional', rc_ls_hint:'Readymade items at or under their own reorder line.', rc_ls_none:'No item has a reorder line yet. Open a readymade item and fill Reorder at.', rc_item:'Item', rc_holding:'Pieces held', cb_adjust:'Adjustment', cb_fix:'Adjust', brs_passbook:'Bank passbook balance', brs_pb_ok:'Matches the passbook', brs_pb_diff:'Difference with passbook', brs_pb_hint:'Missing receipt or payment? Add it (➕ above). Cannot find it? Adjust once.', brs_pb_fix:'Adjust {a}', sc_title:'Stock count', sc_hint:'Type what you counted. The difference is settled on the date you choose; old reports do not change.', sc_fabric:'Fabric', sc_ready:'Readymade', sc_date:'Count date', sc_q_fab:'Serial / name', sc_q_rdy:'Item name', sc_type_q:'Type a roll serial or name', sc_sys:'System', sc_counted:'Counted', sc_adjust:'Adjust', sc_same:'Matches', sc_short:'{n} short', sc_extra:'{n} extra', sc_short_w:'short', sc_extra_w:'extra', sc_ask:'System {sys} m, counted {cnt} m: {n} m {kind} (about {v}). It is entered as Stock count on {dt}. A short count is a real loss and goes into cost of goods; earlier reports stay as they were.', sc_ask_rdy:'About {v} {kind}. Entered as Stock count on {dt}. A short count is a real loss and goes into cost of goods; earlier reports stay as they were.', sc_hint_rdy:'Type the counted pieces for the sizes you counted; leave others empty.', sc_done:'Stock adjusted', sc_ref:'Stock count', sc_recent:'Recent counts', sc_undo:'Undo', sc_undone:'Count undone', rc_hsn:'HSN summary', rc_hsn_hint:'Per HSN: pieces, taxable value and GST. Tap a row for its bills.', rc_pcs:'Pcs', kl_title:'Add payments to khata', kl_found:'{n} payments ({a}) are in Expenses, not in the khata', kl_hint:'Paid under the Tailor head with his name. Tap to list them in his khata.', kl_ask:'{n} payments, {a} in total, were entered in Expenses with the karigar name but are not in his khata. Add them to the list? Cash, bank, profit and balance sheet do not change. They settle only work you have entered for him, and never show as an advance.', kl_yes:'Add to khata', kl_done:'{n} payments added', rh_staff:'Staff & payroll', rc_staffsum:'Attendance & pay', hd_withkar:'With karigar — take back', sf_pha:'P/½/A', sf_late:'Late', sf_paid:'Paid', sf_due:'Due', kb_none_out:'No work is with any karigar right now.', hd_todo:'To do', hd_pickdate:'Orders due on a date', hd_show:'Show', hd_date_sub:'Orders promised for this date', sf_this_month:'This month', sf_till_date:'Till date', smp_cust_short:'Customer\'s garment', done_back:'Done', voice_close:'Close recorder', ic_photo:'Photo', ic_voice:'Voice', ic_speak:'Speak', ic_note:'Note', meas_by:'Measurement by', trial_after_dlv:'Trial is after the delivery date — check the dates', add_another_short:'One more', remove_piece:'Remove',
   rtg_deliver:'Delivered', rtg_ask:'Mark this order delivered?',
   rtg_ask_due:'Mark delivered? {m} is still to be collected on this order.',
@@ -5766,7 +5770,7 @@ dl_show_hidden:'Show hidden ({n})',
   wk_back:'लोग और कपड़े', wk_stage3:'आखिरी स्टेप',
   wk_none:'पहले कोई आइटम चुनें', wk_pick_first:'शुरू करने के लिए आइटम चुनें',
   wk_no_cust:'ग्राहक का नाम अभी नहीं',
-  pc_photos:'फ़ोटो', pc_voice:'रिकॉर्डिंग', pc_note:'नोट', pc_rec:'रिकॉर्ड', ln_acc:'शामिल', ln_more:'और', ln_new_item:'नया आइटम जोड़ें “{n}”', ln_new_item0:'नया आइटम जोड़ें', ln_search:'आइटम खोजें',
+  ob_bill_items:'बिल आइटम', ob_parts:'{n} के हिस्से', ob_cust_opt:'पुराना ग्राहक? नाम या नंबर', ob_no_parts:'नाप वाला कोई हिस्सा नहीं', src_rename:'नाम बदलें', acc_upi_into:'ऑनलाइन (UPI) किस खाते में', ln_del:'हटाएँ', ord_add_item:'आइटम जोड़ें', ord_done:'हो गया', ord_add_pick:'कौन सा आइटम?', pu_courier_gst:'कूरियर पर GST', bs_susp_jv:'जर्नल समायोजन', cud_title:'डुप्लिकेट ग्राहक', cud_phone:'एक ही फ़ोन', cud_name:'एक ही नाम', cud_none:'कोई डुप्लिकेट ग्राहक नहीं', cud_not:'अलग लोग हैं', cud_join:'जोड़ें', cud_recs:'{n} रिकॉर्ड', cud_kept:'अलग लोग माने गए', date:'तारीख', pc_photos:'फ़ोटो', pc_voice:'रिकॉर्डिंग', pc_note:'नोट', pc_rec:'रिकॉर्ड', ln_acc:'शामिल', ln_more:'और', ln_new_item:'नया आइटम जोड़ें “{n}”', ln_new_item0:'नया आइटम जोड़ें', ln_search:'आइटम खोजें',
   spk_more:'और लिखें', spk_none:'कुछ नहीं मिला', spk_ph:'खोजें या चुनें', rn_lines_cleared:'आइटम हटे — वे दूसरे बिल के थे', rn_credit:'क्रेडिट नोट', rn_debit:'डेबिट नोट', rn_no:'रिटर्न नं.', rn_party_bal:'बैलेंस', rn_find_cust:'ग्राहक का नाम या फ़ोन', rn_find_sup:'सप्लायर का नाम या फ़ोन', rn_new_cust:'नया ग्राहक — लिस्ट में नहीं', rn_bill_no:'बिल नं.', rn_bill_ph:'चुनें या लिखें', rn_bill_date:'बिल की तारीख', rn_billed:'बिल के आइटम', rn_add_items:'आइटम जोड़ें', rn_subtotal:'कुल', rn_amount_s:'वापसी की रकम', rn_amount_p:'रकम', rn_tax_in:'रकम में GST शामिल', rn_tax:'टैक्स', rn_from_bill:'बिल से', rn_paid_back:'अभी वापस दिए', rn_got_back:'अभी वापस मिले', rn_over:'कुल से ज़्यादा', rn_balance:'बाक़ी', rn_note_s:'जो वापस नहीं दिया वह उसका क्रेडिट रहेगा — उसके बकाया से घटेगा।', rn_note_p:'जो वापस नहीं मिला वह इस सप्लायर को देने वाली रकम से घटेगा।', rn_desc:'विवरण', rn_save_new:'सेव और नया', rn_can_ret:'{n} {u} वापस हो सकते हैं', rn_tag_bill:'बिल से — {n} तक', rn_tag_stock_in:'स्टॉक से — वापस स्टॉक में जाएगा', rn_tag_stock_out:'स्टॉक से — स्टॉक से निकलेगा', rn_tag_free:'स्टॉक में नहीं — सिर्फ़ पैसा', rn_edit_item:'आइटम बदलें', rn_from_bill_n:'बिल {n} के आइटम', rn_item:'आइटम', rn_find_bill_item:'बिल से चुनें', rn_find_item:'सीरियल, डिज़ाइन नं. या नाम', rn_over_bill:'बिल पर सिर्फ़ {n} बचे हैं', rn_rate_s:'रेट (GST सहित)', rn_rate_p:'रेट', rn_item_total:'कुल', rn_item_gone:'आइटम हटाया', rn_need_item:'आइटम चुनें या लिखें', rn_need_qty:'मात्रा डालें', rn_item_added:'जुड़ गया — अगला आइटम', rn_add_credit:'क्रेडिट नोट जोड़ें', rn_add_debit:'डेबिट नोट जोड़ें', mn_sale_inv:'सेल बिल', vy_sale_list:'सेल लिस्ट', vy_search_inv:'नाम, बिल नं, फ़ोन, रकम खोजें', vy_total_sale:'कुल सेल', vy_unpaid_only:'सिर्फ़ बाक़ी वाले', vy_bal_due:'बाक़ी', vy_add_sale:'सेल जोड़ें', vy_t_cancel:'रद्द', vy_t_paid:'चुकता', vy_t_partial:'आंशिक', vy_t_unpaid:'बाक़ी', vy_balance:'बाक़ी:', vy_share:'भेजें', vy_print_pdf:'प्रिंट / PDF', vy_share_t:'बिल भेजें', vy_print_list:'लिस्ट प्रिंट', vy_party_bal:'पार्टी बैलेंस', vy_open_order:'ऑर्डर खोलें', vy_sale:'सेल', vy_inv_no:'बिल नं.', vy_billed:'बिल के आइटम', vy_tax_in:'GST (शामिल)', vy_total_amt:'कुल रकम', vy_received:'मिला', vy_payments:'पेमेंट', vy_order_no:'ऑर्डर नं.', vy_desc:'विवरण', vy_edit_sale:'सेल बदलें', vy_choose:'चुनें', vy_came_by:'ग्राहक कैसे आया', vy_pcs:'पीस', vy_add_items_sale:'सेल में आइटम जोड़ें', vy_find_item:'आइटम, डिज़ाइन नं., रोल सीरियल', vy_use_named:'“{n}” ऐसे ही लें', vy_type_item:'आइटम लिखें', vy_rate_mtr:'प्रति मीटर रेट (GST सहित)', vy_rate:'रेट (GST सहित)', vy_includes:'साथ में', vy_gst_auto:'GST अपने आप: कपड़ा 5%; रेडीमेड ₹2,500 तक 5%, ऊपर 18%।', vy_cust_name:'ग्राहक का नाम', vy_pay_type:'पेमेंट का तरीका', mod_tailor:'टेलरिंग (ऑर्डर, नाप, कारीगर, डिलीवरी)', mod_tailor_sub:'सिर्फ़ रेडीमेड बेचने वाली दुकान के लिए बंद करें — ऑर्डर, ऑर्डर नं. और डिलीवरी डेट हट जाएँगे। कुछ डिलीट नहीं होता।', vy_line_disc:'छूट', im_quick:'बिल पर शॉर्टकट', im_quick_hint:'हर बिल की एक-टैप लाइन में सबसे पहले दिखेगा', vy_showing_cust:'सेव की हुई पार्टियाँ', vy_showing_sup:'सेव किए सप्लायर', vy_add_new_party:'+ नई पार्टी जोड़ें', vy_add_new_sup:'+ नया सप्लायर जोड़ें', qk_more:'एक और {n}', qk_less:'आख़िरी {n} हटाएँ', qk_removed:'{n} #{i} हटाया ({r})', qk_norate:'रेट अभी नहीं', qk_added:'{n} लाइन #{i} में जुड़ा — रेट बदलना हो तो लाइन दबाएँ', wr_sw:'इस फ़ोल्डर में गलत sw.js है (दूसरे ऐप की)। Order Book की sw.js दोबारा डालने तक ऑफ़लाइन कॉपी बंद है।', vy_pur_list:'ख़रीद लिस्ट', vy_search_pur:'सप्लायर, बिल नं, रकम खोजें', vy_total_pur:'कुल ख़रीद', vy_add_pur:'ख़रीद जोड़ें', vy_purchase:'ख़रीद', vy_edit_pur:'ख़रीद बदलें', vy_sup_name:'सप्लायर का नाम', vy_paid:'दिया', vy_pay_sup:'सप्लायर को पेमेंट दें', vy_you_give:'आपको देना है', vy_you_get:'आपको मिलना है', py_two_t:'{a} नाम के {n} ग्राहक हैं — यह पैसा किसका है?', py_no_open:'कोई बाक़ी बिल नहीं', cu_same_name:'इस नाम के {n} ग्राहक', cu_bills_n:'{n} बिल', th_erase_btn:'हमेशा के लिए हटाएँ', th_erase_t:'यह रोल हटाएँ?', th_erase_msg:'यह कैंसल है और इसकी कोई एंट्री नहीं है। यह किताब से हट जाएगा और इसका नंबर अगले नए रोल को मिल सकता है।', th_erase_has:'इस रोल की एंट्री हैं — यह कैंसल ही रहेगा', th_erase_cancel_first:'पहले रोल कैंसल करें', th_erased:'#{s} हटाया', pu_stk_q:'इस बिल का माल —', pu_stk_no:'स्टॉक में पहले से है', pu_stk_no_sub:'पुराना बिल: माल पहले ही Stock में चढ़ा है। कुछ नहीं जुड़ेगा।', pu_stk_yes:'अभी स्टॉक में जोड़ें', pu_stk_yes_sub:'नया माल: हर लाइन Stock में नया रोल / पीस बनेगी।', pu_stk_was_no:'इस बिल से स्टॉक नहीं बदला (माल पहले से Stock में था)।', pu_stk_was_yes:'इस बिल ने सेव होते समय माल Stock में जोड़ा।', pu_stk_ask:'{n} लाइन Stock में नए रोल / पीस बनकर नए सीरियल नंबर के साथ जुड़ेंगी। अगर माल पहले से Stock में है तो Cancel दबाएँ और “स्टॉक में पहले से है” चुनें।', pu_stk_ask_yes:'हाँ, स्टॉक में जोड़ें', pu_stk_item_no:'स्टॉक में नहीं जुड़ेगा', pur_new_item_note2:'सेव आइटम में नहीं है — लिखा हुआ नाम ही रहेगा', vy_add_rec:'रसीद जोड़ें', vy_add_pay:'भुगतान जोड़ें', vy_add_exp:'ख़र्चा जोड़ें', vy_total_in:'कुल आया', vy_total_out:'कुल दिया', vy_reg_view:'रजिस्टर (Tally)', vy_card_view:'कार्ड', vy_cash:'कैश', vy_bank:'बैंक', cbk_neg:'इस दिन कैश शून्य से नीचे गया — गल्ले में ऐसा हो नहीं सकता। इस दिन या पहले कुछ छूटा या गलत है: आया हुआ कैश दर्ज नहीं हुआ, या बैंक वाली एंट्री कैश में लिखी गई।', cbk_jama:'आया (जमा)', cbk_naam:'गया (नाम)', cbk_bd:'बाक़ी जमा (b/d)', cbk_cd:'बाक़ी (c/d)', cbk_title:'कैश बुक', cbk_tick:'मेरी किताब से मिला', cbk_tick_day:'मेरी किताब से मिला ({a})', cbk_untick:'अभी नहीं मिलाया', cbk_closing:'शाम का बैलेंस', cbk_opening:'सुबह का बैलेंस', cbk_was:'✓ के समय {a} था', cbk_now:'अभी बैलेंस', cbk_ok_till:'यहाँ तक मिला', cbk_none_yet:'अभी कुछ नहीं मिलाया', cbk_next:'अगला: {d}', cbk_how:'हर दिन आपकी कैश बुक का एक पन्ना है। किसी भी लाइन पर टैप करके बदलें या हटाएँ। पन्ना मिल जाए तो ✓।', cbk_no_days:'इस महीने कोई लेन-देन नहीं', cbk_month_close:'महीने का अंतिम बैलेंस', cu_join:'दूसरे ग्राहक से जोड़ें', cu_join_hint:'एक ही आदमी दो बार सेव है? {n} का दूसरा रिकॉर्ड चुनें। पूछा जाएगा कौन सा रखना है — बिल, ऑर्डर, नाप और रसीद सब उसी में आ जाएँगे।', cu_join_none:'मिलते-जुलते नाम का कोई ग्राहक नहीं', schema_newer:'यह बही ऐप के नए वर्शन से सेव हुई है। पहले ऐप अपडेट करें। कुछ भी बदला नहीं गया है।', rc_salemonth:'महीने के हिसाब से बिक्री', rc_topparty:'सबसे बड़े ग्राहक', rc_itemsale:'आइटम के हिसाब से बिक्री', rc_discount:'दी गई छूट', rc_expmonth:'महीने के हिसाब से खर्च', rc_attsal:'हाज़िरी और वेतन', rc_year:'साल', rc_month:'महीना', rc_bills:'बिल', rc_bill:'बिल', rc_sales:'बिक्री', rc_party:'ग्राहक', rc_item:'आइटम', rc_qty:'नग', rc_disc:'छूट', rc_disc_total:'कुल दी गई छूट', rc_disc_pct:'बिल की कीमत का', rc_of_sales:'बिक्री का', rc_find:'कोई भी रिपोर्ट खोजें', rc_sm_hint:'GST समेत बिल का कुल। महीने पर टैप करें, उसके बिल खुलेंगे।', rc_is_hint:'बिल की छूट के बाद। आइटम पर टैप करें, उसके बिल खुलेंगे।', rc_orders_hint:'पेंडिंग, सोर्स, डिलीवरी, मुनाफ़ा', rc_stockage:'स्टॉक कितना पुराना', rc_debtage:'उधारी कितनी पुरानी', rc_age_s0:'पिछले महीने बिका', rc_age_s1:'1–3 महीने पहले', rc_age_s2:'3–6 महीने पहले', rc_age_s3:'6–12 महीने पहले', rc_age_s4:'12 महीने से ज़्यादा', rc_age_b0:'0–30 दिन', rc_age_b1:'31–60 दिन', rc_age_b2:'61–90 दिन', rc_age_b3:'90 दिन से ज़्यादा', rc_idle:'बिना हिले', rc_mo:'महीने', rc_rolls:'थान', rc_oldest:'सबसे पुराना', rc_due:'बाकी', rc_d:'दिन', rc_roll:'थान', rc_meters:'मीटर', rc_value:'कीमत', rc_all:'सब दिखाएँ', rc_used:'लगा', rc_left:'बचा', rc_what_sold:'जिन बिलों में यह आइटम बिका', rc_stkage_hint:'हर थान से आखिरी बार कपड़ा निकले कितने महीने हुए। बार दबाएँ, सिर्फ़ वही थान दिखेंगे।', rc_debt_hint:'सिर्फ़ बाकी बिल, बिल की उम्र के हिसाब से। बार दबाएँ, सिर्फ़ वही ग्राहक दिखेंगे।', dd_in3:'3 दिन में', dd_in7:'1 हफ़्ते में', dd_in10:'10 दिन में', dd_in14:'2 हफ़्ते में', rc_owner:'मालिक का सार', rc_owner_hint:'आज, इस महीने, कितना बाकी है, और पैसा कहाँ गया', rc_today:'आज', rc_thismonth:'इस महीने', rc_collected:'पैसा मिला', rc_spent:'खर्च', rc_profit:'मुनाफ़ा', rc_owed:'ग्राहकों से लेना है', rc_last6:'पिछले 6 महीने की बिक्री', rc_wherespent:'इस महीने पैसा कहाँ गया', rc_dailysale:'रोज़ की बिक्री', rc_credage:'देनदारी कितनी पुरानी', rc_cred_hint:'बाकी खरीद, बिल की उम्र के हिसाब से। बार दबाएँ, सिर्फ़ वही सप्लायर दिखेंगे।', rc_purmonth:'महीने की खरीद', rc_pursup:'सप्लायर की खरीद', rc_supplier:'सप्लायर', rc_partyprofit:'ग्राहक से मुनाफ़ा', rc_pp_hint:'सिर्फ़ बिल बने ऑर्डर: बिक्री में से कपड़ा और कारीगर का खर्च घटाकर।', rc_orders:'ऑर्डर', rc_repeat:'बार-बार आने वाले / छूटे ग्राहक', rc_rp_hint:'बार दबाएँ, सिर्फ़ वही समूह दिखेगा।', rc_rp0:'बार-बार आते हैं', rc_rp1:'एक बार आए', rc_rp2:'6 महीने से नहीं आए', rc_last:'आखिरी', rc_lowstock:'कम स्टॉक', rc_reorder_at:'कम से कम', rc_optional:'ज़रूरी नहीं', rc_ls_hint:'तैयार माल जो अपनी तय सीमा पर या उससे नीचे है।', rc_ls_none:'अभी किसी आइटम की सीमा नहीं भरी। तैयार माल खोलकर "कम से कम" भरें।', rc_item:'आइटम', rc_holding:'हाथ में पीस', cb_adjust:'एडजस्टमेंट', cb_fix:'ठीक करें', brs_passbook:'बैंक पासबुक का बैलेंस', brs_pb_ok:'पासबुक से मिल गया', brs_pb_diff:'पासबुक से फ़र्क', brs_pb_hint:'कोई जमा या खर्च छूटा है? ऊपर ➕ से डालें। नहीं मिल रहा? एक बार एडजस्ट करें।', brs_pb_fix:'{a} एडजस्ट करें', sc_title:'स्टॉक की गिनती', sc_hint:'जो गिना वो लिखें। फ़र्क आपकी चुनी तारीख पर ठीक होगा; पुरानी रिपोर्ट नहीं बदलती।', sc_fabric:'कपड़ा', sc_ready:'तैयार माल', sc_date:'गिनती की तारीख', sc_q_fab:'सीरियल / नाम', sc_q_rdy:'आइटम का नाम', sc_type_q:'थान का सीरियल या नाम लिखें', sc_sys:'सिस्टम', sc_counted:'गिना', sc_adjust:'ठीक करें', sc_same:'मिल गया', sc_short:'{n} कम', sc_extra:'{n} ज़्यादा', sc_short_w:'कम', sc_extra_w:'ज़्यादा', sc_ask:'सिस्टम में {sys} मी, गिना {cnt} मी: {n} मी {kind} (लगभग {v})। {dt} को "स्टॉक गिनती" दर्ज होगी। कम निकलना असली नुकसान है, माल की लागत में जाएगा; पुरानी रिपोर्ट वैसी ही रहेंगी।', sc_ask_rdy:'लगभग {v} {kind}। {dt} को "स्टॉक गिनती" दर्ज होगी। कम निकलना असली नुकसान है, माल की लागत में जाएगा; पुरानी रिपोर्ट वैसी ही रहेंगी।', sc_hint_rdy:'जिन साइज़ की गिनती की उनके पीस लिखें; बाकी खाली छोड़ें।', sc_done:'स्टॉक ठीक हो गया', sc_ref:'स्टॉक गिनती', sc_recent:'हाल की गिनती', sc_undo:'वापस', sc_undone:'गिनती वापस हुई', rc_hsn:'HSN सारांश', rc_hsn_hint:'हर HSN के पीस, टैक्सेबल वैल्यू और GST। बिल देखने के लिए पंक्ति दबाएँ।', rc_pcs:'पीस', kl_title:'खाते में पेमेंट जोड़ें', kl_found:'{n} पेमेंट ({a}) खर्चे में हैं, खाते में नहीं', kl_hint:'टेलर हेड में उसके नाम से दिए गए। दबाकर उसके खाते में गिनें।', kl_ask:'{n} पेमेंट, कुल {a}, खर्चे में कारीगर के नाम से लिखे हैं पर उसके खाते में नहीं हैं। लिस्ट में जोड़ दें? कैश, बैंक, मुनाफ़ा और बैलेंस शीट नहीं बदलेंगे। ये सिर्फ़ उसके दर्ज किए काम का हिसाब चुकाते हैं, कभी एडवांस बनकर नहीं दिखेंगे।', kl_yes:'खाते में जोड़ें', kl_done:'{n} पेमेंट जुड़े', rh_staff:'स्टाफ और पेरोल', rc_staffsum:'हाज़िरी और पेमेंट', hd_withkar:'कारीगर के पास — वापस लें', sf_pha:'हा/आ/ग', sf_late:'लेट', sf_paid:'दिया', sf_due:'बाकी', kb_none_out:'अभी किसी कारीगर के पास काम नहीं है।', hd_todo:'करने को', hd_pickdate:'किसी तारीख के ऑर्डर', hd_show:'दिखाओ', hd_date_sub:'इस तारीख को देने वाले ऑर्डर', sf_this_month:'इस महीने', sf_till_date:'अब तक', smp_cust_short:'ग्राहक का कपड़ा', done_back:'हो गया', voice_close:'रिकॉर्डर बंद', ic_photo:'फ़ोटो', ic_voice:'आवाज़', ic_speak:'बोलो', ic_note:'नोट', meas_by:'माप किसने लिया', trial_after_dlv:'ट्रायल डिलीवरी के बाद है — तारीख देख लें', add_another_short:'एक और', remove_piece:'हटाओ',
   rtg_deliver:'डिलीवर हो गया', rtg_ask:'इस ऑर्डर को डिलीवर मार्क करें?',
   rtg_ask_due:'डिलीवर मार्क करें? इस ऑर्डर का {m} अभी लेना बाकी है।',
@@ -6406,7 +6410,9 @@ const LOWER_COMMON=['W','H','TH','AF','HF','P','M','L'];   // body cols reused a
    shows itself, so nothing can hide behind the fold. */
 const MEAS_SECONDARY=['UB','Bi','P'];
 const GLOBAL_MEAS=['H'];                                    // Hip is one body measurement shared upper<->lower
-const MEAS_DERIVE={waistcoat:{S:-0.5}};                     // Bandi/Waist Coat shoulder = upper shoulder − 0.5
+const MEAS_DERIVE={waistcoat:{S:-0.5}, shirt:{S:0.5}};   /* v909 HIS: shirt shoulder = coat + ½ */
+/* v909 HIS: "shirt me length 1 inch hamesha plus — coat ke naap se". Length never flows between pieces, except this link. */
+const LEN_LINK={shirt:{from:'coat',k:'L',d:1}};                     // Bandi/Waist Coat shoulder = upper shoulder − 0.5
 /* ══════════════ v483 — A LIFE JACKET FOR A BANDI ══════════════
    HIS 4 Sept, looking at the piece grid: "pyjama me photo dekho kya laga hai, bandi per
    life jacket ka photo, kai jagah relevant photo nahi hai."
@@ -6495,8 +6501,10 @@ function favItems(){ const c=itemCfg(), live=orderedItems();
     .map((g,i)=>({g,c:catRank(g),r:i}))
     .sort((a,b)=>(a.c-b.c)||(a.r-b.r)).map(x=>x.g); }
 function sortItems(ids){const rank={};orderedItems().forEach((g,i)=>rank[g.id]=i);
+  /* v909 HIS: "upper hamesha pehle aayega, lower hamesha baad me" — then the rest (safa, juti…) */
+  const cr=k=>{ const g=G(k); const c=g&&g.cat; return c==='upper'?0:c==='lower'?1:2; };
   const rk=k=>{const r=rank[garmentOf(k)];return r==null?999:r;};
-  return (ids||[]).slice().sort((a,b)=>rk(a)-rk(b));}
+  return (ids||[]).slice().sort((a,b)=>(cr(a)-cr(b))||(rk(a)-rk(b)));}
 /* ---- ITEM KEYS ----
    An order can be for a whole family. Every garment therefore belongs to a MEMBER.
    Key format:  "<memberId>~<garmentId>"   e.g. "m1~sherwani"
@@ -7790,14 +7798,28 @@ function orderBillLines(o){
        Same garment taken many times (4 shirts) = ONE line with qty; "Different rates" splits it. */
     const who0=multi?(memberBillTag(o,mem.id,multi)||mem.name):'';
     const pre=n=>who0?(who0+' — '+n):n;
-    let rest=all.slice();
+    /* v908: lines chosen at the order */
+    const _grp=new Set();
+    (o.billLines||[]).filter(b=>b&&b.mid===mem.id).forEach(b=>{
+      const ks=(b.keys||[]).filter(k=>all.includes(k)); ks.forEach(k=>_grp.add(k));
+      if((b.keys||[]).length && !ks.length)return;
+      const mst=(DB.itemMaster||[]).find(m=>m.id===b.masterId);
+      const nm=ks.map(k=>{ const gg=G(k); return gg?gg.n:''; }).filter(Boolean);
+      lines.push({masterId:mst?mst.id:'',label:pre(b.label),member:mem.id,hsn:mst?(mst.hsn||''):'',qty:1,unit:'Pcs',
+        rate:(mst&&mst.rate)?mst.rate:'',price:'',disc:0,incl:nm.slice(),includes:nm.join(', ')});
+    });
+    let rest=all.filter(k=>!_grp.has(k));
     const kOf=g=>rest.find(k=>garmentOf(k)===g&&!variantOf(o,k));
     const kc=kOf('coat'), kp=kOf('pant');
     if(kc&&kp){
-      rest=rest.filter(k=>k!==kc&&k!==kp);
-      const opt=[]; ['shirt','waistcoat'].forEach(g=>{ if(rest.some(k=>garmentOf(k)===g)){const gg=G(g); if(gg)opt.push(gg.n);} });
-      lines.push({masterId:'',label:pre('Suit (2pc)'),member:mem.id,hsn:'',qty:1,unit:'Set',rate:'',price:'',disc:0,
-        incl:[G('coat').n,G('pant').n],includes:G('coat').n+', '+G('pant').n,optPool:opt});
+      /* v907 — HIS 28 Oct: a suit is everything the man ordered with it — Coat, Pant, and the Shirt and Waist Coat on the
+         same order — one line, all ticked (untick a part to take it off the line). It used to bill as "Suit (2pc)" with the
+         Shirt left unticked AND billed again on its own line. One shirt and one waist coat go in; a second one stays its own line. */
+      const take=[kc,kp]; ['waistcoat','shirt'].forEach(g=>{ const k=kOf(g); if(k)take.push(k); });
+      rest=rest.filter(k=>take.indexOf(k)<0);
+      const nm=take.map(k=>{ const gg=G(k); return gg?gg.n:''; }).filter(Boolean);
+      lines.push({masterId:'',label:pre('Suit ('+nm.length+'pc)'),member:mem.id,hsn:'',qty:1,unit:'Set',rate:'',price:'',disc:0,
+        incl:nm.slice(),includes:nm.join(', '),optPool:[]});
     }
     const seen=new Set(), primary=[], extras=[];
     rest.forEach(k=>{const g=garmentOf(k);
@@ -7856,7 +7878,7 @@ function invGroupItems(keys){
   const groups=[];
   const shA=anchorOf(['sherwani']);
   if(shA){
-    const mem=[shA].concat(gids.filter(id=>id!==shA&&!used.has(id)&&(named(id,['kurta'])||isAccessory(id))));
+    const mem=[shA].concat(gids.filter(id=>id!==shA&&!used.has(id)&&isAccessory(id)));   /* v907 HIS: "kurta alag se hai" */
     const lw=oneLower(mem); if(lw)mem.push(lw);
     mem.forEach(m=>used.add(m));
     const nm=(G(shA)||{}).n||'Sherwani';
@@ -16997,6 +17019,10 @@ function statRowsHTML(list,mode){
    Ready-to-give list it is now one tap. If money is still to be collected the confirm
    SAYS SO — it does not take the payment, because handing over goods and taking money are
    two different jobs and the bill screen is where money belongs. */
+/* v904: Delivered can now be tapped from the order's own ⋯ as well as the Ready-to-give list — redraw whichever is showing */
+function mdRedraw(oid){ try{ if(_curTab==='detail' && !sheetIsOpen()){ openDetail(oid); return; } }catch(e){}
+  try{ if(sheetIsOpen() && _sheetCur && String(_sheetCur).indexOf('statDetail')>=0){ statDetail('ready'); return; } }catch(e){}
+  try{ refreshBehind(); }catch(e){} }
 function markDelivered(oid){
   const o=(DB.orders||[]).find(x=>x.id===oid); if(!o)return;
   const due=orderBaaki(o);
@@ -17008,7 +17034,7 @@ function markDelivered(oid){
     o.log.push({id:uid(),ts:new Date().toISOString(),text:sLabel('delivered'),voiceId:null});
     save(o.id);
     toast(t('rtg_done',{n:esc(o.orderNo||'')}),'ok');
-    statDetail('ready');
+    mdRedraw(o.id);
   };
   /* ══════════ v554 — A QUESTION WITH NO ANSWER BUT YES ══════════
      HIS 8 Sept: "deliver ho gaya to deliver kiya hai. Agar kuch badalna hai, edit karna
@@ -17024,7 +17050,7 @@ function markDelivered(oid){
     o.itemStatus=snapStatus;
     if(hadOn)o.deliveredOn=hadOn; else delete o.deliveredOn;
     if((o.log||[]).length>logLen)o.log.length=logLen;   // take the line out of the log too
-    save(o.id); statDetail('ready');
+    save(o.id); mdRedraw(o.id);
   });
 }
 /* ══════════════ v479 — HE TAKES TWO PIECES AND COMES BACK FOR THE REST ══════════════
@@ -20055,8 +20081,51 @@ function renderCustomers(keepBar){
 }
 /* the rare customer jobs, off the list and behind ⋯ */
 function custMenu(){
+  const nd=(()=>{ try{ return cudGroups().length; }catch(e){ return 0; } })();
   modal(t('nav_customers'),
-    `<button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();openCampaign()">📣 ${t('camp_title')}</button>`);
+    `<button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();openCampaign()">📣 ${t('camp_title')}</button>
+     <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();cudScreen()">🔗 ${t('cud_title')}${nd?' ('+nd+')':''}</button>`);
+}
+/* ══════════ v904 — TWO RECORDS FOR ONE MAN, FOUND FOR HIM ══════════
+   HIS backlog (Subham Agarwal ₹10,000) and the 28 Oct audit: 15+ pairs on one phone number, 4 names twice. Joining existed
+   (Customer → ⋯ → Join, v883) but he had to find each pair himself. This lists them: same 10-digit phone, or the same name.
+   Join opens the existing question (which one to keep) — records are re-pointed, never copied. "Not the same" (a father and
+   son on one phone) hides the group for good, with Undo. Nothing changes until he taps. */
+function cudRecs(id){ return (DB.orders||[]).filter(o=>o.customerId===id).length+(DB.sales||[]).filter(o=>o.customerId===id).length+(DB.alterations||[]).filter(o=>o.customerId===id).length; }
+function cudGroups(){
+  const no=DB.custDupNo||{}, out=[], seen={};
+  const cs=(DB.customers||[]).filter(c=>c&&!custWalkIn(c));
+  const add=(kind,label,list)=>{ if(list.length<2)return;
+    const key=kind+'|'+list.map(c=>c.id).sort().join(',');
+    if(no[key]||seen[key])return; seen[key]=1; out.push({kind,label,key,list}); };
+  const byP={}; cs.forEach(c=>{ const d=ph10(c.phone); if(d&&d.length===10)(byP[d]=byP[d]||[]).push(c); });
+  Object.keys(byP).forEach(d=>add('phone',d,byP[d]));
+  const byN={}; cs.forEach(c=>{ const n=nameNorm(c.name); if(n)(byN[n]=byN[n]||[]).push(c); });
+  Object.keys(byN).forEach(n=>{ const L=byN[n]; const d0=ph10(L[0].phone);
+    if(L.every(c=>ph10(c.phone)===d0&&d0))return;   /* already listed under the phone */
+    add('name',L[0].name,L); });
+  return out;
+}
+function cudScreen(){
+  sheetAt(cudScreen);
+  const g=cudGroups();
+  $('#sheet').innerHTML=`<div class="grip"></div>
+    <h2 style="margin-bottom:8px">🔗 ${t('cud_title')}</h2>
+    ${g.length?g.map(x=>`<div class="card" style="padding:10px 12px;margin-bottom:10px">
+      <div class="kv" style="padding:0 0 6px"><span class="hint">${x.kind==='phone'?'📞 '+t('cud_phone')+' · '+esc(x.label):'👤 '+t('cud_name')}</span>
+        <button class="btn sm ghost" onclick="cudNot('${jq(x.key)}')">${t('cud_not')}</button></div>
+      ${x.list.map((c,i)=>{ const due=(()=>{ try{ return custSummary(c.id).due; }catch(e){ return 0; } })();
+        return `<div class="kv" style="padding:8px 0;border-top:1px solid var(--line);gap:8px;align-items:center">
+        <span style="flex:1;min-width:0;cursor:pointer" onclick="openCustomer('${jq(c.id)}')"><b>${esc(c.name||'—')}</b>
+          <div class="hint">${esc(c.phone||'—')} · ${t('cud_recs',{n:cudRecs(c.id)})}${due>0?` · <span style="color:var(--bad)">${money(due)}</span>`:''}</div></span>
+        ${i>0?`<button class="btn sm primary" onclick="custMergePick('${jq(x.list[0].id)}','${jq(c.id)}')">🔗 ${t('cud_join')}</button>`:''}</div>`; }).join('')}
+    </div>`).join(''):`<div class="empty"><div class="big">✅</div><p>${t('cud_none')}</p></div>`}
+    <div class="fab-pad"></div>`;
+  showSheet();
+}
+function cudNot(key){
+  DB.custDupNo=DB.custDupNo||{}; DB.custDupNo[key]=1; save(); cudScreen();
+  undoOffer(t('cud_kept'),()=>{ try{ delete DB.custDupNo[key]; save(); }catch(e){} if(_sheetCur===cudScreen)cudScreen(); });
 }
 function openCustomer(id){
   /* v544: a different customer means a fresh card — the same rule the order screen got. */
@@ -20408,6 +20477,7 @@ function custMerge(dropId,keepId){
   DB.customers=(DB.customers||[]).filter(x=>x.id!==dropId);
   save();
   toast(t('cu_merged',{n:moved,a:keep.name}),'ok');
+  if(_sheetCur===cudScreen){ cudScreen(); return; }   /* v904: joined from the duplicate list — stay on it, redrawn */
   openCustomer(keepId);
 }
 
@@ -20805,7 +20875,7 @@ function openOrderForm(editId){
       m:JSON.parse(JSON.stringify(o.m||{})),design:JSON.parse(JSON.stringify(o.design||{})),
       variant:JSON.parse(JSON.stringify(o.variant||{})),
       notes:o.notes||'',total:o.total,advance:o.advance,photos:[...(o.photos||[])],voiceNotes:JSON.parse(JSON.stringify(o.voiceNotes||[])),
-      custSample:JSON.parse(JSON.stringify(o.custSample||{})),
+      custSample:JSON.parse(JSON.stringify(o.custSample||{})), billLines:JSON.parse(JSON.stringify(o.billLines||[])),
       itemPhotos:JSON.parse(JSON.stringify(o.itemPhotos||{})),itemVoice:JSON.parse(JSON.stringify(o.itemVoice||{})),bodyType:Array.isArray(o.bodyType)?[...o.bodyType]:(o.bodyType?[o.bodyType]:[]),
       dispatch:o.dispatch?JSON.parse(JSON.stringify(o.dispatch)):null,
       source:o.source||'', sourceRef:o.sourceRef||'', measuredBy:o.measuredBy||'',
@@ -20816,7 +20886,7 @@ function openOrderForm(editId){
        abandoned attempt walked away holding one and the same number reached three
        records. Numbering is how the shop finds a garment physically, so a number is now
        taken only when the order is actually saved. Until then the form shows no number. */
-    form={editId:null,orderNo:'',customerId:null,customerName:'',phone:'',salesmanId:'',custSample:{},
+    form={editId:null,orderNo:'',customerId:null,customerName:'',phone:'',salesmanId:'',custSample:{},billLines:[],
       orderDate:todayISO(),deliveryDate:'',   /* HIS #6: "delivery date important hai, poochhna chahiye." It was
     quietly pre-filled, so he could save an order having never once looked at the one date
     the whole production board runs on. Now it starts empty and Save refuses without it. */items:[],m:{},design:{},variant:{},notes:'',total:'',advance:'',photos:[],voiceNotes:[],itemPhotos:{},itemVoice:{},bodyType:[],members:[],dispatch:null,source:'',sourceRef:'',sampleId:''};
@@ -20867,8 +20937,8 @@ function ordStage(n,key){
   /* v552: which piece he was standing on when he pressed ← — the row to come back to. */
   const _cameFrom=(_ordStage===2&&_openItem)?_openItem:null;
   _sheetScroll=0; captureForm();
-  /* v215: his rule — no naap before the name and the number */
-  if(n===2 && !form.customerId && !form.editId){
+  /* v215 rule replaced v908 — HIS 29 Oct: "item, naap, delivery date, naam number, save". Name and number are asked at Save. */
+  if(false && n===2 && !form.customerId && !form.editId){
     if(!String(form.customerName||'').trim()){
       toast(t('t_no_name'),'bad');
       setTimeout(()=>{const el=$('#f_cname'); if(el){el.style.borderColor='var(--bad)'; el.focus();
@@ -21159,8 +21229,10 @@ function walkOrder(f){
      So: his people first, as before; then every upper garment, then every lower, then the
      accessories; and inside each, the order he picked them. The tape comes down once. */
   const cat=k=>{ try{ return catRank(G(k))||0; }catch(e){ return 0; } };
+  const setR={}; orderedItems().forEach((g,i)=>setR[g.id]=i);   /* v909 HIS: "suit ke items pehle, phir sherwani, phir indo" */
+  const sr=k=>{ const r=setR[garmentOf(k)]; return r==null?999:r; };
   return picked.sort((a,b)=>
-    memR(a)-memR(b) || cat(a)-cat(b) || pickR[a]-pickR[b]);
+    memR(a)-memR(b) || cat(a)-cat(b) || sr(a)-sr(b) || pickR[a]-pickR[b]);
 }
 /* the piece after this one, or null if this is the last */
 function walkNext(f,key){
@@ -21415,20 +21487,115 @@ function quickLenHTML(f,mine,only){
     const smp=!!((f.custSample||{})[k]);
     return `<div class="ql-row ${open?'ql-on':''}" id="ql_${cssId(k)}" onclick="ordStage(2,'${jq(k)}')">
       <span class="ql-nm">${g.ico} ${esc(g.n)}${instTagHTML(f.items,k)}</span>
-      <span class="ql-sum ${(smp||sum)?'':'empty'}">${/* v835: a sample never hides a naap he typed */''}${sum?((smp?'📦 ':'')+esc(sum)):(smp?('📦 '+t('smp_from')):t('ql_no_meas'))}</span>
+      <span class="ql-sum ${(smp||sum)?'':'ql-empty'}">${/* v835: a sample never hides a naap he typed */''}${sum?((smp?'📦 ':'')+esc(sum)):(smp?('📦 '+t('smp_from')):t('ql_no_meas'))}</span>
       <span class="ql-ic ${pc?'has':''}" onclick="event.stopPropagation();pickItemPhotoQuick('${jq(k)}')" title="${t('photo_label')}">📷${pc>1?'<i>'+pc+'</i>':''}</span>
       <span class="ql-ic ${nt?'has':''}" onclick="event.stopPropagation();itemNoteQuick('${jq(k)}')" title="${t('item_notes')}">📝</span>
       <span class="ql-go">›</span></div>`;
   }).join('');
+  const _addMid=(()=>{ try{ return memberOf(list[0]); }catch(e){ return ''; } })();
+  const _addBtn=(typeof _ordStage!=='undefined'&&_ordStage===3&&_addMid)
+    ? `<button class="btn sm primary" style="padding:4px 12px" onclick="ordAddItemPick('${jq(_addMid)}')">＋ ${t('ord_add_item')}</button>`:'';
   return `<div class="ql-wrap">
     <div class="ql-head"><span>📏 ${t('ql_title')}</span>
-      <span class="hint" style="color:inherit">${done}/${list.length}</span></div>
+      <span style="display:flex;gap:8px;align-items:center">${_addBtn}<span class="hint" style="color:inherit">${done}/${list.length}</span></span></div>
     ${rows}
     </div>`;
 }
 /* One box for one piece's note, reachable straight from its Lengths row. Same store as
    the note inside the card (form.design), so whichever way he opens it he sees the same
    text. The design-token list comes along, because that is how the note is usually built. */
+/* v907: the customer adds a piece while he is already on the last step. Pick it, and if it takes a naap
+   its card opens straight away; ✓ Done brings him back here. Nothing else on the order moves. */
+function ordAddItemPick(mid){
+  captureForm();
+  const list=allItems();
+  modal('＋ '+t('ord_add_pick'),
+    `<div class="gc-grid" style="display:flex;flex-wrap:wrap;gap:8px">${list.map(g=>`<div class="chip" style="cursor:pointer" onclick="closeModal();ordAddItemGo('${jq(mid)}','${jq(g.id)}')"><span class="ico">${g.ico}</span>${esc(g.n)}</div>`).join('')}
+      <div class="chip chip-add" style="cursor:pointer" onclick="closeModal();garmentMaster()"><span class="ico">➕</span>${t('new_garment')}</div></div>`,
+    [{label:t('close'),cls:'ghost',fn:closeModal}]);
+}
+function ordAddItemGo(mid,gid){
+  captureForm();
+  const have=(form.items||[]).filter(k=>memberOf(k)===mid&&garmentOf(k)===gid);
+  let key;
+  if(have.length){ const before=form.items.length; addAnother(have[have.length-1]); key=form.items[form.items.length-1]; if(form.items.length===before)return; }
+  else { key=itemKey(mid,gid); form.items.push(key); prefillGarment(key); }
+  const g=G(key);
+  if(walkOrder(form).indexOf(key)>=0){ ordStage(2,key); }
+  else { renderForm(); }
+  try{ toast('＋ '+(g?g.n:''),'ok'); }catch(e){}
+}
+/* ══════════ v908 — THE BILL LINE IS CHOSEN WITH THE CUSTOMER, NOT GUESSED LATER ══════════
+   HIS 29 Oct: "bill banane jaate hain to item ulta-pulta rehta hai — kabhi suit 2pc, kabhi 3pc". The app guessed the bill
+   from the garments. Now the counter decides: tap "Suit 3pc" (his Item Master tile) and its pieces come onto the order for
+   measuring, and the bill later shows exactly that line. A piece tapped on its own stays its own line. */
+function obNorm(v){ return String(v||'').toLowerCase().replace(/[^a-zऀ-ॿ]/g,''); }
+function obMasterGarments(m){
+  const all=allItems(), self=obNorm(m&&m.name);
+  const byName=n=>all.find(g=>obNorm(g.n)===obNorm(n)||obNorm(g.id)===obNorm(n));
+  let names=((m&&m.incl)||[]).filter(n=>obNorm(n)&&obNorm(n)!==self);
+  if(!names.length) names=String((m&&m.name)||'').split(/[\s,+&\/-]+/);
+  const out=[]; names.forEach(n=>{ const g=byName(n); if(g&&out.indexOf(g.id)<0)out.push(g.id); });
+  if(!out.length){ const g=byName(m&&m.name); if(g)out.push(g.id); }
+  return out;
+}
+function obKeyFree(mid,gid){
+  const inGroup=new Set(); (form.billLines||[]).forEach(b=>(b.keys||[]).forEach(k=>inGroup.add(k)));
+  const loose=(form.items||[]).find(k=>memberOf(k)===mid&&garmentOf(k)===gid&&!inGroup.has(k));
+  if(loose)return loose;
+  let n=0, k=itemKey(mid,gid); while(form.items.includes(k)){ n++; k=itemKey(mid,gid,n); }
+  form.items.push(k); prefillGarment(k); return k;
+}
+function obBillHTML(f,mem){
+  const qk=(()=>{ try{ return qkItems(); }catch(e){ return []; } })();
+  if(!qk.length && !(f.billLines||[]).length) return '';
+  const mine=(f.billLines||[]).filter(b=>b.mid===mem.id);
+  return `<div class="section-h" style="margin-top:4px">🧾 ${t('ob_bill_items')}</div>
+    <div class="qk-strip" style="display:flex;gap:8px;overflow-x:auto;padding:2px 0 8px">${qk.map(m=>`<button class="btn sm qk-p" style="flex:0 0 auto" onclick="obBillAdd('${jq(mem.id)}','${jq(m.id)}')">＋ ${esc(m.name)}</button>`).join('')}</div>
+    ${mine.map(b=>{ const parts=(b.keys||[]).map(k=>{ const g=G(k); return g?g.n:''; }).filter(Boolean);
+      return `<div class="kv card" style="padding:9px 12px;margin-bottom:6px;gap:8px;align-items:center">
+        <span style="flex:1;min-width:0;cursor:pointer" onclick="obBillEdit('${jq(b.id)}')"><b>🧾 ${esc(b.label)}</b>
+          <div class="hint">${parts.length?esc(parts.join(', ')):t('ob_no_parts')} ✏️</div></span>
+        <button class="ln-x" aria-label="${esc(t('ln_del'))}" onclick="obBillDel('${jq(b.id)}')">✕</button></div>`; }).join('')}`;
+}
+function obBillAdd(mid,mstId){
+  _sheetScroll=$('#sheet')?$('#sheet').scrollTop:0; captureForm();
+  const m=(DB.itemMaster||[]).find(x=>x.id===mstId); if(!m)return;
+  form.billLines=form.billLines||[];
+  const keys=obMasterGarments(m).map(gid=>obKeyFree(mid,gid));
+  form.billLines.push({id:uid(),mid,masterId:m.id,label:m.name,keys});
+  renderForm();
+  toast('＋ '+m.name,'ok');
+}
+function obBillDel(id){
+  _sheetScroll=$('#sheet')?$('#sheet').scrollTop:0; captureForm();
+  const b=(form.billLines||[]).find(x=>x.id===id); if(!b)return;
+  const snap=JSON.stringify(form);
+  form.billLines=form.billLines.filter(x=>x!==b);
+  (b.keys||[]).forEach(k=>{ const i=form.items.indexOf(k); if(i>=0)form.items.splice(i,1);
+    ['m','design','itemPhotos','itemVoice','itemNotes','variant','mAuto'].forEach(p=>{ if(form[p])delete form[p][k]; }); });
+  renderForm();
+  /* reversible → no question; Undo puts the line, its pieces and their naap back exactly */
+  undoOffer(t('t_removed')+' · '+b.label,()=>{ const keepDid=form&&form._did; form=JSON.parse(snap); if(keepDid)form._did=keepDid; renderForm(); });
+}
+function obBillEdit(id){
+  captureForm();
+  const b=(form.billLines||[]).find(x=>x.id===id); if(!b)return;
+  const all=allItems();
+  modal('🧾 '+t('ob_parts',{n:esc(b.label)}),
+    `<div style="display:flex;flex-wrap:wrap;gap:8px">${all.map(g=>{ const on=(b.keys||[]).some(k=>garmentOf(k)===g.id);
+      return `<div class="chip ${on?'on':''}" style="cursor:pointer" onclick="obBillPart('${jq(id)}','${jq(g.id)}')"><span class="ico">${g.ico}</span>${esc(g.n)}${on?' ✓':''}</div>`; }).join('')}</div>`,
+    [{label:t('done'),cls:'primary',fn:()=>{ closeModal(); renderForm(); }}]);
+}
+function obBillPart(id,gid){
+  const b=(form.billLines||[]).find(x=>x.id===id); if(!b)return;
+  const have=(b.keys||[]).find(k=>garmentOf(k)===gid);
+  if(have){ b.keys=b.keys.filter(k=>k!==have);
+    const i=form.items.indexOf(have); if(i>=0)form.items.splice(i,1);
+    ['m','design','itemPhotos','itemVoice','itemNotes','variant','mAuto'].forEach(p=>{ if(form[p])delete form[p][have]; }); }
+  else { b.keys.push(obKeyFree(b.mid,gid)); }
+  closeModal(); obBillEdit(id);
+}
 function itemNoteQuick(key){
   sheetAt(itemNoteQuick,null,arguments);
   _sheetScroll=$('#sheet')?$('#sheet').scrollTop:0; captureForm();
@@ -21624,7 +21791,11 @@ function measCardHTML(f,key){
            order. "Next ›" stays for the step-by-step new order. */
         const _doneBtn = f.editId
           ? `<button class="btn primary block" style="margin-top:14px" onclick="saveOrder()">✓ ${t('done_back')}</button>`
-          : `<button class="btn primary block" style="margin-top:14px" onclick="itemDone('${dkey}')">✓ ${walkNext(f,key)?t('it_done'):t('it_done_last')}</button>`;
+          : (walkNext(f,key)
+              ? `<div class="row" style="margin-top:14px;gap:8px">
+                  <button class="btn ghost" style="flex:1" onclick="kbHold();captureForm();ordStage(3)">✓ ${t('ord_done')}</button>
+                  <button class="btn primary" style="flex:2" onclick="itemDone('${dkey}')">${t('it_done')}</button></div>`
+              : `<button class="btn primary block" style="margin-top:14px" onclick="itemDone('${dkey}')">✓ ${t('it_done_last')}</button>`);
         if(_xOpen[key]) return `<div style="margin-top:14px"><div class="hint" style="margin-bottom:4px">🎙️ ${t('voice_notes')}</div>${voiceSection('iv_'+cid)}</div>
       <button class="btn sm ghost block" style="margin-top:10px" onclick="xToggle('${dkey}')">▴ ${t('voice_close')}</button>
       ${_doneBtn}`;
@@ -21790,6 +21961,7 @@ function memberBlockHTML(f,mem,idx,multi){
       <button class="btn sm ghost" onclick="manageRels()" title="${t('ml_manage')}">⚙️</button>
       <button class="btn sm danger" onclick="delMember('${mem.id}')">✕</button>
     </div>`:''}
+    ${obBillHTML(f,mem)}
     <div class="chip-grid">${chips}</div>
 
     ${/* HIS #1: "start measuring se pehle length wale section ka koi matlab hai kya?" On a
@@ -21884,20 +22056,9 @@ function renderForm(){
            while the ONLY customer box lived back on stage 1 — the screen demanded something
            it gave him no way to type. That is the worst kind of dead end. The last step is
            where the order is finished, so the customer belongs ON it. */''}
-      <div class="field"><label>${t('customer')}</label>
-        <div id="custPicked">${(f.customerId||f.customerName)?customerPickedHTML():''}</div>
-        <div id="custSearchWrap" style="${f.customerName?'display:none':''}">
-          <input id="f_cname" placeholder="${t('name_ph')}" autocomplete="off" onfocus="custSearch(this.value)" oninput="custSearch(this.value);cbPaint('ord')" value="${esc(f.customerName)}">
-          <div id="custResults"></div>
-          <input id="f_cphone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'');cbPaint('ord')" placeholder="${t('phone')}" value="${esc(f.phone)}" style="margin-top:8px">
-          <div id="cbar_ord"></div>
-          ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost" style="margin-top:8px" onclick="pickContact()">📇 ${t('from_contacts')}</button>`:''}</div></div>
       ${/* v337: the order number and its date sit with the customer, at the top, where he
            reads them. Only the two promises to the customer — delivery and trial — are
            left for the end of the form. */''}
-      <div class="row" style="margin-top:10px"><div class="field"><label>${t('order_no')} *</label>
-          <input id="f_ono" value="${esc(f.orderNo||nextOrderNo())}" placeholder="2481"></div>
-        <div class="field"><label>${t('order_date')}</label>${dateField("f_odate",f.orderDate)}</div></div>
       ${mems.map(m=>quickLenHTML(f,itemsOfMember(f,m.id))).join('')}
       ${smpPickHTML(f)}
       ${/* v252 — HIS PENDING LIST and the master doc both: keep the trial apart from the
@@ -21912,6 +22073,18 @@ function renderForm(){
         ${dateField("f_tdate",f.trialDate||'','',true)}
         ${/* v874: a trial after the delivery (his 10 Nov / 14 Nov) is a slip — said, never blocked */''}
         <div class="hint" id="trialWarn" style="color:var(--bad);margin-top:4px;${(f.trialDate&&f.deliveryDate&&f.trialDate>f.deliveryDate)?'':'display:none'}">⚠️ ${t('trial_after_dlv')}</div></div>
+      ${/* v908 HIS: delivery date, then name & number, then Save */''}
+      <div class="field" style="margin-top:14px"><label>👤 ${t('customer')} *</label>
+        <div id="custPicked">${(f.customerId||(f.customerName&&ph10(f.phone)))?customerPickedHTML():''}</div>
+        <div id="custSearchWrap" style="${(f.customerId||(f.customerName&&ph10(f.phone)))?'display:none':''}">
+          <input id="f_cname" placeholder="${t('name_ph')}" autocomplete="off" onfocus="custSearch(this.value)" oninput="custSearch(this.value);cbPaint('ord')" value="${esc(f.customerName)}">
+          <div id="custResults"></div>
+          <input id="f_cphone" type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9+ ]/g,'');cbPaint('ord')" placeholder="${t('phone')}" value="${esc(f.phone)}" style="margin-top:8px">
+          <div id="cbar_ord"></div>
+          ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost" style="margin-top:8px" onclick="pickContact()">📇 ${t('from_contacts')}</button>`:''}</div></div>
+      <div class="row" style="margin-top:10px"><div class="field"><label>${t('order_no')} *</label>
+          <input id="f_ono" value="${esc(f.orderNo||nextOrderNo())}" placeholder="2481"></div>
+        <div class="field"><label>${t('order_date')}</label>${dateField("f_odate",f.orderDate)}</div></div>
       ${/* v280: the right moment to ask. The pieces above have been measured; if there is
            another person he knows it by now. */''}
       ${/* v874 — HIS 15 Oct (#2741 Ayush ji + #2742 Shivam): with TWO people on the order this
@@ -21991,7 +22164,11 @@ function renderForm(){
          <div class="hint">${esc(f.phone||'')}${rcHas?' · ✅ '+t('rc_has_meas',{n:rcHas}):''}</div></div>
          <button class="btn sm ghost" onclick="clearCustomer()">${t('change')}</button></div>
        ${savedMeasCard(f)}`
-    : `<div class="field" style="margin-bottom:10px">
+    : (!f.editId ? `<div class="field" style="margin-bottom:10px">
+         <input id="f_cname" placeholder="🔍 ${t('ob_cust_opt')}" autocomplete="off"
+           oninput="custSearch(this.value)" onfocus="custSearch(this.value)" value="${esc(f.customerName||'')}">
+         <div id="custResults"></div>
+         <input id="f_cphone" type="hidden" value="${esc(f.phone||'')}"></div>` : `<div class="field" style="margin-bottom:10px">
          <input id="f_cname" placeholder="${t('name_ph')} *" autocomplete="off"
            oninput="custSearch(this.value)" onfocus="custSearch(this.value)" value="${esc(f.customerName||'')}">
          <div id="custResults"></div>
@@ -21999,7 +22176,7 @@ function renderForm(){
            value="${esc(f.phone||'')}" style="margin-top:8px" oninput="ordPhoneIn(this)">
          ${(navigator.contacts&&navigator.contacts.select)?`<button class="btn sm ghost" style="margin-top:8px" onclick="pickContact()">📇 ${t('from_contacts')}</button>`:''}
          <div id="cbar_ord"></div>
-         </div>`;
+         </div>`);
   sh.innerHTML=`${head}<h2 style="margin:0 0 4px">${f.editId?t('edit_order'):t('new_order')}</h2>
     <p class="hint" style="margin:0 0 10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       ${ordNoPillHTML(f)}<span class="gtag" style="cursor:pointer;border-style:dashed" onclick="ordDateEdit()">📅 ${t('order_date')}: ${fmtDate(f.orderDate)} ✏️</span></p>
@@ -22787,6 +22964,8 @@ function removeItem(key){
   const nxt=walkNext(form,key);
   const kill=()=>{
     const i=form.items.indexOf(key); if(i>=0)form.items.splice(i,1);
+    const _bl=(form.billLines||[]).find(b=>(b.keys||[]).includes(key));   /* v908 */
+    if(_bl){ _bl.keys=_bl.keys.filter(k=>k!==key); if(!_bl.keys.length)form.billLines=form.billLines.filter(b=>b!==_bl); }
     /* keep everything this piece owned, so taking it back is exact and not "the piece
        is here again but the naap is gone" */
     const snap={ i, m:(form.m||{})[key], design:(form.design||{})[key],
@@ -22834,6 +23013,7 @@ function removeItem(key){
     undoOffer(t('t_removed'), ()=>{
       if(!form)return;
       form.items.splice(Math.min(snap.i,form.items.length),0,key);
+      if(_bl){ if(!form.billLines.includes(_bl))form.billLines.push(_bl); if(!_bl.keys.includes(key))_bl.keys.push(key); }
       if(snap.m){form.m=form.m||{};form.m[key]=snap.m;}
       if(snap.design){form.design=form.design||{};form.design[key]=snap.design;}
       if(snap.photos){form.itemPhotos=form.itemPhotos||{};form.itemPhotos[key]=snap.photos;}
@@ -22881,20 +23061,21 @@ function prefillGarment(key){
      checking against the man standing in front of him. */
   const putRaw=(k,val)=>{if(!allow.includes(k)||f.m[key][k]||val==null||val==='')return;
     f.m[key][k]=val; f.mAuto=f.mAuto||{}; f.mAuto[key]=f.mAuto[key]||{}; f.mAuto[key][k]=1;};
-  const putDeriv=(k,val)=>{if(!allow.includes(k)||f.m[key][k]||val==null||val==='')return;
-    const dv=deriveMeasVal(g.id,k,val);
+  const putDeriv=(k,val,src)=>{if(!allow.includes(k)||f.m[key][k]||val==null||val==='')return;
+    const dv=deriveMeasVal(g.id,k,val,src);
     if(dv!==''){ f.m[key][k]=dv; f.mAuto=f.mAuto||{}; f.mAuto[key]=f.mAuto[key]||{}; f.mAuto[key][k]=1; }};
   // copy from THIS member's other garments only — never mix two people's bodies
   for(const ok of f.items){ if(ok===key)continue; if(memberOf(ok)!==mid)continue;
     const og=G(ok); if(!og||!f.m[ok])continue;
-    if(og.cat===g.cat){ common.forEach(k=>{if(f.m[ok][k])putDeriv(k,f.m[ok][k]);}); }
-    else { GLOBAL_MEAS.forEach(k=>{if(f.m[ok][k])putDeriv(k,f.m[ok][k]);}); }   // Hip flows upper<->lower
+    if(og.cat===g.cat){ common.forEach(k=>{if(f.m[ok][k])putDeriv(k,f.m[ok][k],og.id);}); }
+    else { GLOBAL_MEAS.forEach(k=>{if(f.m[ok][k])putDeriv(k,f.m[ok][k],og.id);}); }   // Hip flows upper<->lower
+    const ln=LEN_LINK[gid]; if(ln&&og.id===ln.from&&f.m[ok][ln.k]){ const n=parseMeas(f.m[ok][ln.k]); if(n!=null)putRaw(ln.k,fmtMeas(n+ln.d)); }   /* v909 */
   }
   // the saved customer's own measurements only help the first (main) member
   const isMain = !mid || (f.members&&f.members[0]&&f.members[0].id===mid);
   if(isMain && f.customerId){const c=custById(f.customerId); if(c&&c.m){
     if(c.m[gid]){Object.keys(c.m[gid]).forEach(k=>{putRaw(k,c.m[gid][k]);});}      // own saved → no derivation
-    else {for(const okid of Object.keys(c.m)){const og=G(okid);if(!og||og.cat!==g.cat)continue;common.forEach(k=>{if(c.m[okid][k])putDeriv(k,c.m[okid][k]);});break;}}
+    else {for(const okid of Object.keys(c.m)){const og=G(okid);if(!og||og.cat!==g.cat)continue;common.forEach(k=>{if(c.m[okid][k])putDeriv(k,c.m[okid][k],okid);});break;}}
     GLOBAL_MEAS.forEach(k=>{if(f.m[key][k])return;for(const okid of Object.keys(c.m)){if(c.m[okid]&&c.m[okid][k]){putDeriv(k,c.m[okid][k]);break;}}});
   }}
 }
@@ -22911,8 +23092,10 @@ function fmtMeas(n){if(n==null||isNaN(n))return '';if(n<0)n=0;
   if(frac===0)return String(whole);
   return (Math.round(n*100)/100).toString();}
 /* apply garment-specific derivation (e.g. waistcoat shoulder = source − 0.5) */
-function deriveMeasVal(gid,k,v){const d=(MEAS_DERIVE[gid]||{})[k];
-  if(d==null||v==null||v==='')return v;const n=parseMeas(v);if(n==null)return v;return fmtMeas(n+d);}
+/* v909: the value is first taken back to the body (minus the SOURCE piece's own offset), then the target's offset is
+   added — so a shirt shoulder of 18½ gives a coat 18 and a waist coat 17½, whichever piece he measured first. */
+function deriveMeasVal(gid,k,v,src){const d=(MEAS_DERIVE[gid]||{})[k], sd=src?((MEAS_DERIVE[src]||{})[k]||0):0;
+  if((d==null&&!sd)||v==null||v==='')return v;const n=parseMeas(v);if(n==null)return v;return fmtMeas(n-sd+(d||0));}
 /* fraction bar + live body-measurement propagation across garments */
 let _mfocus=null;
 function bindMeasInputs(){
@@ -22999,8 +23182,18 @@ function propagate(inp){
   const key=inp.dataset.g, g=G(key), k=inp.dataset.k, v=inp.value.trim();
   if(!g)return;
   const isGlobal=GLOBAL_MEAS.includes(k);
+  /* v909: the one Length link — coat Length → shirt Length + 1, while the shirt's own Length is empty or still auto */
+  if(formIsOpen() && form){ const _mid=memberOf(key);
+    Object.keys(LEN_LINK).forEach(tg=>{ const ln=LEN_LINK[tg]; if(ln.from!==g.id||ln.k!==k)return;
+      (form.items||[]).forEach(ok=>{ if(memberOf(ok)!==_mid||garmentOf(ok)!==tg)return;
+        form.m=form.m||{}; form.m[ok]=form.m[ok]||{}; form.mAuto=form.mAuto||{}; form.mAuto[ok]=form.mAuto[ok]||{};
+        const cur=String(form.m[ok][k]||'').trim(); if(cur&&!form.mAuto[ok][k])return;
+        const n=parseMeas(v); if(n==null){ delete form.m[ok][k]; delete form.mAuto[ok][k]; return; }
+        form.m[ok][k]=fmtMeas(n+ln.d); form.mAuto[ok][k]=1;
+        const box=(($('#sheet'))||document).querySelector('.mInput[data-g="'+ok+'"][data-k="'+k+'"]');
+        if(box){ box.value=form.m[ok][k]; box.dataset.auto='1'; box.classList.add('filled'); }
+      }); }); }
   if(!isGlobal && !commonFor(g.cat).includes(k))return; // only BODY columns flow, never Length
-  if((MEAS_DERIVE[g.id]||{})[k]!=null)return;            // derived field — manual, don't push back
   /* the same measurement boxes now appear on the ORDER screen and the give-work screen,
      where `form` is a leftover from whatever order was edited last. Auto-propagation
      belongs to the order FORM only — anywhere else it would write into a dead object. */
@@ -23016,7 +23209,7 @@ function propagate(inp){
     const cur=String(((f.m||{})[ok]||{})[k]||'').trim();
     const wasAuto=!!((f.mAuto[ok]||{})[k]);
     if(cur && !wasAuto)return;                           // he typed it himself — never overwrite
-    const dv=deriveMeasVal(og.id,k,v);
+    const dv=deriveMeasVal(og.id,k,v,g.id);
     f.m[ok]=f.m[ok]||{};
     if(dv){ f.m[ok][k]=dv; f.mAuto[ok]=f.mAuto[ok]||{}; f.mAuto[ok][k]=1; }
     else { delete f.m[ok][k]; if(f.mAuto[ok])delete f.mAuto[ok][k]; }
@@ -23028,7 +23221,7 @@ function propagate(inp){
     if(memberOf(ok)!==mid)return;
     if(!(isGlobal || og.cat===g.cat))return;
     if(other.value.trim() && other.dataset.auto!=='1')return;
-    const dv=deriveMeasVal(og.id,k,v);
+    const dv=deriveMeasVal(og.id,k,v,g.id);
     other.value=dv; other.dataset.auto=dv?'1':''; other.classList.toggle('filled',!!dv);
     const of2=other.closest&&other.closest('.mfield'); if(of2)of2.classList.toggle('auto-f',!!dv);
   });
@@ -23370,13 +23563,13 @@ function saveOrder(){
     fillMemberOnos(f);                         /* v409: before the mark is raised */
     numHWCommitOrder(f);                       /* v257: an edit may raise it too */
     srcKeepOnCustomer(c.id,f.source);
-    Object.assign(o,{measuredBy:f.measuredBy||o.measuredBy||'',orderNo:f.orderNo,customerId:c.id,customerName:c.name,phone:c.phone,salesmanId:f.salesmanId||'',orderDate:f.orderDate,deliveryDate:f.deliveryDate,trialDate:f.trialDate||'',items:f.items,m:f.m,design:f.design,variant:f.variant||{},notes:f.notes,total:f.total,advance:f.advance,photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,bodyType:f.bodyType,dispatch:f.dispatch||null,source:f.source||'',sourceRef:f.sourceRef||'',sampleId:f.sampleId||'',custSample:f.custSample||{},members:(f.members||[]).filter(m=>m.id!=='' )});
+    Object.assign(o,{measuredBy:f.measuredBy||o.measuredBy||'',orderNo:f.orderNo,customerId:c.id,customerName:c.name,phone:c.phone,salesmanId:f.salesmanId||'',orderDate:f.orderDate,deliveryDate:f.deliveryDate,trialDate:f.trialDate||'',items:f.items,m:f.m,design:f.design,variant:f.variant||{},notes:f.notes,total:f.total,advance:f.advance,photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,bodyType:f.bodyType,dispatch:f.dispatch||null,source:f.source||'',sourceRef:f.sourceRef||'',sampleId:f.sampleId||'',custSample:f.custSample||{},billLines:(f.billLines||[]).filter(b=>b&&(b.keys||[]).every(k=>(f.items||[]).includes(k))),members:(f.members||[]).filter(m=>m.id!=='' )});
     clearDraft();save(o.id);sheetSaved();closeSheet();toast(t('t_updated'),'ok');openDetail(o.id);
   }else{fillMemberOnos(f);                     /* v409: numbers exist before the record does */
     srcKeepOnCustomer(c.id,f.source);
     const o={id:uid(),created:new Date().toISOString(),measuredBy:f.measuredBy||'',orderNo:f.orderNo,customerId:c.id,customerName:c.name,phone:c.phone,salesmanId:f.salesmanId||'',
       members:(f.members||[]).filter(m=>m.id!==''),
-      orderDate:f.orderDate,deliveryDate:f.deliveryDate,trialDate:f.trialDate||'',items:f.items,m:f.m,design:f.design,variant:f.variant||{},notes:f.notes,total:f.total,advance:f.advance,payments:(+f.advance>0?[{id:'pay_'+uid(),amt:+f.advance,date:f.orderDate||todayISO()}]:[]),photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,bodyType:f.bodyType,dispatch:f.dispatch||null,source:f.source||'',sourceRef:f.sourceRef||'',sampleId:f.sampleId||'',custSample:f.custSample||{},
+      orderDate:f.orderDate,deliveryDate:f.deliveryDate,trialDate:f.trialDate||'',items:f.items,m:f.m,design:f.design,variant:f.variant||{},notes:f.notes,total:f.total,advance:f.advance,payments:(+f.advance>0?[{id:'pay_'+uid(),amt:+f.advance,date:f.orderDate||todayISO()}]:[]),photos:f.photos,voiceNotes:f.voiceNotes,itemPhotos:f.itemPhotos,itemVoice:f.itemVoice,bodyType:f.bodyType,dispatch:f.dispatch||null,source:f.source||'',sourceRef:f.sourceRef||'',sampleId:f.sampleId||'',custSample:f.custSample||{},billLines:(f.billLines||[]).filter(b=>b&&(b.keys||[]).every(k=>(f.items||[]).includes(k))),
       status:'new',itemStatus:(function(){const o={};f.items.forEach(g=>o[g]='new');return o;})(),log:[{id:uid(),ts:new Date().toISOString(),text:t('t_status',{s:sLabel('new')}),voiceId:null}]};
     _pastDelivOK=false;                        /* v258: the question is asked per order */
     numHWCommitOrder(f);                       /* v257: burned here, and only here */
@@ -26156,7 +26349,7 @@ function renderInvoiceForm(){
         <b id="tDue" style="font-size:17px;color:${r2(invRecvNow(f,comp0)-comp0.total)>0.5?'var(--bad)':'var(--saffron2)'}">${money(Math.abs(r2(comp0.total-invRecvNow(f,comp0))))}</b></div>
       <div id="ivPayBlock" style="${(invNewMoney(f)>0||f.split)?'':'display:none'}">
       <div class="il il-stack">
-        <span class="hint">${f.split?t('split_pay'):t('payment_mode')}</span>
+        ${f.split?'':`<span class="hint">${t('payment_mode')}</span>`}
         <span class="gtags" id="ivModes">
           ${f.split?'':PU_MODES.map(m=>`<span class="gtag sm ${(f.paymentMode===m[0])?'on-tag':''}" data-pm="${m[0]}" style="cursor:pointer" onclick="invSetMode('${m[0]}')">${t(m[1])}</span>`).join('')}
           ${(((invRecOf(f.kind,f.id)||{}).payments||[]).length>=1 && !f.split)?'':`<span class="gtag sm ${f.split?'on-tag':''}" style="cursor:pointer;border-style:dashed" onclick="invToggleSplit()">⇄ ${t('split_pay')}</span>`}</span>
@@ -26166,8 +26359,8 @@ function renderInvoiceForm(){
            account" sat on a bill where nothing had been received. Same fault the purchase
            screen had in v502, and the same answer: it appears with the amount. */''}
       <div class="il il-stack" id="ivAccRow" style="padding-top:6px;${(invRecvNow(f,comp0)>0 && !(/cash/i.test(f.paymentMode||'')&&!f.split))?'':'display:none'}">
-        <span class="hint">${t('acc_into')}</span>
-        <span style="width:100%">${acctSelHTML('inv_acc', /cash/i.test(f.paymentMode||'')?(cashAcc()||{}).id:((DB.accounts||[]).find(a=>a.id===f.acc&&a.type!=='cash')||bankAccs()[0]||{}).id||'')}</span></div>
+        <span class="hint">${f.split?t('acc_upi_into'):t('acc_into')}</span>
+        <span style="width:100%">${acctSelHTML('inv_acc', (/cash/i.test(f.paymentMode||'')&&!f.split)?(cashAcc()||{}).id:((DB.accounts||[]).find(a=>a.id===f.acc&&a.type!=='cash')||bankAccs()[0]||{}).id||'')}</span></div>
       </div>
 
     ${/* v787 — HIS ask: the Salesman box was one tap inside "More", every single bill,
@@ -26334,7 +26527,15 @@ function qkAdd(mid){
    Name = a search box; Unit is filled from the item (Mtr for cloth, Set/Pcs for garments); the amount is worked out.
    ⋯ opens the rarely-needed things (line discount, delete). */
 let _lnTyped=-1;
-function lnUnits(it){ const u=['Pcs','Set','Mtr','Nos']; if(it.unit&&u.indexOf(it.unit)<0)u.push(it.unit); return u; }
+function lnUnits(it){ return ['Pcs','Mtr']; }   /* HIS 27 Oct: only Pcs or Mtr — Mtr for fabric, Pcs for everything else */
+/* v907: reversible (the bill is not in the books until Save) → no question, Undo puts it back where it was */
+function lnDel(i){
+  try{ captureInvoiceForm(); }catch(e){}
+  const arr=(invForm&&invForm.items)||[]; const gone=arr[i]; if(!gone)return;
+  arr.splice(i,1); try{ posRefresh(); }catch(e){} try{ updateInvTotals(); }catch(e){}
+  undoOffer(t('rn_item_gone')+(gone.label?' · '+gone.label:''),()=>{ try{ captureInvoiceForm(); }catch(e){}
+    invForm.items.splice(Math.min(i,invForm.items.length),0,gone); try{ posRefresh(); }catch(e){} try{ updateInvTotals(); }catch(e){} });
+}
 function lnFocus(sel){ const e=document.querySelector(sel); if(!e)return false; try{ e.focus(); if(e.select)e.select(); }catch(x){} return true; }
 function posCardHTML(i,it){
   const q=(it.qty===0||it.qty==='0')?0:(+it.qty||1);
@@ -26347,10 +26548,11 @@ function posCardHTML(i,it){
     <div class="ln-top"><span class="ln-sr">${i+1}</span>
       ${spkHTML('ln_n'+i,{val:it.label||'', ph:'🔍 '+t('vy_find_item'), src:siRows, pick:r=>lnPick(i,r), max:10, onType:'lnTyped('+i+')',
         onKey:"lnKey(event,"+i+",'n')", add:q0=>lnNewMaster(q0,i), addKey:'ln_new_item', addLbl:t('ln_new_item0')})}
-      <button class="ln-more" aria-label="${esc(t('ln_more'))}" onclick="siOpen(${i})">⋯</button></div>
+      <button class="ln-more" aria-label="${esc(t('ln_more'))}" onclick="siOpen(${i})">⋯</button>
+      <button class="ln-x" aria-label="${esc(t('ln_del'))}" onclick="lnDel(${i})">✕</button></div>
     <div class="ln-inc" id="posIncl${i}">${posInclChipsHTML(i,it)}</div>
     <div class="ln-nums">
-      <label><span>${t('unit')}</span><select data-iunit="${i}" onchange="lnUnit(${i},this.value)">${lnUnits(it).map(u=>`<option ${u===(it.unit||'Pcs')?'selected':''}>${esc(u)}</option>`).join('')}</select></label>
+      <label><span>${t('unit')}</span><select data-iunit="${i}" onchange="lnUnit(${i},this.value)">${lnUnits(it).map(u=>`<option ${u===(it.unit==='Mtr'?'Mtr':'Pcs')?'selected':''}>${esc(u)}</option>`).join('')}</select></label>
       <label><span>${t('qty')}</span><input data-iqty="${i}" type="number" inputmode="${isFab?'decimal':'numeric'}" step="any" min="0" enterkeyhint="next"
         value="${esc(it.qty===0?0:(it.qty||1))}" oninput="posLineCalc(${i})" onfocus="try{this.select()}catch(e){}" onkeydown="lnKey(event,${i},'q')"></label>
       <label><span>${t(isFab?'pos_rate_mtr':'pos_rate')}</span><input data-irate="${i}" type="number" inputmode="decimal" min="0" enterkeyhint="next" placeholder="₹"
@@ -27296,7 +27498,8 @@ function posIncl(i){
   const it=invForm.items[i]; if(!it)return;
   const picked=Array.isArray(it.incl)?it.incl:[];
   const mst=(DB.itemMaster||[]).find(m=>m.id===it.masterId);
-  const pool=[]; (mst?mst.incl||[]:[]).forEach(p=>{if(!pool.includes(p))pool.push(p);});
+  const pool=[]; const _self=String((mst&&mst.name)||it.label||'').trim().toLowerCase();
+  (mst?mst.incl||[]:[]).forEach(p=>{if(!pool.includes(p)&&String(p).trim().toLowerCase()!==_self)pool.push(p);});
   picked.forEach(p=>{if(!pool.includes(p))pool.push(p);});
   (DB.inclLib||[]).forEach(p=>{if(!pool.includes(p))pool.push(p);});
   const chips=pool.map(p=>{const on=picked.includes(p);
@@ -27355,7 +27558,8 @@ function posNamePick(i,k){
 function posInclChipsHTML(i,it){
   const picked=Array.isArray(it.incl)?it.incl:[];
   const mst=(DB.itemMaster||[]).find(m=>m.id===it.masterId);
-  const pool=[]; (mst?mst.incl||[]:[]).forEach(p=>{if(!pool.includes(p))pool.push(p);});
+  const pool=[]; const _self=String((mst&&mst.name)||it.label||'').trim().toLowerCase();
+  (mst?mst.incl||[]:[]).forEach(p=>{if(!pool.includes(p)&&String(p).trim().toLowerCase()!==_self)pool.push(p);});
   picked.forEach(p=>{if(!pool.includes(p))pool.push(p);});
   (it.optPool||[]).forEach(p=>{if(!pool.includes(p))pool.push(p);});
   const chips=pool.map(p=>{const on=picked.includes(p);
@@ -27369,6 +27573,7 @@ function posInclChipsHTML(i,it){
      when he taps it. Nothing is lost; the sentence just stops repeating itself. */
   /* v874 — HIS 15 Oct ("Stiching Only" line): a lone ＋ with nothing beside it told nobody
      what it adds. With nothing to show, the chip names itself. */
+  if(!pool.length && (it.thaanId || it.unit==='Mtr')) return '';   /* v903 audit: cloth by the metre has no parts */
   return `${picked.length?`<span class="incl-lbl">${t('ln_acc')}</span>`:''}${chips}<span class="gtag sm" style="cursor:pointer;border-style:dashed" onclick="posAddPartInline(${i})">＋${pool.length?'':' 📎 '+t('inc_add')}</span>`;
 }
 function renderPosInclChips(i){
@@ -27420,7 +27625,8 @@ function posRenderPool(i){
   const el=$('#posInclPool'); if(!el)return;
   const it=(invForm.items||[])[i]||{}; const picked=Array.isArray(it.incl)?it.incl:[];
   const mst=(DB.itemMaster||[]).find(m=>m.id===it.masterId);
-  const pool=[]; (mst?mst.incl||[]:[]).forEach(p=>{if(!pool.includes(p))pool.push(p);});
+  const pool=[]; const _self=String((mst&&mst.name)||it.label||'').trim().toLowerCase();
+  (mst?mst.incl||[]:[]).forEach(p=>{if(!pool.includes(p)&&String(p).trim().toLowerCase()!==_self)pool.push(p);});
   picked.forEach(p=>{if(!pool.includes(p))pool.push(p);});
   (DB.inclLib||[]).forEach(p=>{if(!pool.includes(p))pool.push(p);});
   el.innerHTML=pool.map(p=>posPoolChip(i,p,picked.includes(p))).join('')||`<span class="hint">${t('pos_no_results')}</span>`;
@@ -27449,17 +27655,40 @@ function invPickWho(){
   captureInvoiceForm();
   const all=salesmenAll();
   window._vyPick=all.map(k=>()=>{ invForm.salesmanId=(invForm.salesmanId===k.id)?'':k.id; closeModal(); renderInvoiceForm(); });
-  modal(t('salesman'),all.map((k,i)=>`<div class="mnu-row" style="cursor:pointer;padding:13px 4px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between" onclick="window._vyPick[${i}]()">
-      <b style="font-weight:600">${esc(k.name)}</b><span>${invForm.salesmanId===k.id?'✓':''}</span></div>`).join('')
+  modal(t('salesman'),all.map((k,i)=>`<div class="mnu-row" style="cursor:pointer;padding:9px 4px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px" onclick="window._vyPick[${i}]()">
+      <b style="font-weight:600;flex:1">${esc(k.name)}</b><span>${invForm.salesmanId===k.id?'✓':''}</span>
+      <button class="btn sm ghost" onclick="event.stopPropagation();closeModal();invEditSalesman('${k.id}')">✏️</button>
+      <button class="btn sm ghost" onclick="event.stopPropagation();smQuickDel('${k.id}')">🗑️</button></div>`).join('')
     +`<div class="row" style="gap:8px;margin-top:12px"><button class="btn sm ghost" style="flex:1" onclick="closeModal();invAddSalesman()">➕ ${t('add_salesman')}</button>
       ${all.length?`<button class="btn sm ghost" style="flex:1" onclick="closeModal();invManageSalesmen()">⚙️ ${t('sm_manage')}</button>`:''}</div>`,[]);
+}
+/* v908 — a salesman leaves the list at once (he is marked as left, nothing is deleted) and Undo brings him back */
+function smQuickDel(id){
+  const p=staffById(id); if(!p)return;
+  p.left=true; const was=invForm&&invForm.salesmanId===id; if(was)invForm.salesmanId='';
+  save(); closeModal(); try{ invPickWho(); }catch(e){}
+  undoOffer(t('t_deleted')+' · '+p.name,()=>{ p.left=false; if(was&&invForm)invForm.salesmanId=id; save(); try{ renderInvoiceForm(); }catch(e){} });
+}
+/* v908 — a "came by" the shop added itself can be renamed or removed from the list, right where it is picked */
+function srcRename(i){
+  const old=(DB.sources||[])[i]; if(old==null)return;
+  modal(t('src_rename'),`<input id="srcRen" value="${esc(old)}" autocomplete="off">`,
+    [{label:t('cancel'),cls:'ghost',fn:()=>{ closeModal(); invPickSrc(); }},
+     {label:t('save'),cls:'primary',fn:()=>{ const v=String(($('#srcRen')||{}).value||'').trim(); if(!v)return;
+        DB.sources[i]=v; if(invForm&&invForm.source===old)invForm.source=v; save(); closeModal(); invPickSrc(); }}]);
+}
+function srcQuickDel(i){
+  const old=(DB.sources||[])[i]; if(old==null)return;
+  DB.sources.splice(i,1); save(); closeModal(); try{ invPickSrc(); }catch(e){}
+  undoOffer(t('t_deleted')+' · '+old,()=>{ DB.sources.splice(Math.min(i,DB.sources.length),0,old); save(); });
 }
 function invPickSrc(){
   captureInvoiceForm();
   const all=srcOptions();
   window._vyPick=all.map(o=>()=>{ invForm.source=(invForm.source===o)?'':o; closeModal(); renderInvoiceForm(); });
-  modal(t('vy_came_by'),all.map((o,i)=>`<div class="mnu-row" style="cursor:pointer;padding:13px 4px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between" onclick="window._vyPick[${i}]()">
-      <b style="font-weight:600">${esc(o)}</b><span>${invForm.source===o?'✓':''}</span></div>`).join('')
+  modal(t('vy_came_by'),all.map((o,i)=>{ const ci=(DB.sources||[]).indexOf(o); return `<div class="mnu-row" style="cursor:pointer;padding:9px 4px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px" onclick="window._vyPick[${i}]()">
+      <b style="font-weight:600;flex:1">${esc(o)}</b><span>${invForm.source===o?'✓':''}</span>
+      ${ci>=0?`<button class="btn sm ghost" onclick="event.stopPropagation();closeModal();srcRename(${ci})">✏️</button><button class="btn sm ghost" onclick="event.stopPropagation();srcQuickDel(${ci})">🗑️</button>`:''}</div>`; }).join('')
     +`<button class="btn sm ghost block" style="margin-top:12px" onclick="closeModal();addSource(v=>{invForm.source=v;renderInvoiceForm();})">➕ ${t('src_add')}</button>`,[]);
 }
 function invPickSalesman(id){
@@ -27808,10 +28037,19 @@ function invCustSearch(q){const box=$('#invCustResults'); if(!box)return;
   if(ph && !String(ph.value||'').trim()) ph.style.display=(q && !hits.length)?'':'none';}
 function invNewCustomer(){
   captureInvoiceForm();
-  const nm=($('#inv_cname')&&$('#inv_cname').value.trim())||'';
+  let nm=($('#inv_cname')&&$('#inv_cname').value.trim())||'';
+  /* v903 — HIS 27 Oct: typed a mobile number in the box, tapped Add new party: the number came, but there was
+     nowhere to write the NAME. The number was being kept as the name. A typed number is a PHONE: it moves to the
+     Phone box and the cursor goes to the name box. */
+  const _digits=nm.replace(/\D/g,'');
+  const _isNum=!!nm && /^[0-9+ ()-]+$/.test(nm) && _digits.length>=5;
+  const nmEl=$('#inv_cname'), ph=$('#inv_cphone');
+  if(_isNum){ if(ph){ ph.style.display=''; ph.value=nm.replace(/[^0-9+ ]/g,'').trim(); } invForm.phone=ph?ph.value:nm; nm=''; if(nmEl)nmEl.value=''; }
   invForm.customerId=null; invForm.customerName=nm;
   const box=$('#invCustResults'); if(box)box.innerHTML='';
-  const ph=$('#inv_cphone'); if(ph){ ph.style.display=''; ph.focus(); }
+  if(ph)ph.style.display='';
+  if(_isNum){ if(nmEl)nmEl.focus(); toast(t('cust_type_name'),'ok'); return; }
+  if(ph)ph.focus();
   toast(nm?t('cust_new_typed',{n:nm}):t('cust_type_name'), nm?'ok':'bad');}
 function altCustSearch(q){const box=$('#altCustResults'); if(!box)return;
   const hits=custHits(q);
@@ -28138,6 +28376,7 @@ function invLeaveKeep(){
   try{ clearTimeout(_invDraftT); }catch(e){}
   _xAsked=1; try{ closeSheet(); }finally{ _xAsked=0; }
   if(f.kind==='order'&&f.id){ try{ openDetail(f.id); }catch(e){} }
+  else { try{ refreshBehind(); }catch(e){} }   /* the Sale list behind shows the draft card at once */
 }
 /* v903 — HIS 27 Oct: "draft sahi jagah nahi ban rahi." A NEW bill with a customer or items but no rate was thrown away by ✕
    without a word, and one with a rate asked a question. Now a new bill is kept as a draft — the Sale list shelf offers it back —
@@ -28203,6 +28442,7 @@ function billPayKeep(list, recv, date, mode, acc){
 function saveInvoice(){
   try{ lnFlushNew(); }catch(e){}
   captureInvoiceForm();const f=invForm;
+  try{ (f.items||[]).forEach(x=>{ if(x.unit&&x.unit!=='Mtr')x.unit='Pcs'; }); }catch(e){}   /* only Pcs or Mtr are units — at SAVE only, so opening and closing a bill changes nothing */
   /* v717: did the bill as SAVED already carry lines that take stock? (read before anything is written) */
   try{ const r0=invRecOf(f.kind,f.id); const it0=((r0&&r0.invoice)||{}).items||[];
     _invHadStockLines=it0.some(it=>it.thaanId||it.fabId||(((DB.itemMaster||[]).find(x=>x.id===it.masterId)||{}).kind==='ready'));
@@ -31485,7 +31725,7 @@ function openPurchaseForm(editId){
     const items=(p.items&&p.items.length)?JSON.parse(JSON.stringify(p.items)):[{label:p.desc||'',hsn:'',qty:1,unit:'Pcs',rate:p.total||0,amount:p.total||0}];
     purchForm={editId,supplier:p.supplier||'',phone:p.phone||'',billNo:p.billNo||'',date:p.date||todayISO(),items,
       discType:p.discType||'amount',discValue:p.discValue||0,courier:+p.courier||0,
-      gstPct:(p.gstPct!=null?p.gstPct:null), noGst:!!p.noGst, noStock:!!p.noStock, interstate:!!p.interstate,
+      gstPct:(p.gstPct!=null?p.gstPct:null), noGst:!!p.noGst, noStock:!!p.noStock, interstate:!!p.interstate, courierGst:!!p.courierGst,
       paidNow:null,paymentMode:p.paymentMode||'Cash',notes:p.notes||'',photos:[...(p.photos||[])]};}
   else {
     /* v245 — HIS 22 Aug: "purchase me new purchase par click karta hun to ye page aisa kyon
@@ -31505,7 +31745,7 @@ function openPurchaseForm(editId){
        unless someone remembered. Defaulting it ON matches what actually happens on his
        floor; the one bill in twenty where the cloth was NOT pre-entered, he unticks. */
     purchForm = {editId:null,supplier:'',phone:'',billNo:'',date:todayISO(),
-      items:[],discType:'amount',discValue:0,courier:0,paidNow:null,paymentMode:'Bank',notes:'',photos:[],noStock:true};
+      items:[],discType:'amount',discValue:0,courier:0,courierGst:true,paidNow:null,paymentMode:'Bank',notes:'',photos:[],noStock:true};
   }
   renderPurchaseForm();
 }
@@ -31677,8 +31917,13 @@ function invDraftDrop(id){
      redrew the form. Dropped from the list — which is where he meets it — the row stayed
      on screen over a draft that no longer existed, exactly like the order draft on 8 Sept.
      Both screens are redrawn now; whichever one he is standing on tells the truth. */
-  confirmModal(t('draft_discard'), t('draft_disc_msg'),
-    ()=>{ closeModal();
+  /* v903 audit: reversible → no question (his rule); the row comes back with Undo, as the Order draft bin has done since v839 */
+  let _keep=null; try{ _keep=JSON.parse(localStorage.getItem(INV_DRAFTS_KEY)||'{}'); }catch(e){}
+  const _f0=invForm, _cur0=(invForm&&invForm._draftId)||'';
+  ((fn)=>{ fn(); undoOffer(t('draft_discarded'),()=>{ try{ clearTimeout(_invDraftT); if(_keep)localStorage.setItem(INV_DRAFTS_KEY,JSON.stringify(_keep)); }catch(e){}
+      if(_f0 && invForm===_f0 && _cur0) invForm._draftId=_cur0;   /* the open form owns its old row again — no second copy */
+      _invDropped=''; refreshBehind(); try{ if(invFormOnScreen())renderInvoiceForm(); }catch(e){} }); })(
+    ()=>{
       /* ══════════ v556 — THE DISCARDED BILL DRAFT COULD COME BACK ══════════
          Traced, not guessed. The bill draft is written 600ms after anything he types, and
          the timer keeps running after the bin is tapped: it fires, sees invForm still
@@ -31702,7 +31947,7 @@ function invDraftDrop(id){
       try{ if(invForm) _invDropped=invDraftSig(invForm); }catch(e){}
       if(id)invDraftDropId(id); else clearInvDraft();
       if(invForm && (!id || String(id)===String(cur))) invForm._draftId='';
-      try{renderInvoiceForm();}catch(e){} refreshBehind(); });
+      try{ if(invFormOnScreen())renderInvoiceForm(); }catch(e){} refreshBehind(); });
 }
 const PUR_DRAFT_KEY='pb_ob_purdraft';
 /* ══════════ v721 — A DRAFT THAT WAS NOTHING AT ALL ══════════
@@ -31765,6 +32010,7 @@ function capturePurchForm(){const f=purchForm;if(!f)return;
   if($('#pu_disctype'))f.discType=$('#pu_disctype').value;
   if($('#pu_discval'))f.discValue=+$('#pu_discval').value||0;
   if($('#pu_courier'))f.courier=+$('#pu_courier').value||0;
+  if($('#pu_cgst'))f.courierGst=!!$('#pu_cgst').checked;
   if($('#pu_notes'))f.notes=$('#pu_notes').value.trim();
   // items are committed by the entry line (purDraftAdd), not read back from row inputs
 }
@@ -31818,7 +32064,8 @@ function purchCompute(f){
   const courier=+f.courier||0;
   const taxable=r2(gross-discAmt);
   const rate=puGstRate(f);
-  const tax=f.noGst?0:r2(taxable*rate/100);
+  const courierTaxed=(f.courierGst&&!f.noGst)?r2(courier):0;   /* v906: freight on the supplier's bill is taxed with the goods */
+  const tax=f.noGst?0:r2((taxable+courierTaxed)*rate/100);
   /* the supplier's own bill splits it the same way, so ours must too */
   const inter=!!f.interstate;
   const igst=inter?tax:0, cgst=inter?0:r2(tax/2), sgst=inter?0:r2(tax-r2(tax/2));
@@ -31829,7 +32076,7 @@ function purchCompute(f){
   const raw=r2(taxable+tax+courier);
   const auto=r2(Math.round(raw)-raw);
   const ro=(f.roundOff!=null&&f.roundOff!=='')?r2(+f.roundOff||0):(f.roundOn===false?0:auto);
-  return {gross,discount:discAmt,courier,taxable,rate,tax,igst,cgst,sgst,raw,roundOff:ro,
+  return {gross,discount:discAmt,courier,courierTaxed,taxable,rate,tax,igst,cgst,sgst,raw,roundOff:ro,
           total:r2(raw+ro)};
 }
 /* Money block, Vyapar-compact: Discount / Total / Paid / Balance Due, one line each.
@@ -31871,9 +32118,11 @@ function purchTotalsBoxHTML(comp){
         <input type="hidden" id="pu_disctype" value="${pct?'percent':'amount'}"></span></div>
     <div style="${ln}"><span>🚚 ${t('courier')}</span>
       <input id="pu_courier" type="number" inputmode="numeric" value="${f.courier?esc(f.courier):''}" placeholder="0"
-        style="width:112px;text-align:right;margin:0" oninput="updatePurchTotal()"></div>
+        style="width:112px;text-align:right;margin:0" oninput="{const w=document.getElementById('pu_cgstw'); if(w)w.style.display=(+this.value>0)?'':'none';} updatePurchTotal()"></div>
+    <div id="pu_cgstw" style="${ln};${(+f.courier>0)?'':'display:none'}"><label style="display:flex;gap:6px;align-items:center;font-size:13px;color:var(--mut)">
+      <input type="checkbox" id="pu_cgst" style="width:16px;height:16px;margin:0" ${f.courierGst?'checked':''} onchange="updatePurchTotal()"> ${t('pu_courier_gst')}</label></div>
     </div>
-    <div style="${ln}"><span>${t('taxable')}</span><b>${money(comp.taxable)}</b></div>
+    <div style="${ln}"><span>${t('taxable')}</span><b>${money(r2(comp.taxable+(comp.courierTaxed||0)))}</b></div>
     <div style="${ln}">
       <span style="display:flex;gap:8px;align-items:center">${t('gst')}
         <input id="pu_gstpct" type="number" inputmode="decimal" value="${f.gstPct!=null&&f.gstPct!==''?esc(f.gstPct):puGstRate(f)}"
@@ -32289,8 +32538,9 @@ function purDraftResume(){
 }
 function purDraftDrop(){
   /* v554: same as the bill draft above — the bin is offered on the Purchases list too. */
-  confirmModal(t('draft_discard'), t('draft_disc_msg'),
-    ()=>{ closeModal(); purDraftReset(); });
+  let _keep=null; try{ _keep=localStorage.getItem(PUR_DRAFT_KEY); }catch(e){}
+  purDraftReset();   /* v903 audit: reversible → no question; Undo puts the draft back */
+  undoOffer(t('draft_discarded'),()=>{ try{ if(_keep)localStorage.setItem(PUR_DRAFT_KEY,_keep); }catch(e){} refreshBehind(); });
 }
 /* ══════════════════ v442 — THE BILL AND THE ENTRY WERE THE SAME SCREEN ══════════════════
    HIS 1 Sep, after showing me Vyapar side by side: "vyapar me mujhe ek din bhi accountant
@@ -33304,7 +33554,7 @@ function purDraftReset(){
   try{ clearTimeout(_purDraftT); }catch(e){}
   clearPurDraft();
   purchForm={editId:null,supplier:'',phone:'',billNo:'',date:_dateLock.pur||todayISO(),
-    items:[],discType:'amount',discValue:0,courier:0,paidNow:null,paymentMode:'Bank',notes:'',photos:[],noStock:true};
+    items:[],discType:'amount',discValue:0,courier:0,courierGst:true,paidNow:null,paymentMode:'Bank',notes:'',photos:[],noStock:true};
   /* v772: from the Purchase LIST there is no form open — redrawing it would pop one up */
   try{ if(document.querySelector('#scrim.show') && _sheetCur===renderPurchaseForm) renderPurchaseForm(); }catch(e){}
   refreshBehind();
@@ -33739,7 +33989,7 @@ function savePurchase(){
        cloth to stock anyway — doubling every roll he had already entered as opening
        stock — and reopening the bill showed the box unticked because there was nothing
        on the record to tick it from. */
-    Object.assign(p,{supplier:f.supplier,phone:f.phone,billNo:f.billNo,date:f.date,desc,items:f.items,discType:f.discType,discValue:f.discValue,courier:+f.courier||0,gstPct:f.gstPct,noGst:!!f.noGst,noStock:!!f.noStock,interstate:!!f.interstate,total,paymentMode:f.paymentMode,notes:f.notes,photos:f.photos||[]});
+    Object.assign(p,{supplier:f.supplier,phone:f.phone,billNo:f.billNo,date:f.date,desc,items:f.items,discType:f.discType,discValue:f.discValue,courier:+f.courier||0,gstPct:f.gstPct,noGst:!!f.noGst,noStock:!!f.noStock,interstate:!!f.interstate,courierGst:!!f.courierGst,total,paymentMode:f.paymentMode,notes:f.notes,photos:f.photos||[]});
     if(f.paidNow!=null&&f.paidNow>0){p.payments=p.payments||[];p.payments.push({id:'pay_'+uid(),amt:f.paidNow,date:todayISO(),mode:f.paymentMode,acc:payAccFor(f.paymentMode,f.acc),ref:f.payRef||''});}
     if(_qtyChanged && p._stockDone) setTimeout(()=>toast(t('pur_edit_nostock'),'bad'),700);
   }else{
@@ -33752,7 +34002,7 @@ function savePurchase(){
        now means what it says: nothing recorded paid, whatever the payment mode shows —
        the mode only matters once an amount is actually typed. */
     const paid=(f.paidNow!=null)?f.paidNow:0;
-    const rec={id:uid(),created:new Date().toISOString(),supplier:f.supplier,phone:f.phone,billNo:f.billNo,date:f.date,desc,items:f.items,discType:f.discType,discValue:f.discValue,courier:+f.courier||0,gstPct:f.gstPct,noGst:!!f.noGst,noStock:!!f.noStock,interstate:!!f.interstate,
+    const rec={id:uid(),created:new Date().toISOString(),supplier:f.supplier,phone:f.phone,billNo:f.billNo,date:f.date,desc,items:f.items,discType:f.discType,discValue:f.discValue,courier:+f.courier||0,gstPct:f.gstPct,noGst:!!f.noGst,noStock:!!f.noStock,interstate:!!f.interstate,courierGst:!!f.courierGst,
       total,paymentMode:f.paymentMode,notes:f.notes,photos:f.photos||[],
       payments:paid>0?[{id:'pay_'+uid(),amt:paid,date:f.date,mode:f.paymentMode,acc:payAccFor(f.paymentMode,f.acc),ref:f.payRef||''}]:[]};
     DB.purchases.push(rec); _savedPurId=rec.id;
@@ -34816,7 +35066,7 @@ function bsFigures(from,to){
   const A={}, L={};   /* L is filled below and by the cash-credit branch above it */
   const add=(o,k,v)=>{ if(!v)return; o[k]=r2((o[k]||0)+v); };
   const ob=openBS();
-  const _loose={cust:[], sup:[]};   /* v737: the receipts behind the advance lines, for the drill */
+  const _loose={cust:[], sup:[], susp:[]};   /* v904: + the rows behind Suspense, for its drill */   /* v737: the receipts behind the advance lines, for the drill */
 
   /* ---- assets ---- */
   (DB.accounts||[]).forEach(a=>{
@@ -35145,7 +35395,7 @@ function bsFigures(from,to){
       if(named && openingIsKarStaff(named)){
         let claimed=false;
         try{ const pk=payKindOf(l); claimed=(pk==='adv'||pk==='rec'); }catch(e){}
-        if(!claimed) susp = (l.dir==='in') ? r2(susp+amt) : r2(susp-amt);
+        if(!claimed){ susp = (l.dir==='in') ? r2(susp+amt) : r2(susp-amt); _loose.susp.push({l, amt:(l.dir==='in'?amt:-amt)}); }
         return;
       }
       if(named && l.dir==='out'){
@@ -35170,7 +35420,7 @@ function bsFigures(from,to){
         if(leftOver>0){ custAdv=r2(custAdv+leftOver); _loose.cust.push({l, amt:leftOver}); }
         return;
       }
-      susp = (l.dir==='in') ? r2(susp+amt) : r2(susp-amt);
+      susp = (l.dir==='in') ? r2(susp+amt) : r2(susp-amt); _loose.susp.push({l, amt:(l.dir==='in'?amt:-amt)});
     });
     if(custAdv>0)add(L,'custadv',custAdv);   /* his money, held against goods not yet billed */
     if(supAdv>0) add(A,'supadv',supAdv);     /* shop's money, sitting with the supplier */
@@ -35503,7 +35753,7 @@ function bsAdvScreen(which){
   sheetAt(bsAdvScreen,null,arguments);
   const to=rpRange().to, from=(openBS().date||fyStartISO());
   let f={A:{},L:{},loose:{cust:[],sup:[]}}; try{ f=bsFigures(from,to); }catch(e){}
-  const figure=r2(which==='sup'?(f.A.supadv||0):which==='cust'?(f.L.custadv||0):(f.L.ordadv||0));
+  const figure=r2(which==='susp'?((f.L.suspense||0)-(f.A.suspense||0)):which==='sup'?(f.A.supadv||0):which==='cust'?(f.L.custadv||0):(f.L.ordadv||0));
   const rows=[];
   const recNo=x=>x.kind==='order'?'#'+(x.rec.orderNo||'\u2014'):x.kind==='alt'?'#'+(x.rec.altNo||'\u2014')
     :((x.rec.invoice&&x.rec.invoice.no)||'\u2014');
@@ -35513,16 +35763,20 @@ function bsAdvScreen(which){
       :(x.rec.invoice?`openInvoicePreview('sale','${jq(x.rec.id)}')`:'')}));
   /* money in or out against a NAME with no bill or opening to settle — the larger part of
      his customer advances. Each opens that party's own card, where the fix is made. */
-  if(which!=='ord') ((f.loose||{})[which]||[]).forEach(x=>{ const nm=String(x.l.party||'').trim();
+  /* v904: each unexplained entry opens itself — that is where a name is given to it */
+  if(which==='susp') ((f.loose||{}).susp||[]).forEach(x=>{ const nm=String(x.l.party||'').trim();
+    rows.push({name:(nm||String(x.l.note||'').trim()||(x.l.dir==='in'?t('dq_in'):t('dq_out'))), sub:fmtDate(x.l.date)+(nm&&x.l.note?' \u00B7 '+String(x.l.note).trim():''), amt:x.amt,
+      go:`dbOpen('${jq(x.l.id)}')`}); });
+  if(which!=='ord'&&which!=='susp') ((f.loose||{})[which]||[]).forEach(x=>{ const nm=String(x.l.party||'').trim();
     rows.push({name:nm||'\u2014', sub:fmtDate(x.l.date)+(x.l.note?' \u00B7 '+String(x.l.note).trim():''), amt:x.amt,
       go:nm?`partyCard('${jq(nm)}','${which==='sup'?'supplier':'customer'}')`:''}); });
   let sum=0; rows.forEach(x=>{ sum=r2(sum+x.amt); });
   /* the rest of Advance with suppliers is debit notes that exceed what was owed */
-  if(Math.abs(figure-sum)>0.5) rows.push({name:t(which==='sup'?'bs_adv_dn':'bs_adv_rest'), sub:'', amt:r2(figure-sum),
+  if(Math.abs(figure-sum)>0.5) rows.push({name:t(which==='sup'?'bs_adv_dn':which==='susp'?'bs_susp_jv':'bs_adv_rest'), sub:'', amt:r2(figure-sum),
     go:which==='sup'?'closeSheet();creditorsHome()':''});
   rows.sort((a,b)=>b.amt-a.amt);
   $('#sheet').innerHTML=`<div class="grip"></div>
-    <h2 style="margin:0 0 4px">\u{1F4B0} ${t(which==='cust'?'bs_custadv':which==='ord'?'bs_ordadv':'bs_supadv')}</h2>
+    <h2 style="margin:0 0 4px">\u{1F4B0} ${t(which==='susp'?'bs_suspense':which==='cust'?'bs_custadv':which==='ord'?'bs_ordadv':'bs_supadv')}</h2>
     <p class="hint" style="margin:0 0 10px">${t('bs_adv_asof',{d:fmtDate(to)})}</p>
     <div class="card" style="padding:4px 12px;margin-bottom:10px">
       <div class="kv" style="padding:9px 2px"><span>${t('bs_adv_n',{n:rows.length})}</span><b>${money(figure)}</b></div></div>
@@ -35555,7 +35809,7 @@ function bsOpenLine(key){
       case 'bs_loans': return (closeSheet(),loansScreen());
       case 'bs_fixed': case 'bs_cap': case 'bs_opencap': return (closeSheet(),openBSEdit());
       case 'bs_gst': case 'bs_gstcredit': return (closeSheet(),gstReport&&gstReport());
-      case 'bs_suspense': return (closeSheet(),dayBook());
+      case 'bs_suspense': return bsAdvScreen('susp');   /* v904: its own entries, not the whole Day book */
       default: return;
     }
   }catch(e){ toast(t('ps_open_fail'),'bad'); }
@@ -35793,7 +36047,7 @@ function gstInputTax(from,to){
   let taxable=0, cgst=0, sgst=0, igst=0, n=0;
   (DB.purchases||[]).filter(p=>{const d=String(p.date||'');return d>=from&&d<=to;})
     .forEach(p=>{ const c=purchCompute(p);
-      taxable=r2(taxable+(c.taxable||0)); cgst=r2(cgst+(c.cgst||0));
+      taxable=r2(taxable+(c.taxable||0)+(c.courierTaxed||0)); cgst=r2(cgst+(c.cgst||0));
       sgst=r2(sgst+(c.sgst||0)); igst=r2(igst+(c.igst||0)); n++; });
   /* v305: the tax on returned goods can no longer be claimed */
   const _pr=purRetFigures(from,to);
@@ -38876,6 +39130,7 @@ function orderMenu(id){const o=DB.orders.find(x=>x.id===id);const canAlt=o&&orde
     <button class="btn ghost block simple-hide" style="margin-bottom:8px" onclick="closeSheet();openOrderInvoice('${id}')">\uD83E\uDDFE ${t('invoice')}</button>
     ${canAlt?`<button class="btn ghost block" style="margin-bottom:8px" onclick="closeSheet();openAltForm(null,'${id}')">${t('start_alteration')}</button>`:''}
     <button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();ordSameCust('${id}')">\u2795 ${t('ord_same_cust')}</button>
+    ${o&&!orderDelivered(o)?`<button class="btn ghost block" style="margin-bottom:8px" onclick="closeModal();markDelivered('${id}')">✅ ${t('rtg_deliver')}</button>`:''}
     <div class="save-dock">
       <button class="btn ghost simple-hide" style="flex:1;color:var(--bad)" onclick="delOrder('${id}')">\uD83D\uDDD1\uFE0F ${t('delete')}</button></div>`,[]);}
 /* ══════════════ v582 — THE GUARD THAT ONLY ONE DELETE HAD ══════════════
@@ -40897,16 +41152,14 @@ function jobWork(){
   const rows=ks.map(k=>{
     const out=karOutCount(k.id), free=kiItemsFree(k.id).length, bal=karBalance(k.id);
     const spec=(k.specialties||[]).map(id=>{const g=G(id);return g?(g.ico||''):'';}).filter(Boolean).join(' ');
-    return `<div class="card" style="padding:12px 14px;margin-bottom:8px">
-      <div class="kv" style="align-items:flex-start">
-        <div style="min-width:0;flex:1" onclick="karMaster('${k.id}')">
+    /* v904 — 17 karigars × three buttons was 51 buttons on one screen. One row each now: tap it and his page
+       has the two big Issue / Receive buttons. The two jobs done every night sit once, at the top. */
+    return `<div class="card" style="padding:12px 14px;margin-bottom:8px;cursor:pointer" onclick="karMaster('${k.id}')">
+      <div class="kv" style="align-items:center">
+        <div style="min-width:0;flex:1">
           <b style="font-size:16px">👷 ${esc(k.name)}</b>${spec?` <span class="hint">${spec}</span>`:''}
           <div class="hint" style="margin-top:2px">${out?t('jw_holding',{n:out}):t('kb_nothing_out')}</div>
-        </div></div>
-      <div class="row" style="gap:6px;margin-top:8px">
-        <button class="btn sm primary" style="flex:1" onclick="karPickGo('${k.id}','give')">📤 ${t('ki_give')}</button>
-        <button class="btn sm ${out?'primary':'ghost'}" style="flex:1" onclick="karPickGo('${k.id}','take')">📥 ${t('ki_take')}${out?' ('+out+')':''}</button>
-        <button class="btn sm ghost" onclick="karMaster('${k.id}')">›</button></div></div>`;
+        </div><span class="hint" style="font-size:18px">›</span></div></div>`;
   }).join('') || `<p class="hint" style="padding:20px 0;text-align:center">${t('no_karigars')}</p>`;
   $('#sheet').innerHTML=`<div class="grip"></div>
     <h2 style="margin-bottom:4px">🧵 ${t('jw_title')}</h2>
@@ -40915,8 +41168,11 @@ function jobWork(){
     ${/* v834 — HIS rule: no "123 not yet given" count on the Karigar screen. */''}
     ${b.stuck.length?`<div class="card fu-open" style="padding:12px 14px;margin-bottom:12px" onclick="actionList('stuck')">
       <div class="kv"><span>⏳ ${t('ab_stuck',{n:AB_STUCK})}</span><b>${b.stuck.length}</b></div></div>`:''}
+    ${ks.length?`<div class="row" style="gap:8px;margin-bottom:12px">
+      <button class="btn primary" style="flex:1;padding:14px" onclick="_kiSel.clear();karIssue('')">📤 ${t('ki_give')}</button>
+      <button class="btn primary" style="flex:1;padding:14px" onclick="karReceive((ks0=>ks0?ks0.id:'')((DB.karigars||[]).find(k=>karOutCount(k.id)>0)))">📥 ${t('ki_take')}</button></div>`:''}
     <div id="jwBody">${rows}</div>
-    ${ks.length?`<button class="btn primary block" style="margin-top:12px" onclick="settleDay()">📆 ${t('stl_title')}</button>`:''}
+    ${ks.length?`<button class="btn ghost block" style="margin-top:12px" onclick="settleDay()">📆 ${t('stl_title')}</button>`:''}
     ${karImportCands().length?`<button class="btn ${ks.length?'ghost':'primary'} block" style="margin-top:12px" onclick="karImport()">\u{1F465} ${t('ki_imp_btn',{n:karImportCands().length})}</button>`:''}
     <div class="row" style="gap:8px;margin-top:10px">
       <button class="btn ${ks.length||karImportCands().length?'ghost':'primary'}" style="flex:2" onclick="karigarEdit()">➕ ${t('add_karigar')}</button>
@@ -49279,7 +49535,16 @@ function closeSheet(){
      never two. An edit of a saved order, and every other screen, keep this gate as it was. */
   const _ordNewOpen = (typeof formIsOpen==='function' && formIsOpen() && typeof form!=='undefined'
     && form && !form.editId && !form._saved);
-  if(!_xAsked && sheetDirty() && !_ordNewOpen){
+  /* v903 audit — PATTERN: one job (leave an unfinished NEW bill) done three ways. Sale and Order keep a draft and ask nothing;
+     Purchase asked "Leave, don't save / Save & close" — and "don't save" left the draft in place anyway, so the words and the
+     action disagreed. A new purchase is not in the books yet (reversible): it is kept as a draft, shown on the Purchase list. */
+  let _purNewOpen=false;
+  try{ const _sh=$('#sheet');
+    if(!_xAsked && _sh && _sh.querySelector('#pu_supplier') && typeof purchForm!=='undefined' && purchForm && !purchForm.editId && !purchForm._saved){
+      capturePurchForm();
+      if(purHasContent(purchForm)){ _purNewOpen=true; try{ clearTimeout(_purDraftT); }catch(e){} savePurDraft(); setTimeout(()=>{ try{ refreshBehind(); toast('📝 '+t('draft_saved'),'ok'); }catch(e){} },60); }   /* the list behind shows the draft card at once */
+    } }catch(e){}
+  if(!_xAsked && sheetDirty() && !_ordNewOpen && !_purNewOpen){
     _xAsked=1;
     /* modal() and not confirmModal(): confirmModal's own buttons call closeSheet() to
        dismiss themselves, so "Stay here" would have closed the very screen it promised to
