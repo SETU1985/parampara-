@@ -646,7 +646,9 @@
   .mcard .mh{padding:11px 14px; background:var(--bg2); display:flex; justify-content:space-between; align-items:center}
   .mcard .mh b{font-size:15px}
   .mcard .mb{padding:12px 14px}
-  .mgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
+  .mgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:6px}   /* v915: four small boxes a row */
+  .mgrid .mfield{padding:6px 7px}
+  .mgrid .mfield input{font-size:16px}
   .ic-lbl{font-size:10px; font-weight:700; opacity:.75; line-height:1.1; margin-top:2px}
   .mfield{background:var(--bg2); border:1px solid var(--line); border-radius:9px; padding:7px 9px}
   .mfield.lenhl{border-color:var(--saffronDim); background:rgba(201,126,16,.10)}
@@ -726,6 +728,8 @@
   .mcard.collapsed{opacity:.92}
   #fracbar button{flex:1; max-width:80px; padding:12px 0; border-radius:9px; background:var(--card2); border:1px solid var(--line2); font-size:18px; font-weight:700}
 
+  /* v917: --vvfix = how far iPad Safari left the layout short of the visible screen (0 almost always) */
+  nav, .vy-fab{ translate:0 var(--vvfix,0px); }
   nav{position:fixed; bottom:0; left:0; right:0; z-index:50; background:linear-gradient(180deg,#ffffff,#f8f6f2);
     border-top:1px solid var(--line); display:flex; padding:8px 6px calc(8px + var(--safe-b)); justify-content:space-around}
   /* v626 — HIS 11 Sept: "Home orange mein, baaki sab dark black mein — abhi grey hai."
@@ -1375,7 +1379,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v914</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v917</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -3361,7 +3365,8 @@ const T={
   nf_none:'Nothing measured yet', nf_leave_q:'These measurements are not saved yet. Leaving now loses them.', nf_leave:'Leave without saving',
   ws_saved_t:'Bill {n} saved', ws_send:'Send on WhatsApp', ws_to:'to {p}', ws_later:'Not now', ws_need_no:'Customer mobile number',
   ws_q:'Send the bill to the customer on WhatsApp?', ws_bad_no:'Enter a 10-digit mobile number', ws_note_q:'Send it on WhatsApp?',
-  wk_back:'People & pieces', wk_stage3:'Last step',
+  mm_tile:'Fields', ew_back:'Your unfinished changes to order #{n} are back — Save to keep them', nm_warn:'No name for {p}. Tap Save again to keep it without a name.',
+  pv_inorder:'In order of', fz_similar:'Similar names', wk_back:'People & pieces', wk_stage3:'Last step',
   wk_none:'Pick at least one item first', wk_pick_first:'Pick an item to begin',
   wk_no_cust:'No customer name yet',
   kx_title:'Payments not in a karigar account', kx_card:'{n} karigar payments (₹{a}) are not in any karigar account — link them', kx_link_all:'Link all ({n})', kx_none:'Every karigar payment is in his account', kx_choose:'Choose karigar', kx_done:'{n} payments linked', kx_from:'from', ex_karigar:'Karigar', lf_lengths:'Lengths', lf_body:'Body', lf_upper:'Upper body', lf_lower:'Lower body', lf_next_body:'Next: Body ›', lf_one_by_one:'Item by item', lf_back_len:'← Lengths', lf_hint:'Same for every piece. Change one piece later by tapping it.', mb_manage:'Manage', pu_no_gstin:'This supplier has no GSTIN saved — IGST / CGST cannot be set. Add GSTIN', ob_bill_items:'Bill items', ob_parts:'Parts of {n}', ob_cust_opt:'Old customer? Name or number', ob_no_parts:'No piece to measure', src_rename:'Rename', acc_upi_into:'Online (UPI) goes into', ln_del:'Remove', ord_add_item:'Add item', ord_done:'Done', ord_add_pick:'Which item?', pu_courier_gst:'GST on courier', bs_susp_jv:'Journal adjustments', cud_title:'Duplicate customers', cud_phone:'Same phone', cud_name:'Same name', cud_none:'No duplicate customers', cud_not:'Not the same', cud_join:'Join', cud_recs:'{n} records', cud_kept:'Marked as different people', date:'Date', pc_photos:'Photos', pc_voice:'Recordings', pc_note:'Notes', pc_rec:'Record', ln_acc:'Includes', ln_more:'More', ln_new_item:'Add new item “{n}”', ln_new_item0:'Add new item', ln_search:'Search item',
@@ -5791,7 +5796,8 @@ dl_show_hidden:'Show hidden ({n})',
   nf_none:'अभी कोई नाप नहीं', nf_leave_q:'ये नाप अभी सेव नहीं हुए। अभी निकले तो चले जाएँगे।', nf_leave:'बिना सेव किए निकलें',
   ws_saved_t:'बिल {n} सेव हुआ', ws_send:'व्हाट्सएप पर भेजें', ws_to:'{p} पर', ws_later:'अभी नहीं', ws_need_no:'ग्राहक का मोबाइल नंबर',
   ws_q:'ग्राहक को व्हाट्सएप पर बिल भेजें?', ws_bad_no:'10 अंकों का मोबाइल नंबर डालें', ws_note_q:'व्हाट्सएप पर भेजें?',
-  wk_back:'लोग और कपड़े', wk_stage3:'आखिरी स्टेप',
+  mm_tile:'फ़ील्ड', ew_back:'ऑर्डर #{n} के अधूरे बदलाव वापस आ गए — रखने के लिए Save करें', nm_warn:'{p} का नाम नहीं है। बिना नाम रखना है तो Save फिर दबाएँ।',
+  pv_inorder:'इनके ऑर्डर में', fz_similar:'मिलते-जुलते नाम', wk_back:'लोग और कपड़े', wk_stage3:'आखिरी स्टेप',
   wk_none:'पहले कोई आइटम चुनें', wk_pick_first:'शुरू करने के लिए आइटम चुनें',
   wk_no_cust:'ग्राहक का नाम अभी नहीं',
   kx_title:'जो भुगतान किसी कारीगर के खाते में नहीं', kx_card:'{n} कारीगर भुगतान (₹{a}) किसी कारीगर के खाते में नहीं — जोड़ें', kx_link_all:'सब जोड़ें ({n})', kx_none:'हर कारीगर भुगतान उसके खाते में है', kx_choose:'कारीगर चुनें', kx_done:'{n} भुगतान जोड़े गए', kx_from:'से', ex_karigar:'कारीगर', lf_lengths:'लंबाई', lf_body:'शरीर', lf_upper:'ऊपर का शरीर', lf_lower:'नीचे का शरीर', lf_next_body:'आगे: शरीर ›', lf_one_by_one:'एक-एक आइटम', lf_back_len:'← लंबाई', lf_hint:'हर पीस में एक जैसा। किसी पीस में बदलना हो तो बाद में उस पर टैप करें।', mb_manage:'मैनेज', pu_no_gstin:'इस सप्लायर का GSTIN सेव नहीं है — IGST / CGST तय नहीं हो सकता। GSTIN जोड़ें', ob_bill_items:'बिल आइटम', ob_parts:'{n} के हिस्से', ob_cust_opt:'पुराना ग्राहक? नाम या नंबर', ob_no_parts:'नाप वाला कोई हिस्सा नहीं', src_rename:'नाम बदलें', acc_upi_into:'ऑनलाइन (UPI) किस खाते में', ln_del:'हटाएँ', ord_add_item:'आइटम जोड़ें', ord_done:'हो गया', ord_add_pick:'कौन सा आइटम?', pu_courier_gst:'कूरियर पर GST', bs_susp_jv:'जर्नल समायोजन', cud_title:'डुप्लिकेट ग्राहक', cud_phone:'एक ही फ़ोन', cud_name:'एक ही नाम', cud_none:'कोई डुप्लिकेट ग्राहक नहीं', cud_not:'अलग लोग हैं', cud_join:'जोड़ें', cud_recs:'{n} रिकॉर्ड', cud_kept:'अलग लोग माने गए', date:'तारीख', pc_photos:'फ़ोटो', pc_voice:'रिकॉर्डिंग', pc_note:'नोट', pc_rec:'रिकॉर्ड', ln_acc:'शामिल', ln_more:'और', ln_new_item:'नया आइटम जोड़ें “{n}”', ln_new_item0:'नया आइटम जोड़ें', ln_search:'आइटम खोजें',
@@ -19606,6 +19612,11 @@ function magicSearch(q){
       add(t('ms_expenses'),'\u{1F4B8}',(l.cat||'—')+(l.note?(' \u00B7 '+l.note):''),
         fmtDate(l.date)+' \u00B7 '+money(l.amt),"expEdit('"+jq(l.id)+"')");
   });
+  /* v916: similar names — customers and orders the exact search missed, as their own group */
+  if(fzOk(s)){ const seen=new Set(out.map(r=>r.fn));
+    (DB.customers||[]).forEach(c=>{ const fn="openCustomer('"+jq(c.id)+"')"; if(!seen.has(fn)&&fzName(s,c.name)){ seen.add(fn); add(t('fz_similar'),'\u{1F464}',c.name||'',c.phone||'',fn); } });
+    (DB.orders||[]).forEach(o=>{ const fn="openDetail('"+jq(o.id)+"')"; if(!seen.has(fn)&&(fzName(s,o.customerName)||(o.members||[]).some(m=>fzName(s,m.name)))){ seen.add(fn);
+      add(t('fz_similar'),'\u{1F454}','#'+(o.orderNo||'—')+' · '+(o.customerName||''),money(orderTotal(o)),fn); } }); }
   (DB.alterations||[]).forEach(a=>{
     if(has(a.customerName)||has(a.phone)||has(a.altNo)||has(a.itemDesc))
       add(t('ms_alterations'),'\u{1F527}','#'+(a.altNo||'—')+' \u00B7 '+(a.customerName||''),
@@ -19718,6 +19729,13 @@ function renderOrders(keepFocus){
     ||String((o.invoice&&o.invoice.no)||'').toLowerCase().includes(q)
     ||(o.members||[]).some(m=>String(m.ono||'').toLowerCase().includes(q))
     ||(o.members||[]).some(m=>String(m.name||'').toLowerCase().includes(q)));
+  /* v916: similar names after the exact ones, marked */
+  let _fzIds=null;
+  if(q && fzOk(q)){ const have=new Set(list.map(o=>o.id)); let base=deliveryList();
+    if(ordSrc){ base=base.filter(o=>{ const sv=String(o.source||'').trim(); return ordSrc===ORD_SRC_NONE ? !sv : sv.toLowerCase()===ordSrc.toLowerCase(); }); }
+    const fz=base.filter(o=>!have.has(o.id) && (fzName(q,o.customerName)||(o.members||[]).some(m=>fzName(q,m.name))));
+    if(fz.length){ _fzIds=new Set(fz.map(o=>o.id)); list=list.concat(fz); } }
+  let _fzShown=false;
   /* v649: "Today" and "Tomorrow" never said what they were about. They are DELIVERY, and
      that is the question he opens this screen to answer in the evening. The group is named
      now, and 'late' is new - orders whose day has already passed and which have still not
@@ -19776,7 +19794,8 @@ function renderOrders(keepFocus){
     const rc=readyCount(o),tot=(o.items||[]).length;
     const ready=st==='ready';
     const altN=altsForOrder(o.id).length;
-    return `<div class="card ocard" onclick="openDetail('${o.id}')">
+    const _fzHead=(_fzIds&&_fzIds.has(o.id)&&!_fzShown)?(_fzShown=true,`<div class="section-h" style="margin:14px 2px 6px">🔎 ${t('fz_similar')}</div>`):'';
+    return _fzHead+`<div class="card ocard" onclick="openDetail('${o.id}')">
       <div class="top"><div><div class="ono">#${esc(onoLabel(o))} ${altN?`<span style="color:var(--saffron2)">🔧${altN}</span>`:''}${(custSampleCount(o)&&!o.custSampleBack)?`<span style="color:var(--saffron2)" title="${t('smp_hold')}">📦</span>`:''}</div>
         <div class="name">${esc(o.customerName)}</div><div class="meta">📞 ${esc(o.phone||'—')}</div></div>
         <div class="deliv ${dcls}">${dtxt}</div></div>
@@ -20116,9 +20135,13 @@ function custListSearch(v){
 function renderCustomers(keepBar){
   const el=$('#custList');
   const _q=String(_custQ||'').trim().toLowerCase();
-  const list=DB.customers.slice()
+  let list=DB.customers.slice()
     .filter(c=>!_q||[c.name,c.phone,c.city,c.area].some(v=>String(v||'').toLowerCase().indexOf(_q)>=0))
     .sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  let _cfz=null;   /* v916 */
+  if(_q && fzOk(_q)){ const have=new Set(list.map(c=>c.id));
+    const fz=(DB.customers||[]).filter(c=>!have.has(c.id)&&fzName(_q,c.name)).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+    if(fz.length){ _cfz=fz[0].id; list=list.concat(fz); } }
   const bar=keepBar?null:$('#custCampBar');   /* v689: never while he is typing */
   /* v751: the search box was half the screen wide (it sat outside a .field, so it took its
      own width) and "Message customers" — a monthly job — had a full-width button above the
@@ -20150,7 +20173,7 @@ function renderCustomers(keepBar){
   (DB.orders||[]).forEach(o=>{ if(o.customerId&&o.invoice)bcnt[o.customerId]=(bcnt[o.customerId]||0)+1; });
   const nmc={}; (DB.customers||[]).forEach(c=>{ const k=nameNorm(c.name); nmc[k]=(nmc[k]||0)+1; });
   el.innerHTML=pageSlice('cust',list).map(c=>{const cnt=cnts[c.id]||0,saved=Object.keys(c.m||{}).length;
-    return `<div class="card" onclick="openCustomer('${c.id}')"><div style="display:flex;justify-content:space-between;align-items:center">
+    return (c.id===_cfz?`<div class="section-h" style="margin:14px 2px 6px">🔎 ${t('fz_similar')}</div>`:'')+`<div class="card" onclick="openCustomer('${c.id}')"><div style="display:flex;justify-content:space-between;align-items:center">
       <div><b style="font-size:16px">${esc(c.name)}</b><div style="font-size:12px;color:var(--txt2)">📞 ${esc(c.phone||'—')}</div></div>
       ${nmc[nameNorm(c.name)]>1?`<div style="font-size:11px;color:var(--bad);margin-top:2px">\u26A0\uFE0F ${t('cu_same_name',{n:nmc[nameNorm(c.name)]})}</div>`:''}</div>
       <div style="text-align:right;font-size:11px;color:var(--mut)">${cnt} ${t('orders_n')}${cnt!==1?'s':''}${bcnt[c.id]?`<br>🧾 ${t('cu_bills_n',{n:bcnt[c.id]})}`:''}${saved?`<br>📏 ${t('cu_meas_n',{n:saved})}`:''}</div></div></div>`;
@@ -20682,7 +20705,7 @@ function saveDraft(){
      did not. Same rule now: an EDIT of a saved record is never a draft — only a record
      that does not exist yet can be one. Leaving an edit unsaved simply leaves the order
      as it was saved. */
-  if(form && form.editId){ try{ if(form._did)dropDraft(form._did); }catch(e){} return; }
+  if(form && form.editId){ try{ if(form._did)dropDraft(form._did); }catch(e){} editWipSave(); return; }   /* v915 */
   try{
     captureForm();
     if(!form._did)form._did='d'+uid();
@@ -20724,7 +20747,24 @@ let _lastDraftId='';
    wearing the name he had just thrown away.
    The id is now remembered the moment a draft is written, outside the form, so Discard can
    still find it however far along the chain it is pressed. */
+/* ══════════ v915 — THE EDIT THAT THE PHONE THREW AWAY ══════════
+   HIS 3 Nov video: editing #2744 (a person and a piece added), he went to the phone's Home; the phone closed the app
+   (battery 10%) and on opening it again the change was gone. An edit parks no draft (v873 — that made ghost copies), so
+   it is kept aside HERE instead: one slot, only while something really changed, cleared on Save and on leaving it.
+   Opening the app brings him back into that same edit. Nothing reaches the order until he saves. */
+const EDIT_WIP='pb_edit_wip';
+function editWipSave(){ try{ if(!form||!form.editId||!formIsOpen())return; captureForm();
+  if(typeof ordEditLoses==='function' && ordEditLoses(form).length) localStorage.setItem(EDIT_WIP,JSON.stringify({at:Date.now(),form,stage:_ordStage}));
+  else localStorage.removeItem(EDIT_WIP); }catch(e){} }
+function editWipClear(){ try{ localStorage.removeItem(EDIT_WIP); }catch(e){} }
+function editWipRestore(){ try{
+  const w=JSON.parse(localStorage.getItem(EDIT_WIP)||'null'); if(!w||!w.form||!w.form.editId)return false;
+  if(Date.now()-(w.at||0)>24*3600*1000){ editWipClear(); return false; }
+  const o=(DB.orders||[]).find(x=>x.id===w.form.editId); if(!o){ editWipClear(); return false; }
+  openOrderForm(o.id); form=w.form; _ordStage=1; _openItem=null; renderForm();
+  toast('📝 '+t('ew_back',{n:o.orderNo||''}),'ok'); return true; }catch(e){ return false; } }
 function clearDraft(){
+  editWipClear();   /* v915: saved or left — the kept-aside edit goes with it */
   _draftOff=true;
   try{clearInterval(_draftTick);clearTimeout(_draftT);}catch(e){}
   unbindDraftAutosave();
@@ -21013,7 +21053,7 @@ function cancelDo(){
 /* The delivery gap he actually gives, taken from his own recent orders — so a new order
    opens with a sensible date already in the box instead of an empty required field. */
 function openOrderForm(editId){
-  _ordNextLoop=''; _lenWarnForm=null;   /* v912: a fresh open is never the "next person" pass */
+  _ordNextLoop=''; _lenWarnForm=null; _lfKeys=null; _nameWarnForm=null;   /* v912/v915: a fresh open starts clean */
   if(editId){const o=DB.orders.find(x=>x.id===editId);
     /* v711: a stale button for an order that is gone threw here and blanked the screen */
     if(!o){ toast(t('ps_open_fail'),'bad'); return; }
@@ -21085,9 +21125,14 @@ let _ordStage=1;
    belong to the first piece of each kind, so the values flow to every other piece exactly as they always have (with the
    shirt +½ / waist coat −½ rules). "Item by item" is the old card walk, still there. */
 let _ordFlow='';
-let _ordNextLoop='', _lenWarnForm=null;   /* v912: "Next person" after Save; the one-time Length reminder */
+let _ordNextLoop='', _lenWarnForm=null, _lfKeys=null, _nameWarnForm=null;   /* v915: _lfKeys = the pieces this pass measures */
+/* pieces with nothing of his own typed yet (auto-filled values do not count) — same rule as "Measure the N still left" */
+function lfLeft(f){ return walkOrder(f).filter(g=>{ const v=(f.m||{})[g]||{}, au=((f.mAuto||{})[g])||{};
+  return !((f.custSample||{})[g]) && !Object.keys(v).some(k=>String(v[k]||'').trim()!==''&&!au[k]); }); }   /* v912: "Next person" after Save; the one-time Length reminder */
 /* v912 — the pieces this lengths/body pass is about: on "Next person" only the new person's, else all */
-function lfWalk(f){ const w=walkOrder(f); try{ if(_ordNextLoop&&(f.members||[]).length>1){ const mid=f.members[f.members.length-1].id;
+function lfWalk(f){ const w=walkOrder(f);
+  try{ if(_lfKeys&&_lfKeys.length){ const x=w.filter(k=>_lfKeys.includes(k)); if(x.length)return x; } }catch(e){}
+  try{ if(_ordNextLoop&&(f.members||[]).length>1){ const mid=f.members[f.members.length-1].id;
   const x=w.filter(k=>memberOf(k)===mid); if(x.length)return x; } }catch(e){} return w; }
 /* v912 — HIS: "pant ka ek hi naap hota hai" — the Lengths screen is for the upper pieces only */
 function lfHasLen(walk){ return (walk||[]).some(k=>{ const g=G(k); if(!g||g.cat==='lower')return false;
@@ -21117,7 +21162,7 @@ function lfScreenHTML(f,walk){
       const use=g.cat==='custom'?cols:cols.filter(c=>c.k==='L'); if(!use.length)return '';
       return `<div class="lf-row"><div class="lf-nm">${g.ico} ${esc(g.n)}${instTagHTML(f.items,k)}${who(k)}</div><div class="mgrid">${use.map(c=>lfInput(k,c,f)).join('')}</div></div>`; }).join('');
     return `<h2 style="margin:0 0 10px">📏 ${t('lf_lengths')}</h2>${rows}
-      <div class="row" style="gap:8px;margin-top:14px">
+      <div class="save-dock">
         <button class="btn ghost" style="flex:1" onclick="if(_vmOn)vmStop(true);lfGo('');ordStage(2)">${t('lf_one_by_one')}</button>
         <button class="btn primary" style="flex:2" onclick="lfGo('body')">${t('lf_next_body')}</button></div>`;
   }
@@ -21127,13 +21172,15 @@ function lfScreenHTML(f,walk){
     const part=(cat,title,skip)=>{ const ks=mine.filter(k=>{ const g=G(k); return g&&g.cat===cat; }); if(!ks.length)return '';
       const seen={}, cells=[];
       ks.forEach(k=>{ vcols(G(k)).forEach(c=>{ if((c.k==='L'&&cat!=='lower')||seen[c.k]||(skip||[]).includes(c.k))return; seen[c.k]=1; cells.push(lfInput(k,c,f)); }); });
+      const _g0=G(ks[0]);
+      cells.push(`<div class="mfield" role="button" style="cursor:pointer;border-style:dashed;display:grid;place-items:center;font-weight:800;color:var(--saffron2);min-height:46px" onclick="manageMeas('${_g0.id}','order','${jq(ks[0])}')">⚙️ ${t('mm_tile')}</div>`);   /* v915 */
       return cells.length?`<div class="section-h" style="margin-top:10px">${title}</div><div class="mgrid">${cells.join('')}</div>`:''; };
     const hasUp=mine.some(k=>(G(k)||{}).cat==='upper');
     const m=mems.find(x=>x.id===mid);
     return `${multi&&m?`<div style="font-weight:800;margin-top:12px">👤 ${esc(m.name||'')}</div>`:''}${part('upper',t('lf_upper'))}${part('lower',t('lf_lower'),hasUp?GLOBAL_MEAS:[])}`;
   }).join('');
   return `<h2 style="margin:0 0 4px">🧍 ${t('lf_body')}</h2><p class="hint" style="margin:0 0 6px">${t('lf_hint')}</p>${lfLenStripHTML(f,walk)}${secs}
-    <div class="row" style="gap:8px;margin-top:14px">
+    <div class="save-dock">
       ${lfHasLen(walk)?`<button class="btn ghost" style="flex:1" onclick="lfGo('len')">${t('lf_back_len')}</button>`:''}
       <button class="btn primary" style="flex:2" onclick="if(_vmOn)vmStop(true);kbHold();captureForm();_ordFlow='';ordStage(3)">✓ ${t('ord_done')}</button></div>`;
 }
@@ -21155,7 +21202,7 @@ function ordStage(n,key){
       return; }
   }
   if(n!==2) _ordFlow='';
-  if(n===2 && !key && _ordStage===1 && (!form.editId||_ordNextLoop) && lfWalk(form).length>=2) _ordFlow=lfHasLen(lfWalk(form))?'len':'body';   /* v912 */
+  if(n===2 && !key && _ordStage===1 && (!form.editId||_ordNextLoop||_lfKeys) && lfWalk(form).length>=2) _ordFlow=lfHasLen(lfWalk(form))?'len':'body';   /* v912 */
   if(n===2){
     const w=walkOrder(form);
     if(!w.length){ toast(t('wk_none'),'bad'); _ordStage=1; renderForm(); return; }
@@ -21541,7 +21588,8 @@ function startNaap(){
   const first=w.find(empty)||w[0];
   kbHold();                       // must run while the tap is still live
   /* v910: a new order with two or more pieces starts on the Lengths screen */
-  if((!form.editId||_ordNextLoop) && lfWalk(form).length>=2 && _ordStage===1){ ordStage(2); setTimeout(()=>{ const b=document.querySelector('#sheet .mInput'); if(b){ try{ b.focus(); }catch(e){} } },90); return; }
+  if(form.editId && !_ordNextLoop){ const _lft=lfLeft(form); _lfKeys=_lft.length>=2?_lft:null; }   /* v915 */
+  if((!form.editId||_ordNextLoop||_lfKeys) && lfWalk(form).length>=2 && _ordStage===1){ ordStage(2); setTimeout(()=>{ const b=document.querySelector('#sheet .mInput'); if(b){ try{ b.focus(); }catch(e){} } },90); return; }
   ordStage(2,first);              // v552: one focus path, inside ordStage
 }
 /* Done on a piece saves what is typed and opens the NEXT piece. */
@@ -21977,7 +22025,7 @@ function measCardHTML(f,key){
       ${/* v874 — HIS 15 Oct: the ＋ for a new measurement field sat alone at the far right, and
            nobody read it as "add a field". It is now the next tile in the grid, right after the
            last measurement, and says what it does. */''}
-      <div class="mgrid">${fields}<div class="mfield" role="button" style="cursor:pointer;border-style:dashed;display:grid;place-items:center;font-weight:800;color:var(--saffron2);min-height:52px" onclick="manageMeas('${gid}','order','${dkey}')">➕ ${t('add_field')}</div></div>
+      <div class="mgrid">${fields}<div class="mfield" role="button" style="cursor:pointer;border-style:dashed;display:grid;place-items:center;font-weight:800;color:var(--saffron2);min-height:52px" onclick="manageMeas('${gid}','order','${dkey}')">⚙️ ${t('mm_tile')}</div></div>
       ${_hid?`<button class="btn sm ghost block" style="margin-top:6px" onclick="msMoreToggle('${dkey}')">${_more?t('ms_less'):t('ms_more',{n:_hid})}</button>`:''}
 
       ${(()=>{
@@ -21998,7 +22046,12 @@ function measCardHTML(f,key){
            Shirt) and "Hide"; there was no way back to the order, and ← left him unsure the
            change was kept. On an edit the button is "✓ Done": it saves and goes back to the
            order. "Next ›" stays for the step-by-step new order. */
-        const _doneBtn = f.editId
+        const _nxL = f.editId ? lfLeft(f).filter(k=>k!==key)[0] : null;   /* v915 */
+        const _doneBtn = (f.editId && _nxL)
+          ? `<div class="row" style="margin-top:14px;gap:8px">
+              <button class="btn ghost" style="flex:1" onclick="saveOrder()">💾 ${t('save_later')}</button>
+              <button class="btn primary" style="flex:2" onclick="kbHold();captureForm();ordStage(2,'${jq(_nxL)}')">${t('it_done')}</button></div>`
+          : f.editId
           ? `<button class="btn primary block" style="margin-top:14px" onclick="saveOrder()">✓ ${t('done_back')}</button>`
           : (walkNext(f,key)
               ? `<div class="row" style="margin-top:14px;gap:8px">
@@ -22647,8 +22700,14 @@ function measLabelOf(gid,k,fallback){
   const m=(DB.measLabel&&DB.measLabel[gid])||{};
   const v=m[k]; return (v&&String(v).trim())?String(v).trim():fallback;
 }
-function mcols(g){return itemCols(g).map(c=>({...c,n:measLabelOf(g.id,c.k,c.n)}))
-  .concat(((DB.measLib&&DB.measLib[g.id])||[]).map(l=>({k:'x_'+l,n:measLabelOf(g.id,'x_'+l,l)})));}
+/* v915 — HIS 3 Nov: "Length, Chest, Belly, Hip, Shoulder, Sleeve, Neck, Bicep, uske baad Upper Belly, Front Chest,
+   Back Chest, Cross Back…" — the main ones first, in the order the tape goes round the body. Keys never move. */
+const MEAS_RANK=['L','C','B','H','S','SL','N','Bi','UB'];
+function mcols(g){ const a=itemCols(g).map(c=>({...c,n:measLabelOf(g.id,c.k,c.n)}))
+  .concat(((DB.measLib&&DB.measLib[g.id])||[]).map(l=>({k:'x_'+l,n:measLabelOf(g.id,'x_'+l,l)})));
+  if(g&&g.cat==='custom')return a;
+  const r=k=>{ const i=MEAS_RANK.indexOf(k); return i<0?99:i; };
+  return a.map((c,i)=>[c,i]).sort((x,y)=>(r(x[0].k)-r(y[0].k))||(x[1]-y[1])).map(x=>x[0]); }
 /* v714 - HIS 16 Sept (and 13 Sept before it): "Upper Belly, Bicep har order me aa jaate hain,
    hide karta hoon phir bhi next order me aa jaate hain." His rule: Length, Chest, Belly, Hip,
    Shoulder, Sleeve, Neck always; Upper Belly, Bicep, Pindli only when he asks, for that order.
@@ -22656,10 +22715,9 @@ function mcols(g){return itemCols(g).map(c=>({...c,n:measLabelOf(g.id,c.k,c.n)})
    Kurta still showed them. They are now OFF by default on every garment, unless the shop has
    starred them for that garment (measShow). A value already written always shows (cardCols). */
 function measHidden(gid){
-  const h=(DB.measHide&&DB.measHide[gid])||[];
-  const on=(DB.measShow&&DB.measShow[gid])||[];
-  const sec=MEAS_SECONDARY.filter(k=>!on.includes(k)&&!h.includes(k));
-  return sec.length?h.concat(sec):h;
+  /* v915 — HIS 3 Nov: "jitne measurement field hai sab dikhen; kisi ko hide karna ho to hide ka option." Only what
+     he hid himself is hidden now (⚙️ Fields → ☆). Upper Belly / Bicep / Pindi are no longer folded away by default. */
+  return ((DB.measHide&&DB.measHide[gid])||[]).slice();
 }
 function vcols(g){const h=measHidden(g.id);return mcols(g).filter(c=>!h.includes(c.k));}
 /* ══════════ v640 — A NAAP FOR THIS ORDER ONLY ══════════
@@ -22832,6 +22890,10 @@ function toggleMeasField(gid,k,ctx){
   const j=DB.measShow[gid].indexOf(k);
   if(i>=0){ if(j<0)DB.measShow[gid].push(k); }   // was hidden, now ON
   else if(j>=0)DB.measShow[gid].splice(j,1);     // now OFF
+  try{ if(typeof _ordFlow!=='undefined'&&_ordFlow==='body'&&form){ const cat=(G(gid)||{}).cat, nowHid=DB.measHide[gid].includes(k);   /* v915 */
+    (form.items||[]).forEach(k2=>{ const g2=G(garmentOf(k2)); if(!g2||g2.id===gid||g2.cat!==cat||!mcols(g2).some(c=>c.k===k))return;
+      DB.measHide[g2.id]=DB.measHide[g2.id]||[]; const ix=DB.measHide[g2.id].indexOf(k);
+      if(nowHid&&ix<0)DB.measHide[g2.id].push(k); if(!nowHid&&ix>=0)DB.measHide[g2.id].splice(ix,1); }); } }catch(e){}
   save(); manageMeas(gid,ctx);
   const _bk=()=>{const m=$('#msheet'); if(m)m.scrollTop=_msc;}; _bk(); setTimeout(_bk,0); setTimeout(_bk,120);
   setTimeout(()=>{const sh=$('#sheet');if(sh)sh.scrollTop=sc;},0);
@@ -23110,6 +23172,28 @@ function custNetBal(cid){
    typed, it matches. */
 const phDigits=v=>String(v||'').replace(/\D/g,'');
 const ph10=v=>{const d=phDigits(v);return d.length>10?d.slice(-10):d;};
+/* ══════════ v916 — A NAME AS IT IS HEARD ══════════
+   fzKey folds the spellings one name is written in (oo/u, ee/i, w/v, sh/s, ph/f, bh/b, kh/k, th/t, dh/d, gh/g, aa/a,
+   doubled letters). fzName says whether what he typed is that name: the folded words, or one letter off / two swapped
+   (Damerau 1) from 4 letters on. Digits never take part — a number is either exact or wrong. */
+function fzKey(v){ let x=String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z ]+/g,' ');
+  x=x.replace(/oo/g,'u').replace(/ee/g,'i').replace(/aa/g,'a').replace(/w/g,'v').replace(/ph/g,'f')
+     .replace(/sh/g,'s').replace(/([bkgtdcj])h/g,'$1').replace(/z/g,'j').replace(/q/g,'k').replace(/(.)\1+/g,'$1');
+  return x.replace(/\s+/g,' ').trim(); }
+function fzDist(a,b){ const m=a.length,n=b.length; if(Math.abs(m-n)>1)return 9; const d=[];
+  for(let i=0;i<=m;i++){ d[i]=[i]; } for(let j=0;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){ const c=a[i-1]===b[j-1]?0:1;
+    d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+c);
+    if(i>1&&j>1&&a[i-1]===b[j-2]&&a[i-2]===b[j-1])d[i][j]=Math.min(d[i][j],d[i-2][j-2]+1); }
+  return d[m][n]; }
+function fzOk(q){ return /[a-z]/i.test(String(q||'')) && !/\d/.test(String(q||'')) && String(q||'').replace(/[^a-z]/gi,'').length>=3; }
+function fzName(q,name){ if(!fzOk(q)||!name)return false;
+  const qw=fzKey(q).split(' ').filter(Boolean), nw=fzKey(name).split(' ').filter(Boolean); if(!qw.length||!nw.length)return false;
+  const one=(a,w)=>{ if(w.startsWith(a))return true; if(a.length<3||a[0]!==w[0])return false;   /* a name typed by ear keeps its first letter */
+    if(w.length>=3 && fzDist(a,w)<=1)return true;
+    if(a.length>=5 && w.length>a.length && fzDist(a,w.slice(0,a.length))<=1)return true;   /* a part of a longer name only from 5 letters */
+    return false; };
+  return qw.every(a=>nw.some(w=>one(a,w))); }
 function custHits(q,limit){
   const lim=limit||(String(q||'').trim()?8:20);   /* v877: an empty box shows a scrolling saved list (Vyapar) */
   const raw=String(q||'').trim();
@@ -23130,7 +23214,9 @@ function custHits(q,limit){
     if(!dq)return false;
     const cd=phDigits(c.phone);
     return cd.includes(dq) || (dq.length>=10 && ph10(c.phone)===ph10(raw));
-  }).map((c,i)=>({c,i,k:rank(c)})).sort((a,b)=>a.k-b.k||a.i-b.i).map(x=>x.c).slice(0,lim);
+  }).map((c,i)=>({c,i,k:rank(c)})).sort((a,b)=>a.k-b.k||a.i-b.i).map(x=>x.c)
+  .concat(fzOk(raw)?all.filter(c=>!nf(c.name).includes(lc)&&fzName(raw,c.name)):[])   /* v916: similar names after */
+  .slice(0,lim);
 }
 function custSearch(q){
   try{ cbPaint('ord'); }catch(e){}const box=$('#custResults'); if(!box)return;
@@ -23699,6 +23785,9 @@ function saveOrder(){
       toast('📏 '+t('lf_len_warn',{g:_miss.slice(0,4).join(', ')}),'bad');
       setTimeout(()=>{ try{ const w=document.querySelector('#sheet .ql-wrap'); if(w)w.scrollIntoView({block:'center',behavior:'smooth'}); }catch(e){} },80);
       return; } }
+  { const _nn=(f.members||[]).filter((m,i)=>i>0 && !String(m.name||'').trim() && itemsOfMember(f,m.id).length);   /* v915 */
+    if(_nn.length && _nameWarnForm!==form){ _nameWarnForm=form;
+      toast('👤 '+t('nm_warn',{p:_nn.map(m=>'#'+(m.ono||'')).join(', ')}),'bad'); return; } }
   if(!f.customerName){
     toast(t('t_no_name'),'bad');
     const el=$('#f_cname');
@@ -24888,8 +24977,13 @@ async function openDetail__inner(id,focusGid){
 
   $('#detailPane').innerHTML=`
     ${_pv?`<div class="detail-hd"><button class="back" onclick="odItemToggle('${jq(_odItem)}')">←</button>
-      <div style="flex:1"><div style="color:var(--saffron);font-size:13px;font-weight:700">#${esc(onoLabel(o))}</div>
-      <div class="name" style="font-size:18px;font-weight:800">${esc(o.customerName||'')}</div></div>
+      ${(()=>{ /* v917: the piece page names the man whose piece it is, with HIS number only (not the whole chain) */
+        let who='', no='';
+        try{ const mid=memberOf(_odItem); no=String(memberOno(o,mid)||o.orderNo||''); if(_multi)who=String(memberLabel(o,mid)||''); }catch(e){ no=String(o.orderNo||''); }
+        const own=!who || who.trim().toLowerCase()===String(o.customerName||'').trim().toLowerCase();
+        return `<div style="flex:1" id="pvWho"><div style="color:var(--saffron);font-size:13px;font-weight:700">#${esc(no)}</div>
+      <div class="name" style="font-size:18px;font-weight:800">${esc(own?(o.customerName||''):who)}</div>
+      ${own?'':`<div class="hint" style="font-size:12px">${t('pv_inorder')} ${esc(o.customerName||'')} · #${esc(o.orderNo||'')}</div>`}</div>`; })()}
       <button class="btn sm ghost dx-close" aria-label="Close" onclick="recClose('orders')">✕</button></div>`:''}
     <div ${_pv?'hidden':''}>
     <div class="detail-hd"><button class="back" onclick="recBack('orders')">←</button>
@@ -27790,6 +27884,17 @@ try{
       document.documentElement.style.setProperty('--kb', (typing&&window.innerWidth<700&&(vv.scale||1)<1.05&&gap>80?gap:0)+'px');
     };
     document.addEventListener('focusout',()=>setTimeout(setKb,350),true);
+    /* v917 — HIS 4 Nov video: bottom bar in the middle of the iPad screen, bills below it. When no box is being typed
+       in, whatever is pinned to the bottom is moved to the bottom of what is VISIBLE, and the page is nudged once
+       to lay itself out again after the keyboard goes. */
+    const glue=()=>{ try{
+      const ae=document.activeElement, typing=!!(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName||'')&&!/^(checkbox|radio|button|hidden)$/.test(ae.type||''));
+      const d=Math.round(vv.offsetTop+vv.height-window.innerHeight);
+      document.documentElement.style.setProperty('--vvfix', (!typing && (vv.scale||1)<1.05 && Math.abs(d)>2 && Math.abs(d)<600) ? d+'px' : '0px');
+    }catch(e){} };
+    vv.addEventListener('resize',glue); vv.addEventListener('scroll',glue);
+    document.addEventListener('focusout',()=>setTimeout(()=>{ try{ const ae=document.activeElement;
+      if(!(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName||''))){ const y=window.scrollY; window.scrollTo(window.scrollX,y+1); window.scrollTo(window.scrollX,y); } }catch(e){} glue(); },420),true);
     document.addEventListener('focusin',()=>setTimeout(setKb,50),true);
     vv.addEventListener('resize', setKb);
     vv.addEventListener('scroll', setKb);
@@ -39495,7 +39600,9 @@ async function shareVoice(voiceId){
 function delVoice(prefix,vid){const ctx=voiceCtx[prefix];if(!ctx)return;
   confirmModal(t('del_title'),t('del_voice_q'),()=>{
     const list=ctx.getList();const v=list.find(x=>x.id===vid);
-    if(v&&v.voiceId)mDel(v.voiceId);const i=list.indexOf(v);if(i>=0)list.splice(i,1);
+    /* v917: inside a form (no persist) the saved record still points at this sound until Save — delete it only then */
+    if(v&&v.voiceId){ if(ctx.persist)mDel(v.voiceId); else mediaDropLater(v.voiceId); }
+    const i=list.indexOf(v);if(i>=0)list.splice(i,1);
     ctx.persist&&ctx.persist();renderVoiceList(prefix);toast(t('t_voice_del'));});}
 async function recToggle(btn,lbl,onDone){
   if(recorder&&recorder.state==='recording'){recorder.stop();return;}
@@ -40632,16 +40739,23 @@ function printMaster(o,gids){const txt=buildMasterText(o,gids).replace(/&/g,'&am
   const ifr=document.createElement('iframe');ifr.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
   document.body.appendChild(ifr);const d=ifr.contentWindow.document;d.open();d.write(html);d.close();
   setTimeout(()=>{try{ifr.contentWindow.focus();ifr.contentWindow.print();}catch(e){}setTimeout(()=>ifr.remove(),2000);},400);}
+/* v917: whose piece is it — null when the order has one person or it is the customer's own piece */
+function pvWho(o,gid){ try{ if(!o||!gid||activeMembers(o).length<2)return null; const mid=memberOf(gid);
+  const who=String(memberLabel(o,mid)||''); if(!who||who.trim().toLowerCase()===String(o.customerName||'').trim().toLowerCase())return null;
+  return {who, no:String(memberOno(o,mid)||o.orderNo||'')}; }catch(e){ return null; } }
 function slipCanvas(o,itemId){
   const items=itemId?[itemId]:sortItems(o.items);
   const W=720,pad=44,lh=44; const L=[];
+  const _pw=itemId?pvWho(o,itemId):null;
   L.push({t:'PARAMPARA',s:38,b:1,c:'#c97e10'});
-  L.push({t:'Order #'+o.orderNo,s:30,b:1,c:'#111'});
-  L.push({t:(o.customerName||''),s:26,c:'#111'});
+  L.push({t:'Order #'+(_pw?_pw.no:o.orderNo),s:30,b:1,c:'#111'});
+  L.push({t:(_pw?_pw.who:(o.customerName||'')),s:26,c:'#111'});
+  if(_pw)L.push({t:'In order of '+(o.customerName||'')+' #'+o.orderNo,s:22,c:'#666'});
   L.push({t:'Delivery: '+fmtDate(masterDate(o.deliveryDate)),s:24,c:'#444'});
   L.push({gap:14});
   items.forEach(gid=>{const g=G(gid);if(!g)return;const cols=mcols(g),v=o.m[gid]||{};
-    L.push({t:(g.ico||'')+' '+g.n,s:28,b:1,c:'#111',rule:1});
+    const _w=itemId?null:pvWho(o,gid);
+    L.push({t:(g.ico||'')+' '+g.n+(_w?'  ·  '+_w.who+(_w.no&&_w.no!==o.orderNo?' #'+_w.no:''):''),s:28,b:1,c:'#111',rule:1});
     cols.forEach(col=>{if(v[col.k])L.push({t:'   '+col.n+':  '+v[col.k],s:25,c:'#222'});});
     if(o.design&&o.design[gid])L.push({t:'   ✎ '+o.design[gid],s:22,c:'#666'});
     L.push({gap:10});});
@@ -40672,7 +40786,8 @@ function buildPrintHTML(o,itemId){
   const blocks=items.map(gid=>{const g=G(gid);if(!g)return '';const cols=mcols(g),v=o.m[gid]||{};
     const rows=cols.filter(col=>v[col.k]).map(col=>`<tr><td>${esc(col.n)}</td><td><b>${esc(v[col.k])}</b></td></tr>`).join('');
     const dn=(o.design&&o.design[gid])?`<div class="dn">✎ ${esc(o.design[gid])}</div>`:'';
-    return `<div class="item"><h3>${g.ico||''} ${esc(g.n)}</h3><table>${rows||'<tr><td>—</td><td></td></tr>'}</table>${dn}</div>`;}).join('');
+    const _w=pvWho(o,gid);
+    return `<div class="item"><h3>${g.ico||''} ${esc(g.n)}${_w?` · ${esc(_w.who)}${_w.no&&_w.no!==o.orderNo?' #'+esc(_w.no):''}`:''}</h3><table>${rows||'<tr><td>—</td><td></td></tr>'}</table>${dn}</div>`;}).join('');
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Order ${esc(o.orderNo)}</title><style>
     *{font-family:Arial,sans-serif;color:#111;-webkit-print-color-adjust:exact}
     body{margin:22px}
@@ -50901,7 +51016,7 @@ async function init(){
     if(r && r.tab && (Date.now()-(+r.at||0))<30*60*1000)return r.tab; }catch(e){} return ''; })();
   renderHome(); _curTab='home';
   pushGuard();
-  reopenForm();                        // interrupted mid-order? put him back in it
+  if(!editWipRestore()) reopenForm();   // v915: an interrupted EDIT first; else an interrupted new order
   /* v503: the tab is put back AFTER reopenForm, not before. Orders would not stick
      otherwise — reopenForm lands him on Home when it finds an interrupted order, which is
      right, and it must have the last word. A sheet already on screen keeps it too: if he
