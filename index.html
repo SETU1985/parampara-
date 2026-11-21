@@ -534,6 +534,9 @@
   .ic-btn{flex:0 0 auto; min-width:52px; padding:9px 10px; font-size:15px}
   .ic-btn.has{border-color:var(--saffron); color:var(--saffron2)}
   .btn.has{border-color:var(--saffron); color:var(--saffron2)}
+  /* v942 — HIS 19 Nov: the camera/voice buttons looked dull and he had to open a piece to learn whether it held a photo.
+     A button that holds something is now filled and bold; an empty one stays bright and plain. */
+  .btn.has,.ic-btn.has{background:rgba(245,166,35,.22); box-shadow:0 0 0 2px var(--saffron) inset; font-weight:800}
   .cat-meta{padding:8px 10px 10px; font-size:13px}
   .cat-card{position:relative}
   .cat-card.on{border-color:var(--saffron); box-shadow:0 0 0 2px rgba(224,138,26,.35)}
@@ -1379,7 +1382,7 @@
 
 <header>
   <div class="hrow">
-    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v941</span></small></div></div>
+    <div class="brand"><div class="logo" id="hdrLogo">प</div><div><h1>PARAMPARA</h1><small><span class="hb-ob">ORDERBOOK · </span><span class="hb-ver" style="font-weight:800">v946</span></small></div></div>
     <!-- v585 — the header carried seven things: logo, name, ORDERBOOK, version, EN·हिं,
          backup, gear and "0 orders · ₹0 due". Four of them were doors to screens he opens
          once a month, and two were numbers that belong on the dashboard, not in the frame
@@ -6609,6 +6612,13 @@ const colsFor=c=>c==='lower'?LOWER_COLS:UPPER_COLS;
 function itemCols(item){ if(!item)return []; if(item.cat==='custom')return item.fields||[];
   let cols=colsFor(item.cat); if(item.skip&&item.skip.length)cols=cols.filter(c=>!item.skip.includes(c.k)); return cols; }
 const commonFor=c=>c==='lower'?LOWER_COMMON:(c==='upper'?UPPER_COMMON:[]);
+/* v944 — HIS 19 Nov (Bomber Jacket, #2884): "bomber jacket mein measurement nahi aaya." A piece made through Item setup is
+   cat 'custom', and cat 'custom' had NO shared body columns at all — only Hip (GLOBAL) crossed over, so Chest/Belly/Shoulder/
+   Sleeve/Neck/Bicep stayed empty beside a coat that already had them. Fault: "carry-over is keyed on cat, and a made-up
+   garment has a cat nobody listed". A custom piece whose boxes use the upper body keys now belongs to the upper family for
+   those boxes (never Length). Same body, same figures. */
+const famOf=g=>{ if(!g)return ''; if(g.cat==='custom'&&(g.fields||[]).some(c=>UPPER_COMMON.indexOf(c.k)>=0))return 'upper'; return g.cat; };
+const commonOf=g=>{ if(!g)return []; if(g.cat==='custom')return famOf(g)==='upper'?UPPER_COMMON.filter(k=>(g.fields||[]).some(c=>c.k===k)):[]; return commonFor(g.cat); };
 
 /* ---- state ---- */
 /* v875 — plain line icons (Vyapar style): grey, one weight, no colour of their own */
@@ -15068,17 +15078,29 @@ function sendReport(kind){
         onclick="closeModal();reportToEdit('${kind}')">⚙️ ${t('td_manage_numbers')}</button>`,
     [{label:t('cancel'),cls:'ghost',fn:closeModal}]);
 }
-function todayWAsend(x,kind){
+async function todayWAsend(x,kind){
   if(!x)return;
-  let txt;
-  if(kind==='sales'){ txt=salesCommText(monthStart(),todayISO()); }
-  else if(kind==='salesday'){ txt=salesDayText(rpDayISO()); }
-  else txt=todayText(rpDayISO());
-  const ph=String(x.phone||'').replace(/[^0-9]/g,'');
-  const num=ph.length===10?('91'+ph):ph;
-  try{ window.open('https://wa.me/'+num+'?text='+encodeURIComponent(txt),'_blank');
-    toast(t('rp_sent',{n:x.name||x.phone}),'ok'); }
-  catch(e){ toast(t('wa_fail'),'bad'); }
+  /* v945 — HIS 21 Nov: "report bhejunga to PDF jaana chahiye." Same three reports, now a ruled-table PDF through the share sheet. */
+  const shop=((DB.shopInfo||{}).name)||'PARAMPARA'; let spec,name;
+  try{
+    if(kind==='salesday'){ const d=rpDayISO();
+      const inv=allInvoices().filter(y=>String(y.inv.date||'')===d).sort((a,b2)=>String(a.inv.no||'').localeCompare(String(b2.inv.no||''),undefined,{numeric:true}));
+      let tot=0,got=0,due=0;
+      const rows=inv.map(y=>{ const k=invCompute(y.inv), amt=r2(k.total||0), paid=r2(orderReceived(y.rec)), bal=r2(Math.max(0,amt-paid-orderDisc(y.rec)));
+        tot=r2(tot+amt); got=r2(got+paid); due=r2(due+bal); return [String(y.inv.no||'\u2014'),y.rec.customerName||'',money(amt),money(paid),money(bal)]; });
+      if(!rows.length){ toast(t(d===todayISO()?'td_no_bills':'td_no_bills_day'),'bad'); return; }
+      spec={shop,title:t('td_sales_day'),sub:fmtDate(d),cols:[{w:22,label:t('bill_no')},{w:30,label:t('customer')},{w:16,label:t('td_sales'),align:'right'},{w:16,label:t('td_got'),align:'right'},{w:16,label:t('td_due'),align:'right'}],rows,foot:[t('td_bills_n',{n:rows.length}),'',money(tot),money(got),money(due)]};
+      name='PARAMPARA-sales-'+d+'.pdf';
+    } else if(kind==='sales'){ const from=monthStart(), to=todayISO(), c=rentCfg(), b=rentBase(from,to), pct=+c.pct||0;
+      const rows=[[t('td_gross'),money(b.gross)]]; if(b.ret)rows.push([t('td_returns'),'\u2212 '+money(b.ret)]);
+      rows.push([t('td_netsale'),money(b.net)]); rows.push([pct+'% '+t('td_comm'),money(r2(b.net*pct/100))]);
+      spec={shop,title:t('td_sales_report'),sub:fmtDate(from)+' \u2192 '+fmtDate(to),cols:[{w:60,label:t('td_sales_report')},{w:30,label:'\u20B9',align:'right'}],rows}; name='PARAMPARA-sales-report-'+to+'.pdf';
+    } else { const d=rpDayISO(), f=todayFigures(d);
+      const rows=[[t('td_sales')+(f.bills?' ('+f.bills+')':''),money(f.sales)],[t('td_purch'),money(f.purch)],[t('td_exp'),money(f.expense)],[t('td_in'),money(f.payIn)],[t('td_out'),money(f.payOut)],[t('kpi_cash'),money(r2(totalCashBank(d)))],[t('td_delivered'),String(f.delivered)]];
+      if(f.top.length)rows.push([t('td_top'),f.top.map(z=>z.n+' \u00D7'+z.q).join(', ')]);
+      spec={shop,title:t('td_kind_daily'),sub:fmtDate(d),cols:[{w:60,label:fmtDate(d)},{w:40,label:'',align:'right'}],rows}; name='PARAMPARA-daily-'+d+'.pdf'; }
+    await sharePdf(spec,name,spec.title);
+  }catch(e){ toast(t('wa_fail'),'bad'); }
 }
 /* Reading the same sheet before it goes out. */
 function salesDayView(keepDay){
@@ -20113,31 +20135,14 @@ function exportCSV(name,head,rows){
   toast(t('ex_done',{n:rows.length}),'ok');
 }
 function exportPDF(title,sub,head,rows){
+  /* v945 — HIS 21 Nov: "report bhejunga to PDF jaana chahiye, typed message nahi." This used to open the print dialog (no file to
+     send) and the WhatsApp button sent typed text. Both now build the real PDF in the ruled table and hand it to the share sheet. */
   if(!rows||!rows.length){ toast(t('ex_nothing'),'bad'); return; }
-  const shop=((DB.shopInfo||{}).name)||'PARAMPARA';
-  const th=head.map(h=>`<th>${esc(h)}</th>`).join('');
-  const tr=rows.map(r=>`<tr>${r.map((c,i)=>`<td${i?' class="n"':''}>${esc(c)}</td>`).join('')}</tr>`).join('');
-  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>
-    *{font-family:Arial,sans-serif;color:#111}body{margin:18px}
-    .hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #c97e10;padding-bottom:6px;margin-bottom:10px}
-    .hd .b{font-size:20px;font-weight:bold;color:#c97e10;letter-spacing:1px}
-    .hd .l{font-size:14px;font-weight:bold;text-align:right}
-    .sub{font-size:12px;color:#555;font-weight:normal}
-    table{width:100%;border-collapse:collapse;font-size:12px}
-    th,td{border:1px solid #ccc;padding:5px 7px;text-align:left;vertical-align:top}
-    th{background:#f3f3f3}
-    td.n{text-align:right;white-space:nowrap}
-    tr{page-break-inside:avoid}
-    @media print{@page{size:A4 portrait;margin:10mm}body{margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}thead{display:table-header-group}}
-  </style></head><body>
-    <div class="hd"><div><div class="b">${esc(shop)}</div><div class="sub">${esc(sub||'')}</div></div>
-      <div class="l">${esc(title)}<div class="sub">${fmtDate(todayISO())}</div></div></div>
-    <table><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table></body></html>`;
-  const ifr=document.createElement('iframe');
-  ifr.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
-  document.body.appendChild(ifr);
-  const d=ifr.contentWindow.document; d.open(); d.write(html); d.close();
-  setTimeout(()=>{try{ifr.contentWindow.focus();ifr.contentWindow.print();}catch(e){}setTimeout(()=>ifr.remove(),2000);},400);
+  const n=head.length, wgt=head.map((h,i)=>{ let m=String(h).length; rows.forEach(r=>{ m=Math.max(m,String(r[i]==null?'':r[i]).length); }); return Math.min(Math.max(m,6),i===0?30:26); });
+  const isNum=i=>i>0&&rows.filter(r=>/^[\s\u20B9\-\u2212+.,\d%()xX\/]*$/.test(String(r[i]==null?'':r[i]))).length>=rows.length*0.6;
+  const spec={shop:((DB.shopInfo||{}).name)||'PARAMPARA', title:title, sub:sub||fmtDate(todayISO()),
+    cols:head.map((h,i)=>({w:wgt[i],label:h,align:isNum(i)?'right':'left'})), rows:rows};
+  sharePdf(spec,'PARAMPARA-'+String(title||'report').replace(/[^A-Za-z0-9]+/g,'-')+'-'+todayISO()+'.pdf',title);
 }
 /* the two buttons every report carries. The caller passes a builder so nothing is computed
    until he actually taps one. */
@@ -20226,7 +20231,8 @@ function expDo(key,how){
    file he then has to find, open and forward. A report is sent to a person — his CA, a
    supplier, himself. So the list goes out as plain readable text, name and amount per
    line, which reads the same on any phone. */
-function exportWA(d){
+function exportWA(d){ exportPDF(d.title,d.sub||'',d.head,d.rows); }   /* v945: reports go as PDF, never typed text */
+function exportWAv941(d){
   /* ══════════ v498 — THE LEDGER HE SENT ME HAD NO FIGURES ON IT ══════════
      HIS 5 Sept pasted back what this produced: "Kanchan Syntex Pvt. Ltd / Sundry Creditors
      / • 1 Apr / • 30 Apr / • 29 May / • 10 Aug / • 10 Aug" — five dates and not one rupee.
@@ -22362,11 +22368,12 @@ function addAnother(key){
      length nobody had taken. Body naap still carries over — that part is right and saves
      him the work. Upper pieces only: on lower pieces one length genuinely does serve them
      all ("length pant me common hi rahta hai") and that rule is untouched. */
-  try{ const _g2=G(nk);
-    if(_g2 && _g2.cat!=='lower' && form.m && form.m[nk]){
-      delete form.m[nk].L;
-      if(form.mAuto&&form.mAuto[nk])delete form.mAuto[nk].L;
-    } }catch(e){}
+  /* v942 — HIS 19 Nov: "ek kurta add kiya to ek naap apne aap aa jana chahiye." The second piece now gets the WHOLE naap of
+     the piece it was added from, Length too (v369 dropped Length). Every copied figure is marked "carried over" (mAuto), so
+     it still shows as not-yet-checked and dropping it needs no warning; he only changes what differs. */
+  try{ const _g2=G(nk), _src=form.m&&form.m[key];
+    if(_g2 && _src){ const _al=itemCols(_g2).map(c=>c.k); form.m[nk]=form.m[nk]||{};
+      _al.forEach(k=>{ const v=_src[k]; if(v!==undefined&&v!==''&&!form.m[nk][k]){ form.m[nk][k]=v; form.mAuto=form.mAuto||{}; (form.mAuto[nk]=form.mAuto[nk]||{})[k]=1; } }); } }catch(e){}
   /* ══════════════ v464 — "ONE MORE" SAID NOTHING AT ALL ══════════════
      HIS 3 Sep: "kurta do lene the customer ko to bahut pareshani hui add karne me, samajh
      me nahi aa raha tha — kabhi add kar raha hai kurta to order me doosra do kurta add ho
@@ -23268,11 +23275,21 @@ function itemVoiceList(gid){form.itemVoice=form.itemVoice||{};form.itemVoice[gid
 async function renderItemPhotos(gid){const el=$('#ip_'+cssId(gid));if(!el)return;el.innerHTML='';
   const list=(form.itemPhotos&&form.itemPhotos[gid])||[];
   for(const id of list){const url=await mURL(id);const w=document.createElement('div');w.className='thumb-wrap';
-    w.innerHTML=`<img class="thumb" src="${url||''}"><div class="thumb-x" title="Delete">🗑</div>`;
-    w.querySelector('.thumb').onclick=()=>viewPhoto(url);
+    /* v942: a photo whose file is not in storage showed as an empty frame — he could not tell lost from loading. Now it says so. */
+    w.innerHTML=(url?`<img class="thumb" src="${url}">`:`<div class="thumb" style="display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;font-weight:700;color:#c0392b;border:1px dashed #c0392b">⚠️<br>file missing</div>`)+`<div class="thumb-x" title="Delete">🗑</div>`;
+    w.querySelector('.thumb').onclick=()=>{ if(url)viewPhoto(url); };
     w.querySelector('.thumb-x').onclick=async()=>{const _bk=(form.itemPhotos[gid]||[]).slice();mediaDropLater(id);form.itemPhotos[gid]=form.itemPhotos[gid].filter(x=>x!==id);renderItemPhotos(gid);undoOffer('🗑️ '+t('ph_removed'),()=>{mediaKeep(id);form.itemPhotos[gid]=_bk;renderItemPhotos(gid);});};
     el.appendChild(w);}
+  try{ await vqFill(gid,el); }catch(e){}   /* v942 */
 }
+/* v942 — HIS 19 Nov: "recording kahin dikhai nahi deti... har item ke neeche recording sunne ka." The voice notes of a piece sit
+   right under its photos, each with its own player — no need to open the 🎙️ panel to find out what was said. */
+async function vqFill(gid,after){ const cid=cssId(gid); let q=document.getElementById('ivq_'+cid);
+  const list=(form&&form.itemVoice&&form.itemVoice[gid])||[];
+  if(!list.length){ if(q)q.remove(); return; }
+  if(!q){ q=document.createElement('div'); q.id='ivq_'+cid; q.style.cssText='margin-top:6px'; after.insertAdjacentElement('afterend',q); }
+  q.innerHTML='<div class="hint">\u{1F399}\uFE0F '+list.length+'</div>'+list.map(v=>'<audio controls preload="none" data-aud="'+esc(v.voiceId)+'" style="width:100%;height:38px;margin-top:4px"></audio>').join('');
+  for(const a of q.querySelectorAll('audio[data-aud]')){ const u=await mURL(a.dataset.aud); if(u)a.src=u; } }
 function customerPickedHTML(){const f=form;return `<div class="cust-result"><div onclick="clearCustomer()" style="cursor:pointer;flex:1;min-width:0"><b>${esc(f.customerName)}</b><div class="hint">${esc(f.phone||'')}</div></div><button class="btn sm ghost" onclick="clearCustomer()">${t('change')}</button></div>`;}
 /* ══════════════ v486 — ONE MAN'S BODY ON ANOTHER MAN'S ORDER ══════════════
    HIS 4 Sept: "customer ka naam save kiya, dekha ki naam pehle se saved hai measurement
@@ -23734,7 +23751,7 @@ function toggleItem(key){_sheetScroll=$('#sheet')?$('#sheet').scrollTop:0;captur
 
 /* live prefill: copy BODY columns (not length) from any same-category garment already filled */
 function prefillGarment(key){
-  const f=form,g=G(key); if(!g)return; const common=commonFor(g.cat); if(!f.m[key])f.m[key]={};
+  const f=form,g=G(key); if(!g)return; const common=commonOf(g); if(!f.m[key])f.m[key]={};
   const mid=memberOf(key), gid=g.id;
   const allow=itemCols(g).map(c=>c.k);   // don't carry columns this garment doesn't have (e.g. sleeveless)
   /* v319 — HIS 25 Aug: "pehle bhi saved measurement aa rahe the... pata hi nahi chalta
@@ -23751,7 +23768,7 @@ function prefillGarment(key){
   // copy from THIS member's other garments only — never mix two people's bodies
   for(const ok of f.items){ if(ok===key)continue; if(memberOf(ok)!==mid)continue;
     const og=G(ok); if(!og||!f.m[ok])continue;
-    if(og.cat===g.cat){ common.forEach(k=>{if(f.m[ok][k])putDeriv(k,f.m[ok][k],og.id);}); }
+    if(famOf(og)===famOf(g)){ common.forEach(k=>{if(f.m[ok][k])putDeriv(k,f.m[ok][k],og.id);}); }
     else { GLOBAL_MEAS.forEach(k=>{if(f.m[ok][k])putDeriv(k,f.m[ok][k],og.id);}); }   // Hip flows upper<->lower
     const ln=LEN_LINK[gid]; if(ln&&og.id===ln.from&&f.m[ok][ln.k]){ const n=parseMeas(f.m[ok][ln.k]); if(n!=null)putRaw(ln.k,fmtMeas(n+ln.d)); }   /* v909 */
   }
@@ -23759,7 +23776,7 @@ function prefillGarment(key){
   const isMain = !mid || (f.members&&f.members[0]&&f.members[0].id===mid);
   if(isMain && f.customerId){const c=custById(f.customerId); if(c&&c.m){
     if(c.m[gid]){Object.keys(c.m[gid]).forEach(k=>{putRaw(k,c.m[gid][k]);});}      // own saved → no derivation
-    else {for(const okid of Object.keys(c.m)){const og=G(okid);if(!og||og.cat!==g.cat)continue;common.forEach(k=>{if(c.m[okid][k])putDeriv(k,c.m[okid][k],okid);});break;}}
+    else {for(const okid of Object.keys(c.m)){const og=G(okid);if(!og||famOf(og)!==famOf(g))continue;common.forEach(k=>{if(c.m[okid][k])putDeriv(k,c.m[okid][k],okid);});break;}}
     GLOBAL_MEAS.forEach(k=>{if(f.m[key][k])return;for(const okid of Object.keys(c.m)){if(c.m[okid]&&c.m[okid][k]){putDeriv(k,c.m[okid][k]);break;}}});
   }}
 }
@@ -23883,7 +23900,7 @@ function propagate(inp){
       const cur=String(((form.m||{})[ok]||{}).L||'').trim(), wa=!!(((form.mAuto||{})[ok]||{}).L); if(cur&&!wa)return;
       form.m[ok]=form.m[ok]||{}; form.mAuto=form.mAuto||{}; form.mAuto[ok]=form.mAuto[ok]||{};
       if(v){ form.m[ok].L=v; form.mAuto[ok].L=1; } else { delete form.m[ok].L; delete form.mAuto[ok].L; } }); }
-  if(!isGlobal && !commonFor(g.cat).includes(k))return; // only BODY columns flow, never Length
+  if(!isGlobal && !commonOf(g).includes(k))return; // only BODY columns flow, never Length
   /* the same measurement boxes now appear on the ORDER screen and the give-work screen,
      where `form` is a leftover from whatever order was edited last. Auto-propagation
      belongs to the order FORM only — anywhere else it would write into a dead object. */
@@ -23894,7 +23911,7 @@ function propagate(inp){
   (f.items||[]).forEach(ok=>{
     if(ok===key || memberOf(ok)!==mid)return;
     const og=G(ok); if(!og)return;
-    if(!(isGlobal || og.cat===g.cat))return;
+    if(!(isGlobal || famOf(og)===famOf(g)))return;
     if(!itemCols(og).some(c=>c.k===k))return;            // this garment doesn't have that column
     const cur=String(((f.m||{})[ok]||{})[k]||'').trim();
     const wasAuto=!!((f.mAuto[ok]||{})[k]);
@@ -23909,7 +23926,7 @@ function propagate(inp){
     const ok=other.dataset.g, og=G(ok); if(!og)return;
     if(other.dataset.k!==k)return;
     if(memberOf(ok)!==mid)return;
-    if(!(isGlobal || og.cat===g.cat))return;
+    if(!(isGlobal || famOf(og)===famOf(g)))return;
     if(other.value.trim() && other.dataset.auto!=='1')return;
     const dv=deriveMeasVal(og.id,k,v,g.id);
     other.value=dv; other.dataset.auto=dv?'1':''; other.classList.toggle('filled',!!dv);
@@ -24434,11 +24451,11 @@ const VM_FRAC=[
   [/\b3\s*\/\s*4\b|point\s*75\b/,0.75,'post'],
   [/\b1\s*\/\s*2\b|point\s*5\b/,0.5,'post'],
   [/\b1\s*\/\s*4\b|point\s*25\b/,0.25,'post'],
-  [/साढ़े|साढे|सादे|s[a]{1,2}dhe|s[a]{1,2}de|sarhe|sadha/,0.5,'pre'],
+  [/साढ़े|साढे|साडे|साड़े|सादे|s[a]{1,2}dhe|s[a]{1,2}de|sarhe|sadha/,0.5,'pre'],
   [/सवा|sawa|sava|savaa/,0.25,'pre'],
   [/पौने|paune|pone|poune|pauna/,-0.25,'pre'],
-  [/three\s*fourth|three\s*quarter|तीन\s*चौथाई|teen\s*chauthai|पौन|point\s*seven\s*five/,0.75,'post'],
-  [/half|haf|आधा|आधे|aadha|adha|aadhe|ek\s*batta\s*do|एक\s*बटा\s*दो|point\s*five|½/,0.5,'post'],
+  [/three\s*fourth|three\s*quarter|three\s*by\s*four|तीन\s*बटा\s*चार|तीन\s*बाय\s*चार|teen\s*bata\s*char|तीन\s*चौथाई|teen\s*chauthai|पौन|point\s*seven\s*five/,0.75,'post'],
+  [/half|haf|आधा|आधे|aadha|adha|aadhe|ek\s*batta\s*do|एक\s*बटा\s*दो|आधी|aadhi|adhi|one\s*by\s*two|एक\s*बाय\s*दो|ek\s*bay\s*do|ek\s*bata\s*do|point\s*five|½/,0.5,'post'],
   [/एक\s*चौथाई|ek\s*chauthai|quarter|चौथाई|chauthai|chauthaai|paav|पाव|point\s*two\s*five|¼/,0.25,'post']];
 /* every field a human can say, mapped to the column key. NEVER add a control word here. */
 const VM_FIELD={chest:'C','छाती':'C',chesst:'C',belly:'B','पेट':'B',hip:'H','हिप':'H','कमर':'W',
@@ -24575,6 +24592,7 @@ function vmParse(raw){
 }
 
 /* ---- the listener, tied to ONE open piece on the walk ---- */
+let _vmHeardTxt='', _vmAlts=[];   /* v942: declared up here, above every function that reads them */
 let _vmOn=false, _vmRec=null, _vmKey=null, _vmLast=null, _vmField=null, _vmNet=0, _vmNetAt=0;
 function vmToggle(key){
   if(_vmOn){ vmStop(); return; }
@@ -24587,10 +24605,11 @@ function vmToggle(key){
   if(!navigator.onLine){ toast(t('vm_offline'),'bad'); return; }   // say it plainly, never fail silently
   _vmKey=key; _vmOn=true; _vmLast=null;
   const R=window.SpeechRecognition||window.webkitSpeechRecognition; const r=new R(); _vmRec=r;
-  r.lang=sttLang(); r.interimResults=false; r.continuous=true; r.maxAlternatives=5;   /* v941 */
+  r.lang=sttLang(); r.interimResults=true; r.continuous=true; r.maxAlternatives=5;   /* v941; v942: interim only SHOWS what is heard, never writes */
   r._seen=new Set(); r._last='';   /* v923: Android can send the same final words again */
   r.onresult=ev=>{ for(let i=ev.resultIndex;i<ev.results.length;i++){
-      if(!ev.results[i].isFinal)continue;
+      if(!ev.results[i].isFinal){ try{ vmStripListen(ev.results[i][0].transcript); }catch(e){} continue; }
+      _vmAlts=vmAltNums(ev.results[i]);   /* v942 */
       const full=vmBestAlt(ev.results[i]); const key=i+'|'+full.toLowerCase();
       if(r._seen.has(key))continue; r._seen.add(key);   /* the same words in the same place: already done */
       let tx=full; const lo=full.toLowerCase(), la=r._last.toLowerCase();
@@ -24611,6 +24630,7 @@ function vmToggle(key){
     const again=()=>{ if(!_vmOn||_vmRec!==r)return; try{ r.start(); }catch(e){ if(++n<6)setTimeout(again,250*n); else { toast('🎙️ '+t('vm_stopped'),'bad'); vmSpeak(t('vm_stopped')); vmStop(); } } };
     again(); };
   try{ r.start(); }catch(e){ _vmOn=false; toast(t('vm_err'),'bad'); return; }
+  try{ vmBeepWake(); }catch(e){} vmStripListen('');   /* v942 */
   vmIdlePoke();
   renderForm(); vmSpeak(t('vm_ready_say')); setTimeout(()=>{ if(_ordFlow&&_ordStage===2)vmLfFocus(null); else vmFocus(null); },150);
 }
@@ -24626,7 +24646,7 @@ function vmIdlePoke(){
 let _vmIdle=null;
 function vmStop(quiet){
   clearTimeout(_vmIdle);
-  _vmOn=false; _vmField=null;
+  _vmOn=false; _vmField=null; try{ vmStrip(''); }catch(e){}   /* v942 */
   try{document.querySelectorAll('.mfield').forEach(el=>el.classList.remove('vm-live'));}catch(e){}
   try{ if(_vmRec){ _vmRec.onend=null; _vmRec.stop(); } }catch(e){}
   _vmRec=null;
@@ -24640,6 +24660,7 @@ function vmBestAlt(res){ const al=[]; try{ for(let j=0;j<res.length;j++){ const 
   if(!al.length)return ''; const ok1=a=>{ try{ const p=vmParse(a); return !!(p&&!p.err&&(p.cmd||(p.val!=null&&!isNaN(p.val)))); }catch(e){ return false; } };
   return al.find(a=>/\d/.test(a)&&ok1(a)) || al.find(ok1) || al[0]; }   /* a guess with the digits in it first */
 function vmHandle(txt){
+  _vmHeardTxt=String(txt||'');   /* v942 */
   vmIdlePoke();                     // v215: every word heard resets the silence clock
   /* v191 — HIS 14 Aug: he said "29" ONCE and it landed in Length, Chest, Belly AND Hip,
      then jammed on Shoulder with an out-of-range refusal. The phone hands the same final
@@ -24750,7 +24771,7 @@ function vmHandle(txt){
   /* v193 — HIS 14 Aug: "automated voice thoda friendly language me ho sakta hai kya,
      thoda human type bhi lage." It read out a whole sentence for every value. A man
      calling measurements across a shop says the number and nothing else. */
-  vmSpeak(outOfRange ? t('vm_out_soft',{v:val}) : String(val));
+  vmSpeak(outOfRange ? t('vm_out_soft',{v:val}) : String(val)); vmNote(key,k,val,outOfRange);   /* v942 */
   if(outOfRange) toast('⚠️ '+val+' — '+t('ms_flag'),'bad');
   vmFocus(k);                             // v190: hands-free — move on so the next word needs no field name
   if(vmAllFilled(f,key)){ const n=walkNext(f,key);
@@ -24812,7 +24833,7 @@ function vmHandleLf(p){
   propagate({dataset:{g:key,k}, value:String(val)});
   f.mFlag=f.mFlag||{}; f.mFlag[key]=f.mFlag[key]||{}; if(oor)f.mFlag[key][k]=1; else delete f.mFlag[key][k];
   _vmKey=key; _vmField=k; renderForm(); saveDraft();
-  vmSpeak(oor?t('vm_out_soft',{v:val}):String(val)); if(oor)toast('⚠️ '+val+' — '+t('ms_flag'),'bad');
+  vmSpeak(oor?t('vm_out_soft',{v:val}):String(val)); vmNote(key,k,val,oor); if(oor)toast('⚠️ '+val+' — '+t('ms_flag'),'bad');
   setTimeout(()=>{ if(_vmOn)vmLfFocus({g:key,k}); },90);
 }
 function vmFocus(afterK){
@@ -24924,7 +24945,44 @@ function vmAllFilled(f,key){
    several misses in a row — so the phone talked over him while he was measuring. A miss
    is now shown, not spoken. Only a written value still speaks, because that is the one
    thing his ear needs to check. */
-function vmRefuse(msg){ toast('🎙️ '+msg,'bad'); }
+/* ══════════ v942 — HANDS-FREE YOU CAN SEE AND HEAR ══════════
+   HIS 19 Nov: "kabhi pata hi nahi chal raha hands-free kaam kar raha hai ki nahi, itna silent rehta hai" and "37 bola,
+   35 ho gaya". The app cannot speak while the mic is open (the phone would hear itself), so it was mute. It now shows a
+   strip while listening — "🎙️ Listening", the words as they are heard, then "✓ Chest 37" with a short beep — and if the
+   phone's other guesses read as a different number (35 / 37), they sit under it as buttons: one tap corrects the box. */
+function vmAltNums(res){ const out=[]; try{ for(let j=0;j<res.length;j++){ const x=String((res[j]||{}).transcript||''); let p=null; try{ p=vmParse(x); }catch(e){}
+    if(p&&!p.err&&!p.cmd&&p.val!=null&&!isNaN(p.val)&&!p.rel&&out.indexOf(p.val)<0)out.push(p.val); } }catch(e){} return out; }
+function vmStrip(html,kind){
+  let el=document.getElementById('vmStrip');
+  if(!html){ if(el)el.remove(); return; }
+  if(!el){ el=document.createElement('div'); el.id='vmStrip';
+    el.style.cssText='position:fixed;left:8px;right:8px;top:calc(env(safe-area-inset-top,0px) + 6px);z-index:100000;border-radius:14px;padding:8px 12px;font-size:16px;font-weight:700;line-height:1.3;box-shadow:0 4px 18px rgba(0,0,0,.55);background:#101a24;color:#fff;border:2px solid #f5a623;pointer-events:none';
+    document.body.appendChild(el); }
+  el.style.borderColor=(kind==='bad')?'#ff5a5a':(kind==='ok')?'#3ddc84':'#f5a623';
+  el.innerHTML=html; }
+function vmStripListen(txt){ if(!_vmOn)return;
+  vmStrip('<div>🎙️ Listening…</div>'+(txt?'<div style="font-size:15px;font-weight:600;opacity:.9">“'+esc(txt)+'”</div>':'<div style="font-size:12px;font-weight:400;opacity:.7">bolo — number ya field</div>'),'listen'); }
+function vmBeepWake(){ const A=window.AudioContext||window.webkitAudioContext; if(!A)return; const c=vmBeep._c||(vmBeep._c=new A()); if(c.state==='suspended')c.resume(); }
+function vmBeep(ok){ try{ const A=window.AudioContext||window.webkitAudioContext; if(!A)return; const c=vmBeep._c||(vmBeep._c=new A());
+    const o=c.createOscillator(), g=c.createGain(); o.type='sine'; o.frequency.value=ok?880:200; g.gain.value=0.07;
+    o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime+(ok?0.09:0.2)); }catch(e){} }
+function vmNote(key,k,val,oor){
+  let nm=''; try{ nm=vmFieldName(G(key),k); }catch(e){}
+  const alts=(_vmAlts||[]).filter(a=>a!==val).slice(0,3);
+  vmBeep(!oor);
+  vmStrip('<div>'+(oor?'⚠️ ':'✓ ')+esc(nm)+' <span style="font-size:26px">'+val+'</span></div>'
+    +(_vmHeardTxt?'<div style="font-size:12px;opacity:.75;font-weight:400">suna: “'+esc(_vmHeardTxt)+'”</div>':'')
+    +(alts.length?'<div style="margin-top:4px;font-size:13px">galat? tap karo ➜ '+alts.map(a=>'<button type="button" onclick="vmFix('+a+')" style="pointer-events:auto;font-size:18px;font-weight:800;margin:0 4px;padding:4px 14px;border-radius:10px;border:2px solid #f5a623;background:#2a1d06;color:#ffd27a">'+a+'</button>').join('')+'</div>':''),
+    oor?'bad':'ok'); }
+/* one tap on the other guess rewrites the box just written — the same box, never a second one */
+function vmFix(v){ const L=_vmLast; if(!L||!form||!form.m||!form.m[L.key])return;
+  form.m[L.key][L.k]=String(v); (form.mAuto=form.mAuto||{})[L.key]=form.mAuto[L.key]||{}; delete form.mAuto[L.key][L.k];
+  try{ propagate({dataset:{g:L.key,k:L.k},value:String(v)}); }catch(e){}
+  _vmAlts=[]; _vmEcho={k:null,v:null,at:0};
+  renderForm(); try{ if(form.editId)save(); }catch(e){} saveDraft(); try{ vmLight(_vmField); }catch(e){}
+  let nm=''; try{ nm=vmFieldName(G(L.key),L.k); }catch(e){} vmBeep(true);
+  vmStrip('<div>✓ '+esc(nm)+' <span style="font-size:26px">'+v+'</span> <span style="font-size:12px;font-weight:400">(sudhara)</span></div>','ok'); }
+function vmRefuse(msg){ toast('🎙️ '+msg,'bad'); try{ vmBeep(false); vmStrip('<div>✗ '+msg+'</div>'+(_vmHeardTxt?'<div style="font-size:12px;opacity:.75;font-weight:400">suna: “'+esc(_vmHeardTxt)+'”</div>':''),'bad'); }catch(e){} }
 function vmUndo(){
   if(!_vmLast){ vmSpeak(t('vm_noundo')); return; }
   const {key,k,prev}=_vmLast;
@@ -25521,15 +25579,18 @@ async function openDetail__inner(id,focusGid){
         const ks=_pw?showIds:(o.items||[]); if(!ks.length)return '';
         const st=ks.map(k=>itemStatusOf(o,k)); const cur=st.every(x=>x===st[0])?st[0]:'';
         return `<div class="od-st" aria-label="${t('st_row')}" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:2px 0 12px">${[['new','\u{1F195}'],['cut','\u2702\uFE0F'],['stitching','\u{1F9F5}'],['ready','\u2705'],['delivered','\u{1F4E6}']].map(([x,ic])=>
-            `<button class="chip ${cur===x?'on':''}" style="min-height:56px;padding:6px 2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px;line-height:1.1" onclick="odSetAll('${o.id}','${x}',${_pw?`'${jq(_odWho)}'`:'null'})"><span style="font-size:20px">${ic}</span>${sLabel(x)}</button>`).join('')}</div>`; })()}${_whoHTML}${measHTML}${(_pv||_pw)?'':`<button class="btn ghost block od-addp" style="margin:2px 0 12px;min-height:48px;border-style:dashed" onclick="odAddPiece('${o.id}')">\u2795 ${t('od_add_piece')}</button>`}<div ${(_pv||_pw)?'hidden':''}>
+            `<button class="chip ${cur===x?'on':''}" style="min-height:56px;padding:6px 2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px;line-height:1.1" onclick="odSetAll('${o.id}','${x}',${_pw?`'${jq(_odWho)}'`:'null'})"><span style="font-size:20px">${ic}</span>${sLabel(x)}</button>`).join('')}</div>`; })()}${_whoHTML}${measHTML}<button class="btn ghost block od-addp" style="margin:2px 0 8px;min-height:52px;border-style:dashed;font-weight:800" onclick="odAddPiece('${o.id}')">\u2795 ${t('od_add_piece')}</button>
+    ${/* v945 — HIS 21 Nov: on a two-brothers order he could not find "Add another piece", nor photo / recording, once an order was saved. Same shape as before: the controls were hidden whenever a piece or a person's page was open. They now show on every view of the order, with words under the icons. */''}
+    <div class="od-media" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 0 12px">
+      <button class="btn ghost" style="min-height:52px" onclick="odAddOrderPhoto('${o.id}')">📷 ${t('add_photo')}</button>
+      <button class="btn ghost" style="min-height:52px" onclick="odOrderVoice('${o.id}')">🎙️ ${t('voice_notes')}</button>
+      <button class="btn ghost" style="min-height:52px" onclick="odOrderNote('${o.id}')">📝 ${t('order_notes')}</button></div>
+    <div ${(_pv||_pw)?'hidden':''}>
     ${/* v841 — U24: "➕ Add a piece" opened the whole Edit form, the same as ✏️ in the header — one job, one button */''}
     <div class="row" style="margin-top:10px;gap:8px;align-items:center">
       <div id="d_photos" style="flex:1;display:flex;gap:8px;flex-wrap:wrap"></div></div>
     <div class="od-media" style="margin-top:6px">
       <span style="flex:1"></span>
-      <button class="btn ghost" title="${t('add_photo')}" onclick="odAddOrderPhoto('${o.id}')">📷</button>
-      <button class="btn ghost" title="${t('voice_notes')}" onclick="odOrderVoice('${o.id}')">🎙️</button>
-      <button class="btn ghost" title="${t('order_notes')}" onclick="odOrderNote('${o.id}')">📝</button>
       <button class="btn ghost" title="${t('od_group_t')}" onclick="odShareGroup('${o.id}')">\u{1F4E3} ${t('od_group')}</button></div>
     ${/* v404 — HIS 30 Aug, with the screenshot: "screen itna bhara hua hai ki kuch samajh
          me hi nahi aa raha." Three of the four things on this foot were already on the
@@ -31174,7 +31235,7 @@ function shopLogoIMG(big,h){
   return '<img src="'+(big?SHOP_LOGO_LG:SHOP_LOGO_SM)+'" alt="PARAMPARA" '
     +'style="height:'+(h||34)+'px;width:auto;display:block">';
 }
-function buildInvoiceHTML(rec,inv){
+function buildInvoiceHTMLv941(rec,inv){   /* v945: kept for rollback only — nothing calls it */
   const comp=invCompute(inv),shop=DB.shopInfo||{};
   const G=!!shop.showGst;   // GST columns/summary shown only when the officer-toggle is ON
   const sm=rec.salesmanId?salesmenAll().find(x=>x.id===rec.salesmanId):null;
@@ -31333,6 +31394,159 @@ function buildInvoiceHTML(rec,inv){
     ${rec.notes?`<div class="foot"><b>Notes:</b> ${esc(rec.notes)}</div>`:''}
   </div>
   </body></html>`;
+}
+
+/* ══════════════ v945 — ONE INVOICE, DRAWN LIKE VYAPAR ══════════════
+   HIS 21 Nov: "invoice mein row column nahi hota, quantity rate dhang se nahi... Vyapar ka format exactly waisa hi chahiye,
+   aur PDF jaaye." Two bills had been drifting apart for months (the HTML one he previews/prints, and the picture one that went
+   to WhatsApp — v465 found it once already). Now there is ONE drawing, in the Vyapar layout: title, shop box with the mark,
+   Bill To / Invoice Details / Order No + Delivery Date, an item table (# · Item name · HSN/SAC · Quantity · Unit · Price/Unit ·
+   Amount), Sub Total / Total / amount in words / Received / Balance / Previous / Current Balance, Payment Mode, Terms, Bank
+   Details with the UPI QR, and the signature box. WhatsApp sends it as a real PDF; preview and print show the same pages.
+   Kept from his own earlier asks: Order No + Delivery Date + Balance Due in the yellow band, salesman with phone (the Terms
+   point to "our salesman, number mentioned above"), GST summary inside the prices, Extra received never shown as ₹0. */
+function invSheetCanvases(rec,inv){
+  const comp=invCompute(inv), shop=DB.shopInfo||{}, G=!!shop.showGst;
+  const received=orderReceived(rec), baaki=orderBaaki(rec);
+  const prevBal=customerOutstanding(rec.customerId,recKindOf(rec),rec.id), currBal=r2(prevBal+baaki);
+  const sm=rec.salesmanId?salesmenAll().find(q=>q.id===rec.salesmanId):null;
+  const W=1654,H=2339,M=60,X0=M,X1=W-M,TW=X1-X0;
+  const FONT='Roboto,"Helvetica Neue",Arial,sans-serif';
+  const C={line:'#4a4a55',head:'#f2f2f5',ink:'#2b2d3c',sub:'#666',hl:'#fff3cd',red:'#c0392b'};
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H*4; const x=cv.getContext('2d');
+  x.fillStyle='#fff'; x.fillRect(0,0,W,cv.height);
+  const F=(s,b,i)=>(i?'italic ':'')+(b?'700 ':'400 ')+s+'px '+FONT;
+  const T=(t,px,py,o)=>{ o=o||{}; x.font=F(o.s||25,o.b,o.i); x.fillStyle=o.c||C.ink; x.textAlign=o.a||'left'; x.textBaseline='middle'; x.fillText(String(t),px,py); x.textAlign='left'; };
+  const MW=(t,o)=>{ o=o||{}; x.font=F(o.s||25,o.b,o.i); return x.measureText(String(t)).width; };
+  const fill=(a,b,w,h,c)=>{ x.fillStyle=c; x.fillRect(a,b,w,h); };
+  const LN=(a,b,c,d)=>{ x.strokeStyle=C.line; x.lineWidth=2; x.beginPath(); x.moveTo(a,b); x.lineTo(c,d); x.stroke(); };
+  const BX=(a,b,w,h)=>{ x.strokeStyle=C.line; x.lineWidth=2; x.strokeRect(a,b,w,h); };
+  const wrap=(t,w,o)=>{ x.font=F((o&&o.s)||25,o&&o.b,o&&o.i); const out=[]; String(t||'').split('\n').forEach(par=>{ const ws=par.split(' '); let cur='';
+      ws.forEach(wd=>{ const tt=cur?cur+' '+wd:wd; if(x.measureText(tt).width>w&&cur){ out.push(cur); cur=wd; } else cur=tt; });
+      out.push(cur); }); return out; };
+  /* "Phone: 9163230669" — label plain, value bold, on one line */
+  const MIX=(parts,px,py,s)=>{ let cx=px; parts.forEach(p=>{ T(p[0],cx,py,{s:s||25,b:p[1]}); cx+=MW(p[0],{s:s||25,b:p[1]}); }); };
+  const m2=n=>'₹ '+(Math.round((+n||0)*100)/100).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const dmy=(d,sep)=>{ if(!d)return ''; const q=new Date(d); if(isNaN(q))return String(d); const p=n=>String(n).padStart(2,'0'); return p(q.getDate())+sep+p(q.getMonth()+1)+sep+q.getFullYear(); };
+  const cuts=[]; let y=0;
+
+  /* ── title ── */
+  T(G?'Tax Invoice':'Invoice',W/2,64,{s:48,b:1,a:'center',c:'#3b3f51'}); y=112;
+
+  /* ── shop box: mark on the left, details on the right ── */
+  { const tx=X0+420, room=X1-tx-24; const lines=[];
+    lines.push({t:shop.name||t('your_shop'),s:46,b:1,h:62});
+    wrap(shop.address,room,{s:25}).forEach(l=>{ if(l)lines.push({t:l,s:25,h:38}); });
+    if(shop.phone||shop.email)lines.push({mix:[['Phone: ',0],[shop.phone||'',1],[shop.phone&&shop.email?'      Email: ':(shop.email?'Email: ':''),0],[shop.email?String(shop.email).toUpperCase():'',1]],h:40});
+    if(String(shop.gstin||'').trim())lines.push({mix:[['GSTIN: ',0],[shop.gstin,1]],h:40});
+    const st=gstState(shop.gstin); if(st)lines.push({mix:[['State: ',0],[st,1]],h:40});
+    const bh=Math.max(250,lines.reduce((a,l)=>a+l.h,0)+44);
+    BX(X0,y,TW,bh);
+    if(_logoImg){ const mw=340,mh=Math.min(bh-40,220); const r=Math.min(mw/_logoImg.width,mh/_logoImg.height); const lw=_logoImg.width*r, lh=_logoImg.height*r; try{ x.drawImage(_logoImg,X0+30+(mw-lw)/2,y+(bh-lh)/2,lw,lh); }catch(e){} }
+    let ly=y+22; lines.forEach(l=>{ const cy=ly+l.h/2; if(l.mix)MIX(l.mix,tx,cy,25); else T(l.t,tx,cy,{s:l.s,b:l.b}); ly+=l.h; });
+    y+=bh; cuts.push(y); }
+
+  /* ── Bill To | Invoice Details ── */
+  { const cL=Math.round(TW*0.50), cM=Math.round(TW*0.27), cR=TW-cL-cM, hh=56;
+    fill(X0,y,TW,hh,C.head); BX(X0,y,cL,hh); BX(X0+cL,y,cM+cR,hh);
+    T('Bill To:',X0+14,y+hh/2,{s:25,b:1}); T('Invoice Details:',X0+cL+14,y+hh/2,{s:25,b:1}); y+=hh;
+    const L1=[]; wrap((rec.customerName||'').toUpperCase(),cL-28,{s:28,b:1}).forEach(l=>L1.push({t:l,s:28,b:1,h:40}));
+    if(rec.phone)L1.push({t:'Contact: '+rec.phone,s:24,c:C.sub,h:36});
+    if(sm)L1.push({t:'Salesman: '+sm.name+(sm.phone?' ('+sm.phone+')':''),s:23,c:C.sub,h:34});
+    const mid=[{mix:[['No: ',0],[inv.no||'',1]],h:40},{mix:[['Date: ',0],[dmy(inv.date,'-'),1]],h:40}];
+    const ordLbl=rec.orderNo?['ORDER NO.: ',String(rec.orderNo)]:(rec.altNo?['ALTERATION NO.: ',String(rec.altNo)]:null);
+    const rt=[]; if(ordLbl)rt.push({mix:[[ordLbl[0],0],[ordLbl[1],1]],h:40,hl:1}); if(rec.deliveryDate)rt.push({mix:[['DELIVERY DATE: ',0],[dmy(rec.deliveryDate,'/'),1]],h:40,hl:1});
+    const rh=Math.max(112,L1.reduce((a,l)=>a+l.h,0)+22,mid.reduce((a,l)=>a+l.h,0)+22,rt.reduce((a,l)=>a+l.h,0)+22);
+    BX(X0,y,cL,rh); BX(X0+cL,y,cM,rh); BX(X0+cL+cM,y,cR,rh);
+    let a=y+12; L1.forEach(l=>{ T(l.t,X0+14,a+l.h/2,{s:l.s,b:l.b,c:l.c}); a+=l.h; });
+    a=y+12; mid.forEach(l=>{ MIX(l.mix,X0+cL+14,a+l.h/2,24); a+=l.h; });
+    a=y+12; rt.forEach(l=>{ if(l.hl){ const wd=l.mix.reduce((s,p)=>s+MW(p[0],{s:24,b:p[1]}),0); fill(X0+cL+cM+8,a+2,Math.min(cR-16,wd+12),l.h-4,C.hl); } MIX(l.mix,X0+cL+cM+14,a+l.h/2,24); a+=l.h; });
+    y+=rh+22; cuts.push(y-22); }
+
+  /* ── item table ── */
+  const fr=[0.045,0.37,0.12,0.11,0.09,0.135,0.13]; const cw=fr.map(f=>Math.round(TW*f)); cw[6]=TW-cw.slice(0,6).reduce((s,v)=>s+v,0);
+  const cx=[X0]; cw.forEach((w,i)=>cx.push(cx[i]+w));
+  { const hh=58; fill(X0,y,TW,hh,C.head); BX(X0,y,TW,hh);
+    ['#','Item name','HSN/ SAC','Quantity','Unit','Price/ Unit (₹)','Amount(₹)'].forEach((h,i)=>{ if(i>0)LN(cx[i],y,cx[i],y+hh);
+      if(i<2)T(h,cx[i]+14,y+hh/2,{s:24,b:1}); else T(h,cx[i+1]-14,y+hh/2,{s:24,b:1,a:'right'}); });
+    y+=hh; }
+  let qtySum=0, amtSum=0;
+  (inv.items||[]).forEach((it,i)=>{ const p=+it.price||0, q=+it.qty||1; qtySum+=q; amtSum+=p;
+    const nm=wrap(it.label||'Item',cw[1]-28,{s:25,b:1}), inc=it.includes?wrap('Includes: '+it.includes,cw[1]-28,{s:21,i:1}):[];
+    const rh=Math.max(60,16+nm.length*34+inc.length*28+(inc.length?4:0)); const top=y;
+    BX(X0,y,TW,rh); for(let k=1;k<7;k++)LN(cx[k],y,cx[k],y+rh);
+    T(String(i+1),cx[0]+14,top+30,{s:25});
+    nm.forEach((l,k)=>T(l,cx[1]+14,top+30+k*34,{s:25,b:1})); inc.forEach((l,k)=>T(l,cx[1]+14,top+30+nm.length*34+k*28-2,{s:21,i:1,c:C.sub}));
+    T(it.hsn||'',cx[3]-14,top+30,{s:25,a:'right'}); T(String(q),cx[4]-14,top+30,{s:25,a:'right'}); T(it.unit||'Pcs',cx[5]-14,top+30,{s:25,a:'right',c:C.sub});
+    T(m2(p/q),cx[6]-14,top+30,{s:25,a:'right'}); T(m2(p),cx[7]-14,top+30,{s:25,a:'right'});
+    y+=rh; cuts.push(y); });
+  { const rh=58; BX(X0,y,TW,rh); for(let k=1;k<7;k++)LN(cx[k],y,cx[k],y+rh);
+    T('Total',cx[1]+14,y+rh/2,{s:25,b:1}); T(String(qtySum),cx[4]-14,y+rh/2,{s:25,b:1,a:'right'}); T(m2(amtSum),cx[7]-14,y+rh/2,{s:25,b:1,a:'right'}); y+=rh; cuts.push(y); }
+
+  /* ── totals (right) · GST summary + payment mode (left) ── */
+  { const RW=Math.round(TW*0.38), RX=X1-RW, LW=TW-RW, rh=54; const sy=y; let ry=y;
+    const row=(label,val,o)=>{ o=o||{}; if(o.band)fill(RX,ry,RW,rh,C.head); if(o.hl)fill(RX+4,ry+3,RW-8,rh-6,C.hl); BX(RX,ry,RW,rh);
+      T(label,RX+14,ry+rh/2,{s:o.s||25,b:o.b,c:o.c}); if(val!=null){ T(':',RX+Math.round(RW*0.47),ry+rh/2,{s:25}); T(val,X1-14,ry+rh/2,{s:o.s||25,b:o.b,c:o.c,a:'right'}); } ry+=rh; };
+    row('Sub Total',m2(comp.gross));
+    if(comp.discount>0)row('Discount','- '+m2(comp.discount));
+    row('Total',m2(comp.total),{b:1,band:1});
+    row('Invoice Amount In Words :',null,{b:1,band:1});
+    { const wl=wrap(numToWordsIndian(comp.total),RW-28,{s:25}); const wh=Math.max(rh,wl.length*34+18); BX(RX,ry,RW,wh); wl.forEach((l,k)=>T(l,RX+14,ry+26+k*34,{s:25})); ry+=wh; }
+    row('Received',m2(received));
+    if(orderDisc(rec)>0)row('Discount allowed',m2(orderDisc(rec)));
+    const extra=r2((+received||0)-(+comp.total||0));
+    if(extra>0.5)row('Extra received',m2(extra),{b:1,c:C.red,hl:1}); else row('Balance',m2(baaki),{b:baaki>0,hl:baaki>0,c:baaki>0?C.red:C.ink});
+    row('Previous Balance',m2(prevBal)); row('Current Balance',m2(currBal));
+    const bh=Math.max(ry-sy, 230);
+    BX(X0,sy,LW,bh);
+    const tax=r2((+comp.cgst||0)+(+comp.sgst||0)+(+comp.igst||0));
+    if(G&&tax>0){ let gy=sy+16; T('GST summary (included in the prices above)',X0+14,gy+14,{s:22,b:1,c:C.sub}); gy+=40;
+      invTaxByRate(inv).forEach(r=>{ T('GST '+r.r+'%   Taxable '+m2(r.taxable)+'   '+(inv.interstate?('IGST '+m2(r.igst)):('CGST '+m2(r.cgst)+'   SGST '+m2(r.sgst))),X0+14,gy+14,{s:22,c:C.sub}); gy+=34; }); }
+    fill(X0,sy+bh-2*rh,LW,rh,C.head); BX(X0,sy+bh-2*rh,LW,rh); BX(X0,sy+bh-rh,LW,rh);
+    T('Payment Mode:',X0+14,sy+bh-1.5*rh,{s:25,b:1}); T(inv.paymentMode||'Cash',X0+14,sy+bh-0.5*rh,{s:25});
+    y=sy+bh; cuts.push(y); }
+
+  /* ── terms ── */
+  { const hh=56; fill(X0,y,TW,hh,C.head); BX(X0,y,TW,hh); T('Terms And Conditions:',X0+14,y+hh/2,{s:25,b:1}); y+=hh;
+    const tl=[]; String(shop.terms||'Thanks for doing business with us!').split('\n').forEach(p=>{ if(p.trim())wrap(p,TW-28,{s:22}).forEach(l=>tl.push(l)); });
+    if(rec.notes)wrap('Notes: '+rec.notes,TW-28,{s:22}).forEach(l=>tl.push(l));
+    const bh=tl.length*33+24; BX(X0,y,TW,bh); tl.forEach((l,k)=>T(l,X0+14,y+24+k*33,{s:22,c:C.sub})); y+=bh; cuts.push(y); }
+
+  /* ── bank details + QR | signature ── */
+  { const hw=Math.round(TW*0.5), hh=56; fill(X0,y,TW,hh,C.head); BX(X0,y,hw,hh); BX(X0+hw,y,TW-hw,hh);
+    T('Bank Details:',X0+14,y+hh/2,{s:25,b:1}); T('For '+(shop.name||t('your_shop'))+':',X0+hw+14,y+hh/2,{s:25,b:1}); y+=hh;
+    const bh=250; BX(X0,y,hw,bh); BX(X0+hw,y,TW-hw,bh);
+    let qx=X0+14; let qUri=null; try{ if(shop.upi&&baaki>0.5)qUri=upiUri((shop.qrOpen)?0:baaki,'Invoice '+inv.no); }catch(e){}
+    if(qUri){ try{ const q=qrCanvas(qUri,300); x.drawImage(q,X0+16,y+16,200,200); T('Scan & Pay',X0+116,y+232,{s:20,a:'center',b:1,c:C.sub}); qx=X0+240; }catch(e){} }
+    const pa=(typeof primaryAcc==='function'&&primaryAcc())||{}; const bl=[];
+    if(pa.bankName)bl.push([['Name: ',0],[String(pa.bankName).toUpperCase(),1]]);
+    if(pa.accNo)bl.push([['Account No.: ',0],[pa.accNo,1]]);
+    if(pa.ifsc)bl.push([['IFSC code: ',0],[String(pa.ifsc).toUpperCase(),1]]);
+    if(shop.proprietor)bl.push([["Account Holder's Name: ",0],[String(shop.proprietor).toUpperCase(),1]]);
+    if(shop.upi)bl.push([['UPI: ',0],[shop.upi,1]]);
+    bl.forEach((p,k)=>MIX(p,qx,y+36+k*42,24));
+    const sx=X0+hw+(TW-hw)/2; BX(sx-170,y+34,340,110); T(sm?sm.name:(shop.proprietor||''),sx,y+190,{s:26,a:'center'}); T('Authorised Signatory',sx,y+222,{s:20,a:'center',c:C.sub});
+    y+=bh; cuts.push(y); }
+  const Y=y+M;
+
+  /* ── cut into A4 pages at a clean line, never through a row ── */
+  const pages=[]; let start=0;
+  while(start<Y-M||!pages.length){ const target=start+H-M; let end=Y; if(Y>start+H){ end=target; for(let i=cuts.length-1;i>=0;i--){ if(cuts[i]<=target&&cuts[i]>start+200){ end=cuts[i]; break; } } }
+    const pc=document.createElement('canvas'); pc.width=W; pc.height=H; const px=pc.getContext('2d'); px.fillStyle='#fff'; px.fillRect(0,0,W,H);
+    px.drawImage(cv,0,start,W,Math.min(end-start,H),0,0,W,Math.min(end-start,H)); pages.push(pc); if(end>=Y)break; start=end; }
+  return pages;
+}
+async function invPdfBlob(rec,inv){
+  if(!window.PDFLib)throw new Error('pdf');
+  const pages=invSheetCanvases(rec,inv), doc=await PDFLib.PDFDocument.create();
+  for(const c of pages){ const png=await new Promise(r=>c.toBlob(r,'image/png')); const emb=await doc.embedPng(new Uint8Array(await png.arrayBuffer()));
+    const pg=doc.addPage([595.28,841.89]); pg.drawImage(emb,{x:0,y:0,width:595.28,height:841.89}); }
+  return new Blob([await doc.save()],{type:'application/pdf'});
+}
+/* preview and print show exactly the pages that go out */
+function buildInvoiceHTML(rec,inv){
+  const imgs=invSheetCanvases(rec,inv).map(c=>'<img src="'+c.toDataURL('image/png')+'">').join('');
+  return '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Invoice '+esc(inv.no||'')+'</title><style>@page{size:A4;margin:0}html,body{margin:0;background:#fff}img{width:100%;display:block;page-break-after:always}img:last-child{page-break-after:auto}</style></head><body>'+imgs+'</body></html>';
 }
 
 function printInvoice(kind,id){const rec=invRecOf(kind,id);if(!rec||!rec.invoice)return;
@@ -31520,23 +31734,15 @@ function buildInvoiceCanvas(rec,inv,noQR){
   return c;
 }
 async function waInvoice(kind,id){const rec=invRecOf(kind,id);if(!rec||!rec.invoice)return;
-  const text=invoiceGreetingText(rec,rec.invoice);
+  const text=invoiceGreetingText(rec,rec.invoice), nm='Invoice-'+String(rec.invoice.no).replace(/\//g,'-');
+  /* v945 — HIS 21 Nov: the bill goes as a real PDF in the Vyapar layout (the QR is inside it, bottom-left, like Vyapar's). */
   try{
-    /* v849 — HIS 8 Oct: a customer tapped the bill photo to read it and his phone opened the UPI
-       payment instead — phones read any QR inside a picture. The bill goes WITHOUT the QR now,
-       and the QR follows as its own picture in the same send (no amount fixed in it). */
-    const c=buildInvoiceCanvas(rec,rec.invoice,true);
-    const blob=await new Promise(r=>c.toBlob(r,'image/png'));
-    if(blob){const file=new File([blob],'Invoice-'+String(rec.invoice.no).replace(/\//g,'-')+'.png',{type:'image/png'});
-      const files=[file];
-      try{ if((DB.shopInfo||{}).upi && orderBaaki(rec)>0.5){   /* v914: paid in full → no QR */
-        const keep=[_qrAmt,_qrLock,_qrNote,_qrWho];
-        _qrAmt=''; _qrLock=false; _qrNote='Invoice '+rec.invoice.no; _qrWho='';
-        const q=await qrCardBlob();
-        [_qrAmt,_qrLock,_qrNote,_qrWho]=keep;
-        if(q&&q.blob)files.push(new File([q.blob],'PaymentQR.png',{type:'image/png'})); } }catch(e){}
-      if(files.length>1 && !(navigator.canShare&&navigator.canShare({files})))files.length=1;
-      if(navigator.canShare&&navigator.canShare({files})){await navigator.share({files,title:'Invoice '+rec.invoice.no,text});return;}}
+    let file=null;
+    try{ const blob=await invPdfBlob(rec,rec.invoice); file=new File([blob],nm+'.pdf',{type:'application/pdf'}); }
+    catch(e){ const c=invSheetCanvases(rec,rec.invoice)[0]; const png=await new Promise(r=>c.toBlob(r,'image/png')); if(png)file=new File([png],nm+'.png',{type:'image/png'}); }
+    if(file){
+      if(navigator.canShare&&navigator.canShare({files:[file]})){ await navigator.share({files:[file],title:'Invoice '+rec.invoice.no,text}); return; }
+      bkDownload(file,file.name); toast(t('pdf_saved'),'ok'); waSend(rec.phone,text); return; }
   }catch(e){ if(e&&e.name==='AbortError')return; }
   waSend(rec.phone,text+'\n\n'+buildInvoiceText(rec,rec.invoice));
 }
@@ -32136,70 +32342,52 @@ function pdfStep(pc,msg){ const b=$('#pdfBar'); if(b)b.style.width=pc+'%';
    no font file to embed, nothing to download, and the PDF reads the same in both languages.
    rows: [[c1,c2,…],…] · cols: [{w, label, align}] */
 async function tableToPdfBlob(o){
+  /* v945 — HIS 21 Nov: "report clean and clear hona chahiye, raw column bana hua." Every report PDF is now the same ruled
+     table as the invoice: boxed grid, shaded heading row, A4 at 200 dpi, big enough to read on a phone. */
   const {PDFDocument}=window.PDFLib;
   const doc=await PDFDocument.create();
-  const W=1240, H=1754, S=1;                     // A4 at 150dpi — sharp on paper and screen
-  const M=60, rowH=30, headH=150;
+  const W=1654, H=2339, M=60, FONT='Roboto,"Helvetica Neue",Arial,sans-serif';
+  const rowH=50, hh=58, headTop=170;
   const cols=o.cols, total=cols.reduce((a,c)=>a+c.w,0);
   const scale=(W-2*M)/total;
-  const perPage=Math.floor((H-headH-M-40)/rowH);
+  const perPage=Math.max(1,Math.floor((H-headTop-hh-M-30-(o.foot?rowH+6:0))/rowH));
   const pages=Math.max(1,Math.ceil(o.rows.length/perPage));
+  const fit=(x,txt,w)=>{ txt=String(txt==null?'':txt); if(x.measureText(txt).width<=w)return txt; while(txt.length>1&&x.measureText(txt+'\u2026').width>w)txt=txt.slice(0,-1); return txt+'\u2026'; };
   for(let p=0;p<pages;p++){
     pdfStep(10+Math.round(p*80/pages), t('pdf_page',{a:p+1,b:pages}));
     const c=document.createElement('canvas'); c.width=W; c.height=H;
-    const x=c.getContext('2d');
-    x.fillStyle='#fff'; x.fillRect(0,0,W,H);
-    /* header */
-    x.fillStyle='#c97e10'; x.font='bold 34px Arial';
-    x.fillText(o.shop||'PARAMPARA', M, 70);
-    x.fillStyle='#111'; x.font='bold 22px Arial';
-    x.textAlign='right'; x.fillText(o.title||'', W-M, 70); x.textAlign='left';
-    x.fillStyle='#555'; x.font='16px Arial';
-    x.fillText((o.sub||'')+'   ·   '+t('pdf_page',{a:p+1,b:pages}), M, 100);
-    x.strokeStyle='#c97e10'; x.lineWidth=3;
-    x.beginPath(); x.moveTo(M,112); x.lineTo(W-M,112); x.stroke();
-    /* column heads */
-    let cx=M; x.fillStyle='#111'; x.font='bold 16px Arial';
-    cols.forEach(col=>{ const w=col.w*scale;
-      x.textAlign=col.align||'left';
-      x.fillText(col.label, col.align==='right'?cx+w-8:cx+2, headH-10);
-      cx+=w; });
-    x.textAlign='left';
-    x.strokeStyle='#c97e10'; x.lineWidth=1.5;
-    x.beginPath(); x.moveTo(M,headH); x.lineTo(W-M,headH); x.stroke();
-    /* rows */
+    const x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,W,H); x.textBaseline='middle';
+    x.fillStyle='#2b2d3c'; x.font='700 44px '+FONT; x.fillText(o.shop||'PARAMPARA',M,70);
+    x.textAlign='right'; x.font='700 36px '+FONT; x.fillText(o.title||'',W-M,66); x.textAlign='left';
+    x.fillStyle='#666'; x.font='400 24px '+FONT; x.fillText(o.sub||'',M,118);
+    x.textAlign='right'; x.fillText(t('pdf_page',{a:p+1,b:pages}),W-M,114); x.textAlign='left';
+    x.strokeStyle='#4a4a55'; x.lineWidth=2;
     const slice=o.rows.slice(p*perPage,(p+1)*perPage);
-    slice.forEach((row,i)=>{
-      const y=headH+rowH*(i+1)-8;
-      x.font='15px Arial'; x.fillStyle='#111';
-      let rx=M;
-      cols.forEach((col,ci)=>{ const w=col.w*scale;
-        let txt=String(row[ci]==null?'':row[ci]);
-        while(txt && x.measureText(txt).width>w-10) txt=txt.slice(0,-1);
-        x.textAlign=col.align||'left';
-        x.fillText(txt, col.align==='right'?rx+w-8:rx+2, y);
-        rx+=w; });
-      x.textAlign='left';
-      x.strokeStyle='#e6e6e6'; x.lineWidth=1;
-      x.beginPath(); x.moveTo(M,y+8); x.lineTo(W-M,y+8); x.stroke();
-    });
-    /* totals, on the last page only */
-    if(p===pages-1 && o.foot){
-      const y=headH+rowH*(slice.length+1)+6;
-      x.strokeStyle='#c97e10'; x.lineWidth=2;
-      x.beginPath(); x.moveTo(M,y-20); x.lineTo(W-M,y-20); x.stroke();
-      x.font='bold 17px Arial'; x.fillStyle='#111';
-      let fx=M;
-      cols.forEach((col,ci)=>{ const w=col.w*scale;
-        const txt=String(o.foot[ci]==null?'':o.foot[ci]);
-        x.textAlign=col.align||'left';
-        x.fillText(txt, col.align==='right'?fx+w-8:fx+2, y);
-        fx+=w; });
-      x.textAlign='left';
-    }
+    const colX=[M]; cols.forEach((col,i)=>colX.push(colX[i]+col.w*scale));
+    const rowsN=slice.length+(p===pages-1&&o.foot?1:0);
+    const tableH=hh+rowsN*rowH;
+    /* heading band */
+    x.fillStyle='#f2f2f5'; x.fillRect(M,headTop,W-2*M,hh);
+    x.fillStyle='#2b2d3c'; x.font='700 24px '+FONT;
+    cols.forEach((col,i)=>{ const w=col.w*scale; x.textAlign=col.align==='right'?'right':'left';
+      x.fillText(fit(x,col.label,w-24),col.align==='right'?colX[i+1]-12:colX[i]+12,headTop+hh/2); });
+    x.textAlign='left';
+    /* rows */
+    slice.forEach((row,r)=>{ const ty=headTop+hh+r*rowH; x.font='400 24px '+FONT; x.fillStyle='#2b2d3c';
+      cols.forEach((col,i)=>{ const w=col.w*scale; x.textAlign=col.align==='right'?'right':'left';
+        x.fillText(fit(x,row[i],w-24),col.align==='right'?colX[i+1]-12:colX[i]+12,ty+rowH/2); }); });
+    x.textAlign='left';
+    /* totals row, last page only */
+    if(p===pages-1&&o.foot){ const ty=headTop+hh+slice.length*rowH; x.fillStyle='#f2f2f5'; x.fillRect(M,ty,W-2*M,rowH);
+      x.fillStyle='#2b2d3c'; x.font='700 25px '+FONT;
+      cols.forEach((col,i)=>{ const w=col.w*scale; x.textAlign=col.align==='right'?'right':'left';
+        x.fillText(fit(x,o.foot[i],w-24),col.align==='right'?colX[i+1]-12:colX[i]+12,ty+rowH/2); }); x.textAlign='left'; }
+    /* the grid */
+    x.strokeStyle='#4a4a55'; x.lineWidth=2; x.strokeRect(M,headTop,W-2*M,tableH);
+    for(let i=1;i<cols.length;i++){ x.beginPath(); x.moveTo(colX[i],headTop); x.lineTo(colX[i],headTop+tableH); x.stroke(); }
+    for(let r=0;r<=rowsN;r++){ const ly=headTop+hh+r*rowH; if(r<rowsN||true){ x.beginPath(); x.moveTo(M,ly); x.lineTo(W-M,ly); x.stroke(); } }
     const png=await new Promise(r=>c.toBlob(r,'image/png'));
-    const bytes=new Uint8Array(await png.arrayBuffer());
-    const emb=await doc.embedPng(bytes);
+    const emb=await doc.embedPng(new Uint8Array(await png.arrayBuffer()));
     const pg=doc.addPage([595.28,841.89]);
     pg.drawImage(emb,{x:0,y:0,width:595.28,height:841.89});
     await new Promise(r=>setTimeout(r,0));
@@ -40609,7 +40797,7 @@ function karIssue(kid,oid){
           ${String(_ki.kind[r.key]||'silai').indexOf('alter')===0?`<span class="hint" style="flex:0 0 110px;text-align:right">${t('ki_alt_rate')}</span>`
            :`<span style="flex:0 0 96px"><input type="number" inputmode="numeric" placeholder="${t('ki_rate')}"
             value="${_ki.rate[r.key]!=null?esc(_ki.rate[r.key]):(_ki.sure?(r.rate||''):'')}"
-            oninput="kiRate('${jq(r.key)}',this.value)" style="width:96px;text-align:right"></span>`}</div>
+            oninput="kiRate('${jq(r.key)}',this.value)" onchange="kiRe()" style="width:96px;text-align:right"></span>`}</div>
         ${_ki.pick[r.key]?`<div class="row ki-kind" style="gap:6px;margin-top:8px;flex-wrap:wrap">${[['silai','\u{1F9F5} '+t('ki_k_silai')],['alter_half','\u2702\uFE0F '+t('ki_k_alt_h')],['alter_full','\u2702\uFE0F '+t('ki_k_alt_f')]].map(([v,l])=>
           `<button class="chip ${(_ki.kind[r.key]||'silai')===v?'on':''}" style="min-height:40px" onclick="_ki.kind['${jq(r.key)}']='${v}';karIssue(_ki.kid,_ki.oid)">${l}</button>`).join('')}</div>`:''}
         ${/* v467: the roll and the metres appear only on a piece he has actually ticked, and
@@ -41141,7 +41329,12 @@ function fabCatUndo(){
   save(); toast(t('fc_undone',{n:n}),'ok'); fabCatClean();
 }
 
-function kiTick(k,on){ _ki.pick[k]=!!on; kiRe(); }
+/* v942 — HIS 19 Nov: 3 kurta = one naap taken, but three separate rows to tick and rate. Pieces of the SAME garment on the SAME order
+   now go together: ticking one ticks its sisters (untick is one piece at a time), and the rate typed on one fills the sisters
+   that have no rate of their own. Each stays its own piece underneath — own slip, own roll, own status. */
+function kiSibs(k){ try{ const a=String(k).split('|'), base=g=>String(g).replace(/#\d+$/,'');
+    return karIssuePool().filter(r=>{ const b=String(r.key).split('|'); return b[0]===a[0] && base(b[1])===base(a[1]); }).map(r=>r.key); }catch(e){ return [k]; } }
+function kiTick(k,on){ _ki.pick[k]=!!on; if(on){ kiSibs(k).forEach(x=>{ if(x!==k)_ki.pick[x]=true; }); } kiRe(); }
 function kiCloth(m){ _ki.cloth=(m==='shop'?'shop':'cust'); kiRe(); }
 /* v539: he types a serial (or picks from the list, which puts the same text in the box) —
    this finds the roll it belongs to. Matched on the serial first, because that is the number
@@ -41168,7 +41361,8 @@ function kiThaan(k,v){ _ki.th[k]=String(v||''); kiRe(); }
 /* v897 - redraw in place: the list keeps its scroll position (a tick on row 30 used to throw him back to the top) */
 function kiRe(){ const sh=$('#sheet'), y=sh?sh.scrollTop:0; karIssue(_ki.kid,_ki.oid); const s2=$('#sheet'); if(s2)s2.scrollTop=y; }
 function kiMtr(k,v){ _ki.mtr[k]=v; }
-function kiRate(k,v){ _ki.rate[k]=v; }
+function kiRate(k,v){ _ki.rate[k]=v; _ki.rateAuto=_ki.rateAuto||{}; delete _ki.rateAuto[k];
+  kiSibs(k).forEach(x=>{ if(x!==k && (_ki.rate[x]==null||_ki.rate[x]===''||_ki.rateAuto[x])){ _ki.rate[x]=v; _ki.rateAuto[x]=1; } }); }   /* v942 */
 /* v681: the extra and its reason, typed on the receive screen where the fact is known */
 function kiExtra(k,v){ _ki.extra[k]=v; }
 function kiExNote(k,v){ _ki.note[k]=v; }
@@ -41176,6 +41370,23 @@ function kiSearch(v){ _ki.q=String(v||''); karIssue();
   setTimeout(()=>{const e=$('#ki_q'); if(e){const x=e.value;e.focus();
     try{e.setSelectionRange(x.length,x.length);}catch(err){}}},0); }
 let _kiRecutOK=false, _kiMisOK=false;
+/* v942 — HIS 19 Nov: "ek item chhoda to seedha WhatsApp popup khul jata hai." Give no longer opens WhatsApp. The pieces go
+   on a bar ("Afroz · 8 given · 💬 Send slips"); it grows with every Give to the same karigar and sends ALL of them in one
+   share when he taps it. ✕ drops the bar (nothing is un-given). Undo of a Give takes those pieces off the bar. */
+let _kiPend={kid:'',kn:'',keys:[]};
+function kiPendAdd(kid,kn,keys){ if(_kiPend.kid!==kid)_kiPend={kid:kid,kn:kn,keys:[]};
+  (keys||[]).forEach(k=>{ if(_kiPend.keys.indexOf(k)<0)_kiPend.keys.push(k); }); kiPendDraw(); }
+function kiPendDrop(keys){ _kiPend.keys=_kiPend.keys.filter(k=>(keys||[]).indexOf(k)<0); kiPendDraw(); }
+function kiPendClear(){ _kiPend={kid:'',kn:'',keys:[]}; kiPendDraw(); }
+function kiPendSend(){ const ks=_kiPend.keys.slice(); kiPendClear(); kiShareSlips(ks,false); }
+function kiPendDraw(){ let el=document.getElementById('kiBar');
+  if(!_kiPend.keys.length){ if(el)el.remove(); return; }
+  if(!el){ el=document.createElement('div'); el.id='kiBar';
+    el.style.cssText='position:fixed;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 74px);z-index:100000;display:flex;align-items:center;gap:8px;border-radius:14px;padding:8px 10px;background:#0f2a1a;color:#fff;border:2px solid #3ddc84;box-shadow:0 4px 18px rgba(0,0,0,.55);font-weight:700;font-size:15px';
+    document.body.appendChild(el); }
+  el.innerHTML='<div style="flex:1;min-width:0">\u{1F477} '+esc(_kiPend.kn)+' \u00b7 '+_kiPend.keys.length+' \u2713</div>'
+    +'<button type="button" onclick="kiPendSend()" style="min-height:44px;padding:0 14px;border-radius:12px;border:none;background:#3ddc84;color:#06210f;font-weight:800;font-size:15px">\u{1F4AC} Send slips</button>'
+    +'<button type="button" aria-label="close" onclick="kiPendClear()" style="min-height:44px;min-width:44px;border-radius:12px;border:1px solid #3ddc84;background:transparent;color:#fff;font-size:18px">\u2715</button>'; }
 function kiIssue(){
   let keys=Object.keys(_ki.pick).filter(k=>_ki.pick[k]);
   /* v790: a piece that is already with someone is never handed out a second time (two open tabs, a double tap, a
@@ -41277,6 +41488,7 @@ function kiIssue(){
   save();
   /* v926: Undo puts every piece, status, cut and rate back as it was */
   undoOffer(t('ki_undo_done',{n:n,k:kn}), ()=>{
+    try{ kiPendDrop(keys); }catch(e){}
     Object.keys(_snap.orders).forEach(id=>{ const i=(DB.orders||[]).findIndex(x=>x.id===id); if(i>=0)DB.orders[i]=JSON.parse(_snap.orders[id]); });
     Object.keys(_snap.thaans).forEach(id=>{ const i=(DB.thaans||[]).findIndex(x=>x.id===id); if(i>=0)DB.thaans[i]=JSON.parse(_snap.thaans[id]); });
     if(_snap.kar){ const kk=JSON.parse(_snap.kar); const i=(DB.karigars||[]).findIndex(x=>x.id===kk.id); if(i>=0)DB.karigars[i]=kk; }
@@ -41293,8 +41505,10 @@ function kiIssue(){
      him looking at a list he had just emptied, wondering whether it had worked. He is sent
      back to the order either way now. The general Issue screen still stays open, because
      there he is working through everything waiting and the next man is the next thing. */
-  try{ kiShareSlips(keys,true); }catch(e){}   /* v928: the slips go to WhatsApp straight after Give (share sheet only — never jumps away) */
-  if(_ki.oid){ const _o=_ki.oid; _ki.oid='';
+  try{ kiPendAdd(kid,kn,keys); }catch(e){}   /* v942: slips wait on a bar; one tap sends them all (was: WhatsApp opened after every Give) */
+  if(_ki.oid){ const _o=_ki.oid; let _left=0; try{ _left=karIssuePool().filter(r=>String(r.key).split('|')[0]===_o).length; }catch(e){}
+    if(_left>0){ karIssue(_ki.kid,_o); return; }   /* v942: more pieces on this order — stay here, next one, same karigar */
+    _ki.oid='';
     closeSheet(); sheetReset(); openDetail(_o); return; }
   karIssue(_ki.kid,_ki.oid);
 }
